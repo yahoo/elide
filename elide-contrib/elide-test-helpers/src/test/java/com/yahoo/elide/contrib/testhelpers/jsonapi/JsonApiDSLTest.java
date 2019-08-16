@@ -7,7 +7,8 @@
 package com.yahoo.elide.contrib.testhelpers.jsonapi;
 
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperationType.*;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.*;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
@@ -274,6 +275,36 @@ public class JsonApiDSLTest {
                         attributes(
                                 attr("title", "Why You Should use Elide"),
                                 attr("date", "2019-01-01")
+                        )
+                )
+        ).toJSON();
+
+        assertEquals(actual, expected);
+    }
+
+    @Test
+    public void verifyPatchOperation() {
+        String expected = "[{\"op\":\"add\",\"path\":\"/parent\",\"value\":{\"type\":\"parent\",\"id\":\"1\",\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[{\"type\":\"parent\",\"id\":\"3\"}]}}}},{\"op\":\"add\",\"path\":\"/parent/1/children\",\"value\":{\"type\":\"child\",\"id\":\"2\"}}]";
+
+        String actual = patchSet(
+                patchOperation(add, "/parent",
+                        resource(
+                                type("parent"),
+                                id("1"),
+                                relationships(
+                                        relation("children",
+                                                linkage(type("child"), id("2"))
+                                        ),
+                                        relation("spouses",
+                                                linkage(type("parent"), id("3"))
+                                        )
+                                )
+                        )
+                ),
+                patchOperation(add, "/parent/1/children",
+                        resource(
+                                type("child"),
+                                id("2")
                         )
                 )
         ).toJSON();

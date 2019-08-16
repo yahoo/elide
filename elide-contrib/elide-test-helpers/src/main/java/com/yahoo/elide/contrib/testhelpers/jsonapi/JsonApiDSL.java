@@ -12,6 +12,9 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Document;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Id;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Include;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperation;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperationType;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchSet;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relationships;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
@@ -272,5 +275,23 @@ public class JsonApiDSL {
      */
     public static ResourceLinkage linkage(Type type, Id id) {
         return new ResourceLinkage(id, type);
+    }
+
+    /**
+     * @param patchOperations the set of patch operation
+     * @return the patch set
+     */
+    public static PatchSet patchSet(PatchOperation... patchOperations) {
+        return new PatchSet(patchOperations);
+    }
+
+    /**
+     * @param operation the operation type
+     * @param path the operation path
+     * @param value the operation value
+     * @return
+     */
+    public static PatchOperation patchOperation(PatchOperationType operation, String path, Resource value) {
+        return new PatchOperation(operation, path, value);
     }
 }
