@@ -5,13 +5,8 @@
  */
 package com.yahoo.elide.assignedIdLongTests;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;

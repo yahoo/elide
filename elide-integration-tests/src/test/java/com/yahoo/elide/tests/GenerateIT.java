@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.jayway.restassured.RestAssured.given;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;

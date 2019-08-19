@@ -5,12 +5,8 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,8 +18,7 @@ import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -94,104 +89,88 @@ public class BookAuthorIT extends IntegrationTest {
         dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
 
         // Create Author: Ernest Hemingway
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(HEMINGWAY),
-                        ObjectMapperType.GSON
+                        datum(HEMINGWAY).toJSON()
                 )
                 .post("/author")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Book: The Old Man and the Sea
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(THE_OLD_MAN_AND_THE_SEA),
-                        ObjectMapperType.GSON
+                        datum(THE_OLD_MAN_AND_THE_SEA).toJSON()
                 )
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Relationship: Ernest Hemingway -> The Old Man and the Sea
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(HEMINGWAY_RELATIONSHIP),
-                        ObjectMapperType.GSON
+                        datum(HEMINGWAY_RELATIONSHIP).toJSON()
                 )
                 .patch("/book/1/relationships/authors")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         // Create Author: Orson Scott Card
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(ORSON_SCOTT_CARD),
-                        ObjectMapperType.GSON
+                        datum(ORSON_SCOTT_CARD).toJSON()
                 )
                 .post("/author")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Book: Ender's Game
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(ENDERS_GAME),
-                        ObjectMapperType.GSON
+                        datum(ENDERS_GAME).toJSON()
                 )
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Relationship: Orson Scott Card -> Ender's Game
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(ORSON_RELATIONSHIP),
-                        ObjectMapperType.GSON
+                        datum(ORSON_RELATIONSHIP).toJSON()
                 )
                 .patch("/book/2/relationships/authors")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         // Create Book: For Whom the Bell Tolls
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(FOR_WHOM_THE_BELL_TOLLS),
-                        ObjectMapperType.GSON
+                        datum(FOR_WHOM_THE_BELL_TOLLS).toJSON()
                 )
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Relationship: Ernest Hemingway -> For Whom the Bell Tolls
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(HEMINGWAY_RELATIONSHIP),
-                        ObjectMapperType.GSON
+                        datum(HEMINGWAY_RELATIONSHIP).toJSON()
                 )
                 .patch("/book/3/relationships/authors")
                 .then()
@@ -201,8 +180,7 @@ public class BookAuthorIT extends IntegrationTest {
     @Test
     public void testSparseSingleDataFieldValue() throws Exception {
         JsonNode responseBody = objectMapper.readTree(
-                RestAssured
-                        .given()
+                given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
@@ -231,8 +209,7 @@ public class BookAuthorIT extends IntegrationTest {
     @Test
     public void testSparseTwoDataFieldValuesNoIncludes() throws Exception {
         JsonNode responseBody = objectMapper.readTree(
-                RestAssured
-                        .given()
+                given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("fields[book]", "title,language")
@@ -256,8 +233,7 @@ public class BookAuthorIT extends IntegrationTest {
     @Test
     public void testSparseNoFilters() throws Exception {
         JsonNode responseBody = objectMapper.readTree(
-                RestAssured
-                        .given()
+                given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
@@ -293,8 +269,7 @@ public class BookAuthorIT extends IntegrationTest {
     @Test
     public void testTwoSparseFieldFilters() throws Exception {
         JsonNode responseBody = objectMapper.readTree(
-                RestAssured
-                        .given()
+                given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")

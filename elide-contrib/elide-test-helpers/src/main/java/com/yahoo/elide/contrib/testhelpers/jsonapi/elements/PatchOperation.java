@@ -8,6 +8,9 @@ package com.yahoo.elide.contrib.testhelpers.jsonapi.elements;
 
 import java.util.LinkedHashMap;
 
+/**
+ * Patch operation.
+ */
 public class PatchOperation extends LinkedHashMap<String, Object> {
 
    /**

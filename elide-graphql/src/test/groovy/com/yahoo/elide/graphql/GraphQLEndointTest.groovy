@@ -5,18 +5,21 @@
  */
 package com.yahoo.elide.graphql
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.google.common.collect.Sets
 import com.yahoo.elide.Elide
 import com.yahoo.elide.ElideSettingsBuilder
 import com.yahoo.elide.audit.AuditLogger
 import com.yahoo.elide.core.EntityDictionary
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction
-
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.google.common.collect.Sets
-
+import graphqlEndpointTestModels.Author
+import graphqlEndpointTestModels.Book
+import graphqlEndpointTestModels.DisallowShare
+import graphqlEndpointTestModels.security.CommitChecks
+import graphqlEndpointTestModels.security.UserChecks
 import org.mockito.Mockito
 import org.skyscreamer.jsonassert.JSONAssert
 import org.testng.Assert
@@ -24,16 +27,9 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.BeforeTest
 import org.testng.annotations.Test
 
-import graphqlEndpointTestModels.Author
-import graphqlEndpointTestModels.Book
-import graphqlEndpointTestModels.DisallowShare
-import graphqlEndpointTestModels.security.CommitChecks
-import graphqlEndpointTestModels.security.UserChecks
-
-import java.security.Principal
-
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.SecurityContext
+import java.security.Principal
 
 /**
  * GraphQL endpoint tests tested against the in-memory store.

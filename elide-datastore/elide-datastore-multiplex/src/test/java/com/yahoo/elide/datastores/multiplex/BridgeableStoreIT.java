@@ -5,8 +5,7 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import static com.jayway.restassured.RestAssured.given;
-
+import static io.restassured.RestAssured.given;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableStoreSupplier;

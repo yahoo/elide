@@ -5,15 +5,9 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -24,11 +18,13 @@ import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.jayway.restassured.response.Response;
 
 import example.Left;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import io.restassured.response.Response;
 
 import java.util.HashMap;
 
@@ -219,12 +215,12 @@ class ShareableIT extends IntegrationTest {
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
                 .body(
-                    datum(
-                            resource(
-                                    type("container"),
-                                    id(null)
-                            )
-                    )
+                        datum(
+                                resource(
+                                        type("container"),
+                                        id(null)
+                                )
+                        )
                 )
                 .post("/container")
                 .then()
@@ -404,6 +400,7 @@ class ShareableIT extends IntegrationTest {
         // Container should have 2 unshareables
         assertEquals(2, patchJson.get(0).get("data").get("relationships").get("unshareables").get("data").size());
     }
+
     @Test
     public void testCreateContainerAndShareables() throws Exception {
         Response patchResponse = given()

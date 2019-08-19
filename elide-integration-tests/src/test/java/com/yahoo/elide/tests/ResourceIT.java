@@ -5,20 +5,9 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.include;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -341,23 +330,23 @@ public class ResourceIT extends IntegrationTest {
         // CheckRestrictUser.
         //
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(
-                data(
-                    resource(
-                        type("filterExpressionCheckObj"),
-                        id(null),
-                        attributes(
-                            attr("name", "obj1")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("filterExpressionCheckObj"),
+                                        id(null),
+                                        attributes(
+                                                attr("name", "obj1")
+                                        )
+                                )
                         )
-                    )
                 )
-            )
-            .post("/filterExpressionCheckObj")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED)
-            .body("data.id", equalTo("1"));
+                .post("/filterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("1"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -401,21 +390,21 @@ public class ResourceIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                    data(
-                        resource(
-                            type("anotherFilterExpressionCheckObj"),
-                            id("1"),
-                            attributes(
-                                attr("anotherName", "anotherObj1"),
-                                attr("createDate", "1999")
-                            ),
-                            relationships(
-                                relation("linkToParent",
-                                    linkage(type("filterExpressionCheckObj"), id("1"))
+                        data(
+                                resource(
+                                        type("anotherFilterExpressionCheckObj"),
+                                        id("1"),
+                                        attributes(
+                                                attr("anotherName", "anotherObj1"),
+                                                attr("createDate", "1999")
+                                        ),
+                                        relationships(
+                                                relation("linkToParent",
+                                                        linkage(type("filterExpressionCheckObj"), id("1"))
+                                                )
+                                        )
                                 )
-                            )
                         )
-                    )
                 )
                 .post("/anotherFilterExpressionCheckObj")
                 .then()
@@ -423,23 +412,23 @@ public class ResourceIT extends IntegrationTest {
                 .body("data.id", equalTo("1"));
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(
-                data(
-                    resource(
-                        type("anotherFilterExpressionCheckObj"),
-                        attributes(
-                            attr("anotherName", "anotherObj2"),
-                            attr("createDate", "2000")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("anotherFilterExpressionCheckObj"),
+                                        attributes(
+                                                attr("anotherName", "anotherObj2"),
+                                                attr("createDate", "2000")
+                                        )
+                                )
                         )
-                    )
                 )
-            )
-            .post("/anotherFilterExpressionCheckObj")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED)
-            .body("data.id", equalTo("2"));
+                .post("/anotherFilterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("2"));
 
         //The User ID is set to one so the following get request won't return record including
         // filterExpressionCheckObj.id != User'id.
@@ -516,33 +505,33 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testRootCollectionId() {
         given()
-           .when()
-           .get("/parent/1")
-           .then()
-           .statusCode(HttpStatus.SC_OK)
-           .body(equalTo(
-               datum(PARENT1).toJSON()));
+                .when()
+                .get("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        datum(PARENT1).toJSON()));
     }
 
     @Test
     public void testRootCollectionRelationships() {
         given()
-            .when().get("/parent/1/relationships/children").then().statusCode(HttpStatus.SC_OK)
-            .body(equalTo(
-                data(linkage(type("child"), id("1"))).toJSON()));
+                .when().get("/parent/1/relationships/children").then().statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(linkage(type("child"), id("1"))).toJSON()));
     }
 
     @Test
     public void testChild() throws Exception {
         given().when().get("/parent/1/children/1").then().statusCode(HttpStatus.SC_OK)
-        .body(equalTo(datum(CHILD1).toJSON()));
+                .body(equalTo(datum(CHILD1).toJSON()));
     }
 
     @Test
     public void testSubCollectionRelationships() throws Exception {
         given().when().get("/parent/1/children/1/relationships/parents").then().statusCode(HttpStatus.SC_OK)
-            .body(equalTo(
-                data(linkage(type("parent"), id("1"))).toJSON()));
+                .body(equalTo(
+                        data(linkage(type("parent"), id("1"))).toJSON()));
     }
 
     @Test
@@ -556,7 +545,7 @@ public class ResourceIT extends IntegrationTest {
 
         given().when().get("/unknown").then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
-        .body(equalTo(expected));
+                .body(equalTo(expected));
     }
 
     @Test
@@ -564,7 +553,7 @@ public class ResourceIT extends IntegrationTest {
         String expected = "{\"errors\":[\"InvalidObjectIdentifierException: Unknown identifier '6789' for parent\"]}";
 
         given().when().get("/parent/6789").then().statusCode(HttpStatus.SC_NOT_FOUND)
-        .body(equalTo(expected));
+                .body(equalTo(expected));
     }
 
     @Test
@@ -572,7 +561,7 @@ public class ResourceIT extends IntegrationTest {
         String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
 
         given().when().get("/parent/1/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
-        .body(equalTo(expected));
+                .body(equalTo(expected));
     }
 
     @Test
@@ -580,7 +569,7 @@ public class ResourceIT extends IntegrationTest {
         String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'id'\"]}";
 
         given().when().get("/parent/1/id").then().statusCode(HttpStatus.SC_NOT_FOUND)
-        .body(equalTo(expected));
+                .body(equalTo(expected));
     }
 
     @Test
@@ -588,56 +577,56 @@ public class ResourceIT extends IntegrationTest {
         String expected = "{\"errors\":[\"InvalidURLException: token recognition error at: '|'\"]}";
 
         given().when().get("company/1|apps/2/links/foo").then().statusCode(HttpStatus.SC_NOT_FOUND)
-        .body(equalTo(expected));
+                .body(equalTo(expected));
     }
 
     @Test
     public void testPatchAttrSingle() throws Exception {
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(
-                datum(
-                    resource(
-                        type("parent"),
-                        id("2"),
-                        attributes(
-                            attr("firstName", "syzygy")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("parent"),
+                                        id("2"),
+                                        attributes(
+                                                attr("firstName", "syzygy")
+                                        )
+                                )
                         )
-                    )
                 )
-            )
-            .patch("/parent/2")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .patch("/parent/2")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/2")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .body(equalTo(
-                datum(
-                    resource(
-                        type("parent"),
-                        id("2"),
-                        attributes(
-                            attr("firstName", "syzygy")
-                        ),
-                        relationships(
-                            relation("children",
-                                linkage(type("child"), id("2")),
-                                linkage(type("child"), id("3"))
-                            ),
-                            relation("spouses")
-                        )
-                    )
-                ).toJSON()
-            ));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("parent"),
+                                        id("2"),
+                                        attributes(
+                                                attr("firstName", "syzygy")
+                                        ),
+                                        relationships(
+                                                relation("children",
+                                                        linkage(type("child"), id("2")),
+                                                        linkage(type("child"), id("3"))
+                                                ),
+                                                relation("spouses")
+                                        )
+                                )
+                        ).toJSON()
+                ));
     }
 
     @Test
@@ -662,66 +651,66 @@ public class ResourceIT extends IntegrationTest {
                 + "}";
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
-            .patch("/parent/3")
-            .then()
-            .statusCode(HttpStatus.SC_BAD_REQUEST);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(request)
+                .patch("/parent/3")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
     public void testPatchSetRel() throws Exception {
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(
-                datum(
-                    resource(
-                        type("parent"),
-                        id("4"),
-                        attributes(),
-                        relationships(
-                            relation("children",
-                                linkage(type("child"), id("4")),
-                                linkage(type("child"), id("5"))
-                            )
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("parent"),
+                                        id("4"),
+                                        attributes(),
+                                        relationships(
+                                                relation("children",
+                                                        linkage(type("child"), id("4")),
+                                                        linkage(type("child"), id("5"))
+                                                )
+                                        )
+                                )
                         )
-                    )
-                )
 
-            )
-            .patch("/parent/4")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                )
+                .patch("/parent/4")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/4")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(
-                datum(
-                    resource(
-                       type("parent"),
-                       id("4"),
-                       attributes(
-                           attr("firstName", "Unknown")
-                       ),
-                       relationships(
-                           relation("children",
-                               linkage(type("child"), id("4")),
-                               linkage(type("child"), id("5"))
-                           ),
-                           relation("spouses",
-                               linkage(type("parent"), id("3"))
-                            )
-                       )
-                    )
-                ).toJSON()
-            ));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("parent"),
+                                        id("4"),
+                                        attributes(
+                                                attr("firstName", "Unknown")
+                                        ),
+                                        relationships(
+                                                relation("children",
+                                                        linkage(type("child"), id("4")),
+                                                        linkage(type("child"), id("5"))
+                                                ),
+                                                relation("spouses",
+                                                        linkage(type("parent"), id("3"))
+                                                )
+                                        )
+                                )
+                        ).toJSON()
+                ));
     }
 
     @Test
@@ -778,13 +767,13 @@ public class ResourceIT extends IntegrationTest {
     public void testPatchRelNoUpdateSingle() {
         //Test a relationship update that leaves the resource unchanged.
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(datum(PARENT2))
-            .patch("/parent/2")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(PARENT2))
+                .patch("/parent/2")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -799,46 +788,46 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testPatchRelRemoveColl() {
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(
-                    datum(
-                            resource(
-                                    type("parent"),
-                                    id("2"),
-                                    attributes(),
-                                    relationships(
-                                            relation("children")
-                                    )
-                            )
-                    )
-            )
-            .patch("/parent/2")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("parent"),
+                                        id("2"),
+                                        attributes(),
+                                        relationships(
+                                                relation("children")
+                                        )
+                                )
+                        )
+                )
+                .patch("/parent/2")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/2")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(
-                    datum(
-                            resource(
-                                    type("parent"),
-                                    id("2"),
-                                    attributes(
-                                            attr("firstName", "John")
-                                    ),
-                                    relationships(
-                                            relation("children"),
-                                            relation("spouses")
-                                    )
-                            )
-                    ).toJSON()
-            ));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("parent"),
+                                        id("2"),
+                                        attributes(
+                                                attr("firstName", "John")
+                                        ),
+                                        relationships(
+                                                relation("children"),
+                                                relation("spouses")
+                                        )
+                                )
+                        ).toJSON()
+                ));
     }
 
     @Test
@@ -848,12 +837,12 @@ public class ResourceIT extends IntegrationTest {
                 include(CHILD2, CHILD3)).toJSON();
 
         String actual = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/2?include=children.friends")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/2?include=children.friends")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         JSONAssert.assertEquals(expected, actual, false);
     }
@@ -955,12 +944,12 @@ public class ResourceIT extends IntegrationTest {
         String expected = data(null).toJSON();
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/4/relationships/children")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4/relationships/children")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
     }
 
     @Test
@@ -968,12 +957,12 @@ public class ResourceIT extends IntegrationTest {
         String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();
 
         String actual = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         assertEqualDocuments(actual, expected);
     }
@@ -987,21 +976,21 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(relationships)
-            .patch("/parent/4/relationships/children")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(relationships)
+                .patch("/parent/4/relationships/children")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         String actual = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/4/relationships/children")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().response().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4/relationships/children")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().response().asString();
 
         JSONAssert.assertEquals(relationships.toJSON(), actual, false);
     }
@@ -1031,33 +1020,33 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testDeleteParent() {
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .delete("/parent/1")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .body(isEmptyOrNullString());
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .delete("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .body(isEmptyOrNullString());
     }
 
     @Test
     public void testDeleteWithCascade() {
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .delete("/invoice/1")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .body(isEmptyOrNullString());
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .delete("/invoice/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .body(isEmptyOrNullString());
     }
 
     @Test
     public void failDeleteParent() {
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .delete("/parent/678")
-            .then()
-            .statusCode(HttpStatus.SC_NOT_FOUND);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .delete("/parent/678")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
 
@@ -1079,13 +1068,13 @@ public class ResourceIT extends IntegrationTest {
         );
 
         String actual = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(parent)
-            .post("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(parent)
+                .post("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract().body().asString();
 
         JSONAssert.assertEquals(parent.toJSON(), actual, true);
     }
@@ -1126,13 +1115,13 @@ public class ResourceIT extends IntegrationTest {
         );
 
         String actual = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(parentInput)
-            .post("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(parentInput)
+                .post("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract().body().asString();
 
         JSONAssert.assertEquals(parentOutput.toJSON(), actual, true);
     }
@@ -1143,13 +1132,13 @@ public class ResourceIT extends IntegrationTest {
         String expected = "{\"errors\":[\"InvalidEntityBodyException: Bad Request Body";
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
-            .post("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_BAD_REQUEST)
-            .body(startsWith(expected));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(request)
+                .post("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(startsWith(expected));
     }
 
 
@@ -1205,23 +1194,23 @@ public class ResourceIT extends IntegrationTest {
         );
 
         String childActual = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(childInput)
-            .post("/parent/4/children")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(childInput)
+                .post("/parent/4/children")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract().body().asString();
 
         JSONAssert.assertEquals(childOutput.toJSON(), childActual, true);
 
         String parentActual = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/4")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         JSONAssert.assertEquals(parentOutput.toJSON(), parentActual, true);
     }
@@ -1240,12 +1229,12 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(parentInput)
-            .post("/parent/678")
-            .then()
-            .statusCode(HttpStatus.SC_NOT_FOUND);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(parentInput)
+                .post("/parent/678")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
@@ -1260,12 +1249,12 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(childInput)
-            .post("/child")
-            .then()
-            .statusCode(HttpStatus.SC_NOT_FOUND);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(childInput)
+                .post("/child")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
@@ -1307,13 +1296,13 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(funInput)
-            .patch("/fun/1")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(funInput)
+                .patch("/fun/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         String actual = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
 
@@ -1351,13 +1340,13 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(funInput)
-            .patch("/fun/1")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(funInput)
+                .patch("/fun/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         actual = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
 
@@ -1369,13 +1358,13 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/createDependentPatchExt.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createDependentPatchExt.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
     }
 
     @Test
@@ -1383,13 +1372,13 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/createChildRelateExisting.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createChildRelateExisting.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
     }
 
     @Test
@@ -1398,20 +1387,20 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.2.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected1));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/4/children/1")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected2));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4/children/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected2));
     }
 
     @Test
@@ -1420,20 +1409,20 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.json");
         String expected2 = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.2.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected1));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
         String response = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/1")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         assertEqualDocuments(response, expected2);
     }
@@ -1446,34 +1435,34 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/removeObject.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/removeObject.2.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(req1)
-            .patch("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected1));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req1)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/5")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expectedDirect));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/5")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expectedDirect));
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(req2)
-            .patch("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected2));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req2)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected2));
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/5")
-            .then()
-            .statusCode(HttpStatus.SC_NOT_FOUND);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/5")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
@@ -1481,25 +1470,25 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/createAndRemoveParent.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createAndRemoveParent.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/4")
-            .then()
-            .statusCode(HttpStatus.SC_OK);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/4")
-            .then()
-            .statusCode(HttpStatus.SC_NOT_FOUND);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/4")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
@@ -1508,20 +1497,20 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/testAddRoot.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/testAddRoot.2.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected1));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/5")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected2));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/5")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected2));
     }
 
     @Test
@@ -1530,20 +1519,20 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.2.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/parent/1/relationships/children")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected1));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/parent/1/relationships/children")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
         String response = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/1")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         assertEqualDocuments(response, expected2);
     }
@@ -1554,20 +1543,20 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/removeSingleRelationship.1.json");
         String expected2 = jsonParser.getJson("/ResourceIT/removeSingleRelationship.2.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/parent/2/relationships/children")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected1));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/parent/2/relationships/children")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
         String response = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/2")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         assertEqualDocuments(response, expected2);
     }
@@ -1592,24 +1581,24 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(
-                    datum(
-                        linkage(type("parent"), id("2"))
-                    )
-            )
-            .post("/parent/1/children/1/relationships/parents")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                linkage(type("parent"), id("2"))
+                        )
+                )
+                .post("/parent/1/children/1/relationships/parents")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
         String response = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/1/children/1")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/1/children/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         JSONAssert.assertEquals(expected.toJSON(), response, true);
     }
@@ -1631,22 +1620,22 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(datum(
-                    linkage(type("parent"), id("1"))
-            ))
-            .delete("/parent/1/children/1/relationships/parents")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(
+                        linkage(type("parent"), id("1"))
+                ))
+                .delete("/parent/1/children/1/relationships/parents")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/child/1")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected.toJSON()));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/child/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected.toJSON()));
     }
 
     @Test
@@ -1655,20 +1644,20 @@ public class ResourceIT extends IntegrationTest {
         String expected1 = jsonParser.getJson("/ResourceIT/addRelationships.json");
         String expected2 = jsonParser.getJson("/ResourceIT/addRelationships.2.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/parent/1/relationships/children")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected1));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/parent/1/relationships/children")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected1));
         String response = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/1")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         assertEqualDocuments(response, expected2);
     }
@@ -1678,13 +1667,13 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/checkJsonApiPatchWithError.req.json");
         String expected = jsonParser.getJson("/ResourceIT/checkJsonApiPatchWithError.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_BAD_REQUEST)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
     }
 
     @Test
@@ -1692,13 +1681,13 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadId.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtBadId.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/")
-            .then()
-            .statusCode(HttpStatus.SC_BAD_REQUEST)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
     }
 
     @Test
@@ -1706,13 +1695,13 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/patchExtAddUpdate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtAddUpdate.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
     }
 
     @Test
@@ -1721,15 +1710,15 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadValue.req.json");
 
         jsonApiMapper.getObjectMapper().readTree(given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/")
-            .then()
-            .statusCode(anyOf(equalTo(HttpStatus.SC_LOCKED), equalTo(HttpStatus.SC_BAD_REQUEST)))
-            .extract()
-            .body()
-            .asString());
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(anyOf(equalTo(HttpStatus.SC_LOCKED), equalTo(HttpStatus.SC_BAD_REQUEST)))
+                .extract()
+                .body()
+                .asString());
     }
 
     @Test
@@ -1737,13 +1726,13 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadDelete.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtBadDelete.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/")
-            .then()
-            .statusCode(HttpStatus.SC_BAD_REQUEST)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
     }
 
     @Test
@@ -1805,22 +1794,22 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(oneToOneRoot)
-            .post("/oneToOneRoot")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(oneToOneRoot)
+                .post("/oneToOneRoot")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
 
         // Verify it was actually created
         String o = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(oneToOneRoot)
-            .get("/oneToOneRoot/1")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(oneToOneRoot)
+                .get("/oneToOneRoot/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().asString();
 
         Data oneToOneNonRoot = datum(
                 resource(
@@ -1833,59 +1822,59 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(oneToOneNonRoot)
-            .post("/oneToOneRoot/1/otherObject")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(oneToOneNonRoot)
+                .post("/oneToOneRoot/1/otherObject")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
 
         // Verify contents
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/oneToOneRoot/1")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(
-                    datum(
-                            resource(
-                                    type("oneToOneRoot"),
-                                    id("1"),
-                                    attributes(
-                                            attr("name", "test123")
-                                    ),
-                                    relationships(
-                                            relation("otherObject", TO_ONE,
-                                                    linkage(type("oneToOneNonRoot"), id("1"))
-                                            )
-                                    )
-                            )
-                    ).toJSON()
-            ));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/oneToOneRoot/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("oneToOneRoot"),
+                                        id("1"),
+                                        attributes(
+                                                attr("name", "test123")
+                                        ),
+                                        relationships(
+                                                relation("otherObject", TO_ONE,
+                                                        linkage(type("oneToOneNonRoot"), id("1"))
+                                                )
+                                        )
+                                )
+                        ).toJSON()
+                ));
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/oneToOneRoot/1/otherObject")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(
-                    datum(
-                            resource(
-                                    type("oneToOneNonRoot"),
-                                    id("1"),
-                                    attributes(
-                                            attr("test", "Other object")
-                                    ),
-                                    relationships(
-                                            relation("root", TO_ONE,
-                                                    linkage(type("oneToOneRoot"), id("1"))
-                                            )
-                                    )
-                            )
-                    ).toJSON()
-            ));
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/oneToOneRoot/1/otherObject")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("oneToOneNonRoot"),
+                                        id("1"),
+                                        attributes(
+                                                attr("test", "Other object")
+                                        ),
+                                        relationships(
+                                                relation("root", TO_ONE,
+                                                        linkage(type("oneToOneRoot"), id("1"))
+                                                )
+                                        )
+                                )
+                        ).toJSON()
+                ));
     }
 
     @Test
@@ -1899,21 +1888,21 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(datum(obj))
-            .post("/yetAnotherPermission")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(obj))
+                .post("/yetAnotherPermission")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
 
         // Verify contents
         String actual = given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .get("/yetAnotherPermission")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/yetAnotherPermission")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         JSONAssert.assertEquals(data(obj).toJSON(), actual, true);
     }
@@ -1966,19 +1955,19 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(
                         datum(
-                            resource(
-                                    type("oneToOneRoot"),
-                                    id("1"),
-                                    attributes(
-                                            attr("name", "test123")
+                                resource(
+                                        type("oneToOneRoot"),
+                                        id("1"),
+                                        attributes(
+                                                attr("name", "test123")
 
-                                    ),
-                                    relationships(
-                                            relation("otherObject", TO_ONE,
-                                                    linkage(type("oneToOneNonRoot"), id("1"))
-                                            )
-                                    )
-                            )
+                                        ),
+                                        relationships(
+                                                relation("otherObject", TO_ONE,
+                                                        linkage(type("oneToOneNonRoot"), id("1"))
+                                                )
+                                        )
+                                )
                         ).toJSON()
                 ));
 
@@ -2066,7 +2055,7 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(
                         data(
-                            linkage(type("child"), id("3"))
+                                linkage(type("child"), id("3"))
                         ).toJSON()));
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -2150,7 +2139,7 @@ public class ResourceIT extends IntegrationTest {
                                                 relationships(
                                                         relation("children"),
                                                         relation("spouses",
-                                                            linkage(type("parent"), id("3"))
+                                                                linkage(type("parent"), id("3"))
                                                         )
                                                 )
 
@@ -2179,13 +2168,13 @@ public class ResourceIT extends IntegrationTest {
     public void testCreatedRootNoReadPermRequired() {
         String req = jsonParser.getJson("/ResourceIT/testPatchExtNoReadPermForNew.req.json");
         String badReq = "[{\n"
-                 + "    \"op\": \"add\","
-                 + "    \"path\": \"/1/child\",\n"
-                 + "    \"value\": {\n"
-                 + "      \"type\": \"child\",\n"
-                 + "      \"id\": \"12345678-1234-1234-1234-123456789ab2\"\n"
-                 + "    }\n"
-                 + "  }]";
+                + "    \"op\": \"add\","
+                + "    \"path\": \"/1/child\",\n"
+                + "    \"value\": {\n"
+                + "      \"type\": \"child\",\n"
+                + "      \"id\": \"12345678-1234-1234-1234-123456789ab2\"\n"
+                + "    }\n"
+                + "  }]";
         String expected = jsonParser.getJson("/ResourceIT/testPatchExtNoReadPermForNew.resp.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
@@ -2304,7 +2293,7 @@ public class ResourceIT extends IntegrationTest {
                 ),
                 relationships(
                         relation("notIncludedResource",
-                            linkage(type("notIncludedResource"), id("1"))
+                                linkage(type("notIncludedResource"), id("1"))
                         )
                 )
         );
@@ -2462,12 +2451,12 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(datum(resource))
-            .post("/assignedIdString")
-            .then()
-            .statusCode(HttpStatus.SC_BAD_REQUEST);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(resource))
+                .post("/assignedIdString")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -2532,16 +2521,16 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(datum(patched))
-            .patch("/user/1")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(patched))
+                .patch("/user/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         given().when().get("/user/1").then().statusCode(HttpStatus.SC_OK)
-            .body(equalTo(datum(returned).toJSON()));
+                .body(equalTo(datum(returned).toJSON()));
     }
 
     @Test
@@ -2555,12 +2544,12 @@ public class ResourceIT extends IntegrationTest {
         );
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(datum(patched))
-            .patch("/user/1")
-            .then()
-            .statusCode(HttpStatus.SC_FORBIDDEN);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(patched))
+                .patch("/user/1")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
 
@@ -2628,13 +2617,13 @@ public class ResourceIT extends IntegrationTest {
         String request = jsonParser.getJson("/ResourceIT/testPatchDeferredOnCreate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/testPatchDeferredOnCreate.json");
         given()
-            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-            .body(request)
-            .patch("/")
-            .then()
-            .statusCode(HttpStatus.SC_FORBIDDEN)
-            .body(equalTo(expected));
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body(equalTo(expected));
     }
 
 

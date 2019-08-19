@@ -5,13 +5,8 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
@@ -38,7 +33,7 @@ class MapEnumIT extends IntegrationTest {
                 type("mapColorShape"),
                 id("1"),
                 attributes(
-                attr("colorShapeMap", colorMap)
+                        attr("colorShapeMap", colorMap)
                 )
         );
         given()
@@ -87,20 +82,20 @@ class MapEnumIT extends IntegrationTest {
                 .contentType("application/vnd.api+json; ext=jsonpatch")
                 .accept("application/vnd.api+json; ext=jsonpatch")
                 .body("[\n"
-                                + "{\n"
-                                + "  \"op\": \"add\",\n"
-                                + "  \"path\": \"/mapColorShape\",\n"
-                                + "  \"value\": {\n"
-                                + "  \"id\": \"12345681-1234-1234-1234-1234567890ab\",\n"
-                                + "  \"type\": \"mapColorShape\",\n"
-                                + "  \"attributes\": {\n"
-                                + "    \"colorShapeMap\": {\n"
-                                + "       \"Blue\": \"Triangle\"\n"
-                                + "     }\n"
-                                + "   }\n"
-                                + " }\n"
-                                + "}\n"
-                                + "]")
+                        + "{\n"
+                        + "  \"op\": \"add\",\n"
+                        + "  \"path\": \"/mapColorShape\",\n"
+                        + "  \"value\": {\n"
+                        + "  \"id\": \"12345681-1234-1234-1234-1234567890ab\",\n"
+                        + "  \"type\": \"mapColorShape\",\n"
+                        + "  \"attributes\": {\n"
+                        + "    \"colorShapeMap\": {\n"
+                        + "       \"Blue\": \"Triangle\"\n"
+                        + "     }\n"
+                        + "   }\n"
+                        + " }\n"
+                        + "}\n"
+                        + "]")
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK);

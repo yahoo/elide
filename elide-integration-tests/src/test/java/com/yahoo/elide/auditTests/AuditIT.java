@@ -5,16 +5,8 @@
  */
 package com.yahoo.elide.auditTests;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,7 +17,6 @@ import com.yahoo.elide.initialization.AuditIntegrationTestApplicationResourceCon
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -145,8 +136,7 @@ public class AuditIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(AUDIT_1_RELATIONSHIP),
-                        ObjectMapperType.GSON
+                        datum(AUDIT_1_RELATIONSHIP).toJSON()
                 )
                 .patch("/auditEntity/1")
                 .then()
@@ -175,8 +165,7 @@ public class AuditIT extends IntegrationTest {
                                                 attr("value", "update id 1 through id 2")
                                         )
                                 )
-                        ),
-                        ObjectMapperType.GSON
+                        ).toJSON()
                 )
                 .patch("/auditEntity/2/otherEntity/1")
                 .then()
@@ -194,8 +183,7 @@ public class AuditIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(AUDIT_1_RELATIONSHIP),
-                        ObjectMapperType.GSON
+                        datum(AUDIT_1_RELATIONSHIP).toJSON()
                 )
                 .patch("/auditEntity/1")
                 .then()
@@ -221,8 +209,7 @@ public class AuditIT extends IntegrationTest {
                                                 )
                                         )
                                 )
-                        ),
-                        ObjectMapperType.GSON
+                        ).toJSON()
                 )
                 .post("/auditEntityInverse")
                 .then()
@@ -254,8 +241,7 @@ public class AuditIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(auditEntity),
-                        ObjectMapperType.GSON
+                        datum(auditEntity).toJSON()
                 )
                 .post("/auditEntity")
                 .then()

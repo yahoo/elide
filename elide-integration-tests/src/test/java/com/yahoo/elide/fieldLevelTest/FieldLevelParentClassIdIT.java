@@ -5,13 +5,8 @@
  */
 package com.yahoo.elide.fieldLevelTest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
@@ -56,11 +51,11 @@ public class FieldLevelParentClassIdIT extends IntegrationTest {
                 .body(equalTo(datum(original).toJSON()));
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(datum(modified))
-            .patch("/fieldLevelChild/1")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(modified))
+                .patch("/fieldLevelChild/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 }

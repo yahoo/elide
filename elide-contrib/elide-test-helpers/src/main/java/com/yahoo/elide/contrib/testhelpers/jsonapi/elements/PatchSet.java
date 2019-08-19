@@ -12,12 +12,17 @@ import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * Pat Set.
+ */
 public class PatchSet extends ArrayList {
 
    static private final Gson GSON_INSTANCE = new GsonBuilder()
            .serializeNulls().create();
 
    /**
+    * Patch Set.
+    *
     * @param patchOperations the set of patch operations
     */
    public PatchSet(PatchOperation... patchOperations) {

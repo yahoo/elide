@@ -5,17 +5,17 @@
  */
 package com.yahoo.elide.tests
 
-import com.yahoo.elide.core.HttpStatus
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
+import io.restassured.response.ValidatableResponse
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static io.restassured.RestAssured.given;
+
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.jayway.restassured.RestAssured
-import com.jayway.restassured.response.ValidatableResponse
-
+import com.yahoo.elide.core.HttpStatus
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
 import org.testng.Assert
 import org.testng.annotations.Test
 
@@ -314,7 +314,7 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
     }
 
     private ValidatableResponse runQuery(String query) {
-        return RestAssured.given()
+        return given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(query)
@@ -325,7 +325,7 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
 
     private String toJsonArray(JsonNode... nodes) {
         ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode()
-        for(JsonNode node : nodes) {
+        for (JsonNode node : nodes) {
             arrayNode.add(node)
         }
         return objectMapper.writeValueAsString(arrayNode)
