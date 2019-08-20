@@ -6,20 +6,12 @@
 
 package com.yahoo.elide.inheritance;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.HttpStatus;
-
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import org.junit.jupiter.api.Test;
@@ -81,7 +73,7 @@ public class InheritanceIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body("data.id", equalTo("1"),
-                    "data.relationships.minions.data.id", contains("1"),
+                        "data.relationships.minions.data.id", contains("1"),
                         "data.relationships.minions.data.type", contains("employee")
                 );
     }

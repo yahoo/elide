@@ -7,8 +7,8 @@
 package com.yahoo.elide.contrib.testhelpers.jsonapi;
 
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperationType.*;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.*;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperationType.add;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;

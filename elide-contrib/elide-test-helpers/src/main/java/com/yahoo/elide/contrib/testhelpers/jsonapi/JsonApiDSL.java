@@ -223,7 +223,7 @@ public class JsonApiDSL {
     }
 
     /**
-     * Creates a to-many relationship
+     * Creates a to-many relationship.
      *
      * @param field           the field
      * @param resourceLinkage the resource linkage
@@ -278,7 +278,9 @@ public class JsonApiDSL {
     }
 
     /**
-     * @param patchOperations the set of patch operation
+     * Patch Set.
+     *
+     * @param patchOperations the set of patch operation.
      * @return the patch set
      */
     public static PatchSet patchSet(PatchOperation... patchOperations) {
@@ -286,6 +288,8 @@ public class JsonApiDSL {
     }
 
     /**
+     * Patch Operation.
+     *
      * @param operation the operation type
      * @param path the operation path
      * @param value the operation value

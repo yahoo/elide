@@ -5,8 +5,10 @@
  */
 package com.yahoo.elide.standalone;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasKey;
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -19,8 +21,7 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.models.Post;
 
-import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+import com.google.common.collect.Maps;
 import org.apache.http.HttpStatus;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.testng.annotations.AfterClass;
@@ -31,7 +32,6 @@ import javax.persistence.EntityManagerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import com.google.common.collect.Maps;
 
 
 /**

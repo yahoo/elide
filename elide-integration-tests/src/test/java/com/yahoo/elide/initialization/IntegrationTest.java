@@ -15,7 +15,6 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
-import com.jayway.restassured.RestAssured;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -25,6 +24,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.TestInstance;
 
+import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -85,6 +85,7 @@ public abstract class IntegrationTest {
 
     /**
      * Returns an initialized data store.
+     *
      * @return an initialized data store.
      */
     public static DataStore getDataStore() {

@@ -14,6 +14,7 @@ import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
 
 import com.google.common.collect.Sets;
+
 import example.Parent;
 
 import java.util.Set;

@@ -14,6 +14,7 @@ import example.Author;
 import example.Book;
 import example.Pseudonym;
 import example.Publisher;
+
 import org.testng.annotations.BeforeClass;
 
 import java.util.HashMap;

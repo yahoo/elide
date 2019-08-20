@@ -6,20 +6,14 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
 
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -56,7 +50,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
                                   attr("description", "Onyx Timpani Drum")
                           )
                        )
-                   ), ObjectMapperType.GSON)
+                   ).toJSON())
            .when()
            .post("/item")
            .then()

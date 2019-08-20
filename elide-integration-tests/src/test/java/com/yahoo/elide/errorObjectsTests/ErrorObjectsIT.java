@@ -9,6 +9,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
 
 import com.yahoo.elide.initialization.ErrorObjectsIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
@@ -16,7 +17,6 @@ import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
@@ -38,22 +38,21 @@ public class ErrorObjectsIT extends IntegrationTest {
     @Test
     public void testJsonAPIErrorObjects() throws IOException {
         JsonNode errors = objectMapper.readTree(
-            RestAssured
-                .given()
-                    .contentType(JSONAPI_CONTENT_TYPE)
-                    .accept(JSONAPI_CONTENT_TYPE)
-                    .body(
-                        datum(
-                            resource(
-                                    type("nocreate"),
-                                    id("1")
-                            )
+            given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                    datum(
+                        resource(
+                                type("nocreate"),
+                                id("1")
                         )
                     )
-                    .post("/nocreate")
-                    .then()
-                    .statusCode(HttpStatus.SC_FORBIDDEN)
-                    .extract().body().asString());
+                )
+                .post("/nocreate")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .extract().body().asString());
 
         for (JsonNode errorNode : errors.get("errors")) {
             Assert.assertTrue(errorNode.isObject(), "expected error should be object");
@@ -67,8 +66,7 @@ public class ErrorObjectsIT extends IntegrationTest {
         String request = "mutation { nocreate(op: UPSERT, data:{id:\"1\"}) { edges { node { id } } } }";
 
         JsonNode errors = objectMapper.readTree(
-            RestAssured
-               .given()
+            given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(request)

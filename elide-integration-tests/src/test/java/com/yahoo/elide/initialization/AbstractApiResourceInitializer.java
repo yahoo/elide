@@ -7,8 +7,6 @@ package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
-import com.jayway.restassured.RestAssured;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -17,6 +15,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 
+import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 /**

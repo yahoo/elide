@@ -6,13 +6,8 @@
 
 package com.yahoo.elide.tests;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static io.restassured.RestAssured.given;
 
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
@@ -135,7 +130,7 @@ class UserTypeIT extends IntegrationTest {
             .statusCode(HttpStatus.SC_OK).extract().body().asString();
 
         JSONAssert.assertEquals(datum(modified).toJSON(), actual, true);
-     }
+    }
 
     @Test
     public void testUserTypeMissingUserTypeField() throws Exception {
@@ -186,25 +181,25 @@ class UserTypeIT extends IntegrationTest {
         partialAddress.put("zip", partialZip);
 
         Resource resource = resource(
-                type("person"),
-                id("4"),
-                attributes(
-                        attr("name", "WC"),
-                        attr("address", partialAddress)
-                )
+            type("person"),
+            id("4"),
+            attributes(
+                attr("name", "WC"),
+                attr("address", partialAddress)
+            )
         );
 
         Resource expected = resource(
-                type("person"),
-                id("4"),
-                attributes(
-                        attr("name", "WC"),
-                        attr("address", new Address(
-                            "1400 AnyAve St",
-                            null,
-                            new Zip("60412", null)
-                        ))
-                )
+            type("person"),
+            id("4"),
+            attributes(
+                attr("name", "WC"),
+                attr("address", new Address(
+                    "1400 AnyAve St",
+                    null,
+                    new Zip("60412", null)
+                ))
+            )
         );
 
         given()

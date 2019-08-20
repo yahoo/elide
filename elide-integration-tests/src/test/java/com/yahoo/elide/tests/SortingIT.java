@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.tests;
 
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.initialization.IntegrationTest;
@@ -12,8 +14,6 @@ import com.yahoo.elide.utils.JsonParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,29 +27,28 @@ public class SortingIT extends IntegrationTest {
 
     @BeforeEach
     public void setup() {
-        RestAssured
-                .given()
+
+        given()
                 .contentType("application/vnd.api+json; ext=jsonpatch")
                 .accept("application/vnd.api+json; ext=jsonpatch")
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher1.json"))
                 .patch("/");
 
-        RestAssured
-                .given()
+
+        given()
                 .contentType("application/vnd.api+json; ext=jsonpatch")
                 .accept("application/vnd.api+json; ext=jsonpatch")
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher2.json"))
                 .patch("/");
 
-        RestAssured
-                .given()
+        given()
                 .contentType("application/vnd.api+json; ext=jsonpatch")
                 .accept("application/vnd.api+json; ext=jsonpatch")
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher3.json"))
                 .patch("/");
 
-        RestAssured
-                .given()
+
+        given()
                 .contentType("application/vnd.api+json; ext=jsonpatch")
                 .accept("application/vnd.api+json; ext=jsonpatch")
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher4.json"))
@@ -59,7 +58,7 @@ public class SortingIT extends IntegrationTest {
     @Test
     public void testSortingRootCollectionByRelationshipProperty() throws IOException {
         JsonNode result = mapper.readTree(
-                RestAssured.get("/book?sort=-publisher.name").asString());
+                get("/book?sort=-publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -72,7 +71,7 @@ public class SortingIT extends IntegrationTest {
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = mapper.readTree(
-                RestAssured.get("/book?sort=publisher.name").asString());
+                get("/book?sort=publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -87,7 +86,7 @@ public class SortingIT extends IntegrationTest {
     @Test
     public void testSortingSubcollectionByRelationshipProperty() throws IOException {
         JsonNode result = mapper.readTree(
-                RestAssured.get("/author/1/books?sort=-publisher.name").asString());
+                get("/author/1/books?sort=-publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -99,7 +98,7 @@ public class SortingIT extends IntegrationTest {
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = mapper.readTree(
-                RestAssured.get("/author/1/books?sort=publisher.name").asString());
+                get("/author/1/books?sort=publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -114,7 +113,7 @@ public class SortingIT extends IntegrationTest {
     @Test
     public void testSortingRootCollectionByRelationshipPropertyWithJoinFilter() throws IOException {
         JsonNode result = mapper.readTree(
-                RestAssured.get("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name").asString());
+                get("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -126,7 +125,7 @@ public class SortingIT extends IntegrationTest {
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = mapper.readTree(
-                RestAssured.get("/book?filter[book.authors.name][infixi]=Hemingway&sort=publisher.name").asString());
+                get("/book?filter[book.authors.name][infixi]=Hemingway&sort=publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -141,7 +140,7 @@ public class SortingIT extends IntegrationTest {
     @Test
     public void testSortingByRelationshipId() throws IOException {
         JsonNode result = mapper.readTree(
-                RestAssured.get("/book?sort=-publisher.id").asString());
+                get("/book?sort=-publisher.id").asString());
 
         //We expect 8 results because publisher_id is a foreign key inside the book table.
         assertEquals(8, result.get("data").size());
@@ -154,7 +153,7 @@ public class SortingIT extends IntegrationTest {
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = mapper.readTree(
-                RestAssured.get("/book?sort=publisher.id").asString());
+                get("/book?sort=publisher.id").asString());
         assertEquals(8, result.get("data").size());
 
         books = result.get("data");
@@ -179,7 +178,7 @@ public class SortingIT extends IntegrationTest {
         );
 
         JsonNode result = mapper.readTree(
-                RestAssured.get("/book?sort=-id").asString());
+                get("/book?sort=-id").asString());
         assertEquals(8, result.get("data").size());
 
         JsonNode books = result.get("data");

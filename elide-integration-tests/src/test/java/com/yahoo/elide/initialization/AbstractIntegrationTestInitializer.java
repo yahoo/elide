@@ -22,7 +22,6 @@ import java.util.function.Supplier;
 
 /**
  * Integration test initializer.
- *
  */
 public abstract class AbstractIntegrationTestInitializer extends AbstractApiResourceInitializer {
     /**
@@ -68,9 +67,9 @@ public abstract class AbstractIntegrationTestInitializer extends AbstractApiReso
         return dataStore;
     }
 
-        /**
-         * Hibernate init.
-         */
+    /**
+     * Hibernate init.
+     */
     @BeforeClass
     public static void hibernateInit() {
         getNewDatabaseManager();
