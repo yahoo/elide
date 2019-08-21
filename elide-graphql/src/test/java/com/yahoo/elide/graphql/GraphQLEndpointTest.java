@@ -21,6 +21,8 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.typedOperat
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -40,12 +42,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 
 import org.json.JSONException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
 
 import graphqlEndpointTestModels.Author;
 import graphqlEndpointTestModels.Book;
@@ -69,6 +71,7 @@ import javax.ws.rs.core.SecurityContext;
 /**
  * GraphQL endpoint tests tested against the in-memory store.
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GraphQLEndpointTest {
 
     private GraphQLEndpoint endpoint;
@@ -105,14 +108,14 @@ public class GraphQLEndpointTest {
         }
     }
 
-    @BeforeTest
+    @BeforeAll
     public void setup() {
         Mockito.when(user1.getUserPrincipal()).thenReturn(new User().withName("1"));
         Mockito.when(user2.getUserPrincipal()).thenReturn(new User().withName("2"));
         Mockito.when(user3.getUserPrincipal()).thenReturn(new User().withName("3"));
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setupTest() throws Exception {
         HashMapDataStore inMemoryStore = new HashMapDataStore(Book.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
@@ -559,7 +562,7 @@ public class GraphQLEndpointTest {
 
         String expectedLog = "On Title Update Pre Security\nOn Title Update Pre Commit\nOn Title Update Post Commit\n";
 
-        Assert.assertEquals(principal.getLog(), expectedLog);
+        assertEquals(principal.getLog(), expectedLog);
     }
 
     @Test
@@ -825,7 +828,7 @@ public class GraphQLEndpointTest {
     }
 
     private static String extract200ResponseString(Response response) {
-        Assert.assertEquals(response.getStatus(), 200);
+        assertEquals(response.getStatus(), 200);
         return (String) response.getEntity();
     }
 
@@ -853,6 +856,6 @@ public class GraphQLEndpointTest {
 
     private static void assertHasErrors(Response response) throws IOException {
         JsonNode node = extract200Response(response);
-        Assert.assertTrue(node.get("errors").elements().hasNext());
+        assertTrue(node.get("errors").elements().hasNext());
     }
 }

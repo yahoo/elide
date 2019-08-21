@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.graphql;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -22,10 +26,9 @@ import example.Pseudonym;
 import example.Publisher;
 
 import org.apache.tools.ant.util.FileUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -53,7 +56,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
 
-    @BeforeMethod
+    @BeforeEach
     public void setupFetcherTest() {
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
 
@@ -159,13 +162,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
             requestScope.saveOrCreateObjects();
         }
         requestScope.getTransaction().commit(requestScope);
-        Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
+        assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
             LOG.info(mapper.writeValueAsString(result.getData()));
-            Assert.assertEquals(mapper.readTree(mapper.writeValueAsString(result.getData())),
+            assertEquals(mapper.readTree(mapper.writeValueAsString(result.getData())),
                     mapper.readTree(expectedResponse));
         } catch (JsonProcessingException e) {
-            Assert.fail("JSON parsing exception", e);
+            fail("JSON parsing exception", e);
         }
     }
 
@@ -177,13 +180,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
             requestScope.saveOrCreateObjects();
         }
         requestScope.getTransaction().commit(requestScope);
-        Assert.assertNotEquals(result.getErrors().size(), 0, "Expected errors. Received none.");
+        assertNotEquals(result.getErrors().size(), 0, "Expected errors. Received none.");
         try {
             String message = result.getErrors().get(0).getMessage();
             LOG.info(mapper.writeValueAsString(result.getErrors()));
-            Assert.assertEquals(message, expectedMessage);
+            assertEquals(message, expectedMessage);
         } catch (JsonProcessingException e) {
-            Assert.fail("JSON parsing exception", e);
+            fail("JSON parsing exception", e);
         }
     }
 
@@ -193,7 +196,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         //debug for errors
         LOG.debug("Errors = [" + errorsToString(result.getErrors()) + "]");
 
-        Assert.assertNotEquals(result.getErrors().size(), 0);
+        assertNotEquals(result.getErrors().size(), 0);
     }
 
     protected String errorsToString(List<GraphQLError> errors) {
