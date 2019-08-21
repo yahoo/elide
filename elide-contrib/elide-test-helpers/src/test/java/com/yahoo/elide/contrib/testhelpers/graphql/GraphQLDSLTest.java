@@ -8,7 +8,6 @@ package com.yahoo.elide.contrib.testhelpers.graphql;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.entity;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.responseField;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
@@ -29,7 +28,7 @@ public class GraphQLDSLTest {
         String expected = "{book {edges {node {id title}}}}";
         String actual = document(
                 selection(
-                        entity(
+                        field(
                                 "book",
                                 selections(
                                         field("id"),
@@ -47,13 +46,13 @@ public class GraphQLDSLTest {
         String expected = "{book {edges {node {user1SecretField}}} book {edges {node {id title}}}}";
         String actual = document(
                 selections(
-                        entity(
+                        field(
                                 "book",
                                 selection(
                                         field("user1SecretField")
                                 )
                         ),
-                        entity(
+                        field(
                                 "book",
                                 selections(
                                         field("id"),
@@ -71,7 +70,7 @@ public class GraphQLDSLTest {
         String expected = "{book {edges {node {id title authors {edges {node {name}}}}}}}";
         String actual = document(
                 selections(
-                        entity(
+                        field(
                                 "book",
                                 selections(
                                         field("id"),
@@ -95,7 +94,7 @@ public class GraphQLDSLTest {
         String expected = "{book(sort: \"-id\") {edges {node {id title}}}}";
         String actual = document(
                 selections(
-                        entity(
+                        field(
                                 "book",
                                 argument(
                                         argument("sort", "-id", true)
@@ -116,7 +115,7 @@ public class GraphQLDSLTest {
         String expected = "{book(sort: \"-id\" id: \"5\") {edges {node {id title}}}}";
         String actual = document(
                 selections(
-                        entity(
+                        field(
                                 "book",
                                 arguments(
                                         argument("sort", "-id", true),
@@ -146,7 +145,7 @@ public class GraphQLDSLTest {
                                 variableDefinition("bookId", "[String]")
                         ),
                         selections(
-                                entity(
+                                field(
                                         "book",
                                         arguments(
                                                 argument("ids", "$bookId")

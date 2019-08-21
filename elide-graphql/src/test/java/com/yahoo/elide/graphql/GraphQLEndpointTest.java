@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.entity;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.jsonResponseField;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.nullResponseField;
@@ -182,7 +181,7 @@ public class GraphQLEndpointTest {
     public void testValidFetch() throws JSONException {
         String graphQLRequest = document(
                 selections(
-                        entity(
+                        field(
                                 "book",
                                 selections(
                                         field("id"),
@@ -230,7 +229,7 @@ public class GraphQLEndpointTest {
                                 variableDefinition("bookId", "[String]")
                         ),
                         selections(
-                                entity(
+                                field(
                                         "book",
                                         arguments(
                                                 argument("ids", "$bookId")
@@ -278,7 +277,7 @@ public class GraphQLEndpointTest {
     void testCanReadRestrictedFieldWithAppropriateAccess() throws JSONException {
         String graphQLRequest = document(
                 selection(
-                        entity(
+                        field(
                                 "book",
                                 selection(
                                         field("user1SecretField")
@@ -306,7 +305,7 @@ public class GraphQLEndpointTest {
     void testCannotReadRestrictedField() throws IOException {
         String graphQLRequest = document(
                 selection(
-                        entity(
+                        field(
                                 "book",
                                 selection(
                                         field("user1SecretField")
@@ -324,13 +323,13 @@ public class GraphQLEndpointTest {
     void testPartialResponse() throws IOException, JSONException {
         String graphQLRequest = document(
                 selections(
-                        entity(
+                        field(
                                 "book",
                                 selection(
                                         field("user1SecretField")
                                 )
                         ),
-                        entity(
+                        field(
                                 "book",
                                 selections(
                                         field("id"),
@@ -370,7 +369,7 @@ public class GraphQLEndpointTest {
 
         String graphQLRequest = document(
                 selection(
-                        entity(
+                        field(
                                 "book",
                                 arguments(
                                         argument("op", "UPSERT"),
@@ -389,7 +388,7 @@ public class GraphQLEndpointTest {
 
         graphQLRequest = document(
                 selection(
-                        entity(
+                        field(
                                 "book",
                                 selections(
                                         field("id"),
@@ -429,7 +428,7 @@ public class GraphQLEndpointTest {
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
                         selection(
-                                entity(
+                                field(
                                         "book",
                                         selections(
                                                 field("id"),
@@ -462,7 +461,7 @@ public class GraphQLEndpointTest {
 
         graphQLRequest = document(
                 selection(
-                        entity(
+                        field(
                                 "book",
                                 selections(
                                         field("id"),
@@ -524,7 +523,7 @@ public class GraphQLEndpointTest {
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
                         selection(
-                                entity(
+                                field(
                                         "book",
                                         arguments(
                                                 argument("op", "UPSERT"),
@@ -570,7 +569,7 @@ public class GraphQLEndpointTest {
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
                         selection(
-                                entity(
+                                field(
                                         "book",
                                         arguments(
                                                 argument("op", "UPSERT"),
@@ -606,7 +605,7 @@ public class GraphQLEndpointTest {
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
                         selection(
-                                entity(
+                                field(
                                         "book",
                                         arguments(
                                                 argument("op", "UPSERT"),
@@ -640,7 +639,7 @@ public class GraphQLEndpointTest {
 
         graphQLRequest = document(
                 selection(
-                        entity(
+                        field(
                                 "book",
                                 selections(
                                         field("id"),
@@ -703,7 +702,7 @@ public class GraphQLEndpointTest {
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
                         selection(
-                                entity(
+                                field(
                                         "book",
                                         arguments(
                                                 argument("op", "UPSERT"),
@@ -728,7 +727,7 @@ public class GraphQLEndpointTest {
                 typedOperation(
                         TypedOperation.OperationType.QUERY,
                         selection(
-                                entity(
+                                field(
                                         "book",
                                         selections(
                                                 field("id"),
@@ -781,7 +780,7 @@ public class GraphQLEndpointTest {
                 typedOperation(
                         TypedOperation.OperationType.QUERY,
                         selection(
-                                entity(
+                                field(
                                         "book",
                                         selections(
                                                 field("id"),

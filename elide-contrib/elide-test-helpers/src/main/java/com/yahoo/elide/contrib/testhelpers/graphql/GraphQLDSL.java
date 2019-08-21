@@ -327,38 +327,6 @@ public final class GraphQLDSL {
     }
 
     /**
-     * Creates a single top-level entity(object field) selection without {@link Argument}s.
-     *
-     * @param name  The name of the selected entity/field that would appear in a GraphQL query
-     * @param selectionSet  The fields of the entity that are selected
-     *
-     * @return a top-level selection
-     *
-     * @see <a href="https://graphql.org/learn/queries/#fields">Fields</a>
-     * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
-     */
-    public static Selection entity(String name, SelectionSet selectionSet) {
-        return Field.withoutArguments(name, relayWrap(selectionSet));
-    }
-
-    /**
-     * Creates a top-level single entity(object field) selection.
-     *
-     * @param name  The name of the selected entity/field that would appear in a GraphQL query
-     * @param arguments  The {@link Argument}s that would be applied to the selected entity
-     * @param selectionSet  The fields of the entity that are selected
-     *
-     * @return a top-level selection
-     *
-     * @see <a href="https://graphql.org/learn/queries/#fields">Fields</a>
-     * @see <a href="https://graphql.org/learn/queries/#arguments">Arguments</a>
-     * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
-     */
-    public static Selection entity(String name, Arguments arguments, SelectionSet selectionSet) {
-        return new Field(name, arguments, relayWrap(selectionSet));
-    }
-
-    /**
      * Creates a entity(object field) selection without {@link Argument}s.
      *
      * @param name  The name of the selected entity/field that would appear in a GraphQL query
@@ -370,7 +338,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
     public static Selection field(String name, SelectionSet selectionSet) {
-        return entity(name, selectionSet);
+        return Field.withoutArguments(name, relayWrap(selectionSet));
     }
 
     /**
@@ -387,7 +355,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
     public static Selection field(String name, Arguments arguments, SelectionSet selectionSet) {
-        return entity(name, arguments, selectionSet);
+        return new Field(name, arguments, relayWrap(selectionSet));
     }
 
     /**
