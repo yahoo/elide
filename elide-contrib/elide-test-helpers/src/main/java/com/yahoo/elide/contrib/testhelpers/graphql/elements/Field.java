@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * {@link Field} represents the same concept as {@link graphql.language.Field GraphQL Field} but specializes in
  * serialization, in contrast to {@link graphql.language.Field GraphQL Field}, which is designed for deserialization.
@@ -35,14 +37,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Field implements Selection {
 
+    public static final boolean QUERY = true;
+    public static final boolean RESPONSE = false;
+
     private static final long serialVersionUID = -5906705888838083150L;
 
-    public static Field withoutArguments(String name, SelectionSet selectionSet) {
-        return new Field(name, Arguments.emptyArgument(), selectionSet);
+    public static Field scalarField(String name) {
+        return new Field(name, Arguments.emptyArgument(), null, QUERY);
     }
 
-    public static Field scalarField(String name) {
-        return new Field(name, Arguments.emptyArgument(), null);
+    public static String quoteValue(String value) {
+        return String.format("\"%s\"", value);
     }
 
     /**
@@ -63,10 +68,17 @@ public class Field implements Selection {
      * Models a "selections set".
      */
     @Getter(AccessLevel.PRIVATE)
-    private final SelectionSet selectionSet;
+    private final Serializable selectionSet;
+
+    @Getter(AccessLevel.PRIVATE)
+    private final boolean queryField;
 
     @Override
     public String toGraphQLSpec() {
+        return isQueryField() ? toQuerySpec() : toResponse();
+    }
+
+    private String toQuerySpec() {
         return String.format(
                 "%s%s%s",
                 getName(),
@@ -82,6 +94,22 @@ public class Field implements Selection {
     }
 
     private String selection() {
-        return getSelectionSet() == null ? "" : " " + getSelectionSet().toGraphQLSpec();
+        return getSelectionSet() == null ? "" : " " + ((SelectionSet) getSelectionSet()).toGraphQLSpec();
+    }
+
+    private String toResponse() {
+        if (selectionSet instanceof String) {
+            // scalar response field
+            return String.format(
+                    "\"%s\":%s",
+                    getName(),
+                    getSelectionSet().toString().equals("")
+                            ? "{\"edges\":[]}"
+                            : getSelectionSet().toString()
+            );
+        } else {
+            // object response field
+            return String.format("\"%s\":%s", getName(), ((SelectionSet) getSelectionSet()).toGraphQLSpec());
+        }
     }
 }

@@ -9,12 +9,13 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.responseField;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.typedOperation;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
+import static com.yahoo.elide.contrib.testhelpers.graphql.elements.Field.QUERY;
+import static com.yahoo.elide.contrib.testhelpers.graphql.elements.Field.RESPONSE;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
 
@@ -29,6 +30,7 @@ public class GraphQLDSLTest {
         String actual = document(
                 selection(
                         field(
+                                QUERY,
                                 "book",
                                 selections(
                                         field("id"),
@@ -47,12 +49,14 @@ public class GraphQLDSLTest {
         String actual = document(
                 selections(
                         field(
+                                QUERY,
                                 "book",
                                 selection(
                                         field("user1SecretField")
                                 )
                         ),
                         field(
+                                QUERY,
                                 "book",
                                 selections(
                                         field("id"),
@@ -71,11 +75,13 @@ public class GraphQLDSLTest {
         String actual = document(
                 selections(
                         field(
+                                QUERY,
                                 "book",
                                 selections(
                                         field("id"),
                                         field("title"),
                                         field(
+                                                QUERY,
                                                 "authors",
                                                 selection(
                                                         field("name")
@@ -95,6 +101,7 @@ public class GraphQLDSLTest {
         String actual = document(
                 selections(
                         field(
+                                QUERY,
                                 "book",
                                 argument(
                                         argument("sort", "-id", true)
@@ -116,6 +123,7 @@ public class GraphQLDSLTest {
         String actual = document(
                 selections(
                         field(
+                                QUERY,
                                 "book",
                                 arguments(
                                         argument("sort", "-id", true),
@@ -146,6 +154,7 @@ public class GraphQLDSLTest {
                         ),
                         selections(
                                 field(
+                                        QUERY,
                                         "book",
                                         arguments(
                                                 argument("ids", "$bookId")
@@ -154,6 +163,7 @@ public class GraphQLDSLTest {
                                                 field("id"),
                                                 field("title"),
                                                 field(
+                                                        QUERY,
                                                         "authors",
                                                         selection(
                                                                 field("name")
@@ -183,15 +193,17 @@ public class GraphQLDSLTest {
 
         String actual = document(
                 selection(
-                        responseField(
+                        field(
+                                RESPONSE,
                                 "book",
                                 selections(
-                                        responseField("id", "1"),
-                                        responseField("title", "My first book"),
-                                        responseField(
+                                        field("id", "1"),
+                                        field("title", "My first book"),
+                                        field(
+                                                RESPONSE,
                                                 "authors",
                                                 selection(
-                                                        responseField("name", "Ricky Carmichael")
+                                                        field("name", "Ricky Carmichael")
                                                 )
                                         )
                                 )
@@ -211,35 +223,39 @@ public class GraphQLDSLTest {
 
         String actual = document(
                 selection(
-                        responseField(
+                        field(
+                                RESPONSE,
                                 "book",
                                 selections(
-                                        responseField("id", "3"),
-                                        responseField("title", "Doctor Zhivago"),
-                                        responseField(
+                                        field("id", "3"),
+                                        field("title", "Doctor Zhivago"),
+                                        field(
+                                                RESPONSE,
                                                 "publisher",
                                                 selection(
-                                                        responseField("id", "2")
+                                                        field("id", "2")
                                                 )
                                         )
                                 ),
                                 selections(
-                                        responseField("id", "1"),
-                                        responseField("title", "Libro Uno"),
-                                        responseField(
+                                        field("id", "1"),
+                                        field("title", "Libro Uno"),
+                                        field(
+                                                RESPONSE,
                                                 "publisher",
                                                 selection(
-                                                        responseField("id", "1")
+                                                        field("id", "1")
                                                 )
                                         )
                                 ),
                                 selections(
-                                        responseField("id", "2"),
-                                        responseField("title", "Libro Dos"),
-                                        responseField(
+                                        field("id", "2"),
+                                        field("title", "Libro Dos"),
+                                        field(
+                                                RESPONSE,
                                                 "publisher",
                                                 selection(
-                                                        responseField("id", "1")
+                                                        field("id", "1")
                                                 )
                                         )
                                 )

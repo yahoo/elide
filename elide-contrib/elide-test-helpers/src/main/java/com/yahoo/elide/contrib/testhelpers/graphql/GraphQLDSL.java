@@ -26,9 +26,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -199,6 +201,8 @@ public final class GraphQLDSL {
     static private final Gson GSON_INSTANCE = new GsonBuilder()
             .serializeNulls().create();
 
+
+
     /**
      * Jackson-serializes entities.
      * <p>
@@ -326,6 +330,18 @@ public final class GraphQLDSL {
         return new VariableDefinition(variable, type, null);
     }
 
+    public static Selection field(String name, String value) {
+        return new Field(name, Arguments.emptyArgument(), Field.quoteValue(value), false);
+    }
+
+    public static Selection field(String name, String value, boolean quoted) {
+        return new Field(name, Arguments.emptyArgument(), quoted ? Field.quoteValue(value) : value, false);
+    }
+
+    public static Selection field(String name, Object value) {
+        return new Field(name, Arguments.emptyArgument(), GSON_INSTANCE.toJson(value), false);
+    }
+
     /**
      * Creates a entity(object field) selection without {@link Argument}s.
      *
@@ -337,8 +353,8 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/queries/#fields">Fields</a>
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
-    public static Selection field(String name, SelectionSet selectionSet) {
-        return Field.withoutArguments(name, relayWrap(selectionSet));
+    public static Selection field(boolean isQuery, String name, SelectionSet... selectionSet) {
+        return new Field(name, Arguments.emptyArgument(), relayWrap(Arrays.asList(selectionSet), isQuery), isQuery);
     }
 
     /**
@@ -354,8 +370,8 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/queries/#arguments">Arguments</a>
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
-    public static Selection field(String name, Arguments arguments, SelectionSet selectionSet) {
-        return new Field(name, arguments, relayWrap(selectionSet));
+    public static Selection field(boolean isQuery, String name, Arguments arguments, SelectionSet... selectionSet) {
+        return new Field(name, arguments, relayWrap(Arrays.asList(selectionSet), isQuery), isQuery);
     }
 
     /**
@@ -437,60 +453,6 @@ public final class GraphQLDSL {
     }
 
     /**
-     * Creates an response attribute(scalar field).
-     *
-     * @param name  The name of the selected attribute that would appear in a GraphQL query.
-     * @param value  The attribute value
-     *
-     * @return a field that represents an non-reltionship entity response attribute
-     */
-    public static Selection responseField(String name, String value) {
-        return com.yahoo.elide.contrib.testhelpers.graphql.elements.response.ScalarField.withQuotedValue(name, value);
-    }
-
-    /**
-     * Creates an response attribute(scalar field) whose value is {@code null}(unquoted).
-     *
-     * @param name  The name of the selected attribute that would appear in a GraphQL query.
-     *
-     * @return a field that represents an non-reltionship entity response attribute whose value is
-     * {@code null}(unquoted)
-     */
-    public static Selection nullResponseField(String name) {
-        return com.yahoo.elide.contrib.testhelpers.graphql.elements.response.ScalarField.withUnquotedValue(name, null);
-    }
-
-    /**
-     * Creates an response attribute(scalar field) whose value is a GSON-serializable object, such as map.
-     *
-     * @param name  The name of the selected attribute that would appear in a GraphQL query.
-     *
-     * @return a field that represents an non-reltionship entity response attribute whose value a GSON-serializable
-     * object, such as map.
-     */
-    public static Selection jsonResponseField(String name, Object jsonOjbect) {
-        return com.yahoo.elide.contrib.testhelpers.graphql.elements.response.ScalarField.withUnquotedValue(
-                name,
-                GSON_INSTANCE.toJson(jsonOjbect)
-        );
-    }
-
-    /**
-     * Creates a entity(object field) response attribute.
-     *
-     * @param name  The name of the selected entity/field that would appear in a GraphQL query
-     * @param nodes  All instances of the entity in the response data
-     *
-     * @return an entity selection instantiation
-     */
-    public static Selection responseField(String name, SelectionSet... nodes) {
-        return new com.yahoo.elide.contrib.testhelpers.graphql.elements.response.ObjectField(
-                name,
-                Arrays.asList(nodes)
-        );
-    }
-
-    /**
      * Wraps a set of field selections inside a Relay connection pattern spec.
      * <p>
      * For example,
@@ -532,9 +494,12 @@ public final class GraphQLDSL {
      *
      * @see <a href="https://graphql.org/learn/pagination/">Relay's connection pattern</a>
      */
-    private static SelectionSet relayWrap(SelectionSet selectionSet) {
-        Node node = new Node(selectionSet);
-        Edges edges = new Edges(node);
+    private static SelectionSet relayWrap(List<SelectionSet> selectionSet, boolean isQuery) {
+        Edges edges = new Edges(
+                selectionSet.stream()
+                        .map(set -> new Node(set, isQuery))
+                        .collect(Collectors.toList()),
+                isQuery);
 
         return new SelectionSet(new LinkedHashSet<>(Collections.singleton(edges)));
     }
