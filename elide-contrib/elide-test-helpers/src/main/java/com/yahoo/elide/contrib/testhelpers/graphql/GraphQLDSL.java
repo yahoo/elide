@@ -11,7 +11,6 @@ import com.yahoo.elide.contrib.testhelpers.graphql.elements.Document;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Field;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Mutation;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Query;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinitions;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Arguments;
@@ -27,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -196,13 +194,14 @@ import java.util.stream.Collectors;
  */
 public final class GraphQLDSL {
 
+    public static final boolean QUOTE_VALUE = true;
+    public static final boolean UNQUOTED_VALUE = false;
+
     /**
      * Serializes expected JSON object to a string.
      */
     static private final Gson GSON_INSTANCE = new GsonBuilder()
             .serializeNulls().create();
-
-
 
     /**
      * Jackson-serializes entities.

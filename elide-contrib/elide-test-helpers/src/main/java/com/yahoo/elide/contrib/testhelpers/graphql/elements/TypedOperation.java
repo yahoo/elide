@@ -10,8 +10,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.io.Serializable;
-
 /**
  * According to GraphQL grammar (6.0):
  * <pre>

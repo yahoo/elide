@@ -1,9 +1,6 @@
 package com.yahoo.elide.contrib.testhelpers.graphql.elements;
 
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 public class Mutation extends TypedOperation {
 

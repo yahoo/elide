@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.testhelpers.graphql;
 
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.QUOTE_VALUE;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
@@ -102,7 +103,7 @@ public class GraphQLDSLTest {
                                 QUERY,
                                 "book",
                                 argument(
-                                        argument("sort", "-id", true)
+                                        argument("sort", "-id", QUOTE_VALUE)
                                 ),
                                 selections(
                                         field("id"),
@@ -124,8 +125,8 @@ public class GraphQLDSLTest {
                                 QUERY,
                                 "book",
                                 arguments(
-                                        argument("sort", "-id", true),
-                                        argument("id", "5", true)
+                                        argument("sort", "-id", QUOTE_VALUE),
+                                        argument("id", "5", QUOTE_VALUE)
                                 ),
                                 selections(
                                         field("id"),
