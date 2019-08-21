@@ -8,6 +8,7 @@ package com.yahoo.elide.contrib.testhelpers.graphql;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Argument;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Definition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Document;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.Field;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.OperationDefinition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinition;
@@ -15,8 +16,6 @@ import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinitions;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Arguments;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Edges;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Node;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.ObjectField;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.ScalarField;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Selection;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.SelectionSet;
 
@@ -339,7 +338,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
     public static Selection entity(String name, SelectionSet selectionSet) {
-        return ObjectField.withoutArguments(name, relayWrap(selectionSet));
+        return Field.withoutArguments(name, relayWrap(selectionSet));
     }
 
     /**
@@ -356,7 +355,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
     public static Selection entity(String name, Arguments arguments, SelectionSet selectionSet) {
-        return new ObjectField(name, arguments, relayWrap(selectionSet));
+        return new Field(name, arguments, relayWrap(selectionSet));
     }
 
     /**
@@ -401,7 +400,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#scalar-types">Scalar Field</a>
      */
     public static Selection field(String name) {
-        return new ScalarField(name);
+        return Field.scalarField(name);
     }
 
     /**

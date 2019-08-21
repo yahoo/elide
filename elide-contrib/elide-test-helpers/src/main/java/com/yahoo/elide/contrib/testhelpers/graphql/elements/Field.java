@@ -5,6 +5,11 @@
  */
 package com.yahoo.elide.contrib.testhelpers.graphql.elements;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
  * {@link Field} represents the same concept as {@link graphql.language.Field GraphQL Field} but specializes in
  * serialization, in contrast to {@link graphql.language.Field GraphQL Field}, which is designed for deserialization.
@@ -20,19 +25,63 @@ package com.yahoo.elide.contrib.testhelpers.graphql.elements;
  *     field : alias? name arguments? directives? selectionSet?;
  * }
  * </pre>
- * A {@link Field} is a sub-type of {@link Selection}. The simplest {@link Field} is a {@link ScalarField}; otherwise
- * it would be an {@link ObjectField}
- *
- * This is a {@link java.util.function functional interface} whose functional method is {@link #toGraphQLSpec()}.
+ * A {@link Field} is a sub-type of {@link Selection}. The simplest {@link Field} is a scalar field; otherwise it would
+ * be an object field
  *
  * @see Selection
- * @see ScalarField
- * @see ObjectField
  * @see <a href="https://graphql.org/learn/schema/#scalar-types">Scalar types</a>
  * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object types and fields</a>
  */
-@FunctionalInterface
-public interface Field extends Selection {
+@RequiredArgsConstructor
+public class Field implements Selection {
 
-    // intentionally left blank
+    private static final long serialVersionUID = -5906705888838083150L;
+
+    public static Field withoutArguments(String name, SelectionSet selectionSet) {
+        return new Field(name, Arguments.emptyArgument(), selectionSet);
+    }
+
+    public static Field scalarField(String name) {
+        return new Field(name, Arguments.emptyArgument(), null);
+    }
+
+    /**
+     * The "name" TOKEN defined in GraphQL grammar.
+     */
+    @NonNull
+    @Getter(AccessLevel.PRIVATE)
+    private final String name;
+
+    /**
+     * Models "arguments".
+     */
+    @NonNull
+    @Getter(AccessLevel.PRIVATE)
+    private final Arguments arguments;
+
+    /**
+     * Models a "selections set".
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private final SelectionSet selectionSet;
+
+    @Override
+    public String toGraphQLSpec() {
+        return String.format(
+                "%s%s%s",
+                getName(),
+                argument(),
+                selection()
+        );
+    }
+
+    private String argument() {
+        return getArguments().noArgument()
+                ? ""
+                : getArguments().toGraphQLSpec();
+    }
+
+    private String selection() {
+        return getSelectionSet() == null ? "" : " " + getSelectionSet().toGraphQLSpec();
+    }
 }
