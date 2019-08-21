@@ -9,18 +9,15 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.entity;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.enumValue;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.jsonResponseField;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.nullResponseField;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.objectValueWithVariable;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.responseField;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.typedOperation;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -236,7 +233,7 @@ public class GraphQLEndpointTest {
                                 entity(
                                         "book",
                                         arguments(
-                                                argument("ids", variableValue("bookId"))
+                                                argument("ids", "$bookId")
                                         ),
                                         selections(
                                                 field("id"),
@@ -376,8 +373,8 @@ public class GraphQLEndpointTest {
                         entity(
                                 "book",
                                 arguments(
-                                        argument("op", enumValue("UPSERT")),
-                                        argument("data", objectValueWithVariable(book))
+                                        argument("op", "UPSERT"),
+                                        argument("data", book)
                                 ),
                                 selections(
                                         field("id"),
@@ -439,8 +436,8 @@ public class GraphQLEndpointTest {
                                                 field(
                                                         "authors",
                                                         arguments(
-                                                                argument("op", enumValue("UPSERT")),
-                                                                argument("data", objectValueWithVariable(author))
+                                                                argument("op", "UPSERT"),
+                                                                argument("data", author)
                                                         ),
                                                         selections(
                                                                 field("id"),
@@ -530,11 +527,8 @@ public class GraphQLEndpointTest {
                                 entity(
                                         "book",
                                         arguments(
-                                                argument("op", enumValue("UPSERT")),
-                                                argument(
-                                                        "data",
-                                                        objectValueWithVariable(book)
-                                                )
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
                                         ),
                                         selections(
                                                 field("id"),
@@ -579,11 +573,8 @@ public class GraphQLEndpointTest {
                                 entity(
                                         "book",
                                         arguments(
-                                                argument("op", enumValue("UPSERT")),
-                                                argument(
-                                                        "data",
-                                                        objectValueWithVariable(book)
-                                                )
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
                                         ),
                                         selections(
                                                 field("id"),
@@ -618,8 +609,8 @@ public class GraphQLEndpointTest {
                                 entity(
                                         "book",
                                         arguments(
-                                                argument("op", enumValue("UPSERT")),
-                                                argument("data", objectValueWithVariable(book))
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
                                         ),
                                         selections(
                                                 field("id"),
@@ -715,8 +706,8 @@ public class GraphQLEndpointTest {
                                 entity(
                                         "book",
                                         arguments(
-                                                argument("op", enumValue("UPSERT")),
-                                                argument("data", objectValueWithVariable(book))
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
                                         ),
                                         selections(
                                                 field("id"),

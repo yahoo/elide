@@ -44,7 +44,7 @@ public class Argument implements Serializable {
      */
     @NonNull
     @Getter(AccessLevel.PRIVATE)
-    private final ValueWithVariable value;
+    private final Object value;
 
     /**
      * Returns a GraphQL query string that representing an argument
@@ -52,6 +52,6 @@ public class Argument implements Serializable {
      * @return a sub-string of a GraphQL query
      */
     public String toGraphQLSpec() {
-        return String.format("%s: %s", getName(), getValue().toGraphQLSpec());
+        return String.format("%s: %s", getName(), getValue());
     }
 }

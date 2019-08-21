@@ -14,10 +14,8 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.responseFie
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.typedOperation;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.stringValue;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableValue;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
 
@@ -100,10 +98,7 @@ public class GraphQLDSLTest {
                         entity(
                                 "book",
                                 argument(
-                                        argument(
-                                                "sort",
-                                                stringValue("-id")
-                                        )
+                                        argument("sort", "-id", true)
                                 ),
                                 selections(
                                         field("id"),
@@ -124,14 +119,8 @@ public class GraphQLDSLTest {
                         entity(
                                 "book",
                                 arguments(
-                                        argument(
-                                                "sort",
-                                                stringValue("-id")
-                                        ),
-                                        argument(
-                                                "id",
-                                                stringValue("5")
-                                        )
+                                        argument("sort", "-id", true),
+                                        argument("id", "5", true)
                                 ),
                                 selections(
                                         field("id"),
@@ -160,7 +149,7 @@ public class GraphQLDSLTest {
                                 entity(
                                         "book",
                                         arguments(
-                                                argument("ids", variableValue("bookId"))
+                                                argument("ids", "$bookId")
                                         ),
                                         selections(
                                                 field("id"),

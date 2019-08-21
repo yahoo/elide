@@ -8,15 +8,10 @@ package com.yahoo.elide.contrib.testhelpers.graphql;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Argument;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Definition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Document;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.EnumValue;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.ObjectValueWithVariable;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.OperationDefinition;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.StringValue;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.ValueWithVariable;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinitions;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableValue;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Arguments;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Edges;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Node;
@@ -25,6 +20,10 @@ import com.yahoo.elide.contrib.testhelpers.graphql.elements.ScalarField;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Selection;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.SelectionSet;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -200,6 +199,20 @@ public final class GraphQLDSL {
      */
     static private final Gson GSON_INSTANCE = new GsonBuilder()
             .serializeNulls().create();
+
+    /**
+     * Jackson-serializes entities.
+     * <p>
+     * GraphQL argument name is unquoted; hence quoted field is disabled.
+     */
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper()
+            .configure(
+                    JsonGenerator.Feature.QUOTE_FIELD_NAMES,
+                    false
+            )
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
+            .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
     /**
      * Constructor.
@@ -418,66 +431,42 @@ public final class GraphQLDSL {
     }
 
     /**
+     * Creates a spec object of an GraphQL {@link Argument argument} whose value is not quoted.
+     *
+     * @param name  The name of the argument
+     * @param value  An object that models argument value.
+     *
+     * @return a complete specification of selection arguments
+     *
+     * @see <a href="https://graphql.org/learn/queries/#arguments">Arguments</a>
+     */
+    public static Argument argument(String name, Object value) {
+        return argument(name, value, false);
+    }
+
+    /**
      * Creates a spec object of an GraphQL {@link Argument argument}.
      *
      * @param name  The name of the argument
      * @param value  An object that models argument value.
-     * @return
+     * @param quoted  Whether or not the serialized {@code value} should be double-quote
+     *
+     * @return a complete specification of selection arguments
      *
      * @see <a href="https://graphql.org/learn/queries/#arguments">Arguments</a>
      */
-    public static Argument argument(String name, ValueWithVariable value) {
-        return new Argument(name, value);
-    }
-
-    /**
-     * Creates a string value that is quoted in its serialized form
-     *
-     * @param value  The chars surrounded in a pair of double-quotes
-     *
-     * @return a GraphQL spec
-     */
-    public static ValueWithVariable stringValue(String value) {
-        return new StringValue(value);
-    }
-
-    /**
-     * Creates a query spec that represents a variable, whose variable name follows a {@code $} sign.
-     * <p>
-     * Foe example, {@code $episode}. In this case "episode" is the variable name
-     *
-     * @param name  A GraphQL variable literal without {@code $} sign
-     *
-     * @return a GraphQL variable spec
-     *
-     * @see <a href="https://graphql.org/learn/queries/#variables">Variables</a>
-     */
-    public static ValueWithVariable variableValue(String name) {
-        return new VariableValue(name);
-    }
-
-    /**
-     * Creates a query spec that represents a object value.
-     * <p>
-     * For example, "id:\"1\", title:\"update title\"" as in "{ id:\"1\", title:\"update title\" }".
-     *
-     * @param object  A string representation of the object wrapped
-     *
-     * @return a GraphQL spec
-     */
-    public static ValueWithVariable objectValueWithVariable(Object object) {
-        return new ObjectValueWithVariable(object);
-    }
-
-    /**
-     * Creates a string value that is NOT quoted in its serialized form
-     *
-     * @param enumValue  The same string in the serialized form of the created object.
-     *
-     * @return a GraphQL spec
-     */
-    public static ValueWithVariable enumValue(String enumValue) {
-        return new EnumValue(enumValue);
+    public static Argument argument(String name, Object value, boolean quoted) {
+        if (value instanceof String) {
+            value = quoted ? String.format("\"%s\"", value) : value;
+            return new Argument(name, value);
+        } else {
+            // this is an object which needs to be Jackson-serialized
+            try {
+                return new Argument(name, JSON_MAPPER.writeValueAsString(value));
+            } catch (JsonProcessingException exception) {
+                throw new IllegalStateException(String.format("Cannot serialize %s", value), exception);
+            }
+        }
     }
 
     /**

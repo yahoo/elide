@@ -55,7 +55,7 @@ public class VariableDefinition implements Serializable {
      * Models the aforementioned default value.
      */
     @Getter(AccessLevel.PRIVATE)
-    private final ValueWithVariable defaultValue;
+    private final Object defaultValue;
 
     /**
      * Returns the query string that corresponds to the a {@link graphql.language.VariableDefinition} part
@@ -70,7 +70,7 @@ public class VariableDefinition implements Serializable {
                 getType(),
                 Objects.isNull(getDefaultValue())
                         ? ""
-                        : String.format("=%s", getDefaultValue().toGraphQLSpec())
+                        : String.format("=%s", getDefaultValue())
         );
     }
 }
