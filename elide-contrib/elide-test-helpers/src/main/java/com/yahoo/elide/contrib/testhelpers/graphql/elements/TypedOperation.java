@@ -25,7 +25,7 @@ import java.io.Serializable;
  * operation name and variables used in query.
  */
 @RequiredArgsConstructor
-public class TypedOperation implements OperationDefinition {
+public class TypedOperation implements Definition {
 
     /**
      * Models the required {@code operation type}.

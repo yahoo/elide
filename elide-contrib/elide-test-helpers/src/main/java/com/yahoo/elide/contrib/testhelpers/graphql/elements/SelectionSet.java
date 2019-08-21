@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @see Selection
  */
 @RequiredArgsConstructor
-public class SelectionSet implements OperationDefinition {
+public class SelectionSet implements Definition {
 
     private static final long serialVersionUID = -2777133166190446552L;
 

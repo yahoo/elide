@@ -9,7 +9,6 @@ import com.yahoo.elide.contrib.testhelpers.graphql.elements.Argument;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Definition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Document;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Field;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.OperationDefinition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinitions;
@@ -284,7 +283,7 @@ public final class GraphQLDSL {
      * Creates a typed query definition
      *
      * @param operationType  The type of the query definition.
-     * @param name  An unique identifier of a {@link OperationDefinition operation} in a multi-operations
+     * @param name  An unique identifier of a operation in a multi-operations
      * {@link Document GraphQL query}
      * @param variableDefinitions  A collection of GraphQL variable definitions
      * @param selectionSet  The definition/selection-spec of a multi-definitions GraphQL query for
