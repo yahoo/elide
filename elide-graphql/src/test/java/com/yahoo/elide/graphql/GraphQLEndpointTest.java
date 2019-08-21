@@ -9,9 +9,10 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.mutation;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.typedOperation;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static com.yahoo.elide.contrib.testhelpers.graphql.elements.Field.QUERY;
@@ -23,7 +24,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
@@ -225,8 +225,7 @@ public class GraphQLEndpointTest {
     @Test
     void testValidFetchWithVariables() throws JSONException {
         String graphQLRequest = document(
-                typedOperation(
-                        TypedOperation.OperationType.QUERY,
+                query(
                         "myQuery",
                         variableDefinitions(
                                 variableDefinition("bookId", "[String]")
@@ -441,8 +440,7 @@ public class GraphQLEndpointTest {
         author.setNoShare(noShare);
 
         String graphQLRequest = document(
-                typedOperation(
-                        TypedOperation.OperationType.MUTATION,
+                mutation(
                         selection(
                                 field(
                                         QUERY,
@@ -542,8 +540,7 @@ public class GraphQLEndpointTest {
         book.setTitle("my new book!");
 
         String graphQLRequest = document(
-                typedOperation(
-                        TypedOperation.OperationType.MUTATION,
+                mutation(
                         selection(
                                 field(
                                         QUERY,
@@ -590,8 +587,7 @@ public class GraphQLEndpointTest {
         book.setTitle("my new book!");
 
         String graphQLRequest = document(
-                typedOperation(
-                        TypedOperation.OperationType.MUTATION,
+                mutation(
                         selection(
                                 field(
                                         QUERY,
@@ -627,8 +623,7 @@ public class GraphQLEndpointTest {
         book.setAuthors(Sets.newHashSet(author));
 
         String graphQLRequest = document(
-                typedOperation(
-                        TypedOperation.OperationType.MUTATION,
+                mutation(
                         selection(
                                 field(
                                         QUERY,
@@ -731,8 +726,7 @@ public class GraphQLEndpointTest {
 
         // NOTE: User 3 cannot update books.
         String graphQLRequest = document(
-                typedOperation(
-                        TypedOperation.OperationType.MUTATION,
+                mutation(
                         selection(
                                 field(
                                         QUERY,
@@ -757,8 +751,7 @@ public class GraphQLEndpointTest {
     @Test
     void testQueryAMap() throws JSONException {
         String graphQLRequest = document(
-                typedOperation(
-                        TypedOperation.OperationType.QUERY,
+                mutation(
                         selection(
                                 field(
                                         QUERY,
@@ -815,8 +808,7 @@ public class GraphQLEndpointTest {
     @Test
     void testQueryAMapWithBadFields() throws IOException {
         String graphQLRequest = document(
-                typedOperation(
-                        TypedOperation.OperationType.QUERY,
+                mutation(
                         selection(
                                 field(
                                         QUERY,

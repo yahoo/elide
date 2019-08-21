@@ -9,15 +9,13 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.typedOperation;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static com.yahoo.elide.contrib.testhelpers.graphql.elements.Field.QUERY;
 import static com.yahoo.elide.contrib.testhelpers.graphql.elements.Field.RESPONSE;
-
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -146,8 +144,7 @@ public class GraphQLDSLTest {
                 " {node {name}}}}}}}";
 
         String actual = document(
-                typedOperation(
-                        TypedOperation.OperationType.QUERY,
+                query(
                         "myQuery",
                         variableDefinitions(
                                 variableDefinition("bookId", "[String]")

@@ -25,45 +25,7 @@ import java.io.Serializable;
  * operation name and variables used in query.
  */
 @RequiredArgsConstructor
-public class TypedOperation implements Definition {
-
-    /**
-     * Models the required {@code operation type}.
-     */
-    @RequiredArgsConstructor
-    public enum OperationType implements Serializable {
-
-        /**
-         * {@code operationType : SUBSCRIPTION} token.
-         */
-        SUBSCRIPTION("subscription"),
-
-        /**
-         * {@code operationType : MUTATION} token.
-         */
-        MUTATION("mutation"),
-
-        /**
-         * {@code operationType : QUERY} token.
-         */
-        QUERY("query");
-
-        /**
-         * An ANTLR token.
-         */
-        @NonNull
-        @Getter(AccessLevel.PRIVATE)
-        private final String name;
-
-        /**
-         * Returns this token in string form.
-         *
-         * @return a sub-string of a GraphQL query
-         */
-        public String toGraphQLSpec() {
-            return getName();
-        }
-    }
+public abstract class TypedOperation implements Definition {
 
     private static final long serialVersionUID = 5049217577677973567L;
 
@@ -72,7 +34,7 @@ public class TypedOperation implements Definition {
      */
     @NonNull
     @Getter(AccessLevel.PRIVATE)
-    private final OperationType operationType;
+    private final String operationType;
 
     /**
      * The "name" TOKEN defined in GraphQL grammar.
@@ -97,7 +59,7 @@ public class TypedOperation implements Definition {
     public String toGraphQLSpec() {
         return String.format(
                 "%s %s%s%s",
-                getOperationType().toGraphQLSpec(),
+                getOperationType(),
                 getName() == null ? "" : getName(),
                 getVariableDefinitions() == null
                         ? ""

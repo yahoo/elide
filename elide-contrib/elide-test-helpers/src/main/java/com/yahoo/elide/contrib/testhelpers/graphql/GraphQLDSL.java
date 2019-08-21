@@ -9,6 +9,8 @@ import com.yahoo.elide.contrib.testhelpers.graphql.elements.Argument;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Definition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Document;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Field;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.Mutation;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.Query;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinitions;
@@ -262,44 +264,20 @@ public final class GraphQLDSL {
         return new SelectionSet(Arrays.stream(selections).collect(Collectors.toCollection(LinkedHashSet::new)));
     }
 
-    /**
-     * Creates a typed query definition without query name and variable definitions.
-     *
-     * @param operationType  The type of the query definition.
-     * @param selectionSet  The definition/selection-spec of a multi-definitions GraphQL query for
-     *
-     * @return a definition of a multi-definitions GraphQL query
-     *
-     * @see <a href="https://graphql.org/learn/schema/#the-query-and-mutation-types">Typed Query</a>
-     */
-    public static TypedOperation typedOperation(
-            TypedOperation.OperationType operationType,
-            SelectionSet selectionSet
-    ) {
-        return new TypedOperation(operationType, null, null, selectionSet);
+    public static Mutation mutation(String name, VariableDefinitions variableDefinitions,SelectionSet selectionSet) {
+        return new Mutation(name, variableDefinitions, selectionSet);
     }
 
-    /**
-     * Creates a typed query definition
-     *
-     * @param operationType  The type of the query definition.
-     * @param name  An unique identifier of a operation in a multi-operations
-     * {@link Document GraphQL query}
-     * @param variableDefinitions  A collection of GraphQL variable definitions
-     * @param selectionSet  The definition/selection-spec of a multi-definitions GraphQL query for
-     *
-     * @return a definition of a multi-definitions GraphQL query
-     *
-     * @see <a href="https://graphql.org/learn/schema/#the-query-and-mutation-types">Typed Query</a>
-     * @see <a href="https://graphql.org/learn/queries/#variables">Variables</a>
-     */
-    public static TypedOperation typedOperation(
-            TypedOperation.OperationType operationType,
-            String name,
-            VariableDefinitions variableDefinitions,
-            SelectionSet selectionSet
-    ) {
-        return new TypedOperation(operationType, name, variableDefinitions, selectionSet);
+    public static Mutation mutation(SelectionSet selectionSet) {
+        return new Mutation(null, null, selectionSet);
+    }
+
+    public static Query query(String name, VariableDefinitions variableDefinitions,SelectionSet selectionSet) {
+        return new Query(name, variableDefinitions, selectionSet);
+    }
+
+    public static Query query(SelectionSet selectionSet) {
+        return new Query(null, null, selectionSet);
     }
 
     /**
