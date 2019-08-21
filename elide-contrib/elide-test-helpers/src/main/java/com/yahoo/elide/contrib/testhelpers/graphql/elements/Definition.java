@@ -24,15 +24,13 @@ import java.io.Serializable;
  * </pre>
  * A {@link Definition} has 3 sub-types:
  * <ol>
- *     <li> {@link OperationDefinition}
+ *     <li> OperationDefinition
  *     <li> TODO - support fragmentDefinition interface
  *     <li> TODO - support typeSystemDefinition interface
  * </ol>
  *
  * <p>
  * This is a {@link java.util.function functional interface} whose functional method is {@link #toGraphQLSpec()}.
- *
- * @see OperationDefinition
  */
 @FunctionalInterface
 public interface Definition extends Serializable {
