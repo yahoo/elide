@@ -69,10 +69,6 @@ public class Field extends Selection {
 
     @Override
     public String toGraphQLSpec() {
-        return IS_QUERY ? toQuerySpec() : toResponse();
-    }
-
-    private String toQuerySpec() {
         return String.format(
                 "%s%s%s",
                 getName(),
@@ -81,17 +77,8 @@ public class Field extends Selection {
         );
     }
 
-    private String argument() {
-        return getArguments().noArgument()
-                ? ""
-                : getArguments().toGraphQLSpec();
-    }
-
-    private String selection() {
-        return getSelectionSet() == null ? "" : " " + ((SelectionSet) getSelectionSet()).toGraphQLSpec();
-    }
-
-    private String toResponse() {
+    @Override
+    public String toResponse() {
         if (selectionSet instanceof String) {
             // scalar response field
             return String.format(
@@ -103,7 +90,17 @@ public class Field extends Selection {
             );
         } else {
             // object response field
-            return String.format("\"%s\":%s", getName(), ((SelectionSet) getSelectionSet()).toGraphQLSpec());
+            return String.format("\"%s\":%s", getName(), ((SelectionSet) getSelectionSet()).toResponse());
         }
+    }
+
+    private String argument() {
+        return getArguments().noArgument()
+                ? ""
+                : getArguments().toGraphQLSpec();
+    }
+
+    private String selection() {
+        return getSelectionSet() == null ? "" : " " + ((SelectionSet) getSelectionSet()).toGraphQLSpec();
     }
 }

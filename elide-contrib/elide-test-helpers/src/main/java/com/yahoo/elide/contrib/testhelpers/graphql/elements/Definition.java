@@ -16,8 +16,6 @@ public abstract class Definition implements Serializable {
 
     private static final long serialVersionUID = 9111832639983951228L;
 
-    protected static boolean IS_QUERY;
-
     /**
      * Returns the query string that corresponds to the a {@link graphql.language.Definition} part
      * of a GraphQL query.
@@ -25,4 +23,12 @@ public abstract class Definition implements Serializable {
      * @return a sub-string of a GraphQL query
      */
     abstract String toGraphQLSpec();
+
+    /**
+     * Returns the response string that corresponds to the a {@link graphql.language.Definition} part
+     * of a GraphQL query.
+     *
+     * @return a sub-string of a GraphQL response
+     */
+    abstract String toResponse();
 }

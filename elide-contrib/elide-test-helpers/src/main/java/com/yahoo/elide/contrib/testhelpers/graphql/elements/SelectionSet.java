@@ -35,4 +35,13 @@ public class SelectionSet extends Definition {
                 .collect(Collectors.joining(" "))
         );
     }
+
+    @Override
+    String toResponse() {
+        return String.format(
+                "{%s}",
+                getSelections().stream().map(Selection::toResponse)
+                        .collect(Collectors.joining(" "))
+        );
+    }
 }

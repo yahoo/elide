@@ -39,14 +39,11 @@ public class Edges extends Selection {
      */
     @Override
     public String toGraphQLSpec() {
-        return IS_QUERY ? toQuerySpec() : toResponse();
-    }
-
-    private String toQuerySpec() {
         return String.format("edges {%s}", getNodes().get(0).toGraphQLSpec());
     }
 
-    private String toResponse() {
+    @Override
+    public String toResponse() {
         return String.format("\"edges\":[%s]", attachNodes(getNodes()));
     }
 
@@ -91,7 +88,7 @@ public class Edges extends Selection {
         }
 
         return nodes.stream()
-                .map(Node::toGraphQLSpec)
+                .map(Node::toResponse)
                 .collect(Collectors.joining(","));
     }
 }

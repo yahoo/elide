@@ -32,17 +32,14 @@ public class Node extends Selection {
 
     @Override
     public String toGraphQLSpec() {
-        return IS_QUERY ? toQuerySpec() : toResponseSpec();
-    }
-
-    private String toQuerySpec() {
         return String.format(
                 "node %s",
                 getFields().toGraphQLSpec()
         );
     }
 
-    private String toResponseSpec() {
+    @Override
+    public String toResponse() {
         return String.format("{\"node\":{%s}}", serializeNode(this));
     }
 
@@ -55,7 +52,7 @@ public class Node extends Selection {
      */
     private static String serializeNode(Node node) {
         return node.getFields().getSelections().stream()
-                .map(Selection::toGraphQLSpec)
+                .map(Selection::toResponse)
                 .collect(Collectors.joining(","));
     }
 }
