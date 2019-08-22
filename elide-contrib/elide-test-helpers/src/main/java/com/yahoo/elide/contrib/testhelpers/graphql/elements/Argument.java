@@ -16,14 +16,6 @@ import java.io.Serializable;
  * {@link Argument} represents the same concept as {@link graphql.language.Argument GraphQL Argument} but specializes
  * in serialization, in contrast to {@link graphql.language.Argument GraphQL Argument}, which is designed for
  * deserialization.
- * <p>
- * According to GraphQL grammar (6.0)
- * <pre>
- * {@code
- * argument : name ':' valueWithVariable;
- * }
- * </pre>
- * An {@link Argument} is a pair of argument name and {@link ValueWithVariable argument value}.
  *
  * @see <a href="https://graphql.org/learn/queries/#arguments">GraphQL Arguments</a>
  */

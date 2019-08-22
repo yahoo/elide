@@ -131,9 +131,9 @@ public class GraphQLDSLTest {
     }
 
     @Test
-    public void verifyRequestWithVariable(){
-        String expected = "query myQuery($bookId: [String]) {book(ids: $bookId) {edges {node {id title authors {edges" +
-                " {node {name}}}}}}}";
+    public void verifyRequestWithVariable() {
+        String expected = "query myQuery($bookId: [String]) {book(ids: $bookId) {edges {node {id title authors {edges"
+                + " {node {name}}}}}}}";
 
         String actual = document(
                 query(
@@ -169,14 +169,14 @@ public class GraphQLDSLTest {
 
     @Test
     public void verifyBasicResponse() {
-        String expected = "{\"data\":" +
-                "{\"book\":" +
-                "{\"edges\":" +
-                "[{\"node\":" +
-                "{\"id\":\"1\"," +
-                "\"title\":\"My first book\"," +
-                "\"authors\":{\"edges\":[{\"node\":{" +
-                "\"name\":\"Ricky Carmichael\"}}]}}}]}}}";
+        String expected = "{\"data\":"
+                + "{\"book\":"
+                + "{\"edges\":"
+                + "[{\"node\":"
+                + "{\"id\":\"1\","
+                + "\"title\":\"My first book\","
+                + "\"authors\":{\"edges\":[{\"node\":{"
+                + "\"name\":\"Ricky Carmichael\"}}]}}}]}}}";
 
         String actual = document(
                 selection(
@@ -201,10 +201,10 @@ public class GraphQLDSLTest {
 
     @Test
     public void verifyMultipleEntityInstancesResponse() {
-        String expected = "{\"data\":{\"book\":{\"edges\":[{\"node\":{\"id\":\"3\",\"title\":\"Doctor Zhivago\"," +
-                "\"publisher\":{\"edges\":[{\"node\":{\"id\":\"2\"}}]}}},{\"node\":{\"id\":\"1\",\"title\":\"Libro " +
-                "Uno\",\"publisher\":{\"edges\":[{\"node\":{\"id\":\"1\"}}]}}},{\"node\":{\"id\":\"2\"," +
-                "\"title\":\"Libro Dos\",\"publisher\":{\"edges\":[{\"node\":{\"id\":\"1\"}}]}}}]}}}";
+        String expected = "{\"data\":{\"book\":{\"edges\":[{\"node\":{\"id\":\"3\",\"title\":\"Doctor Zhivago\","
+                + "\"publisher\":{\"edges\":[{\"node\":{\"id\":\"2\"}}]}}},{\"node\":{\"id\":\"1\",\"title\":\"Libro "
+                + "Uno\",\"publisher\":{\"edges\":[{\"node\":{\"id\":\"1\"}}]}}},{\"node\":{\"id\":\"2\","
+                + "\"title\":\"Libro Dos\",\"publisher\":{\"edges\":[{\"node\":{\"id\":\"1\"}}]}}}]}}}";
 
         String actual = document(
                 selection(

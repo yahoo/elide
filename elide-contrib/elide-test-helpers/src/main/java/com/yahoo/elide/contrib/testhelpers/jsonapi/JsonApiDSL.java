@@ -284,7 +284,7 @@ public class JsonApiDSL {
      * @param operation the operation type
      * @param path the operation path
      * @param value the operation value
-     * @return
+     * @return the patch operation
      */
     public static PatchOperation patchOperation(PatchOperationType operation, String path, Resource value) {
         return new PatchOperation(operation, path, value);

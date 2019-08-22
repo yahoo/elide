@@ -26,12 +26,11 @@ import java.util.stream.Collectors;
  * </pre>
  * {@link VariableDefinitions} is a space-separated list of {@link VariableDefinition}s surrounded by a pair of
  * parenthesis.
- *
- * @see {@link VariableDefinitions}
  */
 @RequiredArgsConstructor
 public class VariableDefinitions implements Serializable {
 
+    private static final long serialVersionUID = 6946714566964868745L;
     /**
      * Models the space-separated list of {@link VariableDefinition}s.
      */

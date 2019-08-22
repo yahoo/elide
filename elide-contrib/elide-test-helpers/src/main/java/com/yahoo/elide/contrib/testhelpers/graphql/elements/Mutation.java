@@ -1,7 +1,15 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.contrib.testhelpers.graphql.elements;
 
 import lombok.NonNull;
 
+/**
+ * Represents GraphQL mutation query.
+ */
 public class Mutation extends TypedOperation {
 
     private static final long serialVersionUID = 1990970251076956044L;

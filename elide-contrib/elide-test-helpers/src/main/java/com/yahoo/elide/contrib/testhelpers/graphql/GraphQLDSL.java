@@ -6,18 +6,18 @@
 package com.yahoo.elide.contrib.testhelpers.graphql;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Argument;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.Arguments;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Definition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Document;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.Edges;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Field;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Mutation;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.Query;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinition;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinitions;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.Arguments;
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.Edges;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Node;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.Query;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Selection;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.SelectionSet;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinition;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.VariableDefinitions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -40,17 +40,16 @@ import java.util.stream.Collectors;
  * <pre>
  * {@code
  * String graphQLQuery = document(
- *         typedOperation(
- *                 TypedOperation.OperationType.QUERY,
+ *         query(
  *                 "myQuery",
  *                 variableDefinitions(
  *                         variableDefinition("bookId", "[String]")
  *                 ),
  *                 selections(
- *                         entity(
+ *                         field(
  *                                 "book",
  *                                 arguments(
- *                                         argument("ids", variableValue("bookId"))
+ *                                         argument("ids", "$bookId")
  *                                 ),
  *                                 selections(
  *                                         field("id"),
@@ -64,8 +63,8 @@ import java.util.stream.Collectors;
  *                                 )
  *                         )
  *                 )
- *         )
- * ).toQuery();
+ *                 )
+ *         ).toQuery();
  * }
  * </pre>
  * will produces the following query
@@ -95,35 +94,35 @@ import java.util.stream.Collectors;
  * {@code
  * document(
  *         selection(
- *                 responseField(
+ *                 field(
  *                         "book",
  *                         selections(
- *                                 responseField("id", "3"),
- *                                 responseField("title", "Doctor Zhivago"),
- *                                 responseField(
+ *                                 field("id", "3"),
+ *                                 field("title", "Doctor Zhivago"),
+ *                                 field(
  *                                         "publisher",
  *                                         selection(
- *                                                 responseField("id", "2")
+ *                                                 field("id", "2")
  *                                         )
  *                                 )
  *                         ),
  *                         selections(
- *                                 responseField("id", "1"),
- *                                 responseField("title", "Libro Uno"),
- *                                 responseField(
+ *                                 field("id", "1"),
+ *                                 field("title", "Libro Uno"),
+ *                                 field(
  *                                         "publisher",
  *                                         selection(
- *                                                 responseField("id", "1")
+ *                                                 field("id", "1")
  *                                         )
  *                                 )
  *                         ),
  *                         selections(
- *                                 responseField("id", "2"),
- *                                 responseField("title", "Libro Dos"),
- *                                 responseField(
+ *                                 field("id", "2"),
+ *                                 field("title", "Libro Dos"),
+ *                                 field(
  *                                         "publisher",
  *                                         selection(
- *                                                 responseField("id", "1")
+ *                                                 field("id", "1")
  *                                         )
  *                                 )
  *                         )
@@ -263,18 +262,50 @@ public final class GraphQLDSL {
         return new SelectionSet(Arrays.stream(selections).collect(Collectors.toCollection(LinkedHashSet::new)));
     }
 
-    public static Mutation mutation(String name, VariableDefinitions variableDefinitions,SelectionSet selectionSet) {
+    /**
+     * Constructs a mutation
+     *
+     * @param name  Mutation name
+     * @param variableDefinitions  Optional variables
+     * @param selectionSet  Selected fields
+     *
+     * @return a mutation
+     */
+    public static Mutation mutation(String name, VariableDefinitions variableDefinitions, SelectionSet selectionSet) {
         return new Mutation(name, variableDefinitions, selectionSet);
     }
 
+    /**
+     * Constructs a mutation
+     *
+     * @param selectionSet  Selected fields
+     *
+     * @return a mutation
+     */
     public static Mutation mutation(SelectionSet selectionSet) {
         return new Mutation(null, null, selectionSet);
     }
 
-    public static Query query(String name, VariableDefinitions variableDefinitions,SelectionSet selectionSet) {
+    /**
+     * Constructs a named query
+     *
+     * @param name  Query name
+     * @param variableDefinitions  Optional variables
+     * @param selectionSet  Selected fields
+     *
+     * @return a named query
+     */
+    public static Query query(String name, VariableDefinitions variableDefinitions, SelectionSet selectionSet) {
         return new Query(name, variableDefinitions, selectionSet);
     }
 
+    /**
+     * Constructs a named query
+     *
+     * @param selectionSet  Selected fields
+     *
+     * @return a named query
+     */
     public static Query query(SelectionSet selectionSet) {
         return new Query(null, null, selectionSet);
     }
@@ -306,10 +337,27 @@ public final class GraphQLDSL {
         return new VariableDefinition(variable, type, null);
     }
 
+    /**
+     * Constructs a scalar response field.
+     *
+     * @param name  Field name
+     * @param value  Field value
+     *
+     * @return a field
+     */
     public static Selection field(String name, String value) {
         return new Field(name, Arguments.emptyArgument(), Field.quoteValue(value));
     }
 
+    /**
+     * Constructs a scalar response field.
+     *
+     * @param name  Field name
+     * @param value  Field value
+     * @param quoted  Weather value is quoted
+     *
+     * @return a field
+     */
     public static Selection field(String name, String value, boolean quoted) {
         return new Field(name, Arguments.emptyArgument(), quoted ? Field.quoteValue(value) : value);
     }
@@ -332,7 +380,9 @@ public final class GraphQLDSL {
         }
 
         // query
-        List<SelectionSet> ss = Arrays.stream(selectionSet).map(i -> (SelectionSet)i).collect(Collectors.toList());
+        List<SelectionSet> ss = Arrays.stream(selectionSet)
+                .map(i -> (SelectionSet) i)
+                .collect(Collectors.toList());
         return new Field(name, Arguments.emptyArgument(), relayWrap(ss));
     }
 
