@@ -15,13 +15,13 @@ import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.EntityDictionary;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-
 import example.Author;
 import example.Book;
 import example.Publisher;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
