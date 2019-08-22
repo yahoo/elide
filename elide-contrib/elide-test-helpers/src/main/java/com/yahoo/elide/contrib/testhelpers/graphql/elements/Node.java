@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.contrib.testhelpers.graphql.elements;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
  * (https://graphql.org/learn/pagination/#pagination-and-edges).
  */
 @RequiredArgsConstructor
-public class Node implements Selection {
+public class Node extends Selection {
 
     private static final long serialVersionUID = 2525022170227460587L;
 
@@ -31,12 +30,9 @@ public class Node implements Selection {
     @Getter
     private final SelectionSet fields;
 
-    @Getter(AccessLevel.PRIVATE)
-    private final boolean queryNode;
-
     @Override
     public String toGraphQLSpec() {
-        return isQueryNode() ? toQuerySpec() : toResponseSpec();
+        return IS_QUERY ? toQuerySpec() : toResponseSpec();
     }
 
     private String toQuerySpec() {

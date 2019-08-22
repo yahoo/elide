@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @see Node
  */
 @RequiredArgsConstructor
-public class Edges implements Selection {
+public class Edges extends Selection {
 
     private static final long serialVersionUID = 1860183539630769326L;
 
@@ -32,9 +32,6 @@ public class Edges implements Selection {
     @NonNull
     private final List<Node> nodes;
 
-    @Getter
-    private final boolean queryEdge;
-
     /**
      * Returns the query string that corresponds to the edges that connects sub-graphs in a GraphQL query.
      *
@@ -42,7 +39,7 @@ public class Edges implements Selection {
      */
     @Override
     public String toGraphQLSpec() {
-        return isQueryEdge() ? toQuerySpec() : toResponse();
+        return IS_QUERY ? toQuerySpec() : toResponse();
     }
 
     private String toQuerySpec() {

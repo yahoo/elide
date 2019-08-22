@@ -45,7 +45,7 @@ public class Document implements Serializable {
      * @return a string representation of a GraphQL query
      */
     public String toQuery() {
-        return serialize();
+        return serialize(true);
     }
 
     /**
@@ -54,7 +54,7 @@ public class Document implements Serializable {
      * @return a string representation of a GraphQL response
      */
     public String toResponse() {
-        return String.format("{\"data\":%s}", serialize());
+        return String.format("{\"data\":%s}", serialize(false));
     }
 
     /**
@@ -62,7 +62,8 @@ public class Document implements Serializable {
      *
      * @return a string representation of a GraphQL query
      */
-    private String serialize() {
+    private String serialize(boolean isQuery) {
+        Definition.IS_QUERY = isQuery;
         return getDefinitions().stream()
                 .map(Definition::toGraphQLSpec)
                 .collect(Collectors.joining(" "));

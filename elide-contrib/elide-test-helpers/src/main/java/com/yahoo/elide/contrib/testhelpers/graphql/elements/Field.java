@@ -35,15 +35,12 @@ import java.io.Serializable;
  * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object types and fields</a>
  */
 @RequiredArgsConstructor
-public class Field implements Selection {
-
-    public static final boolean QUERY = true;
-    public static final boolean RESPONSE = false;
+public class Field extends Selection {
 
     private static final long serialVersionUID = -5906705888838083150L;
 
     public static Field scalarField(String name) {
-        return new Field(name, Arguments.emptyArgument(), null, QUERY);
+        return new Field(name, Arguments.emptyArgument(), null);
     }
 
     public static String quoteValue(String value) {
@@ -70,12 +67,9 @@ public class Field implements Selection {
     @Getter(AccessLevel.PRIVATE)
     private final Serializable selectionSet;
 
-    @Getter(AccessLevel.PRIVATE)
-    private final boolean queryField;
-
     @Override
     public String toGraphQLSpec() {
-        return isQueryField() ? toQuerySpec() : toResponse();
+        return IS_QUERY ? toQuerySpec() : toResponse();
     }
 
     private String toQuerySpec() {

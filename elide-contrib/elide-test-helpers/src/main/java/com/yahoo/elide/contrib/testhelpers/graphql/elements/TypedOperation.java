@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
  * operation name and variables used in query.
  */
 @RequiredArgsConstructor
-public abstract class TypedOperation implements Definition {
+public abstract class TypedOperation extends Definition {
 
     private static final long serialVersionUID = 5049217577677973567L;
 

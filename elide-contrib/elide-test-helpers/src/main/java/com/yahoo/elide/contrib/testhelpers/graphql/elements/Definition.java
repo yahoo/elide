@@ -11,29 +11,12 @@ import java.io.Serializable;
  * {@link Definition} represents the same concept as {@link graphql.language.Definition GraphQL Definition} but
  * specializes in serialization, in contrast to {@link graphql.language.Definition GraphQL Definition}, which is
  * designed for deserialization.
- * <p>
- * According to GraphQL grammar (6.0)
- * <pre>
- * {@code
- *     definition:
- *         operationDefinition |
- *         fragmentDefinition |
- *         typeSystemDefinition
- *         ;
- * }
- * </pre>
- * A {@link Definition} has 3 sub-types:
- * <ol>
- *     <li> OperationDefinition
- *     <li> TODO - support fragmentDefinition interface
- *     <li> TODO - support typeSystemDefinition interface
- * </ol>
- *
- * <p>
- * This is a {@link java.util.function functional interface} whose functional method is {@link #toGraphQLSpec()}.
  */
-@FunctionalInterface
-public interface Definition extends Serializable {
+public abstract class Definition implements Serializable {
+
+    private static final long serialVersionUID = 9111832639983951228L;
+
+    protected static boolean IS_QUERY;
 
     /**
      * Returns the query string that corresponds to the a {@link graphql.language.Definition} part
@@ -41,5 +24,5 @@ public interface Definition extends Serializable {
      *
      * @return a sub-string of a GraphQL query
      */
-    String toGraphQLSpec();
+    abstract String toGraphQLSpec();
 }

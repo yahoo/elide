@@ -307,15 +307,11 @@ public final class GraphQLDSL {
     }
 
     public static Selection field(String name, String value) {
-        return new Field(name, Arguments.emptyArgument(), Field.quoteValue(value), false);
+        return new Field(name, Arguments.emptyArgument(), Field.quoteValue(value));
     }
 
     public static Selection field(String name, String value, boolean quoted) {
-        return new Field(name, Arguments.emptyArgument(), quoted ? Field.quoteValue(value) : value, false);
-    }
-
-    public static Selection field(String name, Object value) {
-        return new Field(name, Arguments.emptyArgument(), GSON_INSTANCE.toJson(value), false);
+        return new Field(name, Arguments.emptyArgument(), quoted ? Field.quoteValue(value) : value);
     }
 
     /**
@@ -329,8 +325,15 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/queries/#fields">Fields</a>
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
-    public static Selection field(boolean isQuery, String name, SelectionSet... selectionSet) {
-        return new Field(name, Arguments.emptyArgument(), relayWrap(Arrays.asList(selectionSet), isQuery), isQuery);
+    public static Selection field(String name, Object... selectionSet) {
+        if (selectionSet.length == 1 && !(selectionSet[0] instanceof SelectionSet)) {
+            // response
+            return new Field(name, Arguments.emptyArgument(), GSON_INSTANCE.toJson(selectionSet[0]));
+        }
+
+        // query
+        List<SelectionSet> ss = Arrays.stream(selectionSet).map(i -> (SelectionSet)i).collect(Collectors.toList());
+        return new Field(name, Arguments.emptyArgument(), relayWrap(ss));
     }
 
     /**
@@ -346,8 +349,8 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/queries/#arguments">Arguments</a>
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
-    public static Selection field(boolean isQuery, String name, Arguments arguments, SelectionSet... selectionSet) {
-        return new Field(name, arguments, relayWrap(Arrays.asList(selectionSet), isQuery), isQuery);
+    public static Selection field(String name, Arguments arguments, SelectionSet... selectionSet) {
+        return new Field(name, arguments, relayWrap(Arrays.asList(selectionSet)));
     }
 
     /**
@@ -470,12 +473,12 @@ public final class GraphQLDSL {
      *
      * @see <a href="https://graphql.org/learn/pagination/">Relay's connection pattern</a>
      */
-    private static SelectionSet relayWrap(List<SelectionSet> selectionSet, boolean isQuery) {
+    private static SelectionSet relayWrap(List<SelectionSet> selectionSet) {
         Edges edges = new Edges(
                 selectionSet.stream()
-                        .map(set -> new Node(set, isQuery))
-                        .collect(Collectors.toList()),
-                isQuery);
+                        .map(set -> new Node(set))
+                        .collect(Collectors.toList())
+        );
 
         return new SelectionSet(new LinkedHashSet<>(Collections.singleton(edges)));
     }

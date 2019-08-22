@@ -15,8 +15,6 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
-import static com.yahoo.elide.contrib.testhelpers.graphql.elements.Field.QUERY;
-import static com.yahoo.elide.contrib.testhelpers.graphql.elements.Field.RESPONSE;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -29,7 +27,6 @@ public class GraphQLDSLTest {
         String actual = document(
                 selection(
                         field(
-                                QUERY,
                                 "book",
                                 selections(
                                         field("id"),
@@ -48,14 +45,12 @@ public class GraphQLDSLTest {
         String actual = document(
                 selections(
                         field(
-                                QUERY,
                                 "book",
                                 selection(
                                         field("user1SecretField")
                                 )
                         ),
                         field(
-                                QUERY,
                                 "book",
                                 selections(
                                         field("id"),
@@ -74,13 +69,11 @@ public class GraphQLDSLTest {
         String actual = document(
                 selections(
                         field(
-                                QUERY,
                                 "book",
                                 selections(
                                         field("id"),
                                         field("title"),
                                         field(
-                                                QUERY,
                                                 "authors",
                                                 selection(
                                                         field("name")
@@ -100,7 +93,6 @@ public class GraphQLDSLTest {
         String actual = document(
                 selections(
                         field(
-                                QUERY,
                                 "book",
                                 argument(
                                         argument("sort", "-id", QUOTE_VALUE)
@@ -122,7 +114,6 @@ public class GraphQLDSLTest {
         String actual = document(
                 selections(
                         field(
-                                QUERY,
                                 "book",
                                 arguments(
                                         argument("sort", "-id", QUOTE_VALUE),
@@ -152,7 +143,6 @@ public class GraphQLDSLTest {
                         ),
                         selections(
                                 field(
-                                        QUERY,
                                         "book",
                                         arguments(
                                                 argument("ids", "$bookId")
@@ -161,7 +151,6 @@ public class GraphQLDSLTest {
                                                 field("id"),
                                                 field("title"),
                                                 field(
-                                                        QUERY,
                                                         "authors",
                                                         selection(
                                                                 field("name")
@@ -192,13 +181,11 @@ public class GraphQLDSLTest {
         String actual = document(
                 selection(
                         field(
-                                RESPONSE,
                                 "book",
                                 selections(
                                         field("id", "1"),
                                         field("title", "My first book"),
                                         field(
-                                                RESPONSE,
                                                 "authors",
                                                 selection(
                                                         field("name", "Ricky Carmichael")
@@ -222,13 +209,11 @@ public class GraphQLDSLTest {
         String actual = document(
                 selection(
                         field(
-                                RESPONSE,
                                 "book",
                                 selections(
                                         field("id", "3"),
                                         field("title", "Doctor Zhivago"),
                                         field(
-                                                RESPONSE,
                                                 "publisher",
                                                 selection(
                                                         field("id", "2")
@@ -239,7 +224,6 @@ public class GraphQLDSLTest {
                                         field("id", "1"),
                                         field("title", "Libro Uno"),
                                         field(
-                                                RESPONSE,
                                                 "publisher",
                                                 selection(
                                                         field("id", "1")
@@ -250,7 +234,6 @@ public class GraphQLDSLTest {
                                         field("id", "2"),
                                         field("title", "Libro Dos"),
                                         field(
-                                                RESPONSE,
                                                 "publisher",
                                                 selection(
                                                         field("id", "1")
