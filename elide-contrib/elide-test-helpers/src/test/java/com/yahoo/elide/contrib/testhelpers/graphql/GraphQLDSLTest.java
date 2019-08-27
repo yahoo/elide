@@ -6,6 +6,7 @@
 package com.yahoo.elide.contrib.testhelpers.graphql;
 
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.QUOTE_VALUE;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.UNQUOTED_VALUE;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
@@ -15,9 +16,9 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class GraphQLDSLTest {
 
@@ -35,8 +36,8 @@ public class GraphQLDSLTest {
                         )
                 )
         ).toQuery();
-
-        Assert.assertEquals(actual, expected);
+        
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -60,7 +61,7 @@ public class GraphQLDSLTest {
                 )
         ).toQuery();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -84,7 +85,7 @@ public class GraphQLDSLTest {
                 )
         ).toQuery();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -105,7 +106,7 @@ public class GraphQLDSLTest {
                 )
         ).toQuery();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -127,7 +128,7 @@ public class GraphQLDSLTest {
                 )
         ).toQuery();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -162,7 +163,7 @@ public class GraphQLDSLTest {
                 )
         ).toQuery();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     /**************************************** Response DSL ****************************************/
@@ -196,7 +197,7 @@ public class GraphQLDSLTest {
                 )
         ).toResponse();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -244,6 +245,6 @@ public class GraphQLDSLTest {
                 )
         ).toResponse();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 }

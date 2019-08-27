@@ -162,11 +162,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
             requestScope.saveOrCreateObjects();
         }
         requestScope.getTransaction().commit(requestScope);
-        assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
+        assertEquals(0, result.getErrors().size(), "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
             LOG.info(mapper.writeValueAsString(result.getData()));
-            assertEquals(mapper.readTree(mapper.writeValueAsString(result.getData())),
-                    mapper.readTree(expectedResponse));
+            assertEquals(
+                    mapper.readTree(expectedResponse),
+                    mapper.readTree(mapper.writeValueAsString(result.getData()))
+            );
         } catch (JsonProcessingException e) {
             fail("JSON parsing exception", e);
         }
@@ -184,7 +186,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         try {
             String message = result.getErrors().get(0).getMessage();
             LOG.info(mapper.writeValueAsString(result.getErrors()));
-            assertEquals(message, expectedMessage);
+            assertEquals(expectedMessage, message);
         } catch (JsonProcessingException e) {
             fail("JSON parsing exception", e);
         }

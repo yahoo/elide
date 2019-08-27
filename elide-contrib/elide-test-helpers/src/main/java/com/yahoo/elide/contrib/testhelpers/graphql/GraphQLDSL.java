@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -197,21 +198,9 @@ public final class GraphQLDSL {
     public static final boolean UNQUOTED_VALUE = false;
 
     /**
-     * Serializes expected JSON object to a string.
+     * Jackson-serializes objects.
      */
-    static private final Gson GSON_INSTANCE = new GsonBuilder()
-            .serializeNulls().create();
-
-    /**
-     * Jackson-serializes entities.
-     * <p>
-     * GraphQL argument name is unquoted; hence quoted field is disabled.
-     */
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper()
-            .configure(
-                    JsonGenerator.Feature.QUOTE_FIELD_NAMES,
-                    false
-            )
+    private static final ObjectMapper BASE_MAPPER = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
             .setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
             .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
@@ -223,6 +212,21 @@ public final class GraphQLDSL {
      */
     private GraphQLDSL() {
         throw new AssertionError();
+    }
+
+    /**
+     * Returns the JSON representation of an object
+     *
+     * @param object  Object to be serialized
+     *
+     * @return a string
+     */
+    public static String toJson(Object object) {
+        try {
+            return BASE_MAPPER.writer().writeValueAsString(object);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalArgumentException(exception);
+        }
     }
 
     /**
@@ -338,7 +342,7 @@ public final class GraphQLDSL {
     }
 
     /**
-     * Constructs a scalar response field.
+     * Constructs a response field with string value.
      *
      * @param name  Field name
      * @param value  Field value
@@ -347,6 +351,30 @@ public final class GraphQLDSL {
      */
     public static Selection field(String name, String value) {
         return new Field(name, Arguments.emptyArgument(), Field.quoteValue(value));
+    }
+
+    /**
+     * Constructs a response field with numeric value.
+     *
+     * @param name  Field name
+     * @param value  Field value
+     *
+     * @return a field
+     */
+    public static Selection field(String name, Number value) {
+        return new Field(name, Arguments.emptyArgument(), value);
+    }
+
+    /**
+     * Constructs a response field with boolean value.
+     *
+     * @param name  Field name
+     * @param value  Field value
+     *
+     * @return a field
+     */
+    public static Selection field(String name, Boolean value) {
+        return new Field(name, Arguments.emptyArgument(), value);
     }
 
     /**
@@ -363,7 +391,7 @@ public final class GraphQLDSL {
     }
 
     /**
-     * Creates a entity(object field) selection without {@link Argument}s.
+     * Creates a request selection without {@link Argument}s.
      *
      * @param name  The name of the selected entity/field that would appear in a GraphQL query
      * @param selectionSet  The fields of the entity that are selected
@@ -373,13 +401,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/queries/#fields">Fields</a>
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
-    public static Selection field(String name, Object... selectionSet) {
-        if (selectionSet.length == 1 && !(selectionSet[0] instanceof SelectionSet)) {
-            // response
-            return new Field(name, Arguments.emptyArgument(), GSON_INSTANCE.toJson(selectionSet[0]));
-        }
-
-        // query
+    public static Selection field(String name, SelectionSet... selectionSet) {
         List<SelectionSet> ss = Arrays.stream(selectionSet)
                 .map(i -> (SelectionSet) i)
                 .collect(Collectors.toList());
@@ -414,6 +436,10 @@ public final class GraphQLDSL {
      */
     public static Selection field(String name) {
         return Field.scalarField(name);
+    }
+
+    public static Selection field(String name, Arguments arguments) {
+        return new Field(name, arguments, null);
     }
 
     /**
@@ -474,7 +500,16 @@ public final class GraphQLDSL {
         } else {
             // this is an object which needs to be Jackson-serialized
             try {
-                return new Argument(name, JSON_MAPPER.writeValueAsString(value));
+                return new Argument(
+                        name,
+                        BASE_MAPPER
+                                .configure(
+                                        // GraphQL argument name is unquoted; hence quoted field is disabled.
+                                        JsonGenerator.Feature.QUOTE_FIELD_NAMES,
+                                        false
+                                )
+                                .writeValueAsString(value)
+                );
             } catch (JsonProcessingException exception) {
                 throw new IllegalStateException(String.format("Cannot serialize %s", value), exception);
             }

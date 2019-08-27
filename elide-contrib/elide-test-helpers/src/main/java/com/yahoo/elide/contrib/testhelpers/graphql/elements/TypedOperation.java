@@ -68,6 +68,6 @@ public abstract class TypedOperation extends Definition {
 
     @Override
     String toResponse() {
-        return toGraphQLSpec();
+        throw new UnsupportedOperationException("Typed operation cannot be in response");
     }
 }

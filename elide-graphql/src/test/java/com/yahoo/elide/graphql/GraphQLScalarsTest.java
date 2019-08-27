@@ -54,7 +54,7 @@ public class GraphQLScalarsTest {
     public void testGraphQLDateParseLiteral() {
         Date expectedDate = new Date(0L);
         Object actualDate = GraphQLScalars.GRAPHQL_DATE_TYPE.getCoercing().parseLiteral(new StringValue("1970-01-01T00:00Z"));
-        assertEquals(actualDate, expectedDate);
+        assertEquals(expectedDate, actualDate);
     }
 
     @Test
@@ -62,24 +62,24 @@ public class GraphQLScalarsTest {
         Date date = new Date(0L);
         Object actual = GraphQLScalars.GRAPHQL_DATE_TYPE.getCoercing().serialize(date);
         String expected = "1970-01-01T00:00Z";
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testGraphQLDeferredIdSerialize() {
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize(123L), 123L);
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize("123"), "123");
+        assertEquals(123L, GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize(123L));
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize("123"));
     }
 
     @Test
     public void testGraphQLDeferredIdParseLiteral() {
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseLiteral(new IntValue(new BigInteger("123"))), "123");
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseLiteral(new StringValue("123")), "123");
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseLiteral(new IntValue(new BigInteger("123"))));
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseLiteral(new StringValue("123")));
     }
 
     @Test
     public void testGraphQLDeferredIdParseValue() {
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseValue("123"), "123");
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseValue(123L), "123");
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseValue("123"));
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseValue(123L));
     }
 }
