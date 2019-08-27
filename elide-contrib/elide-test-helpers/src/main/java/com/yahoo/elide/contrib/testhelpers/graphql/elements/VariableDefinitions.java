@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * parenthesis.
  */
 @RequiredArgsConstructor
-public class VariableDefinitions implements Serializable {
+public class VariableDefinitions extends Definition {
 
     private static final long serialVersionUID = 6946714566964868745L;
     /**

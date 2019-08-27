@@ -65,9 +65,4 @@ public abstract class TypedOperation extends Definition {
                 getSelectionSet().toGraphQLSpec()
         );
     }
-
-    @Override
-    String toResponse() {
-        throw new UnsupportedOperationException("Typed operation cannot be in response");
-    }
 }

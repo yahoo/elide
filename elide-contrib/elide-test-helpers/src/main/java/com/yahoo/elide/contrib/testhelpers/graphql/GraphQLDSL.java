@@ -206,15 +206,6 @@ public final class GraphQLDSL {
             .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
     /**
-     * Constructor.
-     * <p>
-     * Suppress default constructor for noninstantiability.
-     */
-    private GraphQLDSL() {
-        throw new AssertionError();
-    }
-
-    /**
      * Returns the JSON representation of an object
      *
      * @param object  Object to be serialized

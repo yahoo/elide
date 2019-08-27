@@ -30,5 +30,7 @@ public abstract class Definition implements Serializable {
      *
      * @return a sub-string of a GraphQL response
      */
-    abstract String toResponse();
+    String toResponse() {
+        throw new UnsupportedOperationException("Typed operation cannot be in response");
+    }
 }

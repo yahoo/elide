@@ -31,7 +31,7 @@ import java.util.Objects;
  * variable.
  */
 @RequiredArgsConstructor
-public class VariableDefinition implements Serializable {
+public class VariableDefinition extends Definition {
 
     private static final long serialVersionUID = -899567129301468808L;
 
