@@ -651,7 +651,7 @@ public class EntityDictionary {
      * }
      * </pre>
      * JSON-API spec does not allow "id" as non-ID field name. If, therefore, there is a non-ID field called "id",
-     * callling this method has undefined behavior
+     * calling this method has undefined behavior
      *
      * @param entityClass Entity class
      * @param identifier  Field to lookup type
@@ -675,23 +675,6 @@ public class EntityDictionary {
      */
     public Class<?> getType(Object entity, String identifier) {
         return getType(entity.getClass(), identifier);
-    }
-
-    /**
-     * Get a bound type for a specific entity type name
-     *
-     * @param identifier  The entity type name in string
-     *
-     * @return Type of entity
-     */
-    public Class<?> getType(String identifier) {
-        for (Class<?> entityType : entityBindings.keySet()) {
-            if (entityType.getSimpleName().equalsIgnoreCase(identifier)) {
-                return entityType;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -747,6 +730,17 @@ public class EntityDictionary {
      */
     public Class<?> getParameterizedType(Object entity, String identifier, int paramIndex) {
         return getParameterizedType(entity.getClass(), identifier, paramIndex);
+    }
+
+    /**
+     * Retrieve the parameter type for a relationship type that is a parameterized type.
+     *
+     * @param entityClass Entity class
+     * @param identifier Field to lookup
+     * @return Parameter type for field
+     */
+    public Class<?> getRelationshipParameterType(Class<?> entityClass, String identifier) {
+        return getEntityBinding(entityClass).relationshipParameterTypes.get(identifier);
     }
 
     /**

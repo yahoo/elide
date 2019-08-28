@@ -7,6 +7,7 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
@@ -17,12 +18,12 @@ import com.yahoo.elide.request.EntityProjection;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.atteo.evo.inflector.English;
 
 import graphql.GraphQL;
 import graphql.parser.antlr.GraphqlBaseVisitor;
 import graphql.parser.antlr.GraphqlLexer;
 import graphql.parser.antlr.GraphqlParser;
+import javafx.util.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -38,6 +39,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -74,10 +76,10 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     private final List<EntityProjection> allEntityProjections = new ArrayList<>();
 
     /**
-     * A map from EntityProjection.type to the EntityProjection.
+     * A map from node path to the entityProjection.
      */
     @Getter(AccessLevel.PRIVATE)
-    private final Map<Class<?>, EntityProjection> projectionsByType = new HashMap<>();
+    private final Map<String, EntityProjection> projectionsByNodePath = new HashMap<>();
 
     /**
      * A stack helper structure used while performing depth-first walk of GraphQL parse tree.
@@ -87,11 +89,11 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      * very useful when we need to know, for example, "what is the parent entity that includes this 'id' field?". When
      * we are done with the sub-tree of this entity node, we pop it out.
      * <p>
-     * To read a prent entity type, use {@link Deque#peek()} and DO NOT use {@link Deque#pop()}
-     * (See {@link #withParentEntity(Class, Supplier)}).
+     * To read a parent [node path, entity type] pair, use {@link Deque#peek()} and DO NOT use {@link Deque#pop()}
+     * (See {@link #walkParentEntity(Class, String, Supplier)}).
      */
     @Getter(AccessLevel.PRIVATE)
-    private final Deque<Class<?>> parentEntityStack = new LinkedList<>();
+    private final Deque<Pair<String, Class<?>>> parentEntityStack = new LinkedList<>();
 
     /**
      * Reference
@@ -163,71 +165,88 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
             return super.visitField(ctx);
         }
 
-        // on relationship field, change "authors" to "author" so we can look it up in entity dictionary
-        String entityName = singularized(nodeName);
-        Class<?> entityType = getDictionary().getType(entityName);
-
         if (getParentEntityStack().isEmpty()) {
             // a root field; walk sub-tree rooted at this entity
-            return withParentEntity(entityType, () -> {
-                EntityProjection rootProjection = EntityProjection.builder()
-                        .dictionary(getDictionary())
-                        .type(entityType)
-                        .build();
+            Class<?> entityType = getDictionary().getEntityClass(nodeName);
 
-                addProjection(rootProjection);
-                getProjectionsByType().put(entityType, rootProjection);
+            return walkParentEntity(
+                    entityType,
+                    nodeName,
+                    () -> {
+                        EntityProjection rootProjection = EntityProjection.builder()
+                                .dictionary(getDictionary())
+                                .type(entityType)
+                                .build();
 
-                return super.visitField(ctx);
-            });
+                        addProjection(rootProjection, nodeName);
+
+                        return super.visitField(ctx);
+                    });
         }
 
-        // not a root field, then there must be a prent
-        Class<?> parentType = getParentEntityStack().peek();
+        // not a root field, then there must be a parent
+        final Pair<String, Class<?>> parentPathType = Objects.requireNonNull(getParentEntityStack().peek());
+        final Class<?> parentType = parentPathType.getValue();
+        final String parentPath = parentPathType.getKey();
+        final EntityProjection parentProjection = getProjectionsByNodePath().get(parentPath);
 
-        if (entityType != null) {
+        // new path for current node
+        String nodePath = parentPath + "." + nodeName;
+
+        // check whether this field is a relationship field
+        if (getDictionary().getRelationshipType(parentType, nodeName) != RelationshipType.NONE) {
+            Class<?> type = getDictionary().getParameterizedType(parentType, nodeName);
+
+            // if this field is a collection, get the parameter type
+            if (Collection.class.isAssignableFrom(type)) {
+                type = getDictionary().getRelationshipParameterType(parentType, nodeName);
+            }
+
+            final Class<?> relationshipType = type; // assign to a final variable to be used in lambda function
+
             // a relationship field; walk sub-tree rooted at this relationship entity
-            return withParentEntity(entityType, () -> {
-                EntityProjection relationshipProjection = EntityProjection.builder()
-                        .dictionary(getDictionary())
-                        .type(entityType)
-                        .build();
+            return walkParentEntity(
+                    relationshipType,
+                    nodePath,
+                    () -> {
+                        EntityProjection relationshipProjection = EntityProjection.builder()
+                                .dictionary(getDictionary())
+                                .type(relationshipType)
+                                .build();
 
-                getProjectionsByType().get(parentType).getRelationships().put(entityName, relationshipProjection);
-                getProjectionsByType().put(entityType, relationshipProjection);
+                        parentProjection.getRelationships().put(nodeName, relationshipProjection);
+                        getProjectionsByNodePath().put(nodePath, relationshipProjection);
 
-                return super.visitField(ctx);
-            });
+                        return super.visitField(ctx);
+                    });
         }
 
         // not a root field; not a relationship field; this must be an Attribute
-        Class<?> fieldType = getDictionary().getType(parentType, entityName);
+        Class<?> attributeType = getDictionary().getType(parentType, nodeName);
 
-        if (fieldType != null) {
-            Set<Attribute> existingAttributes = new HashSet<>(getProjectionsByType().get(parentType).getAttributes());
-            Attribute matchedAttribute = getProjectionsByType().get(parentType).getAttributeByName(entityName);
+        if (attributeType != null) {
+            Set<Attribute> existingAttributes = new HashSet<>(parentProjection.getAttributes());
+            Attribute matchedAttribute = parentProjection.getAttributeByName(nodeName);
 
             if (matchedAttribute == null) {
                 // this is a new attribute, add it
                 existingAttributes.add(
                         Attribute.builder()
-                                .type(fieldType)
-                                .name(entityName)
+                                .type(attributeType)
+                                .name(nodeName)
                                 .build()
                 );
 
                 // update mutated attributes
-                getProjectionsByType()
-                        .get(parentType)
-                        .setAttributes(existingAttributes);
+                parentProjection.setAttributes(existingAttributes);
             }
 
             return super.visitField(ctx);
         }
 
         // not a root field; not a relationship; not an Attribute; this must be a bad field
-        String message = String.format("Unknown property '%s'", entityName);
-        log.error(entityName);
+        String message = String.format("Unknown property '%s'", nodeName);
+        log.error(nodeName);
         throw new IllegalStateException(message);
     }
 
@@ -251,7 +270,9 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         // argument must comes with parent
-        Class<?> entityType = getParentEntityStack().peek();
+        final Class<?> entityType = Objects.requireNonNull(getParentEntityStack().peek()).getValue();
+        final String entityNodePath = Objects.requireNonNull(getParentEntityStack().peek()).getKey();
+        final EntityProjection entityProjection = getProjectionsByNodePath().get(entityNodePath);
 
         if (!getDictionary().isValidField(entityType, argumentName)) {
             // invalid argument name
@@ -260,7 +281,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
             throw new IllegalStateException(message);
         }
 
-        Attribute targetAttribute = getProjectionsByType().get(entityType).getAttributeByName(argumentName);
+        Attribute targetAttribute = entityProjection.getAttributeByName(argumentName);
         Argument newArgument = Argument.builder()
                 .name(argumentName)
                 .value(argumentValue)
@@ -274,9 +295,9 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
                     .argument(newArgument)
                     .build();
 
-            Set<Attribute> existingAttribute = new HashSet<>(getProjectionsByType().get(entityType).getAttributes());
+            Set<Attribute> existingAttribute = new HashSet<>(entityProjection.getAttributes());
             existingAttribute.add(targetAttribute);
-            getProjectionsByType().get(entityType).setAttributes(existingAttribute);
+            entityProjection.setAttributes(existingAttribute);
         } else {
             targetAttribute.getArguments().add(newArgument);
         }
@@ -340,9 +361,10 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      * @param paginationValue  A string that contains the value of pagination spec
      */
     private void attachPagination(String paginationArgument, Object paginationValue) {
-        Class<?> paginatedEntity = getParentEntityStack().peek();
+        // there must be an entity to apply this pagination
+        String paginatedEntityNodePath = Objects.requireNonNull(getParentEntityStack().peek()).getKey();
 
-        EntityProjection entityProjection = getProjectionsByType().get(paginatedEntity);
+        EntityProjection entityProjection = getProjectionsByNodePath().get(paginatedEntityNodePath);
 
         Pagination pagination = entityProjection.getPagination() == null
                 ? Pagination.getDefaultPagination(getElideSettings())
@@ -378,9 +400,10 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      * @param argumentValue  A string that contains the value of sorting spec
      */
     private void attachSorting(Object argumentValue) {
-        Class<?> sortedEntity = getParentEntityStack().peek();
+        // there must be an entity to apply this sorting
+        String sortedEntityNodePath = Objects.requireNonNull(getParentEntityStack().peek()).getKey();
 
-        EntityProjection entityProjection = getProjectionsByType().get(sortedEntity);
+        EntityProjection entityProjection = getProjectionsByNodePath().get(sortedEntityNodePath);
 
         String sortRule = (String) argumentValue;
         Sorting sorting = Sorting.parseSortRule(sortRule.substring(1, sortRule.length() - 1));
@@ -389,41 +412,23 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     }
 
     /**
-     * Returns the singular form of a GraphQL entity-typed field; if the field is not an entity, the method returns
-     * the field unmodified.
-     * <p>
-     * For example, return Author on author, Author on authors, and id on id
-     *
-     * @param plural  An entity type or field type
-     *
-     * @return singular entity type or unmodified field type
-     */
-    private String singularized(String plural) {
-        String entityType = getDictionary().getBindings().stream()
-                .map(Class::getSimpleName)
-                .filter(it -> it.equalsIgnoreCase(plural) || English.plural(it, 2).equalsIgnoreCase(plural))
-                .findFirst()
-                .orElse(null);
-
-        return entityType == null ? plural : entityType;
-    }
-
-    /**
      * Puts an entity type onto top of stack, which is {@link #parentEntityStack}, performs an depth-first walk rooted
      * at this entity (including this root entity), and pops out the entity type.
      *
-     * @param parentEntity  The entity type to be pushed the stack
+     * @param entityClass The entity type to be pushed the stack
+     * @param nodePath Node path to this entity
      * @param actionUnderEntity  The depth-first walk after the push
      *
      * @param <T>  The type of return value as a result of the depth-first walk.
      *
      * @return {@code null}
      */
-    private <T> T withParentEntity(
-            Class<?> parentEntity,
+    private <T> T walkParentEntity(
+            Class<?> entityClass,
+            String nodePath,
             Supplier<T> actionUnderEntity
     ) {
-        getParentEntityStack().push(parentEntity);
+        getParentEntityStack().push(new Pair<>(nodePath, entityClass));
 
         actionUnderEntity.get(); // perform action
 
@@ -450,8 +455,8 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      *
      * @param newProjection  The new {@link EntityProjection} to be added
      */
-    private void addProjection(EntityProjection newProjection) {
+    private void addProjection(EntityProjection newProjection, String nodePath) {
         getAllEntityProjections().add(newProjection);
-        getProjectionsByType().put(newProjection.getType(), newProjection);
+        getProjectionsByNodePath().put(nodePath, newProjection);
     }
 }

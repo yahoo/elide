@@ -106,6 +106,7 @@ public class EntityBinding {
     public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
 
     public final ConcurrentHashMap<String, RelationshipType> relationshipTypes = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, Class<?>> relationshipParameterTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> relationshipToInverse = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, CascadeType[]> relationshipToCascadeTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
@@ -344,6 +345,13 @@ public class EntityBinding {
         }
     }
 
+    /**
+     * Bind a relationship field or method to this entity.
+     *
+     * @param fieldOrMethod field or method
+     * @param fieldName identifier/field name of this field or method
+     * @param fieldType raw type of this field or method
+     */
     private void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
         boolean manyToMany = fieldOrMethod.isAnnotationPresent(ManyToMany.class);
         boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
@@ -389,6 +397,12 @@ public class EntityBinding {
         relationshipsDeque.push(fieldName);
         fieldsToValues.put(fieldName, fieldOrMethod);
         fieldsToTypes.put(fieldName, fieldType);
+
+        // check whether the fieldOrMethod is a parameterized type, if so, get the first parameter type
+        Class<?> parameterType = getParameterType(entityClass, fieldOrMethod, Optional.of(0));
+        if (parameterType != null) {
+            relationshipParameterTypes.put(fieldName, parameterType);
+        }
     }
 
     private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
@@ -476,7 +490,36 @@ public class EntityBinding {
         }
 
         if (type instanceof ParameterizedType && index.isPresent()) {
-            type = ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()];
+            type = ((ParameterizedType) type).getActualTypeArguments()[index.get()];
+        }
+
+        return TypeUtils.getRawType(type, parentClass);
+    }
+
+    /**
+     * Get parameter type for a field or method. If the field or method is not parameterized type, return null.
+     *
+     * @param parentClass The class which owns the given field or method
+     * @param fieldOrMethod field or method
+     * @param index Optional parameter, if not presents, this method would return the first parameter type
+     * @return parameter type of a parameterized type if available
+     */
+    private static Class<?> getParameterType(
+            Class<?> parentClass,
+            AccessibleObject fieldOrMethod,
+            Optional<Integer> index
+    ) {
+        Type type;
+        if (fieldOrMethod instanceof Field) {
+            type = ((Field) fieldOrMethod).getGenericType();
+        } else {
+            type = ((Method) fieldOrMethod).getGenericReturnType();
+        }
+
+        if (type instanceof ParameterizedType) {
+            type = ((ParameterizedType) type).getActualTypeArguments()[index.orElse(0)];
+        } else {
+            return null;
         }
 
         return TypeUtils.getRawType(type, parentClass);
