@@ -196,9 +196,9 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         // check whether this field is a relationship field
         if (getDictionary().getRelationshipType(parentType, nodeName) != RelationshipType.NONE) {
             final Class<?> relationshipType =
-                    this.getDictionary().getRelationshipParameterType(parentType, nodeName) == null
+                    this.getDictionary().getParameterizedType(parentType, nodeName) == null
                     ? this.getDictionary().getType(parentType, nodeName)
-                    : this.getDictionary().getRelationshipParameterType(parentType, nodeName);
+                    : this.getDictionary().getParameterizedType(parentType, nodeName);
 
             // a relationship field; walk sub-tree rooted at this relationship entity
             return walkParentEntity(
@@ -450,6 +450,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      * for quick reference later.
      *
      * @param newProjection  The new {@link EntityProjection} to be added
+     * @param nodePath The nodePath of new {@link EntityProjection}
      */
     private void addProjection(EntityProjection newProjection, String nodePath) {
         getAllEntityProjections().add(newProjection);

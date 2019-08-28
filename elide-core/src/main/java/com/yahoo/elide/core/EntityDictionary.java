@@ -733,17 +733,6 @@ public class EntityDictionary {
     }
 
     /**
-     * Retrieve the parameter type for a relationship type that is a parameterized type.
-     *
-     * @param entityClass Entity class
-     * @param identifier Field to lookup
-     * @return Parameter type for field
-     */
-    public Class<?> getRelationshipParameterType(Class<?> entityClass, String identifier) {
-        return getEntityBinding(entityClass).relationshipParameterTypes.get(identifier);
-    }
-
-    /**
      * Get the true field/method name from an alias.
      *
      * @param entityClass Entity name

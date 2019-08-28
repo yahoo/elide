@@ -106,7 +106,6 @@ public class EntityBinding {
     public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
 
     public final ConcurrentHashMap<String, RelationshipType> relationshipTypes = new ConcurrentHashMap<>();
-    public final ConcurrentHashMap<String, Class<?>> relationshipParameterTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> relationshipToInverse = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, CascadeType[]> relationshipToCascadeTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
@@ -397,12 +396,6 @@ public class EntityBinding {
         relationshipsDeque.push(fieldName);
         fieldsToValues.put(fieldName, fieldOrMethod);
         fieldsToTypes.put(fieldName, fieldType);
-
-        // check whether the fieldOrMethod is a parameterized type, if so, get the first parameter type
-        Class<?> parameterType = getParameterType(entityClass, fieldOrMethod, Optional.of(0));
-        if (parameterType != null) {
-            relationshipParameterTypes.put(fieldName, parameterType);
-        }
     }
 
     private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
