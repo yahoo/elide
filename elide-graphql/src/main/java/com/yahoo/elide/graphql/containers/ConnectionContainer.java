@@ -29,7 +29,7 @@ public class ConnectionContainer implements GraphQLContainer {
     // Refers to the type of persistentResources
     @Getter private final String typeName;
 
-    private static final String EDGES_KEYWORD = "edges";
+    public static final String EDGES_KEYWORD = "edges";
     public static final String PAGE_INFO_KEYWORD = "pageInfo";
 
     @Override

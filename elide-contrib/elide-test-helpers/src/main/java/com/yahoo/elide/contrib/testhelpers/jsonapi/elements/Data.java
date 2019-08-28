@@ -20,7 +20,7 @@ public class Data extends LinkedHashMap<String, Object> {
 
     /**
      * Instantiates a singular data object from a single resource.
-     * @param resource
+     * @param resource  the resources
      */
     public Data(Resource resource) {
         this.put("data", resource);

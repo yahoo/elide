@@ -80,7 +80,7 @@ public class DataStoreIT extends IntegrationTest {
             tx.save(tx.createNewObject(Filtered.class), null);
             tx.save(tx.createNewObject(Filtered.class), null);
 
-            Author georgeMartin = new Author();
+            Author georgeMartin = Author.builder().build();
             georgeMartin.setName("George R. R. Martin");
 
             Book book1 = new Book();

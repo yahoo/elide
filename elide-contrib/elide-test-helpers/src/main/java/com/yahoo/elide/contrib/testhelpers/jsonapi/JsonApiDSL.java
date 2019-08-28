@@ -39,15 +39,6 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Type;
  * }
  */
 public class JsonApiDSL {
-    /**
-     * Data data.
-     *
-     * @param resource the singular resource
-     * @return a data
-     */
-    public static Data datum(Resource resource) {
-        return new Data(resource);
-    }
 
     /**
      * Data data.
@@ -293,7 +284,7 @@ public class JsonApiDSL {
      * @param operation the operation type
      * @param path the operation path
      * @param value the operation value
-     * @return
+     * @return the patch operation
      */
     public static PatchOperation patchOperation(PatchOperationType operation, String path, Resource value) {
         return new PatchOperation(operation, path, value);

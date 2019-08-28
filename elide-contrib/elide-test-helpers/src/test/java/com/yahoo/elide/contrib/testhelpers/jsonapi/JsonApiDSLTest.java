@@ -9,9 +9,9 @@ package com.yahoo.elide.contrib.testhelpers.jsonapi;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperationType.add;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
-import static org.testng.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class JsonApiDSLTest {
 
@@ -26,7 +26,7 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -45,7 +45,7 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -98,7 +98,7 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
 
         // single-element array of resource identifier objects for non-empty to-many relationships.
         expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
@@ -121,7 +121,7 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -150,7 +150,7 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -172,7 +172,7 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -192,7 +192,7 @@ public class JsonApiDSLTest {
                 ).toJSON();
 
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -215,7 +215,7 @@ public class JsonApiDSLTest {
                 ).toJSON();
 
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -238,7 +238,7 @@ public class JsonApiDSLTest {
                 ).toJSON();
 
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -261,7 +261,7 @@ public class JsonApiDSLTest {
                 ).toJSON();
 
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -279,7 +279,7 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -309,6 +309,6 @@ public class JsonApiDSLTest {
                 )
         ).toJSON();
 
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 }
