@@ -270,34 +270,34 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         // argument must comes with parent
-        final Class<?> entityType = Objects.requireNonNull(getParentEntityStack().peek()).getValue();
-        final String entityNodePath = Objects.requireNonNull(getParentEntityStack().peek()).getKey();
-        final EntityProjection entityProjection = getProjectionsByNodePath().get(entityNodePath);
+        final Class<?> parentType = Objects.requireNonNull(getParentEntityStack().peek()).getValue();
+        final String parentNodePath = Objects.requireNonNull(getParentEntityStack().peek()).getKey();
+        final EntityProjection parentProjection = getProjectionsByNodePath().get(parentNodePath);
 
-        if (!getDictionary().isValidField(entityType, argumentName)) {
+        if (!getDictionary().isValidField(parentType, argumentName)) {
             // invalid argument name
-            String message = String.format("'%s' is not a field in '%s'", argumentName, entityType);
+            String message = String.format("'%s' is not a field in '%s'", argumentName, parentType);
             log.error(message);
             throw new IllegalStateException(message);
         }
 
-        Attribute targetAttribute = entityProjection.getAttributeByName(argumentName);
+        Attribute targetAttribute = parentProjection.getAttributeByName(argumentName);
         Argument newArgument = Argument.builder()
                 .name(argumentName)
                 .value(argumentValue)
                 .build();
 
         if (targetAttribute == null) {
-            Class<?> attributeType = getDictionary().getType(entityType, argumentName);
+            Class<?> attributeType = getDictionary().getType(parentType, argumentName);
             targetAttribute = Attribute.builder()
                     .type(attributeType)
                     .name(argumentName)
                     .argument(newArgument)
                     .build();
 
-            Set<Attribute> existingAttribute = new HashSet<>(entityProjection.getAttributes());
+            Set<Attribute> existingAttribute = new HashSet<>(parentProjection.getAttributes());
             existingAttribute.add(targetAttribute);
-            entityProjection.setAttributes(existingAttribute);
+            parentProjection.setAttributes(existingAttribute);
         } else {
             targetAttribute.getArguments().add(newArgument);
         }
