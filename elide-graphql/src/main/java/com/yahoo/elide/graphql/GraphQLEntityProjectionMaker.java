@@ -241,8 +241,8 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         // not a root field; not a relationship; not an Attribute; this must be a bad field
-        String message = String.format("Unknown property '%s'", nodeName);
-        log.error(nodeName);
+        String message = String.format("Unknown property '%s'", nodePath);
+        log.error(message);
         throw new IllegalStateException(message);
     }
 
