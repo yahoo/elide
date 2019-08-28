@@ -195,14 +195,10 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
         // check whether this field is a relationship field
         if (getDictionary().getRelationshipType(parentType, nodeName) != RelationshipType.NONE) {
-            Class<?> type = getDictionary().getParameterizedType(parentType, nodeName);
-
-            // if this field is a collection, get the parameter type
-            if (Collection.class.isAssignableFrom(type)) {
-                type = getDictionary().getRelationshipParameterType(parentType, nodeName);
-            }
-
-            final Class<?> relationshipType = type; // assign to a final variable to be used in lambda function
+            final Class<?> relationshipType =
+                    this.getDictionary().getRelationshipParameterType(parentType, nodeName) == null
+                    ? this.getDictionary().getType(parentType, nodeName)
+                    : this.getDictionary().getRelationshipParameterType(parentType, nodeName);
 
             // a relationship field; walk sub-tree rooted at this relationship entity
             return walkParentEntity(
