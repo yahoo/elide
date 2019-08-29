@@ -85,6 +85,15 @@ public class Pagination {
         this.defaultPageSize = defaultPageSize;
     }
 
+    public void setFirst(Integer perPage) {
+        pageData.put(PaginationKey.size, perPage);
+    }
+
+    public void setOffset(Integer offset) {
+        this.offset = offset;
+        pageData.put(PaginationKey.offset, offset);
+    }
+
     /**
      * Given an offset and first parameter from GraphQL, generate page and pageSize values.
      *
