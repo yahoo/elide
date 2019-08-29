@@ -1,11 +1,15 @@
 package com.yahoo.elide.graphql;
 
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
+import graphql.language.Argument;
 import graphql.language.Document;
 import graphql.language.Field;
 import graphql.language.FragmentDefinition;
@@ -13,6 +17,7 @@ import graphql.language.FragmentSpread;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
+import graphql.language.Value;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
@@ -22,22 +27,39 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * This class converts a GraphQL query string into an Elide {@link EntityProjection} using {@link #make(String)}.
+ */
 @Slf4j
 public class GraphQLEntityProjectionMaker {
     private final EntityDictionary entityDictionary;
+    private final ElideSettings elideSettings;
+
     private final Map<String, List<EntityProjection>> fragmentToProjections = new HashMap<>();
     private final Map<String, FragmentDefinition> fragmentDefinitions = new HashMap<>();
 
-    public GraphQLEntityProjectionMaker(EntityDictionary entityDictionary) {
+    /**
+     * Constructor.
+     *
+     * @param entityDictionary entityDictionary of current Elide instance
+     * @param elideSettings setting of current Elide instance
+     */
+    public GraphQLEntityProjectionMaker(EntityDictionary entityDictionary, ElideSettings elideSettings) {
         this.entityDictionary = entityDictionary;
+        this.elideSettings = elideSettings;
     }
 
     private final List<EntityProjection> rootProjections = new ArrayList<>();
 
+    /**
+     * Convert a GraphQL query string into a collection of Elide {@link EntityProjection}s.
+     *
+     * @param query GraphQL query
+     * @return all projections in the query
+     */
     public Collection<EntityProjection> make(String query) {
         Parser parser = new Parser();
         Document parsedDocument = parser.parseDocument(query);
@@ -62,10 +84,20 @@ public class GraphQLEntityProjectionMaker {
             }
         });
 
-        // make sure the fragment definition would not form a loop
+        // make sure there is no fragment loop and undefined fragments in fragment definitions
         final Set<String> fragmentNames = new HashSet<>();
         fragmentDefinitions.values()
-                .forEach(fragmentDefinition -> checkFragmentLoop(fragmentDefinition, fragmentNames));
+                .forEach(fragmentDefinition -> validateFragment(fragmentDefinition, fragmentNames));
+
+        // make sure all fragments in projections are defined
+        if (fragmentToProjections.keySet().stream()
+                .anyMatch(fragmentName -> !fragmentDefinitions.containsKey(fragmentName))) {
+            throw new InvalidEntityBodyException("Unknown fragments {" +
+                    fragmentToProjections.keySet().stream()
+                            .filter(fragmentName -> !fragmentDefinitions.containsKey(fragmentName))
+                            .collect(Collectors.joining(",")) +
+                    "}.");
+        }
 
         // as there is no loop in the fragment definition, this loop would eventually end
         while(!fragmentToProjections.isEmpty()) {
@@ -76,18 +108,11 @@ public class GraphQLEntityProjectionMaker {
 
                     // the entity type of the projection must be the same type in the fragment type condition
                     String fragmentTypeName = fragmentDefinition.getTypeCondition().getName();
-                    List<String> failedTypeCondition = projections.stream()
-                            .map(EntityProjection::getName)
-                            .filter(name -> !Objects.equals(name, fragmentTypeName))
-                            .collect(Collectors.toList());
-                    if (failedTypeCondition.size() != 0) {
-                        throw new InvalidEntityBodyException("Projections failed fragment type condition check {" +
-                                String.join(",", failedTypeCondition) + "} with fragmentName: " +
-                                fragmentName + ".");
-                    }
 
                     // add fields into projections, if new fragments are referenced, they would be added into the map
-                    projections.forEach(projection -> fragmentFields.forEach(field -> addField(field, projection)));
+                    projections.stream()
+                            .filter(projection -> projection.getName().equals(fragmentTypeName))
+                            .forEach(projection -> fragmentFields.forEach(field -> addField(field, projection)));
                 }
             });
         }
@@ -112,31 +137,29 @@ public class GraphQLEntityProjectionMaker {
             throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
         }
 
-        Field entityField = (Field) entitySelection;
+        rootProjections.add(createProjection((Field) entitySelection));
+    }
+
+    /**
+     * Construct an {@link EntityProjection} from a GraphQL {@link Field} which has arguments and selection set.
+     *
+     * @return constructed {@link EntityProjection}
+     */
+    private EntityProjection createProjection(Field entityField) {
         String entityName = entityField.getName();
         Class<?> entityType = entityDictionary.getEntityClass(entityName);
         if (entityType == null) {
             throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", entityName));
         }
 
-        rootProjections.add(createProjection(entityType, ((Field) entitySelection).getSelectionSet()));
-    }
-
-    /**
-     * Create an {@link EntityProjection} with entity type and Elide 'edges' container.
-     * This method would call {@link #addField(Selection, EntityProjection)} which calls this method recursively
-     * to build child projections.
-     *
-     * @param entityType entity type of new projection
-     * @param edges Elide 'edges' container
-     * @return constructed {@link EntityProjection}
-     */
-    private EntityProjection createProjection(Class<?> entityType, SelectionSet edges) {
         final EntityProjection entityProjection = EntityProjection.builder()
                 .dictionary(entityDictionary)
                 .type(entityType)
                 .build();
 
+        entityField.getArguments().forEach(argument -> addArgument(argument, entityProjection));
+
+        SelectionSet edges = entityField.getSelectionSet();
         SelectionSet node = addEdges(edges, entityProjection);
         SelectionSet fields = addNode(node, entityProjection);
         fields.getSelections().forEach(fieldSelection -> addField(fieldSelection, entityProjection));
@@ -145,10 +168,10 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Get information about an entity projection from Elide 'edges' container and get the Elide 'node' container
+     * Get information of an {@link EntityProjection} from Elide 'edges' container and get the Elide 'node' container
      *
      * @param edges Elide 'edges' container
-     * @param entityProjection {@link EntityProjection} that links with this container
+     * @param entityProjection projection that links with this container
      * @return Elide 'node' container
      */
     private static SelectionSet addEdges(SelectionSet edges, EntityProjection entityProjection) {
@@ -165,10 +188,10 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Get information about an entity projection from Elide 'node' container and get fields from the container
+     * Get information of an {@link EntityProjection} from Elide 'node' container and get fields from the container
      *
      * @param node Elide 'node' container
-     * @param entityProjection {@link EntityProjection} that links with this container
+     * @param entityProjection projection that links with this container
      * @return Fields in the 'node' container
      */
     private static SelectionSet addNode(SelectionSet node, EntityProjection entityProjection) {
@@ -212,10 +235,7 @@ public class GraphQLEntityProjectionMaker {
                                 : entityDictionary.getParameterizedType(parentType, fieldName);
 
                 // build new entity projection with only entity type and entity dictionary
-                EntityProjection relationshipProjection = createProjection(
-                        relationshipType,
-                        field.getSelectionSet()
-                );
+                EntityProjection relationshipProjection = createProjection(field);
 
                 // add this relationship projection to its parent projection
                 parentProjection.getRelationships().put(fieldName, relationshipProjection);
@@ -225,11 +245,19 @@ public class GraphQLEntityProjectionMaker {
 
             Class<?> attributeType = entityDictionary.getType(parentType, fieldName);
             if (attributeType != null) {
-                Attribute attribute = Attribute.builder().type(attributeType).name(fieldName).build();
-                parentProjection.getAttributes().add(attribute);
+                Set<Attribute> attributes = parentProjection.getAttributes();
+                Attribute matched = parentProjection.getAttributeByName(fieldName);
+
+                if (matched == null) {
+                    // this is a new attribute, add it
+                    attributes.add(Attribute.builder().type(attributeType).name(fieldName).build());
+
+                    // update mutated attributes
+                    parentProjection.setAttributes(attributes);
+                }
             } else {
                 throw new InvalidEntityBodyException(
-                        String.format("Unknown field {%s.%s}.", parentProjection.getName(), fieldName));
+                        String.format("Unknown attribute field {%s.%s}.", parentProjection.getName(), fieldName));
             }
         } else {
             throw new InvalidEntityBodyException(
@@ -238,12 +266,126 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Recursive DFS check to validate that there is not reference loop in a fragment.
+     * Construct Elide {@link Pagination}, {@link Sorting}, {@link Attribute} from GraphQL {@link Argument} and
+     * add it to the {@link EntityProjection}.
+     *
+     * @param argument graphQL argument
+     * @param entityProjection projection that has this argument
+     */
+    private void addArgument(Argument argument, EntityProjection entityProjection) {
+        String argumentName = argument.getName();
+        Value argumentValue = argument.getValue();
+
+        if (isPaginationArgument(argumentName)) {
+            addPagination(argumentName, argumentValue, entityProjection);
+        } else if (isSortingArgument(argumentName)) {
+            addSorting(argumentValue, entityProjection);
+        } else {
+            Class<?> entityType = entityProjection.getType();
+
+            if (!entityDictionary.isValidField(entityType, argumentName)) {
+                // invalid argument name
+                throw new IllegalStateException(
+                        String.format("Unknown argument field {%s.%s}.", entityType, argument));
+            }
+
+            Attribute argumentAttribute = entityProjection.getAttributeByName(argumentName);
+            com.yahoo.elide.request.Argument elideArgument = com.yahoo.elide.request.Argument.builder()
+                    .name(argumentName)
+                    .value(argumentValue)
+                    .build();
+
+            if (argumentAttribute == null) {
+                argumentAttribute = Attribute.builder()
+                        .type(entityDictionary.getType(entityType, argumentName))
+                        .name(argumentName)
+                        .argument(elideArgument)
+                        .build();
+
+                Set<Attribute> attributes = entityProjection.getAttributes();
+                attributes.add(argumentAttribute);
+
+                entityProjection.setAttributes(attributes);
+            } else {
+                argumentAttribute.getArguments().add(elideArgument);
+            }
+        }
+    }
+
+    /**
+     * Returns whether or not a GraphQL argument name corresponding to a pagination argument.
+     *
+     * @param argumentName Name key of the GraphQL argument
+     *
+     * @return {@code true} if the name equals to {@link ModelBuilder#ARGUMENT_FIRST} or
+     * {@link ModelBuilder#ARGUMENT_AFTER}
+     */
+    private static boolean isPaginationArgument(String argumentName) {
+        return ModelBuilder.ARGUMENT_FIRST.equals(argumentName) || ModelBuilder.ARGUMENT_AFTER.equals(argumentName);
+    }
+
+    /**
+     * Creates a {@link Pagination} object from pagination GraphQL argument and attaches it to the
+     * {@link EntityProjection}.
+     *
+     * @param paginationArgument  A string that contains the key to a value of sorting spec
+     * @param paginationValue  A string that contains the value of pagination spec
+     * @param entityProjection projection that has the pagination argument
+     */
+    private void addPagination(
+            String paginationArgument,
+            Object paginationValue,
+            EntityProjection entityProjection
+    ) {
+        Pagination pagination = entityProjection.getPagination() == null
+                ? Pagination.getDefaultPagination(elideSettings)
+                : entityProjection.getPagination();
+
+        int value = Integer.parseInt((String) paginationValue);
+        if (ModelBuilder.ARGUMENT_FIRST.equals(paginationArgument)) {
+            pagination.setFirst(value);
+        } else if (ModelBuilder.ARGUMENT_AFTER.equals(paginationArgument)) {
+            pagination.setOffset(value);
+        } else {
+            throw new InvalidEntityBodyException(
+                    String.format("Unrecognized pagination argument '%s'", paginationArgument));
+        }
+
+        entityProjection.setPagination(pagination);
+    }
+
+    /**
+     * Returns whether or not a GraphQL argument name corresponding to a sorting argument.
+     *
+     * @param argumentName Name key of the GraphQL argument
+     *
+     * @return {@code true} if the name equals to {@link ModelBuilder#ARGUMENT_SORT}
+     */
+    private static boolean isSortingArgument(String argumentName) {
+        return ModelBuilder.ARGUMENT_SORT.equals(argumentName);
+    }
+
+    /**
+     * Creates a {@link Sorting} object from sorting GraphQL argument value and attaches it to the entity sorted
+     * according to the newly created {@link Sorting} object.
+     *
+     * @param argumentValue A string that contains the value of sorting spec
+     */
+    private void addSorting(Object argumentValue, EntityProjection entityProjection) {
+        String sortRule = (String) argumentValue;
+        Sorting sorting = Sorting.parseSortRule(sortRule.substring(1, sortRule.length() - 1));
+
+        entityProjection.setSorting(sorting);
+    }
+
+    /**
+     * Recursive DFS to validate that there is not reference loop in a fragment and there is not un-defined
+     * fragments.
      *
      * @param fragmentDefinition fragment to be checked
      * @param fragmentNames fragment names appear in the current check path
      */
-    private void checkFragmentLoop(FragmentDefinition fragmentDefinition, Set<String> fragmentNames) {
+    private void validateFragment(FragmentDefinition fragmentDefinition, Set<String> fragmentNames) {
         String fragmentName = fragmentDefinition.getName();
         if (fragmentNames.contains(fragmentName)) {
             throw new InvalidEntityBodyException("There is a fragment definition loop in: {"
@@ -256,7 +398,12 @@ public class GraphQLEntityProjectionMaker {
                 .filter(selection -> selection instanceof FragmentSpread)
                 .map(fragment -> ((FragmentSpread) fragment).getName())
                 .distinct()
-                .forEach(name -> checkFragmentLoop(fragmentDefinitions.get(name), fragmentNames));
+                .forEach(name -> {
+                    if (!fragmentDefinitions.containsKey(name)) {
+                        throw new InvalidEntityBodyException(String.format("Unknown fragment {%s}.", name));
+                    }
+                    validateFragment(fragmentDefinitions.get(name), fragmentNames);
+                });
 
         fragmentNames.remove(fragmentName);
     }

@@ -167,4 +167,11 @@ public class EntityProjection {
             return this;
         }
     }
+
+    public Attribute getAttributeByName(String attributeName) {
+        return getAttributes().stream()
+                .filter(attribute -> attribute.getName().equals(attributeName))
+                .findAny()
+                .orElse(null);
+    }
 }

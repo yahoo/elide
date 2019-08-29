@@ -85,6 +85,15 @@ public class Pagination {
         this.defaultPageSize = defaultPageSize;
     }
 
+    public void setFirst(Integer perPage) {
+        pageData.put(PaginationKey.size, perPage);
+    }
+
+    public void setOffset(Integer offset) {
+        this.offset = offset;
+        pageData.put(PaginationKey.offset, offset);
+    }
+
     /**
      * TODO - Refactor Pagination.
      * IMPORTANT - This method should only be used for testing until Pagination is refactored.  The
