@@ -85,6 +85,11 @@ public class Pagination {
         this.defaultPageSize = defaultPageSize;
     }
 
+    /**
+     * Set first page size.
+     *
+     * @param perPage page size.
+     */
     public void setFirst(Integer perPage) {
         pageData.put(PaginationKey.size, perPage);
     }
