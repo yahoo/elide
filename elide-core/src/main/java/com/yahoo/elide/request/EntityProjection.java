@@ -123,6 +123,12 @@ public class EntityProjection {
         }
     }
 
+    /**
+     * Get an attribute by name.
+     *
+     * @param attributeName attribute name to get
+     * @return found attribute or null
+     */
     public Attribute getAttributeByName(String attributeName) {
         return getAttributes().stream()
                 .filter(attribute -> attribute.getName().equals(attributeName))
