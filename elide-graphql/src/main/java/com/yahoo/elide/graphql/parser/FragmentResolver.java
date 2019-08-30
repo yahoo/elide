@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Helper class that check whether the is undefined fragment and fragment loop in given fragments.
+ * Helper class that checks whether there are undefined fragments or fragment loops in given fragment definitions.
  */
 public class FragmentResolver {
     public static Map<String, FragmentDefinition> resolve(List<FragmentDefinition> fragments) {
