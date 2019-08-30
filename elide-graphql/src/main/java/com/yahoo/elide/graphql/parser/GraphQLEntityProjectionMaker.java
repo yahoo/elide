@@ -1,4 +1,4 @@
-package com.yahoo.elide.graphql;
+package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
@@ -6,6 +6,7 @@ import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
@@ -22,9 +23,7 @@ import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,8 +37,7 @@ public class GraphQLEntityProjectionMaker {
     private final EntityDictionary entityDictionary;
     private final ElideSettings elideSettings;
 
-    private final Map<String, List<EntityProjection>> fragmentToProjections = new HashMap<>();
-    private final Map<String, FragmentDefinition> fragmentDefinitions = new HashMap<>();
+    private final Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
 
     /**
      * Constructor.
@@ -63,6 +61,14 @@ public class GraphQLEntityProjectionMaker {
     public Collection<EntityProjection> make(String query) {
         Parser parser = new Parser();
         Document parsedDocument = parser.parseDocument(query);
+        fragmentMap.clear();
+
+        List<FragmentDefinition> fragmentDefinitions = parsedDocument.getDefinitions().stream()
+                .filter(definition -> definition instanceof FragmentDefinition)
+                .map(definition -> (FragmentDefinition) definition)
+                .collect(Collectors.toList());
+
+        fragmentMap.putAll(FragmentResolver.resolve(fragmentDefinitions));
 
         parsedDocument.getDefinitions().forEach(definition -> {
             if (definition instanceof OperationDefinition) {
@@ -74,48 +80,11 @@ public class GraphQLEntityProjectionMaker {
                 }
 
                 addRootProjections(operationDefinition.getSelectionSet());
-            } else if (definition instanceof FragmentDefinition) {
-                // FragmentDefinition should be stored first and then inserted into EntityProjections that use it
-                FragmentDefinition fragmentDefinition = (FragmentDefinition) definition;
-                fragmentDefinitions.put(fragmentDefinition.getName(), fragmentDefinition);
-            } else {
+            } else if (!(definition instanceof FragmentDefinition)) {
                 throw new InvalidEntityBodyException(
                         String.format("Unsupported definition type {%s}.", definition.getClass()));
             }
         });
-
-        // make sure there is no fragment loop and undefined fragments in fragment definitions
-        final Set<String> fragmentNames = new HashSet<>();
-        fragmentDefinitions.values()
-                .forEach(fragmentDefinition -> validateFragment(fragmentDefinition, fragmentNames));
-
-        // make sure all fragments in projections are defined
-        if (fragmentToProjections.keySet().stream()
-                .anyMatch(fragmentName -> !fragmentDefinitions.containsKey(fragmentName))) {
-            throw new InvalidEntityBodyException("Unknown fragments {" +
-                    fragmentToProjections.keySet().stream()
-                            .filter(fragmentName -> !fragmentDefinitions.containsKey(fragmentName))
-                            .collect(Collectors.joining(",")) +
-                    "}.");
-        }
-
-        // as there is no loop in the fragment definition, this loop would eventually end
-        while(!fragmentToProjections.isEmpty()) {
-            fragmentDefinitions.forEach((fragmentName, fragmentDefinition) -> {
-                if (fragmentToProjections.containsKey(fragmentName)) {
-                    List<Selection> fragmentFields = fragmentDefinition.getSelectionSet().getSelections();
-                    List<EntityProjection> projections = fragmentToProjections.remove(fragmentName);
-
-                    // the entity type of the projection must be the same type in the fragment type condition
-                    String fragmentTypeName = fragmentDefinition.getTypeCondition().getName();
-
-                    // add fields into projections, if new fragments are referenced, they would be added into the map
-                    projections.stream()
-                            .filter(projection -> projection.getName().equals(fragmentTypeName))
-                            .forEach(projection -> fragmentFields.forEach(field -> addField(field, projection)));
-                }
-            });
-        }
 
         return rootProjections;
     }
@@ -137,21 +106,23 @@ public class GraphQLEntityProjectionMaker {
             throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
         }
 
-        rootProjections.add(createProjection((Field) entitySelection));
-    }
-
-    /**
-     * Construct an {@link EntityProjection} from a GraphQL {@link Field} which has arguments and selection set.
-     *
-     * @return constructed {@link EntityProjection}
-     */
-    private EntityProjection createProjection(Field entityField) {
-        String entityName = entityField.getName();
+        String entityName = ((Field) entitySelection).getName();
         Class<?> entityType = entityDictionary.getEntityClass(entityName);
         if (entityType == null) {
             throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", entityName));
         }
 
+        rootProjections.add(createProjection(entityType, (Field) entitySelection));
+    }
+
+    /**
+     * Construct an {@link EntityProjection} from a GraphQL {@link Field} for an entity type.
+     *
+     * @param entityType type of entity to be projected
+     * @param entityField graphQL field definition
+     * @return constructed {@link EntityProjection}
+     */
+    private EntityProjection createProjection(Class<?> entityType, Field entityField) {
         final EntityProjection entityProjection = EntityProjection.builder()
                 .dictionary(entityDictionary)
                 .type(entityType)
@@ -214,17 +185,24 @@ public class GraphQLEntityProjectionMaker {
      * @param parentProjection projection that has this field/fragment
      */
     private void addField(Selection fieldSelection, final EntityProjection parentProjection) {
+        Class<?> parentType = parentProjection.getType();
+
         if (fieldSelection instanceof FragmentSpread) {
             String fragmentName = ((FragmentSpread) fieldSelection).getName();
-            if (fragmentToProjections.containsKey(fragmentName)) {
-                fragmentToProjections.get(fragmentName).add(parentProjection);
-            } else {
-                fragmentToProjections.put(fragmentName, Collections.singletonList(parentProjection));
+            if (!fragmentMap.containsKey(fragmentName)) {
+                throw new InvalidEntityBodyException(String.format("Unknown fragment {%s}.", fragmentName));
+            }
+
+            FragmentDefinition fragmentDefinition = fragmentMap.get(fragmentName);
+
+            // type name in type condition of the Fragment must match the entity projection type name
+            if (parentProjection.getName().equals(fragmentDefinition.getTypeCondition().getName())) {
+                fragmentDefinition.getSelectionSet().getSelections()
+                        .forEach(selection -> addField(selection, parentProjection));
             }
         } else if (fieldSelection instanceof Field) {
             Field field = (Field) fieldSelection;
             String fieldName = field.getName();
-            Class<?> parentType = parentProjection.getType();
 
             // this field would either be a relationship field or an attribute field
             if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
@@ -235,7 +213,7 @@ public class GraphQLEntityProjectionMaker {
                                 : entityDictionary.getParameterizedType(parentType, fieldName);
 
                 // build new entity projection with only entity type and entity dictionary
-                EntityProjection relationshipProjection = createProjection(field);
+                EntityProjection relationshipProjection = createProjection(relationshipType, field);
 
                 // add this relationship projection to its parent projection
                 parentProjection.getRelationships().put(fieldName, relationshipProjection);
@@ -376,35 +354,5 @@ public class GraphQLEntityProjectionMaker {
         Sorting sorting = Sorting.parseSortRule(sortRule.substring(1, sortRule.length() - 1));
 
         entityProjection.setSorting(sorting);
-    }
-
-    /**
-     * Recursive DFS to validate that there is not reference loop in a fragment and there is not un-defined
-     * fragments.
-     *
-     * @param fragmentDefinition fragment to be checked
-     * @param fragmentNames fragment names appear in the current check path
-     */
-    private void validateFragment(FragmentDefinition fragmentDefinition, Set<String> fragmentNames) {
-        String fragmentName = fragmentDefinition.getName();
-        if (fragmentNames.contains(fragmentName)) {
-            throw new InvalidEntityBodyException("There is a fragment definition loop in: {"
-                    + String.join(",", fragmentNames) + "} with " + fragmentName + " duplicated.");
-        }
-
-        fragmentNames.add(fragmentName);
-
-        fragmentDefinition.getSelectionSet().getSelections().stream()
-                .filter(selection -> selection instanceof FragmentSpread)
-                .map(fragment -> ((FragmentSpread) fragment).getName())
-                .distinct()
-                .forEach(name -> {
-                    if (!fragmentDefinitions.containsKey(name)) {
-                        throw new InvalidEntityBodyException(String.format("Unknown fragment {%s}.", name));
-                    }
-                    validateFragment(fragmentDefinitions.get(name), fragmentNames);
-                });
-
-        fragmentNames.remove(fragmentName);
     }
 }
