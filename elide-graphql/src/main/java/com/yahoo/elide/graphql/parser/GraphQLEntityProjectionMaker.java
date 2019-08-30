@@ -75,8 +75,8 @@ public class GraphQLEntityProjectionMaker {
             if (definition instanceof OperationDefinition) {
                 // Operations would be converted into EntityProjection tree
                 OperationDefinition operationDefinition = (OperationDefinition) definition;
-                if (operationDefinition.getOperation() != OperationDefinition.Operation.QUERY) {
-                    // TODO: support MUTATION and SUBSCRIPTION
+                if (operationDefinition.getOperation() == OperationDefinition.Operation.MUTATION) {
+                    // TODO: support SUBSCRIPTION
                     return;
                 }
 
@@ -132,9 +132,9 @@ public class GraphQLEntityProjectionMaker {
         entityField.getArguments().forEach(argument -> addArgument(argument, entityProjection));
 
         SelectionSet edges = entityField.getSelectionSet();
-        SelectionSet node = addEdges(edges, entityProjection);
-        SelectionSet fields = addNode(node, entityProjection);
-        fields.getSelections().forEach(fieldSelection -> addField(fieldSelection, entityProjection));
+        SelectionSet node = resolveEdges(edges, entityProjection);
+        SelectionSet fields = resolveNode(node, entityProjection);
+        fields.getSelections().forEach(fieldSelection -> addSelection(fieldSelection, entityProjection));
 
         return entityProjection;
     }
@@ -146,7 +146,7 @@ public class GraphQLEntityProjectionMaker {
      * @param entityProjection projection that links with this container
      * @return Elide 'node' container
      */
-    private static SelectionSet addEdges(SelectionSet edges, EntityProjection entityProjection) {
+    private static SelectionSet resolveEdges(SelectionSet edges, EntityProjection entityProjection) {
         if (edges.getSelections().size() != 1) {
             throw new InvalidEntityBodyException("Entity selection must have one 'edges' graphQL field node.");
         }
@@ -154,6 +154,10 @@ public class GraphQLEntityProjectionMaker {
         Selection edgesSelection = edges.getSelections().get(0);
         if (!(edgesSelection instanceof Field)) {
             throw new InvalidEntityBodyException("Edges selection must be a graphQL field.");
+        }
+
+        if (!"edges".equals(((Field) edgesSelection).getName())) {
+            throw new InvalidEntityBodyException("GraphQL field selection must have 'edges'.");
         }
 
         return ((Field) edgesSelection).getSelectionSet();
@@ -166,7 +170,7 @@ public class GraphQLEntityProjectionMaker {
      * @param entityProjection projection that links with this container
      * @return Fields in the 'node' container
      */
-    private static SelectionSet addNode(SelectionSet node, EntityProjection entityProjection) {
+    private static SelectionSet resolveNode(SelectionSet node, EntityProjection entityProjection) {
         if (node.getSelections().size() != 1) {
             throw new InvalidEntityBodyException("Edges selection must have one 'node' graphQL field node.");
         }
@@ -176,71 +180,93 @@ public class GraphQLEntityProjectionMaker {
             throw new InvalidEntityBodyException("Node selection must be a graphQL field.");
         }
 
+        if (!"node".equals(((Field) nodeSelection).getName())) {
+            throw new InvalidEntityBodyException("GraphQL 'edges' field selection must have 'node'.");
+        }
+
         return ((Field) nodeSelection).getSelectionSet();
     }
 
     /**
-     * Add a {@link Selection} that represents a field/fragment to an {@link EntityProjection}
+     * Add a graphQL {@link Selection} to an {@link EntityProjection}
      *
      * @param fieldSelection field/fragment to add
      * @param parentProjection projection that has this field/fragment
      */
-    private void addField(Selection fieldSelection, final EntityProjection parentProjection) {
-        Class<?> parentType = parentProjection.getType();
-
+    private void addSelection(Selection fieldSelection, final EntityProjection parentProjection) {
         if (fieldSelection instanceof FragmentSpread) {
-            String fragmentName = ((FragmentSpread) fieldSelection).getName();
-            if (!fragmentMap.containsKey(fragmentName)) {
-                throw new InvalidEntityBodyException(String.format("Unknown fragment {%s}.", fragmentName));
-            }
-
-            FragmentDefinition fragmentDefinition = fragmentMap.get(fragmentName);
-
-            // type name in type condition of the Fragment must match the entity projection type name
-            if (parentProjection.getName().equals(fragmentDefinition.getTypeCondition().getName())) {
-                fragmentDefinition.getSelectionSet().getSelections()
-                        .forEach(selection -> addField(selection, parentProjection));
-            }
+            addFragment((FragmentSpread) fieldSelection, parentProjection);
         } else if (fieldSelection instanceof Field) {
-            Field field = (Field) fieldSelection;
-            String fieldName = field.getName();
-
-            // this field would either be a relationship field or an attribute field
-            if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
-                // handle the case of a relationship field
-                final Class<?> relationshipType =
-                        entityDictionary.getParameterizedType(parentType, fieldName) == null
-                                ? entityDictionary.getType(parentType, fieldName)
-                                : entityDictionary.getParameterizedType(parentType, fieldName);
-
-                // build new entity projection with only entity type and entity dictionary
-                EntityProjection relationshipProjection = createProjection(relationshipType, field);
-
-                // add this relationship projection to its parent projection
-                parentProjection.getRelationships().put(fieldName, relationshipProjection);
-
-                return;
-            }
-
-            Class<?> attributeType = entityDictionary.getType(parentType, fieldName);
-            if (attributeType != null) {
-                Set<Attribute> attributes = parentProjection.getAttributes();
-                Attribute matched = parentProjection.getAttributeByName(fieldName);
-
-                if (matched == null) {
-                    // this is a new attribute, add it
-                    attributes.add(Attribute.builder().type(attributeType).name(fieldName).build());
-
-                    // update mutated attributes
-                    parentProjection.setAttributes(attributes);
-                }
-            } else {
-                throw new InvalidEntityBodyException(
-                        String.format("Unknown attribute field {%s.%s}.", parentProjection.getName(), fieldName));
-            }
+            addField((Field) fieldSelection, parentProjection);
         } else {
             throw new InvalidEntityBodyException(
                     String.format("Unsupported selection type {%s}.", fieldSelection.getClass()));
+        }
+    }
+
+    /**
+     * Resolve a graphQL {@link FragmentSpread} into {@link Selection}s and add them to an {@link EntityProjection}
+     *
+     * @param fragment graphQL fragment
+     * @param parentProjection entity projection that contains this fragment
+     */
+    private void addFragment(FragmentSpread fragment, EntityProjection parentProjection) {
+        String fragmentName = fragment.getName();
+        if (!fragmentMap.containsKey(fragmentName)) {
+            throw new InvalidEntityBodyException(String.format("Unknown fragment {%s}.", fragmentName));
+        }
+
+        FragmentDefinition fragmentDefinition = fragmentMap.get(fragmentName);
+
+        // type name in type condition of the Fragment must match the entity projection type name
+        if (parentProjection.getName().equals(fragmentDefinition.getTypeCondition().getName())) {
+            fragmentDefinition.getSelectionSet().getSelections()
+                    .forEach(selection -> addSelection(selection, parentProjection));
+        }
+    }
+
+    /**
+     * Add a new graphQL {@link Field} into an {@link EntityProjection}
+     *
+     * @param field graphQL field
+     * @param parentProjection entity projection that contains this field
+     */
+    private void addField(Field field, EntityProjection parentProjection) {
+        Class<?> parentType = parentProjection.getType();
+        String fieldName = field.getName();
+
+        // this field would either be a relationship field or an attribute field
+        if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
+            // handle the case of a relationship field
+            final Class<?> relationshipType =
+                    entityDictionary.getParameterizedType(parentType, fieldName) == null
+                            ? entityDictionary.getType(parentType, fieldName)
+                            : entityDictionary.getParameterizedType(parentType, fieldName);
+
+            // build new entity projection with only entity type and entity dictionary
+            EntityProjection relationshipProjection = createProjection(relationshipType, field);
+
+            // add this relationship projection to its parent projection
+            parentProjection.getRelationships().put(fieldName, relationshipProjection);
+
+            return;
+        }
+
+        Class<?> attributeType = entityDictionary.getType(parentType, fieldName);
+        if (attributeType != null) {
+            Set<Attribute> attributes = parentProjection.getAttributes();
+            Attribute matched = parentProjection.getAttributeByName(fieldName);
+
+            if (matched == null) {
+                // this is a new attribute, add it
+                attributes.add(Attribute.builder().type(attributeType).name(fieldName).build());
+
+                // update mutated attributes
+                parentProjection.setAttributes(attributes);
+            }
+        } else {
+            throw new InvalidEntityBodyException(
+                    String.format("Unknown attribute field {%s.%s}.", parentProjection.getName(), fieldName));
         }
     }
 
