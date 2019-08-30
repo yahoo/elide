@@ -63,13 +63,14 @@ public class GraphQLEntityProjectionMaker {
         Document parsedDocument = parser.parseDocument(query);
         fragmentMap.clear();
 
+        // resolve fragment definitions
         List<FragmentDefinition> fragmentDefinitions = parsedDocument.getDefinitions().stream()
                 .filter(definition -> definition instanceof FragmentDefinition)
                 .map(definition -> (FragmentDefinition) definition)
                 .collect(Collectors.toList());
-
         fragmentMap.putAll(FragmentResolver.resolve(fragmentDefinitions));
 
+        // resolve operation definitions
         parsedDocument.getDefinitions().forEach(definition -> {
             if (definition instanceof OperationDefinition) {
                 // Operations would be converted into EntityProjection tree
@@ -79,7 +80,7 @@ public class GraphQLEntityProjectionMaker {
                     return;
                 }
 
-                addRootProjections(operationDefinition.getSelectionSet());
+                addRootProjection(operationDefinition.getSelectionSet());
             } else if (!(definition instanceof FragmentDefinition)) {
                 throw new InvalidEntityBodyException(
                         String.format("Unsupported definition type {%s}.", definition.getClass()));
@@ -94,7 +95,7 @@ public class GraphQLEntityProjectionMaker {
      * is the entity, in the selection set. The EntityProjection tree would be constructed recursively to add all
      * child projections.
      */
-    private void addRootProjections(SelectionSet selectionSet) {
+    private void addRootProjection(SelectionSet selectionSet) {
         List<Selection> selections = selectionSet.getSelections();
 
         if (selections.size() != 1) {
