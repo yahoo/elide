@@ -473,7 +473,8 @@ public class GraphQLIT extends IntegrationTest {
     }
 
     @Test
-    public void runMultipleRequestsSameTransactionIncludingMutation() throws IOException {
+    public void runMultipleRequestsSameTransaction() throws IOException {
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
         Book book = new Book();
         book.setId(1);
         book.setTitle("1984");
@@ -513,7 +514,6 @@ public class GraphQLIT extends IntegrationTest {
 
         create(graphQLQuery, null);
 
-        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
         String graphQLRequest = document(
                 selections(
                         field(
@@ -567,6 +567,82 @@ public class GraphQLIT extends IntegrationTest {
                                 selections(
                                         field("id", "1"),
                                         field("name", "George Orwell")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    @Disabled
+    public void runMultipleRequestsSameTransactionMutation() throws IOException {
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        // and results are consistent across a mutation.
+        Author author = new Author();
+        author.setId(1L);
+        author.setName("Stephen King");
+
+        String graphQLRequest = document(
+                mutation(
+                        selections(
+                                field(
+                                        "book",
+                                        argument(
+                                                argument(
+                                                        "ids",
+                                                        Arrays.asList("1")
+                                                )
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("title"),
+                                                field(
+                                                        "authors",
+                                                        arguments(
+                                                                argument("op", "UPSERT"),
+                                                                argument("data", author)
+                                                        ),
+                                                        selections(
+                                                                field("id"),
+                                                                field("name")
+                                                        )
+                                                )
+                                        )
+                                ),
+                                field(
+                                        "author",
+                                        selections(
+                                                field("id"),
+                                                field("name")
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expectedResponse = document(
+                selections(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "1984"),
+                                        field(
+                                                "authors",
+                                                selections(
+                                                        field("id", "6"),
+                                                        field("name", "Stephen King")
+                                                )
+                                        )
+                                )
+                        ),
+                        field(
+                                "author",
+                                selections(
+                                        field("id", "4"),
+                                        field("name", "Stephen King")
                                 )
                         )
                 )
