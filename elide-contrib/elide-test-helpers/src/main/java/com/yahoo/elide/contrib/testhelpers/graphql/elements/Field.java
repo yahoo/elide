@@ -40,12 +40,15 @@ public class Field extends Selection {
     private static final long serialVersionUID = -5906705888838083150L;
 
     public static Field scalarField(String name) {
-        return new Field(name, Arguments.emptyArgument(), null);
+        return new Field(null, name, Arguments.emptyArgument(), null);
     }
 
     public static String quoteValue(String value) {
         return String.format("\"%s\"", value);
     }
+
+    @Getter(AccessLevel.PRIVATE)
+    private final String alias;
 
     /**
      * The "name" TOKEN defined in GraphQL grammar.
@@ -70,7 +73,8 @@ public class Field extends Selection {
     @Override
     public String toGraphQLSpec() {
         return String.format(
-                "%s%s%s",
+                "%s%s%s%s",
+                getAlias() == null ? "" : getAlias() + ": ",
                 getName(),
                 argument(),
                 selection()

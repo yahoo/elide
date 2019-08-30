@@ -41,7 +41,7 @@ public class SelectionSet extends Definition {
         return String.format(
                 "{%s}",
                 getSelections().stream().map(Selection::toResponse)
-                        .collect(Collectors.joining(" "))
+                        .collect(Collectors.joining(", "))
         );
     }
 }

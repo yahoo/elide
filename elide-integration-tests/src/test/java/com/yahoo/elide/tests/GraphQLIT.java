@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.QUOTE_VALUE;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.UNQUOTED_VALUE;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
@@ -14,13 +13,11 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.mutation;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.toJson;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.contrib.testhelpers.graphql.elements.TypedOperation;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
@@ -30,15 +27,16 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
 import example.Author;
 import example.Book;
+
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import io.restassured.response.ValidatableResponse;
-import lombok.Builder;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,16 +44,12 @@ import javax.ws.rs.core.MediaType;
 
 /**
  * GraphQL integration tests.
- * <p>
- * CAUTION: Test beans, such as {@link Book} and {@link Author} MUST NOT be decorated by {@link Builder}, otherwise test
- * will fail at {@link DataStoreTransaction#createNewObject(Class)}, because the {@link Builder} hides the no-args
- * constructor.
  */
 public class GraphQLIT extends IntegrationTest {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
-    @Test(priority = 1)
+    @Test
     public void createBookAndAuthor() throws IOException {
         Book book = new Book();
         book.setId(1);
@@ -116,7 +110,7 @@ public class GraphQLIT extends IntegrationTest {
         runQueryWithExpectedResult(graphQLQuery, expectedResponse);
     }
 
-    @Test(priority = 2)
+    @Test
     public void createNewBooksAndAuthor() throws IOException {
         Book book = new Book();
         book.setId(2);
@@ -185,369 +179,461 @@ public class GraphQLIT extends IntegrationTest {
 
         runQueryWithExpectedResult(graphQLRequest, variables, expected);
     }
-//
-//    @Test(priority = 3)
-//    public void fetchCollection() throws IOException {
-//        String graphQLRequest = document(
-//                selection(
-//                        entity(
-//                                "book",
-//                                selections(
-//                                        field("id"),
-//                                        field("title"),
-//                                        field(
-//                                                "authors",
-//                                                selections(
-//                                                        field("id"),
-//                                                        field("name")
-//                                                )
-//                                        )
-//                                )
-//                        )
-//                )
-//        ).toQuery();
-//
-//        String expected = document(
-//                selections(
-//                        responseField(
-//                                "book",
-//                                selections(
-//                                        responseField("id", "1"),
-//                                        responseField("title", "1984"),
-//                                        responseField(
-//                                                "authors",
-//                                                selections(
-//                                                        responseField("id", "1"),
-//                                                        responseField("name", "George Orwell")
-//                                                )
-//                                        )
-//                                ),
-//                                selections(
-//                                        responseField("id", "2"),
-//                                        responseField("title", "Grapes of Wrath"),
-//                                        responseField(
-//                                                "authors",
-//                                                selections(
-//                                                        responseField("id", "2"),
-//                                                        responseField("name", "John Setinbeck")
-//                                                )
-//                                        )
-//                                )
-//                        )
-//                )
-//        ).toResponse();
-//
-//        runQueryWithExpectedResult(graphQLRequest, expected);
-//    }
-//
-//
-//    @Test(priority = 4)
-//    public void fetchRootSingle() throws IOException {
-//        String graphQLRequest = document(
-//                selection(
-//                        entity(
-//                                "book",
-//                                argument(
-//                                        argument(
-//                                                "ids",
-//                                                arrayValueWithVariable(
-//                                                        stringValue("1")
-//                                                )
-//                                        )
-//                                ),
-//                                selections(
-//                                        field("id"),
-//                                        field("title")
-//                                )
-//                        )
-//                )
-//        ).toQuery();
-//
-//        String expectedResponse = document(
-//                selection(
-//                        responseField(
-//                                "book",
-//                                selections(
-//                                        responseField("id", "1"),
-//                                        responseField("title", "1984")
-//                                )
-//                        )
-//                )
-//        ).toResponse();
-//
-//        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
-//    }
-//
-//    @Test(priority = 5)
-//    public void runUpdateAndFetchDifferentTransactionsBatch() throws IOException {
-//        Book book = new Book();
-//        book.setId(999);
-//        book.setTitle("my book created in batch!");
-//
-//        String graphQLRequest1 = document(
-//                typedOperation(
-//                        TypedOperation.OperationType.MUTATION,
-//                        selection(
-//                                entity(
-//                                        "book",
-//                                        arguments(
-//                                                argument("op", enumValue("UPSERT")),
-//                                                argument("data", objectValueWithVariable(book))
-//                                        ),
-//                                        selections(
-//                                                field("id"),
-//                                                field("title")
-//                                        )
-//                                )
-//                        )
-//                )
-//        ).toQuery();
-//
-//        String graphQLRequest2 = document(
-//                selection(
-//                        entity(
-//                                "book",
-//                                argument(argument("ids", stringValue("4"))),
-//                                selections(
-//                                        field("id"),
-//                                        field("title")
-//                                )
-//                        )
-//                )
-//        ).toQuery();
-//
-//        String expectedResponse = document(
-//                selection(
-//                        responseField(
-//                                "book",
-//                                selections(
-//                                        responseField("id", "4"),
-//                                        responseField("title", "my book created in batch!")
-//                                )
-//                        )
-//                ),
-//                selection(
-//                        responseField(
-//                                "book",
-//                                selections(
-//                                        responseField("id", "4"),
-//                                        responseField("title", "my book created in batch!")
-//                                )
-//                        )
-//                )
-//        ).toResponse();
-//
-//        compareJsonObject(
-//                runQuery(toJsonArray(toJsonNode(graphQLRequest1), toJsonNode(graphQLRequest2))),
-//                expectedResponse
-//        );
-//    }
-//
-//    @Test(priority = 6)
-//    public void runMultipleRequestsSameTransaction() throws IOException {
-//        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
-//        String graphQLRequest = document(
-//                selections(
-//                        entity(
-//                                "book",
-//                                argument(
-//                                        argument(
-//                                                "ids",
-//                                                arrayValueWithVariable(stringValue("1"))
-//                                        )
-//                                ),
-//                                selections(
-//                                        field("id"),
-//                                        field("title"),
-//                                        field(
-//                                                "authors",
-//                                                selections(
-//                                                        field("id"),
-//                                                        field("name")
-//                                                )
-//                                        )
-//                                )
-//                        ),
-//                        entity(
-//                                "author",
-//                                selections(
-//                                        field("id"),
-//                                        field("name")
-//                                )
-//                        )
-//                )
-//        ).toQuery();
-//
-//        String expectedResponse = document(
-//                responseSelections(
-//                        responseField(
-//                                "book",
-//                                selections(
-//                                        responseField("id", "1"),
-//                                        responseField("title", "1984"),
-//                                        responseField(
-//                                                "authors",
-//                                                selections(
-//                                                        responseField("id", "1"),
-//                                                        responseField("name", "George Orwell")
-//                                                )
-//                                        )
-//                                )
-//                        ),
-//                        responseField(
-//                                "author",
-//                                selections(
-//                                        responseField("id", "1"),
-//                                        responseField("name", "George Orwell")
-//                                ),
-//                                selections(
-//                                        responseField("id", "2"),
-//                                        responseField("name", "John Setinbeck")
-//                                )
-//                        )
-//                )
-//        ).toResponse();
-//
-//        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
-//    }
-//
-//    @Test(priority = 7)
-//    public void runMultipleRequestsSameTransactionMutation() throws IOException {
-//        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
-//        // and results are consistent across a mutation.
-//        Author author = new Author();
-//        author.setId(3L);
-//        author.setName("Stephen King");
-//
-//        String graphQLRequest = document(
-//                typedOperation(
-//                        TypedOperation.OperationType.MUTATION,
-//                        selections(
-//                                entity(
-//                                        "book",
-//                                        argument(
-//                                                argument(
-//                                                        "ids",
-//                                                        arrayValueWithVariable(stringValue("1"))
-//                                                )
-//                                        ),
-//                                        selections(
-//                                                field("id"),
-//                                                field("title"),
-//                                                field(
-//                                                        "authors",
-//                                                        arguments(
-//                                                                argument("op", enumValue("UPSERT")),
-//                                                                argument("data", objectValueWithVariable(author))
-//                                                        ),
-//                                                        selections(
-//                                                                field("id"),
-//                                                                field("name")
-//                                                        )
-//                                                )
-//                                        )
-//                                ),
-//                                entity(
-//                                        "author",
-//                                        selections(
-//                                                field("id"),
-//                                                field("name")
-//                                        )
-//                                )
-//                        )
-//                )
-//        ).toQuery();
-//
-//        String expectedResponse = document(
-//                responseSelections(
-//                        responseField(
-//                                "book",
-//                                selections(
-//                                        responseField("id", "1"),
-//                                        responseField("title", "1984"),
-//                                        responseField(
-//                                                "authors",
-//                                                selections(
-//                                                        responseField("id", "6"),
-//                                                        responseField("name", "Stephen King")
-//                                                )
-//                                        )
-//                                )
-//                        ),
-//                        responseField(
-//                                "author",
-//                                selections(
-//                                        responseField("id", "1"),
-//                                        responseField("name", "George Orwell")
-//                                ),
-//                                selections(
-//                                        responseField("id", "2"),
-//                                        responseField("name", "John Setinbeck")
-//                                ),
-//                                selections(
-//                                        responseField("id", "4"),
-//                                        responseField("name", "Stephen King")
-//                                )
-//                        )
-//                )
-//        ).toResponse();
-//
-//        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
-//    }
-//
-//    @Test(priority = 6)
-//    public void runMultipleRequestsSameTransactionWithAliases() throws IOException {
-//        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
-//        String graphQLRequest = document(
-//                selections(
-//                        entity(
-//                                "firstAuthorCollection",
-//                                "author",
-//                                selections(
-//                                        field("id"),
-//                                        field("name")
-//                                )
-//                        ),
-//                        entity(
-//                                "secondAuthorCollection",
-//                                "author",
-//                                selections(
-//                                        field("id"),
-//                                        field("name")
-//                                )
-//                        )
-//                )
-//        ).toQuery();
-//
-//        String expectedResponse = document(
-//                responseSelections(
-//                        responseField(
-//                                "firstAuthorCollection",
-//                                selections(
-//                                        responseField("id", "1"),
-//                                        responseField("name", "George Orwell")
-//                                ),
-//                                selections(
-//                                        responseField("id", "2"),
-//                                        responseField("name", "John Setinbeck")
-//                                )
-//                        ),
-//                        responseField(
-//                                "secondAuthorCollection",
-//                                selections(
-//                                        responseField("id", "1"),
-//                                        responseField("name", "George Orwell")
-//                                ),
-//                                selections(
-//                                        responseField("id", "2"),
-//                                        responseField("name", "John Setinbeck")
-//                                )
-//                        )
-//                )
-//        ).toResponse();
-//
-//        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
-//    }
+
+    @Test
+    public void fetchCollection() throws IOException {
+        Book book = new Book();
+        book.setId(1);
+        book.setTitle("1984");
+
+        Author author = new Author();
+        author.setId(1L);
+        author.setName("George Orwell");
+
+        String graphQLQuery = document(
+                mutation(
+                        selection(
+                                field(
+                                        "book",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("title"),
+                                                field(
+                                                        "authors",
+                                                        arguments(
+                                                                argument("op", "UPSERT"),
+                                                                argument("data", author)
+                                                        ),
+                                                        selections(
+                                                                field("id"),
+                                                                field("name")
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        create(graphQLQuery, null);
+
+        book = new Book();
+        book.setId(2);
+        book.setTitle("$bookName");
+
+        author = new Author();
+        author.setId(2L);
+        author.setName("$authorName");
+
+        String graphQLRequest = document(
+                mutation(
+                        "myMutation",
+                        variableDefinitions(
+                                variableDefinition("bookName", "String"),
+                                variableDefinition("authorName", "String")
+                        ),
+                        selection(
+                                field(
+                                        "book",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", book, UNQUOTED_VALUE)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("title"),
+                                                field(
+                                                        "authors",
+                                                        arguments(
+                                                                argument("op", "UPSERT"),
+                                                                argument("data", author, UNQUOTED_VALUE)
+                                                        ),
+                                                        selections(
+                                                                field("id"),
+                                                                field("name")
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("bookName", "Grapes of Wrath");
+        variables.put("authorName", "John Setinbeck");
+
+        create(graphQLRequest, variables);
+
+        graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selections(
+                                                        field("id"),
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "1984"),
+                                        field(
+                                                "authors",
+                                                selections(
+                                                        field("id", "1"),
+                                                        field("name", "George Orwell")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("id", "2"),
+                                        field("title", "Grapes of Wrath"),
+                                        field(
+                                                "authors",
+                                                selections(
+                                                        field("id", "2"),
+                                                        field("name", "John Setinbeck")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void fetchRootSingle() throws IOException {
+        Book book = new Book();
+        book.setId(1);
+        book.setTitle("1984");
+
+        String graphQLQuery = document(
+                mutation(
+                        selection(
+                                field(
+                                        "book",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("title")
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        create(graphQLQuery, null);
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                argument(
+                                        argument(
+                                                "ids",
+                                                Arrays.asList("1")
+                                        )
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expectedResponse = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "1984")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    @Disabled
+    public void runUpdateAndFetchDifferentTransactionsBatch() throws IOException {
+        Book book = new Book();
+        book.setId(999);
+        book.setTitle("my book created in batch!");
+
+        String graphQLRequest1 = document(
+                selection(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("op", "UPSERT"),
+                                        argument("data", book)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String graphQLRequest2 = document(
+                selection(
+                        field(
+                                "book",
+                                //argument(argument("ids", "\"0\"")),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expectedResponse = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "0"),
+                                        field("title", "my book created in batch!")
+                                )
+                        )
+                ),
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "0"),
+                                        field("title", "my book created in batch!")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        compareJsonObject(
+                runQuery(toJsonArray(toJsonNode(graphQLRequest1), toJsonNode(graphQLRequest2))),
+                expectedResponse
+        );
+    }
+
+    @Test
+    public void runMultipleRequestsSameTransactionIncludingMutation() throws IOException {
+        Book book = new Book();
+        book.setId(1);
+        book.setTitle("1984");
+
+        Author author = new Author();
+        author.setId(1L);
+        author.setName("George Orwell");
+
+        String graphQLQuery = document(
+                mutation(
+                        selection(
+                                field(
+                                        "book",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("title"),
+                                                field(
+                                                        "authors",
+                                                        arguments(
+                                                                argument("op", "UPSERT"),
+                                                                argument("data", author)
+                                                        ),
+                                                        selections(
+                                                                field("id"),
+                                                                field("name")
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        create(graphQLQuery, null);
+
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "book",
+                                argument(
+                                        argument(
+                                                "ids",
+                                                Arrays.asList("1")
+                                        )
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selections(
+                                                        field("id"),
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        ),
+                        field(
+                                "author",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expectedResponse = document(
+                selections(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "1984"),
+                                        field(
+                                                "authors",
+                                                selections(
+                                                        field("id", "1"),
+                                                        field("name", "George Orwell")
+                                                )
+                                        )
+                                )
+                        ),
+                        field(
+                                "author",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "George Orwell")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void runMultipleRequestsSameTransactionWithAliases() throws IOException {
+        Book book = new Book();
+        book.setId(1);
+        book.setTitle("1984");
+
+        Author author = new Author();
+        author.setId(1L);
+        author.setName("George Orwell");
+
+        String graphQLQuery = document(
+                mutation(
+                        selection(
+                                field(
+                                        "book",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("title"),
+                                                field(
+                                                        "authors",
+                                                        arguments(
+                                                                argument("op", "UPSERT"),
+                                                                argument("data", author)
+                                                        ),
+                                                        selections(
+                                                                field("id"),
+                                                                field("name")
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        create(graphQLQuery, null);
+
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "firstAuthorCollection",
+                                "author",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        ),
+                        field(
+                                "secondAuthorCollection",
+                                "author",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expectedResponse = document(
+                selections(
+                        field(
+                                "firstAuthorCollection",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "George Orwell")
+                                )
+                        ),
+                        field(
+                                "secondAuthorCollection",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "George Orwell")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+    private void create(String query, Map<String, Object> variables) throws IOException {
+        runQuery(toJsonQuery(query, variables));
+    }
 
     private void runQueryWithExpectedResult(
             String graphQLQuery,
@@ -564,7 +650,7 @@ public class GraphQLIT extends IntegrationTest {
     private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
         JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
         JsonNode expectedNode = JSON_MAPPER.readTree(expected);
-        Assert.assertEquals(responseNode, expectedNode);
+        assertEquals(expectedNode, responseNode);
     }
 
     private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
@@ -591,7 +677,7 @@ public class GraphQLIT extends IntegrationTest {
 
     private String toJsonArray(JsonNode... nodes) throws IOException {
         ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
-        for(JsonNode node : nodes) {
+        for (JsonNode node : nodes) {
             arrayNode.add(node);
         }
         return JSON_MAPPER.writeValueAsString(arrayNode);

@@ -48,7 +48,7 @@ import java.io.IOException;
  * @see <a href="https://graphql.org/learn/queries/#variables">Variables</a>
  */
 public class VariableFieldSerializer extends JsonSerializer<String> {
-    
+
     private static final String VARIABLE_SIGN = "$";
 
     @Override
@@ -61,4 +61,3 @@ public class VariableFieldSerializer extends JsonSerializer<String> {
         }
     }
 }
-
