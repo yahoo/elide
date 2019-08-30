@@ -18,25 +18,28 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDef
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import example.Author;
-import example.Book;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ValidatableResponse;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +49,32 @@ import javax.ws.rs.core.MediaType;
  * GraphQL integration tests.
  */
 public class GraphQLIT extends IntegrationTest {
+
+    private static class Book {
+        @Getter
+        @Setter
+        private long id;
+
+        @Getter
+        @Setter
+        @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
+        private String title;
+
+        private Collection<example.Author> authors = new ArrayList<>();
+    }
+
+    private static class Author {
+        @Getter
+        @Setter
+        private Long id;
+
+        @Getter
+        @Setter
+        @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
+        private String name;
+    }
+
+
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 

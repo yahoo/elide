@@ -10,9 +10,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -70,7 +67,6 @@ public class Author {
     }
 
     @Getter @Setter
-    @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
     private String name;
 
     @ManyToMany(mappedBy = "authors")
