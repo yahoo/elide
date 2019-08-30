@@ -6,7 +6,6 @@
 package com.yahoo.elide.contrib.testhelpers.graphql;
 
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.QUOTE_VALUE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.UNQUOTED_VALUE;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
@@ -36,7 +35,6 @@ public class GraphQLDSLTest {
                         )
                 )
         ).toQuery();
-        
         assertEquals(expected, actual);
     }
 

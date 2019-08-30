@@ -8,6 +8,8 @@ package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.RequestScope;
 import org.junit.jupiter.api.Test;
 
 import graphql.ExecutionResult;
@@ -97,6 +99,9 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
     @Test
     public void testFailuresWithBody() throws Exception {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         String graphQLRequest = "{ "
                 + "book(ids: [\"1\"], data: [{\"id\": \"1\"}]) { "
                 + "edges { node { "
@@ -146,6 +151,9 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
     @Test
     public void testSchemaIntrospection() throws Exception {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         String graphQLRequest = "{"
             + "__schema {"
             + "types {"
@@ -160,6 +168,9 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
     @Test
     public void testTypeIntrospection() throws Exception {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         String graphQLRequest = "{"
             + "__type(name: \"author\") {"
             + "   name"

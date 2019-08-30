@@ -23,9 +23,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,8 +31,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * {@link GraphQLDSL} programmatically construct GraphQL query(excluding query variables) and serializes it to a GraphQL
- * query string.
+ * {@link GraphQLDSL} programmatically construct GraphQL query(excluding query variables)
+ * and serializes it to a GraphQL query string.
  * <p>
  * For example,
  * <pre>
@@ -206,7 +203,7 @@ public final class GraphQLDSL {
             .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
     /**
-     * Returns the JSON representation of an object
+     * Returns the JSON representation of an object.
      *
      * @param object  Object to be serialized
      *
@@ -258,7 +255,7 @@ public final class GraphQLDSL {
     }
 
     /**
-     * Constructs a mutation
+     * Constructs a mutation.
      *
      * @param name  Mutation name
      * @param variableDefinitions  Optional variables
@@ -271,7 +268,7 @@ public final class GraphQLDSL {
     }
 
     /**
-     * Constructs a mutation
+     * Constructs a mutation.
      *
      * @param selectionSet  Selected fields
      *
@@ -295,7 +292,7 @@ public final class GraphQLDSL {
     }
 
     /**
-     * Constructs a named query
+     * Constructs a named query.
      *
      * @param selectionSet  Selected fields
      *

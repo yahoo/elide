@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -26,7 +27,9 @@ import example.Pseudonym;
 import example.Publisher;
 
 import org.apache.tools.ant.util.FileUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,17 +53,21 @@ import java.util.stream.Collectors;
 /**
  * Base functionality required to test the PersistentResourceFetcher.
  */
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQL api;
-    protected GraphQLRequestScope requestScope;
     protected ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
 
-    @BeforeEach
-    public void setupFetcherTest() {
+    protected HashMapDataStore hashMapDataStore;
+    protected InMemoryDataStore inMemoryDataStore;
+    protected ElideSettings settings;
+
+    public PersistentResourceFetcherTest() {
+        System.out.println("FOO");
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
 
-        ElideSettings settings = new ElideSettingsBuilder(null)
+        settings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(filterDialect)
                 .withSubqueryFilterDialect(filterDialect)
@@ -71,21 +78,33 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
             CoerceUtil.register(targetType, serde);
         });
 
-        InMemoryDataStore store = new InMemoryDataStore(
+        hashMapDataStore = new HashMapDataStore(Author.class.getPackage());
+
+        inMemoryDataStore = new InMemoryDataStore(
                 new HashMapDataStore(Author.class.getPackage())
         );
-        store.populateEntityDictionary(dictionary);
+
+        inMemoryDataStore.populateEntityDictionary(dictionary);
 
         ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(settings));
+
         api = new GraphQL(builder.build());
 
-        DataStoreTransaction tx = store.beginTransaction();
-        initTestData(tx);
-
-        requestScope = new GraphQLRequestScope(tx, null, settings);
+        initTestData();
     }
 
-    private void initTestData(DataStoreTransaction tx) {
+    @AfterEach
+    public void clearTestData() {
+        System.out.println("BAR");
+        hashMapDataStore.cleanseTestData();
+
+    }
+
+    @BeforeEach
+    public void initTestData() {
+        System.out.println("BLAH");
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+
         Publisher publisher1 = new Publisher();
         publisher1.setId(1L);
         publisher1.setName("The Guy");
@@ -155,6 +174,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse, Map<String, Object> variables) throws Exception {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
         //       failure.
@@ -177,6 +199,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected void assertQueryFailsWith(String graphQLRequest, String expectedMessage) throws Exception {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         if (isMutation) {
             requestScope.saveOrCreateObjects();
@@ -193,6 +218,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryFails(String graphQLRequest) {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
 
         //debug for errors

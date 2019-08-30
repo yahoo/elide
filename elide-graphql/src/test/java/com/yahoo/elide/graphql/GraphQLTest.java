@@ -15,21 +15,16 @@ import example.Book;
 import example.Pseudonym;
 import example.Publisher;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
-
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Bootstrap for GraphQL tests.
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GraphQLTest {
     protected EntityDictionary dictionary;
 
-    @BeforeAll
-    public void init() {
+    public GraphQLTest() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
         checks.put("allow all", com.yahoo.elide.security.checks.prefab.Role.ALL.class);
 

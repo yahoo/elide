@@ -19,9 +19,7 @@ import example.Author;
 import example.Book;
 import example.Publisher;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -36,7 +34,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ModelBuilderTest {
     private EntityDictionary dictionary;
 
@@ -79,8 +76,7 @@ public class ModelBuilderTest {
     //
     // This is all important for ensuring we don't duplicate typenames which is a requirement in the latest graphql-java
 
-    @BeforeAll
-    public void init() {
+    public ModelBuilderTest() {
         dictionary = new EntityDictionary(Collections.EMPTY_MAP);
 
         dictionary.bindEntity(Book.class);

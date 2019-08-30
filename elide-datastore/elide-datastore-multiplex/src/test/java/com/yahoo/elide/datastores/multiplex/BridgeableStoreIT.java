@@ -6,20 +6,22 @@
 package com.yahoo.elide.datastores.multiplex;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableStoreSupplier;
+import com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableDataStoreHarness;
 import com.yahoo.elide.example.beans.HibernateUser;
 import com.yahoo.elide.example.hbase.beans.RedisActions;
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import redis.clients.jedis.Jedis;
 import redis.embedded.RedisExecProvider;
 import redis.embedded.RedisServer;
@@ -28,12 +30,12 @@ import redis.embedded.util.OS;
 
 import java.net.ServerSocket;
 
-public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
+public class BridgeableStoreIT extends IntegrationTest {
     public static RedisServer REDIS_SERVER;
     public static Jedis REDIS_CLIENT;
     public static final String REDIS_SERVER_PROPERTY = "multiplex.redis.server.path";
 
-    @BeforeClass
+    @BeforeAll
     public void setup() throws Exception {
         // Redis data
         int redisPort = getUnusedPort();
@@ -61,9 +63,12 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .put("user2:4", "user2actionid2")
                 .put("user2:5", "user2actionid3")
                 .build());
+    }
 
+    @BeforeEach
+    public void initTestData() throws Exception {
         // Hibernate data
-        DataStoreTransaction tx = BridgeableStoreSupplier.LATEST_HIBERNATE_STORE.beginTransaction();
+        DataStoreTransaction tx = BridgeableDataStoreHarness.LATEST_HIBERNATE_STORE.beginTransaction();
 
         HibernateUser hUser1 = new HibernateUser();
         HibernateUser hUser2 = new HibernateUser();
@@ -81,7 +86,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
         tx.close();
     }
 
-    @AfterClass
+    @AfterAll
     public void cleanup() throws Exception {
         REDIS_CLIENT.close();
         REDIS_SERVER.stop();
@@ -96,9 +101,9 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
-        Assert.assertTrue(result.contains("user1actionid1"));
-        Assert.assertTrue(result.contains("user1actionid2"));
-        Assert.assertFalse(result.contains("user2"));
+        assertTrue(result.contains("user1actionid1"));
+        assertTrue(result.contains("user1actionid2"));
+        assertFalse(result.contains("user2"));
     }
 
     @Test
@@ -117,9 +122,9 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
-        Assert.assertTrue(result.contains("user1actionid1"));
-        Assert.assertFalse(result.contains("user1actionid2"));
-        Assert.assertFalse(result.contains("user2"));
+        assertTrue(result.contains("user1actionid1"));
+        assertFalse(result.contains("user1actionid2"));
+        assertFalse(result.contains("user2"));
     }
 
     @Test
@@ -141,9 +146,9 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
-        Assert.assertTrue(result.contains("user1actionid1"));
-        Assert.assertFalse(result.contains("user1actionid2"));
-        Assert.assertFalse(result.contains("user2"));
+        assertTrue(result.contains("user1actionid1"));
+        assertFalse(result.contains("user1actionid2"));
+        assertFalse(result.contains("user2"));
     }
 
     @Test
@@ -152,6 +157,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1/specialAction")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
@@ -162,14 +168,14 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
-        Assert.assertTrue(result.contains("user1actionid1"));
-        Assert.assertFalse(result.contains("user1actionid2"));
-        Assert.assertFalse(result.contains("user2"));
+        assertTrue(result.contains("user1actionid1"));
+        assertFalse(result.contains("user1actionid2"));
+        assertFalse(result.contains("user2"));
     }
 
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectFromBadSourceToOne() {
-        String result = given()
+        given()
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1/redisActions/3")
                 .then()

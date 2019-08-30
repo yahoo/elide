@@ -30,10 +30,6 @@ import java.util.Optional;
 
 public class SubCollectionFetchQueryBuilderTest {
 
-    private static final Author AUTHOR_WITH_ID_1 = Author.builder()
-            .id(1L)
-            .build();
-
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";
@@ -53,9 +49,8 @@ public class SubCollectionFetchQueryBuilderTest {
 
     @Test
     public void testSubCollectionFetch() {
-        Author author = Author.builder()
-                .id(1L)
-                .build();
+        Author author = new Author();
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -77,6 +72,9 @@ public class SubCollectionFetchQueryBuilderTest {
 
     @Test
     public void testSubCollectionFetchWithSorting() {
+        Author author = new Author();
+        author.setId(1L);
+
         Book book = new Book();
         book.setId(2);
 
@@ -84,7 +82,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Author.class,
                 Book.class,
                 BOOKS,
-                AUTHOR_WITH_ID_1,
+                author,
                 Arrays.asList(book));
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(relationship,
@@ -107,6 +105,9 @@ public class SubCollectionFetchQueryBuilderTest {
 
     @Test
     public void testSubCollectionFetchWithJoinFilter() {
+        Author author = new Author();
+        author.setId(1L);
+
         Book book = new Book();
         book.setId(2);
 
@@ -114,7 +115,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Author.class,
                 Book.class,
                 BOOKS,
-                AUTHOR_WITH_ID_1,
+                author,
                 Arrays.asList(book)
         );
 
@@ -146,6 +147,9 @@ public class SubCollectionFetchQueryBuilderTest {
 
     @Test
     public void testSubCollectionFetchWithSortingAndFilters() {
+        Author author = new Author();
+        author.setId(1L);
+
         Book book = new Book();
         book.setId(2);
 
@@ -153,7 +157,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Author.class,
                 Book.class,
                 BOOKS,
-                AUTHOR_WITH_ID_1,
+                author,
                 Arrays.asList(book)
         );
 

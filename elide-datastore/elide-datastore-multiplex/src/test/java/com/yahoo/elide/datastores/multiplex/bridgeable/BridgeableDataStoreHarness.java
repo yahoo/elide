@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.multiplex.bridgeable;
 
 import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.hibernate5.AbstractHibernateStore;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.example.beans.HibernateUser;
@@ -19,13 +20,14 @@ import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 
 import java.util.EnumSet;
-import java.util.function.Supplier;
 
-public class BridgeableStoreSupplier implements Supplier<DataStore> {
+public class BridgeableDataStoreHarness implements DataStoreTestHarness {
     public static AbstractHibernateStore LATEST_HIBERNATE_STORE;
 
-    @Override
-    public DataStore get() {
+    private DataStore store;
+    private MetadataImplementor metadataImplementor;
+
+    public BridgeableDataStoreHarness() {
         // method to force class initialization
         MetadataSources metadataSources = new MetadataSources(
                 new StandardServiceRegistryBuilder()
@@ -39,8 +41,21 @@ public class BridgeableStoreSupplier implements Supplier<DataStore> {
 
         metadataSources.addAnnotatedClass(HibernateUser.class);
 
-        MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
+        metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
 
+        resetSchema();
+
+        LATEST_HIBERNATE_STORE = new AbstractHibernateStore.Builder(metadataImplementor.buildSessionFactory())
+                .withScrollEnabled(true)
+                .withScrollMode(ScrollMode.FORWARD_ONLY)
+                .build();
+
+        BridgeableRedisStore hbaseStore = new BridgeableRedisStore();
+
+        store = new MultiplexManager(LATEST_HIBERNATE_STORE, hbaseStore);
+    }
+
+    private void resetSchema() {
         EnumSet<TargetType> type = EnumSet.of(TargetType.DATABASE);
         // create example tables from beans
         SchemaExport schemaExport = new SchemaExport();
@@ -50,14 +65,15 @@ public class BridgeableStoreSupplier implements Supplier<DataStore> {
         if (!schemaExport.getExceptions().isEmpty()) {
             throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
+    }
 
-        LATEST_HIBERNATE_STORE = new AbstractHibernateStore.Builder(metadataImplementor.buildSessionFactory())
-            .withScrollEnabled(true)
-            .withScrollMode(ScrollMode.FORWARD_ONLY)
-            .build();
+    @Override
+    public DataStore getDataStore() {
+        return store;
+    }
 
-        BridgeableRedisStore hbaseStore = new BridgeableRedisStore();
-
-        return new MultiplexManager(LATEST_HIBERNATE_STORE, hbaseStore);
+    @Override
+    public void cleanseTestData() {
+        resetSchema();
     }
 }
