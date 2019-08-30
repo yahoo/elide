@@ -12,10 +12,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import org.hibernate.annotations.Formula;
 
@@ -46,11 +42,9 @@ import javax.persistence.Transient;
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
 public class Book extends BaseId {
-    @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
     private String title;
     private String genre;
     private String language;
-    @JsonIgnore
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
     private Collection<Chapter> chapters = new ArrayList<>();
@@ -93,7 +87,6 @@ public class Book extends BaseId {
      * Demonstrates a more complex ranking use case.
      * @return The number of chapters in a book.
      */
-    @JsonIgnore
     @Formula(value = "(SELECT COUNT(*) FROM book AS b JOIN book_chapter AS bc ON bc.book_id = b.id WHERE id=b.id)")
     public int getChapterCount() {
         return chapters.size();

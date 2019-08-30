@@ -7,8 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Exclude;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.UUID;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -31,7 +29,6 @@ public abstract class BaseId {
     }
 
     @Exclude
-    @JsonIgnore
     public String getNaturalKey() {
         return naturalKey;
     }
