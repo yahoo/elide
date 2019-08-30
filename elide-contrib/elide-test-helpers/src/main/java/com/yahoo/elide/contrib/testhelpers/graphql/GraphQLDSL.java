@@ -338,7 +338,7 @@ public final class GraphQLDSL {
      * @return a field
      */
     public static Selection field(String name, String value) {
-        return new Field(name, Arguments.emptyArgument(), Field.quoteValue(value));
+        return new Field(null, name, Arguments.emptyArgument(), Field.quoteValue(value));
     }
 
     /**
@@ -350,7 +350,7 @@ public final class GraphQLDSL {
      * @return a field
      */
     public static Selection field(String name, Number value) {
-        return new Field(name, Arguments.emptyArgument(), value);
+        return new Field(null, name, Arguments.emptyArgument(), value);
     }
 
     /**
@@ -362,7 +362,7 @@ public final class GraphQLDSL {
      * @return a field
      */
     public static Selection field(String name, Boolean value) {
-        return new Field(name, Arguments.emptyArgument(), value);
+        return new Field(null, name, Arguments.emptyArgument(), value);
     }
 
     /**
@@ -375,7 +375,7 @@ public final class GraphQLDSL {
      * @return a field
      */
     public static Selection field(String name, String value, boolean quoted) {
-        return new Field(name, Arguments.emptyArgument(), quoted ? Field.quoteValue(value) : value);
+        return new Field(null, name, Arguments.emptyArgument(), quoted ? Field.quoteValue(value) : value);
     }
 
     /**
@@ -393,7 +393,14 @@ public final class GraphQLDSL {
         List<SelectionSet> ss = Arrays.stream(selectionSet)
                 .map(i -> (SelectionSet) i)
                 .collect(Collectors.toList());
-        return new Field(name, Arguments.emptyArgument(), relayWrap(ss));
+        return new Field(null, name, Arguments.emptyArgument(), relayWrap(ss));
+    }
+
+    public static Selection field(String alias, String name, SelectionSet... selectionSet) {
+        List<SelectionSet> ss = Arrays.stream(selectionSet)
+                .map(i -> (SelectionSet) i)
+                .collect(Collectors.toList());
+        return new Field(alias, name, Arguments.emptyArgument(), relayWrap(ss));
     }
 
     /**
@@ -410,7 +417,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
     public static Selection field(String name, Arguments arguments, SelectionSet... selectionSet) {
-        return new Field(name, arguments, relayWrap(Arrays.asList(selectionSet)));
+        return new Field(null, name, arguments, relayWrap(Arrays.asList(selectionSet)));
     }
 
     /**
@@ -427,7 +434,7 @@ public final class GraphQLDSL {
     }
 
     public static Selection field(String name, Arguments arguments) {
-        return new Field(name, arguments, null);
+        return new Field(null, name, arguments, null);
     }
 
     /**
