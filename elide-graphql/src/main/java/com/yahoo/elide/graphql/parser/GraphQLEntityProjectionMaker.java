@@ -6,6 +6,7 @@ import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.graphql.Entity;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -279,41 +280,13 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addArgument(Argument argument, EntityProjection entityProjection) {
         String argumentName = argument.getName();
-        Value argumentValue = argument.getValue();
 
         if (isPaginationArgument(argumentName)) {
-            addPagination(argumentName, argumentValue, entityProjection);
+            // NOOP
         } else if (isSortingArgument(argumentName)) {
-            addSorting(argumentValue, entityProjection);
+            // NOOP
         } else {
-            Class<?> entityType = entityProjection.getType();
-
-            if (!entityDictionary.isValidField(entityType, argumentName)) {
-                // invalid argument name
-                throw new IllegalStateException(
-                        String.format("Unknown argument field {%s.%s}.", entityType, argument));
-            }
-
-            Attribute argumentAttribute = entityProjection.getAttributeByName(argumentName);
-            com.yahoo.elide.request.Argument elideArgument = com.yahoo.elide.request.Argument.builder()
-                    .name(argumentName)
-                    .value(argumentValue)
-                    .build();
-
-            if (argumentAttribute == null) {
-                argumentAttribute = Attribute.builder()
-                        .type(entityDictionary.getType(entityType, argumentName))
-                        .name(argumentName)
-                        .argument(elideArgument)
-                        .build();
-
-                Set<Attribute> attributes = entityProjection.getAttributes();
-                attributes.add(argumentAttribute);
-
-                entityProjection.setAttributes(attributes);
-            } else {
-                argumentAttribute.getArguments().add(elideArgument);
-            }
+            addAttributeArgument(argument, entityProjection);
         }
     }
 
@@ -329,35 +302,6 @@ public class GraphQLEntityProjectionMaker {
         return ModelBuilder.ARGUMENT_FIRST.equals(argumentName) || ModelBuilder.ARGUMENT_AFTER.equals(argumentName);
     }
 
-    /**
-     * Creates a {@link Pagination} object from pagination GraphQL argument and attaches it to the
-     * {@link EntityProjection}.
-     *
-     * @param paginationArgument  A string that contains the key to a value of sorting spec
-     * @param paginationValue  A string that contains the value of pagination spec
-     * @param entityProjection projection that has the pagination argument
-     */
-    private void addPagination(
-            String paginationArgument,
-            Object paginationValue,
-            EntityProjection entityProjection
-    ) {
-        Pagination pagination = entityProjection.getPagination() == null
-                ? Pagination.getDefaultPagination(elideSettings)
-                : entityProjection.getPagination();
-
-        int value = Integer.parseInt((String) paginationValue);
-        if (ModelBuilder.ARGUMENT_FIRST.equals(paginationArgument)) {
-            pagination.setFirst(value);
-        } else if (ModelBuilder.ARGUMENT_AFTER.equals(paginationArgument)) {
-            pagination.setOffset(value);
-        } else {
-            throw new InvalidEntityBodyException(
-                    String.format("Unrecognized pagination argument '%s'", paginationArgument));
-        }
-
-        entityProjection.setPagination(pagination);
-    }
 
     /**
      * Returns whether or not a GraphQL argument name corresponding to a sorting argument.
@@ -370,16 +314,35 @@ public class GraphQLEntityProjectionMaker {
         return ModelBuilder.ARGUMENT_SORT.equals(argumentName);
     }
 
-    /**
-     * Creates a {@link Sorting} object from sorting GraphQL argument value and attaches it to the entity sorted
-     * according to the newly created {@link Sorting} object.
-     *
-     * @param argumentValue A string that contains the value of sorting spec
-     */
-    private void addSorting(Object argumentValue, EntityProjection entityProjection) {
-        String sortRule = (String) argumentValue;
-        Sorting sorting = Sorting.parseSortRule(sortRule.substring(1, sortRule.length() - 1));
+    private void addAttributeArgument(Argument argument, EntityProjection entityProjection) {
+        String argumentName = argument.getName();
+        Class<?> entityType = entityProjection.getType();
 
-        entityProjection.setSorting(sorting);
+        if (!entityDictionary.isValidField(entityType, argumentName)) {
+            // invalid argument name
+            throw new IllegalStateException(
+                    String.format("Unknown argument field {%s.%s}.", entityType, argument));
+        }
+
+        Attribute argumentAttribute = entityProjection.getAttributeByName(argumentName);
+        com.yahoo.elide.request.Argument elideArgument = com.yahoo.elide.request.Argument.builder()
+                .name(argumentName)
+                .value(argument.getValue())
+                .build();
+
+        if (argumentAttribute == null) {
+            argumentAttribute = Attribute.builder()
+                    .type(entityDictionary.getType(entityType, argumentName))
+                    .name(argumentName)
+                    .argument(elideArgument)
+                    .build();
+
+            Set<Attribute> attributes = entityProjection.getAttributes();
+            attributes.add(argumentAttribute);
+
+            entityProjection.setAttributes(attributes);
+        } else {
+            argumentAttribute.getArguments().add(elideArgument);
+        }
     }
 }
