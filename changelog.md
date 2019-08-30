@@ -1,4 +1,8 @@
 # Change Log
+## 4.5.2
+**Fixes**
+ * Issue #913. Fix descriptions and example attributes appearing in swagger with empty string value
+
 ## 4.5.1
 **Features**
  * Issue #851. Added new method `enableSwagger()` in `ElideStandaloneSettings` class which allows an easier way for binding swagger docs to the given endpoint. Override this method returning the `Map<String, Swagger>` object to bind the swagger docs to string endpoint.

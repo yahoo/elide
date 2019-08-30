@@ -6,6 +6,7 @@
 package com.yahoo.elide.contrib.swagger;
 
 import com.yahoo.elide.contrib.swagger.model.Resource;
+import com.yahoo.elide.contrib.swagger.models.Author;
 import com.yahoo.elide.contrib.swagger.models.Book;
 import com.yahoo.elide.contrib.swagger.models.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
@@ -29,10 +30,12 @@ public class JsonApiModelResolverTest {
 
     private static final String KEY_BOOK = "book";
     private static final String KEY_PUBLISHER = "publisher";
+    private static final String KEY_AUTHOR = "author";
 
     private static final Map<String, Class> ENTITIES =
         ImmutableMap.of(KEY_BOOK, Book.class,
-                        KEY_PUBLISHER, Publisher.class);
+                        KEY_PUBLISHER, Publisher.class,
+                        KEY_AUTHOR, Author.class);
 
     private ModelConverters converters;
 
@@ -42,6 +45,7 @@ public class JsonApiModelResolverTest {
 
         dictionary.bindEntity(ENTITIES.get(KEY_BOOK));
         dictionary.bindEntity(ENTITIES.get(KEY_PUBLISHER));
+        dictionary.bindEntity(ENTITIES.get(KEY_AUTHOR));
 
         converters = ModelConverters.getInstance();
         converters.addConverter(new JsonApiModelResolver(dictionary));
@@ -88,11 +92,43 @@ public class JsonApiModelResolverTest {
     }
 
     @Test
+    public void testNoDescriptionWithoutAnnotation() {
+        ObjectProperty attributes = getObjectProperty(KEY_AUTHOR, "attributes");
+
+        Object nameDescription = attributes.getProperties().get("name").getDescription();
+        Assert.assertNull(nameDescription);
+    }
+
+    @Test
+    public void testNoDescriptionWhenNotProvided() {
+        ObjectProperty attributes = getObjectProperty(KEY_AUTHOR, "attributes");
+
+        Object phoneDescription = attributes.getProperties().get("phone").getDescription();
+        Assert.assertNull(phoneDescription);
+    }
+
+    @Test
     public void testExample() {
         ObjectProperty attributes = getObjectProperty(KEY_PUBLISHER, "attributes");
 
         Object phoneExample = attributes.getProperties().get("phone").getExample();
         Assert.assertEquals(phoneExample,  "555-000-1111");
+    }
+
+    @Test
+    public void testNoExampleWithoutAnnotation() {
+        ObjectProperty attributes = getObjectProperty(KEY_AUTHOR, "attributes");
+
+        Object nameExample = attributes.getProperties().get("name").getExample();
+        Assert.assertNull(nameExample);
+    }
+
+    @Test
+    public void testNoExampleWhenNotProvided() {
+        ObjectProperty attributes = getObjectProperty(KEY_AUTHOR, "attributes");
+
+        Object phoneExample = attributes.getProperties().get("phone").getExample();
+        Assert.assertNull(phoneExample);
     }
 
     @Test
