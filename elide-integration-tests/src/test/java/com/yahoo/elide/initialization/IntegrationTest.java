@@ -89,13 +89,7 @@ public abstract class IntegrationTest {
      * @return an initialized data store.
      */
     public static DataStore getDataStore() {
-        if (dataStoreHarness == null) {
-            //TODO - this is temporary code until AbstractIntegrationTestInitializer has been full replaced with
-            //IntegrationTest.
-            return AbstractIntegrationTestInitializer.getDatabaseManager();
-        } else {
-            return dataStoreHarness.getDataStore();
-        }
+        return dataStoreHarness.getDataStore();
     }
 
     @AfterEach

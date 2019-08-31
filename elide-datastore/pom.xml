@@ -136,7 +136,6 @@
                     <configuration>
                         <systemPropertyVariables>
                             <restassured.port>${restassured.port}</restassured.port>
-                            <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
                             <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
                         </systemPropertyVariables>
                         <includes>
