@@ -95,6 +95,14 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-integration-tests</artifactId>
+            <version>4.5.2-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -139,6 +147,12 @@
                             <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
                             <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
                         </systemPropertyVariables>
+                        <includes>
+<!--                            <include>**/*IT.java</include> -->
+                            <include>%regex[.*IT.*]</include>
+                        </includes>
+                        <dependenciesToScan>com.yahoo.elide:elide-integration-tests</dependenciesToScan>
+                        <!--
                         <suiteXmlFiles>
                             <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
                             <suiteXmlFile>${project.basedir}/../testng-audit.xml</suiteXmlFile>
@@ -147,6 +161,7 @@
                             <suiteXmlFile>${project.basedir}/../testng-errorencoding.xml</suiteXmlFile>
                             <suiteXmlFile>${project.basedir}/../testng-errorobjects.xml</suiteXmlFile>
                         </suiteXmlFiles>
+                        -->
                     </configuration>
                     <executions>
                         <execution>

@@ -10,6 +10,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.initialization.ErrorObjectsIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
@@ -20,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
-import org.testng.Assert;
 
 import java.io.IOException;
 
@@ -55,8 +55,8 @@ public class ErrorObjectsIT extends IntegrationTest {
                 .extract().body().asString());
 
         for (JsonNode errorNode : errors.get("errors")) {
-            Assert.assertTrue(errorNode.isObject(), "expected error should be object");
-            Assert.assertTrue(errorNode.has("detail"), "JsonAPI error should have 'detail'");
+            assertTrue(errorNode.isObject(), "expected error should be object");
+            assertTrue(errorNode.has("detail"), "JsonAPI error should have 'detail'");
         }
     }
 
@@ -76,8 +76,8 @@ public class ErrorObjectsIT extends IntegrationTest {
                 .extract().body().asString());
 
         for (JsonNode errorNode : errors.get("errors")) {
-            Assert.assertTrue(errorNode.isObject(), "expected error should be object");
-            Assert.assertTrue(errorNode.has("message"), "GraphQL error should have 'message'");
+            assertTrue(errorNode.isObject(), "expected error should be object");
+            assertTrue(errorNode.has("message"), "GraphQL error should have 'message'");
         }
     }
 }

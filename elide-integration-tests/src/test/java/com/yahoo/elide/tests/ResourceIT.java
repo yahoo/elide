@@ -11,6 +11,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -600,7 +601,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -683,7 +684,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/parent/4")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -736,7 +737,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -773,7 +774,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -805,7 +806,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -982,7 +983,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/parent/4/relationships/children")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         String actual = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -1302,7 +1303,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/fun/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         String actual = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
 
@@ -1346,7 +1347,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/fun/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         actual = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
 
@@ -1591,7 +1592,7 @@ public class ResourceIT extends IntegrationTest {
                 .post("/parent/1/children/1/relationships/parents")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
         String response = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -1628,7 +1629,7 @@ public class ResourceIT extends IntegrationTest {
                 .delete("/parent/1/children/1/relationships/parents")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -2527,7 +2528,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/user/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
-                .header(HttpHeaders.CONTENT_LENGTH, (String) null);
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
         given().when().get("/user/1").then().statusCode(HttpStatus.SC_OK)
                 .body(equalTo(datum(returned).toJSON()));
