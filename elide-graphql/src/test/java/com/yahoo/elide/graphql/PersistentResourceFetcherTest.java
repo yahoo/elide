@@ -64,7 +64,6 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected ElideSettings settings;
 
     public PersistentResourceFetcherTest() {
-        System.out.println("FOO");
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
 
         settings = new ElideSettingsBuilder(null)
@@ -95,14 +94,11 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
     @AfterEach
     public void clearTestData() {
-        System.out.println("BAR");
         hashMapDataStore.cleanseTestData();
-
     }
 
     @BeforeEach
     public void initTestData() {
-        System.out.println("BLAH");
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
 
         Publisher publisher1 = new Publisher();

@@ -169,21 +169,17 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
-                    <!-- Run our integration tests only -->
-                    <test>**/*IT.*</test>
-                    <includes>
-                        <include>**/*IT.java</include>
-                    </includes>
-                    <!-- Don't run elide-integration-test tests on multiplex manager -->
-                    <excludes>
-                        <exclude>com.yahoo.elide.tests.*</exclude>
-                    </excludes>
-                    <failIfNoTests>true</failIfNoTests>
+                    <skipITs>true</skipITs>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

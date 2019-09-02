@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import redis.clients.jedis.Jedis;
 import redis.embedded.RedisExecProvider;
 import redis.embedded.RedisServer;
@@ -30,7 +31,8 @@ import redis.embedded.util.OS;
 
 import java.net.ServerSocket;
 
-public class BridgeableStoreIT extends IntegrationTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class BridgeableStoreTest extends IntegrationTest {
     public static RedisServer REDIS_SERVER;
     public static Jedis REDIS_CLIENT;
     public static final String REDIS_SERVER_PROPERTY = "multiplex.redis.server.path";
