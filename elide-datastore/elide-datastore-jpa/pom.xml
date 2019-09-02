@@ -39,7 +39,6 @@
     </scm>
 
     <properties>
-        <dataStoreSupplier>com.yahoo.elide.datastores.jpa.JpaDataStoreSupplier</dataStoreSupplier>
         <dataStoreHarness>com.yahoo.elide.datastores.jpa.JpaDataStoreHarness</dataStoreHarness>
     </properties>
 

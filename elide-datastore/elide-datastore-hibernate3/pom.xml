@@ -39,7 +39,6 @@
     </scm>
 
     <properties>
-        <dataStoreSupplier>com.yahoo.elide.datastores.hibernate3.HibernateDataStoreSupplier</dataStoreSupplier>
         <dataStoreHarness>com.yahoo.elide.datastores.hibernate3.HibernateDataStoreHarness</dataStoreHarness>
     </properties>
 
