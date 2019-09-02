@@ -326,7 +326,7 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         filterParams = paramNames.stream().filter((name) -> name.startsWith("filter")).count();
-        Assert.assertEquals(filterParams, 12);
+        Assert.assertEquals(filterParams, 23);
 
         Assert.assertTrue(paramNames.contains("filter[author]"));
         Assert.assertTrue(paramNames.contains("filter[author.name][in]"));

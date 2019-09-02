@@ -7,6 +7,7 @@ package com.yahoo.elide.contrib.swagger.models;
 
 import com.yahoo.elide.annotation.Include;
 
+import io.swagger.annotations.ApiModelProperty;
 import java.util.Set;
 
 import javax.persistence.Entity;
@@ -15,6 +16,14 @@ import javax.persistence.OneToMany;
 @Entity
 @Include
 public class Author {
+
+    public AuthorType membershipType;
+
+    public String name;
+
+    @ApiModelProperty(required = true)
+    public String phone;
+
     @OneToMany
     public Set<Book> getBooks() {
         return null;
@@ -24,8 +33,4 @@ public class Author {
     public Set<Publisher> getPublisher() {
         return null;
     }
-
-    public AuthorType membershipType;
-
-    public String name;
 }
