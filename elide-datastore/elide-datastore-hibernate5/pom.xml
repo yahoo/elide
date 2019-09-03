@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>4.5.1-SNAPSHOT</version>
+        <version>4.5.2-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -47,19 +47,19 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
     	</dependency>
@@ -145,11 +145,17 @@
             <artifactId>logback-core</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
@@ -208,7 +214,7 @@
                         </goals>
                         <configuration>
                             <systemPropertyVariables>
-                                <dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreSupplier</dataStoreSupplier>
+                                <dataStoreHarness>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreHarness</dataStoreHarness>
                             </systemPropertyVariables>
                         </configuration>
                     </execution>
@@ -220,7 +226,7 @@
                         </goals>
                         <configuration>
                             <systemPropertyVariables>
-                                <dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateEntityManagerDataStoreSupplier</dataStoreSupplier>
+                                <dataStoreHarness>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreHarness</dataStoreHarness>
                             </systemPropertyVariables>
                         </configuration>
                     </execution>

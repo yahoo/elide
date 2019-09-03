@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.initialization;
 
+import static com.yahoo.elide.initialization.IntegrationTest.getDataStore;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
@@ -46,7 +48,7 @@ public class ErrorObjectsTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                return new Elide(new ElideSettingsBuilder(getDataStore())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)

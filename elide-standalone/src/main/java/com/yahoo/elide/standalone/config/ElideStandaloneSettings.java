@@ -20,14 +20,15 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import io.swagger.models.Swagger;
+
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.function.Consumer;
-
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.core.SecurityContext;
 
@@ -58,7 +59,8 @@ public interface ElideStandaloneSettings {
      * @return Configured ElideSettings object.
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
-        EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(), new Properties());
+        EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
+                new Properties());
         DataStore dataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
@@ -132,6 +134,16 @@ public interface ElideStandaloneSettings {
         return "/graphql/api/v1";
     }
 
+
+    /**
+     * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
+     *
+     * @return Default: /swagger/*
+     */
+    default String getSwaggerPathSepc() {
+        return "/swagger/*";
+    }
+
     /**
      * Enable the JSONAPI endpoint. If false, the endpoint will be disabled.
      *
@@ -151,7 +163,7 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Whether Dates should be ISO8601 strings (true) or epochs (false)
+     * Whether Dates should be ISO8601 strings (true) or epochs (false).
      * @return
      */
     default boolean enableIS06081Dates() {
@@ -166,6 +178,16 @@ public interface ElideStandaloneSettings {
     default boolean enableServiceMonitoring() {
         return true;
     }
+
+
+    /**
+     * Enable swagger documentation by returning non empty map object.
+     * @return Map object that maps document name to swagger object.
+     */
+    default Map<String, Swagger> enableSwagger() {
+        return new HashMap<>();
+    }
+
 
     /**
      * JAX-RS filters to register with the web service.
@@ -185,8 +207,9 @@ public interface ElideStandaloneSettings {
      */
     default Consumer<ResourceConfig> getApplicationConfigurator() {
         // Do nothing by default
-        return (x) -> {};
+        return (x) -> { };
     }
+
 
     /**
      * Location to hibernate5 config. This is only required if you're using the <em>default</em> ElideSettings object.

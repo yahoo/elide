@@ -1,9 +1,9 @@
 {
     "data":{
         "type":"parent",
-        "id":"10",
+        "id":"1",
         "attributes":{
-            "firstName":"bart"
+            "firstName":null
         },
         "relationships":{
             "children":{
@@ -18,7 +18,7 @@
                     },
                     {
                         "type":"child",
-                        "id":"7"
+                        "id":"1"
                     }
                 ]
             },

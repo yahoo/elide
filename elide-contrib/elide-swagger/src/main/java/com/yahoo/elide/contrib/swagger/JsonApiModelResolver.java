@@ -108,8 +108,8 @@ public class JsonApiModelResolver extends ModelResolver {
         String permissions = getFieldPermissions(clazz, attributeName);
         String description = getFieldDescription(clazz, attributeName);
 
-        attribute.setDescription(joinNonEmpty("\n", description, permissions));
-        attribute.setExample((Object) getFieldExample(clazz, attributeName));
+        attribute.setDescription(StringUtils.defaultIfEmpty(joinNonEmpty("\n", description, permissions), null));
+        attribute.setExample((Object) StringUtils.defaultIfEmpty(getFieldExample(clazz, attributeName), null));
         attribute.setReadOnly(getFieldReadOnly(clazz, attributeName));
         attribute.setRequired(getFieldRequired(clazz, attributeName));
 

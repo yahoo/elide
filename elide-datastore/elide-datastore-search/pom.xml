@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>4.5.1-SNAPSHOT</version>
+        <version>4.5.2-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -71,7 +71,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -88,8 +88,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.jayway.restassured</groupId>
+            <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
+            <version>4.0.0</version>
             <scope>test</scope>
         </dependency>
 

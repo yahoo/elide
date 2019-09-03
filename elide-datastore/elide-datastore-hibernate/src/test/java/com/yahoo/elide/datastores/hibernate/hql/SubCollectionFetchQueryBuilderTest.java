@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class SubCollectionFetchQueryBuilderTest {
+
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";

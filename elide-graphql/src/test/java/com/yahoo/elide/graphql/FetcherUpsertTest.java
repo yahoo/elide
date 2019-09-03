@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.graphql;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
@@ -99,7 +100,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     // TODO: Reeanble when supporting arguments into computed attributes.
-    @Test(enabled = false)
+    @Disabled
     public void testSetComputedAttribute() throws Exception {
         runComparisonTest("setComputedAttribute");
     }
