@@ -502,13 +502,13 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testAttributeOrRelationAnnotationExists() {
-        Assert.assertTrue(attributeOrRelationAnnotationExists(Job.class, "jobId", Id.class));
-        Assert.assertFalse(attributeOrRelationAnnotationExists(Job.class, "title", OneToOne.class));
+        assertTrue(attributeOrRelationAnnotationExists(Job.class, "jobId", Id.class));
+        assertFalse(attributeOrRelationAnnotationExists(Job.class, "title", OneToOne.class));
     }
 
     @Test
     public void testIsValidField() {
-        Assert.assertTrue(isValidField(Job.class, "title"));
-        Assert.assertFalse(isValidField(Job.class, "foo"));
+        assertTrue(isValidField(Job.class, "title"));
+        assertFalse(isValidField(Job.class, "foo"));
     }
 }
