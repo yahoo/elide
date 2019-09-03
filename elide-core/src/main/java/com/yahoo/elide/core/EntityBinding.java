@@ -574,7 +574,7 @@ public class EntityBinding {
             }
             annotations.putIfAbsent(annotationClass, annotation);
         }
-        return annotation == NO_ANNOTATION ? null : (A) annotation;
+        return annotation == NO_ANNOTATION ? null : annotationClass.cast(annotation);
     }
 
     private List<Class<?>> getInheritedTypes(Class<?> entityClass) {

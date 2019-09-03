@@ -27,7 +27,7 @@ public class Common {
     public static class UpdateOnCreate<T> extends OperationCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            for (PersistentResource resource : requestScope.getNewResources()) {
+            for (PersistentResource<?> resource : requestScope.getNewResources()) {
                 if (record == resource.getObject()) {
                     return true;
                 }

@@ -215,7 +215,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource(obj, null, requestScope.getUUIDFor(obj), requestScope);
+        PersistentResource<T> resource = new PersistentResource<T>(
+                loadClass.cast(obj), null, requestScope.getUUIDFor(obj), requestScope);
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);
@@ -266,9 +267,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
             if (ids.isEmpty()) {
                 return Collections.emptySet();
-            } else {
-                throw new InvalidObjectIdentifierException(ids.toString(), dictionary.getJsonAliasFor(loadClass));
             }
+            throw new InvalidObjectIdentifierException(ids.toString(), dictionary.getJsonAliasFor(loadClass));
         }
 
 
@@ -805,23 +805,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         /* If this is a bulk edit request and the ID we are fetching for is newly created... */
         if (entityType == null) {
             throw new InvalidAttributeException(relation, type);
+        }
+        if (!ids.isEmpty()) {
+            // Fetch our set of new resources that we know about since we can't find them in the datastore
+            newResources = requestScope.getNewPersistentResources().stream()
+                    .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
+                            && ids.contains(resource.getUUID().orElse("")))
+                    .collect(Collectors.toSet());
+
+            FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
+
+            // Combine filters if necessary
+            filterExpression = filter
+                    .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
+                    .orElse(idExpression);
         } else {
-            if (!ids.isEmpty()) {
-                // Fetch our set of new resources that we know about since we can't find them in the datastore
-                newResources = requestScope.getNewPersistentResources().stream()
-                        .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
-                                && ids.contains(resource.getUUID().orElse("")))
-                        .collect(Collectors.toSet());
-
-                FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
-
-                // Combine filters if necessary
-                filterExpression = filter
-                        .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
-                        .orElse(idExpression);
-            } else {
-                filterExpression = filter.orElse(null);
-            }
+            filterExpression = filter.orElse(null);
         }
 
         // TODO: Filter on new resources?
