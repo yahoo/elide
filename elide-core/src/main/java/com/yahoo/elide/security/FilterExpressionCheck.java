@@ -54,7 +54,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     @Override
     public final boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        Class entityClass = coreScope(requestScope).getDictionary().lookupEntityClass(object.getClass());
+        Class<?> entityClass = coreScope(requestScope).getDictionary().lookupEntityClass(object.getClass());
         FilterExpression filterExpression = getFilterExpression(entityClass, requestScope);
         return filterExpression.accept(new FilterExpressionCheckEvaluationVisitor(object, this, requestScope));
     }
@@ -71,7 +71,8 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
         try {
             String fieldPath = filterPredicate.getFieldPath();
             com.yahoo.elide.core.RequestScope scope = coreScope(requestScope);
-            Predicate fn = filterPredicate.getOperator().contextualize(fieldPath, filterPredicate.getValues(), scope);
+            Predicate<T> fn = filterPredicate.getOperator()
+                    .contextualize(fieldPath, filterPredicate.getValues(), scope);
             return fn.test(object);
         } catch (Exception e) {
             log.error("Failed to apply predicate {}", filterPredicate, e);
