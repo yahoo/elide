@@ -131,11 +131,6 @@ public class EntityBinding {
         inheritedTypes = new ArrayList<>();
         idField = null;
         idType = null;
-<<<<<<< HEAD
-=======
-        attributes = new ArrayList<>();
-        relationships = new ArrayList<>();
->>>>>>> 6dbbc513... Initial sketch
         entityClass = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
         idGenerated = false;

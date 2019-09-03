@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 
+
 import java.util.HashMap;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -39,6 +40,7 @@ public class EntityProjectionMakerTest {
     private EntityDictionary dictionary;
 
     @BeforeAll
+
 
     public void init() {
         dictionary = new EntityDictionary(new HashMap<>());
@@ -81,6 +83,7 @@ public class EntityProjectionMakerTest {
 
         assertEquals(expected, actual);
 
+
     }
 
     @Test
@@ -108,6 +111,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
 
     }
 
@@ -142,6 +146,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
 
     }
 
@@ -180,6 +185,7 @@ public class EntityProjectionMakerTest {
 
         assertEquals(expected, actual);
 
+
     }
 
     @Test
@@ -216,6 +222,7 @@ public class EntityProjectionMakerTest {
 
         assertEquals(expected, actual);
 
+
     }
 
     @Test
@@ -239,6 +246,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
 
     }
 
@@ -279,6 +287,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
 
     }
 
@@ -323,6 +332,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
 
     }
 
@@ -425,6 +435,7 @@ public class EntityProjectionMakerTest {
 
         assertEquals(expected, actual);
 
+
     }
 
     @Test
@@ -486,6 +497,7 @@ public class EntityProjectionMakerTest {
 
         assertEquals(expected, actual);
 
+
     }
 
     @Test
@@ -537,6 +549,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
 
     }
 
@@ -590,6 +603,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
 
     }
 
@@ -791,6 +805,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
 
     }
 }

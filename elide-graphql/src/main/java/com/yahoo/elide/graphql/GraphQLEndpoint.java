@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import graphql.language.Document;
-import graphql.parser.Parser;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
