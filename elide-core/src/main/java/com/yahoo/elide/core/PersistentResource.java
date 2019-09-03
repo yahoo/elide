@@ -1815,6 +1815,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         requestScope.getDirtyResources().add(this);
     }
 
+    public EntityProjection getRelationshipProjection(String relationshipName) {
+        return entityProjection.getRelationship(relationshipName);
+    }
+
     /**
      * Assign provided id if id field is not generated.
      *

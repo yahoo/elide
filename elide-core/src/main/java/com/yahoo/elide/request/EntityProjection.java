@@ -79,7 +79,7 @@ public class EntityProjection {
     /**
      * Recursively merges two EntityProjections.
      * @param toMerge The projection to merge
-     * @return A newly created & merged EntityProjection.
+     * @return A newly created and merged EntityProjection.
      */
     public EntityProjection merge(EntityProjection toMerge) {
         EntityProjectionBuilder merged = withProjection();

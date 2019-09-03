@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.jsonapi;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -14,19 +16,20 @@ import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.HashMap;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EntityProjectionMakerTest {
     private EntityDictionary dictionary;
 
-    @BeforeTest
+    @BeforeAll
     public void init() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
@@ -65,7 +68,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -89,7 +92,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -122,7 +125,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -157,7 +160,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -192,7 +195,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -213,7 +216,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -250,7 +253,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -291,7 +294,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -332,7 +335,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -391,7 +394,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -450,7 +453,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -502,7 +505,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -554,7 +557,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -594,6 +597,6 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.make(path);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 }

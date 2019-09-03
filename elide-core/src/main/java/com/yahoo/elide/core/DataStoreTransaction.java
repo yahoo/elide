@@ -336,7 +336,7 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Whether or not the transaction can sort the provided class.
-     * @param entityClass
+     * @param entityClass The entity class that is being sorted.
      * @return true if sorting is possible
      */
     default boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
@@ -345,7 +345,7 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Whether or not the transaction can paginate the provided class.
-     * @param entityClass
+     * @param entityClass The entity class that is being paged.
      * @return true if pagination is possible
      */
     default boolean supportsPagination(Class<?> entityClass) {

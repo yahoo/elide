@@ -73,11 +73,12 @@ import example.packageshareable.UnshareableWithEntityUnshare;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
+import org.junit.jupiter.api.TestInstance;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -98,10 +99,10 @@ import javax.persistence.OneToOne;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-
 /**
  * Test PersistentResource.
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     private final User goodUser = new User(1);
