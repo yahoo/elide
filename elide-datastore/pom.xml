@@ -136,15 +136,12 @@
                     <configuration>
                         <systemPropertyVariables>
                             <restassured.port>${restassured.port}</restassured.port>
-                            <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
+                            <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
                         </systemPropertyVariables>
-                        <suiteXmlFiles>
-                            <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
-                            <suiteXmlFile>${project.basedir}/../testng-audit.xml</suiteXmlFile>
-                            <suiteXmlFile>${project.basedir}/../testng-fieldleveltest.xml</suiteXmlFile>
-                            <suiteXmlFile>${project.basedir}/../testng-assignedIdLong.xml</suiteXmlFile>
-                            <suiteXmlFile>${project.basedir}/../testng-errorencoding.xml</suiteXmlFile>
-                        </suiteXmlFiles>
+                        <includes>
+                            <include>%regex[.*IT.*]</include>
+                        </includes>
+                        <dependenciesToScan>com.yahoo.elide:elide-integration-tests</dependenciesToScan>
                     </configuration>
                     <executions>
                         <execution>

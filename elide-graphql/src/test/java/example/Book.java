@@ -22,6 +22,11 @@ import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.RequestScope;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Builder;
+import lombok.Singular;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +45,9 @@ import javax.persistence.Table;
 
 /**
  * Model for books.
+ * <p>
+ * <b>CAUTION: DO NOT DECORATE IT WITH {@link Builder}, which hides its no-args constructor. This will result in
+ * runtime error at places such as {@code entityClass.newInstance();}</b>
  */
 @Entity
 @SharePermission
@@ -50,12 +58,14 @@ import javax.persistence.Table;
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
 public class Book {
+
     private long id;
     private String title;
     private String genre;
     private String language;
+    @JsonIgnore
     private long publishDate = 0;
-    private Collection<Author> authors = new ArrayList<>();
+    @Singular private Collection<Author> authors = new ArrayList<>();
     private Publisher publisher = null;
     private Date publicationDate = null;
     private Date lastPurchasedDate = null;

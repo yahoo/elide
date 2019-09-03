@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.graphql;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the Add operation.
@@ -70,7 +71,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     }
 
     // TODO: Reeanble when supporting arguments into computed attributes.
-    @Test(enabled = false)
+    @Disabled
     public void testSetComputedAttribute() throws Exception {
         runComparisonTest("setComputedAttribute");
     }

@@ -6,19 +6,27 @@
 package com.yahoo.elide.tests;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.initialization.IntegrationTest;
 
 import example.Parent;
-
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
  * Simple integration tests to verify session and access.
  */
-public class AccessIT extends AbstractIntegrationTestInitializer {
+public class AccessIT extends IntegrationTest {
+
+    @BeforeAll
+    public void setup() {
+        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+    }
+
     @Test
     public void verifySession() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {

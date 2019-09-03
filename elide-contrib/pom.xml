@@ -94,12 +94,6 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <configuration>
-                        <systemPropertyVariables>
-                            <restassured.port>${restassured.port}</restassured.port>
-                            <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
-                        </systemPropertyVariables>
-                    </configuration>
                     <executions>
                         <execution>
                             <id>integration-test</id>

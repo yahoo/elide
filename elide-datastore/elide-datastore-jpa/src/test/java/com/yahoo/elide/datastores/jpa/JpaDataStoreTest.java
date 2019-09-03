@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.jpa;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -18,8 +19,7 @@ import com.yahoo.elide.core.filter.JPQLPredicateGenerator;
 import com.yahoo.elide.core.filter.Operator;
 
 import com.google.common.collect.Sets;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +69,7 @@ public class JpaDataStoreTest {
         try {
             store.populateEntityDictionary(dictionary);
 
-            Assert.assertNotNull(FilterTranslator.lookupJPQLGenerator(Operator.IN, Test.class, "name"));
+            assertNotNull(FilterTranslator.lookupJPQLGenerator(Operator.IN, Test.class, "name"));
         } finally {
             FilterTranslator.registerJPQLGenerator(Operator.IN, Test.class, "name", null);
         }

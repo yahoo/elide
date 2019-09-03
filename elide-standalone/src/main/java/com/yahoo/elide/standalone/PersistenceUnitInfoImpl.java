@@ -8,20 +8,21 @@ package com.yahoo.elide.standalone;
 
 import lombok.Data;
 
+import java.net.URL;
+import java.util.List;
+import java.util.Properties;
+
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
 import javax.persistence.spi.ClassTransformer;
 import javax.persistence.spi.PersistenceUnitInfo;
 import javax.persistence.spi.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
-import java.net.URL;
-import java.util.List;
-import java.util.Properties;
 
-@Data
 /**
  * Data object which allows programmatic configuration of everything inside a persistence.xml file.
  */
+@Data
 public class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
 
     public PersistenceUnitInfoImpl(String persistenceUnitName, List<String> managedClassNames, Properties properties) {
@@ -51,8 +52,5 @@ public class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
         return false;
     }
 
-    public void addTransformer(ClassTransformer classTransformer) {
-        //NOOP
-    }
-
+    public void addTransformer(ClassTransformer classTransformer) { }
 }

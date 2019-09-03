@@ -39,7 +39,7 @@
     </scm>
 
     <properties>
-        <dataStoreSupplier>com.yahoo.elide.datastores.jpa.JpaDataStoreSupplier</dataStoreSupplier>
+        <dataStoreHarness>com.yahoo.elide.datastores.jpa.JpaDataStoreHarness</dataStoreHarness>
     </properties>
 
     <dependencies>
@@ -109,10 +109,15 @@
             <artifactId>logback-core</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
         </dependency>
         <dependency>
             <groupId>com.jayway.restassured</groupId>

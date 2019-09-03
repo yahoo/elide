@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class SubCollectionPageTotalsQueryBuilderTest {
+
     private EntityDictionary dictionary;
 
     private static final String BOOKS = "books";

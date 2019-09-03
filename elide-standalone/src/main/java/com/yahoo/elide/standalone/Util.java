@@ -6,6 +6,7 @@
 package com.yahoo.elide.standalone;
 
 import com.google.common.reflect.ClassPath;
+
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 
@@ -16,10 +17,12 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.spi.PersistenceUnitInfo;
 
+/**
+ * Util.
+ */
 public class Util {
 
     public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, Properties options) {
@@ -38,7 +41,8 @@ public class Util {
             options.put("hibernate.default_batch_fetch_size", "100");
 
             // Hikari Connection Pool Settings
-            options.putIfAbsent("hibernate.connection.provider_class", "com.zaxxer.hikari.hibernate.HikariConnectionProvider");
+            options.putIfAbsent("hibernate.connection.provider_class",
+                    "com.zaxxer.hikari.hibernate.HikariConnectionProvider");
             options.putIfAbsent("hibernate.hikari.connectionTimeout", "20000");
             options.putIfAbsent("hibernate.hikari.maximumPoolSize", "30");
             options.putIfAbsent("hibernate.hikari.idleTimeout", "30000");
