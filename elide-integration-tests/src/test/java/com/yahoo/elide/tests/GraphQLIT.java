@@ -74,8 +74,6 @@ public class GraphQLIT extends IntegrationTest {
         private String name;
     }
 
-
-
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @Test
