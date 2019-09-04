@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.User;
 
@@ -77,6 +78,8 @@ public class GraphQLEndpoint {
     private static final String MUTATION = "mutation";
     private static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
 
+    private final GraphQLEntityProjectionMaker entityProjectionMaker;
+
     @Inject
     public GraphQLEndpoint(
             @Named("elide") Elide elide,
@@ -95,6 +98,8 @@ public class GraphQLEndpoint {
         module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
         module.addSerializer(GraphQLError.class, errorSerializer);
         elideSettings.getMapper().getObjectMapper().registerModule(module);
+
+        this.entityProjectionMaker = new GraphQLEntityProjectionMaker(elideSettings);
     }
 
     /**
@@ -173,8 +178,8 @@ public class GraphQLEndpoint {
 
             String query = jsonDocument.get(QUERY).asText();
 
-            //TODO
-            Document document = new Parser().parseDocument(query);
+            // TODO: handle multiple projection in one graphQL query
+            requestScope.setEntityProjection(entityProjectionMaker.make(query).iterator().next());
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.
