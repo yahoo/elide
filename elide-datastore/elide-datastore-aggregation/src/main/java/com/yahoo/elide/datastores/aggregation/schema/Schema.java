@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.schema;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.Column;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
@@ -142,6 +143,14 @@ public class Schema {
                 || getEntityDictionary().attributeOrRelationAnnotationExists(
                 getEntityClass(), fieldName, MetricComputation.class
         );
+    }
+
+    /**
+     * An alias to assign this schema.
+     * @return an alias that can be used in SQL.
+     */
+    public String getAlias() {
+        return FilterPredicate.getTypeAlias(entityClass);
     }
 
     /**

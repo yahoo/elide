@@ -11,7 +11,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -243,7 +243,7 @@ public class SQLQueryEngine implements QueryEngine {
     private String translateFilterExpression(SQLSchema schema,
                                              FilterExpression expression,
                                              Function<FilterPredicate, String> columnGenerator) {
-        HQLFilterOperation filterVisitor = new HQLFilterOperation();
+        FilterTranslator filterVisitor = new FilterTranslator();
 
         return filterVisitor.apply(expression, columnGenerator);
     }

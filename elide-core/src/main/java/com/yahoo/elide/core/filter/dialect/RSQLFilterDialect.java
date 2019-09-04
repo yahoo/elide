@@ -161,26 +161,6 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         return expressionByType;
     }
 
-
-    /**
-     * Parses a RSQL string into an Elide FilterExpression.
-     * @param expressionText the RSQL string
-     * @param entityType The type associated with the predicate
-     * @return An elide FilterExpression abstract syntax tree
-     * @throws ParseException
-     */
-    public FilterExpression parseFilterExpression(String expressionText,
-                                                  Class<?> entityType,
-                                                  boolean allowNestedToManyAssociations) throws ParseException {
-        try {
-            Node ast = parser.parse(expressionText);
-            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(allowNestedToManyAssociations);
-            return ast.accept(visitor, entityType);
-        } catch (RSQLParserException e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
     /**
      * Parses a RSQL string into an Elide FilterExpression.
      * @param expressionText the RSQL string
