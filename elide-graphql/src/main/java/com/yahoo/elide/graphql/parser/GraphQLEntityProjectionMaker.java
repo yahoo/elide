@@ -1,12 +1,14 @@
 package com.yahoo.elide.graphql.parser;
 
+import static com.yahoo.elide.graphql.containers.KeyWord.EDGES_KEYWORD;
+import static com.yahoo.elide.graphql.containers.KeyWord.NODE_KEYWORD;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.graphql.Entity;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -19,7 +21,6 @@ import graphql.language.FragmentSpread;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
-import graphql.language.Value;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
@@ -43,11 +44,10 @@ public class GraphQLEntityProjectionMaker {
     /**
      * Constructor.
      *
-     * @param entityDictionary entityDictionary of current Elide instance
      * @param elideSettings setting of current Elide instance
      */
-    public GraphQLEntityProjectionMaker(EntityDictionary entityDictionary, ElideSettings elideSettings) {
-        this.entityDictionary = entityDictionary;
+    public GraphQLEntityProjectionMaker(ElideSettings elideSettings) {
+        this.entityDictionary = elideSettings.getDictionary();
         this.elideSettings = elideSettings;
     }
 
@@ -60,9 +60,10 @@ public class GraphQLEntityProjectionMaker {
      * @return all projections in the query
      */
     public Collection<EntityProjection> make(String query) {
+        fragmentMap.clear();
+
         Parser parser = new Parser();
         Document parsedDocument = parser.parseDocument(query);
-        fragmentMap.clear();
 
         // resolve fragment definitions
         List<FragmentDefinition> fragmentDefinitions = parsedDocument.getDefinitions().stream()
@@ -157,7 +158,7 @@ public class GraphQLEntityProjectionMaker {
             throw new InvalidEntityBodyException("Edges selection must be a graphQL field.");
         }
 
-        if (!"edges".equals(((Field) edgesSelection).getName())) {
+        if (!EDGES_KEYWORD.equals(((Field) edgesSelection).getName())) {
             throw new InvalidEntityBodyException("GraphQL field selection must have 'edges'.");
         }
 
@@ -181,7 +182,7 @@ public class GraphQLEntityProjectionMaker {
             throw new InvalidEntityBodyException("Node selection must be a graphQL field.");
         }
 
-        if (!"node".equals(((Field) nodeSelection).getName())) {
+        if (!NODE_KEYWORD.equals(((Field) nodeSelection).getName())) {
             throw new InvalidEntityBodyException("GraphQL 'edges' field selection must have 'node'.");
         }
 

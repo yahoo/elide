@@ -29,14 +29,11 @@ public class ConnectionContainer implements GraphQLContainer {
     // Refers to the type of persistentResources
     @Getter private final String typeName;
 
-    public static final String EDGES_KEYWORD = "edges";
-    public static final String PAGE_INFO_KEYWORD = "pageInfo";
-
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         String fieldName = context.field.getName();
 
-        switch (fieldName) {
+        switch (KeyWord.byName(fieldName)) {
             case EDGES_KEYWORD:
                 return getPersistentResources().stream()
                         .map(EdgesContainer::new)

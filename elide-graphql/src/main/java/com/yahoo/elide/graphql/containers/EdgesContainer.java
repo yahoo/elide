@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.graphql.containers;
 
+import static com.yahoo.elide.graphql.containers.KeyWord.NODE_KEYWORD;
+
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
@@ -20,8 +22,6 @@ import javax.ws.rs.BadRequestException;
 @AllArgsConstructor
 public class EdgesContainer implements PersistentResourceContainer, GraphQLContainer {
     @Getter private final PersistentResource persistentResource;
-
-    private static final String NODE_KEYWORD = "node";
 
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {

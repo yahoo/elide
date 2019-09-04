@@ -11,11 +11,9 @@ import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 import lombok.Getter;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.BadRequestException;
 
 /**
@@ -23,12 +21,6 @@ import javax.ws.rs.BadRequestException;
  */
 public class PageInfoContainer implements GraphQLContainer {
     @Getter private final ConnectionContainer connectionContainer;
-
-    // Page info keywords
-    private static final String PAGE_INFO_HAS_NEXT_PAGE_KEYWORD = "hasNextPage";
-    private static final String PAGE_INFO_START_CURSOR_KEYWORD = "startCursor";
-    private static final String PAGE_INFO_END_CURSOR_KEYWORD = "endCursor";
-    private static final String PAGE_INFO_TOTAL_RECORDS_KEYWORD = "totalRecords";
 
     public PageInfoContainer(ConnectionContainer connectionContainer) {
         this.connectionContainer = connectionContainer;
@@ -46,7 +38,7 @@ public class PageInfoContainer implements GraphQLContainer {
                 .collect(Collectors.toList());
 
         return pagination.map(pageValue -> {
-            switch (fieldName) {
+            switch (KeyWord.byName(fieldName)) {
                 case PAGE_INFO_HAS_NEXT_PAGE_KEYWORD: {
                     int numResults = ids.size();
                     int nextOffset = numResults + pageValue.getOffset();
