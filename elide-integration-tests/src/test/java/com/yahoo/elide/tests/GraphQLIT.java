@@ -28,21 +28,19 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ValidatableResponse;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -76,8 +74,9 @@ public class GraphQLIT extends IntegrationTest {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
-    @Test
+    @BeforeEach
     public void createBookAndAuthor() throws IOException {
+        // before each test, create a new book and a new author
         Book book = new Book();
         book.setId(1);
         book.setTitle("1984");
@@ -138,7 +137,8 @@ public class GraphQLIT extends IntegrationTest {
     }
 
     @Test
-    public void createNewBooksAndAuthor() throws IOException {
+    public void createWithVariables() throws IOException {
+        // create a second book using variable
         Book book = new Book();
         book.setId(2);
         book.setTitle("$bookName");
@@ -209,94 +209,10 @@ public class GraphQLIT extends IntegrationTest {
 
     @Test
     public void fetchCollection() throws IOException {
-        Book book = new Book();
-        book.setId(1);
-        book.setTitle("1984");
-
-        Author author = new Author();
-        author.setId(1L);
-        author.setName("George Orwell");
-
-        String graphQLQuery = document(
-                mutation(
-                        selection(
-                                field(
-                                        "book",
-                                        arguments(
-                                                argument("op", "UPSERT"),
-                                                argument("data", book)
-                                        ),
-                                        selections(
-                                                field("id"),
-                                                field("title"),
-                                                field(
-                                                        "authors",
-                                                        arguments(
-                                                                argument("op", "UPSERT"),
-                                                                argument("data", author)
-                                                        ),
-                                                        selections(
-                                                                field("id"),
-                                                                field("name")
-                                                        )
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        create(graphQLQuery, null);
-
-        book = new Book();
-        book.setId(2);
-        book.setTitle("$bookName");
-
-        author = new Author();
-        author.setId(2L);
-        author.setName("$authorName");
+        // create a second book
+        createWithVariables();
 
         String graphQLRequest = document(
-                mutation(
-                        "myMutation",
-                        variableDefinitions(
-                                variableDefinition("bookName", "String"),
-                                variableDefinition("authorName", "String")
-                        ),
-                        selection(
-                                field(
-                                        "book",
-                                        arguments(
-                                                argument("op", "UPSERT"),
-                                                argument("data", book, UNQUOTED_VALUE)
-                                        ),
-                                        selections(
-                                                field("id"),
-                                                field("title"),
-                                                field(
-                                                        "authors",
-                                                        arguments(
-                                                                argument("op", "UPSERT"),
-                                                                argument("data", author, UNQUOTED_VALUE)
-                                                        ),
-                                                        selections(
-                                                                field("id"),
-                                                                field("name")
-                                                        )
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("bookName", "Grapes of Wrath");
-        variables.put("authorName", "John Setinbeck");
-
-        create(graphQLRequest, variables);
-
-        graphQLRequest = document(
                 selection(
                         field(
                                 "book",
@@ -350,30 +266,6 @@ public class GraphQLIT extends IntegrationTest {
 
     @Test
     public void fetchRootSingle() throws IOException {
-        Book book = new Book();
-        book.setId(1);
-        book.setTitle("1984");
-
-        String graphQLQuery = document(
-                mutation(
-                        selection(
-                                field(
-                                        "book",
-                                        arguments(
-                                                argument("op", "UPSERT"),
-                                                argument("data", book)
-                                        ),
-                                        selections(
-                                                field("id"),
-                                                field("title")
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        create(graphQLQuery, null);
-
         String graphQLRequest = document(
                 selection(
                         field(
@@ -408,23 +300,24 @@ public class GraphQLIT extends IntegrationTest {
     }
 
     @Test
-    @Disabled
     public void runUpdateAndFetchDifferentTransactionsBatch() throws IOException {
         Book book = new Book();
-        book.setId(999);
+        book.setId(2);
         book.setTitle("my book created in batch!");
 
         String graphQLRequest1 = document(
-                selection(
-                        field(
-                                "book",
-                                arguments(
-                                        argument("op", "UPSERT"),
-                                        argument("data", book)
-                                ),
-                                selections(
-                                        field("id"),
-                                        field("title")
+                mutation(
+                        selection(
+                                field(
+                                        "book",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", book)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("title")
+                                        )
                                 )
                         )
                 )
@@ -434,7 +327,7 @@ public class GraphQLIT extends IntegrationTest {
                 selection(
                         field(
                                 "book",
-                                //argument(argument("ids", "\"0\"")),
+                                // argument(argument("ids", "\"2\"")),
                                 selections(
                                         field("id"),
                                         field("title")
@@ -448,16 +341,20 @@ public class GraphQLIT extends IntegrationTest {
                         field(
                                 "book",
                                 selections(
-                                        field("id", "0"),
+                                        field("id", "2"),
                                         field("title", "my book created in batch!")
                                 )
                         )
                 ),
-                selection(
+                selections(
                         field(
                                 "book",
                                 selections(
-                                        field("id", "0"),
+                                        field("id", "1"),
+                                        field("title", "1984")
+                                ),
+                                selections(
+                                        field("id", "2"),
                                         field("title", "my book created in batch!")
                                 )
                         )
@@ -473,44 +370,6 @@ public class GraphQLIT extends IntegrationTest {
     @Test
     public void runMultipleRequestsSameTransaction() throws IOException {
         // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
-        Book book = new Book();
-        book.setId(1);
-        book.setTitle("1984");
-
-        Author author = new Author();
-        author.setId(1L);
-        author.setName("George Orwell");
-
-        String graphQLQuery = document(
-                mutation(
-                        selection(
-                                field(
-                                        "book",
-                                        arguments(
-                                                argument("op", "UPSERT"),
-                                                argument("data", book)
-                                        ),
-                                        selections(
-                                                field("id"),
-                                                field("title"),
-                                                field(
-                                                        "authors",
-                                                        arguments(
-                                                                argument("op", "UPSERT"),
-                                                                argument("data", author)
-                                                        ),
-                                                        selections(
-                                                                field("id"),
-                                                                field("name")
-                                                        )
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        create(graphQLQuery, null);
 
         String graphQLRequest = document(
                 selections(
@@ -574,12 +433,11 @@ public class GraphQLIT extends IntegrationTest {
     }
 
     @Test
-    @Disabled
     public void runMultipleRequestsSameTransactionMutation() throws IOException {
         // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
         // and results are consistent across a mutation.
         Author author = new Author();
-        author.setId(1L);
+        author.setId(2L);
         author.setName("Stephen King");
 
         String graphQLRequest = document(
@@ -590,7 +448,7 @@ public class GraphQLIT extends IntegrationTest {
                                         argument(
                                                 argument(
                                                         "ids",
-                                                        Arrays.asList("1")
+                                                        Collections.singletonList("1")
                                                 )
                                         ),
                                         selections(
@@ -630,7 +488,7 @@ public class GraphQLIT extends IntegrationTest {
                                         field(
                                                 "authors",
                                                 selections(
-                                                        field("id", "6"),
+                                                        field("id", "2"),
                                                         field("name", "Stephen King")
                                                 )
                                         )
@@ -639,7 +497,11 @@ public class GraphQLIT extends IntegrationTest {
                         field(
                                 "author",
                                 selections(
-                                        field("id", "4"),
+                                        field("id", "1"),
+                                        field("name", "George Orwell")
+                                ),
+                                selections(
+                                        field("id", "2"),
                                         field("name", "Stephen King")
                                 )
                         )
@@ -651,45 +513,6 @@ public class GraphQLIT extends IntegrationTest {
 
     @Test
     public void runMultipleRequestsSameTransactionWithAliases() throws IOException {
-        Book book = new Book();
-        book.setId(1);
-        book.setTitle("1984");
-
-        Author author = new Author();
-        author.setId(1L);
-        author.setName("George Orwell");
-
-        String graphQLQuery = document(
-                mutation(
-                        selection(
-                                field(
-                                        "book",
-                                        arguments(
-                                                argument("op", "UPSERT"),
-                                                argument("data", book)
-                                        ),
-                                        selections(
-                                                field("id"),
-                                                field("title"),
-                                                field(
-                                                        "authors",
-                                                        arguments(
-                                                                argument("op", "UPSERT"),
-                                                                argument("data", author)
-                                                        ),
-                                                        selections(
-                                                                field("id"),
-                                                                field("name")
-                                                        )
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        create(graphQLQuery, null);
-
         // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
         String graphQLRequest = document(
                 selections(
@@ -761,14 +584,6 @@ public class GraphQLIT extends IntegrationTest {
     }
 
     private ValidatableResponse runQuery(String query) {
-        ValidatableResponse response = given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(query)
-                .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-
         return given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
