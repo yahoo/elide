@@ -1411,4 +1411,24 @@ public class EntityDictionary {
             bindEntity(entityClass);
         }
     }
+
+    /**
+     * Add a collection of argument to the attributes
+     * @param cls The entity
+     * @param attributeName attribute name to which argument has to be added
+     * @param arguments Map object that contains name and value of each argument.
+     */
+    public void addArgumentsToAttributes(Class<?> cls, String attributeName, Map<String, Object> arguments) {
+        getEntityBinding(cls).addArgumentsToAttribute(attributeName, arguments);
+    }
+
+    /**
+     * Returns the Collection of all attributes of an argument.
+     * @param cls The entity
+     * @param attributeName Name of the argument for ehich arguments are to be retrieved.
+     * @return A Map object that contains name and value of each argument for the given attribute.
+     */
+    public Map<String, Object> getAttributeArguments(Class<?> cls, String attributeName) {
+        return entityBindings.getOrDefault(cls, EMPTY_BINDING).getAttributeArguments(attributeName);
+    }
 }

@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -116,10 +117,12 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<AccessibleObject, Map<String, Object>> attributeArgumets = new ConcurrentHashMap<>();
 
     public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
+    public static final Map<String, Object> EMPTY_ATTRIBUTES_ARGS = new ConcurrentHashMap<>();
     private static final String ALL_FIELDS = "*";
 
     /* empty binding constructor */
@@ -585,5 +588,35 @@ public class EntityBinding {
         }
 
         return results;
+    }
+
+    /**
+     * Add a collection of arguments to the attributes of this Entity.
+     * @param attribute attribute name to which argument has to be added
+     * @param arguments Map object that contains name and value of each argument.
+     */
+    public void addArgumentsToAttribute(String attribute, Map<String, Object> arguments) {
+        AccessibleObject fieldObject = fieldsToValues.get(attribute);
+        if (fieldObject != null && arguments != null) {
+            Map<String, Object> existingArgs = attributeArgumets.get(fieldObject);
+            if (existingArgs != null) {
+                //Replace any argument names with new value
+                existingArgs.putAll(arguments);
+            } else {
+                attributeArgumets.put(fieldObject, arguments);
+            }
+        }
+    }
+
+    /**
+     * Returns the Collection of all attributes of an argument.
+     * @param attribute Name of the argument for ehich arguments are to be retrieved.
+     * @return A Map object that contains name and value of each argument for the given attribute.
+     */
+    public Map<String, Object> getAttributeArguments(String attribute) {
+        AccessibleObject fieldObject = fieldsToValues.get(attribute);
+        return (fieldObject != null)
+                ? attributeArgumets.getOrDefault(fieldObject, EMPTY_ATTRIBUTES_ARGS)
+                : EMPTY_ATTRIBUTES_ARGS;
     }
 }

@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.sort.Sorting;
 
 import example.Author;
 import example.Book;
@@ -31,6 +32,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -187,6 +189,26 @@ public class ModelBuilderTest {
 
         GraphQLList booksInputType = (GraphQLList) authorInputType.getField(BOOKS).getType();
         assertTrue(booksInputType.getWrappedType().equals(bookInputType));
+    }
+
+
+    @Test
+    public void checkAttributeArguments() {
+        HashMap<String, Object> arguments = new HashMap();
+        arguments.put(SORT, Sorting.SortOrder.asc);
+        arguments.put(TYPE, "epoc");
+        dictionary.addArgumentsToAttributes(Book.class, PUBLISH_DATE, arguments);
+
+        DataFetcher fetcher = mock(DataFetcher.class);
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(BOOK), null);
+        Assert.assertEquals(bookType.getFieldDefinition(PUBLISH_DATE).getArguments().size(), 2);
+        Assert.assertTrue(bookType.getFieldDefinition(PUBLISH_DATE).getArgument(SORT).getType() instanceof GraphQLEnumType);
+        Assert.assertTrue(bookType.getFieldDefinition(PUBLISH_DATE).getArgument(TYPE).getType().equals(Scalars.GraphQLString));
+
     }
 
     private GraphQLObjectType getConnectedType(GraphQLObjectType root, String connectionName) {

@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.parsers.JsonApiParser;
+import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
@@ -307,6 +308,15 @@ public class EntityProjectionMaker
                 .map(attributeName -> Attribute.builder()
                     .name(attributeName)
                     .type(dictionary.getType(entityClass, attributeName))
+                    .arguments(
+                            dictionary.getAttributeArguments(entityClass, attributeName)
+                                    .entrySet()
+                                    .stream()
+                                    .map(argumentEntry -> Argument.builder()
+                                            .name(argumentEntry.getKey())
+                                            .value(argumentEntry.getValue())
+                                            .build())
+                                    .collect(Collectors.toSet()))
                     .build())
                 .collect(Collectors.toSet());
     }
