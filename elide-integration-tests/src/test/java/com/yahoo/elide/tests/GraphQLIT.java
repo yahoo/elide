@@ -327,7 +327,7 @@ public class GraphQLIT extends IntegrationTest {
                 selection(
                         field(
                                 "book",
-                                // argument(argument("ids", "\"2\"")),
+                                argument(argument("ids", "\"2\"")),
                                 selections(
                                         field("id"),
                                         field("title")
@@ -349,10 +349,6 @@ public class GraphQLIT extends IntegrationTest {
                 selections(
                         field(
                                 "book",
-                                selections(
-                                        field("id", "1"),
-                                        field("title", "1984")
-                                ),
                                 selections(
                                         field("id", "2"),
                                         field("title", "my book created in batch!")
