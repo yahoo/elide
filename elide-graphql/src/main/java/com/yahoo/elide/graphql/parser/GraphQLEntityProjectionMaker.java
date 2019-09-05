@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GraphQLEntityProjectionMaker {
     private final EntityDictionary entityDictionary;
-    private final ElideSettings elideSettings;
 
     private final Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
 
@@ -48,7 +47,6 @@ public class GraphQLEntityProjectionMaker {
      */
     public GraphQLEntityProjectionMaker(ElideSettings elideSettings) {
         this.entityDictionary = elideSettings.getDictionary();
-        this.elideSettings = elideSettings;
     }
 
     private final List<EntityProjection> rootProjections = new ArrayList<>();
@@ -77,7 +75,7 @@ public class GraphQLEntityProjectionMaker {
             if (definition instanceof OperationDefinition) {
                 // Operations would be converted into EntityProjection tree
                 OperationDefinition operationDefinition = (OperationDefinition) definition;
-                if (operationDefinition.getOperation() == OperationDefinition.Operation.MUTATION) {
+                if (operationDefinition.getOperation() == OperationDefinition.Operation.SUBSCRIPTION) {
                     // TODO: support SUBSCRIPTION
                     return;
                 }
@@ -240,10 +238,7 @@ public class GraphQLEntityProjectionMaker {
         // this field would either be a relationship field or an attribute field
         if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
             // handle the case of a relationship field
-            final Class<?> relationshipType =
-                    entityDictionary.getParameterizedType(parentType, fieldName) == null
-                            ? entityDictionary.getType(parentType, fieldName)
-                            : entityDictionary.getParameterizedType(parentType, fieldName);
+            final Class<?> relationshipType = entityDictionary.getParameterizedType(parentType, fieldName);
 
             // build new entity projection with only entity type and entity dictionary
             EntityProjection relationshipProjection = createProjection(relationshipType, field);
