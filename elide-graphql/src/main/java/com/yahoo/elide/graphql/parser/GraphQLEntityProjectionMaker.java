@@ -3,12 +3,9 @@ package com.yahoo.elide.graphql.parser;
 import static com.yahoo.elide.graphql.containers.KeyWord.EDGES_KEYWORD;
 import static com.yahoo.elide.graphql.containers.KeyWord.NODE_KEYWORD;
 
-import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -21,11 +18,13 @@ import graphql.language.FragmentSpread;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
+import graphql.language.VariableDefinition;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,17 +38,17 @@ public class GraphQLEntityProjectionMaker {
     private final EntityDictionary entityDictionary;
 
     private final Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
+    private final Map<String, VariableDefinition> variableMap = new HashMap<>();
+    private final List<EntityProjection> rootProjections = new ArrayList<>();
 
     /**
      * Constructor.
      *
-     * @param elideSettings setting of current Elide instance
+     * @param entityDictionary entity dictionary of current Elide instance
      */
-    public GraphQLEntityProjectionMaker(ElideSettings elideSettings) {
-        this.entityDictionary = elideSettings.getDictionary();
+    public GraphQLEntityProjectionMaker(EntityDictionary entityDictionary) {
+        this.entityDictionary = entityDictionary;
     }
-
-    private final List<EntityProjection> rootProjections = new ArrayList<>();
 
     /**
      * Convert a GraphQL query string into a collection of Elide {@link EntityProjection}s.
@@ -59,6 +58,7 @@ public class GraphQLEntityProjectionMaker {
      */
     public Collection<EntityProjection> make(String query) {
         fragmentMap.clear();
+        variableMap.clear();
 
         Parser parser = new Parser();
         Document parsedDocument = parser.parseDocument(query);
@@ -69,6 +69,12 @@ public class GraphQLEntityProjectionMaker {
                 .map(definition -> (FragmentDefinition) definition)
                 .collect(Collectors.toList());
         fragmentMap.putAll(FragmentResolver.resolve(fragmentDefinitions));
+
+        // resolve variable definitions
+        parsedDocument.getDefinitions().stream()
+                .filter((definition -> definition instanceof VariableDefinition))
+                .map(definition -> (VariableDefinition) definition)
+                .forEach(definition -> variableMap.put(definition.getName(), definition));
 
         // resolve operation definitions
         parsedDocument.getDefinitions().forEach(definition -> {
@@ -129,7 +135,8 @@ public class GraphQLEntityProjectionMaker {
                 .type(entityType)
                 .build();
 
-        entityField.getArguments().forEach(argument -> addArgument(argument, entityProjection));
+        // initialize the attribute container
+        entityProjection.setAttributes(new HashSet<>());
 
         SelectionSet edges = entityField.getSelectionSet();
         SelectionSet node = resolveEdges(edges, entityProjection);
@@ -261,67 +268,31 @@ public class GraphQLEntityProjectionMaker {
                 // update mutated attributes
                 parentProjection.setAttributes(attributes);
             }
+
+            // arguments for field should be added by projection make, elide-core would handle arguments on entities,
+            // including relationship entities
+            field.getArguments().forEach(
+                    graphQLArgument ->
+                            parentProjection.getAttributeByName(fieldName).getArguments().add(
+                                    com.yahoo.elide.request.Argument.builder()
+                                            .name(graphQLArgument.getName())
+                                            .value(graphQLArgument.getValue())
+                                            .build()));
         } else {
             throw new InvalidEntityBodyException(
                     String.format("Unknown attribute field {%s.%s}.", parentProjection.getName(), fieldName));
         }
-
-        // The attribute field arguments should be added to the entity projection that has these fields
-        field.getArguments().forEach(argument -> addArgument(argument, parentProjection));
     }
 
     /**
-     * Construct Elide {@link Pagination}, {@link Sorting}, {@link Attribute} from GraphQL {@link Argument} and
-     * add it to the {@link EntityProjection}.
+     * Add argument for a field/relationship of an entity
      *
-     * @param argument graphQL argument
-     * @param entityProjection projection that has this argument
+     * @param argument argument which a field/relationship name
+     * @param entityProjection projection for the target entity
      */
-    private void addArgument(Argument argument, EntityProjection entityProjection) {
-        String argumentName = argument.getName();
-
-        if (isPaginationArgument(argumentName)) {
-            // NOOP
-        } else if (isSortingArgument(argumentName)) {
-            // NOOP
-        } else {
-            addAttributeArgument(argument, entityProjection);
-        }
-    }
-
-    /**
-     * Returns whether or not a GraphQL argument name corresponding to a pagination argument.
-     *
-     * @param argumentName Name key of the GraphQL argument
-     *
-     * @return {@code true} if the name equals to {@link ModelBuilder#ARGUMENT_FIRST} or
-     * {@link ModelBuilder#ARGUMENT_AFTER}
-     */
-    private static boolean isPaginationArgument(String argumentName) {
-        return ModelBuilder.ARGUMENT_FIRST.equals(argumentName) || ModelBuilder.ARGUMENT_AFTER.equals(argumentName);
-    }
-
-
-    /**
-     * Returns whether or not a GraphQL argument name corresponding to a sorting argument.
-     *
-     * @param argumentName Name key of the GraphQL argument
-     *
-     * @return {@code true} if the name equals to {@link ModelBuilder#ARGUMENT_SORT}
-     */
-    private static boolean isSortingArgument(String argumentName) {
-        return ModelBuilder.ARGUMENT_SORT.equals(argumentName);
-    }
-
     private void addAttributeArgument(Argument argument, EntityProjection entityProjection) {
         String argumentName = argument.getName();
         Class<?> entityType = entityProjection.getType();
-
-        if (!entityDictionary.isValidField(entityType, argumentName)) {
-            // invalid argument name
-            throw new IllegalStateException(
-                    String.format("Unknown argument field {%s.%s}.", entityType, argument));
-        }
 
         Attribute argumentAttribute = entityProjection.getAttributeByName(argumentName);
         com.yahoo.elide.request.Argument elideArgument = com.yahoo.elide.request.Argument.builder()

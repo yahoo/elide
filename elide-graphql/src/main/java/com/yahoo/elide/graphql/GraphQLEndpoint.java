@@ -99,7 +99,7 @@ public class GraphQLEndpoint {
         module.addSerializer(GraphQLError.class, errorSerializer);
         elideSettings.getMapper().getObjectMapper().registerModule(module);
 
-        this.entityProjectionMaker = new GraphQLEntityProjectionMaker(elideSettings);
+        this.entityProjectionMaker = new GraphQLEntityProjectionMaker(elideSettings.getDictionary());
     }
 
     /**
