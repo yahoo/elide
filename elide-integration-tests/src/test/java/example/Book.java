@@ -13,8 +13,6 @@ import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import org.hibernate.annotations.Formula;
 
 import java.util.ArrayList;
@@ -47,7 +45,6 @@ public class Book extends BaseId {
     private String title;
     private String genre;
     private String language;
-    @JsonIgnore
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
     private Collection<Chapter> chapters = new ArrayList<>();

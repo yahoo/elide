@@ -56,11 +56,14 @@ public class Document implements Serializable {
      * @return a string representation of a GraphQL response
      */
     public String toResponse() {
-        return String.format(
-                "{\"data\":%s}",
-                getDefinitions().stream()
-                        .map(Definition::toResponse)
-                        .collect(Collectors.joining(" "))
-        );
+        String response = getDefinitions().stream()
+                .map(definition -> String.format("{\"data\":%s}", definition.toResponse()))
+                .collect(Collectors.joining(", "));
+
+        if (getDefinitions().size() != 1) {
+            return String.format("[%s]", response);
+        }
+
+        return response;
     }
 }
