@@ -78,7 +78,7 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
                 + "} "
                 + "} "
                 + "}";
-        assertQueryFails(graphQLRequest);
+        assertParsingFails(graphQLRequest);
     }
 
 
