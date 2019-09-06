@@ -9,6 +9,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -26,21 +27,25 @@ public abstract class Column {
     protected final String description;
     @Getter
     protected final Class<?> dataType;
+    @Getter
+    protected final Schema schema;
 
     /**
      * Constructor.
      *
+     * @param schema The schema this {@link Column} belongs to.
      * @param field  The entity field or relation that this {@link Column} represents
      * @param annotation  Provides static meta data about this {@link Column}
      * @param fieldType  The Java type for this entity field or relation
      *
      * @throws NullPointerException if {@code field} or {@code fieldType} is {@code null}
      */
-    public Column(String field, Meta annotation, Class<?> fieldType) {
+    public Column(Schema schema, String field, Meta annotation, Class<?> fieldType) {
         this.name = Objects.requireNonNull(field, "field");
         this.longName = annotation == null || annotation.longName().isEmpty() ? field : annotation.longName();
         this.description = annotation == null || annotation.description().isEmpty() ? field : annotation.description();
         this.dataType = Objects.requireNonNull(fieldType, "fieldType");
+        this.schema = schema;
     }
 
     @Override

@@ -1416,7 +1416,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void setValue(String fieldName, Object value) {
         final Object original = getValueUnchecked(fieldName);
+
         dictionary.setValue(obj, fieldName, value);
+
         triggerUpdate(fieldName, original, value);
     }
 
@@ -1428,8 +1430,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return the value
      */
     public static Object getValue(Object target, String fieldName, RequestScope requestScope) {
-        EntityDictionary dictionary = requestScope.getDictionary();
-        return dictionary.getValue(target, fieldName, requestScope);
+        return requestScope.getDictionary().getValue(target, fieldName, requestScope);
     }
 
     /**

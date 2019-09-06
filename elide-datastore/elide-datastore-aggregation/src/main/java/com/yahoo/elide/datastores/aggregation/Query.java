@@ -11,13 +11,19 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Singular;
 
-import java.util.Optional;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A {@link Query} is an object representing a query executed by {@link QueryEngine}.
@@ -25,14 +31,31 @@ import java.util.Set;
 @Data
 @Builder
 public class Query {
+    private final Schema schema;
 
-    private final Class<?> entityClass;
-    private final Set<Metric> metrics;
+    @Singular
+    private final Map<Metric, Class<? extends Aggregation>> metrics;
+
+    @Singular
     private final Set<Dimension> groupDimensions;
+
+    @Singular
     private final Set<TimeDimension> timeDimensions;
-    private final Optional<FilterExpression> whereFilter;
-    private final Optional<FilterExpression> havingFilter;
-    private final Optional<Sorting> sorting;
-    private final Optional<Pagination> pagination;
+
+    private final FilterExpression whereFilter;
+    private final FilterExpression havingFilter;
+    private final Sorting sorting;
+    private final Pagination pagination;
     private final RequestScope scope;
+
+    /**
+     * Returns all the dimensions regardless of type.
+     * @return All the dimensions.
+     */
+    public Set<Dimension> getDimensions() {
+        return Stream.concat(getGroupDimensions().stream(), getTimeDimensions().stream())
+                .collect(
+                        Collectors.toCollection(LinkedHashSet::new)
+                );
+    }
 }

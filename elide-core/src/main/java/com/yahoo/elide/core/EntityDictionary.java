@@ -1360,18 +1360,6 @@ public class EntityDictionary {
         return result;
     }
 
-    private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
-        for (Map.Entry<?, ?> entry : values.entrySet()) {
-            Object key = entry.getKey();
-            Object value = entry.getValue();
-            if ((key != null && !keyType.isAssignableFrom(key.getClass()))
-                    || (value != null && !valueType.isAssignableFrom(value.getClass()))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     /**
      * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
      *
@@ -1400,6 +1388,18 @@ public class EntityDictionary {
      */
     public boolean isValidField(Class<?> cls, String fieldName) {
         return getAllFields(cls).contains(fieldName);
+    }
+
+    private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if ((key != null && !keyType.isAssignableFrom(key.getClass()))
+                    || (value != null && !valueType.isAssignableFrom(value.getClass()))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

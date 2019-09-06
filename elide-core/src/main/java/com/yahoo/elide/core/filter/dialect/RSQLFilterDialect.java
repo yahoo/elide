@@ -161,7 +161,6 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         return expressionByType;
     }
 
-
     /**
      * Parses a RSQL string into an Elide FilterExpression.
      * @param expressionText the RSQL string

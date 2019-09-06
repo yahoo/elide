@@ -24,7 +24,7 @@ import java.util.TimeZone;
 public @interface Temporal {
 
     /**
-     * The finest unit into which temporal column can be divided
+     * The finest unit into which temporal column can be divided.
      *
      * @return The finest supported time grain of a persistent storage column
      */

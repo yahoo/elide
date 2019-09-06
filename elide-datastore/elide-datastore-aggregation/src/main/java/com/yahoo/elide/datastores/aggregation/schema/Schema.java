@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.schema;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.Column;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
@@ -145,6 +146,14 @@ public class Schema {
     }
 
     /**
+     * An alias to assign this schema.
+     * @return an alias that can be used in SQL.
+     */
+    public String getAlias() {
+        return FilterPredicate.getTypeAlias(entityClass);
+    }
+
+    /**
      * Constructs a new {@link Metric} instance.
      *
      * @param metricField  The entity field of the metric being constructed
@@ -174,6 +183,7 @@ public class Schema {
                 );
 
         return new AggregatedMetric(
+                this,
                 metricField,
                 metaData,
                 fieldType,
@@ -208,6 +218,7 @@ public class Schema {
         if (entityDictionary.isRelation(cls, dimensionField)) {
             // relationship field
             return new EntityDimension(
+                    this,
                     dimensionField,
                     metaData,
                     fieldType,
@@ -217,6 +228,7 @@ public class Schema {
         } else if (!getEntityDictionary().attributeOrRelationAnnotationExists(cls, dimensionField, Temporal.class)) {
             // regular field
             return new DegenerateDimension(
+                    this,
                     dimensionField,
                     metaData,
                     fieldType,
@@ -233,6 +245,7 @@ public class Schema {
             );
 
             return new TimeDimension(
+                    this,
                     dimensionField,
                     metaData,
                     fieldType,

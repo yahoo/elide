@@ -11,17 +11,21 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.dimension.EntityDimensionTest;
+import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.metric.Max;
 import com.yahoo.elide.datastores.aggregation.metric.Min;
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -29,6 +33,9 @@ import javax.persistence.TemporalType;
 @Entity
 @Include(rootLevel = true)
 @Cardinality(size = CardinalitySize.LARGE)
+@EqualsAndHashCode
+@ToString
+@FromTable(name = "playerStats")
 public class PlayerStats {
 
     /**
@@ -55,6 +62,11 @@ public class PlayerStats {
      * A table dimension.
      */
     private Country country;
+
+    /**
+     * A table dimension.
+     */
+    private Player player;
 
     private Date recordedDate;
 
@@ -97,6 +109,7 @@ public class PlayerStats {
     }
 
     @OneToOne
+    @JoinColumn(name = "country_id")
     public Country getCountry() {
         return country;
     }
@@ -105,11 +118,22 @@ public class PlayerStats {
         this.country = country;
     }
 
+    @OneToOne
+    @JoinColumn(name = "player_id")
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(final Player player) {
+        this.player = player;
+    }
+
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      * {@link EntityDimensionTest#testCardinalityScan()}.
+     * @return the date of the player session.
      */
-    @Temporal(TemporalType.DATE)
+    @Temporal(timeGrain = TimeGrain.DAY, timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }

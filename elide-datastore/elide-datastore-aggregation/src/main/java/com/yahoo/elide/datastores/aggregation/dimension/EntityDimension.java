@@ -12,6 +12,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -116,6 +117,7 @@ public class EntityDimension extends Column implements Dimension {
     /**
      * Constructor.
      *
+     * @param schema The schema this {@link Dimension} belongs to.
      * @param dimensionField  The entity field or relation that this {@link Dimension} represents
      * @param annotation  Provides static meta data about this {@link Dimension}
      * @param fieldType  The Java type for this entity field or relation
@@ -125,13 +127,14 @@ public class EntityDimension extends Column implements Dimension {
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
     public EntityDimension(
+            Schema schema,
             String dimensionField,
             Meta annotation,
             Class<?> fieldType,
             CardinalitySize cardinality,
             String friendlyName
     ) {
-        this(dimensionField, annotation, fieldType, DimensionType.ENTITY, cardinality, friendlyName);
+        this(schema, dimensionField, annotation, fieldType, DimensionType.ENTITY, cardinality, friendlyName);
     }
 
     /**
@@ -147,6 +150,7 @@ public class EntityDimension extends Column implements Dimension {
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
     protected EntityDimension(
+            Schema schema,
             String dimensionField,
             Meta annotation,
             Class<?> fieldType,
@@ -154,7 +158,7 @@ public class EntityDimension extends Column implements Dimension {
             CardinalitySize cardinality,
             String friendlyName
     ) {
-        super(dimensionField, annotation, fieldType);
+        super(schema, dimensionField, annotation, fieldType);
 
         this.dimensionType = Objects.requireNonNull(dimensionType, "dimensionType");
         this.cardinality = Objects.requireNonNull(cardinality, "cardinality");
