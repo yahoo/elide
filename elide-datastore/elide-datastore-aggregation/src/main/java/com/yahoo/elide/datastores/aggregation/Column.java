@@ -33,6 +33,7 @@ public abstract class Column {
     /**
      * Constructor.
      *
+     * @param schema The schema this {@link Column} belongs to.
      * @param field  The entity field or relation that this {@link Column} represents
      * @param annotation  Provides static meta data about this {@link Column}
      * @param fieldType  The Java type for this entity field or relation

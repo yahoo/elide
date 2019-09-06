@@ -36,6 +36,7 @@ public class AggregatedMetric extends Column implements Metric {
     /**
      * Constructor.
      *
+     * @param schema The schema this {@link Metric} belongs to
      * @param metricField  The entity field or relation that this {@link Metric} represents
      * @param annotation  Provides static meta data about this {@link Metric}
      * @param fieldType  The Java type for this entity field or relation

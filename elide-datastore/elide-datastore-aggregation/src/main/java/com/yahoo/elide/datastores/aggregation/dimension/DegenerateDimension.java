@@ -47,6 +47,7 @@ public class DegenerateDimension extends EntityDimension {
     /**
      * Constructor.
      *
+     * @param schema The schema this {@link Dimension} belongs to.
      * @param dimensionField  The entity field or relation that this {@link Dimension} represents
      * @param annotation  Provides static meta data about this {@link Dimension}
      * @param fieldType  The Java type for this entity field or relation

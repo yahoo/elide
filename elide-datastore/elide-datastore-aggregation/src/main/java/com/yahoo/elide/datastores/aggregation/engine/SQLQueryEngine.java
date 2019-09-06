@@ -158,7 +158,7 @@ public class SQLQueryEngine implements QueryEngine {
                     (predicate) -> { return generateHavingClauseColumnReference(predicate, query); }));
         }
 
-        if (! query.getDimensions().isEmpty())  {
+        if (!query.getDimensions().isEmpty())  {
             builder.groupByClause(extractGroupBy(query));
         }
 
@@ -481,7 +481,7 @@ public class SQLQueryEngine implements QueryEngine {
         Path.PathElement last = predicate.getPath().lastElement().get();
         Class<?> lastClass = last.getType();
 
-        if (! lastClass.equals(query.getSchema().getEntityClass())) {
+        if (!lastClass.equals(query.getSchema().getEntityClass())) {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 
