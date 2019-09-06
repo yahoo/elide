@@ -265,6 +265,9 @@ public class GraphQLEntityProjectionMaker {
             throw new InvalidEntityBodyException(
                     String.format("Unknown attribute field {%s.%s}.", parentProjection.getName(), fieldName));
         }
+
+        // The attribute field arguments should be added to the entity projection that has these fields
+        field.getArguments().forEach(argument -> addArgument(argument, parentProjection));
     }
 
     /**
