@@ -16,8 +16,7 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.Singular;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -36,7 +35,8 @@ public class EntityProjection {
     @Singular
     private Set<Attribute> attributes;
 
-    private Map<String, EntityProjection> relationships;
+    @Singular
+    private Set<Relationship> relationships;
 
     private FilterExpression filterExpression;
 
@@ -56,7 +56,7 @@ public class EntityProjection {
      * Creates a builder initialized as a copy of this collection
      * @return The new builder
      */
-    public EntityProjectionBuilder withProjection() {
+    public EntityProjectionBuilder copyOf() {
         return EntityProjection.builder()
                 .dictionary(this.dictionary)
                 .type(this.type)
@@ -72,8 +72,25 @@ public class EntityProjection {
      * @param name The name of the relationship.
      * @return
      */
-    public EntityProjection getRelationship(String name) {
-        return relationships.get(name);
+    public Relationship getRelationship(String name) {
+        return relationships.stream()
+                .filter((relationship) -> relationship.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Returns a relationship subgraph by name.
+     * @param name The name of the relationship.
+     * @param name The alias of the relationship.
+     * @return
+     */
+    public Relationship getRelationship(String name, String alias) {
+        return relationships.stream()
+                .filter((relationship) -> relationship.getName().equalsIgnoreCase(name))
+                .filter((relationship) -> relationship.getAlias().equalsIgnoreCase(alias))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -82,18 +99,20 @@ public class EntityProjection {
      * @return A newly created and merged EntityProjection.
      */
     public EntityProjection merge(EntityProjection toMerge) {
-        EntityProjectionBuilder merged = withProjection();
+        EntityProjectionBuilder merged = copyOf();
 
-        for (Map.Entry<String, EntityProjection> entry : toMerge.getRelationships().entrySet()) {
-            String relationshipName = entry.getKey();
-
-            EntityProjection theirs = entry.getValue();
-            EntityProjection ours = relationships.get(relationshipName);
+        for (Relationship relationship: toMerge.getRelationships()) {
+            EntityProjection theirs = relationship.getProjection();
+            EntityProjection ours = getRelationship(relationship.getName(), relationship.getAlias()).getProjection();
 
             if (ours != null) {
-                merged.relationship(relationshipName, ours.merge(theirs));
+                merged.relationship(Relationship.builder()
+                        .name(relationship.getName())
+                        .alias(relationship.getAlias())
+                        .projection(ours.merge(theirs))
+                        .build());
             } else {
-                merged.relationship(relationshipName, theirs);
+                merged.relationship(relationship);
             }
         }
         merged.attributes.addAll(toMerge.attributes);
@@ -105,19 +124,36 @@ public class EntityProjection {
      * Customizes the lombok builder to our needs.
      */
     public static class EntityProjectionBuilder {
-        private Map<String, EntityProjection> relationships = new HashMap<>();
+        private Set<Relationship> relationships = new HashSet<>();
 
-        public EntityProjectionBuilder relationships(Map<String, EntityProjection> relationships) {
+        public EntityProjectionBuilder relationships(Set<Relationship> relationships) {
             this.relationships = relationships;
             return this;
         }
 
-        public EntityProjectionBuilder relationship(String relationName, EntityProjection relationship) {
-            EntityProjection existing = relationships.get(relationName);
+        public EntityProjectionBuilder relationship(String name, EntityProjection projection) {
+            relationships.add(Relationship.builder()
+                    .alias(name)
+                    .name(name)
+                    .projection(projection)
+                    .build());
+            return this;
+        }
+
+        public EntityProjectionBuilder relationship(Relationship relationship) {
+            Relationship existing = relationships.stream()
+                    .filter(r -> r.getName().equals(relationship.getName()))
+                    .filter(r -> r.getAlias().equals(relationship.getAlias()))
+                    .findFirst().orElse(null);
+
             if (existing != null) {
-                relationships.put(relationName, existing.merge(relationship));
+                relationships.add(Relationship.builder()
+                        .alias(existing.getAlias())
+                        .name(existing.getName())
+                        .projection(existing.getProjection().merge(relationship.getProjection()))
+                        .build());
             } else {
-                relationships.put(relationName, relationship);
+                relationships.add(relationship);
             }
             return this;
         }

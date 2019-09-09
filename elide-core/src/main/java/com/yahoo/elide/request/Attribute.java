@@ -25,6 +25,8 @@ public class Attribute {
     @NonNull
     private String name;
 
+    private String alias;
+
     @Singular
     private Set<Argument> arguments;
 }

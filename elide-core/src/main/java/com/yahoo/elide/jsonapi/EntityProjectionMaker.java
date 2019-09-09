@@ -17,6 +17,7 @@ import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.collect.Sets;
+import com.yahoo.elide.request.Relationship;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Builder;
@@ -155,7 +156,7 @@ public class EntityProjectionMaker
                         .dictionary(dictionary)
                         .type(entityClass)
                         .attributes(getSparseAttributes(entityClass))
-                        .relationships(getRequiredRelationships(entityClass))
+                        .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .build()
                     ).build();
         };
@@ -185,7 +186,7 @@ public class EntityProjectionMaker
 
             return EntityProjection.builder()
                 .dictionary(dictionary)
-                .relationships(getSparseRelationships(entityClass))
+                .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
@@ -194,7 +195,7 @@ public class EntityProjectionMaker
 
         return EntityProjection.builder()
                 .dictionary(dictionary)
-                .relationships(getSparseRelationships(entityClass))
+                .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
                 .build();
@@ -237,7 +238,7 @@ public class EntityProjectionMaker
                     .projection(EntityProjection.builder()
                         .dictionary(dictionary)
                         .type(entityClass)
-                        .relationships(getRequiredRelationships(entityClass))
+                        .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .relationship(relationshipName, relationshipProjection.projection)
                         .build()
                     ).build();
@@ -254,7 +255,7 @@ public class EntityProjectionMaker
                     .name(collectionNameText)
                     .projection(EntityProjection.builder()
                         .dictionary(dictionary)
-                        .relationships(getRequiredRelationships(entityClass))
+                        .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .attributes(getSparseAttributes(entityClass))
                         .type(entityClass)
                         .build()
@@ -354,5 +355,17 @@ public class EntityProjectionMaker
         }
 
         return new HashSet<>();
+    }
+
+    private Set<Relationship> toRelationshipSet(Map<String, EntityProjection> relationships) {
+        return relationships.entrySet().stream()
+                .map(entry -> {
+                    return Relationship.builder()
+                            .name(entry.getKey())
+                            .alias(entry.getKey())
+                            .projection(entry.getValue())
+                            .build();
+                })
+                .collect(Collectors.toSet());
     }
 }
