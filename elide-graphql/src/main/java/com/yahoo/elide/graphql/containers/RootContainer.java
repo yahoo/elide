@@ -23,13 +23,6 @@ public class RootContainer implements GraphQLContainer {
         EntityDictionary dictionary = context.requestScope.getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
 
-        //TODO - This needs to be modified to build the entire document.
-
-        context.requestScope.setEntityProjection(EntityProjection.builder()
-                .type(entityClass)
-                .dictionary(dictionary)
-                .build());
-
         boolean generateTotals = requestContainsPageInfo(context.field);
         return fetcher.fetchObject(context, context.requestScope, entityClass, context.ids,
                 context.sort, context.offset, context.first, context.filters, generateTotals);

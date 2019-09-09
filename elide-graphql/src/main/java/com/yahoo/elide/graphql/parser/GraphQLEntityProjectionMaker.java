@@ -104,22 +104,28 @@ public class GraphQLEntityProjectionMaker {
     private void addRootProjection(SelectionSet selectionSet) {
         List<Selection> selections = selectionSet.getSelections();
 
-        if (selections.size() != 1) {
-            throw new InvalidEntityBodyException("Can't select multiple entities in graphQL QUERY operation.");
-        }
-
-        Selection entitySelection = selections.get(0);
-        if (!(entitySelection instanceof Field)) {
+        Selection rootSelection = selections.get(0);
+        if (!(rootSelection instanceof Field)) {
             throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
         }
-
-        String entityName = ((Field) entitySelection).getName();
+        String entityName = ((Field) rootSelection).getName();
         Class<?> entityType = entityDictionary.getEntityClass(entityName);
         if (entityType == null) {
             throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", entityName));
         }
+        Field fields = (Field) rootSelection;
 
-        rootProjections.add(createProjection(entityType, (Field) entitySelection));
+        selections.stream().skip(1).forEach(selection -> {
+            if (!(selection instanceof Field)) {
+                throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
+            }
+            if (!entityName.equals(((Field) selection).getName())) {
+                throw new InvalidEntityBodyException("Can't select multiple entities in graphQL QUERY operation.");
+            }
+            fields.getSelectionSet().getSelections().addAll(((Field) selection).getSelectionSet().getSelections());
+        });
+
+        rootProjections.add(createProjection(entityType, fields));
     }
 
     /**
@@ -138,10 +144,7 @@ public class GraphQLEntityProjectionMaker {
         // initialize the attribute container
         entityProjection.setAttributes(new HashSet<>());
 
-        SelectionSet edges = entityField.getSelectionSet();
-        SelectionSet node = resolveEdges(edges, entityProjection);
-        SelectionSet fields = resolveNode(node, entityProjection);
-        fields.getSelections().forEach(fieldSelection -> addSelection(fieldSelection, entityProjection));
+        entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, entityProjection));
 
         return entityProjection;
     }
@@ -204,7 +207,14 @@ public class GraphQLEntityProjectionMaker {
         if (fieldSelection instanceof FragmentSpread) {
             addFragment((FragmentSpread) fieldSelection, parentProjection);
         } else if (fieldSelection instanceof Field) {
-            addField((Field) fieldSelection, parentProjection);
+            if (EDGES_KEYWORD.equals(((Field) fieldSelection).getName()) ||
+                    NODE_KEYWORD.equals(((Field) fieldSelection).getName())) {
+                // if this graphql field is 'edges' or 'node', go one level deeper in the graphql document
+                ((Field) fieldSelection).getSelectionSet().getSelections().forEach(
+                        selection -> addSelection(selection, parentProjection));
+            } else {
+                addField((Field) fieldSelection, parentProjection);
+            }
         } else {
             throw new InvalidEntityBodyException(
                     String.format("Unsupported selection type {%s}.", fieldSelection.getClass()));
@@ -254,6 +264,10 @@ public class GraphQLEntityProjectionMaker {
             parentProjection.getRelationships().put(fieldName, relationshipProjection);
 
             return;
+        }
+
+        if (fieldName.equals("__typename")) {
+            return; // '__typename' would not be handled by entityProjection
         }
 
         Class<?> attributeType = entityDictionary.getType(parentType, fieldName);
