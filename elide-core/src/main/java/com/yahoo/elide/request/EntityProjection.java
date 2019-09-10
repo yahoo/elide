@@ -18,7 +18,6 @@ import lombok.NonNull;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * Represents a client data request against a subgraph of the entity relationship graph.
@@ -168,35 +167,5 @@ public class EntityProjection {
             this.attributes.add(attribute);
             return this;
         }
-    }
-
-    @Override
-    public String toString() {
-        return print(0);
-    }
-
-    private String print(int depth) {
-        StringBuilder prefix = new StringBuilder();
-        StringBuilder output = new StringBuilder();
-        for (int i = 0; i< depth; i++) {
-            prefix.append("\t");
-        }
-
-        output.append(prefix);
-        output.append(type.getSimpleName());
-        output.append("\t");
-        output.append("Attributes: ");
-        output.append("\t");
-        output.append(attributes);
-        output.append("\t\n");
-        output.append(prefix);
-        output.append("Relationships: \n");
-        for (Relationship relationship : relationships) {
-            output.append(prefix);
-            output.append(relationship.getName());
-            output.append(relationship.getProjection().print(depth+1));
-            output.append("\n");
-        }
-        return output.toString();
     }
 }

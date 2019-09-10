@@ -8,12 +8,7 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.EntityProjection.EntityProjectionBuilder;
 import com.yahoo.elide.security.User;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Utility subclass that helps construct RequestScope objects for testing.

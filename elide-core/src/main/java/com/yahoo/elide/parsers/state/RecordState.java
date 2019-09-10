@@ -16,10 +16,10 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityConte
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
-
-import com.google.common.base.Preconditions;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
+
+import com.google.common.base.Preconditions;
 
 import java.util.Optional;
 import java.util.Set;
@@ -70,7 +70,7 @@ public class RecordState extends BaseState {
                         .name(subCollection)
                         .projection(EntityProjection.builder()
                                 .dictionary(dictionary)
-                                .type(dictionary.getType(entityClass, subCollection))
+                                .type(entityClass)
                                 .filterExpression(filterExpression.orElse(null))
                                 .build())
                         .build());
@@ -156,12 +156,12 @@ public class RecordState extends BaseState {
                         state.getRequestScope().getExpressionForRelation(resource, subCollection);
 
             childRecord.getRelationCheckedFiltered(Relationship.builder()
-                    .alias(subCollection)
-                    .name(subCollection)
+                    .alias(relationName)
+                    .name(relationName)
                     .projection(EntityProjection.builder()
                             .dictionary(dictionary)
                             .filterExpression(filterExpression.orElse(null))
-                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
+                            .type(dictionary.getType(childRecord.getResourceClass(), relationName))
                             .build())
                     .build());
         } catch (InvalidAttributeException e) {

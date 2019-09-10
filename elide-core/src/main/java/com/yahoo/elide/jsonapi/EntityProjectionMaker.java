@@ -15,9 +15,9 @@ import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 
 import com.google.common.collect.Sets;
-import com.yahoo.elide.request.Relationship;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Builder;

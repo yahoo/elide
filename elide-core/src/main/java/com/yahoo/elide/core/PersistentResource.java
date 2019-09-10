@@ -331,7 +331,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .copyOf()
                 .filterExpression(filterExpression)
                 .sorting(sorting)
-                .pagination(Optional.of(pagination).map(p -> p.evaluate(loadClass)).orElse(null))
+                .pagination(Optional.ofNullable(pagination).map(p -> p.evaluate(loadClass)).orElse(null))
                 .build();
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
@@ -823,28 +823,25 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         FilterExpression filterExpression = Optional.ofNullable(relationship.getProjection().getFilterExpression())
                 .orElse(null);
 
+        assertRelationshipExists(relationship.getName());
         Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relationship.getName());
 
         Set<PersistentResource> newResources = new LinkedHashSet<>();
 
         /* If this is a bulk edit request and the ID we are fetching for is newly created... */
-        if (entityType == null) {
-            throw new InvalidAttributeException(relationship.getName(), type);
-        } else {
-            if (!ids.isEmpty()) {
-                // Fetch our set of new resources that we know about since we can't find them in the datastore
-                newResources = requestScope.getNewPersistentResources().stream()
-                        .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
-                                && ids.contains(resource.getUUID().orElse("")))
-                        .collect(Collectors.toSet());
+        if (!ids.isEmpty()) {
+            // Fetch our set of new resources that we know about since we can't find them in the datastore
+            newResources = requestScope.getNewPersistentResources().stream()
+                    .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
+                            && ids.contains(resource.getUUID().orElse("")))
+                    .collect(Collectors.toSet());
 
-                FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
+            FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
 
-                // Combine filters if necessary
-                filterExpression = Optional.ofNullable(relationship.getProjection().getFilterExpression())
-                        .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
-                        .orElse(idExpression);
-            }
+            // Combine filters if necessary
+            filterExpression = Optional.ofNullable(relationship.getProjection().getFilterExpression())
+                    .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
+                    .orElse(idExpression);
         }
 
         // TODO: Filter on new resources?
@@ -852,7 +849,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
 
-        getRelation(com.yahoo.elide.request.Relationship.builder()
+        getRelation(relationship.copyOf()
             .projection(relationship.getProjection().copyOf()
                         .filterExpression(filterExpression)
                         .build())
@@ -911,12 +908,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return collection relation
      */
     public Set<PersistentResource> getRelationCheckedFiltered(com.yahoo.elide.request.Relationship relationship) {
-
         return filter(ReadPermission.class,
                 getRelation(relationship, true));
     }
 
     private Set<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
+        assertRelationshipExists(relationName);
         return getRelation(com.yahoo.elide.request.Relationship.builder()
                 .name(relationName)
                 .alias(relationName)
@@ -928,6 +925,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private Set<PersistentResource> getRelationCheckedUnfiltered(String relationName) {
+        assertRelationshipExists(relationName);
         return getRelation(com.yahoo.elide.request.Relationship.builder()
                 .name(relationName)
                 .alias(relationName)
@@ -936,6 +934,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         .dictionary(dictionary)
                         .build())
                 .build(), true);
+    }
+
+    private void assertRelationshipExists(String relationName) {
+        if (relationName == null || dictionary.getParameterizedType(obj, relationName) == null) {
+            throw new InvalidAttributeException(relationName, this.getType());
+        }
     }
 
     private Set<PersistentResource> getRelation(com.yahoo.elide.request.Relationship relationship,
@@ -965,14 +969,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected boolean checkRelation(com.yahoo.elide.request.Relationship relationship) {
         String relationName = relationship.getName();
-        List<String> relations = dictionary.getRelationships(obj);
 
         String realName = dictionary.getNameFromAlias(obj, relationName);
         relationName = (realName == null) ? relationName : realName;
 
-        if (relationName == null || relations == null || !relations.contains(relationName)) {
-            throw new InvalidAttributeException(relationName, type);
-        }
+        assertRelationshipExists(relationName);
 
         checkFieldAwareDeferPermissions(ReadPermission.class, relationName, null, null);
 
@@ -1034,7 +1035,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         .build()
                 ).build();
 
-        Object val = transaction.getRelation(transaction, obj, relationName, modifiedRelationship.getProjection(), requestScope);
+        //TODO - Change TO : Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
+        Object val = transaction.getRelation(transaction, obj, modifiedRelationship.getName(),
+                modifiedRelationship.getProjection(), requestScope);
 
         if (val == null) {
             return Collections.emptySet();

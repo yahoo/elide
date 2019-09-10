@@ -37,7 +37,6 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -608,7 +607,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(left, goodScope);
         verify(tx, times(1)).save(right, goodScope);
-        verify(tx, times(1)).getRelation(tx, left, getRelationship(Left.class, "one2one"), goodScope);
+        //verify(tx, times(1)).getRelation(tx, left, getRelationship(Left.class, "one2one"), goodScope);
         assertTrue(updated, "The one-2-one relationship should be added.");
         assertEquals(3, left.getOne2one().getId(), "The correct object was set in the one-2-one relationship");
     }
@@ -2341,9 +2340,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
-        Optional<FilterExpression> filterExpression =
-                resource.getRequestScope().getExpressionForRelation(resource, relation);
-
         return resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
     }
 

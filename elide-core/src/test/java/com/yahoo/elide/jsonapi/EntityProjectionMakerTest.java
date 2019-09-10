@@ -8,7 +8,6 @@ package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
