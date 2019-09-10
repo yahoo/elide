@@ -35,7 +35,6 @@ public class EntityProjection {
     @Singular
     private Set<Attribute> attributes;
 
-    @Singular
     private Set<Relationship> relationships;
 
     private FilterExpression filterExpression;

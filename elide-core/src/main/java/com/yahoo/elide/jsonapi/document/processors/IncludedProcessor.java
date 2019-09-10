@@ -5,12 +5,15 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import com.google.common.collect.Lists;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,7 +87,18 @@ public class IncludedProcessor implements DocumentProcessor {
         Optional<FilterExpression> filterExpression = rec.getRequestScope().getExpressionForRelation(rec, relation);
         Set<PersistentResource> collection;
         try {
-            collection = rec.getRelationCheckedFiltered(relation, filterExpression, Optional.empty(), Optional.empty());
+
+            EntityDictionary dictionary = rec.getDictionary();
+            collection = rec.getRelationCheckedFiltered(Relationship.builder()
+                    .name(relation)
+                    .alias(relation)
+                    .projection(EntityProjection.builder()
+                            .type(dictionary.getType(rec.getResourceClass(), relation))
+                            .dictionary(dictionary)
+                            .filterExpression(filterExpression.orElse(null))
+                            .build())
+                    .build());
+
         } catch (ForbiddenAccessException e) {
             return;
         }

@@ -248,28 +248,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return resource;
     }
 
-
-    /**
-     * Load an single entity from the DB.
-     *
-     * @param loadClass resource type
-     * @param id the id
-     * @param requestScope the request scope
-     * @param <T> type of resource
-     * @return resource persistent resource
-     * @throws InvalidObjectIdentifierException the invalid object identifier exception
-     */
-    @SuppressWarnings("resource")
-    @NonNull public static <T> PersistentResource<T> loadRecord(
-            Class<T> loadClass, String id, RequestScope requestScope)
-            throws InvalidObjectIdentifierException {
-        Preconditions.checkNotNull(loadClass);
-        Preconditions.checkNotNull(id);
-        Preconditions.checkNotNull(requestScope);
-
-        return loadRecord(requestScope.getEntityProjection(), id, requestScope);
-    }
-
     /**
      * Get a FilterExpression parsed from FilterExpressionCheck.
      *

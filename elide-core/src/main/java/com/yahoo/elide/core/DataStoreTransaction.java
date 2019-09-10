@@ -11,6 +11,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
@@ -227,6 +228,32 @@ public interface DataStoreTransaction extends Closeable {
                 Optional.ofNullable(collection.getFilterExpression()),
                 Optional.ofNullable(collection.getSorting()),
                 Optional.ofNullable(collection.getPagination()),
+                scope);
+    }
+
+    /**
+     * Retrieve a relation from an object.
+     *
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationship - the relationship.
+     * It is optional for the data store to attempt evaluation.
+     * @param scope - contains request level metadata.
+     * @return the object in the relation
+     */
+    default Object getRelation(
+            DataStoreTransaction relationTx,
+            Object entity,
+            Relationship relationship,
+            RequestScope scope) {
+
+        return this.getRelation(
+                relationTx,
+                entity,
+                relationship.getName(),
+                Optional.ofNullable(relationship.getProjection().getFilterExpression()),
+                Optional.ofNullable(relationship.getProjection().getSorting()),
+                Optional.ofNullable(relationship.getProjection().getPagination()),
                 scope);
     }
 

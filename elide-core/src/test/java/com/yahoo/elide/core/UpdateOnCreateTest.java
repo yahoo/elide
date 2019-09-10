@@ -13,6 +13,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 
 import example.Author;
@@ -99,7 +100,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 any(RequestScope.class)
         )).thenReturn(updateAndCreateExistingObject);
 
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(UpdateAndCreate.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "1",
                 userTwoScope);
         loaded.updateAttribute("name", "");
@@ -116,7 +121,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 any(RequestScope.class)
         )).thenReturn(updateAndCreateExistingObject);
 
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(UpdateAndCreate.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "1",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.updateAttribute("name", ""));
@@ -133,7 +142,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 any(RequestScope.class)
         )).thenReturn(updateAndCreateExistingObject);
 
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(UpdateAndCreate.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "1",
                 userFourScope);
         loaded.updateAttribute("alias", "");
@@ -150,7 +163,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 any(RequestScope.class)
         )).thenReturn(updateAndCreateExistingObject);
 
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(UpdateAndCreate.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "1",
                 userThreeScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.updateAttribute("alias", ""));
@@ -174,10 +191,18 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 any(RequestScope.class)
         )).thenReturn(new Book());
 
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(UpdateAndCreate.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "1",
                 userTwoScope);
-        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
+        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .type(Book.class)
+                        .build(),
                 "2",
                 userTwoScope);
         loaded.addRelation("books", loadedBook);
@@ -199,10 +224,18 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 any(RequestScope.class)
         )).thenReturn(new Book());
 
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(UpdateAndCreate.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "1",
                 userOneScope);
-        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
+        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(Book.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "2",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.addRelation("books", loadedBook));
@@ -227,10 +260,18 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 any(RequestScope.class)
         )).thenReturn(new Author());
 
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(UpdateAndCreate.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "1",
                 userThreeScope);
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
+        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(Author.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "2",
                 userThreeScope);
         loaded.addRelation("author", loadedAuthor);
@@ -252,10 +293,18 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 any(RequestScope.class)
         )).thenReturn(new Author());
 
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(UpdateAndCreate.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "1",
                 userTwoScope);
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
+        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(Author.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "2",
                 userTwoScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.addRelation("author", loadedAuthor));
@@ -325,7 +374,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         )).thenReturn(new Book());
 
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(UpdateAndCreate.class, userOneScope, Optional.of("8"));
-        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
+        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(Book.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "2",
                 userOneScope);
 
@@ -345,7 +398,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         )).thenReturn(new Book());
 
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(UpdateAndCreate.class, userThreeScope, Optional.of("9"));
-        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(userThreeScope.getEntityProjection().getRelationship("books"),
+        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                    .dictionary(dictionary)
+                    .type(Book.class)
+                    .build(),
                 "2",
                 userThreeScope);
         assertThrows(ForbiddenAccessException.class, () -> created.addRelation("books", loadedBook));
@@ -364,7 +421,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         )).thenReturn(new Author());
 
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(UpdateAndCreate.class, userTwoScope, Optional.of("10"));
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
+        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .type(Author.class)
+                        .build(),
                 "2",
                 userTwoScope);
         created.addRelation("author", loadedAuthor);
@@ -383,7 +444,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         )).thenReturn(new Author());
 
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(UpdateAndCreate.class, userOneScope, Optional.of("11"));
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
+        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(Author.class)
+                        .dictionary(dictionary)
+                        .build(),
                 "2",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> created.addRelation("author", loadedAuthor));

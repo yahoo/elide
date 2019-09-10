@@ -28,33 +28,5 @@ public class TestRequestScope extends RequestScope {
                 new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build());
-
-        /* Create an entity projection from a top level object and all of its relationships */
-        setEntityProjection(buildEntityProjection(entityClass, nestLevel));
-    }
-
-    EntityProjection buildEntityProjection(Class<?> entityClass, int nestLevel) {
-
-        /* Create an entity projection from a top level object and all of its relationships */
-        EntityProjectionBuilder builder = EntityProjection.builder()
-                .type(entityClass)
-                .dictionary(dictionary);
-
-        List<String> relationships =  dictionary.getRelationships(entityClass);
-        if (nestLevel > 0  && relationships != null && !relationships.isEmpty()) {
-            builder.relationships(
-                dictionary.getRelationships(entityClass).stream()
-                    .collect(Collectors.toMap(
-                        (name) -> {
-                            return name;
-                        },
-                        (name) -> {
-                            return buildEntityProjection(dictionary.getParameterizedType(entityClass, name), nestLevel - 1);
-                        }
-                    ))
-            );
-        }
-
-        return builder.build();
     }
 }
