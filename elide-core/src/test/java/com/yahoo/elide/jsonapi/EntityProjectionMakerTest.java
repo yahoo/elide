@@ -8,6 +8,7 @@ package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -339,7 +340,7 @@ public class EntityProjectionMakerTest {
     }
 
     @Test
-    public void testRootCollectionWithNestedInclude() {
+    public void testRootCollectionWithNestedInclude() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("include", "books");
         queryParams.add("include", "books.publisher,books.editor");
@@ -350,9 +351,9 @@ public class EntityProjectionMakerTest {
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
                 .dictionary(dictionary)
+                .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
-                .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
                         .dictionary(dictionary)
@@ -360,6 +361,17 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("genre").type(String.class).build())
                         .attribute(Attribute.builder().name("language").type(String.class).build())
                         .attribute(Attribute.builder().name("publishDate").type(long.class).build())
+                        .relationship("editor", EntityProjection.builder()
+                                .type(Editor.class)
+                                .dictionary(dictionary)
+                                .attribute(Attribute.builder().name("firstName").type(String.class).build())
+                                .attribute(Attribute.builder().name("lastName").type(String.class).build())
+                                .attribute(Attribute.builder().name("fullName").type(String.class).build())
+                                .relationship("editor", EntityProjection.builder()
+                                        .dictionary(dictionary)
+                                        .type(Editor.class)
+                                        .build())
+                                .build())
                         .relationship("publisher", EntityProjection.builder()
                                 .type(Publisher.class)
                                 .dictionary(dictionary)
@@ -369,17 +381,6 @@ public class EntityProjectionMakerTest {
                                         .dictionary(dictionary)
                                         .type(Book.class)
                                         .build())
-                                .relationship("editor", EntityProjection.builder()
-                                        .dictionary(dictionary)
-                                        .type(Editor.class)
-                                        .build())
-                                .build())
-                        .relationship("editor", EntityProjection.builder()
-                                .type(Editor.class)
-                                .dictionary(dictionary)
-                                .attribute(Attribute.builder().name("firstName").type(String.class).build())
-                                .attribute(Attribute.builder().name("lastName").type(String.class).build())
-                                .attribute(Attribute.builder().name("fullName").type(String.class).build())
                                 .relationship("editor", EntityProjection.builder()
                                         .dictionary(dictionary)
                                         .type(Editor.class)

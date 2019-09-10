@@ -14,10 +14,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
-import lombok.Singular;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Represents a client data request against a subgraph of the entity relationship graph.
@@ -32,7 +33,6 @@ public class EntityProjection {
     @NonNull
     private Class<?> type;
 
-    @Singular
     private Set<Attribute> attributes;
 
     private Set<Relationship> relationships;
@@ -59,8 +59,8 @@ public class EntityProjection {
         return EntityProjection.builder()
                 .dictionary(this.dictionary)
                 .type(this.type)
-                .attributes(this.attributes)
-                .relationships(this.relationships)
+                .attributes(new LinkedHashSet<>(attributes))
+                .relationships(new LinkedHashSet<>(this.relationships))
                 .filterExpression(this.filterExpression)
                 .sorting(this.sorting)
                 .pagination(this.pagination);
@@ -71,11 +71,10 @@ public class EntityProjection {
      * @param name The name of the relationship.
      * @return
      */
-    public Relationship getRelationship(String name) {
+    public Optional<Relationship> getRelationship(String name) {
         return relationships.stream()
                 .filter((relationship) -> relationship.getName().equalsIgnoreCase(name))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     /**
@@ -84,12 +83,11 @@ public class EntityProjection {
      * @param name The alias of the relationship.
      * @return
      */
-    public Relationship getRelationship(String name, String alias) {
+    public Optional<Relationship> getRelationship(String name, String alias) {
         return relationships.stream()
                 .filter((relationship) -> relationship.getName().equalsIgnoreCase(name))
                 .filter((relationship) -> relationship.getAlias().equalsIgnoreCase(alias))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     /**
@@ -102,16 +100,19 @@ public class EntityProjection {
 
         for (Relationship relationship: toMerge.getRelationships()) {
             EntityProjection theirs = relationship.getProjection();
-            EntityProjection ours = getRelationship(relationship.getName(), relationship.getAlias()).getProjection();
 
-            if (ours != null) {
-                merged.relationship(Relationship.builder()
+            Relationship ourRelationship =  getRelationship(relationship.getName(),
+                    relationship.getAlias()).orElse(null);
+
+            if (ourRelationship != null) {
+                merged.relationships.remove(ourRelationship);
+                merged.relationships.add((Relationship.builder()
                         .name(relationship.getName())
                         .alias(relationship.getAlias())
-                        .projection(ours.merge(theirs))
-                        .build());
+                        .projection(ourRelationship.getProjection().merge(theirs))
+                        .build()));
             } else {
-                merged.relationship(relationship);
+                merged.relationships.add((relationship));
             }
         }
         merged.attributes.addAll(toMerge.attributes);
@@ -123,20 +124,25 @@ public class EntityProjection {
      * Customizes the lombok builder to our needs.
      */
     public static class EntityProjectionBuilder {
-        private Set<Relationship> relationships = new HashSet<>();
+        private Set<Relationship> relationships = new LinkedHashSet<>();
+        private Set<Attribute> attributes = new LinkedHashSet<>();
 
         public EntityProjectionBuilder relationships(Set<Relationship> relationships) {
             this.relationships = relationships;
             return this;
         }
 
+        public EntityProjectionBuilder attributes(Set<Attribute> attributes) {
+            this.attributes = attributes;
+            return this;
+        }
+
         public EntityProjectionBuilder relationship(String name, EntityProjection projection) {
-            relationships.add(Relationship.builder()
+            return relationship(Relationship.builder()
                     .alias(name)
                     .name(name)
                     .projection(projection)
                     .build());
-            return this;
         }
 
         public EntityProjectionBuilder relationship(Relationship relationship) {
@@ -146,6 +152,7 @@ public class EntityProjection {
                     .findFirst().orElse(null);
 
             if (existing != null) {
+                relationships.remove(existing);
                 relationships.add(Relationship.builder()
                         .alias(existing.getAlias())
                         .name(existing.getName())
@@ -156,5 +163,40 @@ public class EntityProjection {
             }
             return this;
         }
+
+        public EntityProjectionBuilder attribute(Attribute attribute) {
+            this.attributes.add(attribute);
+            return this;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return print(0);
+    }
+
+    private String print(int depth) {
+        StringBuilder prefix = new StringBuilder();
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i< depth; i++) {
+            prefix.append("\t");
+        }
+
+        output.append(prefix);
+        output.append(type.getSimpleName());
+        output.append("\t");
+        output.append("Attributes: ");
+        output.append("\t");
+        output.append(attributes);
+        output.append("\t\n");
+        output.append(prefix);
+        output.append("Relationships: \n");
+        for (Relationship relationship : relationships) {
+            output.append(prefix);
+            output.append(relationship.getName());
+            output.append(relationship.getProjection().print(depth+1));
+            output.append("\n");
+        }
+        return output.toString();
     }
 }
