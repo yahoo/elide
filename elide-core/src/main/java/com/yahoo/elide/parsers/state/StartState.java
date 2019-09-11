@@ -15,6 +15,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionC
 import com.yahoo.elide.request.EntityProjection;
 
 
+
 import java.util.Optional;
 
 /**
@@ -57,6 +58,7 @@ public class StartState extends BaseState {
                     .orElseThrow(IllegalStateException::new));
 
         state.setState(new RelationshipTerminalState(record, relationName, projection));
+
     }
 
     @Override
@@ -69,6 +71,7 @@ public class StartState extends BaseState {
 
         return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
                 id, state.getRequestScope());
+
 
     }
 }

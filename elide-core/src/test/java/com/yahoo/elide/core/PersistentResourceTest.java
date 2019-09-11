@@ -614,6 +614,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, times(1)).save(right, goodScope);
         verify(tx, times(1)).getRelation(tx, left, getRelationship(Right.class, "one2one"), goodScope);
 
+
         assertTrue(updated, "The one-2-one relationship should be added.");
         assertEquals(3, left.getOne2one().getId(), "The correct object was set in the one-2-one relationship");
     }
@@ -1670,6 +1671,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
 
 
+
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);
 
         Set<Object> actual = loaded.stream().map(PersistentResource::getObject).collect(Collectors.toSet());
@@ -1701,6 +1703,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
 
 
+
         assertEquals(child1, loaded.getObject(), "The load function should return the requested child object");
     }
 
@@ -1718,6 +1721,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertThrows(
                 InvalidObjectIdentifierException.class,
                 () -> PersistentResource.loadRecord(EntityProjection.builder()
+
 
                         .type(Child.class)
                         .build(), "1", goodScope));
@@ -2424,6 +2428,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias(name)
                 .projection(EntityProjection.builder()
                         .type(type)
+
 
                         .build())
                 .build();

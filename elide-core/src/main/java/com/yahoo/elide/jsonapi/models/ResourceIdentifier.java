@@ -42,6 +42,7 @@ public class ResourceIdentifier {
         return PersistentResource.loadRecord(EntityProjection.builder()
                 .type(cls)
 
+
                 .build(), id, requestScope);
     }
 

@@ -179,5 +179,6 @@ public class EntityProjection {
                 .filter(attribute -> attribute.getName().equals(attributeName))
                 .findAny()
                 .orElse(null);
+
     }
 }

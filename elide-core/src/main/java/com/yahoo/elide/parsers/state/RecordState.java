@@ -55,6 +55,7 @@ public class RecordState extends BaseState {
             entityClass = dictionary.getEntityClass(entityName);
 
 
+
         }
         if (entityClass == null) {
             throw new IllegalArgumentException("Unknown type " + entityName);
@@ -86,6 +87,7 @@ public class RecordState extends BaseState {
                     projection.getRelationship(subCollection).orElseThrow(IllegalStateException::new), id);
         state.setState(new RecordTerminalState(nextRecord));
 
+
     }
 
     @Override
@@ -97,6 +99,7 @@ public class RecordState extends BaseState {
                     .orElseThrow(IllegalStateException::new);
 
         state.setState(new RecordState(resource.getRelation(relationship, id), relationship.getProjection()));
+
 
     }
 
@@ -112,6 +115,7 @@ public class RecordState extends BaseState {
                 .orElseThrow(IllegalStateException::new);
 
         childRecord = resource.getRelation(childRelationship , id);
+
 
 
         state.setState(new RelationshipTerminalState(childRecord, relationName, childRelationship.getProjection()));

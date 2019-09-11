@@ -382,6 +382,7 @@ public class EntityProjectionMakerTest {
     public void testRootCollectionWithNestedInclude() throws Exception {
 
 
+
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("include", "books");
         queryParams.add("include", "books.publisher,books.editor");
@@ -394,6 +395,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
+
 
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                 .attribute(Attribute.builder().name("name").type(String.class).build())
@@ -408,10 +410,12 @@ public class EntityProjectionMakerTest {
                         .relationship("editor", EntityProjection.builder()
                                 .type(Editor.class)
 
+
                                 .attribute(Attribute.builder().name("firstName").type(String.class).build())
                                 .attribute(Attribute.builder().name("lastName").type(String.class).build())
                                 .attribute(Attribute.builder().name("fullName").type(String.class).build())
                                 .relationship("editor", EntityProjection.builder()
+
 
                                         .type(Editor.class)
                                         .build())
@@ -424,6 +428,7 @@ public class EntityProjectionMakerTest {
                                         .type(Book.class)
                                         .build())
                                 .relationship("editor", EntityProjection.builder()
+
 
 
                                         .type(Editor.class)
