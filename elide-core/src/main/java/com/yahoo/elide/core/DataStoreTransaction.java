@@ -8,7 +8,6 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -18,7 +17,6 @@ import com.yahoo.elide.security.User;
 import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Set;
 
 /**

@@ -9,7 +9,6 @@ package com.yahoo.elide.core.datastore.wrapped;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -20,7 +19,6 @@ import lombok.Data;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Optional;
 import java.util.Set;
 
 /**

@@ -28,11 +28,12 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
+
 import example.Author;
 import example.Book;
 import example.Editor;
@@ -47,7 +48,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 

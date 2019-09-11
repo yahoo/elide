@@ -11,7 +11,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
@@ -116,7 +115,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                       RequestScope scope) {
 
         if (projection.getFilterExpression() == null
-                || tx.supportsFiltering(projection.getType(), projection.getFilterExpression()) == FeatureSupport.FULL) {
+                || tx.supportsFiltering(projection.getType(),
+                projection.getFilterExpression()) == FeatureSupport.FULL) {
             return tx.loadObject(projection, id, scope);
         } else {
             return DataStoreTransaction.super.loadObject(projection, id, scope);

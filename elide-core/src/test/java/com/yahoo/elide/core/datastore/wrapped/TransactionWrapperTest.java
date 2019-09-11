@@ -18,7 +18,6 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 import org.junit.jupiter.api.Test;
 
@@ -185,7 +184,7 @@ public class TransactionWrapperTest {
 
         when(wrapped.getAttribute(any(), isA(Attribute.class), any())).thenReturn(1L);
 
-        Object actual = wrapper.getAttribute(null, Attribute.builder().name("foo").build(), null);
+        Object actual = wrapper.getAttribute(null, Attribute.builder().name("foo").type(String.class).build(), null);
 
         verify(wrapped, times(1)).getAttribute(any(), isA(Attribute.class), any());
         assertEquals(1L, actual);
@@ -239,11 +238,11 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.loadObject(isA(EntityProjection.class), any(), any())).thenReturn(1L);
+        when(wrapped.loadObject(any(), any(), any())).thenReturn(1L);
 
         Object actual = wrapper.loadObject(null, null, null);
 
-        verify(wrapped, times(1)).loadObject(isA(EntityProjection.class), any(), any());
+        verify(wrapped, times(1)).loadObject(any(), any(), any());
         assertEquals(1L, actual);
     }
 }
