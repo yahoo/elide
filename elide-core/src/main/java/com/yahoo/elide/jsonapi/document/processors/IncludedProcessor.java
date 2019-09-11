@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
@@ -91,6 +92,7 @@ public class IncludedProcessor implements DocumentProcessor {
         Relationship relationship = projection.getRelationship(relation).orElseThrow(IllegalStateException::new);
         try {
             collection = rec.getRelationCheckedFiltered(relationship);
+
 
         } catch (ForbiddenAccessException e) {
             return;

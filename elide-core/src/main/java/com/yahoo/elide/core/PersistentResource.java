@@ -118,7 +118,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Create a resource in the database.
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
      * @param entityClass the entity class
-     * @param entityProjection what to project from the newly created class
      * @param requestScope the request scope
      * @param uuid the (optional) uuid
      * @param <T> object type
@@ -127,7 +126,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public static <T> PersistentResource<T> createObject(
             PersistentResource<?> parent,
             Class<T> entityClass,
-            EntityProjection entityProjection,
             RequestScope requestScope,
             Optional<String> uuid) {
 
@@ -136,7 +134,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         String id = uuid.orElse(null);
 
-        PersistentResource<T> newResource = new PersistentResource<>(obj, entityProjection, parent, id, requestScope);
+        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, id, requestScope);
 
         //The ID must be assigned before we add it to the new resources set.  Persistent resource
         //hashcode and equals are only based on the ID/UUID & type.
@@ -174,7 +172,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public PersistentResource(@NonNull T obj, PersistentResource parent,
                               String id, @NonNull RequestScope scope) {
         this.obj = obj;
-        this.entityProjection = entityProjection;
         this.uuid = Optional.ofNullable(id);
         this.lineage = parent != null ? new ResourceLineage(parent.lineage, parent) : new ResourceLineage();
         this.dictionary = scope.getDictionary();
@@ -244,36 +241,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource(obj, projection,
-                null, requestScope.getUUIDFor(obj), requestScope);
+        PersistentResource<T> resource = new PersistentResource(obj, null, requestScope.getUUIDFor(obj), requestScope);
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);
         }
 
         return resource;
-    }
-
-
-    /**
-     * Load an single entity from the DB.
-     *
-     * @param loadClass resource type
-     * @param id the id
-     * @param requestScope the request scope
-     * @param <T> type of resource
-     * @return resource persistent resource
-     * @throws InvalidObjectIdentifierException the invalid object identifier exception
-     */
-    @SuppressWarnings("resource")
-    @NonNull public static <T> PersistentResource<T> loadRecord(
-            Class<T> loadClass, String id, RequestScope requestScope)
-            throws InvalidObjectIdentifierException {
-        Preconditions.checkNotNull(loadClass);
-        Preconditions.checkNotNull(id);
-        Preconditions.checkNotNull(requestScope);
-
-        return loadRecord(requestScope.getEntityProjection(), id, requestScope);
     }
 
     /**
@@ -356,6 +330,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         EntityProjection modifiedProjection = projection
+
                 .copyOf()
                 .filterExpression(filterExpression)
                 .sorting(sorting)
@@ -953,6 +928,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .alias(relationName)
                 .projection(EntityProjection.builder()
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+
                         .build())
                 .build(), false);
     }
@@ -964,6 +940,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .alias(relationName)
                 .projection(EntityProjection.builder()
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+
                         .build())
                 .build(), true);
     }
@@ -976,6 +953,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private Set<PersistentResource> getRelation(com.yahoo.elide.request.Relationship relationship,
                                                 boolean checked) {
+
         if (checked && !checkRelation(relationship)) {
             return Collections.emptySet();
         }
@@ -1068,6 +1046,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
 
+
         if (val == null) {
             return Collections.emptySet();
         }
@@ -1076,7 +1055,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         if (val instanceof Iterable) {
             Iterable filteredVal = (Iterable) val;
-            resources = new PersistentResourceSet(this, modifiedProjection, filteredVal, requestScope);
+            resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(
                     new PersistentResource(val, this,
@@ -1270,11 +1249,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceClass(),
                     relationName);
 
+
             return getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
                     .alias(relationName)
                     .name(relationName)
                     .projection(EntityProjection.builder()
                             .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+
                             .filterExpression(filterExpression.orElse(null))
                             .build())
                     .build());
@@ -1291,6 +1272,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return getRelationCheckedFiltered(projection.getRelationship(relationName)
                     .orElseThrow(IllegalStateException::new)
             );
+
         });
     }
 
@@ -1581,8 +1563,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Class<?> inverseType = dictionary.getType(inverseObj.getClass(), inverseName);
 
             String uuid = requestScope.getUUIDFor(inverseObj);
-            PersistentResource inverseResource = new PersistentResource(inverseObj,
-                    null, this, uuid, requestScope);
+            PersistentResource inverseResource = new PersistentResource(inverseObj, this, uuid, requestScope);
             Object inverseRelation = inverseResource.getValueUnchecked(inverseName);
 
             if (Collection.class.isAssignableFrom(inverseType)) {
@@ -1793,10 +1774,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private void markDirty() {
         requestScope.getDirtyResources().add(this);
-    }
-
-    public EntityProjection getRelationshipProjection(String relationshipName) {
-        return entityProjection.getRelationship(relationshipName);
     }
 
     /**

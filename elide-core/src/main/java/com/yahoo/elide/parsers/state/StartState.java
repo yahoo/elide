@@ -14,6 +14,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipCo
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
 import com.yahoo.elide.request.EntityProjection;
 
+
 import java.util.Optional;
 
 /**
@@ -46,9 +47,11 @@ public class StartState extends BaseState {
     @Override
     public void handle(StateContext state, RootCollectionRelationshipContext ctx) {
         PersistentResource record = entityRecord(state, ctx.entity());
+        EntityDictionary dictionary = record.getDictionary();
 
         EntityProjection projection = state.getRequestScope().getEntityProjection();
         String relationName = ctx.relationship().term().getText();
+
 
         record.getRelationCheckedFiltered(projection.getRelationship(relationName)
                     .orElseThrow(IllegalStateException::new));
@@ -66,5 +69,6 @@ public class StartState extends BaseState {
 
         return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
                 id, state.getRequestScope());
+
     }
 }

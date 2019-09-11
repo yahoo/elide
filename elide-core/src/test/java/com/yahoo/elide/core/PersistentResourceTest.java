@@ -148,7 +148,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(fun));
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         funResource.addRelation("relation3", childResource);
@@ -165,7 +164,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setRelation1(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(fun));
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> child2Resource = new PersistentResource<>(child2, null, "1", goodScope);
         funResource.updateRelation("relation3", Sets.newHashSet(child2Resource));
@@ -255,7 +253,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.getRelation(any(), eq(parent), any(), any())).thenReturn(children);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(parent));
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
         parentResource.clearRelation("children");
 
@@ -281,7 +278,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.getRelation(any(), eq(parent), any(), any())).thenReturn(children);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(parent));
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
         PersistentResource<Child> childResource1 = new PersistentResource<>(child1, null, "1", goodScope);
         PersistentResource<Child> childResource3 = new PersistentResource<>(child3, null, "1", goodScope);
@@ -617,6 +613,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, times(1)).save(left, goodScope);
         verify(tx, times(1)).save(right, goodScope);
         verify(tx, times(1)).getRelation(tx, left, getRelationship(Right.class, "one2one"), goodScope);
+
         assertTrue(updated, "The one-2-one relationship should be added.");
         assertEquals(3, left.getOne2one().getId(), "The correct object was set in the one-2-one relationship");
     }
@@ -967,7 +964,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(fun));
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
 
         PersistentResource<?> result = funResource.getRelation(getRelationship(FunWithPermissions.class, "relation2"), "1");
@@ -987,7 +983,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(fun));
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
 
         assertThrows(InvalidObjectIdentifierException.class,
@@ -1025,7 +1020,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent = newParent(1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(parent));
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
@@ -1044,7 +1038,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         item.setInvoice(invoice);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(invoice));
 
         PersistentResource<Invoice> invoiceResource = new PersistentResource<>(invoice, null, "1", goodScope);
 
@@ -1073,7 +1066,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(child));
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, parentResource, "1", goodScope);
@@ -1517,7 +1509,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         right.setNoUpdateOne2One(left);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(left));
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
 
         assertThrows(
@@ -1678,6 +1669,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .build(), new ArrayList<>(), goodScope);
 
 
+
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);
 
         Set<Object> actual = loaded.stream().map(PersistentResource::getObject).collect(Collectors.toSet());
@@ -1708,6 +1700,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .build(), "1", goodScope);
 
 
+
         assertEquals(child1, loaded.getObject(), "The load function should return the requested child object");
     }
 
@@ -1725,6 +1718,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertThrows(
                 InvalidObjectIdentifierException.class,
                 () -> PersistentResource.loadRecord(EntityProjection.builder()
+
                         .type(Child.class)
                         .build(), "1", goodScope));
     }
@@ -1819,7 +1813,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
 
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings);
-        badScope.setEntityProjection(bootstrapEntityProjection(left));
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, badScope.getUUIDFor(left), badScope);
 
         assertTrue(leftResource.clearRelation("fieldLevelDelete"));
@@ -1844,7 +1837,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(left));
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, goodScope.getUUIDFor(left), goodScope);
 
         assertThrows(
@@ -1906,7 +1898,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(parent));
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, goodScope.getUUIDFor(parent), goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, parentResource, goodScope.getUUIDFor(child), goodScope);
@@ -2306,50 +2297,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     private <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         RequestScope requestScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        requestScope.setEntityProjection(bootstrapEntityProjection(obj));
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
-    }
-
-    private <T> EntityProjection bootstrapEntityProjection(T obj) {
-        return EntityProjection.builder()
-           .type(obj.getClass())
-           .dictionary(dictionary)
-           .relationships(
-                   dictionary.getRelationships(obj).stream()
-                           .collect(Collectors.toMap(
-                                   (name) -> {
-                                       return name;
-                                   },
-                                   (name) -> {
-                                       return EntityProjection.builder()
-                                               .dictionary(dictionary)
-                                               .type(dictionary.getType(obj, name))
-                                               .build();
-                                   }
-                           ))
-           )
-           .build();
-    }
-
-    private <T> EntityProjection bootstrapEntityProjection(Class<T> clazz) {
-        return EntityProjection.builder()
-           .type(clazz)
-           .dictionary(dictionary)
-           .relationships(
-                   dictionary.getRelationships(clazz).stream()
-                           .collect(Collectors.toMap(
-                                   (name) -> {
-                                       return name;
-                                   },
-                                   (name) -> {
-                                       return EntityProjection.builder()
-                                               .dictionary(dictionary)
-                                               .type(dictionary.getType(clazz, name))
-                                               .build();
-                                   }
-                           ))
-           )
-           .build();
     }
 
     private RequestScope getUserScope(User user, AuditLogger auditLogger) {
@@ -2476,6 +2424,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias(name)
                 .projection(EntityProjection.builder()
                         .type(type)
+
                         .build())
                 .build();
     }

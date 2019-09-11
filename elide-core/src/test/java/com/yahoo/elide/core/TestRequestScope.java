@@ -14,6 +14,7 @@ import java.util.Optional;
 import javax.ws.rs.core.MultivaluedMap;
 
 
+
 /**
  * Utility subclass that helps construct RequestScope objects for testing.
  */
@@ -51,6 +52,7 @@ public class TestRequestScope extends RequestScope {
         } else {
             return super.getQueryParams();
         }
+
 
     }
 }
