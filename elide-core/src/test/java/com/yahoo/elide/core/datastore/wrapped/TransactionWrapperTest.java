@@ -10,21 +10,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.request.Attribute;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
 
 public class TransactionWrapperTest {
 
     private class TestTransactionWrapper extends TransactionWrapper {
-
         public TestTransactionWrapper(DataStoreTransaction wrapped) {
             super(wrapped);
         }
@@ -84,12 +84,11 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
         Iterable<Object> expected = mock(Iterable.class);
-        when(wrapped.loadObjects(any(), any(), any(), any(), any())).thenReturn(expected);
+        when(wrapped.loadObjects(any(), any())).thenReturn(expected);
 
-        Iterable<Object> actual = wrapper.loadObjects(null, Optional.empty(),
-                Optional.empty(), Optional.empty(), null);
+        Iterable<Object> actual = wrapper.loadObjects(null, null);
 
-        verify(wrapped, times(1)).loadObjects(any(), any(), any(), any(), any());
+        verify(wrapped, times(1)).loadObjects(any(), any());
         assertEquals(expected, actual);
     }
 
@@ -184,11 +183,11 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.getAttribute(any(), any(), any())).thenReturn(1L);
+        when(wrapped.getAttribute(any(), isA(Attribute.class), any())).thenReturn(1L);
 
-        Object actual = wrapper.getAttribute(null, null, null);
+        Object actual = wrapper.getAttribute(null, Attribute.builder().name("foo").build(), null);
 
-        verify(wrapped, times(1)).getAttribute(any(), any(), any());
+        verify(wrapped, times(1)).getAttribute(any(), isA(Attribute.class), any());
         assertEquals(1L, actual);
     }
 
@@ -197,9 +196,9 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        wrapper.setAttribute(null, null, null, null);
+        wrapper.setAttribute(null, null, null);
 
-        verify(wrapped, times(1)).setAttribute(any(), any(), any(), any());
+        verify(wrapped, times(1)).setAttribute(any(), any(), any());
     }
 
     @Test
@@ -227,12 +226,11 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.getRelation(any(), any(), any(), any(), any(), any(), any())).thenReturn(1L);
+        when(wrapped.getRelation(any(), any(), any(), any())).thenReturn(1L);
 
-        Object actual = wrapper.getRelation(null, null, null, null,
-                null, null, null);
+        Object actual = wrapper.getRelation(null, null, null, null);
 
-        verify(wrapped, times(1)).getRelation(any(), any(), any(), any(), any(), any(), any());
+        verify(wrapped, times(1)).getRelation(any(), any(), any(), any());
         assertEquals(1L, actual);
     }
 
@@ -241,11 +239,11 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.loadObject(any(), any(), any(), any())).thenReturn(1L);
+        when(wrapped.loadObject(isA(EntityProjection.class), any(), any())).thenReturn(1L);
 
-        Object actual = wrapper.loadObject(null, null, null, null);
+        Object actual = wrapper.loadObject(null, null, null);
 
-        verify(wrapped, times(1)).loadObject(any(), any(), any(), any());
+        verify(wrapped, times(1)).loadObject(isA(EntityProjection.class), any(), any());
         assertEquals(1L, actual);
     }
 }

@@ -13,6 +13,8 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -134,31 +136,25 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     @Override
     public Object getRelation(DataStoreTransaction relationTx,
                               Object entity,
-                              String relationName,
-                              Optional<FilterExpression> filterExpression,
-                              Optional<Sorting> sorting,
-                              Optional<Pagination> pagination,
+                              Relationship relationship,
                               RequestScope scope) {
-        return dictionary.getValue(entity, relationName, scope);
+        return dictionary.getValue(entity, relationship.getName(), scope);
     }
 
     @Override
-    public Iterable<Object> loadObjects(Class<?> entityClass, Optional<FilterExpression> filterExpression,
-                                        Optional<Sorting> sorting, Optional<Pagination> pagination,
+    public Iterable<Object> loadObjects(EntityProjection projection,
                                         RequestScope scope) {
         synchronized (dataStore) {
-            Map<String, Object> data = dataStore.get(entityClass);
+            Map<String, Object> data = dataStore.get(projection.getType());
             return data.values();
         }
     }
 
     @Override
-    public Object loadObject(Class<?> entityClass, Serializable id,
-                             Optional<FilterExpression> filterExpression,
-                             RequestScope scope) {
+    public Object loadObject(EntityProjection projection, Serializable id, RequestScope scope) {
 
         synchronized (dataStore) {
-            Map<String, Object> data = dataStore.get(entityClass);
+            Map<String, Object> data = dataStore.get(projection.getType());
             if (data == null) {
                 return null;
             }

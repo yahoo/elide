@@ -31,6 +31,8 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
+import com.yahoo.elide.request.Argument;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.permissions.ExpressionResult;
@@ -327,7 +329,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        EntityProjection modifiedProjection = requestScope.getEntityProjection()
+        EntityProjection modifiedProjection = projection
                 .copyOf()
                 .filterExpression(filterExpression)
                 .sorting(sorting)
@@ -368,7 +370,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
             if (dictionary.isAttribute(obj.getClass(), fieldName)) {
-                transaction.setAttribute(obj, fieldName, newVal, requestScope);
+                transaction.setAttribute(obj, Attribute.builder()
+                        .name(fieldName)
+                        .type(fieldClass)
+                        .argument(Argument.builder()
+                                .name("_UNUSED_")
+                                .value(newVal).build())
+                        .build(), requestScope);
             }
             return true;
         }
@@ -918,7 +926,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .name(relationName)
                 .alias(relationName)
                 .projection(EntityProjection.builder()
-                        .type(dictionary.getType(getResourceClass(), relationName))
+                        .type(dictionary.getParameterizedType(getResourceClass(), relationName))
                         .dictionary(dictionary)
                         .build())
                 .build(), false);
@@ -930,7 +938,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .name(relationName)
                 .alias(relationName)
                 .projection(EntityProjection.builder()
-                        .type(dictionary.getType(getResourceClass(), relationName))
+                        .type(dictionary.getParameterizedType(getResourceClass(), relationName))
                         .dictionary(dictionary)
                         .build())
                 .build(), true);
@@ -1035,9 +1043,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         .build()
                 ).build();
 
-        //TODO - Change TO : Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
-        Object val = transaction.getRelation(transaction, obj, modifiedRelationship.getName(),
-                modifiedRelationship.getProjection(), requestScope);
+        Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
 
         if (val == null) {
             return Collections.emptySet();
@@ -1244,7 +1250,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     .alias(relationName)
                     .name(relationName)
                     .projection(EntityProjection.builder()
-                            .type(dictionary.getType(getResourceClass(), relationName))
+                            .type(dictionary.getParameterizedType(getResourceClass(), relationName))
                             .dictionary(dictionary)
                             .filterExpression(filterExpression.orElse(null))
                             .build())
@@ -1265,7 +1271,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     .alias(relationName)
                     .name(relationName)
                     .projection(EntityProjection.builder()
-                            .type(dictionary.getType(getResourceClass(), relationName))
+                            .type(dictionary.getParameterizedType(getResourceClass(), relationName))
                             .dictionary(dictionary)
                             .filterExpression(filterExpression.orElse(null))
                             .sorting(requestScope.getSorting())

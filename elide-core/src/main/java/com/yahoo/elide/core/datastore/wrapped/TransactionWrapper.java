@@ -11,6 +11,9 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.Attribute;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -44,16 +47,15 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public Object loadObject(Class<?> entityClass, Serializable id, Optional<FilterExpression> filterExpression,
+    public Object loadObject(EntityProjection projection, Serializable id,
                              RequestScope scope) {
-        return tx.loadObject(entityClass, id, filterExpression, scope);
+        return tx.loadObject(projection, id, scope);
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx, Object entity, String relationName,
-                              Optional<FilterExpression> filterExpression, Optional<Sorting> sorting,
-                              Optional<Pagination> pagination, RequestScope scope) {
-        return tx.getRelation(relationTx, entity, relationName, filterExpression, sorting, pagination, scope);
+    public Object getRelation(DataStoreTransaction relationTx, Object entity,
+                              Relationship relationship, RequestScope scope) {
+        return tx.getRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
@@ -71,13 +73,13 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public Object getAttribute(Object entity, String attributeName, RequestScope scope) {
-        return tx.getAttribute(entity, attributeName, scope);
+    public Object getAttribute(Object entity, Attribute attribute, RequestScope scope) {
+        return tx.getAttribute(entity, attribute, scope);
     }
 
     @Override
-    public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
-        tx.setAttribute(entity, attributeName, attributeValue, scope);
+    public void setAttribute(Object entity, Attribute attribute, RequestScope scope) {
+        tx.setAttribute(entity, attribute, scope);
     }
 
     @Override
@@ -119,16 +121,11 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     @Override
     public void createObject(Object o, RequestScope requestScope) {
         tx.createObject(o, requestScope);
-
     }
 
     @Override
-    public Iterable<Object> loadObjects(Class<?> entityClass,
-                                        Optional<FilterExpression> filterExpression,
-                                        Optional<Sorting> sorting,
-                                        Optional<Pagination> pagination,
-                                        RequestScope requestScope) {
-        return tx.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
+    public Iterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
+        return tx.loadObjects(projection, scope);
     }
 
     @Override
