@@ -941,8 +941,7 @@ public class LifeCycleTest {
         RequestScope scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
 
         PersistentResource publisherResource = PersistentResource.createObject(Publisher.class, scope, Optional.of("1"));
-        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class,
-                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("1"));
+        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
 
         publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book1Resource)));
 
@@ -958,9 +957,12 @@ public class LifeCycleTest {
 
         scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
 
-        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class,
-                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("2"));
-        publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
+        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
+        publisherResource = PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .type(Publisher.class)
+                        .dictionary(dictionary)
+                        .build(), "1", scope);
         publisherResource.addRelation("books", book2Resource);
 
         scope.runQueuedPreCommitTriggers();
@@ -985,10 +987,8 @@ public class LifeCycleTest {
         RequestScope scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
 
         PersistentResource publisherResource = PersistentResource.createObject(Publisher.class, scope, Optional.of("1"));
-        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class,
-                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("1"));
-        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class,
-                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("2"));
+        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
+        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
         publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book1Resource, book2Resource)));
 
         scope.runQueuedPreCommitTriggers();
@@ -1003,10 +1003,13 @@ public class LifeCycleTest {
 
         scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
 
-        book2Resource = PersistentResource.createObject(publisherResource, Book.class,
-                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("2"));
+        book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
 
-        publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
+        publisherResource = PersistentResource.loadRecord(EntityProjection.builder()
+                .dictionary(dictionary)
+                .type(Publisher.class)
+                .build(), "1", scope);
+
         publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book2Resource)));
 
         scope.runQueuedPreCommitTriggers();

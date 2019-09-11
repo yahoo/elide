@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.request.EntityProjection;
-
 import com.google.common.collect.UnmodifiableIterator;
 
 import java.util.AbstractSet;
@@ -21,18 +19,15 @@ public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>>
     final private PersistentResource<?> parent;
     final private Iterable<T> list;
     final private RequestScope requestScope;
-    final private EntityProjection entityProjection;
 
-    public PersistentResourceSet(PersistentResource<?> parent, EntityProjection entityProjection,
-                                 Iterable<T> list, RequestScope requestScope) {
+    public PersistentResourceSet(PersistentResource<?> parent, Iterable<T> list, RequestScope requestScope) {
         this.parent = parent;
         this.list = list;
         this.requestScope = requestScope;
-        this.entityProjection = entityProjection;
     }
 
     public PersistentResourceSet(Iterable<T> list, RequestScope requestScope) {
-        this(null, requestScope.getEntityProjection(), list, requestScope);
+        this(null, list, requestScope);
     }
 
     @Override
@@ -47,8 +42,7 @@ public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>>
             @Override
             public PersistentResource<T> next() {
                 T obj = iterator.next();
-                return new PersistentResource<>(obj, entityProjection, parent,
-                        requestScope.getUUIDFor(obj), requestScope);
+                return new PersistentResource<>(obj, parent, requestScope.getUUIDFor(obj), requestScope);
             }
         };
     }
