@@ -15,6 +15,8 @@ import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesCo
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 
 import java.util.Optional;
 
@@ -49,12 +51,22 @@ public class StartState extends BaseState {
     @Override
     public void handle(StateContext state, RootCollectionRelationshipContext ctx) {
         PersistentResource record = entityRecord(state, ctx.entity());
+        EntityDictionary dictionary = record.getDictionary();
 
         String relationName = ctx.relationship().term().getText();
         try {
             Optional<FilterExpression> filterExpression =
                     state.getRequestScope().getExpressionForRelation(record, relationName);
-            record.getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
+
+            record.getRelationCheckedFiltered(Relationship.builder()
+                    .alias(relationName)
+                    .name(relationName)
+                    .projection(EntityProjection.builder()
+                            .dictionary(dictionary)
+                            .type(dictionary.getType(record.getResourceClass(), relationName))
+                            .filterExpression(filterExpression.orElse(null))
+                            .build())
+                    .build());
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(relationName);
         }
@@ -76,6 +88,10 @@ public class StartState extends BaseState {
             throw new InvalidCollectionException(entityName);
         }
 
-        return PersistentResource.loadRecord(entityClass, id, state.getRequestScope());
+        return PersistentResource.loadRecord(
+                EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .type(entityClass)
+                        .build(), id, state.getRequestScope());
     }
 }

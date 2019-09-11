@@ -132,20 +132,32 @@ public class CollectionTerminalState extends BaseState {
             Optional<FilterExpression> filterExpression =
                     requestScope.getExpressionForRelation(parent.get(), relationName.get());
 
-            collection = parent.get().getRelationCheckedFiltered(
-                    relationName.get(),
-                    filterExpression,
-                    sorting,
-                    pagination);
+            collection = parent.get().getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
+                    .name(relationName.get())
+                    .alias(relationName.get())
+                    .projection(
+                            EntityProjection.builder()
+                                    .type(entityClass)
+                                    .dictionary(requestScope.getDictionary())
+                                    .pagination(requestScope.getPagination())
+                                    .sorting(requestScope.getSorting())
+                                    .filterExpression(filterExpression.orElse(null))
+                                    .build()
+
+                    )
+                    .build());
         } else {
             Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(entityClass);
 
             collection = PersistentResource.loadRecords(
-                entityClass,
+                EntityProjection.builder()
+                    .type(entityClass)
+                    .dictionary(requestScope.getDictionary())
+                    .pagination(requestScope.getPagination())
+                    .sorting(requestScope.getSorting())
+                    .filterExpression(filterExpression.orElse(null))
+                    .build(),
                 new ArrayList<>(), //Empty list of IDs
-                filterExpression,
-                sorting,
-                pagination,
                 requestScope);
         }
 
@@ -186,16 +198,8 @@ public class CollectionTerminalState extends BaseState {
                     + " to type: " + entityClass);
         }
 
-        PersistentResource pResource;
-        EntityProjection collection;
-        if (parent.isPresent()) {
-            collection = parent.get().getRelationshipProjection(relationName.get());
-            pResource = PersistentResource.createObject(parent.get(), newObjectClass, collection,
+        PersistentResource pResource = PersistentResource.createObject(parent.orElse(null), newObjectClass,
                     requestScope, Optional.ofNullable(id));
-        } else {
-            pResource = PersistentResource.createObject(null, newObjectClass, requestScope.getEntityProjection(),
-                    requestScope, Optional.ofNullable(id));
-        }
 
         Map<String, Object> attributes = resource.getAttributes();
         if (attributes != null) {

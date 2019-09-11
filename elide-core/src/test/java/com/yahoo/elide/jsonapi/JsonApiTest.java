@@ -125,7 +125,6 @@ public class JsonApiTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(pRec.toResource()));
         jsonApiDocument.addIncluded(new PersistentResource<>(child,
-                userScope.getEntityProjection().getRelationship("children"),
                 pRec, userScope.getUUIDFor(child), userScope).toResource());
 
         String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}},\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
@@ -174,11 +173,9 @@ public class JsonApiTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(Collections.singletonList(pRec.toResource())));
         jsonApiDocument.addIncluded(new PersistentResource<>(child,
-                userScope.getEntityProjection().getRelationship("children"),
                 pRec, userScope.getUUIDFor(child), userScope).toResource());
         // duplicate will be ignored
         jsonApiDocument.addIncluded(new PersistentResource<>(child,
-                userScope.getEntityProjection().getRelationship("children"),
                 pRec, userScope.getUUIDFor(child), userScope).toResource());
 
         String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}],\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";

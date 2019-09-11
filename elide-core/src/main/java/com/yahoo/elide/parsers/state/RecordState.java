@@ -16,6 +16,8 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityConte
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 
 import com.google.common.base.Preconditions;
 
@@ -63,8 +65,15 @@ public class RecordState extends BaseState {
             if (type.isToOne()) {
                 Optional<FilterExpression> filterExpression =
                         state.getRequestScope().getExpressionForRelation(resource, subCollection);
-                collection = resource.getRelationCheckedFiltered(subCollection,
-                        filterExpression, Optional.empty(), Optional.empty());
+                collection = resource.getRelationCheckedFiltered(Relationship.builder()
+                        .alias(subCollection)
+                        .name(subCollection)
+                        .projection(EntityProjection.builder()
+                                .dictionary(dictionary)
+                                .type(entityClass)
+                                .filterExpression(filterExpression.orElse(null))
+                                .build())
+                        .build());
             }
             if (collection instanceof SingleElementSet) {
                 PersistentResource record = ((SingleElementSet<PersistentResource>) collection).getValue();
@@ -84,7 +93,15 @@ public class RecordState extends BaseState {
         String subCollection = ctx.entity().term().getText();
 
         try {
-            PersistentResource nextRecord = resource.getRelation(subCollection, id);
+            EntityDictionary dictionary = resource.getDictionary();
+            PersistentResource nextRecord = resource.getRelation(Relationship.builder()
+                    .alias(subCollection)
+                    .name(subCollection)
+                    .projection(EntityProjection.builder()
+                            .dictionary(dictionary)
+                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
+                            .build())
+                    .build(), id);
             state.setState(new RecordTerminalState(nextRecord));
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(subCollection);
@@ -96,7 +113,15 @@ public class RecordState extends BaseState {
         String id = ctx.entity().id().getText();
         String subCollection = ctx.entity().term().getText();
         try {
-            state.setState(new RecordState(resource.getRelation(subCollection, id)));
+            EntityDictionary dictionary = resource.getDictionary();
+            state.setState(new RecordState(resource.getRelation(Relationship.builder()
+                    .alias(subCollection)
+                    .name(subCollection)
+                    .projection(EntityProjection.builder()
+                            .dictionary(dictionary)
+                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
+                            .build())
+                    .build(), id)));
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(subCollection);
         }
@@ -109,16 +134,36 @@ public class RecordState extends BaseState {
 
         PersistentResource childRecord;
         try {
-            childRecord = resource.getRelation(subCollection, id);
+            EntityDictionary dictionary = resource.getDictionary();
+            childRecord = resource.getRelation(Relationship.builder()
+                    .alias(subCollection)
+                    .name(subCollection)
+                    .projection(EntityProjection.builder()
+                            .dictionary(dictionary)
+                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
+                            .build())
+                    .build(), id);
+
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(subCollection);
         }
 
         String relationName = ctx.relationship().term().getText();
         try {
+            EntityDictionary dictionary = resource.getDictionary();
+
             Optional<FilterExpression> filterExpression =
                         state.getRequestScope().getExpressionForRelation(resource, subCollection);
-            childRecord.getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
+
+            childRecord.getRelationCheckedFiltered(Relationship.builder()
+                    .alias(relationName)
+                    .name(relationName)
+                    .projection(EntityProjection.builder()
+                            .dictionary(dictionary)
+                            .filterExpression(filterExpression.orElse(null))
+                            .type(dictionary.getType(childRecord.getResourceClass(), relationName))
+                            .build())
+                    .build());
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(relationName);
         }
