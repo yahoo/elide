@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.graphql.containers;
+package com.yahoo.elide.graphql;
 
 import lombok.Getter;
 
@@ -20,7 +20,9 @@ public enum KeyWord {
     PAGE_INFO_END_CURSOR_KEYWORD("endCursor"),
     PAGE_INFO_TOTAL_RECORDS_KEYWORD("totalRecords"),
     TYPE_NAME("__typename"),
-    PAGE_INFO("pageinfo"),
+    PAGE_INFO("pageInfo"),
+    SCHEMA("__schema"),
+    TYPE("__type"),
     UNKNOWN("unknown");
 
     @Getter

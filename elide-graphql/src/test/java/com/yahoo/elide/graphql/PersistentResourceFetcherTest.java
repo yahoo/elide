@@ -15,10 +15,9 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
-import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionContainer;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
+import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -174,11 +174,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
-        GraphQLEntityProjectionContainer projectionContainer = entityProjectionMaker.make(graphQLRequest);
-        // TODO: handle multiple projection in one graphQL query
-        requestScope.setEntityProjection(projectionContainer.getProjections().iterator().next());
-        requestScope.setRelationshipMap(projectionContainer.getRelationshipMap());
+        GraphQLProjectionInfo projectionInfo = entityProjectionMaker.make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
@@ -203,11 +200,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
-        GraphQLEntityProjectionContainer projectionContainer = entityProjectionMaker.make(graphQLRequest);
-        // TODO: handle multiple projection in one graphQL query
-        requestScope.setEntityProjection(projectionContainer.getProjections().iterator().next());
-        requestScope.setRelationshipMap(projectionContainer.getRelationshipMap());
+        GraphQLProjectionInfo projectionInfo = entityProjectionMaker.make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         if (isMutation) {
@@ -225,14 +219,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryFails(String graphQLRequest) {
-        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
-        GraphQLEntityProjectionContainer projectionContainer = entityProjectionMaker.make(graphQLRequest);
-        // TODO: handle multiple projection in one graphQL query
-        requestScope.setEntityProjection(projectionContainer.getProjections().iterator().next());
-        requestScope.setRelationshipMap(projectionContainer.getRelationshipMap());
-
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
         //debug for errors
         LOG.debug("Errors = [" + errorsToString(result.getErrors()) + "]");
@@ -240,12 +227,16 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         assertNotEquals(result.getErrors().size(), 0);
     }
 
-    /**
-     * Test for invalid graphql request body
-     * @param graphQLRequest
-     */
     protected void assertParsingFails(String graphQLRequest) {
-        assertThrows(InvalidEntityBodyException.class, () -> entityProjectionMaker.make(graphQLRequest));
+        assertThrows(Exception.class, () -> entityProjectionMaker.make(graphQLRequest));
+    }
+
+    protected ExecutionResult runGraphQLRequest(String graphQLRequest, Map<String, Object> variables) {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        GraphQLProjectionInfo projectionInfo = entityProjectionMaker.make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
+
+        return api.execute(graphQLRequest, requestScope, variables);
     }
 
     protected String errorsToString(List<GraphQLError> errors) {

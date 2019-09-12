@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import static com.yahoo.elide.graphql.containers.KeyWord.NODE_KEYWORD;
+import static com.yahoo.elide.graphql.KeyWord.NODE_KEYWORD;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.Environment;

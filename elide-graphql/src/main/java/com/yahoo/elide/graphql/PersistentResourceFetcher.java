@@ -21,12 +21,14 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
 import com.google.common.collect.Sets;
 
 import graphql.language.Field;
+import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
@@ -237,6 +239,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         // use SourceLocation, which points to the location of a graphql Field in the original graphql Document,
         // to load the constructed relationship object from the relationship map
         Relationship relationship = context.requestScope
+                .getProjectionInfo()
                 .getRelationshipMap()
                 .getOrDefault(context.field.getSourceLocation(), null);
 
@@ -311,16 +314,29 @@ public class PersistentResourceFetcher implements DataFetcher {
         if (context.isRoot()) {
             entityClass = dictionary.getEntityClass(context.field.getName());
         } else {
+            assert context.parentResource != null;
             entityClass = dictionary.getParameterizedType(
                     context.parentResource.getResourceClass(),
                     context.field.getName());
         }
 
-        // TODO: is this sufficient enough for creating an entity projection for upsert
-        EntityProjection entityProjection = EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(entityClass)
-                .build();
+        // Try to get projection for the entity to upsert/update
+        SourceLocation selectionLocation = context.field.getSourceLocation();
+        GraphQLProjectionInfo projectionInfo = context.requestScope.getProjectionInfo();
+        EntityProjection entityProjection;
+        if (selectionLocation.equals(projectionInfo.getRootLocation())) {
+            // if this is the root selection
+            entityProjection = context.requestScope.getEntityProjection();
+        } else if (projectionInfo.getRelationshipMap().containsKey(selectionLocation)) {
+            // if this is a relationship in the projection
+            entityProjection = projectionInfo.getRelationshipMap().get(selectionLocation).getProjection();
+        } else {
+            // if there is not matched projection, create a new temporary projection
+            entityProjection = EntityProjection.builder()
+                    .dictionary(dictionary)
+                    .type(entityClass)
+                    .build();
+        }
 
         /* form entities */
         Optional<Entity> parentEntity;

@@ -13,8 +13,8 @@ import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionContainer;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
+import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.User;
 
@@ -164,19 +164,16 @@ public class GraphQLEndpoint {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             final User user = tx.accessUser(getUser.apply(securityContext));
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, elide.getElideSettings());
+            String query = jsonDocument.get(QUERY).asText();
+            GraphQLProjectionInfo projectionInfo = entityProjectionMaker.make(query);
+            GraphQLRequestScope requestScope =
+                    new GraphQLRequestScope(tx, user, elide.getElideSettings(), projectionInfo);
+
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             if (!jsonDocument.has(QUERY)) {
                 return Response.status(400).entity("A `query` key is required.").build();
             }
-
-            String query = jsonDocument.get(QUERY).asText();
-
-            GraphQLEntityProjectionContainer projectionContainer = entityProjectionMaker.make(query);
-            // TODO: handle multiple projection in one graphQL query
-            requestScope.setEntityProjection(projectionContainer.getProjections().iterator().next());
-            requestScope.setRelationshipMap(projectionContainer.getRelationshipMap());
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.

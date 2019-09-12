@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import static com.yahoo.elide.graphql.containers.KeyWord.PAGE_INFO_KEYWORD;
+import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO_KEYWORD;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.graphql.Environment;
