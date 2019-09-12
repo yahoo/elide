@@ -12,15 +12,14 @@ import lombok.Getter;
  * Key words used in graphql parsing.
  */
 public enum KeyWord {
-    NODE_KEYWORD("node"),
-    EDGES_KEYWORD("edges"),
-    PAGE_INFO_KEYWORD("pageInfo"),
-    PAGE_INFO_HAS_NEXT_PAGE_KEYWORD("hasNextPage"),
-    PAGE_INFO_START_CURSOR_KEYWORD("startCursor"),
-    PAGE_INFO_END_CURSOR_KEYWORD("endCursor"),
-    PAGE_INFO_TOTAL_RECORDS_KEYWORD("totalRecords"),
-    TYPE_NAME("__typename"),
+    NODE("node"),
+    EDGES("edges"),
     PAGE_INFO("pageInfo"),
+    PAGE_INFO_HAS_NEXT_PAGE("hasNextPage"),
+    PAGE_INFO_START_CURSOR("startCursor"),
+    PAGE_INFO_END_CURSOR("endCursor"),
+    PAGE_INFO_TOTAL_RECORDS("totalRecords"),
+    TYPENAME("__typename"),
     SCHEMA("__schema"),
     TYPE("__type"),
     UNKNOWN("unknown");

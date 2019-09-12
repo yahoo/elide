@@ -40,16 +40,16 @@ public class PageInfoContainer implements GraphQLContainer {
 
         return pagination.map(pageValue -> {
             switch (KeyWord.byName(fieldName)) {
-                case PAGE_INFO_HAS_NEXT_PAGE_KEYWORD: {
+                case PAGE_INFO_HAS_NEXT_PAGE: {
                     int numResults = ids.size();
                     int nextOffset = numResults + pageValue.getOffset();
                     return nextOffset < pageValue.getPageTotals();
                 }
-                case PAGE_INFO_START_CURSOR_KEYWORD:
+                case PAGE_INFO_START_CURSOR:
                     return pageValue.getOffset();
-                case PAGE_INFO_END_CURSOR_KEYWORD:
+                case PAGE_INFO_END_CURSOR:
                     return pageValue.getOffset() + ids.size();
-                case PAGE_INFO_TOTAL_RECORDS_KEYWORD:
+                case PAGE_INFO_TOTAL_RECORDS:
                     return pageValue.getPageTotals();
                 default:
                     break;

@@ -35,11 +35,11 @@ public class ConnectionContainer implements GraphQLContainer {
         String fieldName = context.field.getName();
 
         switch (KeyWord.byName(fieldName)) {
-            case EDGES_KEYWORD:
+            case EDGES:
                 return getPersistentResources().stream()
                         .map(EdgesContainer::new)
                         .collect(Collectors.toList());
-            case PAGE_INFO_KEYWORD:
+            case PAGE_INFO:
                 return new PageInfoContainer(this);
             default:
                 break;

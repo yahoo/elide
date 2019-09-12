@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import static com.yahoo.elide.graphql.KeyWord.NODE_KEYWORD;
+import static com.yahoo.elide.graphql.KeyWord.NODE;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.Environment;
@@ -28,7 +28,7 @@ public class EdgesContainer implements PersistentResourceContainer, GraphQLConta
         String fieldName = context.field.getName();
 
         // TODO: Cursor
-        if (NODE_KEYWORD.equals(fieldName)) {
+        if (NODE.equals(fieldName)) {
             return new NodeContainer(context.parentResource);
         }
 

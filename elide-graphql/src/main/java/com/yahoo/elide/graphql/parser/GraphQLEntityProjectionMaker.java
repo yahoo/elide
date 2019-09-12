@@ -6,12 +6,12 @@
 
 package com.yahoo.elide.graphql.parser;
 
-import static com.yahoo.elide.graphql.KeyWord.EDGES_KEYWORD;
-import static com.yahoo.elide.graphql.KeyWord.NODE_KEYWORD;
+import static com.yahoo.elide.graphql.KeyWord.EDGES;
+import static com.yahoo.elide.graphql.KeyWord.NODE;
 import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO;
 import static com.yahoo.elide.graphql.KeyWord.SCHEMA;
 import static com.yahoo.elide.graphql.KeyWord.TYPE;
-import static com.yahoo.elide.graphql.KeyWord.TYPE_NAME;
+import static com.yahoo.elide.graphql.KeyWord.TYPENAME;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
@@ -181,8 +181,8 @@ public class GraphQLEntityProjectionMaker {
         if (fieldSelection instanceof FragmentSpread) {
             addFragment((FragmentSpread) fieldSelection, parentProjection);
         } else if (fieldSelection instanceof Field) {
-            if (EDGES_KEYWORD.equals(((Field) fieldSelection).getName())
-                    || NODE_KEYWORD.equals(((Field) fieldSelection).getName())) {
+            if (EDGES.equals(((Field) fieldSelection).getName())
+                    || NODE.equals(((Field) fieldSelection).getName())) {
                 // if this graphql field is 'edges' or 'node', go one level deeper in the graphql document
                 ((Field) fieldSelection).getSelectionSet().getSelections().forEach(
                         selection -> addSelection(selection, parentProjection));
@@ -247,7 +247,7 @@ public class GraphQLEntityProjectionMaker {
             return;
         }
 
-        if (TYPE_NAME.equals(fieldName) || PAGE_INFO.equals(fieldName)) {
+        if (TYPENAME.equals(fieldName) || PAGE_INFO.equals(fieldName)) {
             return; // '__typename' and 'pageInfo' would not be handled by entityProjection
         }
 
