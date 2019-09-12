@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionContainer;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.User;
@@ -24,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
@@ -32,11 +32,7 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
-import graphql.language.Document;
-import graphql.parser.Parser;
-
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,7 +40,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -178,8 +173,10 @@ public class GraphQLEndpoint {
 
             String query = jsonDocument.get(QUERY).asText();
 
+            GraphQLEntityProjectionContainer projectionContainer = entityProjectionMaker.make(query);
             // TODO: handle multiple projection in one graphQL query
-            requestScope.setEntityProjection(entityProjectionMaker.make(query).iterator().next());
+            requestScope.setEntityProjection(projectionContainer.getProjections().iterator().next());
+            requestScope.setRelationshipMap(projectionContainer.getRelationshipMap());
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.

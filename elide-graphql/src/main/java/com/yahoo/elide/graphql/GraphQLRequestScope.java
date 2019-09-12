@@ -8,13 +8,14 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.User;
 
+import graphql.language.SourceLocation;
 import lombok.Getter;
-
+import lombok.Setter;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
@@ -22,6 +23,10 @@ import javax.ws.rs.core.MultivaluedHashMap;
  */
 public class GraphQLRequestScope extends RequestScope {
     @Getter private final Map<String, Long> totalRecordCounts = new HashMap<>();
+
+    @Getter
+    @Setter
+    private Map<SourceLocation, Relationship> relationshipMap;
 
     public GraphQLRequestScope(DataStoreTransaction transaction,
                                User user,

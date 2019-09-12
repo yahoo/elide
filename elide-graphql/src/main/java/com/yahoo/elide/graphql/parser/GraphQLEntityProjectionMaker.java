@@ -6,9 +6,9 @@ import static com.yahoo.elide.graphql.containers.KeyWord.NODE_KEYWORD;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 
 import graphql.language.Argument;
 import graphql.language.Document;
@@ -18,11 +18,11 @@ import graphql.language.FragmentSpread;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
+import graphql.language.SourceLocation;
 import graphql.language.VariableDefinition;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,9 +37,10 @@ import java.util.stream.Collectors;
 public class GraphQLEntityProjectionMaker {
     private final EntityDictionary entityDictionary;
 
-    private final Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
-    private final Map<String, VariableDefinition> variableMap = new HashMap<>();
-    private final List<EntityProjection> rootProjections = new ArrayList<>();
+    private Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
+    private Map<String, VariableDefinition> variableMap = new HashMap<>();
+    private Map<SourceLocation, Relationship> relationshipMap;
+    private List<EntityProjection> rootProjections;
 
     /**
      * Constructor.
@@ -51,14 +52,23 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
+     * Clear cache.
+     */
+    private void clear() {
+        fragmentMap = new HashMap<>();
+        variableMap = new HashMap<>();
+        relationshipMap = new HashMap<>();
+        rootProjections = new ArrayList<>();
+    }
+
+    /**
      * Convert a GraphQL query string into a collection of Elide {@link EntityProjection}s.
      *
      * @param query GraphQL query
      * @return all projections in the query
      */
-    public Collection<EntityProjection> make(String query) {
-        fragmentMap.clear();
-        variableMap.clear();
+    public GraphQLEntityProjectionContainer make(String query) {
+        clear();
 
         Parser parser = new Parser();
         Document parsedDocument = parser.parseDocument(query);
@@ -93,7 +103,7 @@ public class GraphQLEntityProjectionMaker {
             }
         });
 
-        return rootProjections;
+        return new GraphQLEntityProjectionContainer(rootProjections, relationshipMap);
     }
 
     /**
@@ -259,9 +269,16 @@ public class GraphQLEntityProjectionMaker {
 
             // build new entity projection with only entity type and entity dictionary
             EntityProjection relationshipProjection = createProjection(relationshipType, field);
+            Relationship relationship = Relationship.builder()
+                    .name(fieldName)
+                    .alias(field.getAlias())
+                    .projection(relationshipProjection)
+                    .build();
+
+            relationshipMap.put(field.getSourceLocation(), relationship);
 
             // add this relationship projection to its parent projection
-            parentProjection.getRelationships().put(fieldName, relationshipProjection);
+            parentProjection.getRelationships().add(relationship);
 
             return;
         }

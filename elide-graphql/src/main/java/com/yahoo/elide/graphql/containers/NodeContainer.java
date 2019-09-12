@@ -47,8 +47,15 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
         }
         if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
             boolean generateTotals = requestContainsPageInfo(context.field);
-            return fetcher.fetchRelationship(context, context.parentResource,
-                    fieldName, context.ids, context.offset, context.first, context.sort, context.filters,
+            return fetcher.fetchRelationship(
+                    context,
+                    context.parentResource,
+                    fieldName,
+                    context.ids,
+                    context.offset,
+                    context.first,
+                    context.sort,
+                    context.filters,
                     generateTotals);
         }
         if (Objects.equals(idFieldName, fieldName)) {

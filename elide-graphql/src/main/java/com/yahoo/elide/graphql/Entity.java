@@ -9,6 +9,7 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.request.EntityProjection;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,19 +33,24 @@ public class Entity {
     @Getter private RequestScope requestScope;
     @Getter private Set<Attribute> attributes;
     @Getter private Set<Relationship> relationships;
+    @Getter private EntityProjection projection;
 
     /**
      * Class constructor.
      * @param parentResource parent entity
      * @param data entity data
-     * @param entityClass binding entity class
+     * @param projection projection for this entity
      * @param requestScope the request context object
      */
-    public Entity(Optional<Entity> parentResource, Map<String, Object> data,
-                     Class<?> entityClass, RequestScope requestScope) {
+    public Entity(
+            Optional<Entity> parentResource,
+            Map<String, Object> data,
+            EntityProjection projection,
+            RequestScope requestScope) {
         this.parentResource = parentResource;
         this.data = data;
-        this.entityClass = entityClass;
+        this.projection = projection;
+        this.entityClass = projection.getType();
         this.requestScope = requestScope;
         setAttributes();
         setRelationships();
@@ -90,24 +96,42 @@ public class Entity {
             this.relationships = new LinkedHashSet<>();
             EntityDictionary dictionary = this.requestScope.getDictionary();
 
-            for (Map.Entry<String, Object> entry : this.data.entrySet()) {
-                if (dictionary.isRelation(this.entityClass, entry.getKey())) {
-                    Set<Entity> entitySet = new LinkedHashSet<>();
-                    Class<?> loadClass = dictionary.getParameterizedType(this.entityClass, entry.getKey());
-                    Boolean isToOne = dictionary.getRelationshipType(this.entityClass, entry.getKey()).isToOne();
-                    if (isToOne) {
-                        entitySet.add(new Entity(Optional.of(this),
-                                ((Map<String, Object>) entry.getValue()),
-                                loadClass,
-                                this.requestScope));
-                    } else {
-                        for (Map<String, Object> row : (List<Map<String, Object>>) entry.getValue()) {
-                            entitySet.add(new Entity(Optional.of(this), row, loadClass, this.requestScope));
+            this.data.entrySet().stream()
+                    .filter(entry -> dictionary.isRelation(this.entityClass, entry.getKey()))
+                    .forEach(entry -> {
+                        String relationshipName = entry.getKey();
+
+                        Set<Entity> entitySet = new LinkedHashSet<>();
+                        Class<?> relationshipClass = dictionary.getParameterizedType(this.entityClass, relationshipName);
+                        boolean isToOne = dictionary.getRelationshipType(this.entityClass, relationshipName).isToOne();
+
+                        // if this data contains a relationship that is not in the projection tree, create a temporary
+                        // projection to create that relationship
+                        EntityProjection relationshipProjection =
+                                projection.getRelationship(relationshipName).isPresent()
+                                        ? projection.getRelationship(relationshipName).get().getProjection()
+                                        : EntityProjection.builder()
+                                                .dictionary(projection.getDictionary())
+                                                .type(relationshipClass)
+                                                .build();
+
+                        if (isToOne) {
+                            entitySet.add(new Entity(
+                                    Optional.of(this),
+                                    ((Map<String, Object>) entry.getValue()),
+                                    relationshipProjection,
+                                    this.requestScope));
+                        } else {
+                            for (Map<String, Object> row : (List<Map<String, Object>>) entry.getValue()) {
+                                entitySet.add(new Entity(
+                                        Optional.of(this),
+                                        row,
+                                        relationshipProjection,
+                                        this.requestScope));
+                            }
                         }
-                    }
-                    this.relationships.add(new Relationship(entry.getKey(), entitySet));
-                }
-            }
+                        this.relationships.add(new Relationship(relationshipName, entitySet));
+                    });
         }
     }
 
@@ -173,8 +197,8 @@ public class Entity {
      * @return {@link PersistentResource} object
      */
     public PersistentResource toPersistentResource() {
-        return this.data == null ? null : PersistentResource.loadRecord(this.entityClass,
-                getId().orElse(null),
-                this.requestScope);
+        return this.data == null
+                ? null
+                : PersistentResource.loadRecord(projection, getId().orElse(null), this.requestScope);
     }
 }

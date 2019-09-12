@@ -63,6 +63,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.ws.rs.BadRequestException;
 
 /**
  * Resource wrapper around Entity bean.
@@ -127,7 +128,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             RequestScope requestScope,
             Optional<String> uuid) {
 
-        //instead of calling transcation.createObject, create the new object here.
+        //instead of calling transaction.createObject, create the new object here.
         T obj = requestScope.getTransaction().createNewObject(entityClass);
 
         String id = uuid.orElse(null);
@@ -167,8 +168,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param id the id
      * @param scope the request scope
      */
-    public PersistentResource(@NonNull T obj, PersistentResource parent,
-                              String id, @NonNull RequestScope scope) {
+    public PersistentResource(
+            @NonNull T obj,
+            PersistentResource parent,
+            String id,
+            @NonNull RequestScope scope
+    ) {
         this.obj = obj;
         this.uuid = Optional.ofNullable(id);
         this.lineage = parent != null ? new ResourceLineage(parent.lineage, parent) : new ResourceLineage();
@@ -210,8 +215,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     @SuppressWarnings("resource")
     @NonNull public static <T> PersistentResource<T> loadRecord(
-            EntityProjection projection, String id, RequestScope requestScope)
-            throws InvalidObjectIdentifierException {
+            EntityProjection projection,
+            String id,
+            RequestScope requestScope
+    ) throws InvalidObjectIdentifierException {
         Preconditions.checkNotNull(projection);
         Preconditions.checkNotNull(id);
         Preconditions.checkNotNull(requestScope);
@@ -239,7 +246,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource(obj, null, requestScope.getUUIDFor(obj), requestScope);
+        PersistentResource<T> resource = new PersistentResource<>((T) obj, null, requestScope.getUUIDFor(obj), requestScope);
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);
@@ -327,7 +334,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        EntityProjection modifiedProjection = requestScope.getEntityProjection()
+        EntityProjection modifiedProjection = projection
                 .copyOf()
                 .filterExpression(filterExpression)
                 .sorting(sorting)
