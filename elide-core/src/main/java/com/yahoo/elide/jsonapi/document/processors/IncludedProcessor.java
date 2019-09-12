@@ -93,7 +93,7 @@ public class IncludedProcessor implements DocumentProcessor {
                     .name(relation)
                     .alias(relation)
                     .projection(EntityProjection.builder()
-                            .type(dictionary.getType(rec.getResourceClass(), relation))
+                            .type(dictionary.getParameterizedType(rec.getResourceClass(), relation))
                             .dictionary(dictionary)
                             .filterExpression(filterExpression.orElse(null))
                             .build())

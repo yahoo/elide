@@ -513,8 +513,8 @@ public class LifeCycleTest {
         book.setAuthors(Sets.newHashSet(author));
         author.setBooks(Sets.newHashSet(book));
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(any(), eq(author), eq("books"), any(), any(), any(), any())).then((i) -> author.getBooks());
-        when(tx.getRelation(any(), eq(book), eq("authors"), any(), any(), any(), any())).then((i) -> book.getAuthors());
+        when(tx.getRelation(any(), eq(author), any(), any())).then((i) -> author.getBooks());
+        when(tx.getRelation(any(), eq(book), any(), any())).then((i) -> book.getAuthors());
 
         RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource<Author> resourceBook = new PersistentResource(book, null, scope.getUUIDFor(book), scope);

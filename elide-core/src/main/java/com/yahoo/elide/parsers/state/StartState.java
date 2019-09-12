@@ -63,7 +63,7 @@ public class StartState extends BaseState {
                     .name(relationName)
                     .projection(EntityProjection.builder()
                             .dictionary(dictionary)
-                            .type(dictionary.getType(record.getResourceClass(), relationName))
+                            .type(dictionary.getParameterizedType(record.getResourceClass(), relationName))
                             .filterExpression(filterExpression.orElse(null))
                             .build())
                     .build());

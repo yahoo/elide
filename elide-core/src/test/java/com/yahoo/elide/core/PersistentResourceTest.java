@@ -42,6 +42,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
@@ -73,6 +74,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.mockito.ArgumentCaptor;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -191,7 +193,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1);
         fun.setRelation3(child1);
 
-        when(tx.getRelation(any(), eq(fun), eq("relation3"), any(), any())).thenReturn(child1);
+        when(tx.getRelation(any(), eq(fun), any(), any())).thenReturn(child1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
 
@@ -247,7 +249,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         child1.setParents(Sets.newHashSet(parent));
         child2.setParents(Sets.newHashSet(parent));
 
-        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(children);
+        when(tx.getRelation(any(), eq(parent), any(), any())).thenReturn(children);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
@@ -272,7 +274,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         child1.setParents(Sets.newHashSet(parent));
         child2.setParents(Sets.newHashSet(parent));
 
-        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(children);
+        when(tx.getRelation(any(), eq(parent), any(), any())).thenReturn(children);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
@@ -294,12 +296,16 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testSetAttributeHookInUpdateAttribute() {
         Parent parent = newParent(1);
+        ArgumentCaptor<Attribute> attributeArgument = ArgumentCaptor.forClass(Attribute.class);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
         parentResource.updateAttribute("firstName", "foobar");
 
-        verify(tx, times(1)).setAttribute(parent, "firstName", "foobar", goodScope);
+        verify(tx, times(1)).setAttribute(eq(parent), attributeArgument.capture(), eq(goodScope));
+
+        assertEquals(attributeArgument.getValue().getName(), "firstName");
+        assertEquals(attributeArgument.getValue().getArguments().iterator().next().getValue(), "foobar");
     }
 
     @Test
@@ -607,7 +613,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(left, goodScope);
         verify(tx, times(1)).save(right, goodScope);
-        //verify(tx, times(1)).getRelation(tx, left, getRelationship(Left.class, "one2one"), goodScope);
+        verify(tx, times(1)).getRelation(tx, left, getRelationship(Right.class, "one2one"), goodScope);
         assertTrue(updated, "The one-2-one relationship should be added.");
         assertEquals(3, left.getOne2one().getId(), "The correct object was set in the one-2-one relationship");
     }
@@ -683,7 +689,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parent.setChildren(allChildren);
         parent.setSpouses(Sets.newHashSet());
 
-        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(allChildren);
+        when(tx.getRelation(any(), eq(parent), any(), any())).thenReturn(allChildren);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
@@ -785,7 +791,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
-        when(scope.getTransaction().getRelation(any(), eq(fun), eq("relation2"), any(), any())).thenReturn(children);
+        when(scope.getTransaction().getRelation(any(), eq(fun), any(), any())).thenReturn(children);
 
         Set<PersistentResource> results = getRelation(funResource, "relation2");
 
@@ -805,7 +811,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
-        when(scope.getTransaction().getRelation(any(), eq(fun), eq("relation2"), any(), any())).thenReturn(children);
+        when(scope.getTransaction().getRelation(any(), eq(fun), any(), any())).thenReturn(children);
 
         Set<PersistentResource> results = getRelation(funResource, "relation2");
 
@@ -820,7 +826,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child3 = newChild(3, "chris smith");
         parent.setChildren(Sets.newHashSet(child1, child2, child3));
 
-        when(tx.getRelation(eq(tx), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(eq(tx), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("filter[child.name]", "paul john");
@@ -846,7 +852,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parent.setChildren(children);
 
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, Parent.class, 1);
-        when(scope.getTransaction().getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(children);
+        when(scope.getTransaction().getRelation(any(), eq(parent), any(), any())).thenReturn(children);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", scope);
 
@@ -936,7 +942,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child3 = newChild(3);
         fun.setRelation2(Sets.newHashSet(child1, child2, child3));
 
-        when(tx.getRelation(eq(tx), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(eq(tx), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -954,7 +960,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child3 = newChild(3);
         fun.setRelation2(Sets.newHashSet(child1, child2, child3));
 
-        when(tx.getRelation(eq(tx), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(eq(tx), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -1034,7 +1040,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         assertFalse(parent.getChildren().isEmpty());
 
-        when(tx.getRelation(any(), eq(child), eq("parents"), any(), any())).thenReturn(parents);
+        when(tx.getRelation(any(), eq(child), any(), any())).thenReturn(parents);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
 
@@ -1184,10 +1190,41 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         child.setReadNoAccess(secret);
 
-        when(tx.getRelation(any(), eq(fun), eq("relation3"), any(), any())).thenReturn(child);
-        when(tx.getRelation(any(), eq(fun), eq("relation1"), any(), any())).thenReturn(children1);
-        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(children2);
-        when(tx.getRelation(any(), eq(child), eq("readNoAccess"), any(), any())).thenReturn(secret);
+        when(tx.getRelation(any(), eq(fun), eq(com.yahoo.elide.request.Relationship.builder()
+                .name("relation3")
+                .alias("relation3")
+                .projection(EntityProjection.builder()
+                        .type(Child.class)
+                        .dictionary(dictionary)
+                        .build())
+                .build()), any())).thenReturn(child);
+
+        when(tx.getRelation(any(), eq(fun), eq(com.yahoo.elide.request.Relationship.builder()
+                .name("relation1")
+                .alias("relation1")
+                .projection(EntityProjection.builder()
+                        .type(Child.class)
+                        .dictionary(dictionary)
+                        .build())
+                .build()), any())).thenReturn(children1);
+
+        when(tx.getRelation(any(), eq(parent), eq(com.yahoo.elide.request.Relationship.builder()
+                .name("children")
+                .alias("children")
+                .projection(EntityProjection.builder()
+                        .type(Child.class)
+                        .dictionary(dictionary)
+                        .build())
+                .build()), any())).thenReturn(children2);
+
+        when(tx.getRelation(any(), eq(child), eq(com.yahoo.elide.request.Relationship.builder()
+                .name("readNoAccess")
+                .alias("readNoAccess")
+                .projection(EntityProjection.builder()
+                        .type(Child.class)
+                        .dictionary(dictionary)
+                        .build())
+                .build()), any())).thenReturn(secret);
 
         RequestScope funScope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
         RequestScope childScope = new TestRequestScope(tx, goodUser, dictionary, Child.class, 1);
@@ -1292,7 +1329,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Set<Parent> parents = Sets.newHashSet(parent1, parent2, parent3);
         child.setParents(parents);
 
-        when(tx.getRelation(any(), eq(child), eq("parents"), any(), any())).thenReturn(parents);
+        when(tx.getRelation(any(), eq(child), any(), any())).thenReturn(parents);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
@@ -1327,7 +1364,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(1);
         fun.setRelation3(child);
 
-        when(tx.getRelation(any(), eq(fun), eq("relation3"), any(), any())).thenReturn(child);
+        when(tx.getRelation(any(), eq(fun), any(), any())).thenReturn(child);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
@@ -1384,7 +1421,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parent.setChildren(allChildren);
         parent.setSpouses(Sets.newHashSet());
 
-        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(allChildren);
+        when(tx.getRelation(any(), eq(parent), any(), any())).thenReturn(allChildren);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
@@ -1476,7 +1513,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         right1.setNoUpdate(Sets.newHashSet(left));
         right2.setNoUpdate(Sets.newHashSet(left));
 
-        when(tx.getRelation(any(), eq(left), eq("noInverseUpdate"), any(), any())).thenReturn(noInverseUpdate);
+        when(tx.getRelation(any(), eq(left), any(), any())).thenReturn(noInverseUpdate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
@@ -1506,7 +1543,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         noDelete.setId(1);
         left.setNoDeleteOne2One(noDelete);
 
-        when(tx.getRelation(any(), eq(left), eq("noDeleteOne2One"), any(), any())).thenReturn(noDelete);
+        when(tx.getRelation(any(), eq(left), any(), any())).thenReturn(noDelete);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(Left.class)
@@ -1752,7 +1789,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         right.setAllowDeleteAtFieldLevel(Sets.newHashSet(left));
 
         //Bad User triggers the delete permission failure
-        when(tx.getRelation(any(), eq(left), eq("fieldLevelDelete"), any(), any())).thenReturn(rights);
+        when(tx.getRelation(any(), eq(left), any(), any())).thenReturn(rights);
 
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, badScope.getUUIDFor(left), badScope);
@@ -1775,7 +1812,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         List<Resource> empty = new ArrayList<>();
         Relationship ids = new Relationship(null, new Data<>(empty));
 
-        when(tx.getRelation(any(), eq(left), eq("noInverseUpdate"), any(), any())).thenReturn(rights);
+        when(tx.getRelation(any(), eq(left), any(), any())).thenReturn(rights);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, goodScope.getUUIDFor(left), goodScope);
@@ -1835,7 +1872,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent = newParent(1);
         Child child = newChild(2);
 
-        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(parent.getChildren());
+        when(tx.getRelation(any(), eq(parent), any(), any())).thenReturn(parent.getChildren());
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
 
@@ -1856,7 +1893,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertTrue(child.getParents().contains(parent), "The non-owning relationship should also be updated");
 
         reset(tx);
-        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(parent.getChildren());
+        when(tx.getRelation(any(), eq(parent), any(), any())).thenReturn(parent.getChildren());
 
         parentResource.clearRelation("children");
 
@@ -2004,7 +2041,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, example.User.class, 1);
 
         when(tx.loadObject(any(), eq(1L), any())).thenReturn(noShare1);
-        when(tx.getRelation(any(), eq(userModel), eq("noShares"), any(), any())).thenReturn(noshares);
+        when(tx.getRelation(any(), eq(userModel), any(), any())).thenReturn(noshares);
 
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
@@ -2029,7 +2066,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         idList.add(new ResourceIdentifier("noshare", "1").castToResource());
         Relationship ids = new Relationship(null, new Data<>(idList));
 
-        when(tx.getRelation(any(), eq(userModel), eq("noShare"), any(), any())).thenReturn(noShare);
+        when(tx.getRelation(any(), eq(userModel), any(), any())).thenReturn(noShare);
         when(tx.loadObject(any(), eq(1L), any())).thenReturn(noShare);
 
         RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, example.User.class, 1);
@@ -2055,7 +2092,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         List<Resource> empty = new ArrayList<>();
         Relationship ids = new Relationship(null, new Data<>(empty));
 
-        when(tx.getRelation(any(), eq(userModel), eq("noShare"), any(), any())).thenReturn(noShare);
+        when(tx.getRelation(any(), eq(userModel), any(), any())).thenReturn(noShare);
 
         RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, example.User.class, 1);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
@@ -2084,7 +2121,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(csModel, tx);
 
-        when(tx.getRelation(any(), eq(model.obj), eq("otherKids"), any(), any())).thenReturn(new HashSet<>());
+        when(tx.getRelation(any(), eq(model.obj), any(), any())).thenReturn(new HashSet<>());
 
         /* Attributes */
         // Set new data from null
@@ -2122,7 +2159,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.size() == 3 && original.contains(new ChangeSpecChild(1)) && original.contains(new ChangeSpecChild(2)) && original.contains(new ChangeSpecChild(3)) && modified.size() == 2 && modified.contains(new ChangeSpecChild(1)) && modified.contains(new ChangeSpecChild(3)));
         model.removeRelation("otherKids", bootstrapPersistentResource(child2));
 
-        when(tx.getRelation(any(), eq(model.obj), eq("otherKids"), any(), any())).thenReturn(Sets.newHashSet(child1, child3));
+        when(tx.getRelation(any(), eq(model.obj), any(), any())).thenReturn(Sets.newHashSet(child1, child3));
         // Clear the rest
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified)
                 -> original.size() <= 2 && modified.size() < original.size());
@@ -2168,18 +2205,18 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                     -> relCheck.apply(spec, (original, modified)
                     -> (original == null) && new ChangeSpecChild(1).equals(modified))), tx);
 
-            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any())).thenReturn(null);
+            when(tx.getRelation(any(), eq(model.obj), any(), any())).thenReturn(null);
 
             ChangeSpecChild child1 = new ChangeSpecChild(1);
             assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child1, tx))));
-            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any())).thenReturn(child1);
+            when(tx.getRelation(any(), eq(model.obj), any(), any())).thenReturn(child1);
 
             model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(1).equals(original) && new ChangeSpecChild(2).equals(modified));
 
             ChangeSpecChild child2 = new ChangeSpecChild(2);
             assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child2, tx))));
 
-            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any())).thenReturn(child2);
+            when(tx.getRelation(any(), eq(model.obj), any(), any())).thenReturn(child2);
 
             model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(2).equals(original) && modified == null);
             assertTrue(model.updateRelation("child", null));
