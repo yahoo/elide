@@ -38,7 +38,6 @@ public class RootContainer implements GraphQLContainer {
 
     public static boolean requestContainsPageInfo(Field field) {
         return field.getSelectionSet().getSelections().stream()
-                .anyMatch(f -> f instanceof Field
-                        && PAGE_INFO_KEYWORD.equals(((Field) f).getName()));
+                .anyMatch(f -> f instanceof Field && PAGE_INFO_KEYWORD.equals(((Field) f).getName()));
     }
 }

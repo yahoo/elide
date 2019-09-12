@@ -8,6 +8,8 @@ package com.yahoo.elide.graphql.parser;
 
 import static com.yahoo.elide.graphql.containers.KeyWord.EDGES_KEYWORD;
 import static com.yahoo.elide.graphql.containers.KeyWord.NODE_KEYWORD;
+import static com.yahoo.elide.graphql.containers.KeyWord.PAGE_INFO;
+import static com.yahoo.elide.graphql.containers.KeyWord.TYPE_NAME;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
@@ -157,54 +159,6 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Get information of an {@link EntityProjection} from Elide 'edges' container and get the Elide 'node' container
-     *
-     * @param edges Elide 'edges' container
-     * @param entityProjection projection that links with this container
-     * @return Elide 'node' container
-     */
-    private static SelectionSet resolveEdges(SelectionSet edges, EntityProjection entityProjection) {
-        if (edges.getSelections().size() != 1) {
-            throw new InvalidEntityBodyException("Entity selection must have one 'edges' graphQL field node.");
-        }
-
-        Selection edgesSelection = edges.getSelections().get(0);
-        if (!(edgesSelection instanceof Field)) {
-            throw new InvalidEntityBodyException("Edges selection must be a graphQL field.");
-        }
-
-        if (!EDGES_KEYWORD.equals(((Field) edgesSelection).getName())) {
-            throw new InvalidEntityBodyException("GraphQL field selection must have 'edges'.");
-        }
-
-        return ((Field) edgesSelection).getSelectionSet();
-    }
-
-    /**
-     * Get information of an {@link EntityProjection} from Elide 'node' container and get fields from the container
-     *
-     * @param node Elide 'node' container
-     * @param entityProjection projection that links with this container
-     * @return Fields in the 'node' container
-     */
-    private static SelectionSet resolveNode(SelectionSet node, EntityProjection entityProjection) {
-        if (node.getSelections().size() != 1) {
-            throw new InvalidEntityBodyException("Edges selection must have one 'node' graphQL field node.");
-        }
-
-        Selection nodeSelection = node.getSelections().get(0);
-        if (!(nodeSelection instanceof Field)) {
-            throw new InvalidEntityBodyException("Node selection must be a graphQL field.");
-        }
-
-        if (!NODE_KEYWORD.equals(((Field) nodeSelection).getName())) {
-            throw new InvalidEntityBodyException("GraphQL 'edges' field selection must have 'node'.");
-        }
-
-        return ((Field) nodeSelection).getSelectionSet();
-    }
-
-    /**
      * Add a graphQL {@link Selection} to an {@link EntityProjection}
      *
      * @param fieldSelection field/fragment to add
@@ -280,7 +234,7 @@ public class GraphQLEntityProjectionMaker {
             return;
         }
 
-        if (fieldName.equals("__typename") || fieldName.equals("pageInfo")) {
+        if (TYPE_NAME.equals(fieldName) || PAGE_INFO.equals(fieldName)) {
             return; // '__typename' and 'pageInfo' would not be handled by entityProjection
         }
 
