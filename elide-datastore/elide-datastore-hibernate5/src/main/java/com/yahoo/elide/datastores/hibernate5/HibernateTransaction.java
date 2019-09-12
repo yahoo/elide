@@ -227,7 +227,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                         filteredVal);
 
                 if (pagination != null && pagination.isGenerateTotals()) {
-                    pagination.setPageTotals(getTotalRecords(relation.getProjection().getType(),
+                    pagination.setPageTotals(getTotalRecords(relationship,
                             Optional.ofNullable(filterExpression), scope.getDictionary()));
                 }
 

@@ -99,7 +99,7 @@ public class RecordState extends BaseState {
                     .name(subCollection)
                     .projection(EntityProjection.builder()
                             .dictionary(dictionary)
-                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
+                            .type(dictionary.getParameterizedType(resource.getResourceClass(), subCollection))
                             .build())
                     .build(), id);
             state.setState(new RecordTerminalState(nextRecord));
@@ -119,7 +119,7 @@ public class RecordState extends BaseState {
                     .name(subCollection)
                     .projection(EntityProjection.builder()
                             .dictionary(dictionary)
-                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
+                            .type(dictionary.getParameterizedType(resource.getResourceClass(), subCollection))
                             .build())
                     .build(), id)));
         } catch (InvalidAttributeException e) {
@@ -140,7 +140,7 @@ public class RecordState extends BaseState {
                     .name(subCollection)
                     .projection(EntityProjection.builder()
                             .dictionary(dictionary)
-                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
+                            .type(dictionary.getParameterizedType(resource.getResourceClass(), subCollection))
                             .build())
                     .build(), id);
 
@@ -161,7 +161,7 @@ public class RecordState extends BaseState {
                     .projection(EntityProjection.builder()
                             .dictionary(dictionary)
                             .filterExpression(filterExpression.orElse(null))
-                            .type(dictionary.getType(childRecord.getResourceClass(), relationName))
+                            .type(dictionary.getParameterizedType(childRecord.getResourceClass(), relationName))
                             .build())
                     .build());
         } catch (InvalidAttributeException e) {
