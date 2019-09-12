@@ -167,6 +167,7 @@ public interface DataStoreTransaction extends Closeable {
      * Loads a collection of objects.
      *
 
+
      * @param entityProjection - the class to load
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
@@ -183,6 +184,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param relationship - the relationship to fetch.
 
 
+
      * @param scope - contains request level metadata.
      * @return the object in the relation
      */
@@ -195,6 +197,7 @@ public interface DataStoreTransaction extends Closeable {
 
         return PersistentResource.getValue(entity, relationship.getName(), scope);
     }
+
 
 
     /**

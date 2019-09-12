@@ -134,6 +134,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .filterExpression(expression)
                 .build();
 
@@ -158,6 +159,7 @@ public class InMemoryStoreTransactionTest {
         Relationship relationship = Relationship.builder()
                 .projection(EntityProjection.builder()
                     .type(Book.class)
+
                     .filterExpression(expression)
                     .build())
                 .name("books")
@@ -196,6 +198,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .filterExpression(expression)
                 .build();
 
@@ -229,6 +232,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .filterExpression(expression)
                 .build();
 
@@ -262,6 +266,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .sorting(sorting)
                 .build();
 
@@ -297,6 +302,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .sorting(sorting)
                 .build();
 
@@ -338,6 +344,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .filterExpression(expression)
                 .sorting(sorting)
                 .build();
@@ -374,6 +381,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .pagination(pagination)
                 .build();
 
@@ -405,6 +413,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .pagination(pagination)
                 .build();
 
@@ -442,6 +451,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .filterExpression(expression)
                 .pagination(pagination)
                 .build();
@@ -481,6 +491,7 @@ public class InMemoryStoreTransactionTest {
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
+
                 .sorting(sorting)
                 .pagination(pagination)
                 .build();

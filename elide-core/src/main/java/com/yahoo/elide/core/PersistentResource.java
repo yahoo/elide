@@ -939,6 +939,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
 
 
+
                         .build())
                 .build(), false);
     }
@@ -950,6 +951,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .alias(relationName)
                 .projection(EntityProjection.builder()
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+
 
 
 
@@ -1056,6 +1058,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 ).build();
 
         Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
+
 
 
 
@@ -1273,6 +1276,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
 
 
+
                             .filterExpression(filterExpression.orElse(null))
                             .build())
                     .build());
@@ -1289,6 +1293,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return getRelationCheckedFiltered(projection.getRelationship(relationName)
                     .orElseThrow(IllegalStateException::new)
             );
+
 
 
 

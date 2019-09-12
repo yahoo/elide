@@ -64,11 +64,13 @@ public class MultiplexManagerTest {
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             assertFalse(t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
+
                     .build(), null)
                     .iterator().hasNext());
             t.createObject(object, null);
             assertFalse(t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
+
                     .build(), null)
                     .iterator().hasNext());
             t.commit(null);
@@ -76,6 +78,7 @@ public class MultiplexManagerTest {
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
                             .type(FirstBean.class)
+
                             .build(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
@@ -98,6 +101,7 @@ public class MultiplexManagerTest {
         try (DataStoreTransaction t = ds1.beginTransaction()) {
             assertFalse(t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
+
                     .build(), null).iterator().hasNext());
 
             FirstBean firstBean = FirstBean.class.newInstance();
@@ -106,6 +110,7 @@ public class MultiplexManagerTest {
             //t.save(firstBean);
             assertFalse(t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
+
                     .build(), null).iterator().hasNext());
             t.commit(null);
         } catch (InstantiationException | IllegalAccessException e) {
@@ -114,6 +119,7 @@ public class MultiplexManagerTest {
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             FirstBean firstBean = (FirstBean) t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
+
                     .build(), null).iterator().next();
             firstBean.name = "update";
             t.save(firstBean, null);
@@ -133,6 +139,7 @@ public class MultiplexManagerTest {
         try (DataStoreTransaction t = ds1.beginTransaction()) {
             Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
+
                     .build(), null);
             assertNotNull(beans);
             ArrayList<Object> list = Lists.newArrayList(beans.iterator());

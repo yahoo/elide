@@ -91,6 +91,7 @@ public class RecordState extends BaseState {
 
 
 
+
     }
 
     @Override
@@ -102,6 +103,7 @@ public class RecordState extends BaseState {
                     .orElseThrow(IllegalStateException::new);
 
         state.setState(new RecordState(resource.getRelation(relationship, id), relationship.getProjection()));
+
 
 
 
@@ -119,6 +121,7 @@ public class RecordState extends BaseState {
                 .orElseThrow(IllegalStateException::new);
 
         childRecord = resource.getRelation(childRelationship , id);
+
 
 
 

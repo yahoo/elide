@@ -101,6 +101,7 @@ public class DataStoreLoadTest {
         Iterable<Object> loaded = testTransaction.loadObjects(
                 EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -120,6 +121,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -135,6 +137,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -153,6 +156,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -170,6 +174,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -187,6 +192,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -204,6 +210,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -220,6 +227,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -236,6 +244,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -254,6 +263,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -275,6 +285,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .build(), mockScope);
 
@@ -296,6 +307,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .sorting(sorting)
                 .build(), mockScope);
@@ -320,6 +332,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .sorting(sorting)
                 .pagination(pagination)
@@ -346,6 +359,7 @@ public class DataStoreLoadTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
+
                 .filterExpression(filter)
                 .sorting(sorting)
                 .pagination(pagination)
