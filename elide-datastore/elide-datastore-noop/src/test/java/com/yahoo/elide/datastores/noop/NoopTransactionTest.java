@@ -15,6 +15,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.ObjectEntityCache;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.request.EntityProjection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -22,16 +23,16 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
-import java.util.Optional;
 
 public class NoopTransactionTest {
-    DataStoreTransaction tx = new NoopTransaction();
-    NoopBean bean = new NoopBean();
-    RequestScope requestScope;
+    private DataStoreTransaction tx = new NoopTransaction();
+    private NoopBean bean = new NoopBean();
+    private RequestScope requestScope;
+    private EntityDictionary dictionary;
 
     @BeforeClass
     public void setup() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(NoopBean.class);
         requestScope = mock(RequestScope.class);
         JsonApiMapper mapper = mock(JsonApiMapper.class);
@@ -77,13 +78,19 @@ public class NoopTransactionTest {
     public void testLoadObject() throws Exception {
 
         // Should return bean with id set
-        NoopBean bean = (NoopBean) tx.loadObject(NoopBean.class, 1, Optional.empty(), requestScope);
+        NoopBean bean = (NoopBean) tx.loadObject(EntityProjection.builder()
+                .type(NoopBean.class)
+                .dictionary(dictionary)
+                .build(), 1, requestScope);
         assertEquals(bean.getId(), (Long) 1L);
     }
 
     @Test
     public void testLoadObjects() throws Exception {
-        Iterable<NoopBean> iterable = (Iterable) tx.loadObjects(NoopBean.class, Optional.empty(), Optional.empty(), Optional.empty(), requestScope);
+        Iterable<NoopBean> iterable = (Iterable) tx.loadObjects(EntityProjection.builder()
+                .type(NoopBean.class)
+                .dictionary(dictionary)
+                .build(), requestScope);
         NoopBean bean = iterable.iterator().next();
         assertEquals(bean.getId(), (Long) 1L);
     }
