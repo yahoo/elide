@@ -11,7 +11,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
-import com.yahoo.elide.request.EntityProjection;
 import graphql.language.Field;
 
 /**

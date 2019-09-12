@@ -100,10 +100,8 @@ public class Entity {
                     .filter(entry -> dictionary.isRelation(this.entityClass, entry.getKey()))
                     .forEach(entry -> {
                         String relationshipName = entry.getKey();
-
-                        Set<Entity> entitySet = new LinkedHashSet<>();
-                        Class<?> relationshipClass = dictionary.getParameterizedType(this.entityClass, relationshipName);
-                        boolean isToOne = dictionary.getRelationshipType(this.entityClass, relationshipName).isToOne();
+                        Class<?> relationshipClass =
+                                dictionary.getParameterizedType(this.entityClass, relationshipName);
 
                         // if this data contains a relationship that is not in the projection tree, create a temporary
                         // projection to create that relationship
@@ -115,22 +113,25 @@ public class Entity {
                                                 .type(relationshipClass)
                                                 .build();
 
-                        if (isToOne) {
-                            entitySet.add(new Entity(
+                        Set<Entity> relationshipEntities = new LinkedHashSet<>();
+
+                        // if the relationship is ToOne, entry.getValue() should be a single map
+                        if (dictionary.getRelationshipType(this.entityClass, relationshipName).isToOne()) {
+                            relationshipEntities.add(new Entity(
                                     Optional.of(this),
                                     ((Map<String, Object>) entry.getValue()),
                                     relationshipProjection,
                                     this.requestScope));
                         } else {
                             for (Map<String, Object> row : (List<Map<String, Object>>) entry.getValue()) {
-                                entitySet.add(new Entity(
+                                relationshipEntities.add(new Entity(
                                         Optional.of(this),
                                         row,
                                         relationshipProjection,
                                         this.requestScope));
                             }
                         }
-                        this.relationships.add(new Relationship(relationshipName, entitySet));
+                        this.relationships.add(new Relationship(relationshipName, relationshipEntities));
                     });
         }
     }

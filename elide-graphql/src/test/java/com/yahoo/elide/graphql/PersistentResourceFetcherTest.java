@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
@@ -24,12 +23,10 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import example.Author;
 import example.Book;
 import example.Pseudonym;
 import example.Publisher;
-
 import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
