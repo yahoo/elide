@@ -104,7 +104,7 @@ public class Entity {
                                 dictionary.getParameterizedType(this.entityClass, relationshipName);
 
                         // if this data contains a relationship that is not in the projection tree, create a temporary
-                        // projection to create that relationship
+                        // projection for that relationship
                         EntityProjection relationshipProjection =
                                 projection.getRelationship(relationshipName).isPresent()
                                         ? projection.getRelationship(relationshipName).get().getProjection()

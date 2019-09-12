@@ -19,6 +19,8 @@ public enum KeyWord {
     PAGE_INFO_START_CURSOR_KEYWORD("startCursor"),
     PAGE_INFO_END_CURSOR_KEYWORD("endCursor"),
     PAGE_INFO_TOTAL_RECORDS_KEYWORD("totalRecords"),
+    TYPE_NAME("__typename"),
+    PAGE_INFO("pageinfo"),
     UNKNOWN("unknown");
 
     @Getter
