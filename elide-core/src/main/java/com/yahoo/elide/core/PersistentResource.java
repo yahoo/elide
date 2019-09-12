@@ -41,12 +41,10 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.collections4.CollectionUtils;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -65,7 +63,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.ws.rs.BadRequestException;
 
 /**
  * Resource wrapper around Entity bean.
@@ -248,7 +245,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource<>((T) obj, null, requestScope.getUUIDFor(obj), requestScope);
+        PersistentResource<T> resource = new PersistentResource<>(
+                (T) obj,
+                null,
+                requestScope.getUUIDFor(obj),
+                requestScope);
+
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);

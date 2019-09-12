@@ -1,3 +1,9 @@
+/*
+ * Copyright 2019, Oath Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.graphql.parser;
 
 import static com.yahoo.elide.graphql.containers.KeyWord.EDGES_KEYWORD;
@@ -19,7 +25,6 @@ import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
 import graphql.language.SourceLocation;
-import graphql.language.VariableDefinition;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
@@ -38,7 +43,6 @@ public class GraphQLEntityProjectionMaker {
     private final EntityDictionary entityDictionary;
 
     private Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
-    private Map<String, VariableDefinition> variableMap = new HashMap<>();
     private Map<SourceLocation, Relationship> relationshipMap;
     private List<EntityProjection> rootProjections;
 
@@ -56,7 +60,6 @@ public class GraphQLEntityProjectionMaker {
      */
     private void clear() {
         fragmentMap = new HashMap<>();
-        variableMap = new HashMap<>();
         relationshipMap = new HashMap<>();
         rootProjections = new ArrayList<>();
     }
@@ -79,12 +82,6 @@ public class GraphQLEntityProjectionMaker {
                 .map(definition -> (FragmentDefinition) definition)
                 .collect(Collectors.toList());
         fragmentMap.putAll(FragmentResolver.resolve(fragmentDefinitions));
-
-        // resolve variable definitions
-        parsedDocument.getDefinitions().stream()
-                .filter((definition -> definition instanceof VariableDefinition))
-                .map(definition -> (VariableDefinition) definition)
-                .forEach(definition -> variableMap.put(definition.getName(), definition));
 
         // resolve operation definitions
         parsedDocument.getDefinitions().forEach(definition -> {
@@ -217,8 +214,8 @@ public class GraphQLEntityProjectionMaker {
         if (fieldSelection instanceof FragmentSpread) {
             addFragment((FragmentSpread) fieldSelection, parentProjection);
         } else if (fieldSelection instanceof Field) {
-            if (EDGES_KEYWORD.equals(((Field) fieldSelection).getName()) ||
-                    NODE_KEYWORD.equals(((Field) fieldSelection).getName())) {
+            if (EDGES_KEYWORD.equals(((Field) fieldSelection).getName())
+                    || NODE_KEYWORD.equals(((Field) fieldSelection).getName())) {
                 // if this graphql field is 'edges' or 'node', go one level deeper in the graphql document
                 ((Field) fieldSelection).getSelectionSet().getSelections().forEach(
                         selection -> addSelection(selection, parentProjection));
@@ -283,8 +280,8 @@ public class GraphQLEntityProjectionMaker {
             return;
         }
 
-        if (fieldName.equals("__typename")) {
-            return; // '__typename' would not be handled by entityProjection
+        if (fieldName.equals("__typename") || fieldName.equals("pageInfo")) {
+            return; // '__typename' and 'pageInfo' would not be handled by entityProjection
         }
 
         Class<?> attributeType = entityDictionary.getType(parentType, fieldName);
