@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO_KEYWORD;
+import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.graphql.Environment;
@@ -38,6 +38,6 @@ public class RootContainer implements GraphQLContainer {
 
     public static boolean requestContainsPageInfo(Field field) {
         return field.getSelectionSet().getSelections().stream()
-                .anyMatch(f -> f instanceof Field && PAGE_INFO_KEYWORD.equals(((Field) f).getName()));
+                .anyMatch(f -> f instanceof Field && PAGE_INFO.equals(((Field) f).getName()));
     }
 }
