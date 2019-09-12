@@ -20,7 +20,10 @@ import java.util.Map;
  * a {@link graphql.language.Document}.
  */
 @AllArgsConstructor
-public class GraphQLEntityProjectionContainer {
+public class GraphQLProjectionInfo {
+    @Getter
+    private final SourceLocation rootLocation;
+
     @Getter
     private final Collection<EntityProjection> projections;
 

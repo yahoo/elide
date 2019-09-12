@@ -6,10 +6,12 @@
 
 package com.yahoo.elide.graphql.parser;
 
-import static com.yahoo.elide.graphql.containers.KeyWord.EDGES_KEYWORD;
-import static com.yahoo.elide.graphql.containers.KeyWord.NODE_KEYWORD;
-import static com.yahoo.elide.graphql.containers.KeyWord.PAGE_INFO;
-import static com.yahoo.elide.graphql.containers.KeyWord.TYPE_NAME;
+import static com.yahoo.elide.graphql.KeyWord.EDGES_KEYWORD;
+import static com.yahoo.elide.graphql.KeyWord.NODE_KEYWORD;
+import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO;
+import static com.yahoo.elide.graphql.KeyWord.SCHEMA;
+import static com.yahoo.elide.graphql.KeyWord.TYPE;
+import static com.yahoo.elide.graphql.KeyWord.TYPE_NAME;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
@@ -47,6 +49,7 @@ public class GraphQLEntityProjectionMaker {
     private Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
     private Map<SourceLocation, Relationship> relationshipMap;
     private List<EntityProjection> rootProjections;
+    private SourceLocation rootLocation;
 
     /**
      * Constructor.
@@ -64,6 +67,7 @@ public class GraphQLEntityProjectionMaker {
         fragmentMap = new HashMap<>();
         relationshipMap = new HashMap<>();
         rootProjections = new ArrayList<>();
+        rootLocation = null;
     }
 
     /**
@@ -72,7 +76,7 @@ public class GraphQLEntityProjectionMaker {
      * @param query GraphQL query
      * @return all projections in the query
      */
-    public GraphQLEntityProjectionContainer make(String query) {
+    public GraphQLProjectionInfo make(String query) {
         clear();
 
         Parser parser = new Parser();
@@ -102,7 +106,7 @@ public class GraphQLEntityProjectionMaker {
             }
         });
 
-        return new GraphQLEntityProjectionContainer(rootProjections, relationshipMap);
+        return new GraphQLProjectionInfo(rootLocation, rootProjections, relationshipMap);
     }
 
     /**
@@ -117,13 +121,22 @@ public class GraphQLEntityProjectionMaker {
         if (!(rootSelection instanceof Field)) {
             throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
         }
+
         String entityName = ((Field) rootSelection).getName();
+        if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
+            // '__schema' and '__type' would not be handled by entity projection
+            return;
+        }
+
         Class<?> entityType = entityDictionary.getEntityClass(entityName);
         if (entityType == null) {
             throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", entityName));
         }
+
+        rootLocation = rootSelection.getSourceLocation();
         Field fields = (Field) rootSelection;
 
+        // merging partial graphql selections
         selections.stream().skip(1).forEach(selection -> {
             if (!(selection instanceof Field)) {
                 throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
