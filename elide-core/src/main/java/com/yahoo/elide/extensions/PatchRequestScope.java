@@ -12,7 +12,6 @@ import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.User;
 
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -52,6 +51,6 @@ public class PatchRequestScope extends RequestScope {
      */
     public PatchRequestScope(String path, JsonApiDocument jsonApiDocument, PatchRequestScope scope) {
         super(path, jsonApiDocument, scope);
-        this.setEntityProjection(new EntityProjectionMaker(dictionary, new MultivaluedHashMap<>()).make(path));
+        this.setEntityProjection(new EntityProjectionMaker(dictionary, this).make(path));
     }
 }

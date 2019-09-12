@@ -189,8 +189,6 @@ public class EntityProjectionMaker
                 .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
                 .attributes(getSparseAttributes(entityClass))
                 .filterExpression(scope.getFilterExpressionByType(entityClass).orElse(null))
-                .sorting(scope.getSorting())
-                .pagination(scope.getPagination())
                 .type(entityClass)
                 .build();
         }
@@ -201,8 +199,6 @@ public class EntityProjectionMaker
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
                 .filterExpression(scope.getFilterExpressionByType(entityClass).orElse(null))
-                .sorting(scope.getSorting())
-                .pagination(scope.getPagination())
                 .build();
     }
 
@@ -238,7 +234,7 @@ public class EntityProjectionMaker
             String relationshipName = relationship.term().getText();
             NamedEntityProjection relationshipProjection = relationship.accept(this).apply(entityClass);
 
-            FilterExpression filter = scope.getExpressionForRelation(parentClass, relationshipName).orElse(null);
+            FilterExpression filter = scope.getFilterExpressionByType(entityClass).orElse(null);
 
             return NamedEntityProjection.builder()
                     .name(entityName)
@@ -246,8 +242,6 @@ public class EntityProjectionMaker
                         .dictionary(dictionary)
                         .type(entityClass)
                         .filterExpression(filter)
-                        .sorting(scope.getSorting())
-                        .pagination(scope.getPagination())
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .relationship(relationshipName, relationshipProjection.projection)
                         .build()
@@ -353,8 +347,6 @@ public class EntityProjectionMaker
                             return EntityProjection.builder()
                                     .type(dictionary.getParameterizedType(entityClass, relationshipName))
                                     .filterExpression(filter)
-                                    .sorting(scope.getSorting())
-                                    .pagination(scope.getPagination())
                                     .dictionary(dictionary)
                                     .build();
                         }

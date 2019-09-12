@@ -9,6 +9,9 @@ package com.yahoo.elide.jsonapi;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestRequestScope;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import example.Address;
@@ -43,7 +46,10 @@ public class EntityProjectionMakerTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         String path = "/book";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
@@ -64,6 +70,7 @@ public class EntityProjectionMakerTest {
                         .type(Editor.class)
                         .dictionary(dictionary)
                         .build())
+                .pagination(defaultPagination)
                 .build();
 
         EntityProjection actual = maker.make(path);
@@ -77,7 +84,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("fields[book]", "title,publishDate,authors");
         String path = "/book";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
@@ -88,6 +98,7 @@ public class EntityProjectionMakerTest {
                         .type(Author.class)
                         .dictionary(dictionary)
                         .build())
+                .pagination(defaultPagination)
                 .build();
 
         EntityProjection actual = maker.make(path);
@@ -100,7 +111,10 @@ public class EntityProjectionMakerTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         String path = "/book/1";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
@@ -133,7 +147,10 @@ public class EntityProjectionMakerTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         String path = "/author/1/books/3/publisher";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
@@ -154,6 +171,7 @@ public class EntityProjectionMakerTest {
                                         .dictionary(dictionary)
                                         .type(Editor.class)
                                         .build())
+                                .pagination(defaultPagination)
                                 .build())
                         .build())
                 .build();
@@ -168,7 +186,10 @@ public class EntityProjectionMakerTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         String path = "/author/1/books/3/publisher/1";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
@@ -203,7 +224,10 @@ public class EntityProjectionMakerTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         String path = "/author/1/relationships/books";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
@@ -211,6 +235,7 @@ public class EntityProjectionMakerTest {
                 .relationship("books", EntityProjection.builder()
                         .dictionary(dictionary)
                         .type(Book.class)
+                        .pagination(defaultPagination)
                         .build())
                 .build();
 
@@ -225,7 +250,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("include", "authors");
         String path = "/book/1/relationships/publisher";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
@@ -233,6 +261,7 @@ public class EntityProjectionMakerTest {
                 .relationship("publisher", EntityProjection.builder()
                         .dictionary(dictionary)
                         .type(Publisher.class)
+                        .pagination(defaultPagination)
                         .build())
                 .relationship("authors", EntityProjection.builder()
                         .dictionary(dictionary)
@@ -262,7 +291,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("include", "authors");
         String path = "/book";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
@@ -290,6 +322,7 @@ public class EntityProjectionMakerTest {
                         .type(Editor.class)
                         .dictionary(dictionary)
                         .build())
+                .pagination(defaultPagination)
                 .build();
 
         EntityProjection actual = maker.make(path);
@@ -303,7 +336,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("include", "authors");
         String path = "/book/1";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
@@ -345,7 +381,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("include", "books.publisher,books.editor");
         String path = "/author";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
@@ -390,6 +429,7 @@ public class EntityProjectionMakerTest {
                                 .type(Author.class)
                                 .build())
                         .build())
+                .pagination(defaultPagination)
                 .build();
 
         EntityProjection actual = maker.make(path);
@@ -404,7 +444,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("include", "books.publisher,books.editor");
         String path = "/author/1";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
@@ -462,7 +505,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("include", "books");
         String path = "/author/1/books/3/publisher/1";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
@@ -514,7 +560,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("include", "books");
         String path = "/author/1/books/3/publisher";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
@@ -551,6 +600,7 @@ public class EntityProjectionMakerTest {
                                         .dictionary(dictionary)
                                         .type(Editor.class)
                                         .build())
+                                .pagination(defaultPagination)
                                 .build())
                         .build())
                 .build();
@@ -570,7 +620,10 @@ public class EntityProjectionMakerTest {
         queryParams.add("fields[book]", "publisher,editor,title");
         String path = "/author/1";
 
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)

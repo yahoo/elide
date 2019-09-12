@@ -10,6 +10,8 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.User;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 /**
  * Utility subclass that helps construct RequestScope objects for testing.
  */
@@ -23,5 +25,14 @@ public class TestRequestScope extends RequestScope {
                 new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build());
+    }
+
+    public TestRequestScope(EntityDictionary dictionary,
+                            String path,
+                            MultivaluedMap<String, String> queryParams) {
+        super(path, new JsonApiDocument(), null, null, queryParams,
+                new ElideSettingsBuilder(null)
+                        .withEntityDictionary(dictionary)
+                        .build());
     }
 }

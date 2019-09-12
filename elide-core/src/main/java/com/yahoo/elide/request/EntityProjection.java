@@ -114,6 +114,18 @@ public class EntityProjection {
                 merged.relationships.add((relationship));
             }
         }
+        if (toMerge.getPagination() != null) {
+            merged.pagination = toMerge.getPagination();
+        }
+
+        if (toMerge.getSorting() != null) {
+            merged.sorting = toMerge.getSorting();
+        }
+
+        if (toMerge.getFilterExpression() != null) {
+            merged.filterExpression = toMerge.getFilterExpression();
+        }
+
         merged.attributes.addAll(toMerge.attributes);
 
         return merged.build();
