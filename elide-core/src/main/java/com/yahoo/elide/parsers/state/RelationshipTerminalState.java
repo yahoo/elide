@@ -21,6 +21,7 @@ import com.yahoo.elide.jsonapi.models.Resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.yahoo.elide.request.EntityProjection;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -39,9 +40,12 @@ public class RelationshipTerminalState extends BaseState {
     private final PersistentResource record;
     private final RelationshipType relationshipType;
     private final String relationshipName;
+    private final EntityProjection parentProjection;
 
-    public RelationshipTerminalState(PersistentResource record, String relationshipName) {
+    public RelationshipTerminalState(PersistentResource record, String relationshipName,
+                                     EntityProjection parentProjection) {
         this.record = record;
+        this.parentProjection = parentProjection;
 
         this.relationshipType = record.getRelationshipType(relationshipName);
         this.relationshipName = relationshipName;
@@ -54,7 +58,7 @@ public class RelationshipTerminalState extends BaseState {
         JsonApiMapper mapper = requestScope.getMapper();
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
-        Map<String, Relationship> relationships = record.toResourceWithSortingAndPagination().getRelationships();
+        Map<String, Relationship> relationships = record.toResource(parentProjection).getRelationships();
         Relationship relationship = null;
         if (relationships != null) {
             relationship = relationships.get(relationshipName);
