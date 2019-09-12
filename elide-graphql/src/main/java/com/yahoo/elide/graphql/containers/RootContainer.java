@@ -24,8 +24,17 @@ public class RootContainer implements GraphQLContainer {
         Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
 
         boolean generateTotals = requestContainsPageInfo(context.field);
-        return fetcher.fetchObject(context, context.requestScope, entityClass, context.ids,
-                context.sort, context.offset, context.first, context.filters, generateTotals);
+        return fetcher.fetchObject(
+                context,
+                context.requestScope,
+                entityClass,
+                context.requestScope.getEntityProjection(),  // root-level projection
+                context.ids,
+                context.sort,
+                context.offset,
+                context.first,
+                context.filters,
+                generateTotals);
     }
 
     public static boolean requestContainsPageInfo(Field field) {
