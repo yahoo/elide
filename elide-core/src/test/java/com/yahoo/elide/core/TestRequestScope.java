@@ -16,6 +16,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 
 
+
 /**
  * Utility subclass that helps construct RequestScope objects for testing.
  */
@@ -26,6 +27,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary) {
+
 
         super(null, new JsonApiDocument(), transaction, user, null,
                 new ElideSettingsBuilder(null)
@@ -53,6 +55,7 @@ public class TestRequestScope extends RequestScope {
         } else {
             return super.getQueryParams();
         }
+
 
 
 

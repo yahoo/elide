@@ -8,6 +8,7 @@ package com.yahoo.elide.parsers.state;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
+
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
@@ -56,6 +57,7 @@ public class RecordState extends BaseState {
 
 
 
+
         }
         if (entityClass == null) {
             throw new IllegalArgumentException("Unknown type " + entityName);
@@ -88,6 +90,7 @@ public class RecordState extends BaseState {
         state.setState(new RecordTerminalState(nextRecord));
 
 
+
     }
 
     @Override
@@ -99,6 +102,7 @@ public class RecordState extends BaseState {
                     .orElseThrow(IllegalStateException::new);
 
         state.setState(new RecordState(resource.getRelation(relationship, id), relationship.getProjection()));
+
 
 
     }
@@ -115,6 +119,7 @@ public class RecordState extends BaseState {
                 .orElseThrow(IllegalStateException::new);
 
         childRecord = resource.getRelation(childRelationship , id);
+
 
 
 

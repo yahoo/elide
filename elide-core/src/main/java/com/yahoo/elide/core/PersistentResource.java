@@ -938,6 +938,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
 
 
+
                         .build())
                 .build(), false);
     }
@@ -949,6 +950,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .alias(relationName)
                 .projection(EntityProjection.builder()
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+
 
 
                         .build())
@@ -963,7 +965,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private Set<PersistentResource> getRelation(com.yahoo.elide.request.Relationship relationship,
                                                 boolean checked) {
-
         if (checked && !checkRelation(relationship)) {
             return Collections.emptySet();
         }
@@ -1055,6 +1056,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 ).build();
 
         Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
+
 
 
 
@@ -1262,11 +1264,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
 
 
+
             return getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
                     .alias(relationName)
                     .name(relationName)
                     .projection(EntityProjection.builder()
                             .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+
 
 
                             .filterExpression(filterExpression.orElse(null))
@@ -1285,6 +1289,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return getRelationCheckedFiltered(projection.getRelationship(relationName)
                     .orElseThrow(IllegalStateException::new)
             );
+
 
 
         });

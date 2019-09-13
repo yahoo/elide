@@ -14,6 +14,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 
+
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -59,6 +60,7 @@ public class IncludedProcessorTest {
     private EntityDictionary dictionary;
 
 
+
     @BeforeEach
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
@@ -71,6 +73,7 @@ public class IncludedProcessorTest {
         reset(mockTransaction);
 
         testScope = new TestRequestScope(mockTransaction, new User(1), dictionary);
+
 
     }
 

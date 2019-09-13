@@ -191,6 +191,7 @@ public class EntityProjectionMaker
             return EntityProjection.builder()
 
 
+
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
                 .attributes(getSparseAttributes(entityClass))
@@ -200,6 +201,7 @@ public class EntityProjectionMaker
         }
 
         return EntityProjection.builder()
+
 
 
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
@@ -247,6 +249,7 @@ public class EntityProjectionMaker
                         .filterExpression(filter)
 
 
+
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .relationship(relationshipName, relationshipProjection.projection)
                         .build()
@@ -273,6 +276,7 @@ public class EntityProjectionMaker
                         .filterExpression(filter)
                         .sorting(scope.getSorting())
                         .pagination(scope.getPagination())
+
 
 
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))

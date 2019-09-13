@@ -43,6 +43,7 @@ public class ResourceIdentifier {
                 .type(cls)
 
 
+
                 .build(), id, requestScope);
     }
 

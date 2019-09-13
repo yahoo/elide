@@ -21,6 +21,7 @@ import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
+
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
@@ -72,6 +73,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     public void createObject(Object entity, RequestScope scope) {
         getTransaction(entity).createObject(entity, scope);
     }
+
 
 
     @Override

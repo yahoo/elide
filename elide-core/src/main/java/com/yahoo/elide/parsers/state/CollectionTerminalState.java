@@ -135,6 +135,7 @@ public class CollectionTerminalState extends BaseState {
                 parentProjection,
 
 
+
                 new ArrayList<>(), //Empty list of IDs
                 requestScope);
         }

@@ -166,48 +166,14 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Loads a collection of objects.
      *
+
      * @param entityProjection - the class to load
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
      */
-    default Iterable<Object> loadObjects(
+    Iterable<Object> loadObjects(
             EntityProjection entityProjection,
-            RequestScope scope) {
-
-        return loadObjects(entityProjection.getType(),
-                Optional.ofNullable(entityProjection.getFilterExpression()),
-                Optional.ofNullable(entityProjection.getSorting()),
-                Optional.ofNullable(entityProjection.getPagination()),
-                scope);
-    }
-
-    /**
-     * Retrieve a relation from an object.
-     *
-     * @param relationTx - The datastore that governs objects of the relationhip's type.
-     * @param entity - The object which owns the relationship.
-     * @param relationName - name of the relationship.
-     * @param collection - The data collection to fetch
-     * It is optional for the data store to attempt evaluation.
-     * @param scope - contains request level metadata.
-     * @return the object in the relation
-     */
-    default Object getRelation(
-            DataStoreTransaction relationTx,
-            Object entity,
-            String relationName,
-            EntityProjection collection,
-            RequestScope scope) {
-
-        return this.getRelation(
-                relationTx,
-                entity,
-                relationName,
-                Optional.ofNullable(collection.getFilterExpression()),
-                Optional.ofNullable(collection.getSorting()),
-                Optional.ofNullable(collection.getPagination()),
-                scope);
-    }
+            RequestScope scope);
 
     /**
      * Retrieve a relation from an object.
@@ -229,6 +195,7 @@ public interface DataStoreTransaction extends Closeable {
 
         return PersistentResource.getValue(entity, relationship.getName(), scope);
     }
+
 
     /**
      * Elide core will update the in memory representation of the objects to the requested state.

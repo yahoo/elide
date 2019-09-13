@@ -7,12 +7,14 @@ package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
+
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
 import com.yahoo.elide.request.EntityProjection;
+
 
 
 
@@ -27,6 +29,7 @@ public class StartState extends BaseState {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
+
 
         state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
                 state.getRequestScope().getEntityProjection()));
@@ -48,7 +51,6 @@ public class StartState extends BaseState {
     @Override
     public void handle(StateContext state, RootCollectionRelationshipContext ctx) {
         PersistentResource record = entityRecord(state, ctx.entity());
-        EntityDictionary dictionary = record.getDictionary();
 
         EntityProjection projection = state.getRequestScope().getEntityProjection();
         String relationName = ctx.relationship().term().getText();
@@ -58,6 +60,7 @@ public class StartState extends BaseState {
                     .orElseThrow(IllegalStateException::new));
 
         state.setState(new RelationshipTerminalState(record, relationName, projection));
+
 
     }
 
@@ -71,6 +74,7 @@ public class StartState extends BaseState {
 
         return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
                 id, state.getRequestScope());
+
 
 
     }
