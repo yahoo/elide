@@ -159,7 +159,6 @@ public class GraphQLEntityProjectionMaker {
      */
     private EntityProjection createProjection(Class<?> entityType, Field entityField) {
         final EntityProjection entityProjection = EntityProjection.builder()
-                .dictionary(entityDictionary)
                 .type(entityType)
                 .build();
 
@@ -210,7 +209,8 @@ public class GraphQLEntityProjectionMaker {
         FragmentDefinition fragmentDefinition = fragmentMap.get(fragmentName);
 
         // type name in type condition of the Fragment must match the entity projection type name
-        if (parentProjection.getName().equals(fragmentDefinition.getTypeCondition().getName())) {
+        if (entityDictionary.getJsonAliasFor(parentProjection.getType())
+                .equals(fragmentDefinition.getTypeCondition().getName())) {
             fragmentDefinition.getSelectionSet().getSelections()
                     .forEach(selection -> addSelection(selection, parentProjection));
         }
@@ -275,7 +275,10 @@ public class GraphQLEntityProjectionMaker {
                                             .build()));
         } else {
             throw new InvalidEntityBodyException(
-                    String.format("Unknown attribute field {%s.%s}.", parentProjection.getName(), fieldName));
+                    String.format(
+                            "Unknown attribute field {%s.%s}.",
+                            entityDictionary.getJsonAliasFor(parentProjection.getType()),
+                            fieldName));
         }
     }
 
