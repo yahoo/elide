@@ -18,9 +18,7 @@ import javax.ws.rs.core.MultivaluedMap;
 public class TestRequestScope extends RequestScope {
     public TestRequestScope(DataStoreTransaction transaction,
                         User user,
-                        EntityDictionary dictionary,
-                        Class<?> entityClass,
-                        int nestLevel) {
+                        EntityDictionary dictionary) {
         super(null, new JsonApiDocument(), transaction, user, null,
                 new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)

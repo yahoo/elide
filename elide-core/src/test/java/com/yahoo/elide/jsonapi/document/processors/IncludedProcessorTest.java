@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -17,9 +18,12 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.User;
 
 import com.google.common.collect.Sets;
+import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
@@ -54,20 +58,22 @@ public class IncludedProcessorTest {
 
     private PersistentResource<FunWithPermissions> funWithPermissionsRecord;
 
-    private User goodUser = new User(1);
-    private User badUser = new User(1);
     private DataStoreTransaction mockTransaction = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+    private RequestScope testScope;
+    private EntityDictionary dictionary;
 
     @BeforeEach
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
 
-        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+        dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(FunWithPermissions.class);
 
         reset(mockTransaction);
+
+        testScope = new TestRequestScope(mockTransaction, new User(1), dictionary);
 
         //Create objects
         Parent parent1 = newParent(1);
@@ -92,19 +98,17 @@ public class IncludedProcessorTest {
         child3.setFriends(new HashSet<>(Collections.singletonList(child1)));
         child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
-        RequestScope parentScope = new TestRequestScope(mockTransaction, goodUser, dictionary, Parent.class, 3);
-        RequestScope childScope = new TestRequestScope(mockTransaction, goodUser, dictionary, Child.class, 3);
-        RequestScope funScope = new TestRequestScope(mockTransaction, badUser, dictionary, FunWithPermissions.class, 1);
         //Create Persistent Resource
-        parentRecord1 = new PersistentResource<>(parent1, null, parentScope.getUUIDFor(parent1), parentScope);
-        parentRecord2 = new PersistentResource<>(parent2, null, parentScope.getUUIDFor(parent2), parentScope);
-        parentRecord3 = new PersistentResource<>(parent3, null, parentScope.getUUIDFor(parent3), parentScope);
-        childRecord1  = new PersistentResource<>(child1, null, childScope.getUUIDFor(child1), childScope);
-        childRecord2  = new PersistentResource<>(child2, null, childScope.getUUIDFor(child2), childScope);
-        childRecord3  = new PersistentResource<>(child3, null, childScope.getUUIDFor(child3), childScope);
-        childRecord4  = new PersistentResource<>(child4, null, childScope.getUUIDFor(child4), childScope);
+        parentRecord1 = new PersistentResource<>(parent1, null, String.valueOf(parent1.getId()), testScope);
+        parentRecord2 = new PersistentResource<>(parent2, null, String.valueOf(parent2.getId()), testScope);
+        parentRecord3 = new PersistentResource<>(parent3, null, String.valueOf(parent3.getId()), testScope);
+        childRecord1  = new PersistentResource<>(child1, null, String.valueOf(child1.getId()), testScope);
+        childRecord2  = new PersistentResource<>(child2, null, String.valueOf(child2.getId()), testScope);
+        childRecord3  = new PersistentResource<>(child3, null, String.valueOf(child3.getId()), testScope);
+        childRecord4  = new PersistentResource<>(child4, null, String.valueOf(child4.getId()), testScope);
 
-        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null, funScope.getUUIDFor(funWithPermissions), funScope);
+        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null,
+                String.valueOf(funWithPermissions.getId()), testScope);
     }
 
     @Test
@@ -196,6 +200,21 @@ public class IncludedProcessorTest {
 
     @Test
     public void testIncludeForbiddenRelationship() {
+        EntityProjection projection = EntityProjection.builder()
+                .dictionary(dictionary)
+                .type(FunWithPermissions.class)
+                .relationship(Relationship.builder()
+                        .name("relation1")
+                        .alias("relation1")
+                        .projection(EntityProjection.builder()
+                                .dictionary(testScope.getDictionary())
+                                .type(Child.class)
+                                .build())
+                        .build())
+                .build();
+
+        testScope.setEntityProjection(projection);
+
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
