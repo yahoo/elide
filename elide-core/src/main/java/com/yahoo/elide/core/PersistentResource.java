@@ -927,7 +927,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .alias(relationName)
                 .projection(EntityProjection.builder()
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
-                        .dictionary(dictionary)
                         .build())
                 .build(), false);
     }
@@ -939,7 +938,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .alias(relationName)
                 .projection(EntityProjection.builder()
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
-                        .dictionary(dictionary)
                         .build())
                 .build(), true);
     }
@@ -1251,7 +1249,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     .name(relationName)
                     .projection(EntityProjection.builder()
                             .type(dictionary.getParameterizedType(getResourceClass(), relationName))
-                            .dictionary(dictionary)
                             .filterExpression(filterExpression.orElse(null))
                             .build())
                     .build());

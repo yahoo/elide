@@ -103,7 +103,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-                        .dictionary(dictionary)
                         .build(),
                 "1",
                 userTwoScope);
@@ -124,7 +123,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-                        .dictionary(dictionary)
                         .build(),
                 "1",
                 userOneScope);
@@ -145,7 +143,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-                        .dictionary(dictionary)
                         .build(),
                 "1",
                 userFourScope);
@@ -166,7 +163,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-                        .dictionary(dictionary)
                         .build(),
                 "1",
                 userThreeScope);
@@ -194,13 +190,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-                        .dictionary(dictionary)
                         .build(),
                 "1",
                 userTwoScope);
         PersistentResource<Book> loadedBook = PersistentResource.loadRecord(
                 EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(Book.class)
                         .build(),
                 "2",
@@ -227,14 +221,12 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-                        .dictionary(dictionary)
                         .build(),
                 "1",
                 userOneScope);
         PersistentResource<Book> loadedBook = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(Book.class)
-                        .dictionary(dictionary)
                         .build(),
                 "2",
                 userOneScope);
@@ -262,14 +254,12 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-                        .dictionary(dictionary)
                         .build(),
                 "1",
                 userThreeScope);
         PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(Author.class)
-                        .dictionary(dictionary)
                         .build(),
                 "2",
                 userThreeScope);
@@ -295,14 +285,12 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-                        .dictionary(dictionary)
                         .build(),
                 "1",
                 userTwoScope);
         PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(Author.class)
-                        .dictionary(dictionary)
                         .build(),
                 "2",
                 userTwoScope);
@@ -376,7 +364,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<Book> loadedBook = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(Book.class)
-                        .dictionary(dictionary)
                         .build(),
                 "2",
                 userOneScope);
@@ -399,7 +386,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(UpdateAndCreate.class, userThreeScope, Optional.of("9"));
         PersistentResource<Book> loadedBook = PersistentResource.loadRecord(
                 EntityProjection.builder()
-                    .dictionary(dictionary)
                     .type(Book.class)
                     .build(),
                 "2",
@@ -422,7 +408,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(UpdateAndCreate.class, userTwoScope, Optional.of("10"));
         PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(
                 EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(Author.class)
                         .build(),
                 "2",
@@ -446,7 +431,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(Author.class)
-                        .dictionary(dictionary)
                         .build(),
                 "2",
                 userOneScope);

@@ -1195,7 +1195,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias("relation3")
                 .projection(EntityProjection.builder()
                         .type(Child.class)
-                        .dictionary(dictionary)
                         .build())
                 .build()), any())).thenReturn(child);
 
@@ -1204,7 +1203,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias("relation1")
                 .projection(EntityProjection.builder()
                         .type(Child.class)
-                        .dictionary(dictionary)
                         .build())
                 .build()), any())).thenReturn(children1);
 
@@ -1213,7 +1211,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias("children")
                 .projection(EntityProjection.builder()
                         .type(Child.class)
-                        .dictionary(dictionary)
                         .build())
                 .build()), any())).thenReturn(children2);
 
@@ -1222,7 +1219,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias("readNoAccess")
                 .projection(EntityProjection.builder()
                         .type(Child.class)
-                        .dictionary(dictionary)
                         .build())
                 .build()), any())).thenReturn(secret);
 
@@ -1334,11 +1330,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(Child.class)
-                .dictionary(dictionary)
                 .relationship("parents",
                         EntityProjection.builder()
                                 .type(Parent.class)
-                                .dictionary(dictionary)
                                 .build())
                 .build());
 
@@ -1369,11 +1363,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(FunWithPermissions.class)
-                .dictionary(dictionary)
                 .relationship("relation3",
                         EntityProjection.builder()
                                 .type(Child.class)
-                                .dictionary(dictionary)
                                 .build())
                 .build());
 
@@ -1394,11 +1386,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         goodScope.setEntityProjection(EntityProjection.builder()
             .type(Parent.class)
-            .dictionary(dictionary)
             .relationship("children",
                 EntityProjection.builder()
                     .type(Child.class)
-                    .dictionary(dictionary)
                     .build())
             .build());
 
@@ -1463,11 +1453,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(Left.class)
-                .dictionary(dictionary)
                 .relationship("noUpdateOne2One",
                         EntityProjection.builder()
                                 .type(Right.class)
-                                .dictionary(dictionary)
                                 .build())
                 .build());
 
@@ -1518,11 +1506,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
             .type(Left.class)
-            .dictionary(dictionary)
             .relationship("noInverseUpdate",
                 EntityProjection.builder()
                     .type(Right.class)
-                    .dictionary(dictionary)
                     .build())
             .build());
 
@@ -1547,11 +1533,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(Left.class)
-                .dictionary(dictionary)
                 .relationship("noDeleteOne2One",
                         EntityProjection.builder()
                                 .type(NoDeleteEntity.class)
-                                .dictionary(dictionary)
                                 .build())
                 .build());
 
@@ -1637,7 +1621,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         EntityProjection collection = EntityProjection.builder()
             .type(Child.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObjects(eq(collection), any(RequestScope.class)))
@@ -1648,7 +1631,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Set<PersistentResource> loaded = PersistentResource.loadRecords(EntityProjection.builder()
                 .type(Child.class)
-                .dictionary(dictionary)
                 .build(), new ArrayList<>(), goodScope);
 
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);
@@ -1669,7 +1651,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         EntityProjection collection = EntityProjection.builder()
             .type(Child.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(child1);
@@ -1677,7 +1658,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(collection);
         PersistentResource<Child> loaded = PersistentResource.loadRecord(EntityProjection.builder()
-                .dictionary(dictionary)
                 .type(Child.class)
                 .build(), "1", goodScope);
 
@@ -1688,7 +1668,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testLoadRecordInvalidId() {
         EntityProjection collection = EntityProjection.builder()
             .type(Child.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObject(eq(collection), eq("1"), any())).thenReturn(null);
@@ -1698,7 +1677,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertThrows(
                 InvalidObjectIdentifierException.class,
                 () -> PersistentResource.loadRecord(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(Child.class)
                         .build(), "1", goodScope));
     }
@@ -1709,7 +1687,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         noRead.setId(1);
         EntityProjection collection = EntityProjection.builder()
             .type(NoReadEntity.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noRead);
@@ -1936,7 +1913,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         EntityProjection collection = EntityProjection.builder()
             .type(NoShareEntity.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noShare);
@@ -2386,7 +2362,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias(name)
                 .projection(EntityProjection.builder()
                         .type(type)
-                        .dictionary(dictionary)
                         .build())
                 .build();
     }

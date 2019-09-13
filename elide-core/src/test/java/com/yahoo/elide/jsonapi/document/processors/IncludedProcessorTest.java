@@ -16,8 +16,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.User;
 
 import com.google.common.collect.Sets;
@@ -112,21 +110,6 @@ public class IncludedProcessorTest {
     public void testExecuteSingleRelation() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        EntityProjection projection = EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(Parent.class)
-                .relationship(Relationship.builder()
-                        .name("children")
-                        .alias("children")
-                        .projection(EntityProjection.builder()
-                                .dictionary(testScope.getDictionary())
-                                .type(Child.class)
-                                .build())
-                        .build())
-                .build();
-
-        testScope.setEntityProjection(projection);
-
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
         testScope.setQueryParams(queryParams);
@@ -141,21 +124,6 @@ public class IncludedProcessorTest {
 
     @Test
     public void testExecuteSingleRelationOnCollection() throws Exception {
-        EntityProjection projection = EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(Parent.class)
-                .relationship(Relationship.builder()
-                        .name("children")
-                        .alias("children")
-                        .projection(EntityProjection.builder()
-                                .dictionary(testScope.getDictionary())
-                                .type(Child.class)
-                                .build())
-                        .build())
-                .build();
-
-        testScope.setEntityProjection(projection);
-
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         Set<PersistentResource> parents = new HashSet<>();
@@ -176,28 +144,6 @@ public class IncludedProcessorTest {
 
     @Test
     public void testExecuteSingleNestedRelation() throws Exception {
-        EntityProjection projection = EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(Parent.class)
-                .relationship(Relationship.builder()
-                        .name("children")
-                        .alias("children")
-                        .projection(EntityProjection.builder()
-                                .dictionary(testScope.getDictionary())
-                                .type(Child.class)
-                                .relationship(Relationship.builder()
-                                        .name("friends")
-                                        .alias("friends")
-                                        .projection(EntityProjection.builder()
-                                                .type(Child.class)
-                                                .dictionary(testScope.getDictionary())
-                                                .build())
-                                        .build())
-                                .build())
-                        .build())
-                .build();
-
-        testScope.setEntityProjection(projection);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
@@ -218,29 +164,6 @@ public class IncludedProcessorTest {
     public void testExecuteMultipleRelations() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
-        EntityProjection projection = EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(Parent.class)
-                .relationship(Relationship.builder()
-                        .name("children")
-                        .alias("children")
-                        .projection(EntityProjection.builder()
-                                .dictionary(testScope.getDictionary())
-                                .type(Child.class)
-                                .build())
-                        .build())
-                .relationship(Relationship.builder()
-                        .name("spouses")
-                        .alias("spouses")
-                        .projection(EntityProjection.builder()
-                                .dictionary(testScope.getDictionary())
-                                .type(Parent.class)
-                                .build())
-                        .build())
-                .build();
-
-        testScope.setEntityProjection(projection);
-
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Arrays.asList("children", "spouses"));
         testScope.setQueryParams(queryParams);
@@ -257,29 +180,6 @@ public class IncludedProcessorTest {
     @Test
     public void testExecuteMultipleNestedRelations() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
-
-        EntityProjection projection = EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(Parent.class)
-                .relationship(Relationship.builder()
-                        .name("children")
-                        .alias("children")
-                        .projection(EntityProjection.builder()
-                                .dictionary(testScope.getDictionary())
-                                .type(Child.class)
-                                .relationship(Relationship.builder()
-                                        .name("friends")
-                                        .alias("friends")
-                                        .projection(EntityProjection.builder()
-                                                .type(Child.class)
-                                                .dictionary(testScope.getDictionary())
-                                                .build())
-                                        .build())
-                                .build())
-                        .build())
-                .build();
-
-        testScope.setEntityProjection(projection);
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
@@ -301,21 +201,6 @@ public class IncludedProcessorTest {
 
     @Test
     public void testIncludeForbiddenRelationship() {
-        EntityProjection projection = EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(FunWithPermissions.class)
-                .relationship(Relationship.builder()
-                        .name("relation1")
-                        .alias("relation1")
-                        .projection(EntityProjection.builder()
-                                .dictionary(testScope.getDictionary())
-                                .type(Child.class)
-                                .build())
-                        .build())
-                .build();
-
-        testScope.setEntityProjection(projection);
-
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();

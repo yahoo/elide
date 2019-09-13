@@ -71,7 +71,6 @@ public class EntityProjectionMaker
 
     public EntityProjection parseInclude(Class<?> entityClass) {
         return EntityProjection.builder()
-                .dictionary(dictionary)
                 .type(entityClass)
                 .relationships(toRelationshipSet(getIncludedRelationships(entityClass)))
                 .build();
@@ -140,7 +139,6 @@ public class EntityProjectionMaker
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .filterExpression(filter)
                         .sorting(scope.getSorting())
                         .pagination(scope.getPagination())
@@ -160,7 +158,6 @@ public class EntityProjectionMaker
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(entityClass)
                         .attributes(getSparseAttributes(entityClass))
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
@@ -192,7 +189,6 @@ public class EntityProjectionMaker
             EntityProjection relationshipProjection = visitIncludePath(nextPath);
 
             return EntityProjection.builder()
-                .dictionary(dictionary)
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
                 .attributes(getSparseAttributes(entityClass))
@@ -202,7 +198,6 @@ public class EntityProjectionMaker
         }
 
         return EntityProjection.builder()
-                .dictionary(dictionary)
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
@@ -223,7 +218,6 @@ public class EntityProjectionMaker
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(entityClass)
                         .relationship(projection.name, projection.projection)
                         .build()
@@ -247,7 +241,6 @@ public class EntityProjectionMaker
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(entityClass)
                         .filterExpression(filter)
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
@@ -273,7 +266,6 @@ public class EntityProjectionMaker
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .filterExpression(filter)
                         .sorting(scope.getSorting())
                         .pagination(scope.getPagination())
@@ -355,7 +347,6 @@ public class EntityProjectionMaker
                             return EntityProjection.builder()
                                     .type(dictionary.getParameterizedType(entityClass, relationshipName))
                                     .filterExpression(filter)
-                                    .dictionary(dictionary)
                                     .build();
                         }
                 ));

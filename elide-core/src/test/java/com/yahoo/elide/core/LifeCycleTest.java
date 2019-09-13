@@ -961,7 +961,6 @@ public class LifeCycleTest {
         publisherResource = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(Publisher.class)
-                        .dictionary(dictionary)
                         .build(), "1", scope);
         publisherResource.addRelation("books", book2Resource);
 
@@ -1006,7 +1005,6 @@ public class LifeCycleTest {
         book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
 
         publisherResource = PersistentResource.loadRecord(EntityProjection.builder()
-                .dictionary(dictionary)
                 .type(Publisher.class)
                 .build(), "1", scope);
 
