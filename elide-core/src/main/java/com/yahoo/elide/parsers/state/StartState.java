@@ -7,8 +7,6 @@ package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
@@ -30,9 +28,6 @@ public class StartState extends BaseState {
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
 
-        if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
-        }
 
         state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
                 state.getRequestScope().getEntityProjection()));
@@ -57,13 +52,9 @@ public class StartState extends BaseState {
 
         EntityProjection projection = state.getRequestScope().getEntityProjection();
         String relationName = ctx.relationship().term().getText();
-        try {
-            record.getRelationCheckedFiltered(projection.getRelationship(relationName)
-                    .orElseThrow(IllegalStateException::new));
 
-        } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(relationName);
-        }
+        record.getRelationCheckedFiltered(projection.getRelationship(relationName)
+                    .orElseThrow(IllegalStateException::new));
 
         state.setState(new RelationshipTerminalState(record, relationName, projection));
 
@@ -76,11 +67,6 @@ public class StartState extends BaseState {
 
     private PersistentResource<?> entityRecord(StateContext state, EntityContext entity) {
         String id = entity.id().getText();
-        EntityDictionary dictionary = state.getRequestScope().getDictionary();
-        Class<?> entityClass = dictionary.getEntityClass(entityName);
-        if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
-        }
 
         return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
                 id, state.getRequestScope());
