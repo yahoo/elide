@@ -51,6 +51,6 @@ public class PatchRequestScope extends RequestScope {
      */
     public PatchRequestScope(String path, JsonApiDocument jsonApiDocument, PatchRequestScope scope) {
         super(path, jsonApiDocument, scope);
-        this.setEntityProjection(new EntityProjectionMaker(dictionary, this).make(path));
+        this.setEntityProjection(new EntityProjectionMaker(dictionary, this).parsePath(path));
     }
 }

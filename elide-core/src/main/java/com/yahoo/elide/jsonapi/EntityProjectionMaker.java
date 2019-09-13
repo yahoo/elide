@@ -65,8 +65,16 @@ public class EntityProjectionMaker
         this.scope = scope;
     }
 
-    public EntityProjection make(String path) {
+    public EntityProjection parsePath(String path) {
         return visit(JsonApiParser.parse(path)).apply(null).projection;
+    }
+
+    public EntityProjection parseInclude(Class<?> entityClass) {
+        return EntityProjection.builder()
+                .dictionary(dictionary)
+                .type(entityClass)
+                .relationships(toRelationshipSet(getIncludedRelationships(entityClass)))
+                .build();
     }
 
     @Override

@@ -10,7 +10,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
@@ -29,6 +28,8 @@ import java.util.Set;
  */
 public class RecordState extends BaseState {
     private final PersistentResource resource;
+
+    /* The projection which loaded this record */
     private final EntityProjection projection;
 
     public RecordState(PersistentResource resource, EntityProjection projection) {
@@ -114,17 +115,20 @@ public class RecordState extends BaseState {
     public void handle(StateContext state, SubCollectionRelationshipContext ctx) {
         String id = ctx.entity().id().getText();
         String subCollection = ctx.entity().term().getText();
-        String relationName = ctx.relationship().getText();
+        String relationName = ctx.relationship().term().getText();
 
         PersistentResource childRecord;
+
+        Relationship childRelationship = projection.getRelationship(subCollection)
+                .orElseThrow(IllegalStateException::new);
+
         try {
-            childRecord = resource.getRelation(projection.getRelationship(subCollection)
-                    .orElseThrow(IllegalStateException::new), id);
+            childRecord = resource.getRelation(childRelationship , id);
 
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(subCollection);
         }
 
-        state.setState(new RelationshipTerminalState(childRecord, relationName, projection));
+        state.setState(new RelationshipTerminalState(childRecord, relationName, childRelationship.getProjection()));
     }
 }

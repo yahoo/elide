@@ -1243,7 +1243,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected Map<String, Relationship> getRelationships() {
         return getRelationshipsWithRelationshipFunction((relationName) -> {
-            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceClass(), relationName);
+            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceClass(),
+                    relationName);
 
             return getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
                     .alias(relationName)

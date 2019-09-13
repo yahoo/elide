@@ -45,14 +45,7 @@ public class StartState extends BaseState {
     public void handle(StateContext state, RootCollectionSubCollectionContext ctx) {
         PersistentResource record = entityRecord(state, ctx.entity());
 
-        String subCollection = ctx.subCollection().getText();
-        EntityProjection relationshipProjection = state.getRequestScope()
-                .getEntityProjection()
-                .getRelationship(subCollection)
-                .orElseThrow(IllegalStateException::new)
-                .getProjection();
-
-        state.setState(new RecordState(record, relationshipProjection));
+        state.setState(new RecordState(record, state.getRequestScope().getEntityProjection()));
     }
 
     @Override
@@ -86,6 +79,7 @@ public class StartState extends BaseState {
             throw new InvalidCollectionException(entityName);
         }
 
-        return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(), id, state.getRequestScope());
+        return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
+                id, state.getRequestScope());
     }
 }

@@ -73,7 +73,7 @@ public class EntityProjectionMakerTest {
                 .pagination(defaultPagination)
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -101,7 +101,7 @@ public class EntityProjectionMakerTest {
                 .pagination(defaultPagination)
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -137,7 +137,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -176,7 +176,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -214,7 +214,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -239,7 +239,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -280,7 +280,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -325,7 +325,7 @@ public class EntityProjectionMakerTest {
                 .pagination(defaultPagination)
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -369,7 +369,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -432,7 +432,7 @@ public class EntityProjectionMakerTest {
                 .pagination(defaultPagination)
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -494,7 +494,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -549,7 +549,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -605,7 +605,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }
@@ -648,7 +648,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.make(path);
+        EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
     }

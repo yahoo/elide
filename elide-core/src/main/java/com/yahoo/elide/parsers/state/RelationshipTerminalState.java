@@ -18,10 +18,10 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
+import com.yahoo.elide.request.EntityProjection;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import com.yahoo.elide.request.EntityProjection;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -40,6 +40,8 @@ public class RelationshipTerminalState extends BaseState {
     private final PersistentResource record;
     private final RelationshipType relationshipType;
     private final String relationshipName;
+
+    /* The projection which loaded the resource which owns the relationship */
     private final EntityProjection parentProjection;
 
     public RelationshipTerminalState(PersistentResource record, String relationshipName,
