@@ -82,7 +82,7 @@
         <version.jackson>2.9.9</version.jackson>
         <version.jersey>2.29</version.jersey>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
-        <version.mysql>8.0.16</version.mysql>
+        <version.mysql>8.0.17</version.mysql>
         <hibernate5.version>5.4.2.Final</hibernate5.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
