@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.request;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -27,9 +26,6 @@ import java.util.Set;
 @AllArgsConstructor
 public class EntityProjection {
     @NonNull
-    private EntityDictionary dictionary;
-
-    @NonNull
     private Class<?> type;
 
     private Set<Attribute> attributes;
@@ -43,20 +39,11 @@ public class EntityProjection {
     private Pagination pagination;
 
     /**
-     * Returns the entity name.
-     * @return the entity name
-     */
-    public String getName() {
-        return dictionary.getJsonAliasFor(type);
-    }
-
-    /**
      * Creates a builder initialized as a copy of this collection
      * @return The new builder
      */
     public EntityProjectionBuilder copyOf() {
         return EntityProjection.builder()
-                .dictionary(this.dictionary)
                 .type(this.type)
                 .attributes(new LinkedHashSet<>(attributes))
                 .relationships(new LinkedHashSet<>(this.relationships))
@@ -114,6 +101,18 @@ public class EntityProjection {
                 merged.relationships.add((relationship));
             }
         }
+        if (toMerge.getPagination() != null) {
+            merged.pagination = toMerge.getPagination();
+        }
+
+        if (toMerge.getSorting() != null) {
+            merged.sorting = toMerge.getSorting();
+        }
+
+        if (toMerge.getFilterExpression() != null) {
+            merged.filterExpression = toMerge.getFilterExpression();
+        }
+
         merged.attributes.addAll(toMerge.attributes);
 
         return merged.build();

@@ -9,14 +9,12 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
 import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
 
 import java.util.Optional;
 
@@ -33,7 +31,8 @@ public class StartState extends BaseState {
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
         }
-        state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty()));
+        state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
+                state.getRequestScope().getEntityProjection()));
     }
 
     @Override
@@ -45,33 +44,25 @@ public class StartState extends BaseState {
     @Override
     public void handle(StateContext state, RootCollectionSubCollectionContext ctx) {
         PersistentResource record = entityRecord(state, ctx.entity());
-        state.setState(new RecordState(record));
+
+        state.setState(new RecordState(record, state.getRequestScope().getEntityProjection()));
     }
 
     @Override
     public void handle(StateContext state, RootCollectionRelationshipContext ctx) {
         PersistentResource record = entityRecord(state, ctx.entity());
-        EntityDictionary dictionary = record.getDictionary();
 
+        EntityProjection projection = state.getRequestScope().getEntityProjection();
         String relationName = ctx.relationship().term().getText();
         try {
-            Optional<FilterExpression> filterExpression =
-                    state.getRequestScope().getExpressionForRelation(record, relationName);
+            record.getRelationCheckedFiltered(projection.getRelationship(relationName)
+                    .orElseThrow(IllegalStateException::new));
 
-            record.getRelationCheckedFiltered(Relationship.builder()
-                    .alias(relationName)
-                    .name(relationName)
-                    .projection(EntityProjection.builder()
-                            .dictionary(dictionary)
-                            .type(dictionary.getType(record.getResourceClass(), relationName))
-                            .filterExpression(filterExpression.orElse(null))
-                            .build())
-                    .build());
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(relationName);
         }
 
-        state.setState(new RelationshipTerminalState(record, relationName));
+        state.setState(new RelationshipTerminalState(record, relationName, projection));
     }
 
     @Override
@@ -88,10 +79,7 @@ public class StartState extends BaseState {
             throw new InvalidCollectionException(entityName);
         }
 
-        return PersistentResource.loadRecord(
-                EntityProjection.builder()
-                        .dictionary(dictionary)
-                        .type(entityClass)
-                        .build(), id, state.getRequestScope());
+        return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
+                id, state.getRequestScope());
     }
 }

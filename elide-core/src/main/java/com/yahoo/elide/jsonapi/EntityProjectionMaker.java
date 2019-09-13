@@ -10,6 +10,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.parsers.JsonApiParser;
@@ -36,9 +37,6 @@ import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Converts a JSON-API request (URL and query parameters) into an EntityProjection.
- * TODO - Parse filter parameters and add them to the projection.
- * TODO - Parse sparse fields and limit the attributes in the projection.
- * TODO - Add attributes for included entities.
  */
 public class EntityProjectionMaker
         extends CoreBaseVisitor<Function<Class<?>, EntityProjectionMaker.NamedEntityProjection>> {
@@ -58,19 +56,24 @@ public class EntityProjectionMaker
     private EntityDictionary dictionary;
     private MultivaluedMap<String, String> queryParams;
     private Map<String, Set<String>> sparseFields;
+    private RequestScope scope;
 
-    public EntityProjectionMaker(EntityDictionary dictionary, MultivaluedMap<String, String> queryParams) {
+    public EntityProjectionMaker(EntityDictionary dictionary, RequestScope scope) {
         this.dictionary = dictionary;
-        this.queryParams = queryParams;
+        this.queryParams = scope.getQueryParams().orElse(new MultivaluedHashMap<>());
         sparseFields = RequestScope.parseSparseFields(queryParams);
+        this.scope = scope;
     }
 
-    public EntityProjectionMaker(EntityDictionary dictionary) {
-        this(dictionary, new MultivaluedHashMap<>());
-    }
-
-    public EntityProjection make(String path) {
+    public EntityProjection parsePath(String path) {
         return visit(JsonApiParser.parse(path)).apply(null).projection;
+    }
+
+    public EntityProjection parseInclude(Class<?> entityClass) {
+        return EntityProjection.builder()
+                .type(entityClass)
+                .relationships(toRelationshipSet(getIncludedRelationships(entityClass)))
+                .build();
     }
 
     @Override
@@ -131,11 +134,14 @@ public class EntityProjectionMaker
             String entityName = ctx.term().getText();
 
             Class<?> entityClass = getEntityClass(parentClass, entityName);
+            FilterExpression filter = scope.getExpressionForRelation(parentClass, entityName).orElse(null);
 
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
+                        .filterExpression(filter)
+                        .sorting(scope.getSorting())
+                        .pagination(scope.getPagination())
                         .type(entityClass)
                         .build()
                     ).build();
@@ -146,14 +152,12 @@ public class EntityProjectionMaker
     public Function<Class<?>, NamedEntityProjection> visitEntity(CoreParser.EntityContext ctx) {
         return (parentClass) -> {
             String entityName = ctx.term().getText();
-            String id = ctx.id().getText();
 
             Class<?> entityClass = getEntityClass(parentClass, entityName);
 
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(entityClass)
                         .attributes(getSparseAttributes(entityClass))
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
@@ -185,19 +189,19 @@ public class EntityProjectionMaker
             EntityProjection relationshipProjection = visitIncludePath(nextPath);
 
             return EntityProjection.builder()
-                .dictionary(dictionary)
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
                 .attributes(getSparseAttributes(entityClass))
+                .filterExpression(scope.getFilterExpressionByType(entityClass).orElse(null))
                 .type(entityClass)
                 .build();
         }
 
         return EntityProjection.builder()
-                .dictionary(dictionary)
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
+                .filterExpression(scope.getFilterExpressionByType(entityClass).orElse(null))
                 .build();
     }
 
@@ -214,7 +218,6 @@ public class EntityProjectionMaker
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(entityClass)
                         .relationship(projection.name, projection.projection)
                         .build()
@@ -233,11 +236,13 @@ public class EntityProjectionMaker
             String relationshipName = relationship.term().getText();
             NamedEntityProjection relationshipProjection = relationship.accept(this).apply(entityClass);
 
+            FilterExpression filter = scope.getFilterExpressionByType(entityClass).orElse(null);
+
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(entityClass)
+                        .filterExpression(filter)
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .relationship(relationshipName, relationshipProjection.projection)
                         .build()
@@ -251,10 +256,19 @@ public class EntityProjectionMaker
 
             Class<?> entityClass = getEntityClass(parentClass, collectionNameText);
 
+            FilterExpression filter;
+            if (parentClass == null) {
+                filter = scope.getLoadFilterExpression(entityClass).orElse(null);
+            } else {
+                filter = scope.getExpressionForRelation(parentClass, collectionNameText).orElse(null);
+            }
+
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
                     .projection(EntityProjection.builder()
-                        .dictionary(dictionary)
+                        .filterExpression(filter)
+                        .sorting(scope.getSorting())
+                        .pagination(scope.getPagination())
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .attributes(getSparseAttributes(entityClass))
                         .type(entityClass)
@@ -307,7 +321,7 @@ public class EntityProjectionMaker
         return Sets.intersection(allAttributes, sparseFieldsForEntity).stream()
                 .map(attributeName -> Attribute.builder()
                     .name(attributeName)
-                    .type(dictionary.getType(entityClass, attributeName))
+                    .type(dictionary.getParameterizedType(entityClass, attributeName))
                     .build())
                 .collect(Collectors.toSet());
     }
@@ -326,9 +340,13 @@ public class EntityProjectionMaker
                 .collect(Collectors.toMap(
                         Function.identity(),
                         (relationshipName) -> {
+
+                            FilterExpression filter = scope.getExpressionForRelation(entityClass, relationshipName)
+                                    .orElse(null);
+
                             return EntityProjection.builder()
                                     .type(dictionary.getParameterizedType(entityClass, relationshipName))
-                                    .dictionary(dictionary)
+                                    .filterExpression(filter)
                                     .build();
                         }
                 ));

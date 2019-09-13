@@ -31,6 +31,8 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
+import com.yahoo.elide.request.Argument;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.permissions.ExpressionResult;
@@ -377,7 +379,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
             if (dictionary.isAttribute(obj.getClass(), fieldName)) {
-                transaction.setAttribute(obj, fieldName, newVal, requestScope);
+                transaction.setAttribute(obj, Attribute.builder()
+                        .name(fieldName)
+                        .type(fieldClass)
+                        .argument(Argument.builder()
+                                .name("_UNUSED_")
+                                .value(newVal).build())
+                        .build(), requestScope);
             }
             return true;
         }
@@ -927,8 +935,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .name(relationName)
                 .alias(relationName)
                 .projection(EntityProjection.builder()
-                        .type(dictionary.getType(getResourceClass(), relationName))
-                        .dictionary(dictionary)
+                        .type(dictionary.getParameterizedType(getResourceClass(), relationName))
                         .build())
                 .build(), false);
     }
@@ -939,8 +946,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .name(relationName)
                 .alias(relationName)
                 .projection(EntityProjection.builder()
-                        .type(dictionary.getType(getResourceClass(), relationName))
-                        .dictionary(dictionary)
+                        .type(dictionary.getParameterizedType(getResourceClass(), relationName))
                         .build())
                 .build(), true);
     }
@@ -953,7 +959,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private Set<PersistentResource> getRelation(com.yahoo.elide.request.Relationship relationship,
                                                 boolean checked) {
-
         if (checked && !checkRelation(relationship)) {
             return Collections.emptySet();
         }
@@ -1044,9 +1049,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         .build()
                 ).build();
 
-        //TODO - Change TO : Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
-        Object val = transaction.getRelation(transaction, obj, modifiedRelationship.getName(),
-                modifiedRelationship.getProjection(), requestScope);
+        Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
 
         if (val == null) {
             return Collections.emptySet();
@@ -1219,8 +1222,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Fetch a resource with support for lambda function for getting relationships and attributes.
      * @return The Resource
      */
-    public Resource toResourceWithSortingAndPagination() {
-        return toResource(this::getRelationshipsWithSortingAndPagination, this::getAttributes);
+    public Resource toResource(EntityProjection projection) {
+        return toResource(() -> { return getRelationships(projection); }, this::getAttributes);
     }
 
     /**
@@ -1229,7 +1232,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param attributeSupplier The attribute supplier
      * @return The Resource
      */
-    public Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
+    private Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
                                final Supplier<Map<String, Object>> attributeSupplier) {
         final Resource resource = new Resource(type, (obj == null)
                 ? uuid.orElseThrow(
@@ -1247,14 +1250,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected Map<String, Relationship> getRelationships() {
         return getRelationshipsWithRelationshipFunction((relationName) -> {
-            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(this, relationName);
+            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceClass(),
+                    relationName);
 
             return getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
                     .alias(relationName)
                     .name(relationName)
                     .projection(EntityProjection.builder()
-                            .type(dictionary.getType(getResourceClass(), relationName))
-                            .dictionary(dictionary)
+                            .type(dictionary.getParameterizedType(getResourceClass(), relationName))
                             .filterExpression(filterExpression.orElse(null))
                             .build())
                     .build());
@@ -1266,21 +1269,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @return Relationship mapping
      */
-    protected Map<String, Relationship> getRelationshipsWithSortingAndPagination() {
+    private Map<String, Relationship> getRelationships(EntityProjection projection) {
         return getRelationshipsWithRelationshipFunction((relationName) -> {
-            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(this, relationName);
-
-            return getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
-                    .alias(relationName)
-                    .name(relationName)
-                    .projection(EntityProjection.builder()
-                            .type(dictionary.getType(getResourceClass(), relationName))
-                            .dictionary(dictionary)
-                            .filterExpression(filterExpression.orElse(null))
-                            .sorting(requestScope.getSorting())
-                            .pagination(requestScope.getPagination())
-                            .build())
-                    .build());
+            return getRelationCheckedFiltered(projection.getRelationship(relationName)
+                    .orElseThrow(IllegalStateException::new)
+            );
         });
     }
 

@@ -20,7 +20,6 @@ public class Argument {
     @NonNull
     String name;
 
-    @NonNull
     Object value;
 
     /**

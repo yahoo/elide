@@ -41,7 +41,6 @@ public class ResourceIdentifier {
         Class<?> cls = requestScope.getDictionary().getEntityClass(type);
         return PersistentResource.loadRecord(EntityProjection.builder()
                 .type(cls)
-                .dictionary(requestScope.getDictionary())
                 .build(), id, requestScope);
     }
 

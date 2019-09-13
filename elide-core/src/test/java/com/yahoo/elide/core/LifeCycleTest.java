@@ -513,8 +513,8 @@ public class LifeCycleTest {
         book.setAuthors(Sets.newHashSet(author));
         author.setBooks(Sets.newHashSet(book));
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(any(), eq(author), eq("books"), any(), any(), any(), any())).then((i) -> author.getBooks());
-        when(tx.getRelation(any(), eq(book), eq("authors"), any(), any(), any(), any())).then((i) -> book.getAuthors());
+        when(tx.getRelation(any(), eq(author), any(), any())).then((i) -> author.getBooks());
+        when(tx.getRelation(any(), eq(book), any(), any())).then((i) -> book.getAuthors());
 
         RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource<Author> resourceBook = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
@@ -553,7 +553,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary, Book.class, 1);
+        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         verify(book, never()).onCreatePreSecurity(scope);
         verify(book, never()).onDeletePreSecurity(scope);
@@ -938,7 +938,7 @@ public class LifeCycleTest {
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
+        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary);
 
         PersistentResource publisherResource = PersistentResource.createObject(Publisher.class, scope, Optional.of("1"));
         PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
@@ -955,13 +955,12 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
+        scope = new TestRequestScope(tx, new User(1), dictionary);
 
         PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
         publisherResource = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(Publisher.class)
-                        .dictionary(dictionary)
                         .build(), "1", scope);
         publisherResource.addRelation("books", book2Resource);
 
@@ -984,7 +983,7 @@ public class LifeCycleTest {
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
+        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary);
 
         PersistentResource publisherResource = PersistentResource.createObject(Publisher.class, scope, Optional.of("1"));
         PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
@@ -1001,12 +1000,11 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
+        scope = new TestRequestScope(tx, new User(1), dictionary);
 
         book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
 
         publisherResource = PersistentResource.loadRecord(EntityProjection.builder()
-                .dictionary(dictionary)
                 .type(Publisher.class)
                 .build(), "1", scope);
 

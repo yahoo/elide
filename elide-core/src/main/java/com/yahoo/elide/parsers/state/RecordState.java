@@ -10,7 +10,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
@@ -30,15 +29,20 @@ import java.util.Set;
 public class RecordState extends BaseState {
     private final PersistentResource resource;
 
-    public RecordState(PersistentResource resource) {
+    /* The projection which loaded this record */
+    private final EntityProjection projection;
+
+    public RecordState(PersistentResource resource, EntityProjection projection) {
         Preconditions.checkNotNull(resource);
         this.resource = resource;
+        this.projection = projection;
     }
 
     @Override
     public void handle(StateContext state, SubCollectionReadCollectionContext ctx) {
         String subCollection = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
+
         Class<?> entityClass;
         String entityName;
         try {
@@ -60,20 +64,12 @@ public class RecordState extends BaseState {
             }
             final BaseState nextState;
             final CollectionTerminalState collectionTerminalState =
-                    new CollectionTerminalState(entityClass, Optional.of(resource), Optional.of(subCollection));
+                    new CollectionTerminalState(entityClass, Optional.of(resource),
+                            Optional.of(subCollection), projection);
             Set<PersistentResource> collection = null;
             if (type.isToOne()) {
-                Optional<FilterExpression> filterExpression =
-                        state.getRequestScope().getExpressionForRelation(resource, subCollection);
-                collection = resource.getRelationCheckedFiltered(Relationship.builder()
-                        .alias(subCollection)
-                        .name(subCollection)
-                        .projection(EntityProjection.builder()
-                                .dictionary(dictionary)
-                                .type(entityClass)
-                                .filterExpression(filterExpression.orElse(null))
-                                .build())
-                        .build());
+                collection = resource.getRelationCheckedFiltered(projection.getRelationship(subCollection)
+                        .orElseThrow(IllegalStateException::new));
             }
             if (collection instanceof SingleElementSet) {
                 PersistentResource record = ((SingleElementSet<PersistentResource>) collection).getValue();
@@ -93,15 +89,8 @@ public class RecordState extends BaseState {
         String subCollection = ctx.entity().term().getText();
 
         try {
-            EntityDictionary dictionary = resource.getDictionary();
-            PersistentResource nextRecord = resource.getRelation(Relationship.builder()
-                    .alias(subCollection)
-                    .name(subCollection)
-                    .projection(EntityProjection.builder()
-                            .dictionary(dictionary)
-                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
-                            .build())
-                    .build(), id);
+            PersistentResource nextRecord = resource.getRelation(
+                    projection.getRelationship(subCollection).orElseThrow(IllegalStateException::new), id);
             state.setState(new RecordTerminalState(nextRecord));
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(subCollection);
@@ -113,15 +102,10 @@ public class RecordState extends BaseState {
         String id = ctx.entity().id().getText();
         String subCollection = ctx.entity().term().getText();
         try {
-            EntityDictionary dictionary = resource.getDictionary();
-            state.setState(new RecordState(resource.getRelation(Relationship.builder()
-                    .alias(subCollection)
-                    .name(subCollection)
-                    .projection(EntityProjection.builder()
-                            .dictionary(dictionary)
-                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
-                            .build())
-                    .build(), id)));
+            Relationship relationship = projection.getRelationship(subCollection)
+                    .orElseThrow(IllegalStateException::new);
+
+            state.setState(new RecordState(resource.getRelation(relationship, id), relationship.getProjection()));
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(subCollection);
         }
@@ -131,43 +115,20 @@ public class RecordState extends BaseState {
     public void handle(StateContext state, SubCollectionRelationshipContext ctx) {
         String id = ctx.entity().id().getText();
         String subCollection = ctx.entity().term().getText();
+        String relationName = ctx.relationship().term().getText();
 
         PersistentResource childRecord;
+
+        Relationship childRelationship = projection.getRelationship(subCollection)
+                .orElseThrow(IllegalStateException::new);
+
         try {
-            EntityDictionary dictionary = resource.getDictionary();
-            childRecord = resource.getRelation(Relationship.builder()
-                    .alias(subCollection)
-                    .name(subCollection)
-                    .projection(EntityProjection.builder()
-                            .dictionary(dictionary)
-                            .type(dictionary.getType(resource.getResourceClass(), subCollection))
-                            .build())
-                    .build(), id);
+            childRecord = resource.getRelation(childRelationship , id);
 
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(subCollection);
         }
 
-        String relationName = ctx.relationship().term().getText();
-        try {
-            EntityDictionary dictionary = resource.getDictionary();
-
-            Optional<FilterExpression> filterExpression =
-                        state.getRequestScope().getExpressionForRelation(resource, subCollection);
-
-            childRecord.getRelationCheckedFiltered(Relationship.builder()
-                    .alias(relationName)
-                    .name(relationName)
-                    .projection(EntityProjection.builder()
-                            .dictionary(dictionary)
-                            .filterExpression(filterExpression.orElse(null))
-                            .type(dictionary.getType(childRecord.getResourceClass(), relationName))
-                            .build())
-                    .build());
-        } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(relationName);
-        }
-
-        state.setState(new RelationshipTerminalState(childRecord, relationName));
+        state.setState(new RelationshipTerminalState(childRecord, relationName, childRelationship.getProjection()));
     }
 }

@@ -11,7 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
- * Simple bean intended to not be persisted
+ * Simple bean intended to not be persisted.
  */
 @Entity
 @Include(type = "theNoopBean")
