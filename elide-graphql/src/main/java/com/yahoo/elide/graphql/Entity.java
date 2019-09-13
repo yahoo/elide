@@ -109,7 +109,6 @@ public class Entity {
                                 projection.getRelationship(relationshipName).isPresent()
                                         ? projection.getRelationship(relationshipName).get().getProjection()
                                         : EntityProjection.builder()
-                                                .dictionary(projection.getDictionary())
                                                 .type(relationshipClass)
                                                 .build();
 

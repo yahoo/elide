@@ -333,7 +333,6 @@ public class PersistentResourceFetcher implements DataFetcher {
         } else {
             // if there is not matched projection, create a new temporary projection
             entityProjection = EntityProjection.builder()
-                    .dictionary(dictionary)
                     .type(entityClass)
                     .build();
         }
