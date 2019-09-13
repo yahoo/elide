@@ -14,7 +14,6 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 
-
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -60,7 +59,6 @@ public class IncludedProcessorTest {
     private EntityDictionary dictionary;
 
 
-
     @BeforeEach
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
@@ -74,6 +72,40 @@ public class IncludedProcessorTest {
 
         testScope = new TestRequestScope(mockTransaction, new User(1), dictionary);
 
+        //Create objects
+        Parent parent1 = newParent(1);
+        Parent parent2 = newParent(2);
+        Parent parent3 = newParent(3);
+
+        Child child1 = newChild(2);
+        Child child2 = newChild(3);
+        Child child3 = newChild(4);
+        Child child4 = newChild(5);
+
+        FunWithPermissions funWithPermissions = newFunWithPermissions(1);
+
+        //Form relationships
+        parent1.setSpouses(new HashSet<>(Collections.singletonList(parent2)));
+        parent1.setChildren(new HashSet<>(Collections.singletonList(child1)));
+        parent2.setChildren(new HashSet<>(Collections.singletonList(child2)));
+        child1.setFriends(new HashSet<>(Collections.singletonList(child2)));
+
+        //Parent with multiple children each with a friend
+        parent3.setChildren(new HashSet<>(Arrays.asList(child3, child4)));
+        child3.setFriends(new HashSet<>(Collections.singletonList(child1)));
+        child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
+
+        //Create Persistent Resource
+        parentRecord1 = new PersistentResource<>(parent1, null, String.valueOf(parent1.getId()), testScope);
+        parentRecord2 = new PersistentResource<>(parent2, null, String.valueOf(parent2.getId()), testScope);
+        parentRecord3 = new PersistentResource<>(parent3, null, String.valueOf(parent3.getId()), testScope);
+        childRecord1  = new PersistentResource<>(child1, null, String.valueOf(child1.getId()), testScope);
+        childRecord2  = new PersistentResource<>(child2, null, String.valueOf(child2.getId()), testScope);
+        childRecord3  = new PersistentResource<>(child3, null, String.valueOf(child3.getId()), testScope);
+        childRecord4  = new PersistentResource<>(child4, null, String.valueOf(child4.getId()), testScope);
+
+        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null,
+                String.valueOf(funWithPermissions.getId()), testScope);
 
     }
 

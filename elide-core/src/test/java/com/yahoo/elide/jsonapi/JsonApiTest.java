@@ -69,7 +69,6 @@ public class JsonApiTest {
         RequestScope userScope = new TestRequestScope(tx, user, dictionary);
 
 
-
         new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource();
 
         assertTrue(parent.init);
@@ -81,7 +80,6 @@ public class JsonApiTest {
         parent.setId(123L);
 
         RequestScope userScope = new TestRequestScope(tx, user, dictionary);
-
 
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
@@ -106,7 +104,6 @@ public class JsonApiTest {
 
         RequestScope userScope = new TestRequestScope(tx, user, dictionary);
 
-
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource()));
 
@@ -128,7 +125,6 @@ public class JsonApiTest {
         child.setFriends(new HashSet<>());
 
         RequestScope userScope = new TestRequestScope(tx, user, dictionary);
-
 
         PersistentResource<Parent> pRec = new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope);
 
@@ -160,7 +156,6 @@ public class JsonApiTest {
 
         RequestScope userScope = new TestRequestScope(tx, user, dictionary);
 
-
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(
             new Data<>(Collections.singletonList(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource())));
@@ -183,7 +178,6 @@ public class JsonApiTest {
         child.setFriends(new HashSet<>());
 
         RequestScope userScope = new TestRequestScope(tx, user, dictionary);
-
 
         PersistentResource<Parent> pRec = new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope);
 

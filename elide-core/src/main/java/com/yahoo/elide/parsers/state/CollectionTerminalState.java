@@ -128,13 +128,9 @@ public class CollectionTerminalState extends BaseState {
         if (parent.isPresent()) {
             collection = parent.get().getRelationCheckedFiltered(
                     parentProjection.getRelationship(relationName.get()).orElseThrow(IllegalStateException::new));
-
-
         } else {
             collection = PersistentResource.loadRecords(
                 parentProjection,
-
-
 
                 new ArrayList<>(), //Empty list of IDs
                 requestScope);
