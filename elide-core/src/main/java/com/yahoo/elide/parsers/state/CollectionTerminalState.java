@@ -14,9 +14,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -55,9 +53,11 @@ public class CollectionTerminalState extends BaseState {
     private final Optional<String> relationName;
     private final Class<?> entityClass;
     private PersistentResource newObject;
+    private final EntityProjection parentProjection;
 
     public CollectionTerminalState(Class<?> entityClass, Optional<PersistentResource> parent,
-                                   Optional<String> relationName) {
+                                   Optional<String> relationName, EntityProjection projection) {
+        this.parentProjection = projection;
         this.parent = parent;
         this.relationName = relationName;
         this.entityClass = entityClass;
@@ -125,38 +125,12 @@ public class CollectionTerminalState extends BaseState {
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
 
-        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
-        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
-
         if (parent.isPresent()) {
-            Optional<FilterExpression> filterExpression =
-                    requestScope.getExpressionForRelation(parent.get(), relationName.get());
-
-            collection = parent.get().getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
-                    .name(relationName.get())
-                    .alias(relationName.get())
-                    .projection(
-                            EntityProjection.builder()
-                                    .type(entityClass)
-                                    .dictionary(requestScope.getDictionary())
-                                    .pagination(requestScope.getPagination())
-                                    .sorting(requestScope.getSorting())
-                                    .filterExpression(filterExpression.orElse(null))
-                                    .build()
-
-                    )
-                    .build());
+            collection = parent.get().getRelationCheckedFiltered(
+                    parentProjection.getRelationship(relationName.get()).orElseThrow(IllegalStateException::new));
         } else {
-            Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(entityClass);
-
             collection = PersistentResource.loadRecords(
-                EntityProjection.builder()
-                    .type(entityClass)
-                    .dictionary(requestScope.getDictionary())
-                    .pagination(requestScope.getPagination())
-                    .sorting(requestScope.getSorting())
-                    .filterExpression(filterExpression.orElse(null))
-                    .build(),
+                parentProjection,
                 new ArrayList<>(), //Empty list of IDs
                 requestScope);
         }

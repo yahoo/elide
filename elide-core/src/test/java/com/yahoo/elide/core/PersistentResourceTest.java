@@ -315,7 +315,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setRelation2(Sets.newHashSet());
         fun.setRelation3(null);
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
@@ -328,7 +328,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertTrue(relationships.containsKey("relation4"), "relation4 should be present");
         assertTrue(relationships.containsKey("relation5"), "relation5 should be present");
 
-        scope = new TestRequestScope(tx, badUser, dictionary, FunWithPermissions.class, 1);
+        scope = new TestRequestScope(tx, badUser, dictionary);
 
         PersistentResource<FunWithPermissions> funResourceWithBadScope = new PersistentResource<>(fun, null, "3", scope);
         relationships = funResourceWithBadScope.getRelationships();
@@ -358,7 +358,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setField2(null);
         fun.setField4("bar");
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
         Map<String, Object> attributes = funResource.getAttributes();
@@ -378,7 +378,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals(attributes.get("field4"), "bar", "field4 should be set to original value.");
 
 
-        RequestScope badUserScope = new TestRequestScope(tx, badUser, dictionary, Left.class, 1);
+        RequestScope badUserScope = new TestRequestScope(tx, badUser, dictionary);
         PersistentResource<FunWithPermissions> funResourceBad = new PersistentResource<>(fun, null, "3", badUserScope);
 
         attributes = funResourceBad.getAttributes();
@@ -399,7 +399,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child4 = newChild(-4);
 
         {
-            RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, Child.class, 1);
+            RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
             PersistentResource<Child> child1Resource = new PersistentResource<>(child1, null, "1", scope);
             PersistentResource<Child> child2Resource = new PersistentResource<>(child2, null, "-2", scope);
             PersistentResource<Child> child3Resource = new PersistentResource<>(child3, null, "3", scope);
@@ -415,7 +415,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         }
 
         {
-            RequestScope scope = new TestRequestScope(tx, badUser, dictionary, Child.class, 1);
+            RequestScope scope = new TestRequestScope(tx, badUser, dictionary);
             PersistentResource<Child> child1Resource = new PersistentResource<>(child1, null, "1", scope);
             PersistentResource<Child> child2Resource = new PersistentResource<>(child2, null, "-2", scope);
             PersistentResource<Child> child3Resource = new PersistentResource<>(child3, null, "3", scope);
@@ -545,7 +545,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         right.setOne2one(left);
 
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, Left.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "3", scope);
 
         leftResource.deleteInverseRelation("one2one", right);
@@ -559,7 +559,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parent.setChildren(Sets.newHashSet(child));
         parent.setSpouses(Sets.newHashSet());
 
-        scope = new TestRequestScope(tx, goodUser, dictionary, Child.class, 1);
+        scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "4", scope);
 
         childResource.deleteInverseRelation("parents", parent);
@@ -573,7 +573,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Left left = new Left();
         Right right = new Right();
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, Left.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "3", scope);
 
         leftResource.addInverseRelation("one2one", right);
@@ -586,7 +586,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parent.setChildren(Sets.newHashSet());
         parent.setSpouses(Sets.newHashSet());
 
-        scope = new TestRequestScope(tx, goodUser, dictionary, Child.class, 1);
+        scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "4", scope);
 
         childResource.addInverseRelation("parents", parent);
@@ -602,7 +602,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setId(2);
         right.setId(3);
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, Left.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "2", goodScope);
 
@@ -669,7 +669,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
      */
     public void testSuccessfulManyToManyRelationshipUpdate() throws Exception {
         Parent parent = new Parent();
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, Parent.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
 
         Child child1 = newChild(1);
         Child child2 = newChild(2);
@@ -739,7 +739,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setField2("blah");
         fun.setField3(null);
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", scope);
 
         String result = (String) funResource.getAttribute("field2");
@@ -752,7 +752,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetAttributeInvalidField() {
         FunWithPermissions fun = new FunWithPermissions();
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", scope);
 
         assertThrows(InvalidAttributeException.class, () -> funResource.getAttribute("invalid"));
@@ -763,7 +763,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField1("foo");
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", scope);
 
         assertThrows(ForbiddenAccessException.class, () -> funResource.getAttribute("field1"));
@@ -773,7 +773,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetAttributeInvalidEntityPermissions() {
         NoReadEntity noread = new NoReadEntity();
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, NoReadEntity.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "1", scope);
 
         assertThrows(ForbiddenAccessException.class, () -> noreadResource.getAttribute("field"));
@@ -788,7 +788,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Set<Child> children = Sets.newHashSet(child1, child2, child3);
         fun.setRelation2(children);
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
         when(scope.getTransaction().getRelation(any(), eq(fun), any(), any())).thenReturn(children);
@@ -808,7 +808,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Set<Child> children = Sets.newHashSet(child1, child2, child3);
         fun.setRelation2(Sets.newHashSet(child1, child2, child3));
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
         when(scope.getTransaction().getRelation(any(), eq(fun), any(), any())).thenReturn(children);
@@ -831,7 +831,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("filter[child.name]", "paul john");
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, Parent.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
@@ -851,7 +851,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Set<Child> children = Sets.newHashSet(child1, child2, child3);
         parent.setChildren(children);
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, Parent.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         when(scope.getTransaction().getRelation(any(), eq(parent), any(), any())).thenReturn(children);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", scope);
@@ -866,7 +866,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetRelationForbiddenByEntity() {
         NoReadEntity noread = new NoReadEntity();
 
-        RequestScope scope = new TestRequestScope(tx, badUser, dictionary, NoReadEntity.class, 1);
+        RequestScope scope = new TestRequestScope(tx, badUser, dictionary);
 
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "3", scope);
         assertThrows(ForbiddenAccessException.class, () -> getRelation(noreadResource, "child"));
@@ -876,7 +876,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetRelationForbiddenByField() {
         FunWithPermissions fun = new FunWithPermissions();
 
-        RequestScope scope = new TestRequestScope(tx, badUser, dictionary, Left.class, 1);
+        RequestScope scope = new TestRequestScope(tx, badUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
         assertThrows(ForbiddenAccessException.class, () -> getRelation(funResource, "relation1"));
@@ -886,7 +886,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetRelationForbiddenByEntityAllowedByField() {
         FirstClassFields firstClassFields = new FirstClassFields();
 
-        RequestScope badUserScope = new TestRequestScope(tx, badUser, dictionary, FirstClassFields.class, 1);
+        RequestScope badUserScope = new TestRequestScope(tx, badUser, dictionary);
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
         getRelation(fcResource, "public2");
@@ -896,7 +896,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetAttributeForbiddenByEntityAllowedByField() {
         FirstClassFields firstClassFields = new FirstClassFields();
 
-        RequestScope badUserScope = new TestRequestScope(tx, badUser, dictionary, FirstClassFields.class, 1);
+        RequestScope badUserScope = new TestRequestScope(tx, badUser, dictionary);
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
         fcResource.getAttribute("public1");
@@ -906,7 +906,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetRelationForbiddenByEntity2() {
         FirstClassFields firstClassFields = new FirstClassFields();
 
-        RequestScope badUserScope = new TestRequestScope(tx, badUser, dictionary, FirstClassFields.class, 1);
+        RequestScope badUserScope = new TestRequestScope(tx, badUser, dictionary);
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
         assertThrows(ForbiddenAccessException.class, () -> getRelation(fcResource, "private2"));
@@ -916,7 +916,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetAttributeForbiddenByEntity2() {
         FirstClassFields firstClassFields = new FirstClassFields();
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FirstClassFields.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields,
                 null, "3", scope);
 
@@ -927,7 +927,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetRelationInvalidRelation() {
         FunWithPermissions fun = new FunWithPermissions();
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
@@ -973,7 +973,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetRelationsNoEntityAccess() {
         FunWithPermissions fun = new FunWithPermissions();
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
@@ -985,7 +985,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetRelationsNoEntityAccess2() {
         FunWithPermissions fun = new FunWithPermissions();
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", scope);
 
@@ -1195,7 +1195,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias("relation3")
                 .projection(EntityProjection.builder()
                         .type(Child.class)
-                        .dictionary(dictionary)
                         .build())
                 .build()), any())).thenReturn(child);
 
@@ -1204,7 +1203,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias("relation1")
                 .projection(EntityProjection.builder()
                         .type(Child.class)
-                        .dictionary(dictionary)
                         .build())
                 .build()), any())).thenReturn(children1);
 
@@ -1213,7 +1211,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias("children")
                 .projection(EntityProjection.builder()
                         .type(Child.class)
-                        .dictionary(dictionary)
                         .build())
                 .build()), any())).thenReturn(children2);
 
@@ -1222,13 +1219,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias("readNoAccess")
                 .projection(EntityProjection.builder()
                         .type(Child.class)
-                        .dictionary(dictionary)
                         .build())
                 .build()), any())).thenReturn(secret);
 
-        RequestScope funScope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
-        RequestScope childScope = new TestRequestScope(tx, goodUser, dictionary, Child.class, 1);
-        RequestScope parentScope = new TestRequestScope(tx, goodUser, dictionary, Parent.class, 1);
+        RequestScope funScope = new TestRequestScope(tx, goodUser, dictionary);
+        RequestScope childScope = new TestRequestScope(tx, goodUser, dictionary);
+        RequestScope parentScope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", funScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", childScope);
@@ -1334,11 +1330,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(Child.class)
-                .dictionary(dictionary)
                 .relationship("parents",
                         EntityProjection.builder()
                                 .type(Parent.class)
-                                .dictionary(dictionary)
                                 .build())
                 .build());
 
@@ -1369,11 +1363,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(FunWithPermissions.class)
-                .dictionary(dictionary)
                 .relationship("relation3",
                         EntityProjection.builder()
                                 .type(Child.class)
-                                .dictionary(dictionary)
                                 .build())
                 .build());
 
@@ -1394,11 +1386,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         goodScope.setEntityProjection(EntityProjection.builder()
             .type(Parent.class)
-            .dictionary(dictionary)
             .relationship("children",
                 EntityProjection.builder()
                     .type(Child.class)
-                    .dictionary(dictionary)
                     .build())
             .build());
 
@@ -1463,11 +1453,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(Left.class)
-                .dictionary(dictionary)
                 .relationship("noUpdateOne2One",
                         EntityProjection.builder()
                                 .type(Right.class)
-                                .dictionary(dictionary)
                                 .build())
                 .build());
 
@@ -1518,11 +1506,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
             .type(Left.class)
-            .dictionary(dictionary)
             .relationship("noInverseUpdate",
                 EntityProjection.builder()
                     .type(Right.class)
-                    .dictionary(dictionary)
                     .build())
             .build());
 
@@ -1547,11 +1533,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(EntityProjection.builder()
                 .type(Left.class)
-                .dictionary(dictionary)
                 .relationship("noDeleteOne2One",
                         EntityProjection.builder()
                                 .type(NoDeleteEntity.class)
-                                .dictionary(dictionary)
                                 .build())
                 .build());
 
@@ -1637,7 +1621,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         EntityProjection collection = EntityProjection.builder()
             .type(Child.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObjects(eq(collection), any(RequestScope.class)))
@@ -1648,7 +1631,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Set<PersistentResource> loaded = PersistentResource.loadRecords(EntityProjection.builder()
                 .type(Child.class)
-                .dictionary(dictionary)
                 .build(), new ArrayList<>(), goodScope);
 
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);
@@ -1669,7 +1651,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         EntityProjection collection = EntityProjection.builder()
             .type(Child.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(child1);
@@ -1677,7 +1658,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setEntityProjection(collection);
         PersistentResource<Child> loaded = PersistentResource.loadRecord(EntityProjection.builder()
-                .dictionary(dictionary)
                 .type(Child.class)
                 .build(), "1", goodScope);
 
@@ -1688,7 +1668,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testLoadRecordInvalidId() {
         EntityProjection collection = EntityProjection.builder()
             .type(Child.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObject(eq(collection), eq("1"), any())).thenReturn(null);
@@ -1698,7 +1677,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertThrows(
                 InvalidObjectIdentifierException.class,
                 () -> PersistentResource.loadRecord(EntityProjection.builder()
-                        .dictionary(dictionary)
                         .type(Child.class)
                         .build(), "1", goodScope));
     }
@@ -1709,7 +1687,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         noRead.setId(1);
         EntityProjection collection = EntityProjection.builder()
             .type(NoReadEntity.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noRead);
@@ -1907,14 +1884,14 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testIsIdGenerated() {
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, Child.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<Child> generated = new PersistentResource<>(new Child(), null, "1", scope);
 
         assertTrue(generated.isIdGenerated(),
                 "isIdGenerated returns true when ID field has the GeneratedValue annotation");
 
-        scope = new TestRequestScope(tx, goodUser, dictionary, NoCreateEntity.class, 1);
+        scope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<NoCreateEntity> notGenerated = new PersistentResource<>(new NoCreateEntity(), null, "1", scope);
 
@@ -1936,12 +1913,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         EntityProjection collection = EntityProjection.builder()
             .type(NoShareEntity.class)
-            .dictionary(dictionary)
             .build();
 
         when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noShare);
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, example.User.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
@@ -1963,7 +1939,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         when(tx.loadObject(any(), eq(1L), any())).thenReturn(unshareableWithEntityUnshare);
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, ContainerWithPackageShare.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
 
         assertThrows(
@@ -1985,7 +1961,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         when(tx.loadObject(any(), eq(1L), any())).thenReturn(shareableWithPackageShare);
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, ContainerWithPackageShare.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
 
         containerResource.updateRelation("shareableWithPackageShares", shareables.toPersistentResources(goodScope));
@@ -2012,7 +1988,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.loadObject(any(), eq(1L), any())).thenReturn(noShare1);
         when(tx.loadObject(any(), eq(2L), any())).thenReturn(noShare2);
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, example.User.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
         assertThrows(
@@ -2038,7 +2014,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         idList.add(new ResourceIdentifier("noshare", "1").castToResource());
         Relationship ids = new Relationship(null, new Data<>(idList));
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, example.User.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
 
         when(tx.loadObject(any(), eq(1L), any())).thenReturn(noShare1);
         when(tx.getRelation(any(), eq(userModel), any(), any())).thenReturn(noshares);
@@ -2069,7 +2045,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.getRelation(any(), eq(userModel), any(), any())).thenReturn(noShare);
         when(tx.loadObject(any(), eq(1L), any())).thenReturn(noShare);
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, example.User.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
@@ -2094,7 +2070,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         when(tx.getRelation(any(), eq(userModel), any(), any())).thenReturn(noShare);
 
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, example.User.class, 1);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
         boolean returnVal = userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
@@ -2230,7 +2206,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child childWithId = newChild(1);
         Child childWithoutId = newChild(0);
 
-        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary, Child.class, 1);
+        RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
         PersistentResource resourceWithId = new PersistentResource<>(childWithId, null, scope.getUUIDFor(childWithId), scope);
         PersistentResource resourceWithDifferentId = new PersistentResource<>(childWithoutId, null, scope.getUUIDFor(childWithoutId), scope);
@@ -2386,7 +2362,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .alias(name)
                 .projection(EntityProjection.builder()
                         .type(type)
-                        .dictionary(dictionary)
                         .build())
                 .build();
     }

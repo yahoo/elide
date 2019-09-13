@@ -140,7 +140,7 @@ public class BridgeableRedisStore implements DataStore {
                 HibernateUser user = (HibernateUser) parent;
                 if ("specialAction".equals(relationName)) {
                     return muxTx.loadObject(
-                            EntityProjection.builder().type(entityClass).dictionary(dictionary).build(),
+                            EntityProjection.builder().type(entityClass).build(),
                             String.valueOf(user.getSpecialActionId()),
                             scope);
                 } else if ("redisActions".equals(relationName)) {
@@ -151,7 +151,6 @@ public class BridgeableRedisStore implements DataStore {
 
                     return muxTx.loadObject(EntityProjection.builder()
                             .type(entityClass)
-                            .dictionary(dictionary)
                             .filterExpression(updatedExpression)
                             .build(),
                             String.valueOf(lookupId),
@@ -173,7 +172,6 @@ public class BridgeableRedisStore implements DataStore {
                 );
                 return muxTx.loadObjects(EntityProjection.builder()
                         .type(entityClass)
-                        .dictionary(dictionary)
                         .filterExpression(filterExpression)
                         .sorting(sorting.orElse(null))
                         .pagination(pagination.orElse(null))

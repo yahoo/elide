@@ -2670,7 +2670,6 @@ public class ResourceIT extends IntegrationTest {
         when(pagination.isGenerateTotals()).thenReturn(true);
         tx.loadObjects(EntityProjection.builder()
                 .type(Book.class)
-                .dictionary(dictionary)
                 .filterExpression(filterPredicate)
                 .pagination(pagination)
                 .build(), scope);

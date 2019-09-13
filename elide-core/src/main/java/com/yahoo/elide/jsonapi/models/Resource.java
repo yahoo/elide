@@ -159,7 +159,6 @@ public class Resource {
         }
 
         EntityProjection projection = EntityProjection.builder()
-            .dictionary(dictionary)
             .type(cls)
             .build();
 
