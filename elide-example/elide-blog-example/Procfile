@@ -1,1 +1,1 @@
-web: java -jar ./target/elide-blog-example-4.5.3-SNAPSHOT.jar
+web: java -jar ./target/testapp.jar

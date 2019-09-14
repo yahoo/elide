@@ -12,17 +12,22 @@
     <groupId>com.yahoo.elide</groupId>
     <version>4.5.3-SNAPSHOT</version>
 
+    <properties>
+        <jar.finalName>testapp</jar.finalName>
+    </properties>
+
+
     <dependencies>
         <!-- Elide dependencies for example -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>RELEASE</version>
+            <version>4.5.1</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-standalone</artifactId>
-            <version>RELEASE</version>
+            <version>4.5.1</version>
         </dependency>
 
         <dependency>
