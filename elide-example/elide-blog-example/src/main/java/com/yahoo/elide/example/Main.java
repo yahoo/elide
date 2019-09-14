@@ -5,14 +5,13 @@
  */
 package com.yahoo.elide.example;
 
-import com.yahoo.elide.resources.JsonApiEndpoint;
-
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.servlet.ServletContainer;
+import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Example backend using Elide library.
@@ -20,23 +19,35 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Main {
     public static void main(String[] args) throws Exception {
-        final Server server = new Server(4080);
-        final ServletContextHandler servletContextHandler = new ServletContextHandler();
-        servletContextHandler.setContextPath("/");
-        server.setHandler(servletContextHandler);
+        ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
+            public int getPort() {
+                return 4080;
+            }
 
-        final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
-        servletHolder.setInitOrder(1);
-        servletHolder.setInitParameter("jersey.config.server.provider.packages",
-                JsonApiEndpoint.class.getPackage().getName());
-        servletHolder.setInitParameter("javax.ws.rs.Application",
-                ElideResourceConfig.class.getCanonicalName());
+            public String getJsonApiPathSpec() {
+                return "/*";
+            }
 
-        log.info("Web service starting...");
-        server.start();
+            public String getModelPackageName() {
 
-        log.info("Web service running...");
-        server.join();
-        server.destroy();
+                    //This needs to be changed to the package where your models live.
+                    return "com.yahoo.elide.example.models";
+            }
+
+            public Properties getDatabaseProperties() {
+                Properties dbProps;
+                try {
+                    dbProps = new Properties();
+                    dbProps.load(
+                            Main.class.getClassLoader().getResourceAsStream("dbconfig.properties")
+                    );
+                    return dbProps;
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
+
+        elide.start();
     }
 }
