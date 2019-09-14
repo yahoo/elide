@@ -21,6 +21,7 @@ import org.glassfish.hk2.api.ServiceLocator;
 
 import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.TimeZone;
 
@@ -32,7 +33,10 @@ public class Main {
     public static void main(String[] args) throws Exception {
         ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
             public int getPort() {
-                return 4080;
+                //Heroku exports port to come from $PORT
+                return Optional.ofNullable(System.getenv("PORT"))
+                        .map(Integer::valueOf)
+                        .orElse(4080);
             }
 
             public String getJsonApiPathSpec() {
