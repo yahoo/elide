@@ -62,13 +62,13 @@
               "type": "post",
               "attributes": {
                 "content": "The greatest thing ever by Michael",
-                "me": "1"
+                "me": "3"
               },
               "relationships": {
                 "author": {
                   "data": {
                     "type": "user",
-                    "id": "1"
+                    "id": "3"
                   }
                 }
               }
@@ -85,18 +85,16 @@
               "type": "post",
               "attributes": {
                 "content": "The 2nd best thing ever by Ken",
-                "me": "2"
+                "me": "4"
               },
               "relationships": {
                 "author": {
                   "data": {
                     "type": "user",
-                    "id": "2"
+                    "id": "4"
                   }
                 }
               }
             }
           }
           ' -X POST http://localhost:4080/post
-
-You can also load some data using `load_blog.sh` in `src/main/scripts/`

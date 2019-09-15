@@ -21,7 +21,6 @@ import javax.persistence.Table;
 @Table(name = "user")
 @Include(rootLevel = true)
 @SharePermission
-//@CreatePermission(expression = "Prefab.Role.All")
 public class User {
     private long id;
     private String name;

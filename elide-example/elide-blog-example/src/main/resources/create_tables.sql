@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS user
         role      TINYINT UNSIGNED NOT NULL,
         name      VARCHAR(255),
         PRIMARY KEY (id),
-    );
+    ) AS SELECT * FROM CSVREAD('classpath:memdb-users.csv');
 
 CREATE TABLE IF NOT EXISTS post
     (
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS post
         author_id   BIGINT UNSIGNED NOT NULL,
         PRIMARY KEY (id),
         FOREIGN KEY (author_id) REFERENCES user(id)
-    );
+    ) AS SELECT * FROM CSVREAD('classpath:memdb-posts.csv');
 
 CREATE TABLE IF NOT EXISTS comment
     (
@@ -24,4 +24,4 @@ CREATE TABLE IF NOT EXISTS comment
         PRIMARY KEY (id),
         FOREIGN KEY (author_id) REFERENCES user(id),
         FOREIGN KEY (post_id) REFERENCES post(id)
-    );
+    ) AS SELECT * FROM CSVREAD('classpath:memdb-comments.csv');

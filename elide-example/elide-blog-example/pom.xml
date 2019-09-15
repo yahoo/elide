@@ -22,12 +22,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>4.5.1</version>
+            <version>4.5.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-standalone</artifactId>
-            <version>4.5.1</version>
+            <version>4.5.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>
