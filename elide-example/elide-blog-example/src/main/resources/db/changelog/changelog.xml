@@ -33,7 +33,7 @@
     </changeSet>
     <changeSet author="admin" id="1539122270">
         <sql>
-            INSERT INTO user (id, role, name)
+            INSERT INTO blogger (id, role, name)
             VALUES
             (1,1,'Jon Doe')
             (2,1,'Jane Doe');
