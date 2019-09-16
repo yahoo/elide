@@ -75,7 +75,7 @@ More information about Elide can be found at [elide.io](http://elide.io/).
 
 ## Install
 
-To try out an Elide example service (with an in-memory database), you can deploy via Heroku.
+To try out an Elide example service (with a Postgres database), you can deploy via Heroku.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yahoo/elide)
 
