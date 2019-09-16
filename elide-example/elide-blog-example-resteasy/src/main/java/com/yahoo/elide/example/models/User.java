@@ -18,7 +18,7 @@ import javax.persistence.Table;
  * Model for Users (author of posts and author of comments).
  */
 @Entity
-@Table(name = "blogger")
+@Table(name = "user")
 @Include(rootLevel = true)
 @SharePermission
 public class User {

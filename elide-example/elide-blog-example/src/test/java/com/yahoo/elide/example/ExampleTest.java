@@ -1,0 +1,101 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.example;
+
+import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
+import com.yahoo.elide.core.HttpStatus;
+import org.junit.jupiter.api.Test;
+
+import javax.ws.rs.core.MediaType;
+
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.when;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static org.hamcrest.Matchers.equalTo;
+
+public class ExampleTest extends IntegrationTest {
+    @Test
+    void jsonApiTest() {
+        when()
+                .get("/user")
+                .then()
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type( "user"),
+                                        id("1"),
+                                        attributes(
+                                                attr("name", "Jon Doe"),
+                                                attr("role", "Registered")
+                                        )
+                                ),
+                                resource(
+                                        type( "user"),
+                                        id("2"),
+                                        attributes(
+                                                attr("name", "Jane Doe"),
+                                                attr("role", "Registered")
+
+
+                                        )
+                                )
+                        ).toJSON())
+                )
+                .log().all()
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    void graphqlTest() {
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body("{ \"query\" : \"" + GraphQLDSL.document(
+                query(
+                    selection(
+                        field("user",
+                            selections(
+                                field("id"),
+                                field("name"),
+                                field("role")
+                            )
+                        )
+                    )
+                )
+            ).toQuery() + "\" }"
+        )
+        .when()
+            .post("/graphql/api/v1")
+            .then()
+            .body(equalTo(GraphQLDSL.document(
+                selection(
+                    field(
+                        "user",
+                        selections(
+                            field("id", "1"),
+                            field( "name", "Jon Doe"),
+                            field("role", "Registered")
+                        ),
+                        selections(
+                            field("id", "2"),
+                            field( "name", "Jane Doe"),
+                            field("role", "Registered")
+                        )
+                    )
+                )
+            ).toResponse()))
+            .statusCode(HttpStatus.SC_OK);
+    }
+}
