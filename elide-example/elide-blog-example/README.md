@@ -1,5 +1,7 @@
 # Elide Example
 
+An archetype Elide project for Heroku using Postgres DB.  
+
 ## Usage
 
 1. Launch the example webservice
@@ -21,7 +23,7 @@
               }
             }
           }
-          ' -X POST http://localhost:4080/user
+          ' -X POST http://localhost:4080/api/v1/user
 
 3. Create a registered user
 
@@ -36,7 +38,7 @@
               }
             }
           }
-          ' -X POST http://localhost:4080/user
+          ' -X POST http://localhost:4080/api/v1/user
 
 4. Create an unregistered user
 
@@ -51,7 +53,7 @@
               }
             }
           }
-          ' -X POST http://localhost:4080/user
+          ' -X POST http://localhost:4080/api/v1/user
 
 5. Create a post as an admin:
 
@@ -74,7 +76,7 @@
               }
             }
           }
-          ' -X POST http://localhost:4080/post
+          ' -X POST http://localhost:4080/api/v1/post
 
 6. Create a post as a registered user:
 
@@ -97,4 +99,4 @@
               }
             }
           }
-          ' -X POST http://localhost:4080/post
+          ' -X POST http://localhost:4080/api/v1/post

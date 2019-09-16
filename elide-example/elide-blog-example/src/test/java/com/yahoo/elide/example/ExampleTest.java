@@ -36,7 +36,7 @@ public class ExampleTest extends IntegrationTest {
     @Test
     void jsonApiTest() {
         when()
-                .get("/user")
+                .get("/api/v1/user")
                 .then()
                 .body(equalTo(
                         data(

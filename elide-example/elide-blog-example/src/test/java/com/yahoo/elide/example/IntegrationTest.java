@@ -35,6 +35,10 @@ public class IntegrationTest {
     @BeforeAll
     public void init() throws Exception {
         elide = new ElideStandalone(new CommonElideSettings() {
+            @Override
+            public int getPort() {
+                return 8080;
+            }
 
             @Override
             public Properties getDatabaseProperties() {
