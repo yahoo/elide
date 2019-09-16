@@ -7,6 +7,7 @@ package com.yahoo.elide.standalone.config;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -60,7 +61,7 @@ public interface ElideStandaloneSettings {
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
         EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
-                new Properties());
+                getDatabaseProperties());
         DataStore dataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
@@ -212,13 +213,12 @@ public interface ElideStandaloneSettings {
 
 
     /**
-     * Location to hibernate5 config. This is only required if you're using the <em>default</em> ElideSettings object.
-     * Namely, you are not providing your own through the settings class.
+     * Gets properties to configure the database
      *
      * @return Default: ./settings/hibernate.cfg.xml
      */
-    default String getHibernate5ConfigPath() {
-        return "./settings/hibernate.cfg.xml";
+    default Properties getDatabaseProperties() {
+        return new Properties();
     }
 
     /**

@@ -24,25 +24,26 @@ import com.yahoo.elide.standalone.models.Post;
 import com.google.common.collect.Maps;
 import org.apache.http.HttpStatus;
 import org.glassfish.hk2.api.ServiceLocator;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import javax.persistence.EntityManagerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-
 /**
  * Tests ElideStandalone starts and works
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneTest {
     private ElideStandalone elide;
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
-    @BeforeClass
+    @BeforeAll
     public void init() throws Exception {
         elide = new ElideStandalone(new ElideStandaloneSettings() {
 
@@ -98,7 +99,7 @@ public class ElideStandaloneTest {
         elide.start(false);
     }
 
-    @AfterClass
+    @AfterAll
     public void shutdown() throws Exception {
         elide.stop();
     }
