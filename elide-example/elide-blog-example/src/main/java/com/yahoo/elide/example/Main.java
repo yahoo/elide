@@ -81,6 +81,10 @@ public class Main {
                     dbProps.load(
                             Main.class.getClassLoader().getResourceAsStream("dbconfig.properties")
                     );
+
+                    dbProps.setProperty("javax.persistence.jdbc.url", System.getenv("JDBC_DATABASE_URL"));
+                    dbProps.setProperty("javax.persistence.jdbc.user", System.getenv("JDBC_DATABASE_USERNAME"));
+                    dbProps.setProperty("javax.persistence.jdbc.password", System.getenv("JDBC_DATABASE_PASSWORD"));
                     return dbProps;
                 } catch (IOException e) {
                     throw new IllegalStateException(e);

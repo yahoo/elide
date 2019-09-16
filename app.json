@@ -3,5 +3,10 @@
   "description": "An example Elide service with an in-memory DB",
   "repository": "https://github.com/yahoo/elide/tree/master/elide-example/elide-blog-example",
   "logo": "https://elide.io//assets/images/elide-white-logo.png",
-  "keywords": ["java", "elide", "graphql", "json-api"]
+  "keywords": ["java", "elide", "graphql", "json-api"],
+  "addons": [
+    {
+      "plan": "heroku-postgresql"
+    }
+  ]
 }
