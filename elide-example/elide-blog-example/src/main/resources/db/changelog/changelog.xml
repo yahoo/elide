@@ -35,7 +35,7 @@
         <sql>
             INSERT INTO blogger (id, role, name)
             VALUES
-            (1,1,'Jon Doe')
+            (1,1,'Jon Doe'),
             (2,1,'Jane Doe');
 
             INSERT INTO post (id, content, author_id)
