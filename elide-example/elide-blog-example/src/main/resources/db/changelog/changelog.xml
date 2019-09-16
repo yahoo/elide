@@ -4,7 +4,7 @@
         <sql>
             CREATE TABLE user
             (
-            id        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            id        SERIAL,
             role      TINYINT UNSIGNED NOT NULL,
             name      VARCHAR(255),
             PRIMARY KEY (id),
@@ -12,7 +12,7 @@
 
             CREATE TABLE post
             (
-            id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            id          SERIAL,
             content     VARCHAR(2048),
             author_id   BIGINT UNSIGNED NOT NULL,
             PRIMARY KEY (id),
@@ -21,7 +21,7 @@
 
             CREATE TABLE comment
             (
-            id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            id           SERIAL,
             author_id    BIGINT UNSIGNED NOT NULL,
             post_id      BIGINT UNSIGNED NOT NULL,
             content      VARCHAR(255),
