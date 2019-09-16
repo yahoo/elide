@@ -91,7 +91,7 @@
                                 <artifactItem>
                                     <groupId>org.liquibase</groupId>
                                     <artifactId>liquibase-core</artifactId>
-                                    <version>3.8.0</version>
+                                    <version>3.5.3</version>
                                     <destFileName>liquibase.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
