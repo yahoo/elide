@@ -25,7 +25,14 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.equalTo;
 
+/**
+ * Example functional test.
+ */
 public class ExampleTest extends IntegrationTest {
+
+    /**
+     * This test demonstrates an example test using the JSON-API DSL.
+     */
     @Test
     void jsonApiTest() {
         when()
@@ -57,6 +64,9 @@ public class ExampleTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK);
     }
 
+    /**
+     * This test demonstrates an example test using the GraphQL DSL.
+     */
     @Test
     void graphqlTest() {
         given()

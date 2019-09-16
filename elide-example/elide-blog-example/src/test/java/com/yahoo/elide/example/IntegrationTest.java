@@ -6,7 +6,6 @@
 package com.yahoo.elide.example;
 
 import com.yahoo.elide.standalone.ElideStandalone;
-import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
@@ -21,26 +20,21 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+/**
+ * Base class for running a set of functional Elide tests.  This class
+ * sets up an Elide instance with an in-memory H2 database.
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IntegrationTest {
     private ElideStandalone elide;
 
-    protected static final String JDBC_URL = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE;TRACE_LEVEL_FILE=3";
+    protected static final String JDBC_URL = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE";
     protected static final String JDBC_USER = "sa";
     protected static final String JDBC_PASSWORD = "";
 
     @BeforeAll
     public void init() throws Exception {
-        elide = new ElideStandalone(new ElideStandaloneSettings() {
-            public String getModelPackageName() {
-
-                //This needs to be changed to the package where your models live.
-                return "com.yahoo.elide.example.models";
-            }
-
-            public String getJsonApiPathSpec() {
-                return "/*";
-            }
+        elide = new ElideStandalone(new CommonElideSettings() {
 
             @Override
             public Properties getDatabaseProperties() {
@@ -60,9 +54,9 @@ public class IntegrationTest {
             }
         });
 
-        java.sql.Connection connection = getConnection(); //your openConnection logic here
-
-        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+        //Run Liquibase Initialization Script
+        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
+                new JdbcConnection(getConnection()));
 
         Liquibase liquibase = new liquibase.Liquibase(
                 "db/changelog/changelog.xml",
@@ -70,8 +64,6 @@ public class IntegrationTest {
                 database);
 
         liquibase.update("db1");
-        connection.commit();
-        connection.close();
 
         elide.start(false);
     }
