@@ -281,10 +281,10 @@ public class SwaggerBuilder {
 
             path.get(new JsonApiOperation()
                     .description(getDescription)
-                    .tag(getTag())
+                    .parameter(getSortParameter())
                     .parameter(getSparseFieldsParameter())
                     .parameter(getIncludeParameter())
-                    .parameter(getSortParameter())
+                    .tag(getTag())
                     .response(200, okPluralResponse));
 
             for (Parameter param : getFilterParameters()) {
@@ -474,6 +474,9 @@ public class SwaggerBuilder {
                     .map((name) -> Arrays.asList(name, "-" + name))
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
+
+            filterAttributes.add("id");
+            filterAttributes.add("-id");
 
             return new QueryParameter()
                     .name("sort")
