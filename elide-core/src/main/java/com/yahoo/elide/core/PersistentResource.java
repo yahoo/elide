@@ -96,6 +96,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
+     * Returns whether this persistent resource was created in the current transaction.
+     * @return true if this resources is newly created.  False otherwise.
+     */
+    public boolean isNewlyCreated() {
+        return requestScope.getNewPersistentResources().contains(this);
+    }
+
+    /**
      * Create a resource in the database.
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
      * @param entityClass the entity class
@@ -1270,8 +1278,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void setValueChecked(String fieldName, Object newValue) {
         Object existingValue = getValueUnchecked(fieldName);
-        ChangeSpec spec = new ChangeSpec(this, fieldName, existingValue, newValue);
-        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
 
         // TODO: Need to refactor this logic. For creates this is properly converted in the executor. This logic
         // should be explicitly encapsulated here, not there.
@@ -1587,8 +1593,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private void triggerUpdate(String fieldName, Object original, Object value) {
         ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
-        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
-        CRUDEvent.CRUDAction action = isNewlyCreated
+        CRUDEvent.CRUDAction action = isNewlyCreated()
                 ? CRUDEvent.CRUDAction.CREATE
                 : CRUDEvent.CRUDAction.UPDATE;
 
