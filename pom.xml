@@ -513,6 +513,7 @@
                     <failBuildOnCVSS>6</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                    <suppressionFile>suppressions.xml</suppressionFile>
                 </configuration>
                 <executions>
                     <execution>
