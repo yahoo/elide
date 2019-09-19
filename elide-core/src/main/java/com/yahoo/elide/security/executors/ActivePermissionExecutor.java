@@ -126,7 +126,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             // for newly created object in PatchRequest limit to User checks
-            if (requestScope.getNewPersistentResources().contains(resource)) {
+            if (resource.isNewlyCreated()) {
                 return executeUserChecksDeferInline(annotationClass, expression);
             }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
