@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -280,11 +281,11 @@ public class SwaggerBuilder {
             }
 
             path.get(new JsonApiOperation()
-                    .description(getDescription)
-                    .tag(getTag())
+                    .parameter(getSortParameter())
                     .parameter(getSparseFieldsParameter())
                     .parameter(getIncludeParameter())
-                    .parameter(getSortParameter())
+                    .description(getDescription)
+                    .tag(getTag())
                     .response(200, okPluralResponse));
 
             for (Parameter param : getFilterParameters()) {
@@ -465,7 +466,7 @@ public class SwaggerBuilder {
         /**
          * @return the JSON-API 'sort' query parameter for some GET operations.
          */
-        private Parameter getSortParameter() {
+        private Optional<Parameter> getSortParameter() {
             List<String> filterAttributes = dictionary.getAttributes(type).stream()
                     .filter((name) -> {
                         Class<?> attributeClass = dictionary.getType(type, name);
@@ -475,12 +476,15 @@ public class SwaggerBuilder {
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
 
-            return new QueryParameter()
+            if (filterAttributes.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(new QueryParameter()
                     .name("sort")
                     .type("array")
                     .description("Sorts the collection on the selected attributes.  A prefix of '-' sorts descending")
                     .items(new StringProperty()._enum(filterAttributes))
-                    .collectionFormat("csv");
+                    .collectionFormat("csv"));
         }
 
         /**

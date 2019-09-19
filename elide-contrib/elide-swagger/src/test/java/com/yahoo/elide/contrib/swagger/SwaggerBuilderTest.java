@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.swagger.model.Resource;
 import com.yahoo.elide.contrib.swagger.models.Author;
 import com.yahoo.elide.contrib.swagger.models.Book;
@@ -16,6 +17,7 @@ import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.Maps;
 
+import org.mockito.internal.matchers.Not;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -36,6 +38,8 @@ import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -557,6 +561,33 @@ public class SwaggerBuilderTest {
             );
         }
     }
+
+    @Test
+    public void testEmptySortParameter() {
+        @Entity
+        @Include(rootLevel = true)
+        class NothingToSort {
+            @Id
+            long id;
+        }
+        EntityDictionary entityDictionary = new EntityDictionary(Maps.newHashMap());
+
+        entityDictionary.bindEntity(NothingToSort.class);
+        Info info = new Info().title("Test Service").version("1.0");
+
+        SwaggerBuilder builder = new SwaggerBuilder(entityDictionary, info);
+        Swagger testSwagger = builder.build();
+
+        List<Parameter> params = testSwagger.getPaths().get("/nothingToSort").getGet().getParameters();
+
+        Set<String> paramNames = params.stream()
+                .map((param) -> param.getName())
+                .collect(Collectors.toSet());
+
+        long sortParams = paramNames.stream().filter((name) -> name.startsWith("sort")).count();
+        Assert.assertEquals(sortParams, 0);
+    }
+
 
     /**
      * Verifies that the given property is of type 'Data' containing a reference to the given model.
