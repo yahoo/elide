@@ -21,16 +21,4 @@ public class JsonApiOperation extends Operation {
         consumes(JSON_API_MIME);
         produces(JSON_API_MIME);
     }
-
-    /**
-     * Adds a parameter only if it exists.
-     * @param parameter The parameter to add.
-     * @return The operation under construction.
-     */
-    public Operation parameter(Optional<Parameter> parameter) {
-        if (parameter.isPresent()) {
-            super.parameter(parameter.get());
-        }
-        return this;
-    }
 }

@@ -39,7 +39,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -281,10 +280,10 @@ public class SwaggerBuilder {
             }
 
             path.get(new JsonApiOperation()
+                    .description(getDescription)
                     .parameter(getSortParameter())
                     .parameter(getSparseFieldsParameter())
                     .parameter(getIncludeParameter())
-                    .description(getDescription)
                     .tag(getTag())
                     .response(200, okPluralResponse));
 
@@ -466,7 +465,7 @@ public class SwaggerBuilder {
         /**
          * @return the JSON-API 'sort' query parameter for some GET operations.
          */
-        private Optional<Parameter> getSortParameter() {
+        private Parameter getSortParameter() {
             List<String> filterAttributes = dictionary.getAttributes(type).stream()
                     .filter((name) -> {
                         Class<?> attributeClass = dictionary.getType(type, name);
@@ -476,15 +475,15 @@ public class SwaggerBuilder {
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
 
-            if (filterAttributes.isEmpty()) {
-                return Optional.empty();
-            }
-            return Optional.of(new QueryParameter()
+            filterAttributes.add("id");
+            filterAttributes.add("-id");
+
+            return new QueryParameter()
                     .name("sort")
                     .type("array")
                     .description("Sorts the collection on the selected attributes.  A prefix of '-' sorts descending")
                     .items(new StringProperty()._enum(filterAttributes))
-                    .collectionFormat("csv"));
+                    .collectionFormat("csv");
         }
 
         /**

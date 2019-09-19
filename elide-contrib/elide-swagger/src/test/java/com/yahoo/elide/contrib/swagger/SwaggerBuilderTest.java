@@ -17,7 +17,6 @@ import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.Maps;
 
-import org.mockito.internal.matchers.Not;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -47,6 +46,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class SwaggerBuilderTest {
@@ -400,7 +400,7 @@ public class SwaggerBuilderTest {
 
         Assert.assertEquals(sortParam.getIn(), "query");
 
-        List<String> sortValues = Arrays.asList("title", "-title");
+        List<String> sortValues = Arrays.asList("id", "-id", "title", "-title");
         Assert.assertTrue(((StringProperty) sortParam.getItems()).getEnum().containsAll(sortValues));
         Assert.assertEquals(sortParam.getCollectionFormat(), "csv");
     }
@@ -424,8 +424,8 @@ public class SwaggerBuilderTest {
 
         Assert.assertEquals(includeParam.getIn(), "query");
 
-        List<String> sortValues = Arrays.asList("authors", "publisher");
-        Assert.assertTrue(((StringProperty) includeParam.getItems()).getEnum().containsAll(sortValues));
+        List<String> includeValues = Arrays.asList("authors", "publisher");
+        Assert.assertTrue(((StringProperty) includeParam.getItems()).getEnum().containsAll(includeValues));
         Assert.assertEquals(includeParam.getCollectionFormat(), "csv");
     }
 
@@ -448,8 +448,8 @@ public class SwaggerBuilderTest {
 
         Assert.assertEquals(fieldParam.getIn(), "query");
 
-        List<String> sortValues = Arrays.asList("title", "authors", "publisher");
-        Assert.assertTrue(((StringProperty) fieldParam.getItems()).getEnum().containsAll(sortValues));
+        List<String> filterValues = Arrays.asList("title", "authors", "publisher");
+        Assert.assertTrue(((StringProperty) fieldParam.getItems()).getEnum().containsAll(filterValues));
         Assert.assertEquals(fieldParam.getCollectionFormat(), "csv");
     }
 
@@ -563,12 +563,12 @@ public class SwaggerBuilderTest {
     }
 
     @Test
-    public void testEmptySortParameter() {
+    public void testSortParameter() {
         @Entity
         @Include(rootLevel = true)
         class NothingToSort {
             @Id
-            long id;
+            long name;
         }
         EntityDictionary entityDictionary = new EntityDictionary(Maps.newHashMap());
 
@@ -580,12 +580,15 @@ public class SwaggerBuilderTest {
 
         List<Parameter> params = testSwagger.getPaths().get("/nothingToSort").getGet().getParameters();
 
-        Set<String> paramNames = params.stream()
-                .map((param) -> param.getName())
-                .collect(Collectors.toSet());
+        QueryParameter sortParam = (QueryParameter) params.stream()
+                .filter((param) -> param.getName().equals("sort"))
+                .findFirst()
+                .get();
 
-        long sortParams = paramNames.stream().filter((name) -> name.startsWith("sort")).count();
-        Assert.assertEquals(sortParams, 0);
+        Assert.assertEquals(sortParam.getIn(), "query");
+
+        List<String> sortValues = Arrays.asList("id", "-id");
+        Assert.assertEquals(((StringProperty) sortParam.getItems()).getEnum(), sortValues);
     }
 
 
