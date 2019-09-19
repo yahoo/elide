@@ -164,19 +164,6 @@ public interface DataStoreTransaction extends Closeable {
             RequestScope scope);
 
     /**
-     * Loads a collection of objects.
-     *
-
-
-     * @param entityProjection - the class to load
-     * @param scope - contains request level metadata.
-     * @return a collection of the loaded objects
-     */
-    Iterable<Object> loadObjects(
-            EntityProjection entityProjection,
-            RequestScope scope);
-
-    /**
      * Retrieve a relation from an object.
      *
      * @param relationTx - The datastore that governs objects of the relationhip's type.
