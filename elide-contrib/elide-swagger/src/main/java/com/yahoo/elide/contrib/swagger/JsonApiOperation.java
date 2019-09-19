@@ -6,9 +6,6 @@
 package com.yahoo.elide.contrib.swagger;
 
 import io.swagger.models.Operation;
-import io.swagger.models.parameters.Parameter;
-
-import java.util.Optional;
 
 /**
  * Operation that consumes and produces JSON API mime type.
