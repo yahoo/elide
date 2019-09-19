@@ -37,8 +37,6 @@ import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +45,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
 public class SwaggerBuilderTest {
     EntityDictionary dictionary;
