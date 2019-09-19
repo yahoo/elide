@@ -1,4 +1,20 @@
 # Change Log
+## 4.5.3
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/150601868be35b4b47db274d0dfb7eae025b48c8) Add heroku archetype project (#966) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/887c7cc6e715c848404bdc842dab5a5c9987245c) Bump mockito-core from 2.2.26 to 3.0.0 (#973) 
+   * [view commit](https://github.com/yahoo/elide/commit/074facbf3f2d52878714fe2908ed231496f9f77c) Suppress databind vulnerability warnings until December (#977) 
+   * [view commit](https://github.com/yahoo/elide/commit/7479cf55dad6bfd4c9f123d74518928c2447d780) Bump commons-lang3 from 3.5 to 3.9 (#971) 
+   * [view commit](https://github.com/yahoo/elide/commit/97da49df4f4afca54f55cb20ce4aa0e78f2ce050) Bump rest-assured from 4.0.0 to 4.1.1 (#970) 
+   * [view commit](https://github.com/yahoo/elide/commit/b343831f6e6ceda81fe9b0aa9030d0dc08d1621d) Bump gson from 2.8.0 to 2.8.5 (#967) 
+   * [view commit](https://github.com/yahoo/elide/commit/e2de2a8a7f052ee2564ae8257fd1059892329ca7) Fixed Swagger generation bug where an entity has nothing to sort by (#975) 
+   * [view commit](https://github.com/yahoo/elide/commit/7b7aba5cc1070f1e337348083f923708e75f2be5) Fix GraphQL Nested UPDATE bug. (#974) 
+   * [view commit](https://github.com/yahoo/elide/commit/d88c2569bc9fb99235dbc221f53eec858c836d66) Bump maven-javadoc-plugin from 3.1.0 to 3.1.1 (#972) 
+   * [view commit](https://github.com/yahoo/elide/commit/f4042814b1e621460e86971f62a3be4dae7c7ffd) Bump dependency-check-maven from 5.0.0 to 5.2.1 (#969) 
+   * [view commit](https://github.com/yahoo/elide/commit/1064efa9545e11022eac51630df6a01c7492facb) Bump version.jersey from 2.29 to 2.29.1 (#968) 
+
 ## 4.5.2
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/e6a2ffd8abe950fbe05b6429a3e0a8b13deee3ba) Restore provided on jpa (#932) 
