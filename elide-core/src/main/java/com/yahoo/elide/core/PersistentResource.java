@@ -95,15 +95,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return String.format("PersistentResource{type=%s, id=%s}", type, uuid.orElse(getId()));
     }
 
-    /**
-     * Returns whether this persistent resource was created in the current transaction.
-     * @return true if this resources is newly created.  False otherwise.
-     */
-    public boolean isNewlyCreated() {
-        return requestScope.getNewPersistentResources().contains(this);
-    }
-
-    /**
+   /**
      * Create a resource in the database.
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
      * @param entityClass the entity class
