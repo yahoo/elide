@@ -146,6 +146,21 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testFragmentLoop() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/fragmentLoop.graphql"));
+    }
+
+    @Test
+    public void testFragmentInline() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/fragmentInline.graphql"));
+    }
+
+    @Test
+    public void testFragmentUnknown() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/fragmentUnknown.graphql"));
+    }
+
+    @Test
     public void testSchemaIntrospection() {
         String graphQLRequest = "{"
                 + "__schema {"

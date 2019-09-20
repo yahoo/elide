@@ -9,8 +9,13 @@ package com.yahoo.elide.graphql.parser;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 
 import graphql.language.Document;
+import graphql.language.Field;
 import graphql.language.FragmentDefinition;
 import graphql.language.FragmentSpread;
+import graphql.language.Selection;
+import graphql.language.SelectionSet;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.ws.rs.BadRequestException;
 
 /**
  * Class that fetch {@link FragmentDefinition}s from graphQL {@link Document} and store them for future reference.
@@ -81,9 +87,8 @@ class FragmentResolver {
 
         fragmentNames.add(fragmentName);
 
-        fragmentDefinition.getSelectionSet().getSelections().stream()
-                .filter(selection -> selection instanceof FragmentSpread)
-                .map(fragment -> ((FragmentSpread) fragment).getName())
+        getNestedFragments(fragmentDefinition.getSelectionSet()).stream()
+                .map(FragmentSpread::getName)
                 .distinct()
                 .forEach(name -> {
                     if (!fragmentMap.containsKey(name)) {
@@ -93,5 +98,42 @@ class FragmentResolver {
                 });
 
         fragmentNames.remove(fragmentName);
+    }
+
+    /**
+     * Get nested fragments from a selection set, skip other graphQL {@link Field}s.
+     * This is only for fragment loop validation.
+     *
+     * @param selectionSet graphql selection set
+     * @return nested fragments in the selection set
+     */
+    private static List<FragmentSpread> getNestedFragments(SelectionSet selectionSet) {
+        return selectionSet.getSelections().stream()
+                .map(FragmentResolver::getNestedFragments)
+                .reduce(new ArrayList<>(), (a, b) -> {
+                    a.addAll(b);
+                    return a;
+                });
+    }
+
+    /**
+     * Get nested fragments from a field, skip other graphQL {@link Field}s.
+     * This is only for fragment loop validation.
+     *
+     * @param selection graphql selection
+     * @return nested fragments in the selection set of this selection
+     */
+    private static List<FragmentSpread> getNestedFragments(Selection selection) {
+        if (selection instanceof Field) {
+            return ((Field) selection).getSelectionSet() == null
+                    || ((Field) selection).getSelectionSet().getSelections().isEmpty()
+                    ? new ArrayList<>()
+                    : getNestedFragments(((Field) selection).getSelectionSet());
+        } else if (selection instanceof FragmentSpread) {
+            return Collections.singletonList((FragmentSpread) selection);
+        } else {
+            // TODO: support inline fragment
+            throw new BadRequestException("Unsupported graphQL selection type: " + selection.getClass());
+        }
     }
 }
