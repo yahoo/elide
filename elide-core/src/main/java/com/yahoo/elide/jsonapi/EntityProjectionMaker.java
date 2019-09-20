@@ -209,7 +209,6 @@ public class EntityProjectionMaker
                                                             CoreParser.SubCollectionContext subCollection) {
         return (parentClass) -> {
             String entityName = entity.term().getText();
-            String id = entity.id().getText();
 
             Class<?> entityClass = getEntityClass(parentClass, entityName);
 
@@ -229,7 +228,6 @@ public class EntityProjectionMaker
                                                          CoreParser.RelationshipContext relationship) {
         return (parentClass) -> {
             String entityName = entity.term().getText();
-            String id = entity.id().getText();
 
             Class<?> entityClass = getEntityClass(parentClass, entityName);
 

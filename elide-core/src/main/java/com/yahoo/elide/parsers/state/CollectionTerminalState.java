@@ -173,7 +173,7 @@ public class CollectionTerminalState extends BaseState {
         }
 
         PersistentResource pResource = PersistentResource.createObject(parent.orElse(null), newObjectClass,
-                    requestScope, Optional.ofNullable(id));
+                requestScope, Optional.ofNullable(id));
 
         Map<String, Object> attributes = resource.getAttributes();
         if (attributes != null) {
