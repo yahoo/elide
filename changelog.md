@@ -1,4 +1,9 @@
 # Change Log
+
+## 4.5.4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/5a10ae4e7897abd1304f9438fe66f5d4ad786f69) Nested update (#978) 
+
 ## 4.5.3
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/150601868be35b4b47db274d0dfb7eae025b48c8) Add heroku archetype project (#966) 
