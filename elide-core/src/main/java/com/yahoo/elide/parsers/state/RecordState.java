@@ -8,8 +8,6 @@ package com.yahoo.elide.parsers.state;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
