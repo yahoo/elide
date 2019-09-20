@@ -8,8 +8,10 @@ package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 
+import graphql.language.Document;
 import graphql.language.FragmentDefinition;
 import graphql.language.FragmentSpread;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -18,18 +20,45 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Helper class that checks whether there are undefined fragments or fragment loops in given fragment definitions.
+ * Class that fetch {@link FragmentDefinition}s from graphQL {@link Document} and store them for future reference.
  */
-public class FragmentResolver {
-    public static Map<String, FragmentDefinition> resolve(List<FragmentDefinition> fragments) {
-        final Map<String, FragmentDefinition> fragmentMap = fragments.stream()
+class FragmentResolver {
+    private final Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
+
+    boolean contains(String fragmentName) {
+        return fragmentMap.containsKey(fragmentName);
+    }
+
+    FragmentDefinition get(String fragmentName) {
+        return fragmentMap.get(fragmentName);
+    }
+
+    /**
+     * Fetch fragments from documents. Only fragment definitions would be processed.
+     *
+     * @param document graphql document
+     */
+    void addFragments(Document document) {
+        addFragments(document.getDefinitions().stream()
+                .filter(definition -> definition instanceof FragmentDefinition)
+                .map(definition -> (FragmentDefinition) definition)
+                .collect(Collectors.toList()));
+    }
+
+    /**
+     * Make sure there is not fragment loop in in-coming definitions and store those fragments.
+     *
+     * @param fragments fragments to add
+     */
+    private void addFragments(List<FragmentDefinition> fragments) {
+        final Map<String, FragmentDefinition> newFragments = fragments.stream()
                 .collect(Collectors.toMap(FragmentDefinition::getName, Function.identity()));
 
         // make sure there is no fragment loop and undefined fragments in fragment definitions
         final Set<String> fragmentNames = new HashSet<>();
-        fragments.forEach(fragmentDefinition -> validateFragment(fragmentMap, fragmentDefinition, fragmentNames));
+        fragments.forEach(fragmentDefinition -> validateFragment(newFragments, fragmentDefinition, fragmentNames));
 
-        return fragmentMap;
+        this.fragmentMap.putAll(newFragments);
     }
 
     /**

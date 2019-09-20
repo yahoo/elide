@@ -58,7 +58,6 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQL api;
     protected ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
-    private final GraphQLEntityProjectionMaker entityProjectionMaker;
 
     protected HashMapDataStore hashMapDataStore;
     protected InMemoryDataStore inMemoryDataStore;
@@ -89,8 +88,6 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(settings));
 
         api = new GraphQL(builder.build());
-
-        entityProjectionMaker = new GraphQLEntityProjectionMaker(dictionary);
 
         initTestData();
     }
@@ -174,7 +171,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        GraphQLProjectionInfo projectionInfo = entityProjectionMaker.make(graphQLRequest);
+        GraphQLProjectionInfo projectionInfo =
+                new GraphQLEntityProjectionMaker(settings, variables).make(graphQLRequest);
         GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
@@ -200,7 +198,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        GraphQLProjectionInfo projectionInfo = entityProjectionMaker.make(graphQLRequest);
+        GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
         GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
@@ -228,12 +226,12 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertParsingFails(String graphQLRequest) {
-        assertThrows(Exception.class, () -> entityProjectionMaker.make(graphQLRequest));
+        assertThrows(Exception.class, () -> new GraphQLEntityProjectionMaker(settings).make(graphQLRequest));
     }
 
     protected ExecutionResult runGraphQLRequest(String graphQLRequest, Map<String, Object> variables) {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        GraphQLProjectionInfo projectionInfo = entityProjectionMaker.make(graphQLRequest);
+        GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
         GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
 
         return api.execute(graphQLRequest, requestScope, variables);

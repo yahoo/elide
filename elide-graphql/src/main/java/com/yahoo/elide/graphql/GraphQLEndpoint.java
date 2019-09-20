@@ -73,8 +73,6 @@ public class GraphQLEndpoint {
     private static final String MUTATION = "mutation";
     private static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
 
-    private final GraphQLEntityProjectionMaker entityProjectionMaker;
-
     @Inject
     public GraphQLEndpoint(
             @Named("elide") Elide elide,
@@ -93,8 +91,6 @@ public class GraphQLEndpoint {
         module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
         module.addSerializer(GraphQLError.class, errorSerializer);
         elideSettings.getMapper().getObjectMapper().registerModule(module);
-
-        this.entityProjectionMaker = new GraphQLEntityProjectionMaker(elideSettings.getDictionary());
     }
 
     /**
@@ -165,7 +161,15 @@ public class GraphQLEndpoint {
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             final User user = tx.accessUser(getUser.apply(securityContext));
             String query = jsonDocument.get(QUERY).asText();
-            GraphQLProjectionInfo projectionInfo = entityProjectionMaker.make(query);
+
+            // get variables from request for constructing entityProjections
+            Map<String, Object> variables = new HashMap<>();
+            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
+                variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
+            }
+
+            GraphQLProjectionInfo projectionInfo =
+                    new GraphQLEntityProjectionMaker(elideSettings, variables).make(query);
             GraphQLRequestScope requestScope =
                     new GraphQLRequestScope(tx, user, elide.getElideSettings(), projectionInfo);
 
@@ -187,10 +191,7 @@ public class GraphQLEndpoint {
                 executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
             }
 
-            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
-                Map<String, Object> variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
-                executionInput.variables(variables);
-            }
+            executionInput.variables(variables);
 
             ExecutionResult result = api.execute(executionInput);
 

@@ -13,13 +13,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.dialect.ParseException;
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.request.EntityProjection;
@@ -33,10 +27,8 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,10 +38,8 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
@@ -160,40 +150,18 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     /**
      * Fetches a root-level entity.
-     * @param context Context for request
      * @param requestScope Request scope
-     * @param entityClass Entity class
+     * @param projection constructed entityProjection for a class
      * @param ids List of ids (can be NULL)
-     * @param sort Sort by ASC/DESC
-     * @param offset Pagination offset argument
-     * @param first Pagination first argument
-     * @param filters Filter params
-     * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return {@link PersistentResource} object(s)
      */
     public ConnectionContainer fetchObject(
-            Environment context,
             RequestScope requestScope,
-            Class entityClass,
             EntityProjection projection,
-            Optional<List<String>> ids,
-            Optional<String> sort,
-            Optional<String> offset,
-            Optional<String> first,
-            Optional<String> filters,
-            boolean generateTotals
+            Optional<List<String>> ids
     ) {
         EntityDictionary dictionary = requestScope.getDictionary();
-        String typeName = dictionary.getJsonAliasFor(entityClass);
-
-        // TODO: should we do this here?
-        // provide pagination, sorting, filter to the projection
-        final EntityProjection modifiedProjection = copyAndModifyProjection(
-                projection,
-                buildPagination(first, offset, generateTotals).orElse(projection.getPagination()),
-                buildSorting(sort).orElse(projection.getSorting()),
-                buildFilter(typeName, filters, requestScope).orElse(null)
-        );
+        String typeName = dictionary.getJsonAliasFor(projection.getType());
 
         /* fetching a collection */
         Set<PersistentResource> records = ids.map((idList) -> {
@@ -202,90 +170,53 @@ public class PersistentResourceFetcher implements DataFetcher {
                 throw new BadRequestException("Empty list passed to ids");
             }
 
-            return PersistentResource.loadRecords(modifiedProjection, idList, requestScope);
-        }).orElseGet(() -> PersistentResource.loadRecords(modifiedProjection, new ArrayList<>(), requestScope));
+            return PersistentResource.loadRecords(projection, idList, requestScope);
+        }).orElseGet(() -> PersistentResource.loadRecords(projection, new ArrayList<>(), requestScope));
 
-        return new ConnectionContainer(records, Optional.ofNullable(modifiedProjection.getPagination()), typeName);
+        return new ConnectionContainer(records, Optional.ofNullable(projection.getPagination()), typeName);
     }
 
     /**
      * Fetches a relationship for a top-level entity.
      *
-     * @param context Request context
      * @param parentResource Parent object
-     * @param relationshipName relationship field name
+     * @param relationship constructed relationship object with entityProjection
      * @param ids List of ids
-     * @param offset Pagination offset
-     * @param first Pagination first
-     * @param filters Filter string
-     * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return persistence resource object(s)
      */
     public Object fetchRelationship(
-            Environment context,
             PersistentResource<?> parentResource,
-            String relationshipName,
-            Optional<List<String>> ids,
-            Optional<String> offset,
-            Optional<String> first,
-            Optional<String> sort,
-            Optional<String> filters,
-            boolean generateTotals
+            @NotNull Relationship relationship,
+            Optional<List<String>> ids
     ) {
         EntityDictionary dictionary = parentResource.getRequestScope().getDictionary();
-        Class relationshipClass = dictionary.getParameterizedType(parentResource.getObject(), relationshipName);
+        Class relationshipClass = dictionary.getParameterizedType(parentResource.getObject(), relationship.getName());
         String relationshipType = dictionary.getJsonAliasFor(relationshipClass);
-
-        // use SourceLocation, which points to the location of a graphql Field in the original graphql Document,
-        // to load the constructed relationship object from the relationship map
-        Relationship relationship = context.requestScope
-                .getProjectionInfo()
-                .getRelationshipMap()
-                .getOrDefault(context.field.getSourceLocation(), null);
-
-        if (relationship == null) {
-            throw new BadRequestException("Unknown relationship " + parentResource.getType() + "." + relationshipType);
-        }
-
-        // TODO: should we do this here?
-        // provide pagination, sorting, filter to the relationship projection
-        EntityProjection relationProjection = relationship.getProjection();
-        Relationship modifiedRelationship = relationship.copyOf()
-                .projection(
-                        copyAndModifyProjection(
-                                relationProjection,
-                                buildPagination(first, offset, generateTotals)
-                                        .orElse(relationProjection.getPagination()),
-                                buildSorting(sort).orElse(relationProjection.getSorting()),
-                                buildFilter(relationshipType, filters, parentResource.getRequestScope()).orElse(null)
-                        )
-                )
-                .build();
 
         Set<PersistentResource> relationResources;
         if (ids.isPresent()) {
-            relationResources = parentResource.getRelation(ids.get(), modifiedRelationship);
+            relationResources = parentResource.getRelation(ids.get(), relationship);
         } else {
-            relationResources = parentResource.getRelationCheckedFiltered(modifiedRelationship);
+            relationResources = parentResource.getRelationCheckedFiltered(relationship);
         }
 
         return new ConnectionContainer(
                 relationResources,
-                Optional.ofNullable(modifiedRelationship.getProjection().getPagination()),
+                Optional.ofNullable(relationship.getProjection().getPagination()),
                 relationshipType);
     }
 
     private ConnectionContainer upsertObjects(Environment context) {
         return upsertOrUpdateObjects(
                 context,
-                (entityObject) -> upsertObject(context, entityObject),
+                (entityObject) -> upsertObject(entityObject),
                 RelationshipOp.UPSERT);
     }
 
     private ConnectionContainer updateObjects(Environment context) {
         return upsertOrUpdateObjects(
                 context,
-                (entityObject) -> updateObject(context, entityObject),
+                (entityObject) -> updateObject(entityObject),
                 RelationshipOp.UPDATE);
     }
 
@@ -430,11 +361,10 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     /**
      * updates or creates existing/new entities
-     * @param context request context
      * @param entity Resource entity
      * @return {@link PersistentResource} object
      */
-    private PersistentResource upsertObject(Environment context, Entity entity) {
+    private PersistentResource upsertObject(Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
@@ -453,19 +383,13 @@ public class PersistentResourceFetcher implements DataFetcher {
         } else {
             try {
                 Set<PersistentResource> loadedResource = fetchObject(
-                        context,
                         requestScope,
-                        entity.getEntityClass(),
                         entity.getProjection(),
-                        Optional.of(Collections.singletonList(id.get())),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty(),
-                        false).getPersistentResources();
+                        Optional.of(Collections.singletonList(id.get()))
+                ).getPersistentResources();
                 upsertedResource = loadedResource.iterator().next();
 
-            //The ID doesn't exist yet.  Let's create the object.
+            // The ID doesn't exist yet.  Let's create the object.
             } catch (InvalidObjectIdentifierException | InvalidValueException e) {
                 upsertedResource = PersistentResource.createObject(
                         parentResource, entity.getEntityClass(), requestScope, id);
@@ -475,7 +399,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         return updateAttributes(upsertedResource, entity, attributes);
     }
 
-    private PersistentResource updateObject(Environment context, Entity entity) {
+    private PersistentResource updateObject(Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
@@ -485,16 +409,10 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("UPDATE data objects must include ids");
         } else {
             Set<PersistentResource> loadedResource = fetchObject(
-                    context,
                     requestScope,
-                    entity.getEntityClass(),
                     entity.getProjection(),
-                    Optional.of(Collections.singletonList(id.get())),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    false).getPersistentResources();
+                    Optional.of(Collections.singletonList(id.get()))
+            ).getPersistentResources();
             updatedResource = loadedResource.iterator().next();
         }
 
@@ -612,62 +530,5 @@ public class PersistentResourceFetcher implements DataFetcher {
             toDelete.forEach(PersistentResource::deleteResource);
         }
         return upsertedObjects;
-    }
-
-    private Optional<Pagination> buildPagination(Optional<String> first,
-                                                 Optional<String> offset,
-                                                 boolean generateTotals) {
-        return Pagination.fromOffsetAndFirst(first, offset, generateTotals, settings);
-    }
-
-    private Optional<Sorting> buildSorting(Optional<String> sort) {
-        return sort.map(Sorting::parseSortRule);
-    }
-
-    private Optional<FilterExpression> buildFilter(String typeName,
-                                                   Optional<String> filter,
-                                                   RequestScope requestScope) {
-        // TODO: Refactor FilterDialect interfaces to accept string or List<String> instead of (or in addition to?)
-        // query params.
-        return filter.map(filterStr -> {
-            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>() {
-                {
-                    put("filter[" + typeName + "]", Arrays.asList(filterStr));
-                }
-            };
-            try {
-                return requestScope.getFilterDialect().parseTypedExpression(typeName, queryParams).get(typeName);
-            } catch (ParseException e) {
-                log.debug("Filter parse exception caught", e);
-                throw new InvalidPredicateException("Could not parse filter for type: " + typeName);
-            }
-        });
-    }
-
-    /**
-     * Copy an {@link EntityProjection} and apply pagination, sorting and filter
-     *
-     * @return modified projection
-     */
-    private EntityProjection copyAndModifyProjection(
-            EntityProjection originalProjection,
-            Pagination pagination,
-            Sorting sorting,
-            FilterExpression filter
-    ) {
-        EntityProjection modifiedProjection = originalProjection.copyOf().build();
-        modifiedProjection.setPagination(pagination);
-        modifiedProjection.setSorting(sorting);
-
-        if (filter != null) {
-            if (modifiedProjection.getFilterExpression() != null) {
-                modifiedProjection.setFilterExpression(
-                        new AndFilterExpression(modifiedProjection.getFilterExpression(), filter));
-            } else {
-                modifiedProjection.setFilterExpression(filter);
-            }
-        }
-
-        return modifiedProjection;
     }
 }
