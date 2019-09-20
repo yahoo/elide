@@ -88,7 +88,17 @@ public class Field extends Selection {
                             ? "{\"edges\":[]}"
                             : getSelectionSet().toString()
             );
-        } else {
+        }
+        else if (selectionSet instanceof Number) {
+            return String.format(
+                    "\"%s\":%s",
+                    getName(),
+                    getSelectionSet().toString().equals("")
+                            ? "{\"edges\":[]}"
+                            : getSelectionSet().toString()
+            );
+        }
+        else {
             // object response field
             return String.format("\"%s\":%s", getName(), ((SelectionSet) getSelectionSet()).toResponse());
         }

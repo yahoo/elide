@@ -19,6 +19,8 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.datastores.aggregation.example.Author;
+import com.yahoo.elide.datastores.aggregation.example.Book;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,35 +48,11 @@ import javax.ws.rs.core.MediaType;
 /**
  * GraphQL integration tests.
  */
-public class DemoAggregationTest extends IntegrationTest {
-
-    private static class Book {
-        @Getter
-        @Setter
-        private long id;
-
-        @Getter
-        @Setter
-        @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
-        private String title;
-
-        private Collection<example.Author> authors = new ArrayList<>();
-    }
-
-    private static class Author {
-        @Getter
-        @Setter
-        private Long id;
-
-        @Getter
-        @Setter
-        @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
-        private String name;
-    }
+public class DemoAggregationTest extends AggregationIntegrationTest {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
-    @BeforeEach
+//    @BeforeEach
     public void createBookAndAuthor() throws IOException {
         // before each test, create a new book and a new author
         Book book = new Book();
@@ -507,6 +485,54 @@ public class DemoAggregationTest extends IntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
+    @Test
+    public void aggregationSumTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 681L),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Germany")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("highScore", 421L),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Italy")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
     private void create(String query, Map<String, Object> variables) throws IOException {
         runQuery(toJsonQuery(query, variables));
     }
@@ -534,13 +560,17 @@ public class DemoAggregationTest extends IntegrationTest {
     }
 
     private ValidatableResponse runQuery(String query) {
-        return given()
+        ValidatableResponse res = given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(query)
-                .post("/")
+                .log().all()
+                .post("/graphQL")
                 .then()
-                .statusCode(HttpStatus.SC_OK);
+                .log()
+                .all();
+
+        return res;
     }
 
     private String toJsonArray(JsonNode... nodes) throws IOException {
