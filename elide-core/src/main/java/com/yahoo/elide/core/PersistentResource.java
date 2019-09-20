@@ -31,6 +31,9 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
+import com.yahoo.elide.request.Argument;
+import com.yahoo.elide.request.Attribute;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -77,6 +80,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
     private int hashCode = 0;
+
     static final String CLASS_NO_FIELD = "";
 
     /**
@@ -93,6 +97,21 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     @Override
     public String toString() {
         return String.format("PersistentResource{type=%s, id=%s}", type, uuid.orElse(getId()));
+    }
+
+    /**
+     * Create a resource in the database.
+     * @param entityClass the entity class
+     * @param requestScope the request scope
+     * @param uuid the (optional) uuid
+     * @param <T> object type
+     * @return persistent resource
+     */
+    public static <T> PersistentResource<T> createObject(
+            Class<T> entityClass,
+            RequestScope requestScope,
+            Optional<String> uuid) {
+        return createObject(null, entityClass, requestScope, uuid);
     }
 
     /**
@@ -150,7 +169,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param id the id
      * @param scope the request scope
      */
-    public PersistentResource(@NonNull T obj, PersistentResource parent, String id, @NonNull RequestScope scope) {
+    public PersistentResource(@NonNull T obj, PersistentResource parent,
+                              String id, @NonNull RequestScope scope) {
         this.obj = obj;
         this.uuid = Optional.ofNullable(id);
         this.lineage = parent != null ? new ResourceLineage(parent.lineage, parent) : new ResourceLineage();
@@ -161,7 +181,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         dictionary.initializeEntity(obj);
     }
 
-    /**
+   /**
      * Check whether an id matches for this persistent resource.
      *
      * @param checkId the check id
@@ -183,7 +203,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Load an single entity from the DB.
      *
-     * @param loadClass resource type
+     * @param projection What to load from the DB.
      * @param id the id
      * @param requestScope the request scope
      * @param <T> type of resource
@@ -192,14 +212,15 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     @SuppressWarnings("resource")
     @NonNull public static <T> PersistentResource<T> loadRecord(
-            Class<T> loadClass, String id, RequestScope requestScope)
+            EntityProjection projection, String id, RequestScope requestScope)
             throws InvalidObjectIdentifierException {
-        Preconditions.checkNotNull(loadClass);
+        Preconditions.checkNotNull(projection);
         Preconditions.checkNotNull(id);
         Preconditions.checkNotNull(requestScope);
 
         DataStoreTransaction tx = requestScope.getTransaction();
         EntityDictionary dictionary = requestScope.getDictionary();
+        Class<?> loadClass = projection.getType();
 
         // Check the resource cache if exists
         Object obj = requestScope.getObjectById(dictionary.getJsonAliasFor(loadClass), id);
@@ -208,8 +229,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass,
                     requestScope);
             Class<?> idType = dictionary.getIdType(loadClass);
-            obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType),
-                    permissionFilter, requestScope);
+
+            projection = projection
+                .copyOf()
+                .filterExpression(permissionFilter.orElse(null))
+                .build();
+
+            obj = tx.loadObject(projection, (Serializable) CoerceUtil.coerce(id, idType), requestScope);
             if (obj == null) {
                 throw new InvalidObjectIdentifierException(id, dictionary.getJsonAliasFor(loadClass));
             }
@@ -244,24 +270,25 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Load a collection from the datastore.
      *
-     * @param loadClass the load class
+     * @param projection the projection to load
      * @param requestScope the request scope
      * @param ids a list of object identifiers to optionally load.  Can be empty.
      * @return a filtered collection of resources loaded from the datastore.
      */
     public static Set<PersistentResource> loadRecords(
-            Class<?> loadClass,
+            EntityProjection projection,
             List<String> ids,
-            Optional<FilterExpression> filter,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
             RequestScope requestScope) {
 
+        Class<?> loadClass = projection.getType();
+        Pagination pagination = projection.getPagination();
+        Sorting sorting = projection.getSorting();
+
+        FilterExpression filterExpression = projection.getFilterExpression();
+
         EntityDictionary dictionary = requestScope.getDictionary();
-        FilterExpression filterExpression;
 
         DataStoreTransaction tx = requestScope.getTransaction();
-
 
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
             if (ids.isEmpty()) {
@@ -271,8 +298,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-
-        if (pagination.isPresent() && !pagination.get().isDefaultInstance()
+        if (pagination != null && !pagination.isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(loadClass)));
@@ -289,11 +315,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             FilterExpression idExpression = buildIdFilterExpression(ids, loadClass, dictionary, requestScope);
 
             // Combine filters if necessary
-            filterExpression = filter
+            filterExpression = Optional.ofNullable(filterExpression)
                     .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
                     .orElse(idExpression);
-        } else {
-            filterExpression = filter.orElse(null);
         }
 
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass, requestScope);
@@ -305,9 +329,15 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
+        EntityProjection modifiedProjection = projection
+                .copyOf()
+                .filterExpression(filterExpression)
+                .sorting(sorting)
+                .pagination(Optional.ofNullable(pagination).map(p -> p.evaluate(loadClass)).orElse(null))
+                .build();
+
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
-                new PersistentResourceSet(tx.loadObjects(loadClass, Optional.ofNullable(filterExpression), sorting,
-                pagination.map(p -> p.evaluate(loadClass)), requestScope), requestScope));
+                new PersistentResourceSet(tx.loadObjects(modifiedProjection, requestScope), requestScope));
 
         Set<PersistentResource> allResources = Sets.union(newResources, existingResources);
 
@@ -340,7 +370,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
             if (dictionary.isAttribute(obj.getClass(), fieldName)) {
-                transaction.setAttribute(obj, fieldName, newVal, requestScope);
+                transaction.setAttribute(obj, Attribute.builder()
+                        .name(fieldName)
+                        .type(fieldClass)
+                        .argument(Argument.builder()
+                                .name("_UNUSED_")
+                                .value(newVal).build())
+                        .build(), requestScope);
             }
             return true;
         }
@@ -763,72 +799,69 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * NOTE: Filter expressions for this type are _not_ applied at this level.
      *
-     * @param relation relation name
+     * @param relationship The relationship
      * @param id single id to lookup
      * @return The PersistentResource of the sought id or null if does not exist.
      */
-    public PersistentResource getRelation(String relation, String id) {
-        Set<PersistentResource> resources = getRelation(relation, Collections.singletonList(id),
-                Optional.empty(), Optional.empty(), Optional.empty());
-      if (resources.isEmpty()) {
+    public PersistentResource getRelation(com.yahoo.elide.request.Relationship relationship, String id) {
+        Set<PersistentResource> resources = getRelation(Collections.singletonList(id), relationship);
+
+        if (resources.isEmpty()) {
             return null;
-      }
-      // If this is an in-memory object (i.e. UUID being created within tx), datastore may not be able to filter.
-      // If we get multiple results back, make sure we find the right id first.
-      for (PersistentResource resource : resources) {
-          if (resource.matchesId(id)) {
-              return resource;
-          }
-      }
-      return null;
+        }
+        // If this is an in-memory object (i.e. UUID being created within tx), datastore may not be able to filter.
+        // If we get multiple results back, make sure we find the right id first.
+        for (PersistentResource resource : resources) {
+            if (resource.matchesId(id)) {
+                return resource;
+            }
+        }
+        return null;
     }
 
     /**
-     * Load a single entity relation from the PersistentResource. Example: GET /book/2
+     * Load a relation from the PersistentResource.
      *
-     * @param relation the relation
+     * @param relationship the relation
      * @param ids a list of object identifiers to optionally load.  Can be empty.
      * @return PersistentResource relation
      */
-    public Set<PersistentResource> getRelation(String relation,
-                                          List<String> ids,
-                                          Optional<FilterExpression> filter,
-                                          Optional<Sorting> sorting,
-                                          Optional<Pagination> pagination) {
+    public Set<PersistentResource> getRelation(List<String> ids, com.yahoo.elide.request.Relationship relationship) {
 
-        FilterExpression filterExpression;
+        FilterExpression filterExpression = Optional.ofNullable(relationship.getProjection().getFilterExpression())
+                .orElse(null);
 
-        Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
+        assertRelationshipExists(relationship.getName());
+        Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relationship.getName());
 
         Set<PersistentResource> newResources = new LinkedHashSet<>();
 
         /* If this is a bulk edit request and the ID we are fetching for is newly created... */
-        if (entityType == null) {
-            throw new InvalidAttributeException(relation, type);
-        } else {
-            if (!ids.isEmpty()) {
-                // Fetch our set of new resources that we know about since we can't find them in the datastore
-                newResources = requestScope.getNewPersistentResources().stream()
-                        .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
-                                && ids.contains(resource.getUUID().orElse("")))
-                        .collect(Collectors.toSet());
+        if (!ids.isEmpty()) {
+            // Fetch our set of new resources that we know about since we can't find them in the datastore
+            newResources = requestScope.getNewPersistentResources().stream()
+                    .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
+                            && ids.contains(resource.getUUID().orElse("")))
+                    .collect(Collectors.toSet());
 
-                FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
+            FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
 
-                // Combine filters if necessary
-                filterExpression = filter
-                        .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
-                        .orElse(idExpression);
-            } else {
-                filterExpression = filter.orElse(null);
-            }
+            // Combine filters if necessary
+            filterExpression = Optional.ofNullable(relationship.getProjection().getFilterExpression())
+                    .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
+                    .orElse(idExpression);
         }
 
         // TODO: Filter on new resources?
         // TODO: Update pagination to subtract the number of new resources created?
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
-            getRelation(relation, Optional.ofNullable(filterExpression), sorting, pagination, true));
+
+        getRelation(relationship.copyOf()
+            .projection(relationship.getProjection().copyOf()
+                        .filterExpression(filterExpression)
+                        .build())
+                    .build(), true));
 
         // TODO: Sort again in memory now that two sets are glommed together?
 
@@ -839,7 +872,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<String> missedIds = Sets.difference(new HashSet<>(ids), allExpectedIds);
 
         if (!missedIds.isEmpty()) {
-            throw new InvalidObjectIdentifierException(missedIds.toString(), relation);
+            throw new InvalidObjectIdentifierException(missedIds.toString(), relationship.getName());
         }
 
         return allResources;
@@ -879,60 +912,73 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Get collection of resources from relation field.
      *
-     * @param relationName field
+     * @param relationship relationship
      * @return collection relation
      */
-    public Set<PersistentResource> getRelationCheckedFiltered(String relationName,
-                                                              Optional<FilterExpression> filterExpression,
-                                                              Optional<Sorting> sorting,
-                                                              Optional<Pagination> pagination) {
-
+    public Set<PersistentResource> getRelationCheckedFiltered(com.yahoo.elide.request.Relationship relationship) {
         return filter(ReadPermission.class,
-                getRelation(relationName, filterExpression, sorting, pagination, true));
+                getRelation(relationship, true));
     }
 
     private Set<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
-        return getRelation(relationName, Optional.empty(), Optional.empty(), Optional.empty(), false);
+        assertRelationshipExists(relationName);
+        return getRelation(com.yahoo.elide.request.Relationship.builder()
+                .name(relationName)
+                .alias(relationName)
+                .projection(EntityProjection.builder()
+                        .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+                        .build())
+                .build(), false);
     }
 
     private Set<PersistentResource> getRelationCheckedUnfiltered(String relationName) {
-        return getRelation(relationName, Optional.empty(), Optional.empty(), Optional.empty(), true);
+        assertRelationshipExists(relationName);
+        return getRelation(com.yahoo.elide.request.Relationship.builder()
+                .name(relationName)
+                .alias(relationName)
+                .projection(EntityProjection.builder()
+                        .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+                        .build())
+                .build(), true);
     }
 
-    private Set<PersistentResource> getRelation(String relationName,
-                                                Optional<FilterExpression> filterExpression,
-                                                Optional<Sorting> sorting,
-                                                Optional<Pagination> pagination,
-                                                boolean checked) {
+    private void assertRelationshipExists(String relationName) {
+        if (relationName == null || dictionary.getParameterizedType(obj, relationName) == null) {
+            throw new InvalidAttributeException(relationName, this.getType());
+        }
+    }
 
-        if (checked && !checkRelation(relationName)) {
+    private Set<PersistentResource> getRelation(com.yahoo.elide.request.Relationship relationship,
+                                                boolean checked) {
+        if (checked && !checkRelation(relationship)) {
             return Collections.emptySet();
         }
 
-        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
+        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationship.getName());
+
+        Optional<Pagination> pagination = Optional.ofNullable(relationship.getProjection().getPagination());
+
         if (pagination.isPresent() && !pagination.get().isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope)) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));
         }
 
-        return getRelationUnchecked(relationName, filterExpression, sorting, pagination);
+        return getRelationUnchecked(relationship);
     }
 
     /**
      * Check the permissions of the relationship, and return true or false.
-     * @param relationName The relationship to the entity
+     * @param relationship The relationship to the entity
      * @return True if the relationship to the entity has valid permissions for the user
      */
-    protected boolean checkRelation(String relationName) {
-        List<String> relations = dictionary.getRelationships(obj);
+    protected boolean checkRelation(com.yahoo.elide.request.Relationship relationship) {
+        String relationName = relationship.getName();
 
         String realName = dictionary.getNameFromAlias(obj, relationName);
         relationName = (realName == null) ? relationName : realName;
 
-        if (relationName == null || relations == null || !relations.contains(relationName)) {
-            throw new InvalidAttributeException(relationName, type);
-        }
+        assertRelationshipExists(relationName);
 
         checkFieldAwareDeferPermissions(ReadPermission.class, relationName, null, null);
 
@@ -945,70 +991,73 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Get collection of resources from relation field.
      *
-     * @param relationName field
-     * @param filterExpression An optional filter expression
+     * @param relationship the relationship to fetch
      * @return collection relation
      */
-    protected Set<PersistentResource> getRelationChecked(String relationName,
-                                                         Optional<FilterExpression> filterExpression,
-                                                         Optional<Sorting> sorting,
-                                                         Optional<Pagination> pagination) {
-        if (!checkRelation(relationName)) {
+    protected Set<PersistentResource> getRelationChecked(com.yahoo.elide.request.Relationship relationship) {
+        if (!checkRelation(relationship)) {
             return Collections.emptySet();
         }
-        return getRelationUnchecked(relationName, filterExpression, sorting, pagination);
+        return getRelationUnchecked(relationship);
 
     }
 
     /**
-     * Retrieve an uncheck set of relations.
-     *
-     * @param relationName field
-     * @param filterExpression An optional filter expression
-     * @param sorting the sorting clause
-     * @param pagination the pagination params
-     * @return the resources in the relationship
+     * Retrieve an unchecked set of relations.
      */
-    private Set<PersistentResource> getRelationUnchecked(String relationName,
-                                                         Optional<FilterExpression> filterExpression,
-                                                         Optional<Sorting> sorting,
-                                                         Optional<Pagination> pagination) {
+    private Set<PersistentResource> getRelationUnchecked(com.yahoo.elide.request.Relationship relationship) {
+        String relationName = relationship.getName();
+        FilterExpression filterExpression = relationship.getProjection().getFilterExpression();
+        Pagination pagination = relationship.getProjection().getPagination();
+        Sorting sorting = relationship.getProjection().getSorting();
+
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
         if (relationClass == null) {
             throw new InvalidAttributeException(relationName, this.getType());
         }
 
-        Optional<Pagination> computedPagination = pagination.map(p -> p.evaluate(relationClass));
+        Optional<Pagination> computedPagination = Optional.ofNullable(pagination)
+                .map(p -> p.evaluate(relationClass));
 
         //Invoke filterExpressionCheck and then merge with filterExpression.
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
-        Optional<FilterExpression> computedFilters = filterExpression;
+        Optional<FilterExpression> computedFilters = Optional.ofNullable(filterExpression);
 
-        if (permissionFilter.isPresent() && filterExpression.isPresent()) {
+        if (permissionFilter.isPresent() && filterExpression != null) {
             FilterExpression mergedExpression =
-                    new AndFilterExpression(filterExpression.get(), permissionFilter.get());
+                    new AndFilterExpression(filterExpression, permissionFilter.get());
             computedFilters = Optional.of(mergedExpression);
         } else if (permissionFilter.isPresent()) {
             computedFilters = permissionFilter;
         }
 
-        Object val = transaction.getRelation(transaction, obj, relationName,
-                    computedFilters, sorting, computedPagination, requestScope);
+        com.yahoo.elide.request.Relationship modifiedRelationship = relationship.copyOf()
+                .projection(relationship.getProjection().copyOf()
+                        .filterExpression(computedFilters.orElse(null))
+                        .sorting(sorting)
+                        .pagination(computedPagination.orElse(null))
+                        .build()
+                ).build();
+
+        Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
 
         if (val == null) {
             return Collections.emptySet();
         }
 
         Set<PersistentResource> resources = Sets.newLinkedHashSet();
+
         if (val instanceof Iterable) {
             Iterable filteredVal = (Iterable) val;
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(
-                    new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
+                    new PersistentResource(val, this,
+                            requestScope.getUUIDFor(val), requestScope));
         } else {
-            resources.add(new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
+            resources.add(new PersistentResource(val, this,
+                    requestScope.getUUIDFor(val), requestScope));
         }
 
         return resources;
@@ -1164,8 +1213,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Fetch a resource with support for lambda function for getting relationships and attributes.
      * @return The Resource
      */
-    public Resource toResourceWithSortingAndPagination() {
-        return toResource(this::getRelationshipsWithSortingAndPagination, this::getAttributes);
+    public Resource toResource(EntityProjection projection) {
+        return toResource(() -> { return getRelationships(projection); }, this::getAttributes);
     }
 
     /**
@@ -1174,7 +1223,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param attributeSupplier The attribute supplier
      * @return The Resource
      */
-    public Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
+    private Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
                                final Supplier<Map<String, Object>> attributeSupplier) {
         final Resource resource = new Resource(type, (obj == null)
                 ? uuid.orElseThrow(
@@ -1192,8 +1241,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected Map<String, Relationship> getRelationships() {
         return getRelationshipsWithRelationshipFunction((relationName) -> {
-            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(this, relationName);
-            return getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
+            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceClass(),
+                    relationName);
+
+            return getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
+                    .alias(relationName)
+                    .name(relationName)
+                    .projection(EntityProjection.builder()
+                            .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+                            .filterExpression(filterExpression.orElse(null))
+                            .build())
+                    .build());
         });
     }
 
@@ -1202,13 +1260,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @return Relationship mapping
      */
-    protected Map<String, Relationship> getRelationshipsWithSortingAndPagination() {
+    private Map<String, Relationship> getRelationships(EntityProjection projection) {
         return getRelationshipsWithRelationshipFunction((relationName) -> {
-            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(this, relationName);
-            Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
-            Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
-            return getRelationCheckedFiltered(relationName,
-                    filterExpression, sorting, pagination);
+            return getRelationCheckedFiltered(projection.getRelationship(relationName)
+                    .orElseThrow(IllegalStateException::new)
+            );
         });
     }
 
@@ -1446,7 +1502,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Class<?> inverseType = dictionary.getType(inverseEntity.getClass(), inverseField);
 
             String uuid = requestScope.getUUIDFor(inverseEntity);
-            PersistentResource inverseResource = new PersistentResource(inverseEntity, this, uuid, requestScope);
+            PersistentResource inverseResource = new PersistentResource(inverseEntity,
+                    this, uuid, requestScope);
             Object inverseRelation = inverseResource.getValueUnchecked(inverseField);
 
             if (inverseRelation == null) {

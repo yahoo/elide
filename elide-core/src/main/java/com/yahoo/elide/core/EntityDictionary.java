@@ -1209,7 +1209,7 @@ public class EntityDictionary {
 
     /**
      * Returns whether or not a class is already bound.
-     * @param cls
+     * @param cls The class to verify.
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {

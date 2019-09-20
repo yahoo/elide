@@ -31,6 +31,9 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.language.Document;
+import graphql.parser.Parser;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -169,6 +172,9 @@ public class GraphQLEndpoint {
             }
 
             String query = jsonDocument.get(QUERY).asText();
+
+            //TODO
+            Document document = new Parser().parseDocument(query);
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.
