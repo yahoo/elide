@@ -86,12 +86,13 @@ public class Pagination {
     }
 
     /**
-     * Set first page size.
+     * Set limit.
      *
      * @param perPage page size.
      */
-    public void setFirst(Integer perPage) {
-        pageData.put(PaginationKey.size, perPage);
+    public void setLimit(Integer perPage) {
+        this.limit = perPage;
+        pageData.put(PaginationKey.limit, perPage);
     }
 
     public void setOffset(Integer offset) {
