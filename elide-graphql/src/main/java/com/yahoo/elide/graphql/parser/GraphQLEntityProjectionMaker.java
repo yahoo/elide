@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -296,21 +298,37 @@ public class GraphQLEntityProjectionMaker {
 
             if (matched == null) {
                 // this is a new attribute, add it
-                attributes.add(Attribute.builder().type(attributeType).name(fieldName).build());
+                attributes.add(
+                        Attribute.builder()
+                                .type(attributeType)
+                                .name(fieldName)
+                                .arguments(
+                                        field.getArguments().stream()
+                                                .map(graphQLArgument -> com.yahoo.elide.request.Argument.builder()
+                                                        .name(graphQLArgument.getName())
+                                                        .value(
+                                                                variableResolver.resolveValue(
+                                                                        graphQLArgument.getValue()))
+                                                        .build())
+                                        .collect(Collectors.toList()))
+                                .build());
 
                 // update mutated attributes
                 parentProjection.setAttributes(attributes);
+            } else {
+                if (matched.getArguments().isEmpty() && matched.getArguments() == Collections.EMPTY_SET) {
+                    // the default empty set doesn't support .add()
+                    matched.setArguments(new HashSet<>());
+                }
+                // add arguments
+                field.getArguments().forEach(
+                        graphQLArgument ->
+                                matched.getArguments().add(
+                                        com.yahoo.elide.request.Argument.builder()
+                                                .name(graphQLArgument.getName())
+                                                .value(variableResolver.resolveValue(graphQLArgument.getValue()))
+                                                .build()));
             }
-
-            // arguments for field should be added by projection make, elide-core would handle arguments on entities,
-            // including relationship entities
-            field.getArguments().forEach(
-                    graphQLArgument ->
-                            parentProjection.getAttributeByName(fieldName).getArguments().add(
-                                    com.yahoo.elide.request.Argument.builder()
-                                            .name(graphQLArgument.getName())
-                                            .value(variableResolver.resolveValue(graphQLArgument.getValue()))
-                                            .build()));
         } else {
             throw new InvalidEntityBodyException(
                     String.format(

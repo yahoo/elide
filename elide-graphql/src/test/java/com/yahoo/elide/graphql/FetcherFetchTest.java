@@ -141,8 +141,8 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testFetchWithFragments() throws Exception {
-        runComparisonTest("fetchWithFragment");
+    public void testFragmentCorrect() throws Exception {
+        runComparisonTest("fragmentCorrect");
     }
 
     @Test
@@ -158,6 +158,21 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testFragmentUnknown() throws Exception {
         assertParsingFails(loadGraphQLRequest("fetch/fragmentUnknown.graphql"));
+    }
+
+    @Test
+    public void testVariableDefinition() throws Exception {
+        runComparisonTest("variableDefinition");
+    }
+
+    @Test
+    public void testVariableUnknownReference() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/variableUnknownReference.graphql"));
+    }
+
+    @Test
+    public void testVariableInvalidNonNull() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/variableInvalidNonNull.graphql"));
     }
 
     @Test

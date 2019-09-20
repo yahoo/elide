@@ -11,7 +11,6 @@ import graphql.language.BooleanValue;
 import graphql.language.EnumValue;
 import graphql.language.FloatValue;
 import graphql.language.IntValue;
-import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.NullValue;
 import graphql.language.ObjectField;
@@ -22,11 +21,11 @@ import graphql.language.Type;
 import graphql.language.Value;
 import graphql.language.VariableDefinition;
 import graphql.language.VariableReference;
-import java.util.Collections;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.BadRequestException;
 
 /**
@@ -48,19 +47,7 @@ class VariableResolver {
      */
     void newScope(OperationDefinition operation) {
         this.scopeVariables = new HashMap<>(requestVariables);
-        addVariables(operation.getVariableDefinitions());
-    }
-
-    /**
-     * Resolve {@link VariableDefinition}s and store results in the variable map.
-     *
-     * @param definitions definitions to resolve
-     */
-    private void addVariables(List<VariableDefinition> definitions) {
-        definitions.stream()
-                .filter(variable -> variable.getDefaultValue() != null
-                        && variable.getDefaultValue() instanceof VariableReference)
-                .forEach(this::addVariable);
+        operation.getVariableDefinitions().forEach(this::addVariable);
     }
 
     /**
@@ -87,13 +74,6 @@ class VariableResolver {
             if (!scopeVariables.containsKey(variableName)) {
                 // create a new variable with default value
                 scopeVariables.put(variableName, resolveValue(defaultValue));
-            } else {
-                // update a variable from single element to list if the actual variable type is list
-                if (variableType instanceof ListType) {
-                    if (!(scopeVariables.get(variableName) instanceof List)) {
-                        scopeVariables.put(variableName, Collections.singletonList(scopeVariables.get(variableName)));
-                    }
-                }
             }
         }
     }
