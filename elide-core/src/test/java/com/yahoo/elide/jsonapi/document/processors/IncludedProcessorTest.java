@@ -13,7 +13,6 @@ import static org.mockito.Mockito.reset;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
-
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -57,7 +56,6 @@ public class IncludedProcessorTest {
     private DataStoreTransaction mockTransaction = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
     private TestRequestScope testScope;
     private EntityDictionary dictionary;
-
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -106,7 +104,6 @@ public class IncludedProcessorTest {
 
         funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null,
                 String.valueOf(funWithPermissions.getId()), testScope);
-
     }
 
     @Test

@@ -59,19 +59,16 @@ public class HashMapDataStoreTest {
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
             assertFalse(t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
-
                     .build(), null).iterator().hasNext());
             t.createObject(object, null);
             assertFalse(t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
-
                     .build(), null).iterator().hasNext());
             t.commit(null);
         }
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
             Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
-
                     .build(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
@@ -109,7 +106,6 @@ public class HashMapDataStoreTest {
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
             for (Object objBean : t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
-
                     .build(), null)) {
                 FirstBean bean = (FirstBean) objBean;
                 names.add(bean.name);

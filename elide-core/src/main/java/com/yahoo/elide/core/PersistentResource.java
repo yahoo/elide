@@ -936,7 +936,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .alias(relationName)
                 .projection(EntityProjection.builder()
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
-
                         .build())
                 .build(), false);
     }
@@ -948,7 +947,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .alias(relationName)
                 .projection(EntityProjection.builder()
                         .type(dictionary.getParameterizedType(getResourceClass(), relationName))
-
                         .build())
                 .build(), true);
     }
@@ -1255,13 +1253,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceClass(),
                     relationName);
 
-
             return getRelationCheckedFiltered(com.yahoo.elide.request.Relationship.builder()
                     .alias(relationName)
                     .name(relationName)
                     .projection(EntityProjection.builder()
                             .type(dictionary.getParameterizedType(getResourceClass(), relationName))
-
                             .filterExpression(filterExpression.orElse(null))
                             .build())
                     .build());
@@ -1274,12 +1270,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Relationship mapping
      */
     private Map<String, Relationship> getRelationships(EntityProjection projection) {
-        return getRelationshipsWithRelationshipFunction((relationName) -> {
-            return getRelationCheckedFiltered(projection.getRelationship(relationName)
-                    .orElseThrow(IllegalStateException::new)
-            );
-
-        });
+        return getRelationshipsWithRelationshipFunction(
+                (relationName) -> getRelationCheckedFiltered(projection.getRelationship(relationName)
+                        .orElseThrow(IllegalStateException::new)
+        ));
     }
 
     /**

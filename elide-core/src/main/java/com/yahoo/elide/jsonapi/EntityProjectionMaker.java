@@ -189,7 +189,6 @@ public class EntityProjectionMaker
             EntityProjection relationshipProjection = visitIncludePath(nextPath);
 
             return EntityProjection.builder()
-
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
                 .attributes(getSparseAttributes(entityClass))
@@ -199,7 +198,6 @@ public class EntityProjectionMaker
         }
 
         return EntityProjection.builder()
-
                 .relationships(toRelationshipSet(getSparseRelationships(entityClass)))
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
@@ -243,7 +241,6 @@ public class EntityProjectionMaker
                     .projection(EntityProjection.builder()
                         .type(entityClass)
                         .filterExpression(filter)
-
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .relationship(relationshipName, relationshipProjection.projection)
                         .build()
@@ -270,7 +267,6 @@ public class EntityProjectionMaker
                         .filterExpression(filter)
                         .sorting(scope.getSorting())
                         .pagination(scope.getPagination())
-
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .attributes(getSparseAttributes(entityClass))
                         .type(entityClass)
@@ -342,7 +338,6 @@ public class EntityProjectionMaker
                 .collect(Collectors.toMap(
                         Function.identity(),
                         (relationshipName) -> {
-
                             FilterExpression filter = scope.getExpressionForRelation(entityClass, relationshipName)
                                     .orElse(null);
 
@@ -371,7 +366,6 @@ public class EntityProjectionMaker
                     .flatMap(param -> Arrays.stream(param.split(",")))
                     .map(pathString -> new Path(entityClass, dictionary, pathString))
                     .collect(Collectors.toSet());
-
         }
 
         return new HashSet<>();
@@ -379,13 +373,11 @@ public class EntityProjectionMaker
 
     private Set<Relationship> toRelationshipSet(Map<String, EntityProjection> relationships) {
         return relationships.entrySet().stream()
-                .map(entry -> {
-                    return Relationship.builder()
-                            .name(entry.getKey())
-                            .alias(entry.getKey())
-                            .projection(entry.getValue())
-                            .build();
-                })
+                .map(entry -> Relationship.builder()
+                        .name(entry.getKey())
+                        .alias(entry.getKey())
+                        .projection(entry.getValue())
+                        .build())
                 .collect(Collectors.toSet());
     }
 }

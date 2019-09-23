@@ -80,7 +80,6 @@ public class NoopTransactionTest {
         // Should return bean with id set
         NoopBean bean = (NoopBean) tx.loadObject(EntityProjection.builder()
                 .type(NoopBean.class)
-
                 .build(), 1, requestScope);
         assertEquals(bean.getId(), (Long) 1L);
     }
@@ -89,7 +88,6 @@ public class NoopTransactionTest {
     public void testLoadObjects() throws Exception {
         Iterable<NoopBean> iterable = (Iterable) tx.loadObjects(EntityProjection.builder()
                 .type(NoopBean.class)
-
                 .build(), requestScope);
         NoopBean bean = iterable.iterator().next();
         assertEquals(bean.getId(), (Long) 1L);

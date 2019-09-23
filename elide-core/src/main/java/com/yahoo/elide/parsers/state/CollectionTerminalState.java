@@ -131,7 +131,6 @@ public class CollectionTerminalState extends BaseState {
         } else {
             collection = PersistentResource.loadRecords(
                 parentProjection,
-
                 new ArrayList<>(), //Empty list of IDs
                 requestScope);
         }

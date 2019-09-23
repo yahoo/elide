@@ -162,7 +162,6 @@ public class EntityProjectionMakerTest {
                                         .type(Editor.class)
                                         .build())
                                 .pagination(defaultPagination)
-
                                 .build())
                         .build())
                 .build();
@@ -396,8 +395,6 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
-
-
     }
 
     @Test
@@ -452,8 +449,6 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
-
-
     }
 
     @Test
@@ -488,12 +483,10 @@ public class EntityProjectionMakerTest {
                                                 .type(Publisher.class)
                                                 .build())
                                         .relationship("editor", EntityProjection.builder()
-
                                                 .type(Editor.class)
                                                 .build())
                                         .build())
                                 .relationship("editor", EntityProjection.builder()
-
                                         .type(Editor.class)
                                         .build())
                                 .build())
@@ -551,8 +544,6 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
-
-
     }
 
     @Test
@@ -712,8 +703,6 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
-
-
     }
 
     @Test

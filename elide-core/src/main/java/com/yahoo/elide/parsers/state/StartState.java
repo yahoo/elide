@@ -26,7 +26,6 @@ public class StartState extends BaseState {
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
 
-
         state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
                 state.getRequestScope().getEntityProjection()));
     }
@@ -55,7 +54,6 @@ public class StartState extends BaseState {
                     .orElseThrow(IllegalStateException::new));
 
         state.setState(new RelationshipTerminalState(record, relationName, projection));
-
     }
 
     @Override
@@ -68,6 +66,5 @@ public class StartState extends BaseState {
 
         return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
                 id, state.getRequestScope());
-
     }
 }

@@ -92,7 +92,6 @@ public class IncludedProcessor implements DocumentProcessor {
         try {
             collection = rec.getRelationCheckedFiltered(relationship);
 
-
         } catch (ForbiddenAccessException e) {
             return;
         }
