@@ -1053,10 +1053,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Object val = transaction.getRelation(transaction, obj, modifiedRelationship, requestScope);
 
-
-
-
-
         if (val == null) {
             return Collections.emptySet();
         }

@@ -7,14 +7,12 @@ package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
-
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
 import com.yahoo.elide.request.EntityProjection;
-
 
 import java.util.Optional;
 

@@ -28,8 +28,6 @@ import com.google.common.collect.Sets;
 import example.Child;
 import example.Parent;
 import example.TestCheckMappings;
-
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -68,7 +66,6 @@ public class JsonApiTest {
         parent.setSpouses(Sets.newHashSet());
         RequestScope userScope = new TestRequestScope(tx, user, dictionary);
 
-
         new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource();
 
         assertTrue(parent.init);
@@ -80,7 +77,6 @@ public class JsonApiTest {
         parent.setId(123L);
 
         RequestScope userScope = new TestRequestScope(tx, user, dictionary);
-
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource()));
@@ -130,11 +126,8 @@ public class JsonApiTest {
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(pRec.toResource()));
-        jsonApiDocument.addIncluded(new PersistentResource<>(child,
-
-
-
-                pRec, userScope.getUUIDFor(child), userScope).toResource());
+        jsonApiDocument.addIncluded(
+                new PersistentResource<>(child, pRec, userScope.getUUIDFor(child), userScope).toResource());
 
         String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}},\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
 
@@ -186,11 +179,8 @@ public class JsonApiTest {
         jsonApiDocument.addIncluded(new PersistentResource<>(child,
                 pRec, userScope.getUUIDFor(child), userScope).toResource());
         // duplicate will be ignored
-        jsonApiDocument.addIncluded(new PersistentResource<>(child,
-
-
-
-                pRec, userScope.getUUIDFor(child), userScope).toResource());
+        jsonApiDocument.addIncluded(
+                new PersistentResource<>(child, pRec, userScope.getUUIDFor(child), userScope).toResource());
 
         String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}],\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
 

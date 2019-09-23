@@ -108,9 +108,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
                         .build(),
-
-
-
                 "1",
                 userTwoScope);
         loaded.updateAttribute("name", "");
@@ -132,9 +129,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
                         .build(),
-
-
-
                 "1",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.updateAttribute("name", ""));
@@ -156,9 +150,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
                         .build(),
-
-
-
                 "1",
                 userFourScope);
         loaded.updateAttribute("alias", "");
@@ -180,9 +171,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
                         .build(),
-
-
-
                 "1",
                 userThreeScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.updateAttribute("alias", ""));
@@ -210,7 +198,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-
                         .build(),
                 "1",
                 userTwoScope);
@@ -218,9 +205,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Book.class)
                         .build(),
-
-
-
                 "2",
                 userTwoScope);
         loaded.addRelation("books", loadedBook);
@@ -246,7 +230,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-
                         .build(),
                 "1",
                 userOneScope);
@@ -254,9 +237,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Book.class)
                         .build(),
-
-
-
                 "2",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.addRelation("books", loadedBook));
@@ -284,7 +264,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
-
                         .build(),
                 "1",
                 userThreeScope);
@@ -292,9 +271,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Author.class)
                         .build(),
-
-
-
                 "2",
                 userThreeScope);
         loaded.addRelation("author", loadedAuthor);
@@ -328,9 +304,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Author.class)
                         .build(),
-
-
-
                 "2",
                 userTwoScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.addRelation("author", loadedAuthor));
@@ -389,7 +362,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         );
     }
 
-
     //----------------------------------------- ** Update Relation On Create ** --------------------------------------
     //Expression for relation inherited from class level expression
     @Test
@@ -409,9 +381,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Book.class)
                         .build(),
-
-
-
                 "2",
                 userOneScope);
 
@@ -436,9 +405,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                     .type(Book.class)
                     .build(),
-
-
-
                 "2",
                 userThreeScope);
         assertThrows(ForbiddenAccessException.class, () -> created.addRelation("books", loadedBook));
@@ -462,9 +428,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Author.class)
                         .build(),
-
-
-
                 "2",
                 userTwoScope);
         created.addRelation("author", loadedAuthor);
@@ -488,9 +451,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Author.class)
                         .build(),
-
-
-
                 "2",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> created.addRelation("author", loadedAuthor));

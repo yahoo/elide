@@ -169,9 +169,6 @@ public interface DataStoreTransaction extends Closeable {
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
      * @param relationship - the relationship to fetch.
-
-
-
      * @param scope - contains request level metadata.
      * @return the object in the relation
      */
@@ -184,7 +181,6 @@ public interface DataStoreTransaction extends Closeable {
 
         return PersistentResource.getValue(entity, relationship.getName(), scope);
     }
-
 
 
     /**
