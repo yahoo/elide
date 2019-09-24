@@ -147,6 +147,7 @@ public class GraphQLEntityProjectionMaker {
     private void addRootProjection(SelectionSet selectionSet) {
         List<Selection> selections = selectionSet.getSelections();
 
+        // get the first selection as root selection
         Selection rootSelection = selections.get(0);
         if (!(rootSelection instanceof Field)) {
             throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
@@ -166,7 +167,7 @@ public class GraphQLEntityProjectionMaker {
         rootLocation = rootSelection.getSourceLocation();
         Field fields = (Field) rootSelection;
 
-        // merging partial graphql selections
+        // merging partial graphql selections, skip(1) because the first selection is already processed
         selections.stream().skip(1).forEach(selection -> {
             if (!(selection instanceof Field)) {
                 throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
@@ -260,57 +261,76 @@ public class GraphQLEntityProjectionMaker {
         // this field would either be a relationship field or an attribute field
         if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
             // handle the case of a relationship field
-            final Class<?> relationshipType = entityDictionary.getParameterizedType(parentType, fieldName);
-
-            // build new entity projection with only entity type and entity dictionary
-            EntityProjection relationshipProjection = createProjection(relationshipType, field);
-            Relationship relationship = Relationship.builder()
-                    .name(fieldName)
-                    .alias(field.getAlias())
-                    .projection(relationshipProjection)
-                    .build();
-
-            relationshipMap.put(field.getSourceLocation(), relationship);
-
-            // add this relationship projection to its parent projection
-            parentProjection.getRelationships().add(relationship);
-
-            return;
-        }
-
-        if (TYPENAME.equals(fieldName)) {
-            return; // '__typename' would not be handled by entityProjection
-        }
-        if (PAGE_INFO.equals(fieldName)) {
+            addRelationship(field, parentProjection);
+        } else if (TYPENAME.equals(fieldName)) {
+            // '__typename' would not be handled by entityProjection
+        } else if (PAGE_INFO.equals(fieldName)) {
             // only 'totalRecords' needs to be added into the projection's pagination
             if (field.getSelectionSet().getSelections().stream()
                     .anyMatch(selection -> selection instanceof Field
                             && PAGE_INFO_TOTAL_RECORDS.equals(((Field) selection).getName()))) {
                 addPageTotal(parentProjection);
             }
-            return;
+        } else {
+            addAttributeField(field, parentProjection);
         }
+    }
 
-        Class<?> attributeType = entityDictionary.getType(parentType, fieldName);
+    /**
+     * Create a relationship with projection and add it to the parent projection.
+     *
+     * @param relationshipField graphQL field for a relationship
+     * @param parentProjection parent projection has this relationship
+     */
+    private void addRelationship(Field relationshipField, EntityProjection parentProjection) {
+        Class<?> parentType = parentProjection.getType();
+        String relationshipName = relationshipField.getName();
+        final Class<?> relationshipType = entityDictionary.getParameterizedType(parentType, relationshipName);
+
+        // build new entity projection with only entity type and entity dictionary
+        EntityProjection relationshipProjection = createProjection(relationshipType, relationshipField);
+        Relationship relationship = Relationship.builder()
+                .name(relationshipName)
+                .alias(relationshipField.getAlias())
+                .projection(relationshipProjection)
+                .build();
+
+        relationshipMap.put(relationshipField.getSourceLocation(), relationship);
+
+        // add this relationship projection to its parent projection
+        parentProjection.getRelationships().add(relationship);
+    }
+
+    /**
+     * Add an attribute to a entity projection.
+     *
+     * @param attributeField graphQL field for an attribute
+     * @param parentProjection parent projection has this attribute
+     */
+    private void addAttributeField(Field attributeField, EntityProjection parentProjection) {
+        Class<?> parentType = parentProjection.getType();
+        String attributeName = attributeField.getName();
+
+        Class<?> attributeType = entityDictionary.getType(parentType, attributeName);
         if (attributeType != null) {
             Set<Attribute> attributes = parentProjection.getAttributes();
-            Attribute matched = parentProjection.getAttributeByName(fieldName);
+            Attribute matched = parentProjection.getAttributeByName(attributeName);
 
             if (matched == null) {
                 // this is a new attribute, add it
                 attributes.add(
                         Attribute.builder()
                                 .type(attributeType)
-                                .name(fieldName)
+                                .name(attributeName)
                                 .arguments(
-                                        field.getArguments().stream()
+                                        attributeField.getArguments().stream()
                                                 .map(graphQLArgument -> com.yahoo.elide.request.Argument.builder()
                                                         .name(graphQLArgument.getName())
                                                         .value(
                                                                 variableResolver.resolveValue(
                                                                         graphQLArgument.getValue()))
                                                         .build())
-                                        .collect(Collectors.toList()))
+                                                .collect(Collectors.toList()))
                                 .build());
 
                 // update mutated attributes
@@ -321,7 +341,7 @@ public class GraphQLEntityProjectionMaker {
                     matched.setArguments(new HashSet<>());
                 }
                 // add arguments
-                field.getArguments().forEach(
+                attributeField.getArguments().forEach(
                         graphQLArgument ->
                                 matched.getArguments().add(
                                         com.yahoo.elide.request.Argument.builder()
@@ -334,7 +354,7 @@ public class GraphQLEntityProjectionMaker {
                     String.format(
                             "Unknown attribute field {%s.%s}.",
                             entityDictionary.getJsonAliasFor(parentProjection.getType()),
-                            fieldName));
+                            attributeName));
         }
     }
 

@@ -158,7 +158,6 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
      */
-    @Deprecated
     Iterable<Object> loadObjects(
             EntityProjection entityProjection,
             RequestScope scope);
@@ -172,7 +171,6 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      * @return the object in the relation
      */
-    @Deprecated
     default Object getRelation(
             DataStoreTransaction relationTx,
             Object entity,
@@ -181,7 +179,6 @@ public interface DataStoreTransaction extends Closeable {
 
         return PersistentResource.getValue(entity, relationship.getName(), scope);
     }
-
 
     /**
      * Elide core will update the in memory representation of the objects to the requested state.
