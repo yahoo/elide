@@ -192,9 +192,7 @@ public class GraphQLEntityProjectionMaker {
         final EntityProjectionBuilder projectionBuilder = EntityProjection.builder()
                 .type(entityType);
 
-        // initialize the attribute container
         entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
-
         entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, projectionBuilder));
 
         return projectionBuilder.build();
@@ -204,7 +202,7 @@ public class GraphQLEntityProjectionMaker {
      * Add a graphQL {@link Selection} to an {@link EntityProjection}
      *
      * @param fieldSelection field/fragment to add
-     * @param projectionBuilder projection that has this field/fragment
+     * @param projectionBuilder projection that is being built
      */
     private void addSelection(Selection fieldSelection, final EntityProjectionBuilder projectionBuilder) {
         if (fieldSelection instanceof FragmentSpread) {
@@ -228,7 +226,7 @@ public class GraphQLEntityProjectionMaker {
      * Resolve a graphQL {@link FragmentSpread} into {@link Selection}s and add them to an {@link EntityProjection}
      *
      * @param fragment graphQL fragment
-     * @param projectionBuilder entity projection that contains this fragment
+     * @param projectionBuilder projection that is being built
      */
     private void addFragment(FragmentSpread fragment, EntityProjectionBuilder projectionBuilder) {
         String fragmentName = fragment.getName();
@@ -459,6 +457,7 @@ public class GraphQLEntityProjectionMaker {
      * according to the newly created {@link Sorting} object.
      *
      * @param argument An argument that contains the value of sorting spec
+     * @param projectionBuilder projection that is being built
      */
     private void addSorting(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String sortRule = (String) variableResolver.resolveValue(argument.getValue());
