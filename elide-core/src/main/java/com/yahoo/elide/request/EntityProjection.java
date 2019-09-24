@@ -12,6 +12,7 @@ import com.yahoo.elide.core.sort.Sorting;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.LinkedHashSet;
@@ -122,8 +123,21 @@ public class EntityProjection {
      * Customizes the lombok builder to our needs.
      */
     public static class EntityProjectionBuilder {
+        @Getter
+        private Class<?> type;
+
         private Set<Relationship> relationships = new LinkedHashSet<>();
+
         private Set<Attribute> attributes = new LinkedHashSet<>();
+
+        @Getter
+        private FilterExpression filterExpression;
+
+        @Getter
+        private Sorting sorting;
+
+        @Getter
+        private Pagination pagination;
 
         public EntityProjectionBuilder relationships(Set<Relationship> relationships) {
             this.relationships = relationships;
@@ -166,19 +180,18 @@ public class EntityProjection {
             this.attributes.add(attribute);
             return this;
         }
-    }
 
-    /**
-     * Get an attribute by name.
-     *
-     * @param attributeName attribute name to get
-     * @return found attribute or null
-     */
-    public Attribute getAttributeByName(String attributeName) {
-        return getAttributes().stream()
-                .filter(attribute -> attribute.getName().equals(attributeName))
-                .findAny()
-                .orElse(null);
-
+        /**
+         * Get an attribute by name.
+         *
+         * @param attributeName attribute name to get
+         * @return found attribute or null
+         */
+        public Attribute getAttributeByName(String attributeName) {
+            return attributes.stream()
+                    .filter(attribute -> attribute.getName().equals(attributeName))
+                    .findAny()
+                    .orElse(null);
+        }
     }
 }

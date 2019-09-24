@@ -29,6 +29,7 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.EntityProjection.EntityProjectionBuilder;
 import com.yahoo.elide.request.Relationship;
 
 import graphql.language.Argument;
@@ -50,7 +51,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
@@ -189,36 +189,34 @@ public class GraphQLEntityProjectionMaker {
      * @return constructed {@link EntityProjection}
      */
     private EntityProjection createProjection(Class<?> entityType, Field entityField) {
-        final EntityProjection entityProjection = EntityProjection.builder()
-                .type(entityType)
-                .build();
+        final EntityProjectionBuilder projectionBuilder = EntityProjection.builder()
+                .type(entityType);
 
         // initialize the attribute container
-        entityProjection.setAttributes(new HashSet<>());
-        entityField.getArguments().forEach(argument -> addArgument(argument, entityProjection));
+        entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
 
-        entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, entityProjection));
+        entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, projectionBuilder));
 
-        return entityProjection;
+        return projectionBuilder.build();
     }
 
     /**
      * Add a graphQL {@link Selection} to an {@link EntityProjection}
      *
      * @param fieldSelection field/fragment to add
-     * @param parentProjection projection that has this field/fragment
+     * @param projectionBuilder projection that has this field/fragment
      */
-    private void addSelection(Selection fieldSelection, final EntityProjection parentProjection) {
+    private void addSelection(Selection fieldSelection, final EntityProjectionBuilder projectionBuilder) {
         if (fieldSelection instanceof FragmentSpread) {
-            addFragment((FragmentSpread) fieldSelection, parentProjection);
+            addFragment((FragmentSpread) fieldSelection, projectionBuilder);
         } else if (fieldSelection instanceof Field) {
             if (EDGES.equals(((Field) fieldSelection).getName())
                     || NODE.equals(((Field) fieldSelection).getName())) {
                 // if this graphql field is 'edges' or 'node', go one level deeper in the graphql document
                 ((Field) fieldSelection).getSelectionSet().getSelections().forEach(
-                        selection -> addSelection(selection, parentProjection));
+                        selection -> addSelection(selection, projectionBuilder));
             } else {
-                addField((Field) fieldSelection, parentProjection);
+                addField((Field) fieldSelection, projectionBuilder);
             }
         } else {
             throw new InvalidEntityBodyException(
@@ -230,9 +228,9 @@ public class GraphQLEntityProjectionMaker {
      * Resolve a graphQL {@link FragmentSpread} into {@link Selection}s and add them to an {@link EntityProjection}
      *
      * @param fragment graphQL fragment
-     * @param parentProjection entity projection that contains this fragment
+     * @param projectionBuilder entity projection that contains this fragment
      */
-    private void addFragment(FragmentSpread fragment, EntityProjection parentProjection) {
+    private void addFragment(FragmentSpread fragment, EntityProjectionBuilder projectionBuilder) {
         String fragmentName = fragment.getName();
         if (!fragmentResolver.contains(fragmentName)) {
             throw new InvalidEntityBodyException(String.format("Unknown fragment {%s}.", fragmentName));
@@ -241,10 +239,10 @@ public class GraphQLEntityProjectionMaker {
         FragmentDefinition fragmentDefinition = fragmentResolver.get(fragmentName);
 
         // type name in type condition of the Fragment must match the entity projection type name
-        if (entityDictionary.getJsonAliasFor(parentProjection.getType())
+        if (entityDictionary.getJsonAliasFor(projectionBuilder.getType())
                 .equals(fragmentDefinition.getTypeCondition().getName())) {
             fragmentDefinition.getSelectionSet().getSelections()
-                    .forEach(selection -> addSelection(selection, parentProjection));
+                    .forEach(selection -> addSelection(selection, projectionBuilder));
         }
     }
 
@@ -252,16 +250,16 @@ public class GraphQLEntityProjectionMaker {
      * Add a new graphQL {@link Field} into an {@link EntityProjection}
      *
      * @param field graphQL field
-     * @param parentProjection entity projection that contains this field
+     * @param projectionBuilder projection that is being built
      */
-    private void addField(Field field, EntityProjection parentProjection) {
-        Class<?> parentType = parentProjection.getType();
+    private void addField(Field field, EntityProjectionBuilder projectionBuilder) {
+        Class<?> parentType = projectionBuilder.getType();
         String fieldName = field.getName();
 
         // this field would either be a relationship field or an attribute field
         if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
             // handle the case of a relationship field
-            addRelationship(field, parentProjection);
+            addRelationship(field, projectionBuilder);
         } else if (TYPENAME.equals(fieldName)) {
             // '__typename' would not be handled by entityProjection
         } else if (PAGE_INFO.equals(fieldName)) {
@@ -269,10 +267,10 @@ public class GraphQLEntityProjectionMaker {
             if (field.getSelectionSet().getSelections().stream()
                     .anyMatch(selection -> selection instanceof Field
                             && PAGE_INFO_TOTAL_RECORDS.equals(((Field) selection).getName()))) {
-                addPageTotal(parentProjection);
+                addPageTotal(projectionBuilder);
             }
         } else {
-            addAttributeField(field, parentProjection);
+            addAttributeField(field, projectionBuilder);
         }
     }
 
@@ -280,10 +278,10 @@ public class GraphQLEntityProjectionMaker {
      * Create a relationship with projection and add it to the parent projection.
      *
      * @param relationshipField graphQL field for a relationship
-     * @param parentProjection parent projection has this relationship
+     * @param projectionBuilder projection that is being built
      */
-    private void addRelationship(Field relationshipField, EntityProjection parentProjection) {
-        Class<?> parentType = parentProjection.getType();
+    private void addRelationship(Field relationshipField, EntityProjectionBuilder projectionBuilder) {
+        Class<?> parentType = projectionBuilder.getType();
         String relationshipName = relationshipField.getName();
         final Class<?> relationshipType = entityDictionary.getParameterizedType(parentType, relationshipName);
 
@@ -298,43 +296,40 @@ public class GraphQLEntityProjectionMaker {
         relationshipMap.put(relationshipField.getSourceLocation(), relationship);
 
         // add this relationship projection to its parent projection
-        parentProjection.getRelationships().add(relationship);
+        projectionBuilder.relationship(relationship);
     }
 
     /**
-     * Add an attribute to a entity projection.
+     * Add an attribute to an entity projection.
      *
      * @param attributeField graphQL field for an attribute
-     * @param parentProjection parent projection has this attribute
+     * @param projectionBuilder projection that is being built
      */
-    private void addAttributeField(Field attributeField, EntityProjection parentProjection) {
-        Class<?> parentType = parentProjection.getType();
+    private void addAttributeField(Field attributeField, EntityProjectionBuilder projectionBuilder) {
+        Class<?> parentType = projectionBuilder.getType();
         String attributeName = attributeField.getName();
 
         Class<?> attributeType = entityDictionary.getType(parentType, attributeName);
         if (attributeType != null) {
-            Set<Attribute> attributes = parentProjection.getAttributes();
-            Attribute matched = parentProjection.getAttributeByName(attributeName);
+            Attribute matched = projectionBuilder.getAttributeByName(attributeName);
 
             if (matched == null) {
-                // this is a new attribute, add it
-                attributes.add(
-                        Attribute.builder()
-                                .type(attributeType)
-                                .name(attributeName)
-                                .arguments(
-                                        attributeField.getArguments().stream()
-                                                .map(graphQLArgument -> com.yahoo.elide.request.Argument.builder()
-                                                        .name(graphQLArgument.getName())
-                                                        .value(
-                                                                variableResolver.resolveValue(
-                                                                        graphQLArgument.getValue()))
-                                                        .build())
-                                                .collect(Collectors.toList()))
-                                .build());
+                // this is a new attribute, create one and add it to the builder
+                Attribute attribute = Attribute.builder()
+                        .type(attributeType)
+                        .name(attributeName)
+                        .arguments(
+                                attributeField.getArguments().stream()
+                                        .map(graphQLArgument -> com.yahoo.elide.request.Argument.builder()
+                                                .name(graphQLArgument.getName())
+                                                .value(
+                                                        variableResolver.resolveValue(
+                                                                graphQLArgument.getValue()))
+                                                .build())
+                                        .collect(Collectors.toList()))
+                        .build();
 
-                // update mutated attributes
-                parentProjection.setAttributes(attributes);
+                projectionBuilder.attribute(attribute);
             } else {
                 if (matched.getArguments().isEmpty() && matched.getArguments() == Collections.EMPTY_SET) {
                     // the default empty set doesn't support .add()
@@ -353,7 +348,7 @@ public class GraphQLEntityProjectionMaker {
             throw new InvalidEntityBodyException(
                     String.format(
                             "Unknown attribute field {%s.%s}.",
-                            entityDictionary.getJsonAliasFor(parentProjection.getType()),
+                            entityDictionary.getJsonAliasFor(projectionBuilder.getType()),
                             attributeName));
         }
     }
@@ -363,21 +358,21 @@ public class GraphQLEntityProjectionMaker {
      * add it to the {@link EntityProjection}.
      *
      * @param argument graphQL argument
-     * @param entityProjection projection that has this argument
+     * @param projectionBuilder projection that is being built
      */
-    private void addArgument(Argument argument, EntityProjection entityProjection) {
+    private void addArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String argumentName = argument.getName();
 
         if (isPaginationArgument(argumentName)) {
-            addPagination(argument, entityProjection);
+            addPagination(argument, projectionBuilder);
         } else if (isSortingArgument(argumentName)) {
-            addSorting(argument, entityProjection);
+            addSorting(argument, projectionBuilder);
         } else if (ModelBuilder.ARGUMENT_FILTER.equals(argumentName)) {
-            addFilter(argument, entityProjection);
+            addFilter(argument, projectionBuilder);
         } else if (!ModelBuilder.ARGUMENT_OPERATION.equals(argumentName)
                 && !(ModelBuilder.ARGUMENT_IDS.equals(argumentName))
                 && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))) {
-            addAttributeArgument(argument, entityProjection);
+            addAttributeArgument(argument, projectionBuilder);
         }
     }
 
@@ -394,16 +389,16 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Creates a {@link Pagination} object from pagination GraphQL argument and attaches it to the
+     * Create a {@link Pagination} object from pagination GraphQL argument and attach it to the building
      * {@link EntityProjection}.
      *
      * @param argument graphQL argument
-     * @param entityProjection projection that has this argument
+     * @param projectionBuilder projection that is being built
      */
-    private void addPagination(Argument argument, EntityProjection entityProjection) {
-        Pagination pagination = entityProjection.getPagination() == null
+    private void addPagination(Argument argument, EntityProjectionBuilder projectionBuilder) {
+        Pagination pagination = projectionBuilder.getPagination() == null
                 ? Pagination.getDefaultPagination(elideSettings)
-                : entityProjection.getPagination();
+                : projectionBuilder.getPagination();
 
         Object argumentValue = variableResolver.resolveValue(argument.getValue());
         int value = argumentValue instanceof BigInteger
@@ -418,7 +413,7 @@ public class GraphQLEntityProjectionMaker {
                     String.format("Unrecognized pagination argument '%s'", argument.getName()));
         }
 
-        entityProjection.setPagination(pagination);
+        projectionBuilder.pagination(pagination);
     }
 
     /**
@@ -426,25 +421,25 @@ public class GraphQLEntityProjectionMaker {
      * If the projection already has a pagination, use limit and offset from the existing pagination,
      * else use the default pagination vales.
      *
-     * @param entityProjection entityProjection to modify
+     * @param projectionBuilder projection that is being built
      */
-    private void addPageTotal(EntityProjection entityProjection) {
-        if (entityProjection.getPagination() == null) {
+    private void addPageTotal(EntityProjectionBuilder projectionBuilder) {
+        if (projectionBuilder.getPagination() == null) {
             Optional<Pagination> pagination = Pagination.fromOffsetAndFirst(
                     Optional.empty(),
                     Optional.empty(),
                     true,
                     elideSettings
             );
-            pagination.ifPresent(entityProjection::setPagination);
+            pagination.ifPresent(projectionBuilder::pagination);
         } else {
             Optional<Pagination> pagination = Pagination.fromOffsetAndFirst(
-                    Optional.of(String.valueOf(entityProjection.getPagination().getLimit())),
-                    Optional.of(String.valueOf(entityProjection.getPagination().getOffset())),
+                    Optional.of(String.valueOf(projectionBuilder.getPagination().getLimit())),
+                    Optional.of(String.valueOf(projectionBuilder.getPagination().getOffset())),
                     true,
                     elideSettings
             );
-            pagination.ifPresent(entityProjection::setPagination);
+            pagination.ifPresent(projectionBuilder::pagination);
         }
     }
 
@@ -465,37 +460,37 @@ public class GraphQLEntityProjectionMaker {
      *
      * @param argument An argument that contains the value of sorting spec
      */
-    private void addSorting(Argument argument, EntityProjection entityProjection) {
+    private void addSorting(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String sortRule = (String) variableResolver.resolveValue(argument.getValue());
         Sorting sorting = Sorting.parseSortRule(sortRule);
 
         // validate sorting rule
         try {
-            sorting.getValidSortingRules(entityProjection.getType(), entityDictionary);
+            sorting.getValidSortingRules(projectionBuilder.getType(), entityDictionary);
         } catch (InvalidValueException e) {
             throw new BadRequestException("Invalid sorting clause " + sortRule
-                    + " for type " + entityDictionary.getJsonAliasFor(entityProjection.getType()));
+                    + " for type " + entityDictionary.getJsonAliasFor(projectionBuilder.getType()));
         }
 
-        entityProjection.setSorting(sorting);
+        projectionBuilder.sorting(sorting);
     }
 
     /**
      * Add a new filter expression to the entityProjection
      *
      * @param argument filter argument
-     * @param entityProjection entityProjection to modify
+     * @param projectionBuilder projection that is being built
      */
-    private void addFilter(Argument argument, EntityProjection entityProjection) {
+    private void addFilter(Argument argument, EntityProjectionBuilder projectionBuilder) {
         FilterExpression filter = buildFilter(
-                entityDictionary.getJsonAliasFor(entityProjection.getType()),
+                entityDictionary.getJsonAliasFor(projectionBuilder.getType()),
                 variableResolver.resolveValue(argument.getValue()));
 
-        if (entityProjection.getFilterExpression() != null) {
-            entityProjection.setFilterExpression(
-                    new AndFilterExpression(entityProjection.getFilterExpression(), filter));
+        if (projectionBuilder.getFilterExpression() != null) {
+            projectionBuilder.filterExpression(
+                    new AndFilterExpression(projectionBuilder.getFilterExpression(), filter));
         } else {
-            entityProjection.setFilterExpression(filter);
+            projectionBuilder.filterExpression(filter);
         }
     }
 
@@ -527,29 +522,27 @@ public class GraphQLEntityProjectionMaker {
      * Add argument for a field/relationship of an entity
      *
      * @param argument argument which a field/relationship name
-     * @param entityProjection projection for the target entity
+     * @param projectionBuilder projection that is being built
      */
-    private void addAttributeArgument(Argument argument, EntityProjection entityProjection) {
+    private void addAttributeArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String argumentName = argument.getName();
-        Class<?> entityType = entityProjection.getType();
+        Class<?> entityType = projectionBuilder.getType();
 
-        Attribute argumentAttribute = entityProjection.getAttributeByName(argumentName);
+        Attribute argumentAttribute = projectionBuilder.getAttributeByName(argumentName);
         com.yahoo.elide.request.Argument elideArgument = com.yahoo.elide.request.Argument.builder()
                 .name(argumentName)
                 .value(variableResolver.resolveValue(argument.getValue()))
                 .build();
 
         if (argumentAttribute == null) {
+            // create a new attribute if this attribute doesn't exist in the projection
             argumentAttribute = Attribute.builder()
                     .type(entityDictionary.getType(entityType, argumentName))
                     .name(argumentName)
                     .argument(elideArgument)
                     .build();
 
-            Set<Attribute> attributes = entityProjection.getAttributes();
-            attributes.add(argumentAttribute);
-
-            entityProjection.setAttributes(attributes);
+            projectionBuilder.attribute(argumentAttribute);
         } else {
             argumentAttribute.getArguments().add(elideArgument);
         }
