@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -26,7 +27,8 @@ public class Book {
 
     @Getter
     @Setter
-    private Collection<example.Author> authors = new ArrayList<>();
+    @ManyToMany
+    private Collection<Author> authors = new ArrayList<>();
 }
 
 

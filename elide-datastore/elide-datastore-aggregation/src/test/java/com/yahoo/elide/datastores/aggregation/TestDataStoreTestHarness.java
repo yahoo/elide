@@ -23,6 +23,7 @@ public class TestDataStoreTestHarness implements DataStoreTestHarness {
         packageSet.add(Author.class.getPackage());
         return new TestAggregationDataStore(packageSet);
     }
+
     public void cleanseTestData() {
 
     }

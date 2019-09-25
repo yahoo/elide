@@ -52,7 +52,7 @@ public class DemoAggregationTest extends AggregationIntegrationTest {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
-//    @BeforeEach
+    @BeforeEach
     public void createBookAndAuthor() throws IOException {
         // before each test, create a new book and a new author
         Book book = new Book();
