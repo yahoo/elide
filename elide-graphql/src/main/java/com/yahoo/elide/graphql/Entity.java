@@ -33,24 +33,22 @@ public class Entity {
     @Getter private RequestScope requestScope;
     @Getter private Set<Attribute> attributes;
     @Getter private Set<Relationship> relationships;
-    @Getter private EntityProjection projection;
 
     /**
      * Class constructor.
      * @param parentResource parent entity
      * @param data entity data
-     * @param projection projection for this entity
+     * @param entityClass entity class
      * @param requestScope the request context object
      */
     public Entity(
             Optional<Entity> parentResource,
             Map<String, Object> data,
-            EntityProjection projection,
+            Class<?> entityClass,
             RequestScope requestScope) {
         this.parentResource = parentResource;
         this.data = data;
-        this.projection = projection;
-        this.entityClass = projection.getType();
+        this.entityClass = entityClass;
         this.requestScope = requestScope;
         setAttributes();
         setRelationships();
@@ -103,15 +101,6 @@ public class Entity {
                         Class<?> relationshipClass =
                                 dictionary.getParameterizedType(this.entityClass, relationshipName);
 
-                        // if this data contains a relationship that is not in the projection tree, create a temporary
-                        // projection for that relationship
-                        EntityProjection relationshipProjection =
-                                projection.getRelationship(relationshipName).isPresent()
-                                        ? projection.getRelationship(relationshipName).get().getProjection()
-                                        : EntityProjection.builder()
-                                                .type(relationshipClass)
-                                                .build();
-
                         Set<Entity> relationshipEntities = new LinkedHashSet<>();
 
                         // if the relationship is ToOne, entry.getValue() should be a single map
@@ -119,14 +108,14 @@ public class Entity {
                             relationshipEntities.add(new Entity(
                                     Optional.of(this),
                                     ((Map<String, Object>) entry.getValue()),
-                                    relationshipProjection,
+                                    relationshipClass,
                                     this.requestScope));
                         } else {
                             for (Map<String, Object> row : (List<Map<String, Object>>) entry.getValue()) {
                                 relationshipEntities.add(new Entity(
                                         Optional.of(this),
                                         row,
-                                        relationshipProjection,
+                                        relationshipClass,
                                         this.requestScope));
                             }
                         }
@@ -199,6 +188,14 @@ public class Entity {
     public PersistentResource toPersistentResource() {
         return this.data == null
                 ? null
-                : PersistentResource.loadRecord(projection, getId().orElse(null), this.requestScope);
+                : PersistentResource.loadRecord(getProjection(), getId().orElse(null), this.requestScope);
+    }
+
+    /**
+     * Get a projection for this entity class. Used for querying inserted entities.
+     * @return {@link EntityProjection} object
+     */
+    public EntityProjection getProjection() {
+        return EntityProjection.builder().type(entityClass).build();
     }
 }

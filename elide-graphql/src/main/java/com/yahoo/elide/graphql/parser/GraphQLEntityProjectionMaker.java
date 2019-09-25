@@ -134,7 +134,7 @@ public class GraphQLEntityProjectionMaker {
             }
         });
 
-        return new GraphQLProjectionInfo(rootLocation, rootProjections, relationshipMap);
+        return new GraphQLProjectionInfo(rootProjections, relationshipMap);
     }
 
     /**

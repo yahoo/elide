@@ -15,14 +15,12 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
-import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
 import com.google.common.collect.Sets;
 
 import graphql.language.Field;
-import graphql.language.SourceLocation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
@@ -251,33 +249,16 @@ public class PersistentResourceFetcher implements DataFetcher {
                     context.field.getName());
         }
 
-        // Try to get projection for the entity to upsert/update
-        SourceLocation selectionLocation = context.field.getSourceLocation();
-        GraphQLProjectionInfo projectionInfo = context.requestScope.getProjectionInfo();
-        EntityProjection entityProjection;
-        if (selectionLocation.equals(projectionInfo.getRootLocation())) {
-            // if this is the root selection
-            entityProjection = context.requestScope.getEntityProjection();
-        } else if (projectionInfo.getRelationshipMap().containsKey(selectionLocation)) {
-            // if this is a relationship in the projection
-            entityProjection = projectionInfo.getRelationshipMap().get(selectionLocation).getProjection();
-        } else {
-            // if there is not matched projection, create a new temporary projection
-            entityProjection = EntityProjection.builder()
-                    .type(entityClass)
-                    .build();
-        }
-
         /* form entities */
         Optional<Entity> parentEntity;
         if (!context.isRoot()) {
-            parentEntity = Optional.of(new Entity(Optional.empty(), null, entityProjection, context.requestScope));
+            parentEntity = Optional.of(new Entity(Optional.empty(), null, entityClass, context.requestScope));
         } else {
             parentEntity = Optional.empty();
         }
         LinkedHashSet<Entity> entitySet = new LinkedHashSet<>();
         for (Map<String, Object> input : context.data.get()) {
-            entitySet.add(new Entity(parentEntity, input, entityProjection, context.requestScope));
+            entitySet.add(new Entity(parentEntity, input, entityClass, context.requestScope));
         }
 
         /* apply function to upsert/update the object */
