@@ -81,7 +81,7 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
     protected final Injector injector;
 
-    private final static String REGULAR_ID_NAME = "id";
+    public final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
