@@ -43,11 +43,6 @@ public class SQLQueryEngineTest {
     private EntityDictionary dictionary;
     private RSQLFilterDialect filterParser;
 
-    private Schema playerStatsSchema;
-    private Schema playerStatsViewSchema;
-    private EntityDictionary dictionary;
-    private RSQLFilterDialect filterParser;
-
     public SQLQueryEngineTest() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         dictionary = new EntityDictionary(new HashMap<>());
@@ -124,7 +119,6 @@ public class SQLQueryEngineTest {
 
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(results.get(0), stats1);
-        Assert.assertEquals(results.get(1), stats2);
     }
 
     @Test

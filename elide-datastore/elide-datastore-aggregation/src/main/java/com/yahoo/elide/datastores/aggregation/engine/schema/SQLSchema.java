@@ -25,9 +25,6 @@ public class SQLSchema extends Schema {
     private boolean isSubquery;
 
     @Getter
-    private boolean isSubquery;
-
-    @Getter
     private String tableDefinition;
 
     public SQLSchema(Class<?> entityClass, EntityDictionary dictionary) {
