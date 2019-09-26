@@ -81,7 +81,7 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
     protected final Injector injector;
 
-    public final static String REGULAR_ID_NAME = "id";
+    private final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
@@ -169,10 +169,12 @@ public class EntityDictionary {
     }
 
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
-        if (isMappedInterface(entityClass)) {
-            return EMPTY_BINDING;
-        }
-        return entityBindings.getOrDefault(lookupEntityClass(entityClass), EMPTY_BINDING);
+        return entityBindings.computeIfAbsent(entityClass, cls -> {
+            if (isMappedInterface(cls)) {
+                return EMPTY_BINDING;
+            }
+            return entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING);
+        });
     }
 
     public boolean isMappedInterface(Class<?> interfaceClass) {
@@ -246,8 +248,8 @@ public class EntityDictionary {
      *         or {@code null} if the permission is not specified on that field
      */
     public ParseTree getPermissionsForField(Class<?> resourceClass,
-            String field,
-            Class<? extends Annotation> annotationClass) {
+                                            String field,
+                                            Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
     }
@@ -614,6 +616,7 @@ public class EntityDictionary {
      * <pre>
      * {@code
      * public class Address {
+     *
      *     {@literal @}Id
      *     private Long id
      *
@@ -635,6 +638,7 @@ public class EntityDictionary {
      * <pre>
      * {@code
      * public class Address {
+     *
      *     {@literal @}Id
      *     private Long surrogateKey
      *
@@ -657,7 +661,7 @@ public class EntityDictionary {
      * calling this method has undefined behavior
      *
      * @param entityClass Entity class
-     * @param identifier  Identifier/Field to lookup type
+     * @param identifier  Field to lookup type
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
@@ -695,7 +699,7 @@ public class EntityDictionary {
      * Retrieve the parameterized type for the given field.
      *
      * @param entityClass the entity class
-     * @param identifier  the identifier/field name
+     * @param identifier  the identifier
      * @param paramIndex  the index of the parameterization
      * @return Entity type for field otherwise null.
      */
@@ -811,6 +815,7 @@ public class EntityDictionary {
         if (entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING) != EMPTY_BINDING) {
             return;
         }
+        entityBindings.remove(lookupEntityClass(cls));
 
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
@@ -1209,11 +1214,41 @@ public class EntityDictionary {
 
     /**
      * Returns whether or not a class is already bound.
-     * @param cls The class to verify.
+     * @param cls
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
         return bindJsonApiToEntity.contains(cls);
+    }
+
+    /**
+     * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
+     *
+     * @param fieldName  The entity field
+     * @param annotationClass  The provided annotation class
+     *
+     * @param <A>  The type of the {@code annotationClass}
+     *
+     * @return {@code true} if the field is annotated by the {@code annotationClass}
+     */
+    public <A extends Annotation> boolean attributeOrRelationAnnotationExists(
+            Class<?> cls,
+            String fieldName,
+            Class<A> annotationClass
+    ) {
+        return getAttributeOrRelationAnnotation(cls, annotationClass, fieldName) != null;
+    }
+
+    /**
+     * Returns whether or not a specified field exists in an entity.
+     *
+     * @param cls  The entity
+     * @param fieldName  The provided field to check
+     *
+     * @return {@code true} if the field exists in the entity
+     */
+    public boolean isValidField(Class<?> cls, String fieldName) {
+        return getAllFields(cls).contains(fieldName);
     }
 
     /**
@@ -1242,7 +1277,6 @@ public class EntityDictionary {
         }
         throw new InvalidAttributeException(fieldName, getJsonAliasFor(target.getClass()));
     }
-
 
     /**
      * Invoke the set[fieldName] method on the target object OR set the field with the corresponding name.
@@ -1280,73 +1314,6 @@ public class EntityDictionary {
     }
 
     /**
-     * Coerce provided value into expected class type.
-     *
-     * @param value provided value
-     * @param fieldName the field name
-     * @param fieldClass expected class type
-     * @return coerced value
-     */
-    public Object coerce(Object target, Object value, String fieldName, Class<?> fieldClass) {
-        if (fieldClass != null && Collection.class.isAssignableFrom(fieldClass) && value instanceof Collection) {
-            return coerceCollection(target, (Collection) value, fieldName, fieldClass);
-        }
-
-        if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
-            return coerceMap(target, (Map<?, ?>) value, fieldName);
-        }
-
-        return CoerceUtil.coerce(value, fieldClass);
-    }
-
-    private Map coerceMap(Object target, Map<?, ?> values, String fieldName) {
-        Class<?> keyType = getParameterizedType(target, fieldName, 0);
-        Class<?> valueType = getParameterizedType(target, fieldName, 1);
-
-        // Verify the existing Map
-        if (isValidParameterizedMap(values, keyType, valueType)) {
-            return values;
-        }
-
-        LinkedHashMap<Object, Object> result = new LinkedHashMap<>(values.size());
-        for (Map.Entry<?, ?> entry : values.entrySet()) {
-            result.put(CoerceUtil.coerce(entry.getKey(), keyType), CoerceUtil.coerce(entry.getValue(), valueType));
-        }
-
-        return result;
-    }
-
-    /**
-     * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
-     *
-     * @param fieldName  The entity field
-     * @param annotationClass  The provided annotation class
-     *
-     * @param <A>  The type of the {@code annotationClass}
-     *
-     * @return {@code true} if the field is annotated by the {@code annotationClass}
-     */
-    public <A extends Annotation> boolean attributeOrRelationAnnotationExists(
-            Class<?> cls,
-            String fieldName,
-            Class<A> annotationClass
-    ) {
-        return getAttributeOrRelationAnnotation(cls, annotationClass, fieldName) != null;
-    }
-
-    /**
-     * Returns whether or not a specified field exists in an entity.
-     *
-     * @param cls  The entity
-     * @param fieldName  The provided field to check
-     *
-     * @return {@code true} if the field exists in the entity
-     */
-    public boolean isValidField(Class<?> cls, String fieldName) {
-        return getAllFields(cls).contains(fieldName);
-    }
-
-    /**
      * Handle an invocation target exception.
      *
      * @param e Exception the exception encountered while reflecting on an object's field
@@ -1359,6 +1326,26 @@ public class EntityDictionary {
         }
         log.error("Caught an unexpected exception (rethrowing as internal server error)", e);
         return new InternalServerErrorException("Unexpected exception caught", e);
+    }
+
+    /**
+     * Coerce provided value into expected class type.
+     *
+     * @param value provided value
+     * @param fieldName the field name
+     * @param fieldClass expected class type
+     * @return coerced value
+     */
+    Object coerce(Object target, Object value, String fieldName, Class<?> fieldClass) {
+        if (fieldClass != null && Collection.class.isAssignableFrom(fieldClass) && value instanceof Collection) {
+            return coerceCollection(target, (Collection) value, fieldName, fieldClass);
+        }
+
+        if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
+            return coerceMap(target, (Map<?, ?>) value, fieldName, fieldClass);
+        }
+
+        return CoerceUtil.coerce(value, fieldClass);
     }
 
     private Collection coerceCollection(Object target, Collection<?> values, String fieldName, Class<?> fieldClass) {
@@ -1388,6 +1375,23 @@ public class EntityDictionary {
         }
 
         return list;
+    }
+
+    private Map coerceMap(Object target, Map<?, ?> values, String fieldName, Class<?> fieldClass) {
+        Class<?> keyType = getParameterizedType(target, fieldName, 0);
+        Class<?> valueType = getParameterizedType(target, fieldName, 1);
+
+        // Verify the existing Map
+        if (isValidParameterizedMap(values, keyType, valueType)) {
+            return values;
+        }
+
+        LinkedHashMap<Object, Object> result = new LinkedHashMap<>(values.size());
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            result.put(CoerceUtil.coerce(entry.getKey(), keyType), CoerceUtil.coerce(entry.getValue(), valueType));
+        }
+
+        return result;
     }
 
     private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
