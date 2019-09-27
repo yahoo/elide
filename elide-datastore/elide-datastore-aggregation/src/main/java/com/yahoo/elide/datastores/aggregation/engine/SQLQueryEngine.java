@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -362,7 +361,7 @@ public class SQLQueryEngine implements QueryEngine {
                 .map((entry) -> {
                     Metric metric = entry.getKey();
                     Class<? extends Aggregation> agg = entry.getValue();
-                    return metric.getMetricExpression(Optional.of(agg)) + " AS " + metric.getName();
+                    return metric.getMetricExpression(agg) + " AS " + metric.getName();
                 })
                 .collect(Collectors.toList());
 
@@ -428,6 +427,6 @@ public class SQLQueryEngine implements QueryEngine {
         Metric metric = schema.getMetric(last.getFieldName());
         Class<? extends Aggregation> agg = query.getMetrics().get(metric);
 
-        return metric.getMetricExpression(Optional.of(agg));
+        return metric.getMetricExpression(agg);
     }
 }

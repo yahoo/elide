@@ -140,13 +140,13 @@ public class EntityDimension extends Column implements Dimension {
     /**
      * Constructor.
      *
+     * @param schema The schema this {@link Column} belongs to.
      * @param dimensionField  The entity field or relation that this {@link Dimension} represents
      * @param annotation  Provides static meta data about this {@link Dimension}
      * @param fieldType  The Java type for this entity field or relation
      * @param dimensionType  The physical storage structure backing this {@link Dimension}, such as a table or a column
      * @param cardinality  The estimated cardinality of this {@link Dimension} in SQL table
      * @param friendlyName  A human-readable name representing this {@link Dimension}
-     *
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
     protected EntityDimension(

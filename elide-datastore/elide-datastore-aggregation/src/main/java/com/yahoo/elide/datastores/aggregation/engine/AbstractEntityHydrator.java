@@ -95,15 +95,15 @@ public abstract class AbstractEntityHydrator {
      * <p>
      * For example, when the relationship is loaded from SQL and we have the following example identity:
      * <pre>
-     * {@code
      * public class PlayerStats {
      *     private String id;
      *     private Country country;
      *
-     *     @OneToOne
-     *     @JoinColumn(name = "country_id")
+     *     &#64;OneToOne
+     *     &#64;JoinColumn(name = "country_id")
      *     public Country getCountry() {
      *         return country;
+     *     }
      * }
      * </pre>
      * In this case {@code entityClass = PlayerStats.class}; {@code joinField = "country"}. If {@code country} is
@@ -149,6 +149,7 @@ public abstract class AbstractEntityHydrator {
     /**
      * Coerces results from a {@link Query} into an Object.
      *
+     * @param result a fieldName-value map
      * @param counter Monotonically increasing number to generate IDs.
      * @return A hydrated entity object.
      */

@@ -20,7 +20,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
-import java.util.Optional;
 
 public class SchemaTest {
 
@@ -51,7 +50,7 @@ public class SchemaTest {
     @Test
     public void testGetMetric() {
         Assert.assertEquals(
-                playerStatsSchema.getMetric("highScore").getMetricExpression(Optional.of(Max.class)),
+                playerStatsSchema.getMetric("highScore").getMetricExpression(Max.class),
                 "MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore)"
         );
     }
