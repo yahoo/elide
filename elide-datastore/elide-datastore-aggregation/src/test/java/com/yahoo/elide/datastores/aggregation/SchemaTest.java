@@ -40,7 +40,7 @@ public class SchemaTest {
     }
 
     @Test
-    void testMetricCheck() {
+    public void testMetricCheck() {
         assertTrue(playerStatsSchema.isMetricField("highScore"));
         assertFalse(playerStatsSchema.isMetricField("country"));
     }

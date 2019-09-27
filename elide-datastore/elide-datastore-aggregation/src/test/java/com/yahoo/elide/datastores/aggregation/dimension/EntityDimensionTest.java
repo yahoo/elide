@@ -23,6 +23,7 @@ import java.util.Collections;
 import javax.persistence.Entity;
 
 public class EntityDimensionTest {
+    private static EntityDictionary entityDictionary;
 
     /**
      * A class for testing un-happy path on finding friendly name.
@@ -52,8 +53,6 @@ public class EntityDimensionTest {
             return subTitle;
         }
     }
-
-    private static EntityDictionary entityDictionary;
 
     @BeforeAll
     public static void setupEntityDictionary() {
