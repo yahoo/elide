@@ -56,17 +56,6 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-datastore-hibernate</artifactId>
-            <version>4.4.5-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-
         <!-- JPA -->
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>

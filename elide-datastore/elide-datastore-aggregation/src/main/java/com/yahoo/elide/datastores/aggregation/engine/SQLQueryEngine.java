@@ -11,7 +11,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -140,12 +140,12 @@ public class SQLQueryEngine implements QueryEngine {
 
         if (query.getWhereFilter() != null) {
             joinPredicates.addAll(extractPathElements(query.getWhereFilter()));
-            builder.whereClause("WHERE " + translateFilterExpression(schema, query.getWhereFilter(),
+            builder.whereClause("WHERE " + translateFilterExpression(query.getWhereFilter(),
                     this::generateWhereClauseColumnReference));
         }
 
         if (query.getHavingFilter() != null) {
-            builder.havingClause("HAVING " + translateFilterExpression(schema, query.getHavingFilter(),
+            builder.havingClause("HAVING " + translateFilterExpression(query.getHavingFilter(),
                     (predicate) -> { return generateHavingClauseColumnReference(predicate, query); }));
         }
 
@@ -174,15 +174,13 @@ public class SQLQueryEngine implements QueryEngine {
 
     /**
      * Translates a filter expression into SQL.
-     * @param schema The schema being queried.
      * @param expression The filter expression
      * @param columnGenerator A function which generates a column reference in SQL from a FilterPredicate.
      * @return A SQL expression
      */
-    private String translateFilterExpression(SQLSchema schema,
-                                             FilterExpression expression,
+    private String translateFilterExpression(FilterExpression expression,
                                              Function<FilterPredicate, String> columnGenerator) {
-        HQLFilterOperation filterVisitor = new HQLFilterOperation();
+        FilterTranslator filterVisitor = new FilterTranslator();
 
         return filterVisitor.apply(expression, columnGenerator);
     }
