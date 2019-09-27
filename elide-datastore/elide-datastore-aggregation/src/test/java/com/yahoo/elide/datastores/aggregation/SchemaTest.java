@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.example.Country;
@@ -14,21 +18,18 @@ import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 import com.yahoo.elide.datastores.aggregation.metric.Max;
 
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
-import java.util.Optional;
 
 public class SchemaTest {
 
-    private EntityDictionary entityDictionary;
-    private Schema playerStatsSchema;
+    private static EntityDictionary entityDictionary;
+    private static Schema playerStatsSchema;
 
-    @BeforeMethod
-    public void setupEntityDictionary() {
+    @BeforeAll
+    public static void setupEntityDictionary() {
         entityDictionary = new EntityDictionary(Collections.emptyMap());
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(VideoGame.class);
@@ -38,21 +39,22 @@ public class SchemaTest {
         playerStatsSchema = new Schema(PlayerStats.class, entityDictionary);
     }
 
-    @Test void testMetricCheck() {
-        Assert.assertTrue(playerStatsSchema.isMetricField("highScore"));
-        Assert.assertFalse(playerStatsSchema.isMetricField("country"));
+    @Test
+    public void testMetricCheck() {
+        assertTrue(playerStatsSchema.isMetricField("highScore"));
+        assertFalse(playerStatsSchema.isMetricField("country"));
     }
 
     @Test
     public void testGetDimension() {
-        Assert.assertEquals(playerStatsSchema.getDimension("country").getCardinality(), CardinalitySize.SMALL);
+        assertEquals(CardinalitySize.SMALL, playerStatsSchema.getDimension("country").getCardinality());
     }
 
     @Test
     public void testGetMetric() {
-        Assert.assertEquals(
-                playerStatsSchema.getMetric("highScore").getMetricExpression(Optional.of(Max.class)),
-                "MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore)"
+        assertEquals(
+                "MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore)",
+                playerStatsSchema.getMetric("highScore").getMetricExpression(Max.class)
         );
     }
 }

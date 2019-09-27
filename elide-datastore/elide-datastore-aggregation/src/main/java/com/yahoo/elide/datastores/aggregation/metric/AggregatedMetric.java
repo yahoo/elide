@@ -62,20 +62,16 @@ public class AggregatedMetric extends Column implements Metric {
     }
 
     @Override
-    public String getMetricExpression(final Optional<Class<? extends Aggregation>> aggregation) {
-        if (!aggregation.isPresent()) {
-            return "";
-        }
-
+    public String getMetricExpression(final Class<? extends Aggregation> aggregation) {
         try {
-            Class<?> clazz = Class.forName(aggregation.get().getCanonicalName());
+            Class<?> clazz = Class.forName(aggregation.getCanonicalName());
             Constructor<?> ctor = clazz.getConstructor();
             Aggregation instance = (Aggregation) ctor.newInstance();
             return String.format(instance.getAggFunctionFormat(), schema.getAlias() + "." + name);
         } catch (Exception exception) {
             String message = String.format(
                     "Cannot generate aggregation function for '%s'",
-                    aggregation.get().getCanonicalName()
+                    aggregation.getCanonicalName()
             );
             log.error(message, exception);
             throw new IllegalStateException(message, exception);

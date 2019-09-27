@@ -5,11 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.metric;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -37,16 +38,16 @@ public class AggregatedMetricTest {
 
     @Test
     public void testMetricAsCollectionElement() {
-        Assert.assertEquals(SIMPLE_METRIC_1, SIMPLE_METRIC_1);
-        Assert.assertEquals(SIMPLE_METRIC_2, SIMPLE_METRIC_2);
-        Assert.assertNotEquals(SIMPLE_METRIC_1, SIMPLE_METRIC_2);
-        Assert.assertNotEquals(SIMPLE_METRIC_1.hashCode(), SIMPLE_METRIC_2.hashCode());
+        assertEquals(SIMPLE_METRIC_1, SIMPLE_METRIC_1);
+        assertEquals(SIMPLE_METRIC_2, SIMPLE_METRIC_2);
+        assertNotEquals(SIMPLE_METRIC_1, SIMPLE_METRIC_2);
+        assertNotEquals(SIMPLE_METRIC_1.hashCode(), SIMPLE_METRIC_2.hashCode());
 
         // different metrics should be separate elements in Set
         Set<Metric> set = new HashSet<>();
         set.add(SIMPLE_METRIC_1);
 
-        Assert.assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
 
         // a separate same object doesn't increase collection size
         Metric sameMetric = new AggregatedMetric(
@@ -56,29 +57,29 @@ public class AggregatedMetricTest {
                 long.class,
                 Collections.singletonList(Max.class)
         );
-        Assert.assertEquals(sameMetric, SIMPLE_METRIC_1);
+        assertEquals(SIMPLE_METRIC_1, sameMetric);
         set.add(sameMetric);
-        Assert.assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
 
         set.add(SIMPLE_METRIC_1);
-        Assert.assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
 
         set.add(SIMPLE_METRIC_2);
-        Assert.assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
     }
 
     @Test
     public void testToString() {
         // simple metric
-        Assert.assertEquals(
-                SIMPLE_METRIC_1.toString(),
-                "AggregatedMetric[name='highScore', longName='highScore', description='highScore', dataType=long, aggregations=Max]"
+        assertEquals(
+                "AggregatedMetric[name='highScore', longName='highScore', description='highScore', dataType=long, aggregations=Max]",
+                SIMPLE_METRIC_1.toString()
         );
 
         // computed metric
-        Assert.assertEquals(
-                SIMPLE_METRIC_2.toString(),
-                "AggregatedMetric[name='timeSpentPerGame', longName='timeSpentPerGame', description='timeSpentPerGame', dataType=class java.lang.Float, aggregations=Max]"
+        assertEquals(
+                "AggregatedMetric[name='timeSpentPerGame', longName='timeSpentPerGame', description='timeSpentPerGame', dataType=class java.lang.Float, aggregations=Max]",
+                SIMPLE_METRIC_2.toString()
         );
     }
 }

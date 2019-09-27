@@ -202,8 +202,8 @@ public class FilterTranslator implements FilterOperation<String> {
      * @return Returns null if no generator is registered.
      */
     public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op,
-                                           Class<?> entityClass,
-                                           String fieldName) {
+                                                             Class<?> entityClass,
+                                                             String fieldName) {
         return predicateOverrides.get(Triple.of(op, entityClass, fieldName));
     }
 
