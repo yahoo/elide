@@ -71,11 +71,5 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
         return loaded.stream()
                 .map(obj -> new AbstractMap.SimpleImmutableEntry<>((Object) getEntityDictionary().getId(obj), obj))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        // returns a mapping as [joinId(0) -> loaded(0), joinId(1) -> loaded(1), ...]
-//        return IntStream.range(0, loaded.size())
-//                .boxed()
-//                .map(i -> new AbstractMap.SimpleImmutableEntry<>(uniqueIds.get(i), loaded.get(i)))
-//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
