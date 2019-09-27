@@ -1,12 +1,28 @@
 package com.yahoo.elide.datastores.aggregation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.engine.SQLQueryEngine;
+import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.example.Country;
+import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
+import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
+import com.yahoo.elide.datastores.aggregation.metric.Sum;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,15 +33,29 @@ import org.mockito.Spy;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.testng.Assert;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-public class AggregationDataStoreTest {
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.*;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class AggregationDataStoreTest extends IntegrationTest {
     @Spy
     AggregationDataStore aggregationDataStore;
 
@@ -38,83 +68,248 @@ public class AggregationDataStoreTest {
     @Spy
     EntityDictionary entityDictionary;
 
-    @Mock
     QueryEngine qE;
 
-    @BeforeEach
-    public void init() {
+    private EntityManagerFactory emf;
+
+    private Schema playerStatsSchema;
+    private Schema playerStatsViewSchema;
+    private RSQLFilterDialect filterParser;
+
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+
+    @Override
+    protected DataStoreTestHarness createHarness() {
         entityDictionary = new EntityDictionary(new HashMap<>());
-        MockitoAnnotations.initMocks(this);
-        aggregationDataStore = new AggregationDataStore(qE) {
-            @Override
-            public void populateEntityDictionary(EntityDictionary dictionary) {
-                dictionary.bindEntity(PlayerStats.class);
-                return;
-            }
-        };
         entityDictionary.bindEntity(PlayerStats.class);
         entityDictionary.bindEntity(Country.class);
+        entityDictionary.bindEntity(PlayerStatsView.class);
+        entityDictionary.bindEntity(Player.class);
+
+        emf = Persistence.createEntityManagerFactory("aggregationStore");
+        EntityManager em = emf.createEntityManager();
+        qE = new SQLQueryEngine(em, entityDictionary);
+        return new AggregationDataStoreTestHarness(qE);
     }
 
-    // Empty entityProjection should yield empty query
-    @Test
-    public void testEmptyQueryBuilding() {
-        Set<Attribute> attributes = new LinkedHashSet<>();
-        Mockito.when(entityProjection.getAttributes()).thenReturn(attributes);
-        Class playerStats = PlayerStats.class;
-        Mockito.when(entityProjection.getType()).thenReturn(playerStats);
-        Mockito.when(requestScope.getDictionary()).thenReturn(entityDictionary);
-        Query query = AggregationDataStore.buildQuery(entityProjection, requestScope);
+    AggregationDataStoreTest() {
+        EntityManager em = emf.createEntityManager();
+        qE = new SQLQueryEngine(em, entityDictionary);
+    }
+    @BeforeEach
+    public void init() {
+        emf = Persistence.createEntityManagerFactory("aggregationStore");
+        EntityManager em = emf.createEntityManager();
+        entityDictionary = new EntityDictionary(new HashMap<>());
+        MockitoAnnotations.initMocks(this);
+        entityDictionary.bindEntity(PlayerStats.class);
+        entityDictionary.bindEntity(Country.class);
+        entityDictionary.bindEntity(PlayerStatsView.class);
+        entityDictionary.bindEntity(Player.class);
 
-        Query expected = Query.builder()
-                                .entityClass(PlayerStats.class)
-                                .metrics(Collections.emptySet())
-                                .groupDimensions(Collections.emptySet())
-                                .timeDimensions(Collections.emptySet())
-                                .havingFilter(Optional.empty())
-                                .whereFilter(Optional.empty())
-                                .sorting(Optional.empty())
-                                .pagination(Optional.empty())
-                                .scope(requestScope)
-                                .build();
-        Assert.assertEquals(query, expected);
+        filterParser = new RSQLFilterDialect(entityDictionary);
+
+        playerStatsSchema = new SQLSchema(PlayerStats.class, entityDictionary);
+        playerStatsViewSchema = new SQLSchema(PlayerStatsView.class, entityDictionary);
+        qE = new SQLQueryEngine(em, entityDictionary);
     }
 
-    // Test entityProjection with certain attributes yields query with corresponding metrics
     @Test
-    public void testQueryBuildingWithAttributes() {
-        Set<Attribute> attributes = new LinkedHashSet<>();
-        attributes.add(Attribute.builder().type(int.class).name("highScore").build());
-        Mockito.when(entityProjection.getAttributes()).thenReturn(attributes);
-        Class playerStats = PlayerStats.class;
-        Mockito.when(entityProjection.getType()).thenReturn(playerStats);
-        Mockito.when(requestScope.getDictionary()).thenReturn(entityDictionary);
-        Query query = AggregationDataStore.buildQuery(entityProjection, requestScope);
-
-        Query expected = Query.builder()
-                .entityClass(PlayerStats.class)
-                .metrics(Collections.emptySet())
-                .groupDimensions(Collections.emptySet())
-                .timeDimensions(Collections.emptySet())
-                .havingFilter(Optional.empty())
-                .whereFilter(Optional.empty())
-                .sorting(Optional.empty())
-                .pagination(Optional.empty())
-                .scope(requestScope)
+    public void testingSQLQueryEngine() {
+        EntityManager em = emf.createEntityManager();
+        qE = new SQLQueryEngine(em, entityDictionary);
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
                 .build();
 
-        // Check query came back as expected and that attribute was converted to corresponding metric in result.
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(query, expected, "metrics"));
-        Assert.assertTrue(verifyMetrics(query.getMetrics(), Collections.singletonList("highScore")));
+        List<Object> results = StreamSupport.stream(qE.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setLowScore(72);
+        stats1.setHighScore(1234);
+        stats1.setOverallRating("Good");
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setLowScore(241);
+        stats2.setHighScore(2412);
+        stats2.setOverallRating("Great");
+        stats2.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
+        Assert.assertEquals(results.size(), 2);
+        Assert.assertEquals(results.get(0), stats1);
+        Assert.assertEquals(results.get(1), stats2);
     }
 
-    private boolean verifyMetrics(Set<Metric> metrics, List<String> metricNames) {
-        for (String metricName : metricNames) {
-            if (!metrics.stream().anyMatch(mn -> mn.getName().equals(metricName))) {
-                return false;
-            }
-        }
-        return true;
+    @Test
+    public void aggregationMaxTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name"),
+                                                        field("id")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 681L),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Germany")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("highScore", 421L),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Italy")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
+
+    @Test
+    public void aggregationFilterTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 681L),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Germany")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("highScore", 421L),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Italy")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    private void create(String query, Map<String, Object> variables) throws IOException {
+        runQuery(toJsonQuery(query, variables));
+    }
+
+    private void runQueryWithExpectedResult(
+            String graphQLQuery,
+            Map<String, Object> variables,
+            String expected
+    ) throws IOException {
+        compareJsonObject(runQuery(graphQLQuery, variables), expected);
+    }
+
+    private void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
+        runQueryWithExpectedResult(graphQLQuery, null, expected);
+    }
+
+    private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
+        JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
+        JsonNode expectedNode = JSON_MAPPER.readTree(expected);
+        assertEquals(expectedNode, responseNode);
+    }
+
+    private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
+        return runQuery(toJsonQuery(query, variables));
+    }
+
+    private ValidatableResponse runQuery(String query) {
+        ValidatableResponse res = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(query)
+                .log().all()
+                .post("/graphQL")
+                .then()
+                .log()
+                .all();
+
+        return res;
+    }
+
+    private String toJsonArray(JsonNode... nodes) throws IOException {
+        ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
+        for (JsonNode node : nodes) {
+            arrayNode.add(node);
+        }
+        return JSON_MAPPER.writeValueAsString(arrayNode);
+    }
+
+    private String toJsonQuery(String query, Map<String, Object> variables) throws IOException {
+        return JSON_MAPPER.writeValueAsString(toJsonNode(query, variables));
+    }
+
+    private JsonNode toJsonNode(String query) {
+        return toJsonNode(query, null);
+    }
+
+    private JsonNode toJsonNode(String query, Map<String, Object> variables) {
+        ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
+        graphqlNode.put("query", query);
+        if (variables != null) {
+            graphqlNode.set("variables", JSON_MAPPER.valueToTree(variables));
+        }
+        return graphqlNode;
+    }
+
+
 
 }

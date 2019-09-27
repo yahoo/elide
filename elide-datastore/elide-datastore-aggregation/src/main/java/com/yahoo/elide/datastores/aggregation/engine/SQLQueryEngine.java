@@ -371,8 +371,11 @@ public class SQLQueryEngine implements QueryEngine {
         String projectionClause = metricProjections.stream()
                 .collect(Collectors.joining(","));
 
+        if (!projectionClause.isEmpty()) {
+            projectionClause += ",";
+        }
         if (!dimensionProjections.isEmpty()) {
-            projectionClause = projectionClause + "," + dimensionProjections.stream()
+            projectionClause = projectionClause + dimensionProjections.stream()
                     .map((name) -> query.getSchema().getAlias() + "." + name)
                     .collect(Collectors.joining(","));
         }

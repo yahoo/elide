@@ -11,6 +11,7 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.metric.AggregatedMetric;
 import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
@@ -23,6 +24,7 @@ import sun.awt.image.ImageWatched;
 
 import java.sql.Time;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -47,22 +49,23 @@ public abstract class AggregationDataStore implements DataStore {
     }
 
     public static Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
-        Schema schema = new Schema(entityProjection.getType(), scope.getDictionary());
+        SQLSchema schema = new SQLSchema(entityProjection.getType(), scope.getDictionary());
         AggregationDataStoreHelper agHelper = new AggregationDataStoreHelper(schema, entityProjection);
         FilterExpression filterExpression = entityProjection.getFilterExpression();
-        Optional<FilterExpression> whereFilter = agHelper.getWhereFilter(filterExpression);
-        Optional<FilterExpression> havingFilter = agHelper.getHavingFilter(filterExpression);
-        Optional<Sorting> sorting = Optional.ofNullable(entityProjection.getSorting());
-        Optional<Pagination> pagination = Optional.ofNullable(entityProjection.getPagination());
+        FilterExpression whereFilter = agHelper.getWhereFilter(filterExpression);
+        FilterExpression havingFilter = agHelper.getHavingFilter(filterExpression);
+        Sorting sorting = entityProjection.getSorting();
+        Pagination pagination = entityProjection.getPagination();
         Set<Dimension> dimensions = new LinkedHashSet<>();
         Set<TimeDimension> timeDimensions = new LinkedHashSet<>();
         agHelper.populateDimensionList(dimensions, timeDimensions);
         Set<Metric> metrics = new LinkedHashSet<>();
         agHelper.populateMetricList(metrics);
+        Map<Metric, ? extends Class<? extends Aggregation>> metricClassMap = agHelper.getMetricMap(metrics);
 
         return Query.builder()
-                    .entityClass(entityProjection.getType())
-                    .metrics(metrics)
+                    .schema(schema)
+                    .metrics(metricClassMap)
                     .groupDimensions(dimensions)
                     .timeDimensions(timeDimensions)
                     .whereFilter(whereFilter)

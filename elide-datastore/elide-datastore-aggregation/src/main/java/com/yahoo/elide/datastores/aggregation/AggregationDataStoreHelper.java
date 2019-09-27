@@ -5,13 +5,16 @@ import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
+import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -25,24 +28,24 @@ public class AggregationDataStoreHelper {
         this.entityProjection = entityProjection;
     }
 
-    public Optional<FilterExpression> getWhereFilter(FilterExpression filterExpression) {
+    public FilterExpression getWhereFilter(FilterExpression filterExpression) {
         FilterExpression whereFilter;
         try {
             whereFilter = filterExpression.accept(new SplitFilterExpressionVisitor(schema)).getWhereExpression();
         } catch (NullPointerException npe) {
             whereFilter = null;
         }
-        return Optional.ofNullable(whereFilter);
+        return whereFilter;
     }
 
-    public Optional<FilterExpression> getHavingFilter(FilterExpression filterExpression) {
+    public FilterExpression getHavingFilter(FilterExpression filterExpression) {
         FilterExpression havingFilter;
         try {
             havingFilter = filterExpression.accept(new SplitFilterExpressionVisitor(schema)).getHavingExpression();
         } catch (NullPointerException npe) {
             havingFilter = null;
         }
-        return Optional.ofNullable(havingFilter);
+        return havingFilter;
     }
 
 
@@ -54,7 +57,7 @@ public class AggregationDataStoreHelper {
                 if(metricNames.contains(dimension.getName()))
                 timeDimensions.add((TimeDimension)dimension);
             }
-            else if (dimensionNames.contains(dimension.getName())) {
+            else if (dimensionNames.contains(dimension.getName()) || metricNames.contains(dimension.getName())) {
                 dimensions.add(dimension);
             }
         }
@@ -67,6 +70,14 @@ public class AggregationDataStoreHelper {
                 metrics.add(metric);
             }
         }
+    }
+
+    public Map<Metric, Class<? extends Aggregation>> getMetricMap(Set<Metric> metrics) {
+        Map<Metric, Class<? extends Aggregation>> metricMap = new LinkedHashMap<>();
+        for (Metric metric : metrics) {
+            metricMap.put(metric, metric.getAggregations().get(0));
+        }
+        return metricMap;
     }
 
     private Set<String> getMetricNames() {
