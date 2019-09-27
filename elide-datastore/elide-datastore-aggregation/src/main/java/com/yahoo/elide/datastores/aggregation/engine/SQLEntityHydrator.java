@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.Query;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -17,7 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.persistence.EntityManager;
 
@@ -70,10 +68,14 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
                 .setParameter("idList", uniqueIds)
                 .getResultList();
 
-        // returns a mapping as [joinId(0) -> loaded(0), joinId(1) -> loaded(1), ...]
-        return IntStream.range(0, loaded.size())
-                .boxed()
-                .map(i -> new AbstractMap.SimpleImmutableEntry<>(uniqueIds.get(i), loaded.get(i)))
+        return loaded.stream()
+                .map(obj -> new AbstractMap.SimpleImmutableEntry<>((Object) getEntityDictionary().getId(obj), obj))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // returns a mapping as [joinId(0) -> loaded(0), joinId(1) -> loaded(1), ...]
+//        return IntStream.range(0, loaded.size())
+//                .boxed()
+//                .map(i -> new AbstractMap.SimpleImmutableEntry<>(uniqueIds.get(i), loaded.get(i)))
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

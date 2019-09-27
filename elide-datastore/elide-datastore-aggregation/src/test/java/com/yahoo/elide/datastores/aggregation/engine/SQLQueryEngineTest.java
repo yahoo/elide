@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.engine;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -20,8 +23,8 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.metric.Sum;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -35,15 +38,14 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 public class SQLQueryEngineTest {
+    private static EntityManagerFactory emf;
+    private static Schema playerStatsSchema;
+    private static Schema playerStatsViewSchema;
+    private static EntityDictionary dictionary;
+    private static RSQLFilterDialect filterParser;
 
-    private EntityManagerFactory emf;
-
-    private Schema playerStatsSchema;
-    private Schema playerStatsViewSchema;
-    private EntityDictionary dictionary;
-    private RSQLFilterDialect filterParser;
-
-    public SQLQueryEngineTest() {
+    @BeforeAll
+    public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
@@ -56,8 +58,11 @@ public class SQLQueryEngineTest {
         playerStatsViewSchema = new SQLSchema(PlayerStatsView.class, dictionary);
     }
 
+    /**
+     * Test loading all three records from the table.
+     */
     @Test
-    public void testFullTableLoad() throws Exception {
+    public void testFullTableLoad() {
         EntityManager em = emf.createEntityManager();
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
@@ -65,33 +70,41 @@ public class SQLQueryEngineTest {
                 .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
-        //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(241);
+        stats0.setHighScore(2412);
+        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
+        stats1.setId("1");
         stats1.setLowScore(72);
         stats1.setHighScore(1234);
-        stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
-        stats2.setLowScore(241);
-        stats2.setHighScore(2412);
-        stats2.setOverallRating("Great");
-        stats2.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats2.setId("2");
+        stats2.setLowScore(72);
+        stats2.setHighScore(1000);
+        stats2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
 
-        Assert.assertEquals(results.size(), 2);
-        Assert.assertEquals(results.get(0), stats1);
-        Assert.assertEquals(results.get(1), stats2);
+        assertEquals(3, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
+        assertEquals(stats2, results.get(2));
     }
 
+    /**
+     * Test group by a degenerate dimension with a filter applied.
+     *
+     * @throws Exception exception
+     */
     @Test
     public void testDegenerateDimensionFilter() throws Exception {
         EntityManager em = emf.createEntityManager();
@@ -117,10 +130,15 @@ public class SQLQueryEngineTest {
         stats1.setOverallRating("Great");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
-        Assert.assertEquals(results.size(), 1);
-        Assert.assertEquals(results.get(0), stats1);
+        assertEquals(1, results.size());
+        assertEquals(stats1, results.get(0));
     }
 
+    /**
+     * Test filtering on a dimension attribute.
+     *
+     * @throws Exception exception
+     */
     @Test
     public void testFilterJoin() throws Exception {
         EntityManager em = emf.createEntityManager();
@@ -146,31 +164,36 @@ public class SQLQueryEngineTest {
         expectedCountry.setName("United States");
 
 
-        PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
-        stats1.setLowScore(241);
-        stats1.setHighScore(2412);
-        stats1.setOverallRating("Great");
-        stats1.setCountry(expectedCountry);
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        PlayerStats usa0 = new PlayerStats();
+        usa0.setId("0");
+        usa0.setLowScore(241);
+        usa0.setHighScore(2412);
+        usa0.setOverallRating("Great");
+        usa0.setCountry(expectedCountry);
+        usa0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
-        PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
-        stats2.setLowScore(72);
-        stats2.setHighScore(1234);
-        stats2.setOverallRating("Good");
-        stats2.setCountry(expectedCountry);
-        stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+        PlayerStats usa1 = new PlayerStats();
+        usa1.setId("1");
+        usa1.setLowScore(72);
+        usa1.setHighScore(1234);
+        usa1.setOverallRating("Good");
+        usa1.setCountry(expectedCountry);
+        usa1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        Assert.assertEquals(results.size(), 2);
-        Assert.assertEquals(results.get(0), stats1);
-        Assert.assertEquals(results.get(1), stats2);
+        assertEquals(2, results.size());
+        assertEquals(usa0, results.get(0));
+        assertEquals(usa1, results.get(1));
 
         // test join
         PlayerStats actualStats1 = (PlayerStats) results.get(0);
-        Assert.assertNotNull(actualStats1.getCountry());
+        assertNotNull(actualStats1.getCountry());
     }
 
+    /**
+     * Test filtering on an attribute that's not present in the query.
+     *
+     * @throws Exception exception
+     */
     @Test
     public void testSubqueryFilterJoin() throws Exception {
         EntityManager em = emf.createEntityManager();
@@ -190,10 +213,15 @@ public class SQLQueryEngineTest {
         stats2.setId("0");
         stats2.setHighScore(2412);
 
-        Assert.assertEquals(results.size(), 1);
-        Assert.assertEquals(results.get(0), stats2);
+        assertEquals(1, results.size());
+        assertEquals(stats2, results.get(0));
     }
 
+    /**
+     * Test a view which filters on "stats.overallRating = 'Great'".
+     *
+     * @throws Exception exception
+     */
     @Test
     public void testSubqueryLoad() throws Exception {
         EntityManager em = emf.createEntityManager();
@@ -211,12 +239,15 @@ public class SQLQueryEngineTest {
         stats2.setId("0");
         stats2.setHighScore(2412);
 
-        Assert.assertEquals(results.size(), 1);
-        Assert.assertEquals(results.get(0), stats2);
+        assertEquals(1, results.size());
+        assertEquals(stats2, results.get(0));
     }
 
+    /**
+     * Test sorting by dimension attribute which is not present in the query.
+     */
     @Test
-    public void testSortJoin() throws Exception {
+    public void testSortJoin() {
         EntityManager em = emf.createEntityManager();
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
@@ -234,25 +265,35 @@ public class SQLQueryEngineTest {
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(72);
+        stats0.setOverallRating("Good");
+        stats0.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
+
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
+        stats1.setId("1");
         stats1.setLowScore(241);
         stats1.setOverallRating("Great");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("2");
         stats2.setLowScore(72);
         stats2.setOverallRating("Good");
         stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        Assert.assertEquals(results.size(), 2);
-        Assert.assertEquals(results.get(0), stats1);
-        Assert.assertEquals(results.get(1), stats2);
+        assertEquals(3, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
+        assertEquals(stats2, results.get(2));
     }
 
+    /**
+     * Test pagination.
+     */
     @Test
-    public void testPagination() throws Exception {
+    public void testPagination() {
         EntityManager em = emf.createEntityManager();
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
@@ -278,11 +319,16 @@ public class SQLQueryEngineTest {
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        Assert.assertEquals(results.size(), 1, "Number of records returned does not match");
-        Assert.assertEquals(results.get(0), stats1, "Returned record does not match");
-        Assert.assertEquals(pagination.getPageTotals(), 2, "Page totals does not match");
+        assertEquals(results.size(), 1, "Number of records returned does not match");
+        assertEquals(results.get(0), stats1, "Returned record does not match");
+        assertEquals(pagination.getPageTotals(), 3, "Page totals does not match");
     }
 
+    /**
+     * Test having clause integrates with group by clause.
+     *
+     * @throws Exception exception
+     */
     @Test
     public void testHavingClause() throws Exception {
         EntityManager em = emf.createEntityManager();
@@ -291,22 +337,29 @@ public class SQLQueryEngineTest {
         Query query = Query.builder()
                 .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .havingFilter(filterParser.parseFilterExpression("highScore > 300",
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .havingFilter(filterParser.parseFilterExpression("highScore < 2400",
                         PlayerStats.class, false))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
-        //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
+        // Only "Good" rating would have total high score less than 2400
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
-        stats1.setHighScore(3646);
+        stats1.setOverallRating("Good");
+        stats1.setHighScore(2234);
 
-        Assert.assertEquals(results.size(), 1);
-        Assert.assertEquals(results.get(0), stats1);
+        assertEquals(1, results.size());
+        assertEquals(stats1, results.get(0));
     }
 
+    /**
+     * Test group by, having, dimension, metric at the same time.
+     *
+     * @throws Exception exception
+     */
     @Test
     public void testTheEverythingQuery() throws Exception {
         EntityManager em = emf.createEntityManager();
@@ -334,13 +387,15 @@ public class SQLQueryEngineTest {
         stats2.setHighScore(2412);
         stats2.setCountryName("United States");
 
-
-        Assert.assertEquals(results.size(), 1);
-        Assert.assertEquals(results.get(0), stats2);
+        assertEquals(1, results.size());
+        assertEquals(stats2, results.get(0));
     }
 
+    /**
+     * Test sorting by two different columns-one metric and one dimension.
+     */
     @Test
-    public void testSortByMultipleColumns() throws Exception {
+    public void testSortByMultipleColumns() {
         EntityManager em = emf.createEntityManager();
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
@@ -359,20 +414,95 @@ public class SQLQueryEngineTest {
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(241);
+        stats0.setOverallRating("Great");
+        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
         PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
-        stats1.setLowScore(241);
-        stats1.setOverallRating("Great");
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats1.setId("1");
+        stats1.setLowScore(72);
+        stats1.setOverallRating("Good");
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
 
         PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
+        stats2.setId("2");
         stats2.setLowScore(72);
         stats2.setOverallRating("Good");
         stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        Assert.assertEquals(results.size(), 2);
-        Assert.assertEquals(results.get(0), stats1);
-        Assert.assertEquals(results.get(1), stats2);
+        assertEquals(3, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
+        assertEquals(stats2, results.get(2));
+    }
+
+    /**
+     * Test hydrating multiple relationship values. Make sure the objects are constructed correctly.
+     */
+    @Test
+    public void testRelationshipHydration() {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("country.name", Sorting.SortOrder.desc);
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .groupDimension(playerStatsSchema.getDimension("country"))
+                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .sorting(new Sorting(sortMap))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        Country usa = new Country();
+        usa.setId("840");
+        usa.setIsoCode("USA");
+        usa.setName("United States");
+
+        Country hk = new Country();
+        hk.setId("344");
+        hk.setIsoCode("HKG");
+        hk.setName("Hong Kong");
+
+        PlayerStats usa0 = new PlayerStats();
+        usa0.setId("0");
+        usa0.setLowScore(241);
+        usa0.setHighScore(2412);
+        usa0.setOverallRating("Great");
+        usa0.setCountry(usa);
+        usa0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
+        PlayerStats usa1 = new PlayerStats();
+        usa1.setId("1");
+        usa1.setLowScore(72);
+        usa1.setHighScore(1234);
+        usa1.setOverallRating("Good");
+        usa1.setCountry(usa);
+        usa1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+
+        PlayerStats hk2 = new PlayerStats();
+        hk2.setId("2");
+        hk2.setLowScore(72);
+        hk2.setHighScore(1000);
+        hk2.setOverallRating("Good");
+        hk2.setCountry(hk);
+        hk2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
+
+        assertEquals(3, results.size());
+        assertEquals(usa0, results.get(0));
+        assertEquals(usa1, results.get(1));
+        assertEquals(hk2, results.get(2));
+
+        // test join
+        PlayerStats actualStats1 = (PlayerStats) results.get(0);
+        assertNotNull(actualStats1.getCountry());
     }
 }

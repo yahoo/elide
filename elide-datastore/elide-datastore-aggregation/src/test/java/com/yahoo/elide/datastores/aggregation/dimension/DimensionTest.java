@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.datastores.aggregation.dimension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -55,16 +55,16 @@ public class DimensionTest {
 
     @Test
     public void testDimensionAsCollectionElement() {
-        Assert.assertEquals(ENTITY_DIMENSION, ENTITY_DIMENSION);
-        Assert.assertEquals(DEGENERATE_DIMENSION, DEGENERATE_DIMENSION);
-        Assert.assertNotEquals(ENTITY_DIMENSION, DEGENERATE_DIMENSION);
-        Assert.assertNotEquals(ENTITY_DIMENSION.hashCode(), DEGENERATE_DIMENSION.hashCode());
+        assertEquals(ENTITY_DIMENSION, ENTITY_DIMENSION);
+        assertEquals(DEGENERATE_DIMENSION, DEGENERATE_DIMENSION);
+        assertNotEquals(DEGENERATE_DIMENSION, ENTITY_DIMENSION);
+        assertNotEquals(DEGENERATE_DIMENSION.hashCode(), ENTITY_DIMENSION.hashCode());
 
         // different dimensions should be separate elements in Set
         Set<Dimension> dimensions = new HashSet<>();
         dimensions.add(ENTITY_DIMENSION);
 
-        Assert.assertEquals(dimensions.size(), 1);
+        assertEquals(1, dimensions.size());
 
         // a separate same object doesn't increase collection size
         Dimension sameEntityDimension = new EntityDimension(
@@ -75,35 +75,35 @@ public class DimensionTest {
                 CardinalitySize.SMALL,
                 "name"
         );
-        Assert.assertEquals(sameEntityDimension, ENTITY_DIMENSION);
+        assertEquals(ENTITY_DIMENSION, sameEntityDimension);
         dimensions.add(sameEntityDimension);
-        Assert.assertEquals(dimensions.size(), 1);
+        assertEquals(1, dimensions.size());
 
         dimensions.add(ENTITY_DIMENSION);
-        Assert.assertEquals(dimensions.size(), 1);
+        assertEquals(1, dimensions.size());
 
         dimensions.add(DEGENERATE_DIMENSION);
-        Assert.assertEquals(dimensions.size(), 2);
+        assertEquals(2, dimensions.size());
 
         dimensions.add(TIME_DIMENSION);
-        Assert.assertEquals(dimensions.size(), 3);
+        assertEquals(3, dimensions.size());
     }
 
     @Test
     public void testToString() {
         // table dimension
-        Assert.assertEquals(
+        assertEquals(
                 ENTITY_DIMENSION.toString(),
                 "EntityDimension[name='country', longName='country', description='country', dimensionType=ENTITY, dataType=Country, cardinality=SMALL, friendlyName='name']"
         );
 
         // degenerate dimension
-        Assert.assertEquals(
+        assertEquals(
                 DEGENERATE_DIMENSION.toString(),
                 "DegenerateDimension[columnType=FIELD, name='overallRating', longName='overallRating', description='overallRating', dimensionType=DEGENERATE, dataType=String, cardinality=SMALL, friendlyName='overallRating']"
         );
 
-        Assert.assertEquals(
+        assertEquals(
                 TIME_DIMENSION.toString(),
                 "TimeDimension[timeZone=Pacific Standard Time, timeGrain=DAY, columnType=TEMPORAL, name='recordedTime', longName='recordedTime', description='recordedTime', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']"
         );

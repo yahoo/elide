@@ -25,17 +25,6 @@ import java.util.stream.Collectors;
  * {@link StitchList} should not be subclassed.
  */
 public final class StitchList {
-
-    /**
-     * A representation of an TODO item in a {@link StitchList}.
-     */
-    @Data
-    public static class Todo {
-        private final Object entityInstance;
-        private final String relationshipName;
-        private final Object foreignKey;
-    }
-
     /**
      * Maps an relationship entity class to a map of object ID to object instance.
      * <p>
@@ -52,6 +41,16 @@ public final class StitchList {
 
     @Getter(AccessLevel.PRIVATE)
     private final EntityDictionary entityDictionary;
+
+    /**
+     * A representation of an TODO item in a {@link StitchList}.
+     */
+    @Data
+    public static class Todo {
+        private final Object entityInstance;
+        private final String relationshipName;
+        private final Object foreignKey;
+    }
 
     /**
      * Constructor.
