@@ -196,7 +196,9 @@ public abstract class AbstractEntityHydrator {
         for (Map.Entry<String, List<Object>> entry : hydrationIdsByRelationship.entrySet()) {
             String joinField = entry.getKey();
             List<Object> joinFieldIds = entry.getValue();
-            Class<?> entityType = getEntityDictionary().getType(getQuery().getSchema().getEntityClass(), joinField);
+            Class<?> entityType = getEntityDictionary().getParameterizedType(
+                    getQuery().getSchema().getEntityClass(),
+                    joinField);
 
             getStitchList().populateLookup(entityType, getRelationshipValues(entityType, joinField, joinFieldIds));
         }
