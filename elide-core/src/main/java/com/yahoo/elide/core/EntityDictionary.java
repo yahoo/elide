@@ -169,12 +169,10 @@ public class EntityDictionary {
     }
 
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
-        return entityBindings.computeIfAbsent(entityClass, cls -> {
-            if (isMappedInterface(cls)) {
-                return EMPTY_BINDING;
-            }
-            return entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING);
-        });
+        if (isMappedInterface(entityClass)) {
+            return EMPTY_BINDING;
+        }
+        return entityBindings.getOrDefault(lookupEntityClass(entityClass), EMPTY_BINDING);
     }
 
     public boolean isMappedInterface(Class<?> interfaceClass) {
@@ -616,7 +614,6 @@ public class EntityDictionary {
      * <pre>
      * {@code
      * public class Address {
-     *
      *     {@literal @}Id
      *     private Long id
      *
@@ -638,7 +635,6 @@ public class EntityDictionary {
      * <pre>
      * {@code
      * public class Address {
-     *
      *     {@literal @}Id
      *     private Long surrogateKey
      *
@@ -661,7 +657,7 @@ public class EntityDictionary {
      * calling this method has undefined behavior
      *
      * @param entityClass Entity class
-     * @param identifier  Field to lookup type
+     * @param identifier  Identifier/Field to lookup type
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
@@ -699,7 +695,7 @@ public class EntityDictionary {
      * Retrieve the parameterized type for the given field.
      *
      * @param entityClass the entity class
-     * @param identifier  the identifier
+     * @param identifier  the identifier/field name
      * @param paramIndex  the index of the parameterization
      * @return Entity type for field otherwise null.
      */
@@ -815,7 +811,6 @@ public class EntityDictionary {
         if (entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING) != EMPTY_BINDING) {
             return;
         }
-        entityBindings.remove(lookupEntityClass(cls));
 
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
@@ -1214,41 +1209,11 @@ public class EntityDictionary {
 
     /**
      * Returns whether or not a class is already bound.
-     * @param cls
+     * @param cls The class to verify.
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
         return bindJsonApiToEntity.contains(cls);
-    }
-
-    /**
-     * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
-     *
-     * @param fieldName  The entity field
-     * @param annotationClass  The provided annotation class
-     *
-     * @param <A>  The type of the {@code annotationClass}
-     *
-     * @return {@code true} if the field is annotated by the {@code annotationClass}
-     */
-    public <A extends Annotation> boolean attributeOrRelationAnnotationExists(
-            Class<?> cls,
-            String fieldName,
-            Class<A> annotationClass
-    ) {
-        return getAttributeOrRelationAnnotation(cls, annotationClass, fieldName) != null;
-    }
-
-    /**
-     * Returns whether or not a specified field exists in an entity.
-     *
-     * @param cls  The entity
-     * @param fieldName  The provided field to check
-     *
-     * @return {@code true} if the field exists in the entity
-     */
-    public boolean isValidField(Class<?> cls, String fieldName) {
-        return getAllFields(cls).contains(fieldName);
     }
 
     /**
@@ -1287,28 +1252,29 @@ public class EntityDictionary {
         Class<?> targetClass = target.getClass();
         String targetType = getJsonAliasFor(targetClass);
 
+        String fieldAlias = fieldName;
         try {
             Class<?> fieldClass = getType(targetClass, fieldName);
             String realName = getNameFromAlias(target, fieldName);
-            fieldName = (realName != null) ? realName : fieldName;
-            String setMethod = "set" + StringUtils.capitalize(fieldName);
+            fieldAlias = (realName != null) ? realName : fieldName;
+            String setMethod = "set" + StringUtils.capitalize(fieldAlias);
             Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
-            method.invoke(target, coerce(target, value, fieldName, fieldClass));
+            method.invoke(target, coerce(target, value, fieldAlias, fieldClass));
         } catch (IllegalAccessException e) {
-            throw new InvalidAttributeException(fieldName, targetType, e);
+            throw new InvalidAttributeException(fieldAlias, targetType, e);
         } catch (InvocationTargetException e) {
             throw handleInvocationTargetException(e);
         } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
-            AccessibleObject accessor = getAccessibleObject(target, fieldName);
+            AccessibleObject accessor = getAccessibleObject(target, fieldAlias);
             if (accessor != null && accessor instanceof Field) {
                 Field field = (Field) accessor;
                 try {
-                    field.set(target, coerce(target, value, fieldName, field.getType()));
+                    field.set(target, coerce(target, value, fieldAlias, field.getType()));
                 } catch (IllegalAccessException noField) {
-                    throw new InvalidAttributeException(fieldName, targetType, noField);
+                    throw new InvalidAttributeException(fieldAlias, targetType, noField);
                 }
             } else {
-                throw new InvalidAttributeException(fieldName, targetType);
+                throw new InvalidAttributeException(fieldAlias, targetType);
             }
         }
     }
@@ -1336,13 +1302,13 @@ public class EntityDictionary {
      * @param fieldClass expected class type
      * @return coerced value
      */
-    Object coerce(Object target, Object value, String fieldName, Class<?> fieldClass) {
+    public Object coerce(Object target, Object value, String fieldName, Class<?> fieldClass) {
         if (fieldClass != null && Collection.class.isAssignableFrom(fieldClass) && value instanceof Collection) {
             return coerceCollection(target, (Collection) value, fieldName, fieldClass);
         }
 
         if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
-            return coerceMap(target, (Map<?, ?>) value, fieldName, fieldClass);
+            return coerceMap(target, (Map<?, ?>) value, fieldName);
         }
 
         return CoerceUtil.coerce(value, fieldClass);
@@ -1377,7 +1343,7 @@ public class EntityDictionary {
         return list;
     }
 
-    private Map coerceMap(Object target, Map<?, ?> values, String fieldName, Class<?> fieldClass) {
+    private Map coerceMap(Object target, Map<?, ?> values, String fieldName) {
         Class<?> keyType = getParameterizedType(target, fieldName, 0);
         Class<?> valueType = getParameterizedType(target, fieldName, 1);
 
@@ -1392,6 +1358,36 @@ public class EntityDictionary {
         }
 
         return result;
+    }
+
+    /**
+     * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
+     *
+     * @param fieldName  The entity field
+     * @param annotationClass  The provided annotation class
+     *
+     * @param <A>  The type of the {@code annotationClass}
+     *
+     * @return {@code true} if the field is annotated by the {@code annotationClass}
+     */
+    public <A extends Annotation> boolean attributeOrRelationAnnotationExists(
+            Class<?> cls,
+            String fieldName,
+            Class<A> annotationClass
+    ) {
+        return getAttributeOrRelationAnnotation(cls, annotationClass, fieldName) != null;
+    }
+
+    /**
+     * Returns whether or not a specified field exists in an entity.
+     *
+     * @param cls  The entity
+     * @param fieldName  The provided field to check
+     *
+     * @return {@code true} if the field exists in the entity
+     */
+    public boolean isValidField(Class<?> cls, String fieldName) {
+        return getAllFields(cls).contains(fieldName);
     }
 
     private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
