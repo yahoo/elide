@@ -93,7 +93,11 @@ public final class StitchList {
      * @param idToInstance  A map from relationship ID to the actual relationship instance with that ID
      */
     public void populateLookup(Class<?> relationshipType, Map<Object, Object> idToInstance) {
-        getObjectLookups().put(relationshipType, idToInstance);
+        if (getObjectLookups().containsKey(relationshipType)) {
+            getObjectLookups().get(relationshipType).putAll(idToInstance);
+        } else {
+            getObjectLookups().put(relationshipType, idToInstance);
+        }
     }
 
     /**
@@ -106,7 +110,7 @@ public final class StitchList {
             String relationshipName = todo.getRelationshipName();
             Object foreignKey = todo.getForeignKey();
 
-            Class<?> relationshipType = getEntityDictionary().getType(entityInstance, relationshipName);
+            Class<?> relationshipType = getEntityDictionary().getParameterizedType(entityInstance, relationshipName);
             Object relationshipValue = getObjectLookups().get(relationshipType).get(foreignKey);
 
             getEntityDictionary().setValue(entityInstance, relationshipName, relationshipValue);

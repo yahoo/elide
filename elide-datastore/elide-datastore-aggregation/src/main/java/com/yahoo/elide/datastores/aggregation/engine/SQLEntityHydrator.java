@@ -47,8 +47,7 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
 
     @Override
     protected Map<Object, Object> getRelationshipValues(
-            Class<?> entityClass,
-            String joinField,
+            Class<?> relationshipType,
             List<Object> joinFieldIds
     ) {
         if (joinFieldIds.isEmpty()) {
@@ -61,8 +60,8 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
                 .createQuery(
                         String.format(
                                 "SELECT e FROM %s e WHERE %s IN (:idList)",
-                                entityClass.getCanonicalName(),
-                                getEntityDictionary().getIdFieldName(entityClass)
+                                relationshipType.getCanonicalName(),
+                                getEntityDictionary().getIdFieldName(relationshipType)
                         )
                 )
                 .setParameter("idList", uniqueIds)

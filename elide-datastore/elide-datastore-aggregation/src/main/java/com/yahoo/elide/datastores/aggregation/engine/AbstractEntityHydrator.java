@@ -90,7 +90,7 @@ public abstract class AbstractEntityHydrator {
      * Note the relationship cannot be toMany. This method will be invoked for every relationship field of the
      * requested entity. Its implementation should return the result of the following query
      * <p>
-     * <b>Given a relationship {@code joinField} in an entity of type {@code entityClass}, loads all relationship
+     * <b>Given a relationship with type {@code relationshipType} in an entity, loads all relationship
      * objects whose foreign keys are one of the specified list, {@code joinFieldIds}</b>.
      * <p>
      * For example, when the relationship is loaded from SQL and we have the following example identity:
@@ -106,7 +106,7 @@ public abstract class AbstractEntityHydrator {
      *     }
      * }
      * </pre>
-     * In this case {@code entityClass = PlayerStats.class}; {@code joinField = "country"}. If {@code country} is
+     * In this case {@code relationshipType = Country.class}. If {@code country} is
      * requested in {@code PlayerStats} query and 3 stats, for example, are found in database whose country ID's are
      * {@code joinFieldIds = [840, 344, 840]}, then this method should effectively run the following query (JPQL as
      * example)
@@ -117,15 +117,13 @@ public abstract class AbstractEntityHydrator {
      * </pre>
      * and returns the map of [840: Country(id:840), 344: Country(id:344)]
      *
-     * @param entityClass  The type of relationship
-     * @param joinField  The relationship field name
-     * @param joinFieldIds  The specified list of join ID's against the relationshiop
+     * @param relationshipType  The type of relationship
+     * @param joinFieldIds  The specified list of join ID's against the relationship
      *
      * @return a list of hydrating values
      */
     protected abstract Map<Object, Object> getRelationshipValues(
-            Class<?> entityClass,
-            String joinField,
+            Class<?> relationshipType,
             List<Object> joinFieldIds
     );
 
@@ -196,11 +194,11 @@ public abstract class AbstractEntityHydrator {
         for (Map.Entry<String, List<Object>> entry : hydrationIdsByRelationship.entrySet()) {
             String joinField = entry.getKey();
             List<Object> joinFieldIds = entry.getValue();
-            Class<?> entityType = getEntityDictionary().getParameterizedType(
+            Class<?> relationshipType = getEntityDictionary().getParameterizedType(
                     getQuery().getSchema().getEntityClass(),
                     joinField);
 
-            getStitchList().populateLookup(entityType, getRelationshipValues(entityType, joinField, joinFieldIds));
+            getStitchList().populateLookup(relationshipType, getRelationshipValues(relationshipType, joinFieldIds));
         }
     }
 }
