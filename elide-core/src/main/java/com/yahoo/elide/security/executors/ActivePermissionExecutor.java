@@ -117,9 +117,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             if (SharePermission.class == annotationClass) {
                 if (requestScope.getDictionary().isShareable(resource.getResourceClass())) {
                     return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
-                } else {
-                    return PermissionExpressionBuilder.FAIL_EXPRESSION;
                 }
+                return PermissionExpressionBuilder.FAIL_EXPRESSION;
             }
             return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         };

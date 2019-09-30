@@ -21,5 +21,5 @@ public class RelationshipImpl implements AbstractHQLQueryBuilder.Relationship {
     private Class<?> childType;
     private String relationshipName;
     private Object parent;
-    private Collection children;
+    private Collection<?> children;
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * The type Relationships.
  */
-public class Relationships extends LinkedHashMap<String, Map> {
+public class Relationships extends LinkedHashMap<String, Map<String, ?>> {
 
     /**
      * Instantiates a new Relationships.

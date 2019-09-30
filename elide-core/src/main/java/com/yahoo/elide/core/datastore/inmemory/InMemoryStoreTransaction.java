@@ -182,9 +182,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         if (! filterExpression.isPresent()
                 || tx.supportsFiltering(entityClass, filterExpression.get()) == FeatureSupport.FULL) {
             return tx.loadObject(entityClass, id, filterExpression, scope);
-        } else {
-            return DataStoreTransaction.super.loadObject(entityClass, id, filterExpression, scope);
         }
+        return DataStoreTransaction.super.loadObject(entityClass, id, filterExpression, scope);
     }
 
     @Override
@@ -432,9 +431,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     ) {
         if (sorting.isPresent() && (! tx.supportsSorting(entityClass, sorting.get()) || filteredInMemory)) {
             return Pair.of(Optional.empty(), sorting);
-        } else {
-            return Pair.of(sorting, Optional.empty());
         }
+        return Pair.of(sorting, Optional.empty());
     }
 
     /**
