@@ -106,7 +106,12 @@ public class GraphQLEntityProjectionMaker {
      */
     public GraphQLProjectionInfo make(String query) {
         Parser parser = new Parser();
-        Document parsedDocument = parser.parseDocument(query);
+        Document parsedDocument;
+        try {
+            parsedDocument = parser.parseDocument(query);
+        } catch (Exception e) {
+            throw new InvalidEntityBodyException("Can't parse query: " + query);
+        }
 
         // resolve fragment definitions
         fragmentResolver.addFragments(parsedDocument);
