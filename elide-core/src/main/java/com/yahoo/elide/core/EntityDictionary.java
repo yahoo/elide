@@ -246,8 +246,8 @@ public class EntityDictionary {
      *         or {@code null} if the permission is not specified on that field
      */
     public ParseTree getPermissionsForField(Class<?> resourceClass,
-            String field,
-            Class<? extends Annotation> annotationClass) {
+                                            String field,
+                                            Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
     }

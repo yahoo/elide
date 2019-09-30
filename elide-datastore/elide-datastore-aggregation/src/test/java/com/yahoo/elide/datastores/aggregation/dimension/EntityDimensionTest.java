@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.dimension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
@@ -12,16 +15,15 @@ import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
-
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
 import javax.persistence.Entity;
 
 public class EntityDimensionTest {
+    private static EntityDictionary entityDictionary;
 
     /**
      * A class for testing un-happy path on finding friendly name.
@@ -52,10 +54,8 @@ public class EntityDimensionTest {
         }
     }
 
-    private EntityDictionary entityDictionary;
-
-    @BeforeMethod
-    public void setupEntityDictionary() {
+    @BeforeAll
+    public static void setupEntityDictionary() {
         entityDictionary = new EntityDictionary(Collections.emptyMap());
         entityDictionary.bindEntity(PlayerStats.class);
         entityDictionary.bindEntity(Country.class);
@@ -66,44 +66,46 @@ public class EntityDimensionTest {
     @Test
     public void testHappyPathFriendlyNameScan() {
         // 1 field with @FriendlyName
-        Assert.assertEquals(
-                EntityDimension.getFriendlyNameField(PlayerStats.class, entityDictionary),
-                "overallRating"
+        assertEquals(
+                "overallRating",
+                EntityDimension.getFriendlyNameField(PlayerStats.class, entityDictionary)
         );
 
         // no field with @FriendlyName
-        Assert.assertEquals(
-                EntityDimension.getFriendlyNameField(VideoGame.class, entityDictionary),
-                "id"
+        assertEquals(
+                "id",
+                EntityDimension.getFriendlyNameField(VideoGame.class, entityDictionary)
         );
     }
 
     /**
      * Multiple {@link FriendlyName} annotations in entity is illegal.
      */
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test
     public void testUnhappyPathFriendlyNameScan() {
-        EntityDimension.getFriendlyNameField(Book.class, entityDictionary);
+        assertThrows(
+                IllegalStateException.class,
+                () -> EntityDimension.getFriendlyNameField(Book.class, entityDictionary));
     }
 
     @Test
     public void testCardinalityScan() {
         // annotation on entity
-        Assert.assertEquals(
-                EntityDimension.getEstimatedCardinality("country", PlayerStats.class, entityDictionary),
-                CardinalitySize.SMALL
+        assertEquals(
+                CardinalitySize.SMALL,
+                EntityDimension.getEstimatedCardinality("country", PlayerStats.class, entityDictionary)
         );
 
         // annotation on field
-        Assert.assertEquals(
-                EntityDimension.getEstimatedCardinality("overallRating", PlayerStats.class, entityDictionary),
-                CardinalitySize.MEDIUM
+        assertEquals(
+                CardinalitySize.MEDIUM,
+                EntityDimension.getEstimatedCardinality("overallRating", PlayerStats.class, entityDictionary)
         );
 
         // default is used
-        Assert.assertEquals(
-                EntityDimension.getEstimatedCardinality("recordedDate", PlayerStats.class, entityDictionary),
-                EntityDimension.getDefaultCardinality()
+        assertEquals(
+                EntityDimension.getDefaultCardinality(),
+                EntityDimension.getEstimatedCardinality("recordedDate", PlayerStats.class, entityDictionary)
         );
     }
 }
