@@ -135,9 +135,44 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Root projection would be an operation applied on an entity class. There should be only one selection, which
-     * is the entity, in the selection set. The EntityProjection tree would be constructed recursively to add all
-     * child projections.
+     * Root projection would be an operation applied on an single entity class.
+     * The EntityProjection tree would be constructed recursively to add all child projections.
+     *
+     * Currently we only support one root class in each GraphQL {@link OperationDefinition} since
+     * each {@link EntityProjection} only has one entity class.
+     *
+     * For example
+     * <pre>
+     *     Query {
+     *         Book {
+     *             field1
+     *         },
+     *         Book {
+     *             field2
+     *         }
+     *     }
+     * </pre>
+     * Would be a valid GraphQL request, and would be resolved into
+     * <pre>
+     *     Query {
+     *         Book {
+     *             field1,
+     *             field2
+     *         }
+     *     }
+     * </pre>
+     *
+     * <pre>
+     *     Query {
+     *         Book {
+     *             field1
+     *         },
+     *         Author {
+     *             field2
+     *         }
+     *     }
+     * </pre>
+     * Would be an invalid request as two classes-Book and Author-are both queried at root level.
      *
      * @param selectionSet a root-level selection set
      */
