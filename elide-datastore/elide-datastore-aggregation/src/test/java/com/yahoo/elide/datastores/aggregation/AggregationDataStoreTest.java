@@ -16,6 +16,7 @@ import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
+import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 import com.yahoo.elide.datastores.aggregation.metric.Sum;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
@@ -85,6 +86,7 @@ public class AggregationDataStoreTest extends IntegrationTest {
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(PlayerStatsView.class);
         entityDictionary.bindEntity(Player.class);
+        entityDictionary.bindEntity(VideoGame.class);
 
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         EntityManager em = emf.createEntityManager();
@@ -106,6 +108,7 @@ public class AggregationDataStoreTest extends IntegrationTest {
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(PlayerStatsView.class);
         entityDictionary.bindEntity(Player.class);
+        entityDictionary.bindEntity(VideoGame.class);
 
         filterParser = new RSQLFilterDialect(entityDictionary);
 
@@ -204,13 +207,60 @@ public class AggregationDataStoreTest extends IntegrationTest {
                 selection(
                         field(
                                 "playerStats",
+                                arguments(
+                                        argument("filter", "\"highScore<\\\"1500\\\"\"")
+                                ),
                                 selections(
+                                        field("highScore"),
+                                        field("overallRating"),
                                         field(
                                                 "country",
                                                 selections(
                                                         field("name")
                                                 )
                                         )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 681L),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Germany")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("highScore", 421L),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Italy")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void aggregationComputedMetricTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "videoGame",
+                                selections(
+                                        field("timeSpent")
                                 )
                         )
                 )
