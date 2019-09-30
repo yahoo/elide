@@ -17,9 +17,9 @@ import java.util.Collection;
  */
 public class QueryWrapper implements Query {
     @Getter
-    private org.hibernate.Query query;
+    private org.hibernate.Query<?> query;
 
-    public QueryWrapper (org.hibernate.Query query) {
+    public QueryWrapper (org.hibernate.Query<?> query) {
         this.query = query;
     }
 
@@ -42,7 +42,7 @@ public class QueryWrapper implements Query {
     }
 
     @Override
-    public Query setParameterList(String name, Collection values) {
+    public Query setParameterList(String name, Collection<?> values) {
         this.query = query.setParameterList(name, values);
         return this;
     }

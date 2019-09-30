@@ -336,12 +336,11 @@ public class ModelBuilder {
                 .name(ARGUMENT_DATA)
                 .type(new GraphQLList(argumentType))
                 .build();
-        } else {
-            return newArgument()
-                .name(ARGUMENT_DATA)
-                .type(argumentType)
-                .build();
         }
+        return newArgument()
+            .name(ARGUMENT_DATA)
+            .type(argumentType)
+            .build();
     }
 
     /**

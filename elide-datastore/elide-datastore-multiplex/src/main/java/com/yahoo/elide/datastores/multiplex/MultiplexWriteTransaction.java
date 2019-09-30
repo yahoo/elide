@@ -202,7 +202,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
                 filter, sorting, pagination, scope);
 
         if (relation instanceof Iterable) {
-            return hold(transaction, (Iterable) relation);
+            return hold(transaction, (Iterable<?>) relation);
         }
 
         return hold(transaction, relation);

@@ -63,7 +63,7 @@ public class HibernateEntityManagerStore extends AbstractHibernateStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
-        for (EntityType type : entityManager.getEntityManagerFactory().getMetamodel().getEntities()) {
+        for (EntityType<?> type : entityManager.getEntityManagerFactory().getMetamodel().getEntities()) {
             bindEntity(dictionary, type);
         }
     }

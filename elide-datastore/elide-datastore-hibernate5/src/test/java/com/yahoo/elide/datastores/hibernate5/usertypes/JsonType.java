@@ -44,7 +44,7 @@ public class JsonType implements UserType, ParameterizedType {
      * {@inheritDoc}
      */
     @Override
-    public Class returnedClass() {
+    public Class<?> returnedClass() {
         return String.class;
     }
 

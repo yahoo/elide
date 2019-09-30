@@ -49,7 +49,7 @@ public class CoerceUtil {
     public static <T> T coerce(Object value, Class<T> cls) {
         initializeCurrentClassLoaderIfNecessary();
 
-        if (value == null || cls == null || cls.isAssignableFrom(value.getClass())) {
+        if (value == null || cls == null || cls.isInstance(value)) {
             return (T) value;
         }
 

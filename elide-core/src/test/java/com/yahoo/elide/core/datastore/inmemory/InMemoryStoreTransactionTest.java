@@ -53,7 +53,7 @@ public class InMemoryStoreTransactionTest {
     private RequestScope scope = mock(RequestScope.class);
     private InMemoryStoreTransaction inMemoryStoreTransaction = new InMemoryStoreTransaction(wrappedTransaction);
     private EntityDictionary dictionary;
-    private Set<Object> books = new HashSet<>();
+    private Set<Book> books = new HashSet<>();
     private Book book1;
     private Book book2;
     private Book book3;
@@ -113,7 +113,7 @@ public class InMemoryStoreTransactionTest {
         books.add(book2);
         books.add(book3);
 
-        author.setBooks(new ArrayList(books));
+        author.setBooks(new ArrayList<>(books));
 
         when(scope.getDictionary()).thenReturn(dictionary);
     }
@@ -131,7 +131,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.of(expression)),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -195,7 +195,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.of(expression)),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -225,7 +225,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -257,7 +257,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.PARTIAL);
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.of(expression1)),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -290,7 +290,7 @@ public class InMemoryStoreTransactionTest {
                 any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
-                eq(Optional.of(sorting)), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.of(sorting)), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -322,7 +322,7 @@ public class InMemoryStoreTransactionTest {
                 any())).thenReturn(false);
 
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -360,7 +360,7 @@ public class InMemoryStoreTransactionTest {
                 any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -391,7 +391,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
-                eq(Optional.empty()), eq(Optional.of(pagination)), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.of(pagination)), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -419,7 +419,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(false);
 
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -453,7 +453,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
@@ -490,7 +490,7 @@ public class InMemoryStoreTransactionTest {
         when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
-                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn((Set) books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
