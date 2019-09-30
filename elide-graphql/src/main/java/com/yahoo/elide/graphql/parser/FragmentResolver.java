@@ -28,14 +28,14 @@ import javax.ws.rs.BadRequestException;
 /**
  * Class that fetch {@link FragmentDefinition}s from graphQL {@link Document} and store them for future reference.
  */
-class FragmentResolver {
+public class FragmentResolver {
     private final Map<String, FragmentDefinition> fragmentMap = new HashMap<>();
 
-    boolean contains(String fragmentName) {
+    public boolean contains(String fragmentName) {
         return fragmentMap.containsKey(fragmentName);
     }
 
-    FragmentDefinition get(String fragmentName) {
+    public FragmentDefinition get(String fragmentName) {
         return fragmentMap.get(fragmentName);
     }
 
@@ -44,7 +44,7 @@ class FragmentResolver {
      *
      * @param document graphql document
      */
-    void addFragments(Document document) {
+    public void addFragments(Document document) {
         addFragments(document.getDefinitions().stream()
                 .filter(definition -> definition instanceof FragmentDefinition)
                 .map(definition -> (FragmentDefinition) definition)

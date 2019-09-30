@@ -45,7 +45,7 @@ class VariableResolver {
      *
      * @param operation operation definition
      */
-    void newScope(OperationDefinition operation) {
+    public void newScope(OperationDefinition operation) {
         this.scopeVariables = new HashMap<>(requestVariables);
         operation.getVariableDefinitions().forEach(this::addVariable);
     }
@@ -84,7 +84,7 @@ class VariableResolver {
      * @param value requested variable value
      * @return resolved value of given variable
      */
-    Object resolveValue(Value value) {
+    public Object resolveValue(Value value) {
         if (value instanceof BooleanValue) {
             return ((BooleanValue) value).isValue();
         } else if (value instanceof EnumValue) {

@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * This class converts a GraphQL query string into an Elide {@link EntityProjection} using
@@ -72,8 +71,6 @@ public class GraphQLEntityProjectionMaker {
 
     private final Map<SourceLocation, Relationship> relationshipMap = new HashMap<>();
     private final List<EntityProjection> rootProjections = new ArrayList<>();
-
-    private SourceLocation rootLocation;
 
     /**
      * Constructor.
@@ -164,7 +161,6 @@ public class GraphQLEntityProjectionMaker {
             throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", entityName));
         }
 
-        rootLocation = rootSelection.getSourceLocation();
         Field fields = (Field) rootSelection;
 
         // merging partial graphql selections, skip(1) because the first selection is already processed
@@ -504,17 +500,28 @@ public class GraphQLEntityProjectionMaker {
         if (!(filterString instanceof String)) {
             throw new BadRequestException("Filter of type " + typeName + " is not StringValue.");
         }
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>() {
-            {
-                put("filter[" + typeName + "]", Collections.singletonList((String) filterString));
-            }
-        };
+
         try {
-            return filterDialect.parseTypedExpression(typeName, queryParams).get(typeName);
+            return filterDialect.parseTypedExpression(typeName, toQueryParams(typeName, filterString)).get(typeName);
         } catch (ParseException e) {
             log.debug("Filter parse exception caught", e);
             throw new InvalidPredicateException("Could not parse filter " + filterString + " for type: " + typeName);
         }
+    }
+
+    /**
+     * Convert a type name and filter string to a map that mimic query params comes from request.
+     *
+     * @param typeName class type name to apply this filter
+     * @param filterString Elide filter in string format
+     * @return constructed map
+     */
+    private static MultivaluedHashMap<String, String> toQueryParams(String typeName, Object filterString) {
+        return new MultivaluedHashMap<String, String>() {
+            {
+                put("filter[" + typeName + "]", Collections.singletonList((String) filterString));
+            }
+        };
     }
 
     /**
