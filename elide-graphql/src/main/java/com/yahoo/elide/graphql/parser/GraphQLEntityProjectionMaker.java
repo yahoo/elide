@@ -148,18 +148,18 @@ public class GraphQLEntityProjectionMaker {
      * For example
      * <pre>
      *     Query {
-     *         Book {
+     *         Book (arguments1) {
      *             field1
      *         },
-     *         Book {
+     *         Book (arguments2) {
      *             field2
      *         }
      *     }
      * </pre>
-     * Would be a valid GraphQL request, and would be resolved into
+     * Would be a valid GraphQL request, and would be resolved into (second query's arguments would be dropped)
      * <pre>
      *     Query {
-     *         Book {
+     *         Book (arguments1) {
      *             field1,
      *             field2
      *         }
@@ -265,9 +265,6 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addFragment(FragmentSpread fragment, EntityProjectionBuilder projectionBuilder) {
         String fragmentName = fragment.getName();
-        if (!fragmentResolver.contains(fragmentName)) {
-            throw new InvalidEntityBodyException(String.format("Unknown fragment {%s}.", fragmentName));
-        }
 
         FragmentDefinition fragmentDefinition = fragmentResolver.get(fragmentName);
 
@@ -349,30 +346,22 @@ public class GraphQLEntityProjectionMaker {
 
         Class<?> attributeType = entityDictionary.getParameterizedType(parentType, attributeName);
         if (attributeType != null) {
-            Attribute matched = projectionBuilder.getAttributeByAlias(attributeAlias);
+            Attribute attribute = Attribute.builder()
+                    .type(attributeType)
+                    .name(attributeName)
+                    .alias(attributeAlias)
+                    .arguments(
+                            attributeField.getArguments().stream()
+                                    .map(graphQLArgument -> com.yahoo.elide.request.Argument.builder()
+                                            .name(graphQLArgument.getName())
+                                            .value(
+                                                    variableResolver.resolveValue(
+                                                            graphQLArgument.getValue()))
+                                            .build())
+                                    .collect(Collectors.toList()))
+                    .build();
 
-            if (matched == null) {
-                // this is a new attribute, create one and add it to the builder
-                Attribute attribute = Attribute.builder()
-                        .type(attributeType)
-                        .name(attributeName)
-                        .alias(attributeAlias)
-                        .arguments(
-                                attributeField.getArguments().stream()
-                                        .map(graphQLArgument -> com.yahoo.elide.request.Argument.builder()
-                                                .name(graphQLArgument.getName())
-                                                .value(
-                                                        variableResolver.resolveValue(
-                                                                graphQLArgument.getValue()))
-                                                .build())
-                                        .collect(Collectors.toList()))
-                        .build();
-
-                projectionBuilder.attribute(attribute);
-            } else {
-                throw new InvalidEntityBodyException(
-                        String.format("Alias {%s}.{%s} is ambiguous", parentType, attributeAlias));
-            }
+            projectionBuilder.attribute(attribute);
         } else {
             throw new InvalidEntityBodyException(String.format(
                             "Unknown attribute field {%s.%s}.",
@@ -436,9 +425,6 @@ public class GraphQLEntityProjectionMaker {
             pagination.setLimit(value);
         } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
             pagination.setOffset(value);
-        } else {
-            throw new InvalidEntityBodyException(
-                    String.format("Unrecognized pagination argument '%s'", argument.getName()));
         }
 
         projectionBuilder.pagination(pagination);
@@ -568,13 +554,24 @@ public class GraphQLEntityProjectionMaker {
         String argumentName = argument.getName();
         Class<?> entityType = projectionBuilder.getType();
 
-        Attribute argumentAttribute = projectionBuilder.getAttributeByAlias(argumentName);
+        Attribute existingAttribute = projectionBuilder.getAttributeByAlias(argumentName);
+
         com.yahoo.elide.request.Argument elideArgument = com.yahoo.elide.request.Argument.builder()
                 .name(argumentName)
                 .value(variableResolver.resolveValue(argument.getValue()))
                 .build();
 
-        if (argumentAttribute == null) {
+        if (existingAttribute != null) {
+            // add a new argument to the existing attribute
+            Attribute toAdd = Attribute.builder()
+                    .type(existingAttribute.getType())
+                    .name(existingAttribute.getName())
+                    .alias(existingAttribute.getAlias())
+                    .argument(elideArgument)
+                    .build();
+
+            projectionBuilder.attribute(toAdd);
+        } else {
             Class<?> attributeType = entityDictionary.getParameterizedType(entityType, argumentName);
             if (attributeType == null) {
                 throw new InvalidEntityBodyException(
@@ -585,16 +582,14 @@ public class GraphQLEntityProjectionMaker {
             }
 
             // create a new attribute if this attribute doesn't exist in the projection
-            argumentAttribute = Attribute.builder()
+            Attribute toAdd = Attribute.builder()
                     .type(attributeType)
                     .name(argumentName)
                     .alias(argumentName)
                     .argument(elideArgument)
                     .build();
 
-            projectionBuilder.attribute(argumentAttribute);
-        } else {
-            argumentAttribute.getArguments().add(elideArgument);
+            projectionBuilder.attribute(toAdd);
         }
     }
 }

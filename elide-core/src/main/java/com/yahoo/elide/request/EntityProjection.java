@@ -9,6 +9,8 @@ package com.yahoo.elide.request;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+
+import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +20,8 @@ import lombok.NonNull;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.ws.rs.BadRequestException;
 
 /**
  * Represents a client data request against a subgraph of the entity relationship graph.
@@ -157,27 +161,74 @@ public class EntityProjection {
                     .build());
         }
 
+        /**
+         * Add a new relationship into this project or merge an existing relationship that has same field name
+         * and alias as this relationship. If there exists another attribute/relationship of different field that is
+         * using the same alias, it would throw exception because that's ambiguous.
+         *
+         * @param relationship new relationship to add
+         * @return this builder after adding the relationship
+         */
         public EntityProjectionBuilder relationship(Relationship relationship) {
+            String relationshipName = relationship.getName();
+            String relationshipAlias = relationship.getAlias();
+
             Relationship existing = relationships.stream()
-                    .filter(r -> r.getName().equals(relationship.getName()))
-                    .filter(r -> r.getAlias().equals(relationship.getAlias()))
+                    .filter(r -> r.getName().equals(relationshipName) && r.getAlias().equals(relationshipAlias))
                     .findFirst().orElse(null);
 
             if (existing != null) {
                 relationships.remove(existing);
                 relationships.add(Relationship.builder()
-                        .alias(existing.getAlias())
-                        .name(existing.getName())
+                        .name(relationshipName)
+                        .alias(relationshipAlias)
                         .projection(existing.getProjection().merge(relationship.getProjection()))
                         .build());
             } else {
+                if (isAmbiguous(relationshipName, relationshipAlias)) {
+                    throw new BadRequestException(
+                            String.format("Alias {%s}.{%s} is ambiguous.", type, relationshipAlias)
+                    );
+                }
                 relationships.add(relationship);
             }
+
             return this;
         }
 
+        /**
+         * Add a new attribute into this project or merge an existing attribute that has same field name
+         * and alias as this attribute. If there exists another attribute/relationship of different field that is
+         * using the same alias, it would throw exception because that's ambiguous.
+         *
+         * @param attribute new attribute to add
+         * @return this builder after adding the attribute
+         */
         public EntityProjectionBuilder attribute(Attribute attribute) {
-            this.attributes.add(attribute);
+            String attributeName = attribute.getName();
+            String attributeAlias = attribute.getAlias();
+
+            Attribute existing = attributes.stream()
+                    .filter(a -> a.getName().equals(attributeName) && a.getAlias().equals(attributeAlias))
+                    .findFirst().orElse(null);
+
+            if (existing != null) {
+                attributes.remove(existing);
+                attributes.add(Attribute.builder()
+                        .type(attribute.getType())
+                        .name(attributeName)
+                        .alias(attributeAlias)
+                        .arguments(Sets.union(attribute.getArguments(), existing.getArguments()))
+                        .build());
+            } else {
+                if (isAmbiguous(attributeName, attributeAlias)) {
+                    throw new BadRequestException(
+                            String.format("Alias {%s}.{%s} is ambiguous.", type, attributeAlias)
+                    );
+                }
+                attributes.add(attribute);
+            }
+
             return this;
         }
 
@@ -192,6 +243,19 @@ public class EntityProjection {
                     .filter(attribute -> attribute.getAlias().equals(attributeAlias))
                     .findAny()
                     .orElse(null);
+        }
+
+        /**
+         * Check whether a field alias is ambiguous.
+         *
+         * @param fieldName field that the alias is bound to
+         * @param alias an field alias
+         * @return whether new alias would cause ambiguous
+         */
+        private boolean isAmbiguous(String fieldName, String alias) {
+            return attributes.stream().anyMatch(a -> !fieldName.equals(a.getName()) && alias.equals(a.getAlias()))
+                    || relationships.stream().anyMatch(
+                            r -> !fieldName.equals(r.getName()) && alias.equals(r.getAlias()));
         }
     }
 }

@@ -33,4 +33,11 @@ public class Attribute {
     @Singular
     @ToString.Exclude
     private Set<Argument> arguments;
+
+    private Attribute(@NonNull Class<?> type, @NonNull String name, String alias, Set<Argument> arguments) {
+        this.type = type;
+        this.name = name;
+        this.alias = alias == null ? name : alias;
+        this.arguments = arguments;
+    }
 }

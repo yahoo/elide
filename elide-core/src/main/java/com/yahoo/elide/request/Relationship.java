@@ -32,6 +32,12 @@ public class Relationship {
     @NonNull
     private EntityProjection projection;
 
+    private Relationship(@NonNull String name, String alias, @NonNull EntityProjection projection) {
+        this.name = name;
+        this.alias = alias == null ? name : alias;
+        this.projection = projection;
+    }
+
     public Relationship merge(Relationship toMerge) {
         return Relationship.builder()
                 .name(name)

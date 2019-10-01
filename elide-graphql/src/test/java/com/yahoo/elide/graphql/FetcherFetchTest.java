@@ -27,6 +27,16 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testRootMultiple() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/rootMultiple.graphql"));
+    }
+
+    @Test
+    public void testRootUnknownField() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/rootUnknownField.graphql"));
+    }
+
+    @Test
     public void testRootMultipleIds() throws Exception {
         runComparisonTest("rootMultipleIds");
     }
@@ -49,6 +59,11 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootCollectionSort() throws Exception {
         runComparisonTest("rootCollectionSort");
+    }
+
+    @Test
+    public void testRootCollectionInvalidSort() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/rootCollectionInvalidSort.graphql"));
     }
 
     @Test
@@ -173,6 +188,36 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testVariableInvalidNonNull() throws Exception {
         assertParsingFails(loadGraphQLRequest("fetch/variableInvalidNonNull.graphql"));
+    }
+
+    @Test
+    public void testAliasAttribute() throws Exception {
+        runComparisonTest("aliasAttribute");
+    }
+
+    @Test
+    public void testAliasRelationship() throws Exception {
+        runComparisonTest("aliasRelationship");
+    }
+
+    @Test
+    public void testAliasSameRelationship() throws Exception {
+        runComparisonTest("aliasSameRelationship");
+    }
+
+    @Test
+    public void testAliasPartialQuerySameAttribute() throws Exception {
+        runComparisonTest("aliasPartialQuerySameAttribute");
+    }
+
+    @Test
+    public void testAliasAmbiguous() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/aliasAmbiguous.graphql"));
+    }
+
+    @Test
+    public void testAliasPartialQueryAmbiguous() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/aliasPartialQueryAmbiguous.graphql"));
     }
 
     @Test

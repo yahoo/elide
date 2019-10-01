@@ -10,24 +10,17 @@ fragment AuthorFields on author {
       id
       books {
         ... on book {
-          ...BookFields
+          edges {
+            node {
+              id
+              title
+            }
+          }
         }
         __typename
       }
       __typename
     }
     __typename
-  }
-}
-
-fragment BookFields on book {
-  edges {
-    node {
-      id
-      title
-      authors {
-        ...AuthorFields
-      }
-    }
   }
 }
