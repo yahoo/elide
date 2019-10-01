@@ -3,7 +3,20 @@
     edges {
       node {
         alias: id
-        alias: title
+      }
+    }
+  }
+  book(ids: ["1"]) {
+    edges {
+      node {
+        alias: authors {
+          edges {
+            node {
+              id
+              name
+            }
+          }
+        }
       }
     }
   }
