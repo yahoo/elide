@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Oath Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -31,22 +31,26 @@ import javax.ws.rs.BadRequestException;
 /**
  * Class that contains variables provided in graphql request and can resolve variables based on
  * {@link graphql.language.OperationDefinition} scope.
+ * 1. variables defined in request is global
+ * 2. variables defined in each operation is operation-scoped
  */
 class VariableResolver {
-    private final Map<String, Object> requestVariables;  // variables defined in request is global
-    private Map<String, Object> scopeVariables;  // variables defined in each operation is operation-scoped
+    private final Map<String, Object> requestVariables;
+    private final Map<String, Object> scopeVariables = new HashMap<>();
 
     VariableResolver(Map<String, Object> variables) {
         this.requestVariables = new HashMap<>(variables);
     }
 
     /**
-     * Start a new variable scope for operation.
+     * Start a new variable scope for operation, clear all variables in the previous scope and add request variables
+     * into every new scope.
      *
      * @param operation operation definition
      */
     public void newScope(OperationDefinition operation) {
-        this.scopeVariables = new HashMap<>(requestVariables);
+        this.scopeVariables.clear();
+        this.scopeVariables.putAll(requestVariables);
         operation.getVariableDefinitions().forEach(this::addVariable);
     }
 

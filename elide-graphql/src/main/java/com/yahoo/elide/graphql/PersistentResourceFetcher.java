@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 
-import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -44,11 +43,8 @@ import javax.ws.rs.BadRequestException;
  */
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher {
-    private final ElideSettings settings;
 
-    public PersistentResourceFetcher(ElideSettings settings) {
-        this.settings = settings;
-    }
+    public PersistentResourceFetcher() { }
 
     /**
      * Override graphql-java's {@link DataFetcher} get method to execute
@@ -252,7 +248,12 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* form entities */
         Optional<Entity> parentEntity;
         if (!context.isRoot()) {
-            parentEntity = Optional.of(new Entity(Optional.empty(), null, entityClass, context.requestScope));
+            assert context.parentResource != null;
+            parentEntity = Optional.of(new Entity(
+                    Optional.empty(),
+                    null,
+                    context.parentResource.getResourceClass(),
+                    context.requestScope));
         } else {
             parentEntity = Optional.empty();
         }

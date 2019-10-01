@@ -81,7 +81,7 @@ public class GraphQLEndpoint {
         this.elide = elide;
         this.elideSettings = elide.getElideSettings();
         this.getUser = getUser == null ? DEFAULT_GET_USER : getUser;
-        PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings());
+        PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
         this.api = new GraphQL(builder.build());
 

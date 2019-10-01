@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Oath Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -47,7 +47,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -228,8 +227,8 @@ public class GraphQLEntityProjectionMaker {
         final EntityProjectionBuilder projectionBuilder = EntityProjection.builder()
                 .type(entityType);
 
-        entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
         entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, projectionBuilder));
+        entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
 
         return projectionBuilder.build();
     }
@@ -296,6 +295,7 @@ public class GraphQLEntityProjectionMaker {
             addRelationship(field, projectionBuilder);
         } else if (TYPENAME.equals(fieldName)) {
             // '__typename' would not be handled by entityProjection
+            return;
         } else if (PAGE_INFO.equals(fieldName)) {
             // only 'totalRecords' needs to be added into the projection's pagination
             if (field.getSelectionSet().getSelections().stream()
@@ -317,13 +317,16 @@ public class GraphQLEntityProjectionMaker {
     private void addRelationship(Field relationshipField, EntityProjectionBuilder projectionBuilder) {
         Class<?> parentType = projectionBuilder.getType();
         String relationshipName = relationshipField.getName();
+        String relationshipAlias =
+                relationshipField.getAlias() == null ? relationshipName : relationshipField.getAlias();
+
         final Class<?> relationshipType = entityDictionary.getParameterizedType(parentType, relationshipName);
 
         // build new entity projection with only entity type and entity dictionary
         EntityProjection relationshipProjection = createProjection(relationshipType, relationshipField);
         Relationship relationship = Relationship.builder()
                 .name(relationshipName)
-                .alias(relationshipField.getAlias())
+                .alias(relationshipAlias)
                 .projection(relationshipProjection)
                 .build();
 
@@ -342,16 +345,18 @@ public class GraphQLEntityProjectionMaker {
     private void addAttributeField(Field attributeField, EntityProjectionBuilder projectionBuilder) {
         Class<?> parentType = projectionBuilder.getType();
         String attributeName = attributeField.getName();
+        String attributeAlias = attributeField.getAlias() == null ? attributeName : attributeField.getAlias();
 
-        Class<?> attributeType = entityDictionary.getType(parentType, attributeName);
+        Class<?> attributeType = entityDictionary.getParameterizedType(parentType, attributeName);
         if (attributeType != null) {
-            Attribute matched = projectionBuilder.getAttributeByName(attributeName);
+            Attribute matched = projectionBuilder.getAttributeByAlias(attributeAlias);
 
             if (matched == null) {
                 // this is a new attribute, create one and add it to the builder
                 Attribute attribute = Attribute.builder()
                         .type(attributeType)
                         .name(attributeName)
+                        .alias(attributeAlias)
                         .arguments(
                                 attributeField.getArguments().stream()
                                         .map(graphQLArgument -> com.yahoo.elide.request.Argument.builder()
@@ -365,22 +370,11 @@ public class GraphQLEntityProjectionMaker {
 
                 projectionBuilder.attribute(attribute);
             } else {
-                if (matched.getArguments().isEmpty() && matched.getArguments() == Collections.EMPTY_SET) {
-                    // the default empty set doesn't support .add()
-                    matched.setArguments(new HashSet<>());
-                }
-                // add arguments
-                attributeField.getArguments().forEach(
-                        graphQLArgument ->
-                                matched.getArguments().add(
-                                        com.yahoo.elide.request.Argument.builder()
-                                                .name(graphQLArgument.getName())
-                                                .value(variableResolver.resolveValue(graphQLArgument.getValue()))
-                                                .build()));
+                throw new InvalidEntityBodyException(
+                        String.format("Alias {%s}.{%s} is ambiguous", parentType, attributeAlias));
             }
         } else {
-            throw new InvalidEntityBodyException(
-                    String.format(
+            throw new InvalidEntityBodyException(String.format(
                             "Unknown attribute field {%s.%s}.",
                             entityDictionary.getJsonAliasFor(projectionBuilder.getType()),
                             attributeName));
@@ -567,24 +561,34 @@ public class GraphQLEntityProjectionMaker {
     /**
      * Add argument for a field/relationship of an entity
      *
-     * @param argument argument which a field/relationship name
+     * @param argument an argument which name should match a field name/alias
      * @param projectionBuilder projection that is being built
      */
     private void addAttributeArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String argumentName = argument.getName();
         Class<?> entityType = projectionBuilder.getType();
 
-        Attribute argumentAttribute = projectionBuilder.getAttributeByName(argumentName);
+        Attribute argumentAttribute = projectionBuilder.getAttributeByAlias(argumentName);
         com.yahoo.elide.request.Argument elideArgument = com.yahoo.elide.request.Argument.builder()
                 .name(argumentName)
                 .value(variableResolver.resolveValue(argument.getValue()))
                 .build();
 
         if (argumentAttribute == null) {
+            Class<?> attributeType = entityDictionary.getParameterizedType(entityType, argumentName);
+            if (attributeType == null) {
+                throw new InvalidEntityBodyException(
+                        String.format("Invalid attribute field/alias for argument: {%s}.{%s}",
+                                entityType,
+                                argumentName)
+                );
+            }
+
             // create a new attribute if this attribute doesn't exist in the projection
             argumentAttribute = Attribute.builder()
-                    .type(entityDictionary.getType(entityType, argumentName))
+                    .type(attributeType)
                     .name(argumentName)
+                    .alias(argumentName)
                     .argument(elideArgument)
                     .build();
 

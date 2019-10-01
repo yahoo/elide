@@ -182,14 +182,14 @@ public class EntityProjection {
         }
 
         /**
-         * Get an attribute by name.
+         * Get an attribute by alias.
          *
-         * @param attributeName attribute name to get
+         * @param attributeAlias alias to refer to an attribute field
          * @return found attribute or null
          */
-        public Attribute getAttributeByName(String attributeName) {
+        public Attribute getAttributeByAlias(String attributeAlias) {
             return attributes.stream()
-                    .filter(attribute -> attribute.getName().equals(attributeName))
+                    .filter(attribute -> attribute.getAlias().equals(attributeAlias))
                     .findAny()
                     .orElse(null);
         }
