@@ -67,7 +67,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.7.2</version>
+            <version>${version.antlr4}</version>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
@@ -218,7 +218,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.7.2</version>
+                <version>${version.antlr4}</version>
                 <configuration>
                     <visitor>true</visitor>
                 </configuration>
