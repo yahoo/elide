@@ -344,7 +344,7 @@ public class GraphQLEntityProjectionMaker {
         String attributeName = attributeField.getName();
         String attributeAlias = attributeField.getAlias() == null ? attributeName : attributeField.getAlias();
 
-        Class<?> attributeType = entityDictionary.getParameterizedType(parentType, attributeName);
+        Class<?> attributeType = entityDictionary.getType(parentType, attributeName);
         if (attributeType != null) {
             Attribute attribute = Attribute.builder()
                     .type(attributeType)
@@ -572,7 +572,7 @@ public class GraphQLEntityProjectionMaker {
 
             projectionBuilder.attribute(toAdd);
         } else {
-            Class<?> attributeType = entityDictionary.getParameterizedType(entityType, argumentName);
+            Class<?> attributeType = entityDictionary.getType(entityType, argumentName);
             if (attributeType == null) {
                 throw new InvalidEntityBodyException(
                         String.format("Invalid attribute field/alias for argument: {%s}.{%s}",
