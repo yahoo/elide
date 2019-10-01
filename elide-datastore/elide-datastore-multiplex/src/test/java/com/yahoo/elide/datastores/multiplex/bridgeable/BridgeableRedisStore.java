@@ -76,7 +76,7 @@ public class BridgeableRedisStore implements DataStore {
                 FilterExpression fe = filterExpression.get();
                 RedisFilter filter = fe.accept(new FilterExpressionParser());
                 if ("user_id".equals(filter.getFieldName())) {
-                    Iterable values = fetchValues(key,
+                    Iterable<?> values = fetchValues(key,
                             v -> v.equals("user" + filter.getValues().get(0) + ":" + id));
                     for (Object value : values) {
                         return value;

@@ -37,7 +37,7 @@ public class TestQueryWrapper implements Query {
     }
 
     @Override
-    public Query setParameterList(String name, Collection values) {
+    public Query setParameterList(String name, Collection<?> values) {
         return this;
     }
 }

@@ -221,7 +221,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     @Override
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
-        return (Set<com.yahoo.elide.security.PersistentResource>) (Set<?>) newPersistentResources;
+        return (Set) newPersistentResources;
     }
 
     public boolean isNewResource(Object entity) {

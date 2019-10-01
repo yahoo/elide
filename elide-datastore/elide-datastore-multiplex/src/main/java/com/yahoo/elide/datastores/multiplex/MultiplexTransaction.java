@@ -139,7 +139,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     protected DataStoreTransaction getTransaction(Class<?> cls) {
         DataStoreTransaction transaction = transactions.get(this.multiplexManager.getSubManager(cls));
         if (transaction == null) {
-            Class entityClass = multiplexManager.getDictionary().lookupEntityClass(cls);
+            Class<?> entityClass = multiplexManager.getDictionary().lookupEntityClass(cls);
             throw new InvalidCollectionException(entityClass == null ? cls.getName() : entityClass.getName());
         }
         return transaction;
