@@ -32,6 +32,7 @@ import java.util.HashMap;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EntityProjectionMakerTest {
     private EntityDictionary dictionary;
@@ -585,44 +586,6 @@ public class EntityProjectionMakerTest {
     }
 
     @Test
-    public void testRootCollectionWithTypedFilter() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.add("filter[book]", "genre=='Science Fiction'");
-        String path = "/book";
-
-        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
-        Pagination defaultPagination = scope.getPagination();
-
-        FilterExpression expression =
-                new InInsensitivePredicate(new Path(Book.class, dictionary, "genre"), "Science Fiction");
-
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
-
-        EntityProjection expected = EntityProjection.builder()
-                .type(Book.class)
-                .attribute(Attribute.builder().name("title").type(String.class).build())
-                .attribute(Attribute.builder().name("genre").type(String.class).build())
-                .attribute(Attribute.builder().name("language").type(String.class).build())
-                .attribute(Attribute.builder().name("publishDate").type(long.class).build())
-                .filterExpression(expression)
-                .relationship("authors", EntityProjection.builder()
-                        .type(Author.class)
-                        .build())
-                .relationship("publisher", EntityProjection.builder()
-                        .type(Publisher.class)
-                        .build())
-                .relationship("editor", EntityProjection.builder()
-                        .type(Editor.class)
-                        .build())
-                .pagination(defaultPagination)
-                .build();
-
-        EntityProjection actual = maker.parsePath(path);
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
     public void testRootCollectionWithGlobalFilter() {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("filter", "genre=='Science Fiction'");
@@ -735,6 +698,44 @@ public class EntityProjectionMakerTest {
                 .relationship("editor", EntityProjection.builder()
                         .type(Editor.class)
                         .build())
+                .build();
+
+        EntityProjection actual = maker.parsePath(path);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootCollectionWithTypedFilter() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("filter[book]", "genre=='Science Fiction'");
+        String path = "/book";
+
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        Pagination defaultPagination = scope.getPagination();
+
+        FilterExpression expression =
+                new InInsensitivePredicate(new Path(Book.class, dictionary, "genre"), "Science Fiction");
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
+
+        EntityProjection expected = EntityProjection.builder()
+                .type(Book.class)
+                .attribute(Attribute.builder().name("title").type(String.class).build())
+                .attribute(Attribute.builder().name("genre").type(String.class).build())
+                .attribute(Attribute.builder().name("language").type(String.class).build())
+                .attribute(Attribute.builder().name("publishDate").type(long.class).build())
+                .filterExpression(expression)
+                .relationship("authors", EntityProjection.builder()
+                        .type(Author.class)
+                        .build())
+                .relationship("publisher", EntityProjection.builder()
+                        .type(Publisher.class)
+                        .build())
+                .relationship("editor", EntityProjection.builder()
+                        .type(Editor.class)
+                        .build())
+                .pagination(defaultPagination)
                 .build();
 
         EntityProjection actual = maker.parsePath(path);

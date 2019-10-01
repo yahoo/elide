@@ -86,6 +86,21 @@ public class Pagination {
     }
 
     /**
+     * Set limit.
+     *
+     * @param perPage page size.
+     */
+    public void setLimit(Integer perPage) {
+        this.limit = perPage;
+        pageData.put(PaginationKey.limit, perPage);
+    }
+
+    public void setOffset(Integer offset) {
+        this.offset = offset;
+        pageData.put(PaginationKey.offset, offset);
+    }
+
+    /**
      * TODO - Refactor Pagination.
      * IMPORTANT - This method should only be used for testing until Pagination is refactored.  The
      * member field values of this class change depending on evaluation later from the Pagination annotation.

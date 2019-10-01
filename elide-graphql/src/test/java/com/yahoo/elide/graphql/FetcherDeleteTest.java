@@ -81,6 +81,17 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
         assertQueryFails(graphQLRequest);
     }
 
+    @Test
+    public void testBadArgument() {
+        String graphQLRequest = "mutation { "
+                + "author(unknown: \"1\") { "
+                + "books(op:DELETE) { "
+                + "edges { node { id } } "
+                + "} "
+                + "} "
+                + "}";
+        assertParsingFails(graphQLRequest);
+    }
 
     @Test
     public void testNestedSingleId() throws Exception {

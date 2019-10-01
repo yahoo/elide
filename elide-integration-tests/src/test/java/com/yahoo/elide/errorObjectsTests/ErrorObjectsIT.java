@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -62,7 +61,6 @@ public class ErrorObjectsIT extends IntegrationTest {
     }
 
     @Test
-    @Disabled
     public void testGraphQLErrorObjects() throws IOException {
         // this is an incorrectly formatted query, which should result in a 400 error being thrown
         String request = "mutation { nocreate(op: UPSERT, data:{id:\"1\"}) { edges { node { id } } } }";

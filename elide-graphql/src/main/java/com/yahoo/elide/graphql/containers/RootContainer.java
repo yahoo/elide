@@ -5,12 +5,8 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
-
-import com.yahoo.elide.request.EntityProjection;
-import graphql.language.Field;
 
 /**
  * Root container for GraphQL requests.
@@ -18,24 +14,10 @@ import graphql.language.Field;
 public class RootContainer implements GraphQLContainer {
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
-        EntityDictionary dictionary = context.requestScope.getDictionary();
-        Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
-
-        //TODO - This needs to be modified to build the entire document.
-
-        context.requestScope.setEntityProjection(EntityProjection.builder()
-                .type(entityClass)
-                .dictionary(dictionary)
-                .build());
-
-        boolean generateTotals = requestContainsPageInfo(context.field);
-        return fetcher.fetchObject(context, context.requestScope, entityClass, context.ids,
-                context.sort, context.offset, context.first, context.filters, generateTotals);
-    }
-
-    public static boolean requestContainsPageInfo(Field field) {
-        return field.getSelectionSet().getSelections().stream()
-                .anyMatch(f -> f instanceof Field
-                        && ConnectionContainer.PAGE_INFO_KEYWORD.equals(((Field) f).getName()));
+        return fetcher.fetchObject(
+                context.requestScope,
+                context.requestScope.getEntityProjection(),  // root-level projection
+                context.ids
+        );
     }
 }

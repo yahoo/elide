@@ -53,7 +53,6 @@ public class RecordState extends BaseState {
         } else {
             entityName = dictionary.getJsonAliasFor(paramType);
             entityClass = dictionary.getEntityClass(entityName);
-
         }
         if (entityClass == null) {
             throw new IllegalArgumentException("Unknown type " + entityName);

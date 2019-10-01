@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql.containers;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.graphql.Environment;
+import com.yahoo.elide.graphql.KeyWord;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 import lombok.AllArgsConstructor;
@@ -29,19 +30,16 @@ public class ConnectionContainer implements GraphQLContainer {
     // Refers to the type of persistentResources
     @Getter private final String typeName;
 
-    public static final String EDGES_KEYWORD = "edges";
-    public static final String PAGE_INFO_KEYWORD = "pageInfo";
-
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         String fieldName = context.field.getName();
 
-        switch (fieldName) {
-            case EDGES_KEYWORD:
+        switch (KeyWord.byName(fieldName)) {
+            case EDGES:
                 return getPersistentResources().stream()
                         .map(EdgesContainer::new)
                         .collect(Collectors.toList());
-            case PAGE_INFO_KEYWORD:
+            case PAGE_INFO:
                 return new PageInfoContainer(this);
             default:
                 break;

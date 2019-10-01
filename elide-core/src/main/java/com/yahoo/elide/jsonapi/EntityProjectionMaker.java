@@ -338,7 +338,6 @@ public class EntityProjectionMaker
                 .collect(Collectors.toMap(
                         Function.identity(),
                         (relationshipName) -> {
-
                             FilterExpression filter = scope.getExpressionForRelation(entityClass, relationshipName)
                                     .orElse(null);
 
@@ -367,7 +366,6 @@ public class EntityProjectionMaker
                     .flatMap(param -> Arrays.stream(param.split(",")))
                     .map(pathString -> new Path(entityClass, dictionary, pathString))
                     .collect(Collectors.toSet());
-
         }
 
         return new HashSet<>();
@@ -375,13 +373,11 @@ public class EntityProjectionMaker
 
     private Set<Relationship> toRelationshipSet(Map<String, EntityProjection> relationships) {
         return relationships.entrySet().stream()
-                .map(entry -> {
-                    return Relationship.builder()
-                            .name(entry.getKey())
-                            .alias(entry.getKey())
-                            .projection(entry.getValue())
-                            .build();
-                })
+                .map(entry -> Relationship.builder()
+                        .name(entry.getKey())
+                        .alias(entry.getKey())
+                        .projection(entry.getValue())
+                        .build())
                 .collect(Collectors.toSet());
     }
 }

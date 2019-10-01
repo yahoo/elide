@@ -41,12 +41,10 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.collections4.CollectionUtils;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -129,7 +127,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             RequestScope requestScope,
             Optional<String> uuid) {
 
-        //instead of calling transcation.createObject, create the new object here.
+        //instead of calling transaction.createObject, create the new object here.
         T obj = requestScope.getTransaction().createNewObject(entityClass);
 
         String id = uuid.orElse(null);
@@ -169,8 +167,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param id the id
      * @param scope the request scope
      */
-    public PersistentResource(@NonNull T obj, PersistentResource parent,
-                              String id, @NonNull RequestScope scope) {
+    public PersistentResource(
+            @NonNull T obj,
+            PersistentResource parent,
+            String id,
+            @NonNull RequestScope scope
+    ) {
         this.obj = obj;
         this.uuid = Optional.ofNullable(id);
         this.lineage = parent != null ? new ResourceLineage(parent.lineage, parent) : new ResourceLineage();
@@ -212,8 +214,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     @SuppressWarnings("resource")
     @NonNull public static <T> PersistentResource<T> loadRecord(
-            EntityProjection projection, String id, RequestScope requestScope)
-            throws InvalidObjectIdentifierException {
+            EntityProjection projection,
+            String id,
+            RequestScope requestScope
+    ) throws InvalidObjectIdentifierException {
         Preconditions.checkNotNull(projection);
         Preconditions.checkNotNull(id);
         Preconditions.checkNotNull(requestScope);
@@ -241,7 +245,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource(obj, null, requestScope.getUUIDFor(obj), requestScope);
+        PersistentResource<T> resource = new PersistentResource<>(
+                (T) obj,
+                null,
+                requestScope.getUUIDFor(obj),
+                requestScope);
+
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);
@@ -1261,11 +1270,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Relationship mapping
      */
     private Map<String, Relationship> getRelationships(EntityProjection projection) {
-        return getRelationshipsWithRelationshipFunction((relationName) -> {
-            return getRelationCheckedFiltered(projection.getRelationship(relationName)
-                    .orElseThrow(IllegalStateException::new)
-            );
-        });
+        return getRelationshipsWithRelationshipFunction(
+                (relationName) -> getRelationCheckedFiltered(projection.getRelationship(relationName)
+                        .orElseThrow(IllegalStateException::new)
+        ));
     }
 
     /**

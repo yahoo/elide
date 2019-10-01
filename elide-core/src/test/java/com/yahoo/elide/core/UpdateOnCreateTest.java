@@ -59,6 +59,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionCheckClassAnnotationForCreatingAnEntitySuccessCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -70,6 +71,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionCheckFieldAnnotationForCreatingAnEntitySuccessCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -81,6 +83,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionCheckFieldAnnotationForCreatingAnEntityFailureCase() {
         RequestScope userFourScope = new TestRequestScope(tx, userFour, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
         assertThrows(
@@ -93,6 +96,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionInheritedForAttributeSuccessCase() {
         RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -113,6 +117,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionInheritedForAttributeFailureCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -133,6 +138,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionOverwrittenForAttributeSuccessCase() {
         RequestScope userFourScope = new TestRequestScope(tx, userFour, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -153,6 +159,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionOverwrittenForAttributeFailureCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -175,6 +182,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionInheritedForRelationSuccessCase() {
         RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -206,6 +214,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionInheritedForRelationFailureCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -237,6 +246,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionOverwrittenForRelationSuccessCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, new User(3), dictionary);
+
 
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
         updateAndCreateExistingObject.setId(1L);
@@ -270,6 +280,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionOverwrittenForRelationFailureCase() {
         RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -285,6 +296,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
+
                         .build(),
                 "1",
                 userTwoScope);
@@ -302,6 +314,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionInheritedForAttributeSuccessCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -313,6 +326,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionInheritedForAttributeFailureCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -324,6 +338,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionOverwrittenForAttributeSuccessCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -335,6 +350,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionOverwrittenForAttributeFailureCase() {
         RequestScope userFourScope = new TestRequestScope(tx, userFour, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
         assertThrows(
@@ -346,12 +362,12 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         );
     }
 
-
     //----------------------------------------- ** Update Relation On Create ** --------------------------------------
     //Expression for relation inherited from class level expression
     @Test
     public void createPermissionInheritedForRelationSuccessCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -375,6 +391,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionInheritedForRelationFailureCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -397,6 +414,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionOverwrittenForRelationSuccessCase() {
         RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -419,6 +437,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionOverwrittenForRelationFailureCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 

@@ -5,13 +5,12 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import static com.yahoo.elide.graphql.containers.RootContainer.requestContainsPageInfo;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
+import com.yahoo.elide.request.Relationship;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,10 +45,18 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
             return attribute;
         }
         if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
-            boolean generateTotals = requestContainsPageInfo(context.field);
-            return fetcher.fetchRelationship(context, context.parentResource,
-                    fieldName, context.ids, context.offset, context.first, context.sort, context.filters,
-                    generateTotals);
+            // get the relationship from constructed projections
+            Relationship relationship = context.requestScope
+                    .getProjectionInfo()
+                    .getRelationshipMap()
+                    .getOrDefault(context.field.getSourceLocation(), null);
+
+            if (relationship == null) {
+                throw new BadRequestException(
+                        "Relationship doesn't have projection " + context.parentResource.getType() + "." + fieldName);
+            }
+
+            return fetcher.fetchRelationship(context.parentResource, relationship, context.ids);
         }
         if (Objects.equals(idFieldName, fieldName)) {
             return new DeferredId(context.parentResource);

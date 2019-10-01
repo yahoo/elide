@@ -1,0 +1,26 @@
+query namedQuery {
+  author {
+    ...AuthorFields
+  }
+}
+
+fragment AuthorFields on author {
+  edges {
+    node {
+      id
+      books {
+        ... on book {
+          edges {
+            node {
+              id
+              title
+            }
+          }
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

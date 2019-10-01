@@ -13,6 +13,8 @@ import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
+import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.User;
 
@@ -23,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
@@ -31,11 +32,7 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
-import graphql.language.Document;
-import graphql.parser.Parser;
-
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,7 +40,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -85,7 +81,7 @@ public class GraphQLEndpoint {
         this.elide = elide;
         this.elideSettings = elide.getElideSettings();
         this.getUser = getUser == null ? DEFAULT_GET_USER : getUser;
-        PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings());
+        PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
         this.api = new GraphQL(builder.build());
 
@@ -164,17 +160,24 @@ public class GraphQLEndpoint {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             final User user = tx.accessUser(getUser.apply(securityContext));
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, elide.getElideSettings());
+            String query = jsonDocument.get(QUERY).asText();
+
+            // get variables from request for constructing entityProjections
+            Map<String, Object> variables = new HashMap<>();
+            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
+                variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
+            }
+
+            GraphQLProjectionInfo projectionInfo =
+                    new GraphQLEntityProjectionMaker(elideSettings, variables).make(query);
+            GraphQLRequestScope requestScope =
+                    new GraphQLRequestScope(tx, user, elide.getElideSettings(), projectionInfo);
+
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             if (!jsonDocument.has(QUERY)) {
                 return Response.status(400).entity("A `query` key is required.").build();
             }
-
-            String query = jsonDocument.get(QUERY).asText();
-
-            //TODO
-            Document document = new Parser().parseDocument(query);
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.
@@ -188,10 +191,7 @@ public class GraphQLEndpoint {
                 executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
             }
 
-            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
-                Map<String, Object> variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
-                executionInput.variables(variables);
-            }
+            executionInput.variables(variables);
 
             ExecutionResult result = api.execute(executionInput);
 

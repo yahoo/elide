@@ -93,19 +93,19 @@ public class DimensionTest {
     public void testToString() {
         // table dimension
         assertEquals(
-                ENTITY_DIMENSION.toString(),
-                "EntityDimension[name='country', longName='country', description='country', dimensionType=ENTITY, dataType=Country, cardinality=SMALL, friendlyName='name']"
+                "EntityDimension[name='country', longName='country', description='country', dimensionType=ENTITY, dataType=Country, cardinality=SMALL, friendlyName='name']",
+                ENTITY_DIMENSION.toString()
         );
 
         // degenerate dimension
         assertEquals(
-                DEGENERATE_DIMENSION.toString(),
-                "DegenerateDimension[columnType=FIELD, name='overallRating', longName='overallRating', description='overallRating', dimensionType=DEGENERATE, dataType=String, cardinality=SMALL, friendlyName='overallRating']"
+                "DegenerateDimension[columnType=FIELD, name='overallRating', longName='overallRating', description='overallRating', dimensionType=DEGENERATE, dataType=String, cardinality=SMALL, friendlyName='overallRating']",
+                DEGENERATE_DIMENSION.toString()
         );
 
         assertEquals(
-                TIME_DIMENSION.toString(),
-                "TimeDimension[timeZone=Pacific Standard Time, timeGrain=DAY, columnType=TEMPORAL, name='recordedTime', longName='recordedTime', description='recordedTime', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']"
+                "TimeDimension[timeZone=Pacific Standard Time, timeGrain=DAY, columnType=TEMPORAL, name='recordedTime', longName='recordedTime', description='recordedTime', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']",
+                TIME_DIMENSION.toString()
         );
     }
 }
