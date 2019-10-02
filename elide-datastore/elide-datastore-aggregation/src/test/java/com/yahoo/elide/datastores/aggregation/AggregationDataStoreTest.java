@@ -26,6 +26,7 @@ import com.yahoo.elide.request.EntityProjection;
 import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -57,25 +58,11 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AggregationDataStoreTest extends IntegrationTest {
-    @Spy
-    AggregationDataStore aggregationDataStore;
-
-    @Mock
-    EntityProjection entityProjection;
-
-    @Mock
-    RequestScope requestScope;
 
     @Spy
     EntityDictionary entityDictionary;
 
     QueryEngine qE;
-
-    private EntityManagerFactory emf;
-
-    private Schema playerStatsSchema;
-    private Schema playerStatsViewSchema;
-    private RSQLFilterDialect filterParser;
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
@@ -88,128 +75,18 @@ public class AggregationDataStoreTest extends IntegrationTest {
         entityDictionary.bindEntity(Player.class);
         entityDictionary.bindEntity(VideoGame.class);
 
-        emf = Persistence.createEntityManagerFactory("aggregationStore");
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
         EntityManager em = emf.createEntityManager();
         qE = new SQLQueryEngine(em, entityDictionary);
         return new AggregationDataStoreTestHarness(qE);
     }
 
-    AggregationDataStoreTest() {
-        EntityManager em = emf.createEntityManager();
-        qE = new SQLQueryEngine(em, entityDictionary);
-    }
-    @BeforeEach
-    public void init() {
-        emf = Persistence.createEntityManagerFactory("aggregationStore");
-        EntityManager em = emf.createEntityManager();
-        entityDictionary = new EntityDictionary(new HashMap<>());
-        MockitoAnnotations.initMocks(this);
-        entityDictionary.bindEntity(PlayerStats.class);
-        entityDictionary.bindEntity(Country.class);
-        entityDictionary.bindEntity(PlayerStatsView.class);
-        entityDictionary.bindEntity(Player.class);
-        entityDictionary.bindEntity(VideoGame.class);
-
-        filterParser = new RSQLFilterDialect(entityDictionary);
-
-        playerStatsSchema = new SQLSchema(PlayerStats.class, entityDictionary);
-        playerStatsViewSchema = new SQLSchema(PlayerStatsView.class, entityDictionary);
-        qE = new SQLQueryEngine(em, entityDictionary);
-    }
-
     @Test
-    public void testingSQLQueryEngine() {
-        EntityManager em = emf.createEntityManager();
-        qE = new SQLQueryEngine(em, entityDictionary);
-        Query query = Query.builder()
-                .schema(playerStatsSchema)
-                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
-                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
-                .build();
-
-        List<Object> results = StreamSupport.stream(qE.executeQuery(query).spliterator(), false)
-                .collect(Collectors.toList());
-
-        //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
-        PlayerStats stats1 = new PlayerStats();
-        stats1.setId("0");
-        stats1.setLowScore(72);
-        stats1.setHighScore(1234);
-        stats1.setOverallRating("Good");
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
-
-        PlayerStats stats2 = new PlayerStats();
-        stats2.setId("1");
-        stats2.setLowScore(241);
-        stats2.setHighScore(2412);
-        stats2.setOverallRating("Great");
-        stats2.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
-
-        Assert.assertEquals(results.size(), 2);
-        Assert.assertEquals(results.get(0), stats1);
-        Assert.assertEquals(results.get(1), stats2);
-    }
-
-    @Test
-    public void aggregationMaxTest() throws Exception {
+    public void basicAggregationTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
                                 "playerStats",
-                                selections(
-                                        field("highScore"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name"),
-                                                        field("id")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = document(
-                selections(
-                        field(
-                                "playerStats",
-                                selections(
-                                        field("highScore", 681L),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Germany")
-                                                )
-                                        )
-                                ),
-                                selections(
-                                        field("highScore", 421L),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Italy")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expected);
-    }
-
-    @Test
-    public void aggregationFilterTest() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "playerStats",
-                                arguments(
-                                        argument("filter", "\"highScore<\\\"1500\\\"\"")
-                                ),
                                 selections(
                                         field("highScore"),
                                         field("overallRating"),
@@ -229,20 +106,22 @@ public class AggregationDataStoreTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 selections(
-                                        field("highScore", 681L),
+                                        field("highScore", 1234),
+                                        field("overallRating", "Good"),
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "Germany")
+                                                        field("name", "United States")
                                                 )
                                         )
                                 ),
                                 selections(
-                                        field("highScore", 421L),
+                                        field("highScore", 3140),
+                                        field("overallRating", "Great"),
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "Italy")
+                                                        field("name", "United States")
                                                 )
                                         )
                                 )
@@ -254,13 +133,30 @@ public class AggregationDataStoreTest extends IntegrationTest {
     }
 
     @Test
-    public void aggregationComputedMetricTest() throws Exception {
+    public void havingFilterTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
-                                "videoGame",
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"lowScore<\\\"45\\\"\"")
+                                ),
                                 selections(
-                                        field("timeSpent")
+                                        field("lowScore"),
+                                        field("overallRating"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name"),
+                                                        field("id")
+                                                )
+                                        ),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
                                 )
                         )
                 )
@@ -271,22 +167,101 @@ public class AggregationDataStoreTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 selections(
-                                        field("highScore", 681L),
+                                        field("lowScore", 30),
+                                        field("overallRating", "Great"),
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "Germany")
+                                                        field("name", "United States"),
+                                                        field("id", "840")
+                                                )
+                                        ),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Steph Curry")
                                                 )
                                         )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void whereFilterTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"overallRating==\\\"Good\\\"\"")
                                 ),
                                 selections(
-                                        field("highScore", 421L),
+                                        field("highScore"),
+                                        field("overallRating"),
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "Italy")
+                                                        field("name"),
+                                                        field("id")
                                                 )
                                         )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 1234),
+                                        field("overallRating", "Good"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "United States"),
+                                                        field("id", "840")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    @Disabled
+    public void aggregationComputedMetricTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "videoGame",
+                                selections(
+                                        field("timeSpent"),
+                                        field("sessions"),
+                                        field("timeSpentPerSession"),
+                                        field("timeSpentPerGame")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "videoGame",
+                                selections(
+                                        field("timeSpent", 1400),
+                                        field("sessions", 70),
+                                        field("timeSpentPerSession", 20),
+                                        field("timeSpentPerGame", 14)
                                 )
                         )
                 )

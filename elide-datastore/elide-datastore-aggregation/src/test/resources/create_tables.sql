@@ -25,6 +25,6 @@ CREATE TABLE IF NOT EXISTS player
 CREATE TABLE IF NOT EXISTS videoGame
     (
       id BIGINT,
-      rounds BIGINT,
+      sessions BIGINT,
       timeSpent BIGINT
     ) AS SELECT * FROM CSVREAD('classpath:video_games.csv');

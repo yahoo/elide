@@ -54,7 +54,9 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
             return Collections.emptyMap();
         }
 
-        List<Object> uniqueIds = joinFieldIds.stream().distinct().collect(Collectors.toCollection(LinkedList::new));
+        List<Object> uniqueIds = joinFieldIds.stream()
+                .distinct()
+                .collect(Collectors.toCollection(LinkedList::new));
 
         List<Object> loaded = getEntityManager()
                 .createQuery(
