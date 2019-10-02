@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.Query;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -70,7 +71,8 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
                 .getResultList();
 
         return loaded.stream()
-                .map(obj -> new AbstractMap.SimpleImmutableEntry<>((Object) getEntityDictionary().getId(obj), obj))
+                .map(obj -> new AbstractMap.SimpleImmutableEntry<>(
+                        getEntityDictionary().getValue(obj, "id", null), obj))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

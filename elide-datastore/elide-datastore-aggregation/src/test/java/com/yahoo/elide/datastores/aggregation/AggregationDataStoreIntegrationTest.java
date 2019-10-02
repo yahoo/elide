@@ -57,7 +57,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AggregationDataStoreTest extends IntegrationTest {
+public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     @Spy
     EntityDictionary entityDictionary;
@@ -116,12 +116,22 @@ public class AggregationDataStoreTest extends IntegrationTest {
                                         )
                                 ),
                                 selections(
-                                        field("highScore", 3140),
+                                        field("highScore", 2412),
                                         field("overallRating", "Great"),
                                         field(
                                                 "country",
                                                 selections(
                                                         field("name", "United States")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("highScore", 1000),
+                                        field("overallRating", "Good"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Hong Kong")
                                                 )
                                         )
                                 )
@@ -167,8 +177,8 @@ public class AggregationDataStoreTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 selections(
-                                        field("lowScore", 30),
-                                        field("overallRating", "Great"),
+                                        field("lowScore", 35),
+                                        field("overallRating", "Good"),
                                         field(
                                                 "country",
                                                 selections(
@@ -179,7 +189,7 @@ public class AggregationDataStoreTest extends IntegrationTest {
                                         field(
                                                 "player",
                                                 selections(
-                                                        field("name", "Steph Curry")
+                                                        field("name", "Jon Doe")
                                                 )
                                         )
                                 )
@@ -226,6 +236,17 @@ public class AggregationDataStoreTest extends IntegrationTest {
                                                 selections(
                                                         field("name", "United States"),
                                                         field("id", "840")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("highScore", 1000),
+                                        field("overallRating", "Good"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Hong Kong"),
+                                                        field("id", "344")
                                                 )
                                         )
                                 )
