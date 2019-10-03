@@ -117,16 +117,15 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             if (SharePermission.class == annotationClass) {
                 if (requestScope.getDictionary().isShareable(resource.getResourceClass())) {
                     return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
-                } else {
-                    return PermissionExpressionBuilder.FAIL_EXPRESSION;
                 }
+                return PermissionExpressionBuilder.FAIL_EXPRESSION;
             }
             return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             // for newly created object in PatchRequest limit to User checks
-            if (requestScope.getNewPersistentResources().contains(resource)) {
+            if (resource.isNewlyCreated()) {
                 return executeUserChecksDeferInline(annotationClass, expression);
             }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);

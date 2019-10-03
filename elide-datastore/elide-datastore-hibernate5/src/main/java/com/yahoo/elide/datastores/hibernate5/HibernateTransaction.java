@@ -184,7 +184,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (isScrollEnabled) {
             return new ScrollableIterator<>(query.getQuery().scroll());
         }
-        return query.getQuery().list();
+        return (Iterable) query.getQuery().list();
     }
 
     @Override
@@ -200,7 +200,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         EntityDictionary dictionary = scope.getDictionary();
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
+            Collection<?> filteredVal = (Collection<?>) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
 
                 /*

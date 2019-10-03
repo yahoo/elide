@@ -65,7 +65,7 @@ public abstract class AbstractHQLQueryBuilder {
 
         public Object getParent();
 
-        public Collection getChildren();
+        public Collection<?> getChildren();
     }
 
     public AbstractHQLQueryBuilder(EntityDictionary dictionary, Session session) {

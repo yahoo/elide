@@ -14,5 +14,5 @@ public interface Query {
     public Query setFirstResult(int num);
     public Query setMaxResults(int num);
     public Query setParameter(String name, Object value);
-    public Query setParameterList(String name, Collection values);
+    public Query setParameterList(String name, Collection<?> values);
 }

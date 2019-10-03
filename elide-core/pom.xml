@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.5.1-SNAPSHOT</version>
+        <version>4.5.5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,7 +44,7 @@
     </scm>
 
     <properties>
-        <junit.version>5.4.1</junit.version>
+        <junit.version>5.5.2</junit.version>
     </properties>
 
     <dependencies>
@@ -67,17 +67,18 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.6</version>
+            <version>${version.antlr4}</version>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
-            <version>2.0.1</version>
+            <version>2.1.1</version>
         </dependency>
         <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
             <version>2.2</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -90,7 +91,7 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.3</version>
+            <version>1.9.4</version>
         </dependency>
         <dependency>
             <groupId>javax.inject</groupId>
@@ -109,7 +110,7 @@
         <dependency>
             <groupId>io.reactivex.rxjava2</groupId>
             <artifactId>rxjava</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.12</version>
         </dependency>
 
         <!-- JSR 303 Validation -->
@@ -217,7 +218,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.6</version>
+                <version>${version.antlr4}</version>
                 <configuration>
                     <visitor>true</visitor>
                 </configuration>

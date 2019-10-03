@@ -5,11 +5,14 @@
  */
 package com.yahoo.elide.standalone;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasKey;
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -18,25 +21,29 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.models.Post;
 
+import com.google.common.collect.Maps;
 import org.apache.http.HttpStatus;
 import org.glassfish.hk2.api.ServiceLocator;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import javax.persistence.EntityManagerFactory;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
-
 
 /**
  * Tests ElideStandalone starts and works
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneTest {
     private ElideStandalone elide;
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
-    @BeforeClass
+    @BeforeAll
     public void init() throws Exception {
         elide = new ElideStandalone(new ElideStandaloneSettings() {
 
@@ -73,11 +80,26 @@ public class ElideStandaloneTest {
                 return builder.build();
             }
 
+            @Override
+            public Map<String, Swagger> enableSwagger() {
+                EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
+
+                dictionary.bindEntity(Post.class);
+                Info info = new Info().title("Test Service").version("1.0");
+
+                SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+                Swagger swagger = builder.build();
+
+                Map<String, Swagger> docs = new HashMap<>();
+                docs.put("test", swagger);
+                return docs;
+            }
+
         });
         elide.start(false);
     }
 
-    @AfterClass
+    @AfterAll
     public void shutdown() throws Exception {
         elide.stop();
     }
@@ -121,4 +143,14 @@ public class ElideStandaloneTest {
                 .then()
                 .statusCode(501); //Returns 'Not Implemented' if there are no Health Checks Registered
     }
+
+    @Test
+    public void testSwaggerEndpoint() throws Exception {
+        given()
+                .when()
+                .get("/swagger/doc/test")
+                .then()
+                .statusCode(200);
+    }
 }
+

@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.initialization;
 
-import static com.yahoo.elide.initialization.AbstractIntegrationTestInitializer.getDatabaseManager;
+import static com.yahoo.elide.initialization.IntegrationTest.getDataStore;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
@@ -63,7 +63,7 @@ public class EncodedErrorResponsesTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide(new ElideSettingsBuilder(getDatabaseManager())
+                return new Elide(new ElideSettingsBuilder(getDataStore())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)

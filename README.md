@@ -75,7 +75,13 @@ More information about Elide can be found at [elide.io](http://elide.io/).
 
 ## Install
 
-The fastest way to get started with Elide is to use [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance
+To try out an Elide example service (with a Postgres database), you can deploy via Heroku.
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yahoo/elide)
+
+The code that generates this example can be found [here](https://github.com/yahoo/elide/tree/master/elide-example/elide-blog-example)
+
+Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance
 of Elide running inside an embedded Jetty application.
 
 ## Usage

@@ -1,0 +1,12 @@
+{
+  "name": "Elide Sample Service",
+  "description": "An example Elide service with Postgres DB",
+  "repository": "https://github.com/yahoo/elide/tree/master/elide-example/elide-blog-example",
+  "logo": "https://elide.io//assets/images/elide-white-logo.png",
+  "keywords": ["java", "elide", "graphql", "json-api"],
+  "addons": [
+    {
+      "plan": "heroku-postgresql"
+    }
+  ]
+}

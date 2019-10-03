@@ -1,24 +1,16 @@
 # Elide Example
 
+An archetype Elide project for Heroku using Postgres DB.  
+
 ## Usage
 
-1. Install and start a MySQL server
-
-2. Create ```elide``` database
-
-        mysql> create database elide;
-
-3. Create ```elide``` user with password ```elide123```
-
-        mysql> grant all on elide.* to 'elide'@'localhost' identified by 'elide123';
-
-4. Launch the example webservice
+1. Launch the example webservice
 
         ~/elide $ mvn install
         ~/elide $ cd elide-example/elide-blog-example
         ~/elide/elide-example/elide-blog-example $ mvn exec:java -Dexec.mainClass="com.yahoo.elide.example.Main"
 
-5. Create an admin user
+2. Create an admin user
 
         $ curl -H'Content-Type: application/vnd.api+json' \
                -H'Accept: application/vnd.api+json' --data '
@@ -31,9 +23,9 @@
               }
             }
           }
-          ' -X POST http://localhost:4080/user
+          ' -X POST http://localhost:4080/api/v1/user
 
-6. Create a registered user
+3. Create a registered user
 
         $ curl -H'Content-Type: application/vnd.api+json' \
                -H'Accept: application/vnd.api+json' --data '
@@ -46,9 +38,9 @@
               }
             }
           }
-          ' -X POST http://localhost:4080/user
+          ' -X POST http://localhost:4080/api/v1/user
 
-7. Create an unregistered user
+4. Create an unregistered user
 
         $ curl -H'Content-Type: application/vnd.api+json' \
                -H'Accept: application/vnd.api+json' --data '
@@ -61,9 +53,9 @@
               }
             }
           }
-          ' -X POST http://localhost:4080/user
+          ' -X POST http://localhost:4080/api/v1/user
 
-8. Create a post as an admin:
+5. Create a post as an admin:
 
         $ curl -H'Content-Type: application/vnd.api+json' \
                -H'Accept: application/vnd.api+json' --data '
@@ -72,21 +64,21 @@
               "type": "post",
               "attributes": {
                 "content": "The greatest thing ever by Michael",
-                "me": "1"
+                "me": "3"
               },
               "relationships": {
                 "author": {
                   "data": {
                     "type": "user",
-                    "id": "1"
+                    "id": "3"
                   }
                 }
               }
             }
           }
-          ' -X POST http://localhost:4080/post
+          ' -X POST http://localhost:4080/api/v1/post
 
-9. Create a post as a registered user:
+6. Create a post as a registered user:
 
         $ curl -H'Content-Type: application/vnd.api+json' \
                -H'Accept: application/vnd.api+json' --data '
@@ -95,18 +87,16 @@
               "type": "post",
               "attributes": {
                 "content": "The 2nd best thing ever by Ken",
-                "me": "2"
+                "me": "4"
               },
               "relationships": {
                 "author": {
                   "data": {
                     "type": "user",
-                    "id": "2"
+                    "id": "4"
                   }
                 }
               }
             }
           }
-          ' -X POST http://localhost:4080/post
-
-You can also load some data using `load_blog.sh` in `src/main/scripts/`
+          ' -X POST http://localhost:4080/api/v1/post

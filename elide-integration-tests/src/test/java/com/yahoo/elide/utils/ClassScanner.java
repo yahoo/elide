@@ -21,13 +21,14 @@ import java.util.stream.Collectors;
 public class ClassScanner {
     /**
      * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
-     * @param pckg package name
+     *
+     * @param pckg       package name
      * @param annotation Annotation to search
      * @return The classes
      */
     static public List<Class<?>> getAnnotatedClasses(Package pckg, Class<? extends Annotation> annotation) {
         final AnnotationAcceptingListener annotationAcceptingListener = new AnnotationAcceptingListener(annotation);
-        try (final PackageNamesScanner scanner = new PackageNamesScanner(new String[] { pckg.getName() }, true)) {
+        try (final PackageNamesScanner scanner = new PackageNamesScanner(new String[]{pckg.getName()}, true)) {
             while (scanner.hasNext()) {
                 final String next = scanner.next();
                 if (annotationAcceptingListener.accept(next)) {

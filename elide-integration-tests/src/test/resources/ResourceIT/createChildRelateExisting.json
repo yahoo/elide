@@ -2,7 +2,7 @@
     {
         "data":{
             "type":"child",
-            "id":"8",
+            "id":"6",
             "attributes":{
                 "name":null
             },
@@ -14,7 +14,7 @@
                     "data":[
                         {
                             "type":"parent",
-                            "id":"7"
+                            "id":"4"
                         }
                     ]
                 }

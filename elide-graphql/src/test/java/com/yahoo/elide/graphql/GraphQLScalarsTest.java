@@ -5,15 +5,16 @@
  */
 package com.yahoo.elide.graphql;
 
-import static org.testng.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import graphql.language.IntValue;
 import graphql.language.StringValue;
@@ -22,11 +23,12 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.TimeZone;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GraphQLScalarsTest {
 
     private Serde oldSerde;
 
-    @BeforeClass
+    @BeforeAll
     public void init() {
 
         oldSerde = CoerceUtil.lookup(Date.class);
@@ -37,7 +39,7 @@ public class GraphQLScalarsTest {
                 java.sql.Date.class));
     }
 
-    @AfterClass
+    @AfterAll
     public void cleanup() {
         CoerceUtil.register(Date.class, oldSerde);
     }
@@ -52,7 +54,7 @@ public class GraphQLScalarsTest {
     public void testGraphQLDateParseLiteral() {
         Date expectedDate = new Date(0L);
         Object actualDate = GraphQLScalars.GRAPHQL_DATE_TYPE.getCoercing().parseLiteral(new StringValue("1970-01-01T00:00Z"));
-        assertEquals(actualDate, expectedDate);
+        assertEquals(expectedDate, actualDate);
     }
 
     @Test
@@ -60,24 +62,24 @@ public class GraphQLScalarsTest {
         Date date = new Date(0L);
         Object actual = GraphQLScalars.GRAPHQL_DATE_TYPE.getCoercing().serialize(date);
         String expected = "1970-01-01T00:00Z";
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testGraphQLDeferredIdSerialize() {
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize(123L), 123L);
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize("123"), "123");
+        assertEquals(123L, GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize(123L));
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize("123"));
     }
 
     @Test
     public void testGraphQLDeferredIdParseLiteral() {
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseLiteral(new IntValue(new BigInteger("123"))), "123");
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseLiteral(new StringValue("123")), "123");
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseLiteral(new IntValue(new BigInteger("123"))));
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseLiteral(new StringValue("123")));
     }
 
     @Test
     public void testGraphQLDeferredIdParseValue() {
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseValue("123"), "123");
-        assertEquals(GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseValue(123L), "123");
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseValue("123"));
+        assertEquals("123", GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().parseValue(123L));
     }
 }

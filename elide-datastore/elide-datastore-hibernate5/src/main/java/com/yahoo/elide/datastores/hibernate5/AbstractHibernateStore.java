@@ -112,13 +112,13 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
-        for (EntityType type : sessionFactory.getMetamodel().getEntities()) {
+        for (EntityType<?> type : sessionFactory.getMetamodel().getEntities()) {
             bindEntity(dictionary, type);
         }
     }
 
-    protected void bindEntity(EntityDictionary dictionary, EntityType type) {
-        Class mappedClass = type.getJavaType();
+    protected void bindEntity(EntityDictionary dictionary, EntityType<?> type) {
+        Class<?> mappedClass = type.getJavaType();
 
         bindEntityClass(mappedClass, dictionary);
     }

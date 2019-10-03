@@ -114,7 +114,7 @@ public class CollectionTerminalState extends BaseState {
         parent.ifPresent(persistentResource -> persistentResource.addRelation(relationName.get(), newObject));
         return () -> {
             JsonApiDocument returnDoc = new JsonApiDocument();
-            returnDoc.setData(new Data(newObject.toResource()));
+            returnDoc.setData(new Data<>(newObject.toResource()));
             JsonNode responseBody = mapper.getObjectMapper().convertValue(returnDoc, JsonNode.class);
             return Pair.of(HttpStatus.SC_CREATED, responseBody);
         };

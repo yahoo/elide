@@ -1,10 +1,56 @@
 # Change Log
+
+## 4.5.4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/5a10ae4e7897abd1304f9438fe66f5d4ad786f69) Nested update (#978) 
+
+## 4.5.3
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/150601868be35b4b47db274d0dfb7eae025b48c8) Add heroku archetype project (#966) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/887c7cc6e715c848404bdc842dab5a5c9987245c) Bump mockito-core from 2.2.26 to 3.0.0 (#973) 
+   * [view commit](https://github.com/yahoo/elide/commit/074facbf3f2d52878714fe2908ed231496f9f77c) Suppress databind vulnerability warnings until December (#977) 
+   * [view commit](https://github.com/yahoo/elide/commit/7479cf55dad6bfd4c9f123d74518928c2447d780) Bump commons-lang3 from 3.5 to 3.9 (#971) 
+   * [view commit](https://github.com/yahoo/elide/commit/97da49df4f4afca54f55cb20ce4aa0e78f2ce050) Bump rest-assured from 4.0.0 to 4.1.1 (#970) 
+   * [view commit](https://github.com/yahoo/elide/commit/b343831f6e6ceda81fe9b0aa9030d0dc08d1621d) Bump gson from 2.8.0 to 2.8.5 (#967) 
+   * [view commit](https://github.com/yahoo/elide/commit/e2de2a8a7f052ee2564ae8257fd1059892329ca7) Fixed Swagger generation bug where an entity has nothing to sort by (#975) 
+   * [view commit](https://github.com/yahoo/elide/commit/7b7aba5cc1070f1e337348083f923708e75f2be5) Fix GraphQL Nested UPDATE bug. (#974) 
+   * [view commit](https://github.com/yahoo/elide/commit/d88c2569bc9fb99235dbc221f53eec858c836d66) Bump maven-javadoc-plugin from 3.1.0 to 3.1.1 (#972) 
+   * [view commit](https://github.com/yahoo/elide/commit/f4042814b1e621460e86971f62a3be4dae7c7ffd) Bump dependency-check-maven from 5.0.0 to 5.2.1 (#969) 
+   * [view commit](https://github.com/yahoo/elide/commit/1064efa9545e11022eac51630df6a01c7492facb) Bump version.jersey from 2.29 to 2.29.1 (#968) 
+
+## 4.5.2
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/e6a2ffd8abe950fbe05b6429a3e0a8b13deee3ba) Restore provided on jpa (#932) 
+   * [view commit](https://github.com/yahoo/elide/commit/96bac92e39a258901f1336f638c89e9502f5b438) Bump commons-beanutils from 1.9.3 to 1.9.4 
+   * [view commit](https://github.com/yahoo/elide/commit/083959f218daa94598c599c9cd7090f1aa81e47e) Fix #934: descriptions and example attributes appearing in swagger with empty string value (#935) 
+   * [view commit](https://github.com/yahoo/elide/commit/71b0ce7dd6aadef4b5a949fae922445dade75dea) Refactor IT Tests (ResourceIT and test infrastructure). (#897) 
+   * [view commit](https://github.com/yahoo/elide/commit/4043f9ff55a2bff05bd3953e00c05dd05d8b45b6) Enable test-helper tests (#947) 
+   * [view commit](https://github.com/yahoo/elide/commit/6254f834414fcb73ffa697c1d4eea1e9f8a5567c) Bump version.jetty from 9.4.19.v20190610 to 9.4.20.v20190813 (#922) 
+   * [view commit](https://github.com/yahoo/elide/commit/b0aaf30a83cf218cd01b7f0bc0635c507ea3c581) Update Graphql integration test (#954) 
+   * [view commit](https://github.com/yahoo/elide/commit/00c16b618cdffdc47678bcf21cee95fa5459a636) Bump rxjava from 2.2.0 to 2.2.12 (#936) 
+   * [view commit](https://github.com/yahoo/elide/commit/459c21678fdde2706eed65fb31e6aebaf9a7fdfe) Bump maven-surefire-plugin from 2.22.1 to 2.22.2 (#928) 
+   * [view commit](https://github.com/yahoo/elide/commit/87e260c8cf4a33690c875a0dca50ceca1bcee743) Bump version.jersey from 2.28 to 2.29 (#924) 
+   * [view commit](https://github.com/yahoo/elide/commit/6ec1b7a39270a76bd9c60ad86b8323eca1583551) Bump jersey-container-jetty-servlet from RELEASE to 2.29 (#929) 
+   * [view commit](https://github.com/yahoo/elide/commit/d642f9279f27dfecad436c6cbc59abd9e20d73d1) Bump maven-jar-plugin from 3.0.2 to 3.1.2 (#927) 
+   * [view commit](https://github.com/yahoo/elide/commit/8475b41b7f80849e2bebb1b966ff9c539b6eaf8d) Bump guava from 20.0 to 23.0 (#957) 
+   * [view commit](https://github.com/yahoo/elide/commit/f4dddcb021121625013b5498b79bfd608b5230ff) Bump jersey-container-servlet-core from RELEASE to 2.29 (#962) 
+   * [view commit](https://github.com/yahoo/elide/commit/19f8547d555fe6255844ab09677fbccc548a5624) Bump slf4j-api from 1.7.26 to 1.7.28 (#961) 
+   * [view commit](https://github.com/yahoo/elide/commit/0b026135569856ee84020c249421f172799f1488) Bump build-helper-maven-plugin from 1.12 to 3.0.0 (#960) 
+   * [view commit](https://github.com/yahoo/elide/commit/11000a00c621078b4dc33c52e1aa854188ea9afb) Bump ant from 1.8.2 to 1.10.7 (#959) 
+   * [view commit](https://github.com/yahoo/elide/commit/aae10ce13bba99ddabd12a0475531f34265166a5) Bump junit.version from 5.5.1 to 5.5.2 (#956) 
+   * [view commit](https://github.com/yahoo/elide/commit/1db1a18ab67da8bf18ea5bf54ec47279cee5c7eb) Bump mysql-connector-java from 8.0.16 to 8.0.17 (#955)
+
 ## 4.5.1
 **Features**
+ * Issue #851. Added new method `enableSwagger()` in `ElideStandaloneSettings` class which allows an easier way for binding swagger docs to the given endpoint. Override this method returning the `Map<String, Swagger>` object to bind the swagger docs to string endpoint.
  * Issue #900. Add `@ApiModelProperty` support to `elide-swagger` that makes it possible to customize `description`, `example`, `readOnly` and `required` attributes of object definitions in resulting generates Swagger document.
 
 **Fixes**
  * [Security] Bump jackson databind from 2.9.9 to 2.9.9.3
+ * Issue #913. Fix deserialization for optional top-level meta object (#913)
+ * Migrated elide-core tests to JUnit 5.
 
 ## 4.5.0
 **Features**

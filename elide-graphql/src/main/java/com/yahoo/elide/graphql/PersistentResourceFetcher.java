@@ -50,7 +50,7 @@ import javax.ws.rs.core.MultivaluedMap;
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
  */
 @Slf4j
-public class PersistentResourceFetcher implements DataFetcher {
+public class PersistentResourceFetcher implements DataFetcher<Object> {
     private final ElideSettings settings;
 
     public PersistentResourceFetcher(ElideSettings settings) {
@@ -166,7 +166,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return {@link PersistentResource} object(s)
      */
-    public ConnectionContainer fetchObject(Environment context, RequestScope requestScope, Class entityClass,
+    public ConnectionContainer fetchObject(Environment context, RequestScope requestScope, Class<?> entityClass,
                                                 Optional<List<String>> ids, Optional<String> sort,
                                                 Optional<String> offset, Optional<String> first,
                                                 Optional<String> filters, boolean generateTotals) {
@@ -207,7 +207,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return persistence resource object(s)
      */
     public Object fetchRelationship(Environment context,
-                                     PersistentResource parentResource,
+                                     PersistentResource<?> parentResource,
                                      String fieldName,
                                      Optional<List<String>> ids,
                                      Optional<String> offset,
@@ -216,7 +216,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                                      Optional<String> filters,
                                      boolean generateTotals) {
         EntityDictionary dictionary = parentResource.getRequestScope().getDictionary();
-        Class entityClass = dictionary.getParameterizedType(parentResource.getObject(), fieldName);
+        Class<?> entityClass = dictionary.getParameterizedType(parentResource.getObject(), fieldName);
         String typeName = dictionary.getJsonAliasFor(entityClass);
 
         Optional<Pagination> pagination = buildPagination(first, offset, generateTotals);
@@ -255,7 +255,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return Connection object.
      */
     private ConnectionContainer upsertOrUpdateObjects(Environment context,
-                                                      Executor updateFunc,
+                                                      Executor<?> updateFunc,
                                                       RelationshipOp operation) {
         /* sanity check for id and data argument w UPSERT/UPDATE */
         if (context.ids.isPresent()) {
@@ -298,8 +298,10 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* fixup relationships */
         for (Entity entity : entitySet) {
             graphWalker(entity, this::updateRelationship);
-            if (!context.isRoot()) { /* add relation between parent and nested entity */
-                context.parentResource.addRelation(context.field.getName(), entity.toPersistentResource());
+            PersistentResource<?> childResource = entity.toPersistentResource();
+            if (!context.isRoot() && (childResource.isNewlyCreated() || context.parentResource.isNewlyCreated())) {
+                /* add relation between parent and nested entity */
+                context.parentResource.addRelation(context.field.getName(), childResource);
             }
         }
 
@@ -326,8 +328,8 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param function Function to process nodes
      * @return set of {@link PersistentResource} objects
      */
-    private void graphWalker(Entity entity, Executor function) {
-        Queue<Entity> toVisit = new ArrayDeque();
+    private void graphWalker(Entity entity, Executor<?> function) {
+        Queue<Entity> toVisit = new ArrayDeque<>();
         Set<Entity> visited = new LinkedHashSet<>();
         toVisit.add(entity);
 
@@ -335,9 +337,8 @@ public class PersistentResourceFetcher implements DataFetcher {
             Entity currentEntity = toVisit.remove();
             if (visited.contains(currentEntity)) {
                 continue;
-            } else {
-                visited.add(currentEntity);
             }
+            visited.add(currentEntity);
             function.execute(currentEntity);
             Set<Entity.Relationship> relationshipEntities = currentEntity.getRelationships();
             /* loop over relationships */
@@ -352,9 +353,9 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param entity Resource entity
      * @return {@link PersistentResource} object
      */
-    private PersistentResource updateRelationship(Entity entity) {
+    private PersistentResource<?> updateRelationship(Entity entity) {
         Set<Entity.Relationship> relationshipEntities = entity.getRelationships();
-        PersistentResource resource = entity.toPersistentResource();
+        PersistentResource<?> resource = entity.toPersistentResource();
         Set<PersistentResource> toUpdate;
 
         /* loop over each relationship */
@@ -374,12 +375,12 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param entity Resource entity
      * @return {@link PersistentResource} object
      */
-    private PersistentResource upsertObject(Environment context, Entity entity) {
+    private PersistentResource<?> upsertObject(Environment context, Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
-        PersistentResource upsertedResource;
-        PersistentResource parentResource;
+        PersistentResource<?> upsertedResource;
+        PersistentResource<?> parentResource;
         if (!entity.getParentResource().isPresent()) {
             parentResource = null;
         } else {
@@ -416,24 +417,23 @@ public class PersistentResourceFetcher implements DataFetcher {
         return updateAttributes(upsertedResource, entity, attributes);
     }
 
-    private PersistentResource updateObject(Environment context, Entity entity) {
+    private PersistentResource<?> updateObject(Environment context, Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
-        PersistentResource updatedResource;
+        PersistentResource<?> updatedResource;
 
         if (!id.isPresent()) {
             throw new BadRequestException("UPDATE data objects must include ids");
-        } else {
-            Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
-                Optional.of(Arrays.asList(id.get())),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                false).getPersistentResources();
-            updatedResource = loadedResource.iterator().next();
         }
+        Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
+            Optional.of(Arrays.asList(id.get())),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            false).getPersistentResources();
+        updatedResource = loadedResource.iterator().next();
 
         return updateAttributes(updatedResource, entity, attributes);
     }
@@ -445,7 +445,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param attributes Set of entity attributes
      * @return Persistence Resource object
      */
-    private PersistentResource updateAttributes(PersistentResource toUpdate,
+    private PersistentResource<?> updateAttributes(PersistentResource<?> toUpdate,
                                                 Entity entity,
                                                 Set<Entity.Attribute> attributes) {
         EntityDictionary dictionary = entity.getRequestScope().getDictionary();

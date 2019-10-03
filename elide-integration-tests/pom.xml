@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.5.1-SNAPSHOT</version>
+        <version>4.5.5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -25,7 +25,7 @@
     </licenses>
 
     <properties>
-        <elide.version>4.5.1-SNAPSHOT</elide.version>
+        <elide.version>4.5.5-SNAPSHOT</elide.version>
     </properties>
 
     <dependencies>
@@ -126,14 +126,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.jayway.restassured</groupId>
+            <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>json-schema-validator</artifactId>
-            <scope>test</scope>
+            <version>4.1.1</version>
         </dependency>
 
         <!-- Logging -->
@@ -158,10 +153,34 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.5.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.5.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.5.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.skyscreamer</groupId>
+            <artifactId>jsonassert</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <!--<version>2.7.22</version>-->
         </dependency>
 
         <dependency>
@@ -212,6 +231,13 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <configuration>
+                    <failBuildOnCVSS>11</failBuildOnCVSS>
+                </configuration>
             </plugin>
         </plugins>
     </build>
