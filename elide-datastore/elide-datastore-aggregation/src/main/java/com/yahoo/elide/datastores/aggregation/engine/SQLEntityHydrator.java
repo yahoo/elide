@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.Query;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 

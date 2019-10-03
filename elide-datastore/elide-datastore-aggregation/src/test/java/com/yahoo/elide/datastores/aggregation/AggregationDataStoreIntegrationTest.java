@@ -5,11 +5,15 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.engine.SQLQueryEngine;
@@ -19,24 +23,29 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 import com.yahoo.elide.initialization.IntegrationTest;
-import io.restassured.response.ValidatableResponse;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Spy;
 
+import io.restassured.response.ValidatableResponse;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.*;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+/**
+ * Integration tests for {@link AggregationDataStore}.
+ */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     @Spy
@@ -336,7 +345,4 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         }
         return graphqlNode;
     }
-
-
-
 }

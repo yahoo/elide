@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -14,7 +13,7 @@ import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.request.EntityProjection;
 
 /**
- * Aggregation Data Store translates given information into query which can be used by a {@link QueryEngine} to return back results.
+ * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
 public abstract class AggregationDataStore implements DataStore {
 

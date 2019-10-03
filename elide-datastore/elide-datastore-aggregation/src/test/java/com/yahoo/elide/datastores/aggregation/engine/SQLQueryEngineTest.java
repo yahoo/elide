@@ -84,7 +84,7 @@ public class SQLQueryEngineTest {
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("1");
-        stats1.setLowScore(72);
+        stats1.setLowScore(35);
         stats1.setHighScore(1234);
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
@@ -174,7 +174,7 @@ public class SQLQueryEngineTest {
 
         PlayerStats usa1 = new PlayerStats();
         usa1.setId("1");
-        usa1.setLowScore(72);
+        usa1.setLowScore(35);
         usa1.setHighScore(1234);
         usa1.setOverallRating("Good");
         usa1.setCountry(expectedCountry);
@@ -279,7 +279,7 @@ public class SQLQueryEngineTest {
 
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("2");
-        stats2.setLowScore(72);
+        stats2.setLowScore(35);
         stats2.setOverallRating("Good");
         stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
@@ -314,7 +314,7 @@ public class SQLQueryEngineTest {
         //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
-        stats1.setLowScore(72);
+        stats1.setLowScore(35);
         stats1.setHighScore(1234);
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
@@ -428,7 +428,7 @@ public class SQLQueryEngineTest {
 
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("2");
-        stats2.setLowScore(72);
+        stats2.setLowScore(35);
         stats2.setOverallRating("Good");
         stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
@@ -482,7 +482,7 @@ public class SQLQueryEngineTest {
 
         PlayerStats usa1 = new PlayerStats();
         usa1.setId("1");
-        usa1.setLowScore(72);
+        usa1.setLowScore(35);
         usa1.setHighScore(1234);
         usa1.setOverallRating("Good");
         usa1.setCountry(usa);

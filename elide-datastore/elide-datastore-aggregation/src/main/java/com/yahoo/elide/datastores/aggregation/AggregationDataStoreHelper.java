@@ -28,6 +28,7 @@ import java.util.Set;
  */
 public class AggregationDataStoreHelper {
 
+    //TODO Add support for user selected metrics.
     private static final int AGGREGATION_METHOD_INDEX = 0;
 
     private Schema schema;
@@ -43,11 +44,11 @@ public class AggregationDataStoreHelper {
         this.entityProjection = scope.getEntityProjection();
         dimensions = new LinkedHashSet<>();
         timeDimensions = new LinkedHashSet<>();
-        getDimensionLists(dimensions, timeDimensions);
+        resolveDimensionLists(dimensions, timeDimensions);
         Set<Metric> metrics = new LinkedHashSet<>();
-        getMetricList(metrics);
-        getMetricMap(metrics);
-        getFilters(entityProjection.getFilterExpression());
+        resolveMetricList(metrics);
+        resolveMetricMap(metrics);
+        splitFilters();
     }
 
     /**
@@ -68,9 +69,9 @@ public class AggregationDataStoreHelper {
 
     /**
      * Gets whereFilter and havingFilter based on provided filter expression from {@link EntityProjection}.
-     * @param filterExpression {@link FilterExpression} The filter expression to parse.
      */
-    private void getFilters(FilterExpression filterExpression) {
+    private void splitFilters() {
+        FilterExpression filterExpression = entityProjection.getFilterExpression();
         if (filterExpression == null) {
             whereFilter = null;
             havingFilter = null;
@@ -87,13 +88,12 @@ public class AggregationDataStoreHelper {
      * @param dimensions Empty set of {@link Dimension} objects.
      * @param timeDimensions Empty set of {@link TimeDimension} objects.
      */
-    public void getDimensionLists(Set<Dimension> dimensions, Set<TimeDimension> timeDimensions) {
+    public void resolveDimensionLists(Set<Dimension> dimensions, Set<TimeDimension> timeDimensions) {
         Set<String> dimensionNames = getRelationships();
         Set<String> metricNames = getAttributes(); // time dimensions are under attribute in entity projection
         for (Dimension dimension : schema.getDimensions()) {
-            if (dimension instanceof TimeDimension) {
-                if(metricNames.contains(dimension.getName()))
-                timeDimensions.add((TimeDimension)dimension);
+            if (dimension instanceof TimeDimension && metricNames.contains(dimension.getName())) {
+                timeDimensions.add((TimeDimension) dimension);
             }
             else if (dimensionNames.contains(dimension.getName()) || metricNames.contains(dimension.getName())) {
                 dimensions.add(dimension);
@@ -105,7 +105,7 @@ public class AggregationDataStoreHelper {
      * Gets metrics based on attributes from {@link EntityProjection}.
      * @param metrics Empty set of {@link Metric} objects.
      */
-    public void getMetricList(Set<Metric> metrics) {
+    public void resolveMetricList(Set<Metric> metrics) {
         Set<String> metricNames = getAttributes();
         for (Metric metric : schema.getMetrics()) {
             if (metricNames.contains(metric.getName())) {
@@ -118,7 +118,7 @@ public class AggregationDataStoreHelper {
      * Constructs map between {@link Metric} objects and the type of {@link Aggregation} we want to use.
      * @param metrics Set of {@link Metric} objects.
      */
-    public void getMetricMap(Set<Metric> metrics) {
+    public void resolveMetricMap(Set<Metric> metrics) {
         metricMap = new LinkedHashMap<>();
         for (Metric metric : metrics) {
             metricMap.put(metric, metric.getAggregations().get(AGGREGATION_METHOD_INDEX));

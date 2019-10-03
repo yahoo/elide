@@ -82,7 +82,8 @@ public final class StitchList {
      * @param value  The foreign key between the entity instance and the field entity.
      */
     public void todo(Object entityInstance, String fieldName, Object value) {
-        Object coercedValue = CoerceUtil.coerce(value, getEntityDictionary().getIdType(getEntityDictionary().getParameterizedType(entityInstance, fieldName)));
+        Object coercedValue = CoerceUtil.coerce(value, getEntityDictionary()
+                .getIdType(getEntityDictionary().getParameterizedType(entityInstance, fieldName)));
         getTodoList().add(new Todo(entityInstance, fieldName, coercedValue));
     }
 
