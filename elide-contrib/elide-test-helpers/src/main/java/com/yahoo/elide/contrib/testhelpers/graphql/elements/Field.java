@@ -79,17 +79,8 @@ public class Field extends Selection {
 
     @Override
     public String toResponse() {
-        if (selectionSet instanceof String) {
+        if (selectionSet instanceof String || selectionSet instanceof Number) {
             // scalar response field
-            return String.format(
-                    "\"%s\":%s",
-                    getName(),
-                    getSelectionSet().toString().equals("")
-                            ? "{\"edges\":[]}"
-                            : getSelectionSet().toString()
-            );
-        }
-        else if (selectionSet instanceof Number) {
             return String.format(
                     "\"%s\":%s",
                     getName(),

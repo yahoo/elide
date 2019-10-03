@@ -1,5 +1,11 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
@@ -15,43 +21,75 @@ import com.yahoo.elide.request.Relationship;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Helper for Aggregation Data Store which does the work associated with extracting {@link Query}.
+ */
 public class AggregationDataStoreHelper {
+
+    private static final int AGGREGATION_METHOD_INDEX = 0;
 
     private Schema schema;
     private EntityProjection entityProjection;
+    private Set<Dimension> dimensions;
+    private Set<TimeDimension> timeDimensions;
+    private Map<Metric, Class<? extends Aggregation>> metricMap;
+    private FilterExpression whereFilter;
+    private FilterExpression havingFilter;
 
-    public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection) {
+    public AggregationDataStoreHelper(Schema schema, RequestScope scope) {
         this.schema = schema;
-        this.entityProjection = entityProjection;
+        this.entityProjection = scope.getEntityProjection();
+        dimensions = new LinkedHashSet<>();
+        timeDimensions = new LinkedHashSet<>();
+        getDimensionLists(dimensions, timeDimensions);
+        Set<Metric> metrics = new LinkedHashSet<>();
+        getMetricList(metrics);
+        getMetricMap(metrics);
+        getFilters(entityProjection.getFilterExpression());
     }
 
-    public FilterExpression getWhereFilter(FilterExpression filterExpression) {
-        FilterExpression whereFilter;
-        try {
-            whereFilter = filterExpression.accept(new SplitFilterExpressionVisitor(schema)).getWhereExpression();
-        } catch (NullPointerException npe) {
+    /**
+     * @return {@link Query} query object with all the parameters provided by user.
+     */
+    public Query getQuery() {
+        return Query.builder()
+                .schema(schema)
+                .metrics(metricMap)
+                .groupDimensions(dimensions)
+                .timeDimensions(timeDimensions)
+                .whereFilter(whereFilter)
+                .havingFilter(havingFilter)
+                .sorting(entityProjection.getSorting())
+                .pagination(entityProjection.getPagination())
+                .build();
+    }
+
+    /**
+     * Gets whereFilter and havingFilter based on provided filter expression from {@link EntityProjection}.
+     * @param filterExpression {@link FilterExpression} The filter expression to parse.
+     */
+    private void getFilters(FilterExpression filterExpression) {
+        if (filterExpression == null) {
             whereFilter = null;
-        }
-        return whereFilter;
-    }
-
-    public FilterExpression getHavingFilter(FilterExpression filterExpression) {
-        FilterExpression havingFilter;
-        try {
-            havingFilter = filterExpression.accept(new SplitFilterExpressionVisitor(schema)).getHavingExpression();
-        } catch (NullPointerException npe) {
             havingFilter = null;
+            return;
         }
-        return havingFilter;
+        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(schema);
+        FilterConstraints constraints = filterExpression.accept(visitor);
+        whereFilter = constraints.getWhereExpression();
+        havingFilter = constraints.getHavingExpression();
     }
 
-
-    public void populateDimensionList(Set<Dimension> dimensions, Set<TimeDimension> timeDimensions) {
-        Set<String> dimensionNames = getDimensionNames();
-        Set<String> metricNames = getMetricNames(); // time dimensions are under attribute in entity projection
+    /**
+     * Gets dimensions and timeDimensions based on relationships and attributes from {@link EntityProjection}.
+     * @param dimensions Empty set of {@link Dimension} objects.
+     * @param timeDimensions Empty set of {@link TimeDimension} objects.
+     */
+    public void getDimensionLists(Set<Dimension> dimensions, Set<TimeDimension> timeDimensions) {
+        Set<String> dimensionNames = getRelationships();
+        Set<String> metricNames = getAttributes(); // time dimensions are under attribute in entity projection
         for (Dimension dimension : schema.getDimensions()) {
             if (dimension instanceof TimeDimension) {
                 if(metricNames.contains(dimension.getName()))
@@ -63,8 +101,12 @@ public class AggregationDataStoreHelper {
         }
     }
 
-    public void populateMetricList(Set<Metric> metrics) {
-        Set<String> metricNames = getMetricNames();
+    /**
+     * Gets metrics based on attributes from {@link EntityProjection}.
+     * @param metrics Empty set of {@link Metric} objects.
+     */
+    public void getMetricList(Set<Metric> metrics) {
+        Set<String> metricNames = getAttributes();
         for (Metric metric : schema.getMetrics()) {
             if (metricNames.contains(metric.getName())) {
                 metrics.add(metric);
@@ -72,27 +114,42 @@ public class AggregationDataStoreHelper {
         }
     }
 
-    public Map<Metric, Class<? extends Aggregation>> getMetricMap(Set<Metric> metrics) {
-        Map<Metric, Class<? extends Aggregation>> metricMap = new LinkedHashMap<>();
+    /**
+     * Constructs map between {@link Metric} objects and the type of {@link Aggregation} we want to use.
+     * @param metrics Set of {@link Metric} objects.
+     */
+    public void getMetricMap(Set<Metric> metrics) {
+        metricMap = new LinkedHashMap<>();
         for (Metric metric : metrics) {
-            metricMap.put(metric, metric.getAggregations().get(0));
+            metricMap.put(metric, metric.getAggregations().get(AGGREGATION_METHOD_INDEX));
         }
-        return metricMap;
+//        return metrics.stream()
+//                .collect(
+//                        Collectors.toMap(p -> p.getAggregations().get(AGGREGATION_METHOD_INDEX), Function.identity())
+//                );
     }
 
-    private Set<String> getMetricNames() {
-        Set<String> metricNames = new LinkedHashSet<>();
+    /**
+     * Gets attribute names from {@link EntityProjection}.
+     * @return attributes list of {@link Attribute} names
+     */
+    private Set<String> getAttributes() {
+        Set<String> attributes = new LinkedHashSet<>();
         for (Attribute attribute : entityProjection.getAttributes()) {
-            metricNames.add(attribute.getName());
+            attributes.add(attribute.getName());
         }
-        return metricNames;
+        return attributes;
     }
 
-    private Set<String> getDimensionNames() {
-        Set<String> dimensionNames = new LinkedHashSet<>();
+    /**
+     * Gets relationship names from {@link EntityProjection}.
+     * @return relationships list of {@link Relationship} names
+     */
+    private Set<String> getRelationships() {
+        Set<String> relationships = new LinkedHashSet<>();
         for (Relationship relationship : entityProjection.getRelationships()) {
-            dimensionNames.add(relationship.getName());
+            relationships.add(relationship.getName());
         }
-        return dimensionNames;
+        return relationships;
     }
 }

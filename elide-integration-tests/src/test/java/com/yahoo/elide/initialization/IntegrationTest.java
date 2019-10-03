@@ -73,7 +73,6 @@ public abstract class IntegrationTest {
     protected DataStoreTestHarness createHarness() {
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
-            System.out.println("Datastore: " + dataStoreSupplierName);
             if (dataStoreSupplierName != null && !dataStoreSupplierName.isEmpty()) {
                 return Class.forName(dataStoreSupplierName).asSubclass(DataStoreTestHarness.class).newInstance();
             }

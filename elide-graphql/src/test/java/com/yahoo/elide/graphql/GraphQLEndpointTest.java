@@ -69,11 +69,11 @@ import javax.ws.rs.core.SecurityContext;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GraphQLEndpointTest {
 
-    protected GraphQLEndpoint endpoint;
-    protected final SecurityContext user1 = Mockito.mock(SecurityContext.class);
-    protected final SecurityContext user2 = Mockito.mock(SecurityContext.class);
-    protected final SecurityContext user3 = Mockito.mock(SecurityContext.class);
-    protected final AuditLogger audit = Mockito.mock(AuditLogger.class);
+    private GraphQLEndpoint endpoint;
+    private final SecurityContext user1 = Mockito.mock(SecurityContext.class);
+    private final SecurityContext user2 = Mockito.mock(SecurityContext.class);
+    private final SecurityContext user3 = Mockito.mock(SecurityContext.class);
+    private final AuditLogger audit = Mockito.mock(AuditLogger.class);
 
     public static class User implements Principal {
         String log = "";
@@ -174,119 +174,7 @@ public class GraphQLEndpointTest {
         tx.save(noShare, null);
 
         tx.commit(null);
-//        createBookAndAuthor();
-//        createBookAndAuthor2();
     }
-
-    public void createBookAndAuthor() throws Exception {
-        // before each test, create a new book and a new author
-        Book book = new Book();
-        book.setId(1);
-        book.setTitle("1984");
-
-        Author author = new Author();
-        author.setId(1L);
-        author.setName("George Orwell");
-
-        String graphQLQuery = document(
-                mutation(
-                        selection(
-                                field(
-                                        "book",
-                                        arguments(
-                                                argument("op", "UPSERT"),
-                                                argument("data", book)
-                                        ),
-                                        selections(
-                                                field("id"),
-                                                field("title"),
-                                                field(
-                                                        "authors",
-                                                        arguments(
-                                                                argument("op", "UPSERT"),
-                                                                argument("data", author)
-                                                        ),
-                                                        selections(
-                                                                field("id"),
-                                                                field("name")
-                                                        )
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expectedResponse = document(
-                selection(
-                        field(
-                                "book",
-                                selections(
-                                        field("id", "1"),
-                                        field("title", "1984"),
-                                        field(
-                                                "authors",
-                                                selections(
-                                                        field("id", "1"),
-                                                        field("name", "George Orwell")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toResponse();
-
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLQuery));
-        assert200EqualBody(response, expectedResponse);
-    }
-
-
-    public void createBookAndAuthor2() throws Exception {
-        Author author = new Author();
-        author.setId(3L);
-        author.setName("Andrew Luck");
-
-        Book book = new Book();
-        book.setId(124);
-        book.setTitle("I'm out coach!");
-        book.setAuthors(Sets.newHashSet(author));
-
-        String graphQLRequest = document(
-                mutation(
-                        selection(
-                                field(
-                                        "book",
-                                        arguments(
-                                                argument("op", "UPSERT"),
-                                                argument("data", book)
-                                        ),
-                                        selections(
-                                                field("id"),
-                                                field("title"),
-                                                field("user1SecretField")
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = document(
-                selection(
-                        field(
-                                "book",
-                                selections(
-                                        field("id", "2"),
-                                        field("title", "I'm out coach!"),
-                                        field("user1SecretField", "this is a secret for user 1 only1")
-                                )
-                        )
-                )
-        ).toResponse();
-
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
-        assert200EqualBody(response, expected);
-    }
-
 
     @Test
     public void testValidFetch() throws JSONException {
@@ -327,7 +215,6 @@ public class GraphQLEndpointTest {
         ).toResponse();
 
         Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
-        System.out.println("response: " + extract200ResponseString(response));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -904,11 +791,11 @@ public class GraphQLEndpointTest {
         assertHasErrors(response);
     }
 
-    protected static String graphQLRequestToJSON(String request) {
+    private static String graphQLRequestToJSON(String request) {
         return graphQLRequestToJSON(request, new HashMap<>());
     }
 
-    protected static String graphQLRequestToJSON(String request, Map<String, String> variables) {
+    private static String graphQLRequestToJSON(String request, Map<String, String> variables) {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = JsonNodeFactory.instance.objectNode();
 
@@ -921,17 +808,17 @@ public class GraphQLEndpointTest {
         return new ObjectMapper().readTree(extract200ResponseString(response));
     }
 
-    protected static String extract200ResponseString(Response response) {
+    private static String extract200ResponseString(Response response) {
         assertEquals(response.getStatus(), 200);
         return (String) response.getEntity();
     }
 
-    protected static void assert200EqualBody(Response response, String expected) throws JSONException {
+    private static void assert200EqualBody(Response response, String expected) throws JSONException {
         String actual = extract200ResponseString(response);
         JSONAssert.assertEquals(expected, actual, true);
     }
 
-    protected static void assert200DataEqual(Response response, String expected) throws IOException, JSONException {
+    private static void assert200DataEqual(Response response, String expected) throws IOException, JSONException {
         JsonNode actualNode = extract200Response(response);
 
         Iterator<Map.Entry<String, JsonNode>> iterator = actualNode.fields();
@@ -948,7 +835,7 @@ public class GraphQLEndpointTest {
         JSONAssert.assertEquals(expected, actual, true);
     }
 
-    protected static void assertHasErrors(Response response) throws IOException {
+    private static void assertHasErrors(Response response) throws IOException {
         JsonNode node = extract200Response(response);
         assertTrue(node.get("errors").elements().hasNext());
     }

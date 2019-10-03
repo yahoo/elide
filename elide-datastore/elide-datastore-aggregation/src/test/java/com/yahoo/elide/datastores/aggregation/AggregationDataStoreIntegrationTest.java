@@ -1,3 +1,8 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.datastores.aggregation;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -6,51 +11,26 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.engine.SQLQueryEngine;
-import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
-import com.yahoo.elide.datastores.aggregation.metric.Metric;
-import com.yahoo.elide.datastores.aggregation.metric.Sum;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
 import io.restassured.response.ValidatableResponse;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
-import org.testng.Assert;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.*;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
@@ -259,6 +239,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     @Test
     @Disabled
+    //FIXME
     public void aggregationComputedMetricTest() throws Exception {
         String graphQLRequest = document(
                 selection(
