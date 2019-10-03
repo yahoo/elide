@@ -305,7 +305,7 @@ public class RSQLFilterDialectTest {
 
         FilterExpression expression = dialect.parseGlobalExpression("/primitiveTypeId", queryParams);
 
-        Assert.assertEquals(expression.toString(),
+        assertEquals(expression.toString(),
                 "primitiveId.primitiveId INFIX_CASE_INSENSITIVE [1]"
         );
     }
