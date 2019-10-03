@@ -248,7 +248,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     @Test
     @Disabled
-    //FIXME
+    //FIXME Needs metric computation support for test case to be valid.
     public void aggregationComputedMetricTest() throws Exception {
         String graphQLRequest = document(
                 selection(
