@@ -123,10 +123,6 @@ public class AggregationDataStoreHelper {
         for (Metric metric : metrics) {
             metricMap.put(metric, metric.getAggregations().get(AGGREGATION_METHOD_INDEX));
         }
-//        return metrics.stream()
-//                .collect(
-//                        Collectors.toMap(p -> p.getAggregations().get(AGGREGATION_METHOD_INDEX), Function.identity())
-//                );
     }
 
     /**
