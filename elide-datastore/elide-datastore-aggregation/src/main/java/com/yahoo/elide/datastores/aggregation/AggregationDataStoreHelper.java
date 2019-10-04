@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Helper for Aggregation Data Store which does the work associated with extracting {@link Query}.
@@ -39,14 +40,15 @@ public class AggregationDataStoreHelper {
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
 
-    public AggregationDataStoreHelper(Schema schema, RequestScope scope) {
+    public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection) {
         this.schema = schema;
-        this.entityProjection = scope.getEntityProjection();
+        this.entityProjection = entityProjection;
         dimensions = new LinkedHashSet<>();
         timeDimensions = new LinkedHashSet<>();
         resolveDimensionLists(dimensions, timeDimensions);
         Set<Metric> metrics = new LinkedHashSet<>();
         resolveMetricList(metrics);
+        metricMap = new LinkedHashMap<>();
         resolveMetricMap(metrics);
         splitFilters();
     }
@@ -88,14 +90,14 @@ public class AggregationDataStoreHelper {
      * @param dimensions Empty set of {@link Dimension} objects.
      * @param timeDimensions Empty set of {@link TimeDimension} objects.
      */
-    public void resolveDimensionLists(Set<Dimension> dimensions, Set<TimeDimension> timeDimensions) {
-        Set<String> dimensionNames = getRelationships();
-        Set<String> metricNames = getAttributes(); // time dimensions are under attribute in entity projection
+    private void resolveDimensionLists(Set<Dimension> dimensions, Set<TimeDimension> timeDimensions) {
+        Set<String> relationshipNames = getRelationships();
+        Set<String> attributeNames = getAttributes(); // time dimensions are under attribute in entity projection
         for (Dimension dimension : schema.getDimensions()) {
-            if (dimension instanceof TimeDimension && metricNames.contains(dimension.getName())) {
+            if (dimension instanceof TimeDimension && attributeNames.contains(dimension.getName())) {
                 timeDimensions.add((TimeDimension) dimension);
             }
-            else if (dimensionNames.contains(dimension.getName()) || metricNames.contains(dimension.getName())) {
+            else if (relationshipNames.contains(dimension.getName()) || attributeNames.contains(dimension.getName())) {
                 dimensions.add(dimension);
             }
         }
@@ -105,10 +107,10 @@ public class AggregationDataStoreHelper {
      * Gets metrics based on attributes from {@link EntityProjection}.
      * @param metrics Empty set of {@link Metric} objects.
      */
-    public void resolveMetricList(Set<Metric> metrics) {
-        Set<String> metricNames = getAttributes();
+    private void resolveMetricList(Set<Metric> metrics) {
+        Set<String> attributeNames = getAttributes();
         for (Metric metric : schema.getMetrics()) {
-            if (metricNames.contains(metric.getName())) {
+            if (attributeNames.contains(metric.getName())) {
                 metrics.add(metric);
             }
         }
@@ -118,8 +120,7 @@ public class AggregationDataStoreHelper {
      * Constructs map between {@link Metric} objects and the type of {@link Aggregation} we want to use.
      * @param metrics Set of {@link Metric} objects.
      */
-    public void resolveMetricMap(Set<Metric> metrics) {
-        metricMap = new LinkedHashMap<>();
+    private void resolveMetricMap(Set<Metric> metrics) {
         for (Metric metric : metrics) {
             metricMap.put(metric, metric.getAggregations().get(AGGREGATION_METHOD_INDEX));
         }
@@ -130,11 +131,8 @@ public class AggregationDataStoreHelper {
      * @return attributes list of {@link Attribute} names
      */
     private Set<String> getAttributes() {
-        Set<String> attributes = new LinkedHashSet<>();
-        for (Attribute attribute : entityProjection.getAttributes()) {
-            attributes.add(attribute.getName());
-        }
-        return attributes;
+        return entityProjection.getAttributes().stream().
+                map(Attribute::getName).collect(Collectors.toSet());
     }
 
     /**
@@ -142,10 +140,7 @@ public class AggregationDataStoreHelper {
      * @return relationships list of {@link Relationship} names
      */
     private Set<String> getRelationships() {
-        Set<String> relationships = new LinkedHashSet<>();
-        for (Relationship relationship : entityProjection.getRelationships()) {
-            relationships.add(relationship.getName());
-        }
-        return relationships;
+        return entityProjection.getRelationships().stream().
+                map(Relationship::getName).collect(Collectors.toSet());
     }
 }

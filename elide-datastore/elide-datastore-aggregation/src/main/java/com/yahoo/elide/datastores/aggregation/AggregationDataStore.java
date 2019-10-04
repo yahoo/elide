@@ -33,7 +33,7 @@ public abstract class AggregationDataStore implements DataStore {
 
     public static Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Schema schema = new Schema(entityProjection.getType(), scope.getDictionary());
-        AggregationDataStoreHelper agHelper = new AggregationDataStoreHelper(schema, scope);
+        AggregationDataStoreHelper agHelper = new AggregationDataStoreHelper(schema, entityProjection);
         return agHelper.getQuery();
     }
 }
