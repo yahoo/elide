@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
@@ -121,6 +121,9 @@ public class AggregationDataStoreHelper {
      * @param metrics Set of {@link Metric} objects.
      */
     private void resolveMetricMap(Set<Metric> metrics) {
+        if (metrics.isEmpty()) {
+            throw new InvalidOperationException("Must provide at least one metric in query");
+        }
         for (Metric metric : metrics) {
             metricMap.put(metric, metric.getAggregations().get(AGGREGATION_METHOD_INDEX));
         }
@@ -131,8 +134,8 @@ public class AggregationDataStoreHelper {
      * @return attributes list of {@link Attribute} names
      */
     private Set<String> getAttributes() {
-        return entityProjection.getAttributes().stream().
-                map(Attribute::getName).collect(Collectors.toSet());
+        return entityProjection.getAttributes().stream()
+                .map(Attribute::getName).collect(Collectors.toSet());
     }
 
     /**
@@ -140,7 +143,7 @@ public class AggregationDataStoreHelper {
      * @return relationships list of {@link Relationship} names
      */
     private Set<String> getRelationships() {
-        return entityProjection.getRelationships().stream().
-                map(Relationship::getName).collect(Collectors.toSet());
+        return entityProjection.getRelationships().stream()
+                .map(Relationship::getName).collect(Collectors.toSet());
     }
 }
