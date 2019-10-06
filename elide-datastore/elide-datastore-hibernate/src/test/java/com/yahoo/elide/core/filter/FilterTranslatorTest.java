@@ -5,14 +5,16 @@
  */
 package com.yahoo.elide.core.filter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -66,31 +68,31 @@ public class FilterTranslatorTest {
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
         String expected = "WHERE NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
                 + "AND authors.name IN (" + p1Params + ")))";
-        Assert.assertEquals(query, expected);
+        assertEquals(expected, query);
     }
 
-    @Test(expectedExceptions = InvalidValueException.class)
+    @Test
     public void testEmptyFieldOnPrefix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.PREFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         FilterTranslator filterOp = new FilterTranslator();
-        filterOp.apply(pred);
+        assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
 
-    @Test(expectedExceptions = InvalidValueException.class)
+    @Test
     public void testEmptyFieldOnInfix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         FilterTranslator filterOp = new FilterTranslator();
-        filterOp.apply(pred);
+        assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
 
-    @Test(expectedExceptions = InvalidValueException.class)
+    @Test
     public void testEmptyFieldOnPostfix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.POSTFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         FilterTranslator filterOp = new FilterTranslator();
-        filterOp.apply(pred);
+        assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
 
     @Test
@@ -110,7 +112,7 @@ public class FilterTranslatorTest {
                     Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
 
             String actual = new FilterTranslator().apply(pred);
-            Assert.assertEquals(actual, "FOO");
+            assertEquals("FOO", actual);
         } finally {
             FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, Author.class, "name", null);
         }
@@ -134,7 +136,7 @@ public class FilterTranslatorTest {
                     Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
 
             String actual = new FilterTranslator().apply(pred);
-            Assert.assertEquals(actual, "FOO");
+            assertEquals("FOO", actual);
         } finally {
             FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, old);
         }

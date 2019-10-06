@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -31,8 +32,8 @@ import example.Chapter;
 import example.Left;
 import example.Publisher;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -100,7 +101,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         String expected = " LEFT JOIN example_Author.books example_Author_books  "
                 + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
                 + "LEFT JOIN example_Author_books.publisher example_Book_publisher  ";
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -108,7 +109,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         String actual = extractToOneMergeJoins(Left.class, "right_alias");
 
         String expected = " LEFT JOIN FETCH right_alias.noUpdateOne2One  LEFT JOIN FETCH right_alias.one2one ";
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -120,7 +121,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS);
 
         String expected = " order by title asc,genre desc";
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -132,7 +133,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, USE_ALIAS);
 
         String expected = " order by example_Book.title asc,example_Book.genre desc";
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -143,15 +144,15 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS);
 
         String expected = " order by publisher.name asc";
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
-    @Test(expectedExceptions = InvalidValueException.class)
+    @Test
     public void testSortClauseWithInvalidJoin() {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(AUTHORS + PERIOD + NAME, Sorting.SortOrder.asc);
 
-        getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS);
+        Assertions.assertThrows(InvalidValueException.class, () -> getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS));
     }
 
     @Test
