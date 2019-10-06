@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.dimension;
+package com.yahoo.elide.datastores.aggregation.dimension.impl;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.Column;
@@ -12,6 +12,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 
+import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -101,7 +103,7 @@ public class EntityDimension extends Column implements Dimension {
      *
      * @return the default table size backing this {@link Dimension}
      */
-    protected static CardinalitySize getDefaultCardinality() {
+    public static CardinalitySize getDefaultCardinality() {
         return CardinalitySize.LARGE;
     }
 

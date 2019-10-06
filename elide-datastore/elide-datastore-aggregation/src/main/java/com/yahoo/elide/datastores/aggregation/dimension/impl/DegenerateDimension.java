@@ -3,12 +3,15 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.dimension;
+package com.yahoo.elide.datastores.aggregation.dimension.impl;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 
+import com.yahoo.elide.datastores.aggregation.dimension.ColumnType;
+import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Getter;
 
