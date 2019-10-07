@@ -83,7 +83,7 @@ public class SQLQueryEngine implements QueryEngine {
         Preconditions.checkNotNull(schema);
 
         //Translate the query into SQL.
-        SQLQuery sql = toSQL(query);
+        SQLQuery sql = toSQL(query, schema);
 
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
 
@@ -123,10 +123,10 @@ public class SQLQueryEngine implements QueryEngine {
     /**
      * Translates the client query into SQL.
      * @param query the client query.
+     * @param schema SQL schema.
      * @return the SQL query.
      */
-    protected SQLQuery toSQL(Query query) {
-        SQLSchema schema = (SQLSchema) query.getSchema();
+    protected SQLQuery toSQL(Query query, SQLSchema schema) {
         Class<?> entityClass = schema.getEntityClass();
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(query);

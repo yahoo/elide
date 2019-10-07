@@ -13,6 +13,9 @@
         <class>com.yahoo.elide.datastores.aggregation.example.Country</class>
         <class>com.yahoo.elide.datastores.aggregation.example.PlayerStats</class>
         <class>com.yahoo.elide.datastores.aggregation.example.Player</class>
+        <class>com.yahoo.elide.datastores.aggregation.example.VideoGame</class>
+        <class>com.yahoo.elide.datastores.aggregation.example.Player</class>
+
 
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>

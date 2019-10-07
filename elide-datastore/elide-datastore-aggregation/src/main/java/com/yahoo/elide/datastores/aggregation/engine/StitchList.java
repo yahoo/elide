@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -81,7 +82,9 @@ public final class StitchList {
      * @param value  The foreign key between the entity instance and the field entity.
      */
     public void todo(Object entityInstance, String fieldName, Object value) {
-        getTodoList().add(new Todo(entityInstance, fieldName, value));
+        Object coercedValue = CoerceUtil.coerce(value, getEntityDictionary()
+                .getIdType(getEntityDictionary().getParameterizedType(entityInstance, fieldName)));
+        getTodoList().add(new Todo(entityInstance, fieldName, coercedValue));
     }
 
     /**

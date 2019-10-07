@@ -70,10 +70,9 @@ public abstract class IntegrationTest {
         }
     }
 
-    private DataStoreTestHarness createHarness() {
+    protected DataStoreTestHarness createHarness() {
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
-
             if (dataStoreSupplierName != null && !dataStoreSupplierName.isEmpty()) {
                 return Class.forName(dataStoreSupplierName).asSubclass(DataStoreTestHarness.class).newInstance();
             }
