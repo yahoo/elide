@@ -26,16 +26,18 @@ import com.yahoo.elide.datastores.search.models.Item;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import org.h2.store.fs.FileUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.Date;
 import java.util.HashMap;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DataStoreSupportsFilteringTest {
 
     private RSQLFilterDialect filterParser;
@@ -65,12 +67,12 @@ public class DataStoreSupportsFilteringTest {
         CoerceUtil.register(Date.class, new ISO8601DateSerde());
     }
 
-    @BeforeSuite
+    @BeforeAll
     public void initialize() {
         FileUtils.createDirectory("/tmp/lucene");
     }
 
-    @AfterSuite
+    @AfterAll
     public void cleanup() {
         FileUtils.deleteRecursive("/tmp/lucene", false);
     }
