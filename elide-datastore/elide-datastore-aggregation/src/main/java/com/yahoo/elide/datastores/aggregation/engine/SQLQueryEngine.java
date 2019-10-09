@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.engine.schema.SQLDimension;
 import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
@@ -151,6 +152,8 @@ public class SQLQueryEngine implements QueryEngine {
 
         if (! query.getDimensions().isEmpty())  {
             builder.groupByClause(extractGroupBy(query));
+
+            joinPredicates.addAll(extractPathElements(query.getDimensions()));
         }
 
         if (query.getSorting() != null) {
@@ -186,6 +189,21 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
+     * Given the set of group by dimensions, extract any entity relationship traversals that require joins.
+     * @param groupByDims The list of dimensions we are grouping on.
+     * @return A set of path elements that capture a relationship traversal.
+     */
+    private Set<Path.PathElement> extractPathElements(Set<Dimension> groupByDims) {
+        return groupByDims.stream()
+            .map((SQLDimension.class::cast))
+            .filter((dim) -> dim.getJoinPath() != null)
+            .map(SQLDimension::getJoinPath)
+            .map((path) -> extractPathElements(path))
+            .flatMap((elements) -> elements.stream())
+            .collect(Collectors.toSet());
+    }
+
+    /**
      * Given a filter expression, extracts any entity relationship traversals that require joins.
      * @param expression The filter expression
      * @return A set of path elements that capture a relationship traversal.
@@ -196,7 +214,18 @@ public class SQLQueryEngine implements QueryEngine {
         return predicates.stream()
                 .filter(predicate -> predicate.getPath().getPathElements().size() > 1)
                 .map(FilterPredicate::getPath)
-                .flatMap((path) -> path.getPathElements().stream())
+                .map((path) -> extractPathElements(path))
+                .flatMap((elements) -> elements.stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Given a path , extracts any entity relationship traversals that require joins.
+     * @param path The path
+     * @return A set of path elements that capture a relationship traversal.
+     */
+    private Set<Path.PathElement> extractPathElements(Path path) {
+        return path.getPathElements().stream()
                 .filter((p) -> dictionary.isRelation(p.getType(), p.getFieldName()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -243,8 +272,8 @@ public class SQLQueryEngine implements QueryEngine {
 
         return sortClauses.entrySet().stream()
                 .map(Map.Entry::getKey)
-                .flatMap((path) -> path.getPathElements().stream())
-                .filter((element) -> dictionary.isRelation(element.getType(), element.getFieldName()))
+                .map((path) -> extractPathElements(path))
+                .flatMap((elements) -> elements.stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -308,20 +337,7 @@ public class SQLQueryEngine implements QueryEngine {
      * @return
      */
     private String getColumnName(Class<?> entityClass, String fieldName) {
-        Column[] column = dictionary.getAttributeOrRelationAnnotations(entityClass, Column.class, fieldName);
-
-        JoinColumn[] joinColumn = dictionary.getAttributeOrRelationAnnotations(entityClass,
-                JoinColumn.class, fieldName);
-
-        if (column == null || column.length == 0) {
-            if (joinColumn == null || joinColumn.length == 0) {
-                return fieldName;
-            } else {
-                return joinColumn[0].name();
-            }
-        } else {
-            return column[0].name();
-        }
+        return SQLSchema.getColumnName(dictionary, entityClass, fieldName);
     }
 
     /**
@@ -334,8 +350,8 @@ public class SQLQueryEngine implements QueryEngine {
         Query clientQuery = sql.getClientQuery();
 
         String groupByDimensions = clientQuery.getDimensions().stream()
-                .map(Dimension::getName)
-                .map((name) -> getColumnName(clientQuery.getSchema().getEntityClass(), name))
+                .map((SQLDimension.class::cast))
+                .map(SQLDimension::getColumnName)
                 .collect(Collectors.joining(","));
 
         String projectionClause = String.format("SELECT COUNT(DISTINCT(%s))", groupByDimensions);
@@ -364,8 +380,8 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getDimensions().stream()
-                .map(Dimension::getName)
-                .map((name) -> getColumnName(query.getSchema().getEntityClass(), name))
+                .map((SQLDimension.class::cast))
+                .map(SQLDimension::getColumnName)
                 .collect(Collectors.toList());
 
         String projectionClause = metricProjections.stream()
@@ -387,12 +403,11 @@ public class SQLQueryEngine implements QueryEngine {
      */
     private String extractGroupBy(Query query) {
         List<String> dimensionProjections = query.getDimensions().stream()
-                .map(Dimension::getName)
-                .map((name) -> getColumnName(query.getSchema().getEntityClass(), name))
+                .map((SQLDimension.class::cast))
+                .map(SQLDimension::getColumnReference)
                 .collect(Collectors.toList());
 
         return "GROUP BY " + dimensionProjections.stream()
-                .map((name) -> query.getSchema().getAlias() + "." + name)
                 .collect(Collectors.joining(","));
     }
 

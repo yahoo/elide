@@ -51,13 +51,13 @@ import java.util.stream.Stream;
 public class Schema {
 
     @Getter
-    private final Class<?> entityClass;
+    protected final Class<?> entityClass;
     @Getter
-    private final Set<Metric> metrics;
+    protected final Set<Metric> metrics;
     @Getter
-    private final Set<Dimension> dimensions;
-    @Getter(value = AccessLevel.PRIVATE)
-    private final EntityDictionary entityDictionary;
+    protected final Set<Dimension> dimensions;
+    @Getter(value = AccessLevel.PROTECTED)
+    protected final EntityDictionary entityDictionary;
 
     /**
      * Constructor
