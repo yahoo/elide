@@ -83,6 +83,8 @@ public class SQLQueryEngine implements QueryEngine {
         //Make sure we actually manage this schema.
         Preconditions.checkNotNull(schema);
 
+        //TODO - Translate filter and sorting clause to account for JoinTo annotation.
+
         //Translate the query into SQL.
         SQLQuery sql = toSQL(query, schema);
 
