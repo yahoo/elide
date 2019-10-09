@@ -381,7 +381,7 @@ public class SQLQueryEngine implements QueryEngine {
 
         List<String> dimensionProjections = query.getDimensions().stream()
                 .map((SQLDimension.class::cast))
-                .map(SQLDimension::getColumnName)
+                .map(SQLDimension::getColumnReference)
                 .collect(Collectors.toList());
 
         String projectionClause = metricProjections.stream()
@@ -389,7 +389,6 @@ public class SQLQueryEngine implements QueryEngine {
 
         if (!dimensionProjections.isEmpty()) {
             projectionClause = projectionClause + "," + dimensionProjections.stream()
-                    .map((name) -> query.getSchema().getAlias() + "." + name)
                     .collect(Collectors.joining(","));
         }
 

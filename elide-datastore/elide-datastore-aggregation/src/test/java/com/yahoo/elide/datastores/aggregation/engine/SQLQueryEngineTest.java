@@ -505,4 +505,39 @@ public class SQLQueryEngineTest {
         PlayerStats actualStats1 = (PlayerStats) results.get(0);
         assertNotNull(actualStats1.getCountry());
     }
+
+    /**
+     * Test grouping by a dimension with a JoinTo annotation.
+     *
+     * @throws Exception exception
+     */
+    @Test
+    public void testJoinToGroupBy() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("countryIsoCode"))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        // Only "Good" rating would have total high score less than 2400
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setHighScore(3646);
+        stats1.setCountryIsoCode("USA");
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setHighScore(1000);
+        stats2.setCountryIsoCode("HKG");
+
+        assertEquals(2, results.size());
+        assertEquals(stats1, results.get(0));
+        assertEquals(stats2, results.get(1));
+    }
 }

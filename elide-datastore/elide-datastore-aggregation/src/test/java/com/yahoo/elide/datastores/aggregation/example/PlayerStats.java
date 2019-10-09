@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.dimension.EntityDimensionTest;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.engine.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.metric.Max;
 import com.yahoo.elide.datastores.aggregation.metric.Min;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
@@ -62,6 +63,11 @@ public class PlayerStats {
      * A table dimension.
      */
     private Country country;
+
+    /**
+     * A dimension field joined to this table.
+     */
+    private String countryIsoCode;
 
     /**
      * A table dimension.
@@ -140,5 +146,14 @@ public class PlayerStats {
 
     public void setRecordedDate(final Date recordedDate) {
         this.recordedDate = recordedDate;
+    }
+
+    @JoinTo(path = "country.isoCode")
+    public String getCountryIsoCode() {
+        return countryIsoCode;
+    }
+
+    public void setCountryIsoCode(String isoCode) {
+        this.countryIsoCode = isoCode;
     }
 }
