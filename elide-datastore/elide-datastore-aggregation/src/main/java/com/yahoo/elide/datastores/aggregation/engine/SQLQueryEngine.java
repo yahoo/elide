@@ -239,6 +239,10 @@ public class SQLQueryEngine implements QueryEngine {
      * @return A SQL expression
      */
     private String extractJoin(Path.PathElement pathElement) {
+        //TODO - support composite join keys.
+        //TODO - support joins where either side owns the relationship.
+        //TODO - Support INNER and RIGHT joins.
+        //TODO - Support toMany joins.
         String relationshipName = pathElement.getFieldName();
         Class<?> relationshipClass = pathElement.getFieldType();
         String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
