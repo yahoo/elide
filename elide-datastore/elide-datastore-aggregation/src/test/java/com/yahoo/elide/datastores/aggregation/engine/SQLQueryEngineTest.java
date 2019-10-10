@@ -44,6 +44,9 @@ public class SQLQueryEngineTest {
     private static EntityDictionary dictionary;
     private static RSQLFilterDialect filterParser;
 
+    private static final Country HONG_KONG = new Country();
+    private static final Country USA = new Country();
+
     @BeforeAll
     public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
@@ -56,6 +59,14 @@ public class SQLQueryEngineTest {
 
         playerStatsSchema = new SQLSchema(PlayerStats.class, dictionary);
         playerStatsViewSchema = new SQLSchema(PlayerStatsView.class, dictionary);
+
+        HONG_KONG.setIsoCode("HKG");
+        HONG_KONG.setName("Hong Kong");
+        HONG_KONG.setId("344");
+
+        USA.setIsoCode("USA");
+        USA.setName("United States");
+        USA.setId("840");
     }
 
     /**
@@ -158,18 +169,12 @@ public class SQLQueryEngineTest {
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
-        Country expectedCountry = new Country();
-        expectedCountry.setId("840");
-        expectedCountry.setIsoCode("USA");
-        expectedCountry.setName("United States");
-
-
         PlayerStats usa0 = new PlayerStats();
         usa0.setId("0");
         usa0.setLowScore(241);
         usa0.setHighScore(2412);
         usa0.setOverallRating("Great");
-        usa0.setCountry(expectedCountry);
+        usa0.setCountry(USA);
         usa0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
         PlayerStats usa1 = new PlayerStats();
@@ -177,7 +182,7 @@ public class SQLQueryEngineTest {
         usa1.setLowScore(35);
         usa1.setHighScore(1234);
         usa1.setOverallRating("Good");
-        usa1.setCountry(expectedCountry);
+        usa1.setCountry(USA);
         usa1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
         assertEquals(2, results.size());
@@ -462,22 +467,12 @@ public class SQLQueryEngineTest {
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
-        Country usa = new Country();
-        usa.setId("840");
-        usa.setIsoCode("USA");
-        usa.setName("United States");
-
-        Country hk = new Country();
-        hk.setId("344");
-        hk.setIsoCode("HKG");
-        hk.setName("Hong Kong");
-
         PlayerStats usa0 = new PlayerStats();
         usa0.setId("0");
         usa0.setLowScore(241);
         usa0.setHighScore(2412);
         usa0.setOverallRating("Great");
-        usa0.setCountry(usa);
+        usa0.setCountry(USA);
         usa0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
         PlayerStats usa1 = new PlayerStats();
@@ -485,7 +480,7 @@ public class SQLQueryEngineTest {
         usa1.setLowScore(35);
         usa1.setHighScore(1234);
         usa1.setOverallRating("Good");
-        usa1.setCountry(usa);
+        usa1.setCountry(USA);
         usa1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
         PlayerStats hk2 = new PlayerStats();
@@ -493,7 +488,7 @@ public class SQLQueryEngineTest {
         hk2.setLowScore(72);
         hk2.setHighScore(1000);
         hk2.setOverallRating("Good");
-        hk2.setCountry(hk);
+        hk2.setCountry(HONG_KONG);
         hk2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
 
         assertEquals(3, results.size());
@@ -525,7 +520,6 @@ public class SQLQueryEngineTest {
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
-        // Only "Good" rating would have total high score less than 2400
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
         stats1.setHighScore(3646);
@@ -540,4 +534,90 @@ public class SQLQueryEngineTest {
         assertEquals(stats1, results.get(0));
         assertEquals(stats2, results.get(1));
     }
+
+    /**
+     * Test grouping by a dimension with a JoinTo annotation.
+     *
+     * @throws Exception exception
+     */
+    @Test
+    public void testJoinToFilter() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .whereFilter(filterParser.parseFilterExpression("countryIsoCode==USA",
+                        PlayerStats.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setOverallRating("Good");
+        stats1.setHighScore(1234);
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setOverallRating("Great");
+        stats2.setHighScore(2412);
+
+        assertEquals(2, results.size());
+        assertEquals(stats1, results.get(0));
+        assertEquals(stats2, results.get(1));
+    }
+
+    /**
+     * Test grouping by a dimension with a JoinTo annotation.
+     *
+     * @throws Exception exception
+     */
+    @Test
+    public void testJoinToSort() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("countryIsoCode", Sorting.SortOrder.asc);
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .groupDimension(playerStatsSchema.getDimension("country"))
+                .sorting(new Sorting(sortMap))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setOverallRating("Good");
+        stats1.setCountry(HONG_KONG);
+        stats1.setHighScore(1000);
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setOverallRating("Good");
+        stats2.setCountry(USA);
+        stats2.setHighScore(1234);
+
+        PlayerStats stats3 = new PlayerStats();
+        stats3.setId("2");
+        stats3.setOverallRating("Great");
+        stats3.setCountry(USA);
+        stats3.setHighScore(2412);
+
+        assertEquals(3, results.size());
+        assertEquals(stats1, results.get(0));
+        assertEquals(stats2, results.get(1));
+        assertEquals(stats3, results.get(2));
+    }
+
+    //TODO - Add Invalid Request Tests
 }

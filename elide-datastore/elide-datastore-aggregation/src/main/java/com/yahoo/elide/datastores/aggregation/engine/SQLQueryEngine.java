@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.engine.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.engine.schema.SQLDimension;
 import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
@@ -83,10 +84,9 @@ public class SQLQueryEngine implements QueryEngine {
         //Make sure we actually manage this schema.
         Preconditions.checkNotNull(schema);
 
-        //TODO - Translate filter and sorting clause to account for JoinTo annotation.
-
         //Translate the query into SQL.
         SQLQuery sql = toSQL(query, schema);
+        log.debug("SQL Query: "  + sql);
 
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
 
@@ -214,11 +214,33 @@ public class SQLQueryEngine implements QueryEngine {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
-                .filter(predicate -> predicate.getPath().getPathElements().size() > 1)
                 .map(FilterPredicate::getPath)
+                .map(this::expandJoinToPath)
+                .filter(path -> path.getPathElements().size() > 1)
                 .map((path) -> extractPathElements(path))
                 .flatMap((elements) -> elements.stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Expands a predicate path (from a sort or filter predicate) to the path contained in
+     * the JoinTo annotation.  If no JoinTo annotation is present, the original path is returned.
+     * @param path The path to expand.
+     * @return The expanded path.
+     */
+    private Path expandJoinToPath(Path path) {
+        List<Path.PathElement> pathElements = path.getPathElements();
+        Path.PathElement pathElement = pathElements.get(0);
+
+        Class<?> type = pathElement.getType();
+        String fieldName = pathElement.getFieldName();
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(type, JoinTo.class, fieldName);
+
+        if (joinTo == null) {
+            return path;
+        }
+
+        return new Path(pathElement.getType(), dictionary, joinTo.path());
     }
 
     /**
@@ -278,6 +300,7 @@ public class SQLQueryEngine implements QueryEngine {
 
         return sortClauses.entrySet().stream()
                 .map(Map.Entry::getKey)
+                .map(this::expandJoinToPath)
                 .map((path) -> extractPathElements(path))
                 .flatMap((elements) -> elements.stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -294,9 +317,12 @@ public class SQLQueryEngine implements QueryEngine {
             return "";
         }
 
+        //TODO - Ensure that order by columns are also present in the group by.
+
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
                     Path path = entry.getKey();
+                    path = expandJoinToPath(path);
                     Sorting.SortOrder order = entry.getValue();
 
                     Path.PathElement last = path.lastElement().get();
@@ -422,10 +448,26 @@ public class SQLQueryEngine implements QueryEngine {
      * @return A SQL fragment that references a database column
      */
     private String generateWhereClauseColumnReference(FilterPredicate predicate) {
-        Path.PathElement last = predicate.getPath().lastElement().get();
-        Class<?> lastClass = last.getType();
+        return generateWhereClauseColumnReference(predicate.getPath());
+    }
 
-        return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
+    /**
+     * Converts a filter predicate path into a SQL WHERE clause column reference.
+     * @param path The predicate path to convert
+     * @return A SQL fragment that references a database column
+     */
+    private String generateWhereClauseColumnReference(Path path) {
+        Path.PathElement last = path.lastElement().get();
+        Class<?> lastClass = last.getType();
+        String fieldName = last.getFieldName();
+
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
+
+        if (joinTo == null) {
+            return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
+        } else {
+            return generateWhereClauseColumnReference(new Path(lastClass, dictionary, joinTo.path()));
+        }
     }
 
     /**
