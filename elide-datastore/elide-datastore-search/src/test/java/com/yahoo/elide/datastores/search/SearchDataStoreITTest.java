@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 

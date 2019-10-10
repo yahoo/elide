@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -18,9 +20,9 @@ import example.Book;
 import example.Chapter;
 import example.Publisher;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RootCollectionFetchQueryBuilderTest {
     private EntityDictionary dictionary;
 
@@ -35,7 +38,7 @@ public class RootCollectionFetchQueryBuilderTest {
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
 
-    @BeforeClass
+    @BeforeAll
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
@@ -54,7 +57,7 @@ public class RootCollectionFetchQueryBuilderTest {
         String expected = "SELECT example_Book FROM example.Book AS example_Book  ";
         String actual = query.getQueryText();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -72,7 +75,7 @@ public class RootCollectionFetchQueryBuilderTest {
         String expected = "SELECT example_Book FROM example.Book AS example_Book   order by example_Book.title asc";
         String actual = query.getQueryText();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -120,7 +123,7 @@ public class RootCollectionFetchQueryBuilderTest {
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_publisher_name_\\w\\w\\w\\w+", ":books_publisher_name_XXX");
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -148,6 +151,6 @@ public class RootCollectionFetchQueryBuilderTest {
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 }
