@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.EntityDictionary;
@@ -21,15 +23,16 @@ import example.Book;
 import example.Chapter;
 import example.Publisher;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RootCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
 
@@ -37,7 +40,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
 
-    @BeforeClass
+    @BeforeAll
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
@@ -59,27 +62,27 @@ public class RootCollectionPageTotalsQueryBuilderTest {
 
         String actual = query.getQueryText();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
-    @Test(expectedExceptions = UnsupportedOperationException.class)
+    @Test
     public void testRootFetchWithSorting() {
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
                 Book.class, dictionary, new TestSessionWrapper());
 
         Sorting sorting = mock(Sorting.class);
 
-        builder.withPossibleSorting(Optional.of(sorting)).build();
+        assertThrows(UnsupportedOperationException.class, () -> builder.withPossibleSorting(Optional.of(sorting)).build());
     }
 
-    @Test(expectedExceptions = UnsupportedOperationException.class)
+    @Test
     public void testRootFetchWithPagination() {
         Pagination pagination = mock(Pagination.class);
 
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
                 Book.class, dictionary, new TestSessionWrapper());
 
-        builder.withPossiblePagination(Optional.of(pagination));
+        assertThrows(UnsupportedOperationException.class, () -> builder.withPossiblePagination(Optional.of(pagination)));
     }
 
     @Test
@@ -125,6 +128,6 @@ public class RootCollectionPageTotalsQueryBuilderTest {
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_publisher_name_\\w\\w\\w\\w+", ":books_publisher_name_XXX");
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 }
