@@ -53,7 +53,7 @@ public class Filtered extends BaseId {
     /**
      * Filter for ID == 1.
      */
-    static public class FilterCheck extends FilterExpressionCheck {
+    static public class FilterCheck<T> extends FilterExpressionCheck<T> {
         /* Limit reads to ID 1 */
         @Override
         public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
@@ -64,7 +64,7 @@ public class Filtered extends BaseId {
     /**
      * Filter for ID == 3.
      */
-    static public class FilterCheck3 extends FilterExpressionCheck {
+    static public class FilterCheck3<T> extends FilterExpressionCheck<T> {
         /* Limit reads to ID 3 */
         @Override
         public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {

@@ -13,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import example.Author;
 import example.Book;
 import example.Job;
+import example.PrimitiveId;
 import example.StringId;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ public class RSQLFilterDialectTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(StringId.class);
         dictionary.bindEntity(Job.class);
+        dictionary.bindEntity(PrimitiveId.class);
         dialect = new RSQLFilterDialect(dictionary);
     }
 
@@ -290,5 +292,21 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/stringForId", queryParams);
 
         assertEquals("stringId.surrogateKey INFIX_CASE_INSENSITIVE [identifier]", expression.toString());
+    }
+
+    @Test
+    public void testInfixFilterOnPrimitiveIdField() throws ParseException {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "id==*1*"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/primitiveTypeId", queryParams);
+
+        assertEquals(expression.toString(),
+                "primitiveId.primitiveId INFIX_CASE_INSENSITIVE [1]"
+        );
     }
 }

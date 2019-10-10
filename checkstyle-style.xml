@@ -139,14 +139,6 @@
       <property name="scope" value="protected"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
-    <module name="LineLength">
-      <metadata name="net.sf.eclipsecs.core.comment" value="Line length of 120 characters except for import lines."/>
-      <property name="severity" value="error"/>
-      <property name="ignorePattern" value="^import.*$"/>
-      <property name="max" value="120"/>
-      <property name="tabWidth" value="4"/>
-      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
-    </module>
     <module name="EqualsHashCode">
       <metadata name="net.sf.eclipsecs.core.comment" value="Verify when Equals is overridden, hashCode is as well."/>
       <property name="severity" value="error"/>
@@ -198,6 +190,14 @@
       <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
       <property name="checkFormat" value="$1"/>
     </module>
+  </module>
+  <module name="LineLength">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Line length of 120 characters except for import lines."/>
+    <property name="severity" value="error"/>
+    <property name="ignorePattern" value="^import.*$"/>
+    <property name="max" value="120"/>
+    <property name="tabWidth" value="4"/>
+    <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
   </module>
   <module name="RegexpSingleline">
     <metadata name="net.sf.eclipsecs.core.comment" value="Don't allow non-ASCII characters."/>
