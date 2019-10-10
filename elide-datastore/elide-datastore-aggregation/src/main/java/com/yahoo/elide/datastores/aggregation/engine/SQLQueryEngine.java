@@ -43,9 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.Column;
 import javax.persistence.EntityManager;
-import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
 /**
@@ -75,6 +73,11 @@ public class SQLQueryEngine implements QueryEngine {
                         Function.identity(),
                         (clazz) -> (new SQLSchema(clazz, dictionary))
                 ));
+    }
+
+    @Override
+    public Schema getSchema(Class<?> entityClass) {
+        return schemas.get(entityClass);
     }
 
     @Override

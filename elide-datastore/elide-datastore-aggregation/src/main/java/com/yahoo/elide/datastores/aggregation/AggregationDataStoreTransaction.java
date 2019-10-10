@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.request.EntityProjection;
 
 import java.io.IOException;
@@ -48,12 +49,19 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
-        Query query = AggregationDataStore.buildQuery(entityProjection, scope);
+        Query query = buildQuery(entityProjection, scope);
         return queryEngine.executeQuery(query);
     }
 
     @Override
     public void close() throws IOException {
 
+    }
+
+    private Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
+        Schema schema = queryEngine.getSchema(entityProjection.getType());
+
+        AggregationDataStoreHelper agHelper = new AggregationDataStoreHelper(schema, entityProjection);
+        return agHelper.getQuery();
     }
 }

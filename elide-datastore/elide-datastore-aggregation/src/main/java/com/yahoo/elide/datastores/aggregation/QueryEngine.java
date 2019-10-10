@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 
 /**
  * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
@@ -49,7 +50,6 @@ import com.yahoo.elide.core.DataStoreTransaction;
  * <p>
  * This is a {@link java.util.function functional interface} whose functional method is {@link #executeQuery(Query)}.
  */
-@FunctionalInterface
 public interface QueryEngine {
 
     /**
@@ -61,4 +61,11 @@ public interface QueryEngine {
      * @return query results
      */
     Iterable<Object> executeQuery(Query query);
+
+    /**
+     * Returns the schema for a given entity class.
+     * @param entityClass The class to map to a schema.
+     * @return The schema that represents the provided entity.
+     */
+    Schema getSchema(Class<?> entityClass);
 }
