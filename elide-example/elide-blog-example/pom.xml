@@ -12,6 +12,41 @@
     <groupId>com.yahoo.elide</groupId>
     <version>4.5.5-SNAPSHOT</version>
 
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/yahoo/elide/issues</url>
+    </issueManagement>
+
+    <inceptionYear>2015</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray-elide-repo</id>
+            <url>https://api.bintray.com/maven/yahoo/maven/elide;publish=1</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <url>https://github.com/yahoo/elide.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
         <jar.finalName>elide-blog-example</jar.finalName>
         <postgres.version>42.2.7</postgres.version>
