@@ -10,6 +10,8 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.request.EntityProjection;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.IOException;
 
 /**
@@ -58,7 +60,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
     }
 
-    private Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
+    @VisibleForTesting
+    Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Schema schema = queryEngine.getSchema(entityProjection.getType());
 
         AggregationDataStoreHelper agHelper = new AggregationDataStoreHelper(schema, entityProjection);

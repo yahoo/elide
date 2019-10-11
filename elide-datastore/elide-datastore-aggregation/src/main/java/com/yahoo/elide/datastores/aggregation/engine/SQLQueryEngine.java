@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Table;
 
 /**
@@ -52,14 +53,14 @@ import javax.persistence.Table;
 @Slf4j
 public class SQLQueryEngine implements QueryEngine {
 
-    private EntityManager entityManager;
+    private EntityManagerFactory emf;
     private EntityDictionary dictionary;
 
     @Getter
     private Map<Class<?>, SQLSchema> schemas;
 
-    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
-        this.entityManager = entityManager;
+    public SQLQueryEngine(EntityManagerFactory emf, EntityDictionary dictionary) {
+        this.emf = emf;
         this.dictionary = dictionary;
 
         // Construct the list of schemas that will be managed by this query engine.
@@ -82,6 +83,7 @@ public class SQLQueryEngine implements QueryEngine {
 
     @Override
     public Iterable<Object> executeQuery(Query query) {
+        EntityManager entityManager = emf.createEntityManager();
         SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
 
         //Make sure we actually manage this schema.
