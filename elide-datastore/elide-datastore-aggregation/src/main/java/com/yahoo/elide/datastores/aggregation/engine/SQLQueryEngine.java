@@ -21,6 +21,8 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.engine.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.engine.schema.SQLDimension;
 import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
@@ -41,9 +43,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.Column;
 import javax.persistence.EntityManager;
-import javax.persistence.JoinColumn;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Table;
 
 /**
@@ -52,14 +53,14 @@ import javax.persistence.Table;
 @Slf4j
 public class SQLQueryEngine implements QueryEngine {
 
-    private EntityManager entityManager;
+    private EntityManagerFactory emf;
     private EntityDictionary dictionary;
 
     @Getter
     private Map<Class<?>, SQLSchema> schemas;
 
-    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
-        this.entityManager = entityManager;
+    public SQLQueryEngine(EntityManagerFactory emf, EntityDictionary dictionary) {
+        this.emf = emf;
         this.dictionary = dictionary;
 
         // Construct the list of schemas that will be managed by this query engine.
@@ -76,48 +77,62 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     @Override
+    public Schema getSchema(Class<?> entityClass) {
+        return schemas.get(entityClass);
+    }
+
+    @Override
     public Iterable<Object> executeQuery(Query query) {
-        SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
+        EntityManager entityManager = null;
+        try {
+            entityManager = emf.createEntityManager();
+            SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
 
-        //Make sure we actually manage this schema.
-        Preconditions.checkNotNull(schema);
+            //Make sure we actually manage this schema.
+            Preconditions.checkNotNull(schema);
 
-        //Translate the query into SQL.
-        SQLQuery sql = toSQL(query, schema);
+            //Translate the query into SQL.
+            SQLQuery sql = toSQL(query, schema);
+            log.debug("SQL Query: " + sql);
 
-        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
+            javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
 
-        Pagination pagination = query.getPagination();
-        if (pagination != null) {
-            jpaQuery.setFirstResult(pagination.getOffset());
-            jpaQuery.setMaxResults(pagination.getLimit());
+            Pagination pagination = query.getPagination();
+            if (pagination != null) {
+                jpaQuery.setFirstResult(pagination.getOffset());
+                jpaQuery.setMaxResults(pagination.getLimit());
 
-            if (pagination.isGenerateTotals()) {
+                if (pagination.isGenerateTotals()) {
 
-                SQLQuery paginationSQL = toPageTotalSQL(sql);
-                javax.persistence.Query pageTotalQuery =
-                        entityManager.createNativeQuery(paginationSQL.toString());
+                    SQLQuery paginationSQL = toPageTotalSQL(sql);
+                    javax.persistence.Query pageTotalQuery =
+                            entityManager.createNativeQuery(paginationSQL.toString());
 
-                //Supply the query parameters to the query
-                supplyFilterQueryParameters(query, pageTotalQuery);
+                    //Supply the query parameters to the query
+                    supplyFilterQueryParameters(query, pageTotalQuery);
 
-                //Run the Pagination query and log the time spent.
-                long total = new TimedFunction<>(
-                        () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
-                        "Running Query: " + paginationSQL
-                ).get();
+                    //Run the Pagination query and log the time spent.
+                    long total = new TimedFunction<>(
+                            () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
+                            "Running Query: " + paginationSQL
+                    ).get();
 
-                pagination.setPageTotals(total);
+                    pagination.setPageTotals(total);
+                }
+            }
+
+            //Supply the query parameters to the query
+            supplyFilterQueryParameters(query, jpaQuery);
+
+            //Run the primary query and log the time spent.
+            List<Object> results = new TimedFunction<>(() -> jpaQuery.getResultList(), "Running Query: " + sql).get();
+
+            return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
+        } finally {
+            if (entityManager != null) {
+                entityManager.close();
             }
         }
-
-        //Supply the query parameters to the query
-        supplyFilterQueryParameters(query, jpaQuery);
-
-        //Run the primary query and log the time spent.
-        List<Object> results = new TimedFunction<>(() -> jpaQuery.getResultList(), "Running Query: " + sql).get();
-
-        return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
     }
 
     /**
@@ -151,6 +166,8 @@ public class SQLQueryEngine implements QueryEngine {
 
         if (! query.getDimensions().isEmpty())  {
             builder.groupByClause(extractGroupBy(query));
+
+            joinPredicates.addAll(extractPathElements(query.getDimensions()));
         }
 
         if (query.getSorting() != null) {
@@ -186,6 +203,21 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
+     * Given the set of group by dimensions, extract any entity relationship traversals that require joins.
+     * @param groupByDims The list of dimensions we are grouping on.
+     * @return A set of path elements that capture a relationship traversal.
+     */
+    private Set<Path.PathElement> extractPathElements(Set<Dimension> groupByDims) {
+        return groupByDims.stream()
+            .map((SQLDimension.class::cast))
+            .filter((dim) -> dim.getJoinPath() != null)
+            .map(SQLDimension::getJoinPath)
+            .map((path) -> extractPathElements(path))
+            .flatMap((elements) -> elements.stream())
+            .collect(Collectors.toSet());
+    }
+
+    /**
      * Given a filter expression, extracts any entity relationship traversals that require joins.
      * @param expression The filter expression
      * @return A set of path elements that capture a relationship traversal.
@@ -194,9 +226,42 @@ public class SQLQueryEngine implements QueryEngine {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
-                .filter(predicate -> predicate.getPath().getPathElements().size() > 1)
                 .map(FilterPredicate::getPath)
-                .flatMap((path) -> path.getPathElements().stream())
+                .map(this::expandJoinToPath)
+                .filter(path -> path.getPathElements().size() > 1)
+                .map((path) -> extractPathElements(path))
+                .flatMap((elements) -> elements.stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Expands a predicate path (from a sort or filter predicate) to the path contained in
+     * the JoinTo annotation.  If no JoinTo annotation is present, the original path is returned.
+     * @param path The path to expand.
+     * @return The expanded path.
+     */
+    private Path expandJoinToPath(Path path) {
+        List<Path.PathElement> pathElements = path.getPathElements();
+        Path.PathElement pathElement = pathElements.get(0);
+
+        Class<?> type = pathElement.getType();
+        String fieldName = pathElement.getFieldName();
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(type, JoinTo.class, fieldName);
+
+        if (joinTo == null) {
+            return path;
+        }
+
+        return new Path(pathElement.getType(), dictionary, joinTo.path());
+    }
+
+    /**
+     * Given a path , extracts any entity relationship traversals that require joins.
+     * @param path The path
+     * @return A set of path elements that capture a relationship traversal.
+     */
+    private Set<Path.PathElement> extractPathElements(Path path) {
+        return path.getPathElements().stream()
                 .filter((p) -> dictionary.isRelation(p.getType(), p.getFieldName()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -208,6 +273,10 @@ public class SQLQueryEngine implements QueryEngine {
      * @return A SQL expression
      */
     private String extractJoin(Path.PathElement pathElement) {
+        //TODO - support composite join keys.
+        //TODO - support joins where either side owns the relationship.
+        //TODO - Support INNER and RIGHT joins.
+        //TODO - Support toMany joins.
         String relationshipName = pathElement.getFieldName();
         Class<?> relationshipClass = pathElement.getFieldType();
         String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
@@ -243,8 +312,9 @@ public class SQLQueryEngine implements QueryEngine {
 
         return sortClauses.entrySet().stream()
                 .map(Map.Entry::getKey)
-                .flatMap((path) -> path.getPathElements().stream())
-                .filter((element) -> dictionary.isRelation(element.getType(), element.getFieldName()))
+                .map(this::expandJoinToPath)
+                .map((path) -> extractPathElements(path))
+                .flatMap((elements) -> elements.stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -259,9 +329,12 @@ public class SQLQueryEngine implements QueryEngine {
             return "";
         }
 
+        //TODO - Ensure that order by columns are also present in the group by.
+
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
                     Path path = entry.getKey();
+                    path = expandJoinToPath(path);
                     Sorting.SortOrder order = entry.getValue();
 
                     Path.PathElement last = path.lastElement().get();
@@ -308,20 +381,7 @@ public class SQLQueryEngine implements QueryEngine {
      * @return
      */
     private String getColumnName(Class<?> entityClass, String fieldName) {
-        Column[] column = dictionary.getAttributeOrRelationAnnotations(entityClass, Column.class, fieldName);
-
-        JoinColumn[] joinColumn = dictionary.getAttributeOrRelationAnnotations(entityClass,
-                JoinColumn.class, fieldName);
-
-        if (column == null || column.length == 0) {
-            if (joinColumn == null || joinColumn.length == 0) {
-                return fieldName;
-            } else {
-                return joinColumn[0].name();
-            }
-        } else {
-            return column[0].name();
-        }
+        return SQLSchema.getColumnName(dictionary, entityClass, fieldName);
     }
 
     /**
@@ -334,8 +394,8 @@ public class SQLQueryEngine implements QueryEngine {
         Query clientQuery = sql.getClientQuery();
 
         String groupByDimensions = clientQuery.getDimensions().stream()
-                .map(Dimension::getName)
-                .map((name) -> getColumnName(clientQuery.getSchema().getEntityClass(), name))
+                .map((SQLDimension.class::cast))
+                .map(SQLDimension::getColumnName)
                 .collect(Collectors.joining(","));
 
         String projectionClause = String.format("SELECT COUNT(DISTINCT(%s))", groupByDimensions);
@@ -364,8 +424,8 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getDimensions().stream()
-                .map(Dimension::getName)
-                .map((name) -> getColumnName(query.getSchema().getEntityClass(), name))
+                .map((SQLDimension.class::cast))
+                .map(SQLDimension::getColumnReference)
                 .collect(Collectors.toList());
 
         String projectionClause = metricProjections.stream()
@@ -373,7 +433,6 @@ public class SQLQueryEngine implements QueryEngine {
 
         if (!dimensionProjections.isEmpty()) {
             projectionClause = projectionClause + "," + dimensionProjections.stream()
-                    .map((name) -> query.getSchema().getAlias() + "." + name)
                     .collect(Collectors.joining(","));
         }
 
@@ -387,12 +446,11 @@ public class SQLQueryEngine implements QueryEngine {
      */
     private String extractGroupBy(Query query) {
         List<String> dimensionProjections = query.getDimensions().stream()
-                .map(Dimension::getName)
-                .map((name) -> getColumnName(query.getSchema().getEntityClass(), name))
+                .map((SQLDimension.class::cast))
+                .map(SQLDimension::getColumnReference)
                 .collect(Collectors.toList());
 
         return "GROUP BY " + dimensionProjections.stream()
-                .map((name) -> query.getSchema().getAlias() + "." + name)
                 .collect(Collectors.joining(","));
     }
 
@@ -402,10 +460,26 @@ public class SQLQueryEngine implements QueryEngine {
      * @return A SQL fragment that references a database column
      */
     private String generateWhereClauseColumnReference(FilterPredicate predicate) {
-        Path.PathElement last = predicate.getPath().lastElement().get();
-        Class<?> lastClass = last.getType();
+        return generateWhereClauseColumnReference(predicate.getPath());
+    }
 
-        return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
+    /**
+     * Converts a filter predicate path into a SQL WHERE clause column reference.
+     * @param path The predicate path to convert
+     * @return A SQL fragment that references a database column
+     */
+    private String generateWhereClauseColumnReference(Path path) {
+        Path.PathElement last = path.lastElement().get();
+        Class<?> lastClass = last.getType();
+        String fieldName = last.getFieldName();
+
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
+
+        if (joinTo == null) {
+            return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
+        } else {
+            return generateWhereClauseColumnReference(new Path(lastClass, dictionary, joinTo.path()));
+        }
     }
 
     /**

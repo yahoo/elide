@@ -8,9 +8,6 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.request.EntityProjection;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
@@ -29,11 +26,5 @@ public abstract class AggregationDataStore implements DataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         return new AggregationDataStoreTransaction(queryEngine);
-    }
-
-    public static Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
-        Schema schema = new Schema(entityProjection.getType(), scope.getDictionary());
-        AggregationDataStoreHelper agHelper = new AggregationDataStoreHelper(schema, entityProjection);
-        return agHelper.getQuery();
     }
 }
