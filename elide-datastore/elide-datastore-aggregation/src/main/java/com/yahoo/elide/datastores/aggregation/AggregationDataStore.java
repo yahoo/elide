@@ -8,16 +8,22 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
 public abstract class AggregationDataStore implements DataStore {
 
-    private QueryEngine queryEngine;
+    private QueryEngineFactory queryEngineFactory;
 
-    public AggregationDataStore(QueryEngine queryEngine) {
-        this.queryEngine = queryEngine;
+    @Getter
+    @Setter
+    private EntityDictionary dictionary;
+
+    public AggregationDataStore(QueryEngineFactory queryEngineFactory) {
+        this.queryEngineFactory = queryEngineFactory;
     }
 
     @Override
@@ -25,6 +31,6 @@ public abstract class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new AggregationDataStoreTransaction(queryEngine);
+        return new AggregationDataStoreTransaction(queryEngineFactory, dictionary);
     }
 }

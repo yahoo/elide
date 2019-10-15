@@ -49,7 +49,18 @@ public class AggregatedMetric extends Column implements Metric {
             Class<?> fieldType,
             List<Class<? extends Aggregation>> aggregations
     ) {
-        super(schema, metricField, annotation, fieldType);
+        this(schema, metricField, annotation, fieldType, aggregations, metricField);
+    }
+
+    public AggregatedMetric(
+            Schema schema,
+            String metricField,
+            Meta annotation,
+            Class<?> fieldType,
+            List<Class<? extends Aggregation>> aggregations,
+            String columnName
+    ) {
+        super(schema, metricField, annotation, fieldType, columnName);
 
         // make sure we have at least 1 aggregation so we can generate static SQL functions
         if (aggregations.isEmpty()) {
@@ -67,7 +78,7 @@ public class AggregatedMetric extends Column implements Metric {
             Class<?> clazz = Class.forName(aggregation.getCanonicalName());
             Constructor<?> ctor = clazz.getConstructor();
             Aggregation instance = (Aggregation) ctor.newInstance();
-            return String.format(instance.getAggFunctionFormat(), schema.getAlias() + "." + name);
+            return String.format(instance.getAggFunctionFormat(), schema.getAlias() + "." + columnName);
         } catch (Exception exception) {
             String message = String.format(
                     "Cannot generate aggregation function for '%s'",
