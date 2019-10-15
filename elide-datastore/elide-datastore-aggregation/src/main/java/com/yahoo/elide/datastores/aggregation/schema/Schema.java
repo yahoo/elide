@@ -182,12 +182,18 @@ public class Schema {
                         )
                 );
 
+        String columnName = metricField;
+        if (entityDictionary.attributeOrRelationAnnotationExists(cls, metricField, javax.persistence.Column.class)) {
+            columnName = entityDictionary
+                    .getAttributeOrRelationAnnotation(cls, javax.persistence.Column.class, metricField).name();
+        }
         return new AggregatedMetric(
                 this,
                 metricField,
                 metaData,
                 fieldType,
-                aggregations
+                aggregations,
+                columnName
         );
     }
 

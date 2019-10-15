@@ -29,6 +29,8 @@ public abstract class Column {
     protected final Class<?> dataType;
     @Getter
     protected final Schema schema;
+    @Getter
+    protected final String columnName;
 
     /**
      * Constructor.
@@ -41,11 +43,16 @@ public abstract class Column {
      * @throws NullPointerException if {@code field} or {@code fieldType} is {@code null}
      */
     public Column(Schema schema, String field, Meta annotation, Class<?> fieldType) {
+        this(schema, field, annotation, fieldType, field);
+    }
+
+    public Column(Schema schema, String field, Meta annotation, Class<?> fieldType, String columnName) {
         this.name = Objects.requireNonNull(field, "field");
         this.longName = annotation == null || annotation.longName().isEmpty() ? field : annotation.longName();
         this.description = annotation == null || annotation.description().isEmpty() ? field : annotation.description();
         this.dataType = Objects.requireNonNull(fieldType, "fieldType");
         this.schema = schema;
+        this.columnName = Objects.requireNonNull(columnName, "field");
     }
 
     @Override

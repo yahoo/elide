@@ -15,14 +15,15 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
-    private QueryEngine qE;
+    private QueryEngineFactory queryEngineFactory;
 
-    public AggregationDataStoreTestHarness(QueryEngine qE) {
-        this.qE = qE;
+    public AggregationDataStoreTestHarness(QueryEngineFactory queryEngineFactory) {
+        this.queryEngineFactory = queryEngineFactory;
     }
+
     @Override
     public DataStore getDataStore() {
-        return new AggregationDataStore(qE) {
+        return new AggregationDataStore(queryEngineFactory) {
             @Override
             public void populateEntityDictionary(EntityDictionary dictionary) {
                 dictionary.bindEntity(PlayerStats.class);
@@ -30,6 +31,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                 dictionary.bindEntity(PlayerStatsView.class);
                 dictionary.bindEntity(Player.class);
                 dictionary.bindEntity(VideoGame.class);
+                this.setDictionary(dictionary);
             }
         };
     }

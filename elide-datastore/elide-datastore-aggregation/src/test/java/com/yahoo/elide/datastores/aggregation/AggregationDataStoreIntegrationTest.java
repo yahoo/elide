@@ -14,14 +14,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.datastores.aggregation.engine.SQLQueryEngine;
-import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.example.Player;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
-import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,15 +24,11 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Spy;
 
 import io.restassured.response.ValidatableResponse;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -47,25 +36,14 @@ import javax.ws.rs.core.MediaType;
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
-    @Spy
-    EntityDictionary entityDictionary;
-
-    QueryEngine qE;
+    QueryEngineFactory queryEngineFactory;
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        entityDictionary = new EntityDictionary(new HashMap<>());
-        entityDictionary.bindEntity(PlayerStats.class);
-        entityDictionary.bindEntity(Country.class);
-        entityDictionary.bindEntity(PlayerStatsView.class);
-        entityDictionary.bindEntity(Player.class);
-        entityDictionary.bindEntity(VideoGame.class);
-
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
-        qE = new SQLQueryEngine(emf, entityDictionary);
-        return new AggregationDataStoreTestHarness(qE);
+        queryEngineFactory = new SQLQueryEngineFactory();
+        return new AggregationDataStoreTestHarness(queryEngineFactory);
     }
 
     @Test
