@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Table;
 
 /**
@@ -52,14 +53,14 @@ import javax.persistence.Table;
 @Slf4j
 public class SQLQueryEngine implements QueryEngine {
 
-    private EntityManager entityManager;
+    private EntityManagerFactory emf;
     private EntityDictionary dictionary;
 
     @Getter
     private Map<Class<?>, SQLSchema> schemas;
 
-    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
-        this.entityManager = entityManager;
+    public SQLQueryEngine(EntityManagerFactory emf, EntityDictionary dictionary) {
+        this.emf = emf;
         this.dictionary = dictionary;
 
         // Construct the list of schemas that will be managed by this query engine.
@@ -82,48 +83,56 @@ public class SQLQueryEngine implements QueryEngine {
 
     @Override
     public Iterable<Object> executeQuery(Query query) {
-        SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
+        EntityManager entityManager = null;
+        try {
+            entityManager = emf.createEntityManager();
+            SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
 
-        //Make sure we actually manage this schema.
-        Preconditions.checkNotNull(schema);
+            //Make sure we actually manage this schema.
+            Preconditions.checkNotNull(schema);
 
-        //Translate the query into SQL.
-        SQLQuery sql = toSQL(query, schema);
-        log.debug("SQL Query: "  + sql);
+            //Translate the query into SQL.
+            SQLQuery sql = toSQL(query, schema);
+            log.debug("SQL Query: " + sql);
 
-        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
+            javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
 
-        Pagination pagination = query.getPagination();
-        if (pagination != null) {
-            jpaQuery.setFirstResult(pagination.getOffset());
-            jpaQuery.setMaxResults(pagination.getLimit());
+            Pagination pagination = query.getPagination();
+            if (pagination != null) {
+                jpaQuery.setFirstResult(pagination.getOffset());
+                jpaQuery.setMaxResults(pagination.getLimit());
 
-            if (pagination.isGenerateTotals()) {
+                if (pagination.isGenerateTotals()) {
 
-                SQLQuery paginationSQL = toPageTotalSQL(sql);
-                javax.persistence.Query pageTotalQuery =
-                        entityManager.createNativeQuery(paginationSQL.toString());
+                    SQLQuery paginationSQL = toPageTotalSQL(sql);
+                    javax.persistence.Query pageTotalQuery =
+                            entityManager.createNativeQuery(paginationSQL.toString());
 
-                //Supply the query parameters to the query
-                supplyFilterQueryParameters(query, pageTotalQuery);
+                    //Supply the query parameters to the query
+                    supplyFilterQueryParameters(query, pageTotalQuery);
 
-                //Run the Pagination query and log the time spent.
-                long total = new TimedFunction<>(
-                        () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
-                        "Running Query: " + paginationSQL
-                ).get();
+                    //Run the Pagination query and log the time spent.
+                    long total = new TimedFunction<>(
+                            () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
+                            "Running Query: " + paginationSQL
+                    ).get();
 
-                pagination.setPageTotals(total);
+                    pagination.setPageTotals(total);
+                }
+            }
+
+            //Supply the query parameters to the query
+            supplyFilterQueryParameters(query, jpaQuery);
+
+            //Run the primary query and log the time spent.
+            List<Object> results = new TimedFunction<>(() -> jpaQuery.getResultList(), "Running Query: " + sql).get();
+
+            return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
+        } finally {
+            if (entityManager != null) {
+                entityManager.close();
             }
         }
-
-        //Supply the query parameters to the query
-        supplyFilterQueryParameters(query, jpaQuery);
-
-        //Run the primary query and log the time spent.
-        List<Object> results = new TimedFunction<>(() -> jpaQuery.getResultList(), "Running Query: " + sql).get();
-
-        return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
     }
 
     /**

@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -74,8 +73,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testFullTableLoad() {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Query query = Query.builder()
                 .schema(playerStatsSchema)
@@ -118,8 +116,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testDegenerateDimensionFilter() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Query query = Query.builder()
                 .schema(playerStatsSchema)
@@ -152,8 +149,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testFilterJoin() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Query query = Query.builder()
                 .schema(playerStatsSchema)
@@ -201,8 +197,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testSubqueryFilterJoin() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Query query = Query.builder()
                 .schema(playerStatsViewSchema)
@@ -229,8 +224,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testSubqueryLoad() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Query query = Query.builder()
                 .schema(playerStatsViewSchema)
@@ -253,8 +247,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testSortJoin() {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("player.name", Sorting.SortOrder.asc);
@@ -299,8 +292,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testPagination() {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
 
@@ -336,8 +328,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testHavingClause() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Query query = Query.builder()
                 .schema(playerStatsSchema)
@@ -367,8 +358,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testTheEverythingQuery() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("player.name", Sorting.SortOrder.asc);
@@ -401,8 +391,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testSortByMultipleColumns() {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("lowScore", Sorting.SortOrder.desc);
@@ -448,8 +437,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testRelationshipHydration() {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("country.name", Sorting.SortOrder.desc);
@@ -508,8 +496,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testJoinToGroupBy() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Query query = Query.builder()
                 .schema(playerStatsSchema)
@@ -542,8 +529,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testJoinToFilter() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Query query = Query.builder()
                 .schema(playerStatsSchema)
@@ -578,8 +564,7 @@ public class SQLQueryEngineTest {
      */
     @Test
     public void testJoinToSort() throws Exception {
-        EntityManager em = emf.createEntityManager();
-        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
 
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryIsoCode", Sorting.SortOrder.asc);

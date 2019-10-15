@@ -38,7 +38,6 @@ import io.restassured.response.ValidatableResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
@@ -65,8 +64,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         entityDictionary.bindEntity(VideoGame.class);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
-        EntityManager em = emf.createEntityManager();
-        qE = new SQLQueryEngine(em, entityDictionary);
+        qE = new SQLQueryEngine(emf, entityDictionary);
         return new AggregationDataStoreTestHarness(qE);
     }
 
