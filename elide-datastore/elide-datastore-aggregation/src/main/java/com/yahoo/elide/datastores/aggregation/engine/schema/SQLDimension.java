@@ -11,6 +11,9 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
 
+/**
+ * A dimension but supporting extra metadata needed to generate SQL.
+ */
 public class SQLDimension implements Dimension {
 
     private final Dimension wrapped;
@@ -18,10 +21,24 @@ public class SQLDimension implements Dimension {
     private final String tableAlias;
     private final Path joinPath;
 
+    /**
+     * Constructor
+     * @param dimension a wrapped dimension.
+     * @param columnAlias The column alias in SQL to refer to this dimension.
+     * @param tableAlias The table alias in SQL where this dimension lives.
+     */
     public SQLDimension(Dimension dimension, String columnAlias, String tableAlias) {
         this(dimension, columnAlias, tableAlias, null);
     }
 
+    /**
+     * Constructor
+     * @param dimension a wrapped dimension.
+     * @param columnAlias The column alias in SQL to refer to this dimension.
+     * @param tableAlias The table alias in SQL where this dimension lives.
+     * @param joinPath A '.' separated path through the entity relationship graph that describes
+     *                 how to join the time dimension into the current AnalyticView.
+     */
     public SQLDimension(Dimension dimension, String columnAlias, String tableAlias, Path joinPath) {
         this.wrapped = dimension;
         this.columnAlias = columnAlias;
@@ -72,10 +89,18 @@ public class SQLDimension implements Dimension {
         return tableAlias;
     }
 
+    /**
+     * Returns the join path of this dimension.
+     * @return Something like "author.book.publisher.name"
+     */
     public Path getJoinPath() {
         return joinPath;
     }
 
+    /**
+     * Returns a String that identifies this dimension in a SQL query.
+     * @return Something like "table_alias.column_name"
+     */
     public String getColumnReference() {
         return getTableAlias() + "." + getColumnName();
     }

@@ -80,6 +80,13 @@ public class SQLSchema extends Schema {
         return new SQLDimension(dim, getJoinColumn(path), getJoinTableAlias(path), path);
     }
 
+    /**
+     * Maps a logical entity attribute into a physical SQL column name.
+     * @param entityDictionary The dictionary for this elide instance.
+     * @param clazz The entity class.
+     * @param fieldName The entity attribute.
+     * @return The physical SQL column name.
+     */
     public static String getColumnName(EntityDictionary entityDictionary, Class<?> clazz, String fieldName) {
         Column[] column = entityDictionary.getAttributeOrRelationAnnotations(clazz, Column.class, fieldName);
 
