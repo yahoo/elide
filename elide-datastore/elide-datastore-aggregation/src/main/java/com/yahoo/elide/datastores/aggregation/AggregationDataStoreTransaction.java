@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.request.EntityProjection;
@@ -19,12 +18,10 @@ import java.io.IOException;
  * Transaction handler for {@link AggregationDataStore}
  */
 public class AggregationDataStoreTransaction implements DataStoreTransaction {
-    private QueryEngineFactory queryEngineFactory;
     private QueryEngine queryEngine;
 
-    public AggregationDataStoreTransaction(QueryEngineFactory queryEngineFactory, EntityDictionary dictionary) {
-        this.queryEngineFactory = queryEngineFactory;
-        queryEngine = queryEngineFactory.buildQueryEngine(dictionary);
+    public AggregationDataStoreTransaction(QueryEngine queryEngine) {
+        this.queryEngine = queryEngine;
     }
 
     @Override
