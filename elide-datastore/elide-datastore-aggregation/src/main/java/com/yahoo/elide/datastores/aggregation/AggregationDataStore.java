@@ -17,6 +17,7 @@ import lombok.Setter;
 public abstract class AggregationDataStore implements DataStore {
 
     private QueryEngineFactory queryEngineFactory;
+    private QueryEngine queryEngine;
 
     @Getter
     @Setter
@@ -24,6 +25,7 @@ public abstract class AggregationDataStore implements DataStore {
 
     public AggregationDataStore(QueryEngineFactory queryEngineFactory) {
         this.queryEngineFactory = queryEngineFactory;
+        queryEngine = null;
     }
 
     @Override
@@ -31,6 +33,9 @@ public abstract class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new AggregationDataStoreTransaction(queryEngineFactory, dictionary);
+        if (queryEngine == null) {
+            queryEngine = queryEngineFactory.buildQueryEngine(dictionary);
+        }
+        return new AggregationDataStoreTransaction(queryEngine);
     }
 }
