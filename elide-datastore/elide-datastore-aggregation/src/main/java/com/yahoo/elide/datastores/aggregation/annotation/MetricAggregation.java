@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
-import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
+import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

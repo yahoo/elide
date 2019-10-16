@@ -7,13 +7,13 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
-import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
-import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
-import com.yahoo.elide.datastores.aggregation.metric.Metric;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
+import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;

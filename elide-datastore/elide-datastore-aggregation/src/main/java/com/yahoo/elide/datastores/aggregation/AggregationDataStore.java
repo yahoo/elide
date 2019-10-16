@@ -14,14 +14,21 @@ import com.yahoo.elide.core.EntityDictionary;
  */
 public abstract class AggregationDataStore implements DataStore {
 
+    private final QueryEngineFactory queryEngineFactory;
     private QueryEngine queryEngine;
 
-    public AggregationDataStore(QueryEngine queryEngine) {
-        this.queryEngine = queryEngine;
+    public AggregationDataStore(QueryEngineFactory queryEngineFactory) {
+        this.queryEngineFactory = queryEngineFactory;
     }
 
+    /**
+     * Populate an {@link EntityDictionary} and use this dictionary to construct a {@link QueryEngine}.
+     * @param dictionary the dictionary
+     */
     @Override
-    public abstract void populateEntityDictionary(EntityDictionary dictionary);
+    public void populateEntityDictionary(EntityDictionary dictionary) {
+        queryEngine = queryEngineFactory.buildQueryEngine(dictionary);
+    }
 
     @Override
     public DataStoreTransaction beginTransaction() {

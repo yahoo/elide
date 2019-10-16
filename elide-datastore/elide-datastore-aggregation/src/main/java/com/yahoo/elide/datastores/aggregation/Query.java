@@ -9,12 +9,12 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
-import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
-import com.yahoo.elide.datastores.aggregation.metric.Metric;
-
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
+import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
