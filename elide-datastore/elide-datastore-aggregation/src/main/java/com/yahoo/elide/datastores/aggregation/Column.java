@@ -52,7 +52,7 @@ public abstract class Column {
         this.description = annotation == null || annotation.description().isEmpty() ? field : annotation.description();
         this.dataType = Objects.requireNonNull(fieldType, "fieldType");
         this.schema = schema;
-        this.columnName = Objects.requireNonNull(columnName, "field");
+        this.columnName = Objects.requireNonNull(columnName, "columnName");
     }
 
     @Override

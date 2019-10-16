@@ -9,13 +9,16 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.engine.SQLQueryEngine;
 
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 public class SQLQueryEngineFactory implements QueryEngineFactory {
+    private EntityManagerFactory emf;
+
+    public SQLQueryEngineFactory(EntityManagerFactory emf) {
+        this.emf = emf;
+    }
 
     @Override
     public QueryEngine buildQueryEngine(EntityDictionary dictionary) {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
         return new SQLQueryEngine(emf, dictionary);
     }
 }

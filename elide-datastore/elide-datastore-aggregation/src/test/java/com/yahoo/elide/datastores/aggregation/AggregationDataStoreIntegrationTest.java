@@ -29,6 +29,8 @@ import io.restassured.response.ValidatableResponse;
 
 import java.io.IOException;
 import java.util.Map;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -42,7 +44,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        queryEngineFactory = new SQLQueryEngineFactory();
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
+        queryEngineFactory = new SQLQueryEngineFactory(emf);
         return new AggregationDataStoreTestHarness(queryEngineFactory);
     }
 

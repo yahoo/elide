@@ -26,7 +26,7 @@ public class VideoGame {
     @Id
     private Long id;
 
-    @Column(name = "rounds")
+    @Column(name = "game_rounds")
     @MetricAggregation(aggregations = {Sum.class})
     Long sessions;
 
