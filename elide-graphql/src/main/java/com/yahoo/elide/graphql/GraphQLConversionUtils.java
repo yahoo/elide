@@ -154,7 +154,7 @@ public class GraphQLConversionUtils {
      */
     public GraphQLList classToInputMap(Class<?> keyClazz,
                                        Class<?> valueClazz) {
-        String mapName = toValidNameName("__input__" + keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+        String mapName = toValidNameName("_input__" + keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
 
         if (mapConversions.containsKey(mapName)) {
             return mapConversions.get(mapName);
@@ -396,7 +396,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLInputObjectType.Builder objectBuilder = newInputObject();
-        objectBuilder.name(toValidNameName("__input__" + clazz.getName()));
+        objectBuilder.name(toValidNameName("_input__" + clazz.getName()));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             log.info("Building input object attribute: {}", attribute);
