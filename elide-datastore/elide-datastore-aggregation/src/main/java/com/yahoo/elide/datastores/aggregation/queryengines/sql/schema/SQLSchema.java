@@ -101,19 +101,13 @@ public class SQLSchema extends Schema {
 
         List<Class<? extends Aggregation>> aggregations = getAggregations(metricField, cls, entityDictionary);
 
-        String columnName = metricField;
-        if (entityDictionary.attributeOrRelationAnnotationExists(cls, metricField, javax.persistence.Column.class)) {
-            columnName = entityDictionary
-                    .getAttributeOrRelationAnnotation(cls, javax.persistence.Column.class, metricField).name();
-        }
-
         return new SQLMetric(
                 this,
                 metricField,
                 metaData,
                 fieldType,
                 aggregations,
-                columnName
+                getColumnName(entityDictionary, cls, metricField)
         );
     }
 
@@ -127,6 +121,7 @@ public class SQLSchema extends Schema {
     public static String getColumnName(EntityDictionary entityDictionary, Class<?> clazz, String fieldName) {
         Column[] column = entityDictionary.getAttributeOrRelationAnnotations(clazz, Column.class, fieldName);
 
+        // this would only be valid for dimension columns
         JoinColumn[] joinColumn = entityDictionary.getAttributeOrRelationAnnotations(clazz,
                 JoinColumn.class, fieldName);
 
