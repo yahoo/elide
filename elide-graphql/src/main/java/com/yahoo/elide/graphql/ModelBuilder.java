@@ -255,9 +255,10 @@ public class ModelBuilder {
                 continue;
             }
 
-            log.debug("Building query attribute {} {} for entity {}",
+            log.debug("Building query attribute {} {} with arguments {} for entity {}",
                     attribute,
                     attributeClass.getName(),
+                    dictionary.getAttributeArguments(attributeClass,attribute).toString(),
                     entityClass.getName());
 
             GraphQLType attributeType =
@@ -269,6 +270,7 @@ public class ModelBuilder {
 
             builder.field(newFieldDefinition()
                     .name(attribute)
+                    .argument(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
                     .dataFetcher(dataFetcher)
                     .type((GraphQLOutputType) attributeType)
             );

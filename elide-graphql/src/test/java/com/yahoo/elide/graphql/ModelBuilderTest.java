@@ -9,11 +9,14 @@ package com.yahoo.elide.graphql;
 import static graphql.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.sort.Sorting;
 
 import example.Author;
 import example.Book;
@@ -31,6 +34,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -187,6 +191,24 @@ public class ModelBuilderTest {
 
         GraphQLList booksInputType = (GraphQLList) authorInputType.getField(BOOKS).getType();
         assertTrue(booksInputType.getWrappedType().equals(bookInputType));
+    }
+
+    @Test
+    public void checkAttributeArguments() {
+        Set<ArgumentType> arguments = new HashSet<>();
+        arguments.add(new ArgumentType(SORT, Sorting.SortOrder.class));
+        arguments.add(new ArgumentType(TYPE, String.class));
+        dictionary.addArgumentsToAttributes(Book.class, PUBLISH_DATE, arguments);
+
+        DataFetcher fetcher = mock(DataFetcher.class);
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(BOOK), null);
+        assertEquals(2, bookType.getFieldDefinition(PUBLISH_DATE).getArguments().size());
+        assertTrue(bookType.getFieldDefinition(PUBLISH_DATE).getArgument(SORT).getType() instanceof GraphQLEnumType);
+        assertTrue(bookType.getFieldDefinition(PUBLISH_DATE).getArgument(TYPE).getType().equals(Scalars.GraphQLString));
     }
 
     private GraphQLObjectType getConnectedType(GraphQLObjectType root, String connectionName) {
