@@ -8,34 +8,30 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
 public abstract class AggregationDataStore implements DataStore {
 
-    private QueryEngineFactory queryEngineFactory;
+    private final QueryEngineFactory queryEngineFactory;
     private QueryEngine queryEngine;
-
-    @Getter
-    @Setter
-    private EntityDictionary dictionary;
 
     public AggregationDataStore(QueryEngineFactory queryEngineFactory) {
         this.queryEngineFactory = queryEngineFactory;
-        queryEngine = null;
+    }
+
+    /**
+     * Populate an {@link EntityDictionary} and use this dictionary to construct a {@link QueryEngine}.
+     * @param dictionary the dictionary
+     */
+    @Override
+    public void populateEntityDictionary(EntityDictionary dictionary) {
+        queryEngine = queryEngineFactory.buildQueryEngine(dictionary);
     }
 
     @Override
-    public abstract void populateEntityDictionary(EntityDictionary dictionary);
-
-    @Override
     public DataStoreTransaction beginTransaction() {
-        if (queryEngine == null) {
-            queryEngine = queryEngineFactory.buildQueryEngine(dictionary);
-        }
         return new AggregationDataStoreTransaction(queryEngine);
     }
 }

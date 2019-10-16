@@ -8,8 +8,8 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
-import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.metric.Sum;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

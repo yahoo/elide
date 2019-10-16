@@ -8,20 +8,18 @@ package com.yahoo.elide.datastores.aggregation.schema;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.datastores.aggregation.Column;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
-import com.yahoo.elide.datastores.aggregation.dimension.impl.DegenerateDimension;
-import com.yahoo.elide.datastores.aggregation.dimension.impl.EntityDimension;
-import com.yahoo.elide.datastores.aggregation.dimension.impl.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.metric.AggregatedMetric;
-import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
-import com.yahoo.elide.datastores.aggregation.metric.Metric;
-
+import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.DegenerateDimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.EntityDimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.schema.metric.AggregatedMetric;
+import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
+import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -167,8 +165,32 @@ public class Schema {
         Meta metaData = entityDictionary.getAttributeOrRelationAnnotation(cls, Meta.class, metricField);
         Class<?> fieldType = entityDictionary.getType(cls, metricField);
 
-        // get all metric aggregations
-        List<Class<? extends Aggregation>> aggregations = Arrays.stream(
+        List<Class<? extends Aggregation>> aggregations = getAggregations(metricField, cls, entityDictionary);
+
+        return new AggregatedMetric(
+                this,
+                metricField,
+                metaData,
+                fieldType,
+                aggregations
+        );
+    }
+
+    /**
+     * Retrieve all supported aggregations for a metric.
+     *
+     * @param metricField  The entity field
+     * @param cls  The entity class
+     * @param entityDictionary  The auxiliary object that offers binding information
+     *
+     * @return list of supported aggregations
+     */
+    protected static List<Class<? extends Aggregation>> getAggregations(
+            String metricField,
+            Class<?> cls,
+            EntityDictionary entityDictionary
+    ) {
+        return Arrays.stream(
                 entityDictionary.getAttributeOrRelationAnnotation(
                         cls,
                         MetricAggregation.class,
@@ -181,20 +203,6 @@ public class Schema {
                                 Collections::unmodifiableList
                         )
                 );
-
-        String columnName = metricField;
-        if (entityDictionary.attributeOrRelationAnnotationExists(cls, metricField, javax.persistence.Column.class)) {
-            columnName = entityDictionary
-                    .getAttributeOrRelationAnnotation(cls, javax.persistence.Column.class, metricField).name();
-        }
-        return new AggregatedMetric(
-                this,
-                metricField,
-                metaData,
-                fieldType,
-                aggregations,
-                columnName
-        );
     }
 
     /**

@@ -31,7 +31,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                 dictionary.bindEntity(PlayerStatsView.class);
                 dictionary.bindEntity(Player.class);
                 dictionary.bindEntity(VideoGame.class);
-                this.setDictionary(dictionary);
+                super.populateEntityDictionary(dictionary);
             }
         };
     }

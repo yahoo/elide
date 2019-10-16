@@ -7,6 +7,9 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.EntityDictionary;
 
+/**
+ * Interface that constructs {@link QueryEngine} based on given entityDictionary.
+ */
 public interface QueryEngineFactory {
 
     public QueryEngine buildQueryEngine(EntityDictionary dictionary);
