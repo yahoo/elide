@@ -398,7 +398,7 @@ public class SQLQueryEngine implements QueryEngine {
                 .map(SQLDimension::getColumnName)
                 .collect(Collectors.joining(","));
 
-        String projectionClause = String.format("SELECT COUNT(DISTINCT(%s))", groupByDimensions);
+        String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
 
         return SQLQuery.builder()
                 .clientQuery(sql.getClientQuery())
