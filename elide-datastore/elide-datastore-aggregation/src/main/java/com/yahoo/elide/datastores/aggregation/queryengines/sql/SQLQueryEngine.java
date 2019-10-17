@@ -31,6 +31,8 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
 
+import org.hibernate.jpa.QueryHints;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -115,7 +117,8 @@ public class SQLQueryEngine implements QueryEngine {
 
                     SQLQuery paginationSQL = toPageTotalSQL(sql);
                     javax.persistence.Query pageTotalQuery =
-                            entityManager.createNativeQuery(paginationSQL.toString());
+                            entityManager.createNativeQuery(paginationSQL.toString())
+                                    .setHint(QueryHints.HINT_READONLY, true);
 
                     //Supply the query parameters to the query
                     supplyFilterQueryParameters(query, pageTotalQuery);
@@ -134,7 +137,9 @@ public class SQLQueryEngine implements QueryEngine {
             supplyFilterQueryParameters(query, jpaQuery);
 
             //Run the primary query and log the time spent.
-            List<Object> results = new TimedFunction<>(() -> jpaQuery.getResultList(), "Running Query: " + sql).get();
+            List<Object> results = new TimedFunction<>(
+                    () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
+                    "Running Query: " + sql).get();
 
             return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
         } finally {
