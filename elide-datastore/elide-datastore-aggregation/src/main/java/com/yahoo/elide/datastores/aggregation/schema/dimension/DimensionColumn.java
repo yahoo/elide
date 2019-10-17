@@ -66,4 +66,18 @@ public interface DimensionColumn extends ProjectedDimension {
      * @return a human displayable name of this {@link ProjectedDimension}.
      */
     String getFriendlyName();
+
+    /**
+     * Converts the schema column into a projected dimension.
+     * @return the projected dimension.
+     */
+    default ProjectedDimension toProjectedDimension() {
+        String name = getName();
+        return new ProjectedDimension() {
+            @Override
+            public String getName() {
+                return name;
+            }
+        };
+    }
 }

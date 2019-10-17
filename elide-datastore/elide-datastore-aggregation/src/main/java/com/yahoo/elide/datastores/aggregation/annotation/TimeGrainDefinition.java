@@ -10,14 +10,14 @@ import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 /**
  * A time grain that a time based dimension can be converted to.
  */
-public @interface Grain {
+public @interface TimeGrainDefinition {
 
     /**
      * The unit into which temporal column can be divided.
      *
      * @return One of the supported time grains of a persistent storage column
      */
-    TimeGrain grain();
+    TimeGrain grain() default TimeGrain.DAY;
 
     /**
      * Optional expression used by the QueryEngine to represent the grain natively.
@@ -25,5 +25,5 @@ public @interface Grain {
      *
      * @return An expression which defines the grain and is meaningful to the Query Engine.
      */
-    String expression();
+    String expression() default "";
 }

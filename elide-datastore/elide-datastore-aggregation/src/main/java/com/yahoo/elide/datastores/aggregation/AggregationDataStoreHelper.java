@@ -7,21 +7,28 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
 import com.yahoo.elide.datastores.aggregation.query.ProjectedTimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,9 +51,8 @@ public class AggregationDataStoreHelper {
     public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection) {
         this.schema = schema;
         this.entityProjection = entityProjection;
-        projectedDimensions = new LinkedHashSet<>();
-        timeDimensions = new LinkedHashSet<>();
-        resolveDimensionLists(projectedDimensions, timeDimensions);
+        projectedDimensions = resolveNonTimeDimensions();
+        timeDimensions = resolveTimeDimensions();
         Set<Metric> metrics = new LinkedHashSet<>();
         resolveMetricList(metrics);
         metricMap = new LinkedHashMap<>();
@@ -87,25 +93,60 @@ public class AggregationDataStoreHelper {
         havingFilter = constraints.getHavingExpression();
     }
 
+    //TODO - Add tests in the next PR.
+    private Set<ProjectedTimeDimension> resolveTimeDimensions() {
+        Set<ProjectedTimeDimension> timeDims = new LinkedHashSet<>();
+        //Only attributes can be time dimensions
+        entityProjection.getAttributes().stream().forEach((attribute -> {
+            TimeDimensionColumn timeDim = schema.getTimeDimension(attribute.getName());
+            if (timeDim == null) {
+                return;
+            }
+
+            Argument timeGrainArgument = attribute.getArguments().stream()
+                    .filter(attr -> attr.getName().equals("grain"))
+                    .findAny()
+                    .orElse(null);
+
+            String requestedGrainName = timeGrainArgument.getValue().toString();
+
+            TimeGrainDefinition requestedGrainDefinition;
+
+            if (timeGrainArgument == null) {
+
+                //The first grain is the default.
+                requestedGrainDefinition = timeDim.getSupportedGrains()[0];
+            } else {
+                TimeGrain requestedGrain = TimeGrain.valueOf(requestedGrainName);
+
+                requestedGrainDefinition = Arrays.stream(timeDim.getSupportedGrains())
+                        .filter(supportedGrainDef -> supportedGrainDef.grain().equals(requestedGrain))
+                        .findAny()
+                        .orElseThrow(() -> new InvalidOperationException(
+                                String.format("Requested grain %s, not supported on %s",
+                                        requestedGrainName, attribute.getName())));
+            }
+
+            timeDims.add(timeDim.toProjectedDimension(requestedGrainDefinition));
+        }));
+
+        return timeDims;
+    }
+
     /**
-     * Gets dimensions and timeDimensions based on relationships and attributes from {@link EntityProjection}.
-     * @param projectedDimensions Empty set of {@link ProjectedDimension} objects.
-     * @param timeDimensions Empty set of {@link ProjectedTimeDimension} objects.
+     * Gets dimensions based on relationships and attributes from {@link EntityProjection}.
      */
-    private void resolveDimensionLists(Set<ProjectedDimension> projectedDimensions,
-                                       Set<ProjectedTimeDimension> timeDimensions) {
-        Set<String> relationshipNames = getRelationships();
-        Set<String> attributeNames = getAttributes(); // time dimensions are under attribute in entity projection
-        for (ProjectedDimension projectedDimension : schema.getDimensions()) {
-            if (projectedDimension instanceof ProjectedTimeDimension
-                    && attributeNames.contains(projectedDimension.getName())) {
-                timeDimensions.add((ProjectedTimeDimension) projectedDimension);
-            }
-            else if (relationshipNames.contains(projectedDimension.getName())
-                    || attributeNames.contains(projectedDimension.getName())) {
-                projectedDimensions.add(projectedDimension);
-            }
-        }
+    private Set<ProjectedDimension> resolveNonTimeDimensions() {
+
+        Set<String> allColumns = getAttributes();
+        allColumns.addAll(getRelationships());
+
+        return allColumns.stream()
+                .map(columnName -> schema.getDimension(columnName))
+                .filter(Objects::nonNull)
+                .filter(column -> ! (column instanceof TimeDimensionColumn))
+                .map(DimensionColumn::toProjectedDimension)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -140,7 +181,7 @@ public class AggregationDataStoreHelper {
      */
     private Set<String> getAttributes() {
         return entityProjection.getAttributes().stream()
-                .map(Attribute::getName).collect(Collectors.toSet());
+                .map(Attribute::getName).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -149,6 +190,6 @@ public class AggregationDataStoreHelper {
      */
     private Set<String> getRelationships() {
         return entityProjection.getRelationships().stream()
-                .map(Relationship::getName).collect(Collectors.toSet());
+                .map(Relationship::getName).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

@@ -13,7 +13,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedTimeDimension;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.DegenerateDimension;
@@ -22,7 +21,6 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.TimeDimensio
 import com.yahoo.elide.datastores.aggregation.schema.metric.AggregatedMetric;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -123,26 +121,6 @@ public class Schema {
                 .filter(dimension -> dimension instanceof TimeDimensionColumn)
                 .map(TimeDimensionColumn.class::cast)
                 .findAny()
-                .orElse(null);
-    }
-
-    /**
-     * Searches the schema for a time dimension column that matches the requested column name and time grain.
-     * @param grain The column time grain requested.
-     * @param dimensionName The name of the column.
-     * @return A newly constructed requested time dimension with the matching grain.
-     */
-    public ProjectedTimeDimension getRequestedGrain(TimeGrain grain, String dimensionName) {
-        TimeDimensionColumn column = getTimeDimension(dimensionName);
-
-        if (column == null) {
-            return null;
-        }
-
-        return Arrays.stream(column.getSupportedGrains())
-                .filter(supportedGrain -> supportedGrain.grain().equals(grain))
-                .findFirst()
-                .map(supportedGrain -> column.toRequestedTimeDimension(supportedGrain))
                 .orElse(null);
     }
 

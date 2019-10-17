@@ -7,7 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.schema;
 
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.datastores.aggregation.annotation.Grain;
+import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 
 import java.util.TimeZone;
@@ -46,7 +46,7 @@ public class SQLTimeDimension extends SQLDimension implements TimeDimensionColum
     }
 
     @Override
-    public Grain[] getSupportedGrains() {
+    public TimeGrainDefinition[] getSupportedGrains() {
         return ((TimeDimensionColumn) wrapped).getSupportedGrains();
     }
 }

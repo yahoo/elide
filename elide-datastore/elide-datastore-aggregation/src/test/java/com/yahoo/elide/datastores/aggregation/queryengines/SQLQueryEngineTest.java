@@ -18,10 +18,12 @@ import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
+import com.yahoo.elide.datastores.aggregation.query.ProjectedTimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
 
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +84,7 @@ public class SQLQueryEngineTest {
                 .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -125,7 +128,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
                         PlayerStats.class, false))
                 .build();
@@ -159,7 +162,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .groupDimension(playerStatsSchema.getDimension("country"))
-                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("country.name=='United States'",
                         PlayerStats.class, false))
                 .build();
@@ -258,7 +261,7 @@ public class SQLQueryEngineTest {
                 .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -303,7 +306,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
                 .pagination(pagination)
                 .build();
 
@@ -403,7 +406,7 @@ public class SQLQueryEngineTest {
                 .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -450,7 +453,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .groupDimension(playerStatsSchema.getDimension("country"))
-                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -607,4 +610,24 @@ public class SQLQueryEngineTest {
     }
 
     //TODO - Add Invalid Request Tests
+
+    /**
+     * Searches the schema for a time dimension column that matches the requested column name and time grain.
+     * @param grain The column time grain requested.
+     * @param dimensionName The name of the column.
+     * @return A newly constructed requested time dimension with the matching grain.
+     */
+    private static ProjectedTimeDimension toTimeDimension(Schema schema, TimeGrain grain, String dimensionName) {
+        TimeDimensionColumn column = schema.getTimeDimension(dimensionName);
+
+        if (column == null) {
+            return null;
+        }
+
+        return Arrays.stream(column.getSupportedGrains())
+                .filter(supportedGrain -> supportedGrain.grain().equals(grain))
+                .findFirst()
+                .map(supportedGrain -> column.toProjectedDimension(supportedGrain))
+                .orElse(null);
+    }
 }

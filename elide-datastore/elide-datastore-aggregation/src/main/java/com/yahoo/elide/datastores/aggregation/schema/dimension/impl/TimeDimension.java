@@ -6,8 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.schema.dimension.impl;
 
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.Grain;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.ColumnType;
@@ -33,7 +33,7 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
     @Getter
     private final TimeZone timeZone;
     @Getter
-    private Grain[] supportedGrains;
+    private TimeGrainDefinition[] supportedGrains;
 
     /**
      * Constructor.
@@ -57,7 +57,7 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
             CardinalitySize cardinality,
             String friendlyName,
             TimeZone timeZone,
-            Grain[] supportedGrains
+            TimeGrainDefinition[] supportedGrains
     ) {
         super(schema, dimensionField, annotation, fieldType, cardinality, friendlyName, ColumnType.TEMPORAL);
         this.timeZone = Objects.requireNonNull(timeZone, "timeZone");
@@ -65,7 +65,7 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
     }
 
     @Override
-    public Grain[] getSupportedGrains() {
+    public TimeGrainDefinition[] getSupportedGrains() {
         return supportedGrains;
     }
 
@@ -111,7 +111,9 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
     public String toString() {
         return new StringJoiner(", ", TimeDimension.class.getSimpleName() + "[", "]")
                 .add("timeZone=" + getTimeZone().getDisplayName())
-                .add("timeGrains=" + Arrays.stream(getSupportedGrains()).map(Grain::grain).collect(Collectors.toSet()))
+                .add("timeGrains=" + Arrays.stream(getSupportedGrains())
+                        .map(TimeGrainDefinition::grain)
+                        .collect(Collectors.toSet()))
                 .add("columnType=" + getColumnType())
                 .add("name='" + getName() + "'")
                 .add("longName='" + getLongName() + "'")
