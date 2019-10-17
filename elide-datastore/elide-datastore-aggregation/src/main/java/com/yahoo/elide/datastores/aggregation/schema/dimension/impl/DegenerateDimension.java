@@ -8,9 +8,9 @@ package com.yahoo.elide.datastores.aggregation.schema.dimension.impl;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.ColumnType;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionType;
 
 import lombok.Getter;
@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * A {@link Dimension} backed by a table column.
+ * A {@link ProjectedDimension} backed by a table column.
  * <p>
  * {@link DegenerateDimension} is thread-safe and can be accessed by multiple threads.
  */
@@ -50,13 +50,13 @@ public class DegenerateDimension extends EntityDimension {
     /**
      * Constructor.
      *
-     * @param schema The schema this {@link Dimension} belongs to.
-     * @param dimensionField  The entity field or relation that this {@link Dimension} represents
-     * @param annotation  Provides static meta data about this {@link Dimension}
+     * @param schema The schema this {@link ProjectedDimension} belongs to.
+     * @param dimensionField  The entity field or relation that this {@link ProjectedDimension} represents
+     * @param annotation  Provides static meta data about this {@link ProjectedDimension}
      * @param fieldType  The Java type for this entity field or relation
-     * @param cardinality  The estimated cardinality of this {@link Dimension} in SQL table
-     * @param friendlyName  A human-readable name representing this {@link Dimension}
-     * @param columnType  The type of the SQL column mapping this {@link Dimension}
+     * @param cardinality  The estimated cardinality of this {@link ProjectedDimension} in SQL table
+     * @param friendlyName  A human-readable name representing this {@link ProjectedDimension}
+     * @param columnType  The type of the SQL column mapping this {@link ProjectedDimension}
      *
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
@@ -101,7 +101,7 @@ public class DegenerateDimension extends EntityDimension {
     }
 
     /**
-     * Returns the string representation of this {@link Dimension}.
+     * Returns the string representation of this {@link ProjectedDimension}.
      * <p>
      * The string consists of values of all fields in the format
      * "DegenerateDimension[columnType=XXX, name='XXX', longName='XXX', description='XXX', dimensionType=XXX,

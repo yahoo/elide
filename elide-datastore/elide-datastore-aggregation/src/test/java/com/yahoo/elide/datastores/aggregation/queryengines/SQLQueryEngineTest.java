@@ -13,18 +13,18 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
 
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +81,7 @@ public class SQLQueryEngineTest {
                 .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -125,7 +125,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
                         PlayerStats.class, false))
                 .build();
@@ -159,7 +159,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .groupDimension(playerStatsSchema.getDimension("country"))
-                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("country.name=='United States'",
                         PlayerStats.class, false))
                 .build();
@@ -258,7 +258,7 @@ public class SQLQueryEngineTest {
                 .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -303,7 +303,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
                 .pagination(pagination)
                 .build();
 
@@ -403,7 +403,7 @@ public class SQLQueryEngineTest {
                 .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -450,7 +450,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .groupDimension(playerStatsSchema.getDimension("country"))
-                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .timeDimension(playerStatsSchema.getRequestedGrain(TimeGrain.DAY, "recordedDate"))
                 .sorting(new Sorting(sortMap))
                 .build();
 

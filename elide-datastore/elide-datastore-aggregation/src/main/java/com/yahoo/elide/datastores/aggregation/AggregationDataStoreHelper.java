@@ -9,9 +9,10 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
+import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
+import com.yahoo.elide.datastores.aggregation.query.ProjectedTimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 import com.yahoo.elide.request.Attribute;
@@ -34,8 +35,8 @@ public class AggregationDataStoreHelper {
 
     private Schema schema;
     private EntityProjection entityProjection;
-    private Set<Dimension> dimensions;
-    private Set<TimeDimension> timeDimensions;
+    private Set<ProjectedDimension> projectedDimensions;
+    private Set<ProjectedTimeDimension> timeDimensions;
     private Map<Metric, Class<? extends Aggregation>> metricMap;
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
@@ -43,9 +44,9 @@ public class AggregationDataStoreHelper {
     public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection) {
         this.schema = schema;
         this.entityProjection = entityProjection;
-        dimensions = new LinkedHashSet<>();
+        projectedDimensions = new LinkedHashSet<>();
         timeDimensions = new LinkedHashSet<>();
-        resolveDimensionLists(dimensions, timeDimensions);
+        resolveDimensionLists(projectedDimensions, timeDimensions);
         Set<Metric> metrics = new LinkedHashSet<>();
         resolveMetricList(metrics);
         metricMap = new LinkedHashMap<>();
@@ -54,13 +55,14 @@ public class AggregationDataStoreHelper {
     }
 
     /**
+     * Builds the query from internal state.
      * @return {@link Query} query object with all the parameters provided by user.
      */
     public Query getQuery() {
         return Query.builder()
                 .schema(schema)
                 .metrics(metricMap)
-                .groupDimensions(dimensions)
+                .groupDimensions(projectedDimensions)
                 .timeDimensions(timeDimensions)
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
@@ -87,18 +89,21 @@ public class AggregationDataStoreHelper {
 
     /**
      * Gets dimensions and timeDimensions based on relationships and attributes from {@link EntityProjection}.
-     * @param dimensions Empty set of {@link Dimension} objects.
-     * @param timeDimensions Empty set of {@link TimeDimension} objects.
+     * @param projectedDimensions Empty set of {@link ProjectedDimension} objects.
+     * @param timeDimensions Empty set of {@link ProjectedTimeDimension} objects.
      */
-    private void resolveDimensionLists(Set<Dimension> dimensions, Set<TimeDimension> timeDimensions) {
+    private void resolveDimensionLists(Set<ProjectedDimension> projectedDimensions,
+                                       Set<ProjectedTimeDimension> timeDimensions) {
         Set<String> relationshipNames = getRelationships();
         Set<String> attributeNames = getAttributes(); // time dimensions are under attribute in entity projection
-        for (Dimension dimension : schema.getDimensions()) {
-            if (dimension instanceof TimeDimension && attributeNames.contains(dimension.getName())) {
-                timeDimensions.add((TimeDimension) dimension);
+        for (ProjectedDimension projectedDimension : schema.getDimensions()) {
+            if (projectedDimension instanceof ProjectedTimeDimension
+                    && attributeNames.contains(projectedDimension.getName())) {
+                timeDimensions.add((ProjectedTimeDimension) projectedDimension);
             }
-            else if (relationshipNames.contains(dimension.getName()) || attributeNames.contains(dimension.getName())) {
-                dimensions.add(dimension);
+            else if (relationshipNames.contains(projectedDimension.getName())
+                    || attributeNames.contains(projectedDimension.getName())) {
+                projectedDimensions.add(projectedDimension);
             }
         }
     }

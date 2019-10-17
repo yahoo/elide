@@ -10,9 +10,10 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
 import com.yahoo.elide.datastores.aggregation.schema.Column;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionType;
 
 import lombok.Getter;
@@ -27,7 +28,7 @@ import java.util.StringJoiner;
  * {@link EntityDimension} is thread-safe and can be accessed by multiple threads.
  */
 @Slf4j
-public class EntityDimension extends Column implements Dimension {
+public class EntityDimension extends Column implements DimensionColumn {
 
     /**
      * Returns the entity field that is defined to be a human displayable column of that entity.
@@ -101,7 +102,7 @@ public class EntityDimension extends Column implements Dimension {
     /**
      * The default cardinality for entity without {@link Cardinality} annotation.
      *
-     * @return the default table size backing this {@link Dimension}
+     * @return the default table size backing this {@link ProjectedDimension}
      */
     public static CardinalitySize getDefaultCardinality() {
         return CardinalitySize.LARGE;
@@ -119,12 +120,12 @@ public class EntityDimension extends Column implements Dimension {
     /**
      * Constructor.
      *
-     * @param schema The schema this {@link Dimension} belongs to.
-     * @param dimensionField  The entity field or relation that this {@link Dimension} represents
-     * @param annotation  Provides static meta data about this {@link Dimension}
+     * @param schema The schema this {@link ProjectedDimension} belongs to.
+     * @param dimensionField  The entity field or relation that this {@link ProjectedDimension} represents
+     * @param annotation  Provides static meta data about this {@link ProjectedDimension}
      * @param fieldType  The Java type for this entity field or relation
-     * @param cardinality  The estimated cardinality of this {@link Dimension} in SQL table
-     * @param friendlyName  A human-readable name representing this {@link Dimension}
+     * @param cardinality  The estimated cardinality of this {@link ProjectedDimension} in SQL table
+     * @param friendlyName  A human-readable name representing this {@link ProjectedDimension}
      *
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
@@ -143,12 +144,13 @@ public class EntityDimension extends Column implements Dimension {
      * Constructor.
      *
      * @param schema The schema this {@link Column} belongs to.
-     * @param dimensionField  The entity field or relation that this {@link Dimension} represents
-     * @param annotation  Provides static meta data about this {@link Dimension}
+     * @param dimensionField  The entity field or relation that this {@link ProjectedDimension} represents
+     * @param annotation  Provides static meta data about this {@link ProjectedDimension}
      * @param fieldType  The Java type for this entity field or relation
-     * @param dimensionType  The physical storage structure backing this {@link Dimension}, such as a table or a column
-     * @param cardinality  The estimated cardinality of this {@link Dimension} in SQL table
-     * @param friendlyName  A human-readable name representing this {@link Dimension}
+     * @param dimensionType  The physical storage structure backing this {@link ProjectedDimension}, such as
+     *                       a table or a column
+     * @param cardinality  The estimated cardinality of this {@link ProjectedDimension} in SQL table
+     * @param friendlyName  A human-readable name representing this {@link ProjectedDimension}
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
     protected EntityDimension(
@@ -191,7 +193,7 @@ public class EntityDimension extends Column implements Dimension {
     }
 
     /**
-     * Returns the string representation of this {@link Dimension}.
+     * Returns the string representation of this {@link ProjectedDimension}.
      * <p>
      * The string consists of values of all fields in the format
      * "EntityDimension[name='XXX', longName='XXX', description='XXX', dimensionType=XXX, dataType=XXX, cardinality=XXX,

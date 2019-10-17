@@ -3,15 +3,14 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation;
+package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 
@@ -37,10 +36,10 @@ public class Query {
     private final Map<Metric, Class<? extends Aggregation>> metrics;
 
     @Singular
-    private final Set<Dimension> groupDimensions;
+    private final Set<ProjectedDimension> groupDimensions;
 
     @Singular
-    private final Set<TimeDimension> timeDimensions;
+    private final Set<ProjectedTimeDimension> timeDimensions;
 
     private final FilterExpression whereFilter;
     private final FilterExpression havingFilter;
@@ -52,7 +51,7 @@ public class Query {
      * Returns all the dimensions regardless of type.
      * @return All the dimensions.
      */
-    public Set<Dimension> getDimensions() {
+    public Set<ProjectedDimension> getDimensions() {
         return Stream.concat(getGroupDimensions().stream(), getTimeDimensions().stream())
                 .collect(
                         Collectors.toCollection(LinkedHashSet::new)

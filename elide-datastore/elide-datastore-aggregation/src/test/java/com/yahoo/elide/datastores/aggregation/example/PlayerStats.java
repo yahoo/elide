@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+import com.yahoo.elide.datastores.aggregation.annotation.Grain;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
@@ -139,7 +140,7 @@ public class PlayerStats {
      * {@link EntityDimensionTest#testCardinalityScan()}.
      * @return the date of the player session.
      */
-    @Temporal(timeGrain = TimeGrain.DAY, timeZone = "UTC")
+    @Temporal(grains = { @Grain(grain = TimeGrain.DAY, expression = "") }, timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }

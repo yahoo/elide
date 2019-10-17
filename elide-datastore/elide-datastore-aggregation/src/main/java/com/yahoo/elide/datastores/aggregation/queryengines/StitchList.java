@@ -35,7 +35,7 @@ public final class StitchList {
     private final Map<Class<?>, Map<Object, Object>> objectLookups;
 
     /**
-     * List of relationships to hydrate
+     * List of relationships to hydrate.
      */
     @Getter(AccessLevel.PRIVATE)
     private final List<Todo> todoList;
@@ -75,7 +75,7 @@ public final class StitchList {
     }
 
     /**
-     * Enqueues an entity instance which will be further hydrated on one of its relationship fields later
+     * Enqueues an entity instance which will be further hydrated on one of its relationship fields later.
      *
      * @param entityInstance  The entity instance to be hydrated
      * @param fieldName  The relationship field to hydrate in the entity instance

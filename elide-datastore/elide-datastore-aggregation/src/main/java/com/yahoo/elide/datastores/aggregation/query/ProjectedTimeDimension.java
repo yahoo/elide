@@ -4,16 +4,15 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.aggregation.schema.dimension;
+package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
-
+import com.yahoo.elide.datastores.aggregation.annotation.Grain;
 import java.util.TimeZone;
 
 /**
- * A dimension backed by a date/time.
+ * Represents a requested time dimension in a query.
  */
-public interface TimeDimension extends Dimension {
+public interface ProjectedTimeDimension extends ProjectedDimension {
 
     /**
      * Get the requested time zone.
@@ -25,5 +24,5 @@ public interface TimeDimension extends Dimension {
      * Get the requested time grain.
      * @return requested time grain.
      */
-    TimeGrain getTimeGrain();
+    Grain getTimeGrain();
 }

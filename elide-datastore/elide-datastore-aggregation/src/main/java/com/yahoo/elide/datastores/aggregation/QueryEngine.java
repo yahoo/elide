@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 
 /**

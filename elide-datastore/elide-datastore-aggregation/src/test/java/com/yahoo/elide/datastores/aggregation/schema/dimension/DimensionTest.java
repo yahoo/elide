@@ -10,12 +10,13 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.Grain;
 import com.yahoo.elide.datastores.aggregation.example.Country;
+import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.DegenerateDimension;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.EntityDimension;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +28,7 @@ public class DimensionTest {
 
     private static final Schema MOCK_SCHEMA = mock(Schema.class);
 
-    private static final Dimension ENTITY_DIMENSION = new EntityDimension(
+    private static final DimensionColumn ENTITY_DIMENSION = new EntityDimension(
             MOCK_SCHEMA,
             "country",
             null,
@@ -36,7 +37,7 @@ public class DimensionTest {
             "name"
     );
 
-    private static final Dimension DEGENERATE_DIMENSION = new DegenerateDimension(
+    private static final DimensionColumn DEGENERATE_DIMENSION = new DegenerateDimension(
             MOCK_SCHEMA,
             "overallRating",
             null,
@@ -46,7 +47,7 @@ public class DimensionTest {
             ColumnType.FIELD
     );
 
-    private static final Dimension TIME_DIMENSION = new TimeDimension(
+    private static final DimensionColumn TIME_DIMENSION = new TimeDimension(
             MOCK_SCHEMA,
             "recordedTime",
             null,
@@ -54,7 +55,7 @@ public class DimensionTest {
             CardinalitySize.LARGE,
             "recordedTime",
             TimeZone.getTimeZone("PST"),
-            TimeGrain.DAY
+            new Grain[0]
     );
 
     @Test
@@ -65,13 +66,13 @@ public class DimensionTest {
         assertNotEquals(DEGENERATE_DIMENSION.hashCode(), ENTITY_DIMENSION.hashCode());
 
         // different dimensions should be separate elements in Set
-        Set<Dimension> dimensions = new HashSet<>();
-        dimensions.add(ENTITY_DIMENSION);
+        Set<ProjectedDimension> projectedDimensions = new HashSet<>();
+        projectedDimensions.add(ENTITY_DIMENSION);
 
-        assertEquals(1, dimensions.size());
+        assertEquals(1, projectedDimensions.size());
 
         // a separate same object doesn't increase collection size
-        Dimension sameEntityDimension = new EntityDimension(
+        ProjectedDimension sameEntityDimension = new EntityDimension(
                 MOCK_SCHEMA,
                 "country",
                 null,
@@ -80,17 +81,17 @@ public class DimensionTest {
                 "name"
         );
         assertEquals(ENTITY_DIMENSION, sameEntityDimension);
-        dimensions.add(sameEntityDimension);
-        assertEquals(1, dimensions.size());
+        projectedDimensions.add(sameEntityDimension);
+        assertEquals(1, projectedDimensions.size());
 
-        dimensions.add(ENTITY_DIMENSION);
-        assertEquals(1, dimensions.size());
+        projectedDimensions.add(ENTITY_DIMENSION);
+        assertEquals(1, projectedDimensions.size());
 
-        dimensions.add(DEGENERATE_DIMENSION);
-        assertEquals(2, dimensions.size());
+        projectedDimensions.add(DEGENERATE_DIMENSION);
+        assertEquals(2, projectedDimensions.size());
 
-        dimensions.add(TIME_DIMENSION);
-        assertEquals(3, dimensions.size());
+        projectedDimensions.add(TIME_DIMENSION);
+        assertEquals(3, projectedDimensions.size());
     }
 
     @Test
@@ -108,7 +109,7 @@ public class DimensionTest {
         );
 
         assertEquals(
-                "TimeDimension[timeZone=Pacific Standard Time, timeGrain=DAY, columnType=TEMPORAL, name='recordedTime', longName='recordedTime', description='recordedTime', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']",
+                "TimeDimension[timeZone=Pacific Standard Time, timeGrains=[], columnType=TEMPORAL, name='recordedTime', longName='recordedTime', description='recordedTime', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']",
                 TIME_DIMENSION.toString()
         );
     }
