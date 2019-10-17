@@ -49,7 +49,7 @@
 
     <properties>
         <jar.finalName>elide-blog-example</jar.finalName>
-        <postgres.version>42.2.7</postgres.version>
+        <postgres.version>42.2.8</postgres.version>
         <liquibase.version>3.8.0</liquibase.version>
     </properties>
 

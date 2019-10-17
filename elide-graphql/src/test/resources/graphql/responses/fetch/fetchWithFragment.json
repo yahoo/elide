@@ -21,9 +21,9 @@
             ],
             "__typename": "book"
           },
-          "__typename": "__node__author"
+          "__typename": "_node__author"
         },
-        "__typename": "__edges__author"
+        "__typename": "_edges__author"
       },
       {
         "node": {
@@ -39,9 +39,9 @@
             ],
             "__typename": "book"
           },
-          "__typename": "__node__author"
+          "__typename": "_node__author"
         },
-        "__typename": "__edges__author"
+        "__typename": "_edges__author"
       }
     ]
   }
