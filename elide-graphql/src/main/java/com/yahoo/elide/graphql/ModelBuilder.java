@@ -258,7 +258,7 @@ public class ModelBuilder {
             log.debug("Building query attribute {} {} with arguments {} for entity {}",
                     attribute,
                     attributeClass.getName(),
-                    dictionary.getAttributeArguments(attributeClass,attribute).toString(),
+                    dictionary.getAttributeArguments(attributeClass, attribute).toString(),
                     entityClass.getName());
 
             GraphQLType attributeType =

@@ -123,7 +123,7 @@ public class EntityBinding {
     public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
-    public static final Set<ArgumentType> EMPTY_ATTRIBUTES_ARGS = new HashSet<>();
+    public static final Set<ArgumentType> EMPTY_ATTRIBUTES_ARGS = Collections.unmodifiableSet(new HashSet<>());
     private static final String ALL_FIELDS = "*";
 
     /* empty binding constructor */

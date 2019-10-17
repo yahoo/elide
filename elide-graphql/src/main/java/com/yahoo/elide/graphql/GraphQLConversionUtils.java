@@ -427,11 +427,11 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Build an Argument list object for the given attribute
+     * Build an Argument list object for the given attribute.
      * @param entityClass The Entity class to which this attribute belongs to.
      * @param attribute The name of the attribute.
-     * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type
-     * @return Newly created GraphQLArgument Collection for the given attribute
+     * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type.
+     * @return Newly created GraphQLArgument Collection for the given attribute.
      */
     public List<GraphQLArgument> attributeArgumentToQueryObject(Class<?> entityClass,
                                                                 String attribute,
@@ -451,7 +451,7 @@ public class GraphQLConversionUtils {
                                                                 String attribute,
                                                                 DataFetcher fetcher,
                                                                 EntityDictionary dictionary) {
-        return dictionary.getAttributeArguments(entityClass,attribute)
+        return dictionary.getAttributeArguments(entityClass, attribute)
                 .stream()
                 .map(argumentType -> newArgument()
                         .name(argumentType.getName())
