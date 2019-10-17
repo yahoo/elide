@@ -45,6 +45,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Table;
 
 /**
@@ -84,8 +85,16 @@ public class SQLQueryEngine implements QueryEngine {
     @Override
     public Iterable<Object> executeQuery(Query query) {
         EntityManager entityManager = null;
+        EntityTransaction transaction = null;
         try {
             entityManager = emf.createEntityManager();
+
+            // manually begin the transaction
+            transaction = entityManager.getTransaction();
+            if (!transaction.isActive()) {
+                transaction.begin();
+            }
+
             SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
 
             //Make sure we actually manage this schema.
@@ -129,6 +138,9 @@ public class SQLQueryEngine implements QueryEngine {
 
             return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
         } finally {
+            if (transaction != null && transaction.isActive()) {
+                transaction.commit();
+            }
             if (entityManager != null) {
                 entityManager.close();
             }
