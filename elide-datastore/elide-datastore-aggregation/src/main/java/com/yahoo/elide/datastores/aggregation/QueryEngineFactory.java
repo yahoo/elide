@@ -12,6 +12,6 @@ import com.yahoo.elide.core.EntityDictionary;
  */
 public interface QueryEngineFactory {
 
-    public QueryEngine buildQueryEngine(EntityDictionary dictionary);
+    QueryEngine buildQueryEngine(EntityDictionary dictionary);
 
 }
