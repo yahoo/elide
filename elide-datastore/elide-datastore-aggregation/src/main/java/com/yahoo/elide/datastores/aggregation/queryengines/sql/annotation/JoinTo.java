@@ -22,7 +22,7 @@ public @interface JoinTo {
     /**
      * Dot separated path through the entity relationship graph to an attribute.
      * If the current entity is author, then a path would be "book.publisher.name".
-     * @return
+     * @return The path
      */
     String path();
 }

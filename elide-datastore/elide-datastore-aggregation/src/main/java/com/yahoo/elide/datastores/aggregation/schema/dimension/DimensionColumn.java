@@ -3,41 +3,26 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.datastores.aggregation.schema.dimension;
 
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
-
-import java.io.Serializable;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 
 /**
- * Elide's definition of an entity dimension model.
- * <p>
- * {@link Dimension}s are any relationship or alternatively any attribute without a {@link MetricAggregation} or
- * {@link MetricComputation}annotation.
+ * Represents schema metadata that describes a dimension column.
  */
-@Include(type = "dimensions")
-public interface Dimension extends Serializable {
-
+public interface DimensionColumn extends DimensionProjection {
     /**
-     * Returns the name of the entity representing this {@link Dimension} object as a {@link String}.
+     * Returns a human-readable name (allowing spaces) of this {@link DimensionColumn} object as a {@link String}.
      *
-     * @return the name of the entity or interface representing this {@link Dimension}.
-     */
-    String getName();
-
-    /**
-     * Returns a human-readable name (allowing spaces) of this {@link Dimension} object as a {@link String}.
-     *
-     * @return a human-readable name (allowing spaces) of this {@link Dimension}.
+     * @return a human-readable name (allowing spaces) of this {@link DimensionColumn}.
      */
     String getLongName();
 
     /**
-     * Returns a short description explaining the meaning of this {@link Dimension}.
+     * Returns a short description explaining the meaning of this {@link DimensionColumn}.
      *
      * @return dimension description
      */
@@ -51,14 +36,14 @@ public interface Dimension extends Serializable {
     DimensionType getDimensionType();
 
     /**
-     * Returns the entity field type of this {@link Dimension}.
+     * Returns the entity field type of this {@link DimensionColumn}.
      *
      * @return dimension type
      */
     Class<?> getDataType();
 
     /**
-     * Returns the estimated cardinality of this {@link Dimension}.
+     * Returns the estimated cardinality of this {@link DimensionColumn}.
      *
      * @return a {@link CardinalitySize} reflecting the estimated cardinality
      */
@@ -78,7 +63,21 @@ public interface Dimension extends Serializable {
      *          although there is no annotation on that attribute.
      * </ol>
      *
-     * @return a human displayable name of this {@link Dimension}.
+     * @return a human displayable name of this {@link DimensionColumn}.
      */
     String getFriendlyName();
+
+    /**
+     * Converts the schema column into a projected dimension.
+     * @return the projected dimension.
+     */
+    default DimensionProjection toProjectedDimension() {
+        String name = getName();
+        return new DimensionProjection() {
+            @Override
+            public String getName() {
+                return name;
+            }
+        };
+    }
 }

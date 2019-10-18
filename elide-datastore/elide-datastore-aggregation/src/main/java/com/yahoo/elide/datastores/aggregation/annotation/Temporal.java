@@ -24,11 +24,11 @@ import java.util.TimeZone;
 public @interface Temporal {
 
     /**
-     * The finest unit into which temporal column can be divided.
+     * The set of time grains supported by this time dimension.
      *
-     * @return The finest supported time grain of a persistent storage column
+     * @return one or more time gains.
      */
-    TimeGrain timeGrain();
+    TimeGrainDefinition[] grains() default { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = "") };
 
     /**
      * The timezone in {@link String} of the column.
@@ -43,5 +43,5 @@ public @interface Temporal {
      *
      * @return data timezone
      */
-    String timeZone();
+    String timeZone() default "UTC";
 }

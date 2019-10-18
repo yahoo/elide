@@ -51,8 +51,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Predicate;
@@ -116,10 +118,12 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<AccessibleObject, Set<ArgumentType>> attributeArgumets = new ConcurrentHashMap<>();
 
     public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
+    public static final Set<ArgumentType> EMPTY_ATTRIBUTES_ARGS = Collections.unmodifiableSet(new HashSet<>());
     private static final String ALL_FIELDS = "*";
 
     /* empty binding constructor */
@@ -585,5 +589,36 @@ public class EntityBinding {
         }
 
         return results;
+    }
+
+
+    /**
+     * Add a collection of arguments to the attributes of this Entity.
+     * @param attribute attribute name to which argument has to be added
+     * @param arguments Set of Argument Type for the attribute
+     */
+    public void addArgumentsToAttribute(String attribute, Set<ArgumentType> arguments) {
+        AccessibleObject fieldObject = fieldsToValues.get(attribute);
+        if (fieldObject != null && arguments != null) {
+            Set<ArgumentType> existingArgs = attributeArgumets.get(fieldObject);
+            if (existingArgs != null) {
+                //Replace any argument names with new value
+                existingArgs.addAll(arguments);
+            } else {
+                attributeArgumets.put(fieldObject, arguments);
+            }
+        }
+    }
+
+    /**
+     * Returns the Collection of all attributes of an argument.
+     * @param attribute Name of the argument for ehich arguments are to be retrieved.
+     * @return A Set of ArgumentType for the given attribute.
+     */
+    public Set<ArgumentType> getAttributeArguments(String attribute) {
+        AccessibleObject fieldObject = fieldsToValues.get(attribute);
+        return (fieldObject != null)
+                ? attributeArgumets.getOrDefault(fieldObject, EMPTY_ATTRIBUTES_ARGS)
+                : EMPTY_ATTRIBUTES_ARGS;
     }
 }

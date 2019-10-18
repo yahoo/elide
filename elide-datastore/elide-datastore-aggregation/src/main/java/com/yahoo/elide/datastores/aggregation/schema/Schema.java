@@ -13,13 +13,15 @@ import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.DegenerateDimension;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.EntityDimension;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.schema.metric.AggregatedMetric;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
+import com.google.common.collect.Sets;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,7 +45,7 @@ import java.util.stream.Stream;
  * <p>
  * By overriding {@link #constructDimension(String, Class, EntityDictionary)} and
  * {@link #constructMetric(String, Class, EntityDictionary)}, people can have new schema backed by their own defined
- * {@link Dimension}s and {@link Metric}s.
+ * {@link DimensionColumn}s and {@link Metric}s.
  * <p>
  * {@link Schema} is thread-safe and can be accessed by multiple-threads.
  */
@@ -52,8 +56,7 @@ public class Schema {
     protected final Class<?> entityClass;
     @Getter
     protected final Set<Metric> metrics;
-    @Getter
-    protected final Set<Dimension> dimensions;
+    protected final Map<String, DimensionColumn> dimensions;
     @Getter(value = AccessLevel.PROTECTED)
     protected final EntityDictionary entityDictionary;
 
@@ -61,7 +64,7 @@ public class Schema {
      * Constructor
      * <p>
      * This constructor calls {@link #constructDimension(String, Class, EntityDictionary)} and
-     * {@link #constructMetric(String, Class, EntityDictionary)} ()} to construct all {@link Dimension}s and
+     * {@link #constructMetric(String, Class, EntityDictionary)} ()} to construct all {@link DimensionColumn}s and
      * {@link Metric}s associated with the entity class passed in.
      *
      * @param cls  The type of the entity, whose {@link Schema} is to be constructed
@@ -78,9 +81,9 @@ public class Schema {
     }
 
     /**
-     * Returns an immutable view of all {@link Dimension}s and {@link Metric}s described by this {@link Schema}.
+     * Returns an immutable view of all {@link DimensionColumn}s and {@link Metric}s described by this {@link Schema}.
      *
-     * @return union of all {@link Dimension}s and {@link Metric}s under this {@link Schema}
+     * @return union of all {@link DimensionColumn}s and {@link Metric}s under this {@link Schema}
      */
     public Set<Column> getAllColumns() {
         return Stream.concat(getMetrics().stream(), getDimensions().stream())
@@ -94,17 +97,31 @@ public class Schema {
     }
 
     /**
-     * Finds the {@link Dimension} by name.
+     * Finds the {@link DimensionColumn} by name.
      *
-     * @param dimensionName  The entity field name associated with the searched {@link Dimension}
+     * @param dimensionName  The entity field name associated with the searched {@link DimensionColumn}
      *
-     * @return {@link Dimension} found or {@code null} if not found
+     * @return {@link DimensionColumn} found or {@code null} if not found
      */
-    public Dimension getDimension(String dimensionName) {
-        return getDimensions().stream()
-                .filter(dimension -> dimension.getName().equals(dimensionName))
-                .findAny()
-                .orElse(null);
+    public DimensionColumn getDimension(String dimensionName) {
+        return dimensions.get(dimensionName);
+    }
+
+    /**
+     * Finds the {@link TimeDimensionColumn} by name.
+     *
+     * @param dimensionName  The entity field name associated with the searched {@link TimeDimensionColumn}
+     *
+     * @return {@link TimeDimensionColumn} found or {@code null} if not found
+     */
+    public TimeDimensionColumn getTimeDimension(String dimensionName) {
+        DimensionColumn dimension = dimensions.get(dimensionName);
+
+        if (dimension instanceof TimeDimensionColumn) {
+            return (TimeDimensionColumn) dimension;
+        }
+
+        return null;
     }
 
     /**
@@ -149,6 +166,14 @@ public class Schema {
      */
     public String getAlias() {
         return FilterPredicate.getTypeAlias(entityClass);
+    }
+
+    /**
+     * Returns the set of all dimensions.
+     * @return The set of all dimensions.
+     */
+    public Set<DimensionColumn> getDimensions() {
+        return dimensions.values().stream().collect(Collectors.toSet());
     }
 
     /**
@@ -206,16 +231,17 @@ public class Schema {
     }
 
     /**
-     * Constructs and returns a new instance of {@link Dimension}.
+     * Constructs and returns a new instance of {@link DimensionColumn}.
      *
      * @param dimensionField  The entity field of the dimension being constructed
      * @param cls  The entity that contains the dimension being constructed
      * @param entityDictionary  The auxiliary object that offers binding info used to construct this
-     * {@link Dimension}
+     * {@link DimensionColumn}
      *
-     * @return a {@link Dimension}
+     * @return a {@link DimensionColumn}
      */
-    protected Dimension constructDimension(String dimensionField, Class<?> cls, EntityDictionary entityDictionary) {
+    protected DimensionColumn constructDimension(String dimensionField,
+                                                 Class<?> cls, EntityDictionary entityDictionary) {
         // field with ToMany relationship is not supported
         if (getEntityDictionary().getRelationshipType(cls, dimensionField).isToMany()) {
             String message = String.format("ToMany relationship is not supported in '%s'", cls.getCanonicalName());
@@ -266,7 +292,7 @@ public class Schema {
                     cardinality,
                     friendlyName,
                     TimeZone.getTimeZone(temporal.timeZone()),
-                    temporal.timeGrain()
+                    Sets.newHashSet(temporal.grains())
             );
 
         }
@@ -303,17 +329,12 @@ public class Schema {
      * This method calls {@link #constructDimension(String, Class, EntityDictionary)} to create each dimension inside
      * the entity
      *
-     * @return all non-metric fields as {@link Dimension} objects
+     * @return all non-metric fields as {@link DimensionColumn} objects
      */
-    private Set<Dimension> getAllDimensions() {
+    private Map<String, DimensionColumn> getAllDimensions() {
         return getEntityDictionary().getAllFields(getEntityClass()).stream()
                 .filter(field -> !isMetricField(field))
                 .map(field -> constructDimension(field, getEntityClass(), getEntityDictionary()))
-                .collect(
-                        Collectors.collectingAndThen(
-                                Collectors.toSet(),
-                                Collections::unmodifiableSet
-                        )
-                );
+                .collect(Collectors.toMap(DimensionColumn::getName, Function.identity()));
     }
 }

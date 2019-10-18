@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.schema.dimension;
 
 /**
- * An object that represents one of the allowed types for {@link Dimension} type in Elide.
+ * An object that represents one of the allowed types for {@link DimensionColumn} type in Elide.
  */
 public enum  DimensionType {
 

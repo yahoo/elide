@@ -20,7 +20,7 @@ import java.util.Objects;
 public class FilterConstraints {
 
     /**
-     * Creates a new {@link FilterConstraints} instance that wraps a specified {@code HAVING} filter expression only
+     * Creates a new {@link FilterConstraints} instance that wraps a specified {@code HAVING} filter expression only.
      *
      * @param havingExpression  A pure {@code HAVING} filter expression
      *
@@ -36,7 +36,7 @@ public class FilterConstraints {
     }
 
     /**
-     * Creates a new {@link FilterConstraints} instance that wraps a specified {@code WHERE} filter expression only
+     * Creates a new {@link FilterConstraints} instance that wraps a specified {@code WHERE} filter expression only.
      *
      * @param whereExpression  A pure {@code WHERE} filter expression
      *
