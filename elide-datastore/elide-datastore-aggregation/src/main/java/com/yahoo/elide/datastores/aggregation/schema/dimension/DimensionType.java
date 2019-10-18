@@ -5,10 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.schema.dimension;
 
-import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
-
 /**
- * An object that represents one of the allowed types for {@link ProjectedDimension} type in Elide.
+ * An object that represents one of the allowed types for {@link DimensionColumn} type in Elide.
  */
 public enum  DimensionType {
 

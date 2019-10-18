@@ -10,7 +10,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
 import com.yahoo.elide.datastores.aggregation.schema.Column;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
@@ -102,7 +101,7 @@ public class EntityDimension extends Column implements DimensionColumn {
     /**
      * The default cardinality for entity without {@link Cardinality} annotation.
      *
-     * @return the default table size backing this {@link ProjectedDimension}
+     * @return the default table size backing this {@link DimensionColumn}
      */
     public static CardinalitySize getDefaultCardinality() {
         return CardinalitySize.LARGE;
@@ -120,12 +119,12 @@ public class EntityDimension extends Column implements DimensionColumn {
     /**
      * Constructor.
      *
-     * @param schema The schema this {@link ProjectedDimension} belongs to.
-     * @param dimensionField  The entity field or relation that this {@link ProjectedDimension} represents
-     * @param annotation  Provides static meta data about this {@link ProjectedDimension}
+     * @param schema The schema this {@link DimensionColumn} belongs to.
+     * @param dimensionField  The entity field or relation that this {@link DimensionColumn} represents
+     * @param annotation  Provides static meta data about this {@link DimensionColumn}
      * @param fieldType  The Java type for this entity field or relation
-     * @param cardinality  The estimated cardinality of this {@link ProjectedDimension} in SQL table
-     * @param friendlyName  A human-readable name representing this {@link ProjectedDimension}
+     * @param cardinality  The estimated cardinality of this {@link DimensionColumn} in SQL table
+     * @param friendlyName  A human-readable name representing this {@link DimensionColumn}
      *
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
@@ -144,13 +143,13 @@ public class EntityDimension extends Column implements DimensionColumn {
      * Constructor.
      *
      * @param schema The schema this {@link Column} belongs to.
-     * @param dimensionField  The entity field or relation that this {@link ProjectedDimension} represents
-     * @param annotation  Provides static meta data about this {@link ProjectedDimension}
+     * @param dimensionField  The entity field or relation that this {@link DimensionColumn} represents
+     * @param annotation  Provides static meta data about this {@link DimensionColumn}
      * @param fieldType  The Java type for this entity field or relation
-     * @param dimensionType  The physical storage structure backing this {@link ProjectedDimension}, such as
+     * @param dimensionType  The physical storage structure backing this {@link DimensionColumn}, such as
      *                       a table or a column
-     * @param cardinality  The estimated cardinality of this {@link ProjectedDimension} in SQL table
-     * @param friendlyName  A human-readable name representing this {@link ProjectedDimension}
+     * @param cardinality  The estimated cardinality of this {@link DimensionColumn} in SQL table
+     * @param friendlyName  A human-readable name representing this {@link DimensionColumn}
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
     protected EntityDimension(
@@ -193,7 +192,7 @@ public class EntityDimension extends Column implements DimensionColumn {
     }
 
     /**
-     * Returns the string representation of this {@link ProjectedDimension}.
+     * Returns the string representation of this {@link DimensionColumn}.
      * <p>
      * The string consists of values of all fields in the format
      * "EntityDimension[name='XXX', longName='XXX', description='XXX', dimensionType=XXX, dataType=XXX, cardinality=XXX,

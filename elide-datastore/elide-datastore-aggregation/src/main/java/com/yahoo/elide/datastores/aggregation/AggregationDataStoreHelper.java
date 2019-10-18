@@ -108,16 +108,20 @@ public class AggregationDataStoreHelper {
                     .findAny()
                     .orElse(null);
 
-            String requestedGrainName = timeGrainArgument.getValue().toString();
-
             TimeGrainDefinition requestedGrainDefinition;
-
             if (timeGrainArgument == null) {
 
                 //The first grain is the default.
                 requestedGrainDefinition = timeDim.getSupportedGrains()[0];
             } else {
-                TimeGrain requestedGrain = TimeGrain.valueOf(requestedGrainName);
+                String requestedGrainName = timeGrainArgument.getValue().toString();
+
+                TimeGrain requestedGrain;
+                try {
+                    requestedGrain = TimeGrain.valueOf(requestedGrainName);
+                } catch (IllegalArgumentException e) {
+                    throw new InvalidOperationException(String.format("Invalid grain %s", requestedGrainName));
+                }
 
                 requestedGrainDefinition = Arrays.stream(timeDim.getSupportedGrains())
                         .filter(supportedGrainDef -> supportedGrainDef.grain().equals(requestedGrain))

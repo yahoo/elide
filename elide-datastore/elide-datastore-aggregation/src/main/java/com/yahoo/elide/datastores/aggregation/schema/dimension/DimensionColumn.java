@@ -15,14 +15,14 @@ import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
  */
 public interface DimensionColumn extends ProjectedDimension {
     /**
-     * Returns a human-readable name (allowing spaces) of this {@link ProjectedDimension} object as a {@link String}.
+     * Returns a human-readable name (allowing spaces) of this {@link DimensionColumn} object as a {@link String}.
      *
-     * @return a human-readable name (allowing spaces) of this {@link ProjectedDimension}.
+     * @return a human-readable name (allowing spaces) of this {@link DimensionColumn}.
      */
     String getLongName();
 
     /**
-     * Returns a short description explaining the meaning of this {@link ProjectedDimension}.
+     * Returns a short description explaining the meaning of this {@link DimensionColumn}.
      *
      * @return dimension description
      */
@@ -36,14 +36,14 @@ public interface DimensionColumn extends ProjectedDimension {
     DimensionType getDimensionType();
 
     /**
-     * Returns the entity field type of this {@link ProjectedDimension}.
+     * Returns the entity field type of this {@link DimensionColumn}.
      *
      * @return dimension type
      */
     Class<?> getDataType();
 
     /**
-     * Returns the estimated cardinality of this {@link ProjectedDimension}.
+     * Returns the estimated cardinality of this {@link DimensionColumn}.
      *
      * @return a {@link CardinalitySize} reflecting the estimated cardinality
      */
@@ -63,7 +63,7 @@ public interface DimensionColumn extends ProjectedDimension {
      *          although there is no annotation on that attribute.
      * </ol>
      *
-     * @return a human displayable name of this {@link ProjectedDimension}.
+     * @return a human displayable name of this {@link DimensionColumn}.
      */
     String getFriendlyName();
 

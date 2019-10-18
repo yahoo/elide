@@ -8,9 +8,9 @@ package com.yahoo.elide.datastores.aggregation.schema.dimension.impl;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.ColumnType;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 
 import lombok.Getter;
@@ -22,7 +22,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 /**
- * A {@link ProjectedDimension} backed by a temporal column.
+ * A {@link DimensionColumn} backed by a temporal column.
  * <p>
  * {@link TimeDimension} is thread-safe and can be accessed by multiple threads.
  */
@@ -39,12 +39,12 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
      * Constructor.
      *
      * @param schema The schema this dimension belongs to
-     * @param dimensionField  The entity field or relation that this {@link ProjectedDimension} represents
-     * @param annotation  Provides static meta data about this {@link ProjectedDimension}
+     * @param dimensionField  The entity field or relation that this {@link DimensionColumn} represents
+     * @param annotation  Provides static meta data about this {@link DimensionColumn}
      * @param fieldType  The Java type for this entity field or relation
-     * @param cardinality  The estimated cardinality of this {@link ProjectedDimension} in SQL table
-     * @param friendlyName  A human-readable name representing this {@link ProjectedDimension}
-     * @param timeZone  The timezone describing the data of this {@link ProjectedDimension}
+     * @param cardinality  The estimated cardinality of this {@link DimensionColumn} in SQL table
+     * @param friendlyName  A human-readable name representing this {@link DimensionColumn}
+     * @param timeZone  The timezone describing the data of this {@link DimensionColumn}
      * @param supportedGrains A list of supported time grains.
      *
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
@@ -93,7 +93,7 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
     }
 
     /**
-     * Returns the string representation of this {@link ProjectedDimension}.
+     * Returns the string representation of this {@link DimensionColumn}.
      * <p>
      * The string consists of values of all fields in the format
      * "EntityDimension[timeZone=XXX, timeGrain=XXX, columnType=XXX, name='XXX', longName='XXX', description='XXX',

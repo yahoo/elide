@@ -12,7 +12,6 @@ import static org.mockito.Mockito.mock;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.DegenerateDimension;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.EntityDimension;
@@ -66,13 +65,13 @@ public class DimensionTest {
         assertNotEquals(DEGENERATE_DIMENSION.hashCode(), ENTITY_DIMENSION.hashCode());
 
         // different dimensions should be separate elements in Set
-        Set<ProjectedDimension> projectedDimensions = new HashSet<>();
-        projectedDimensions.add(ENTITY_DIMENSION);
+        Set<DimensionColumn> columns = new HashSet<>();
+        columns.add(ENTITY_DIMENSION);
 
-        assertEquals(1, projectedDimensions.size());
+        assertEquals(1, columns.size());
 
         // a separate same object doesn't increase collection size
-        ProjectedDimension sameEntityDimension = new EntityDimension(
+        DimensionColumn sameEntityDimension = new EntityDimension(
                 MOCK_SCHEMA,
                 "country",
                 null,
@@ -81,17 +80,17 @@ public class DimensionTest {
                 "name"
         );
         assertEquals(ENTITY_DIMENSION, sameEntityDimension);
-        projectedDimensions.add(sameEntityDimension);
-        assertEquals(1, projectedDimensions.size());
+        columns.add(sameEntityDimension);
+        assertEquals(1, columns.size());
 
-        projectedDimensions.add(ENTITY_DIMENSION);
-        assertEquals(1, projectedDimensions.size());
+        columns.add(ENTITY_DIMENSION);
+        assertEquals(1, columns.size());
 
-        projectedDimensions.add(DEGENERATE_DIMENSION);
-        assertEquals(2, projectedDimensions.size());
+        columns.add(DEGENERATE_DIMENSION);
+        assertEquals(2, columns.size());
 
-        projectedDimensions.add(TIME_DIMENSION);
-        assertEquals(3, projectedDimensions.size());
+        columns.add(TIME_DIMENSION);
+        assertEquals(3, columns.size());
     }
 
     @Test

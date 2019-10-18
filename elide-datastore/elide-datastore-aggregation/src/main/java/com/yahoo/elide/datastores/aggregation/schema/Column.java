@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.schema;
 
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 
 import lombok.Getter;
@@ -14,7 +14,7 @@ import lombok.Getter;
 import java.util.Objects;
 
 /**
- * Base class that offers common components between {@link Metric} and {@link ProjectedDimension}.
+ * Base class that offers common components between {@link Metric} and {@link DimensionColumn}.
  */
 public abstract class Column {
 
