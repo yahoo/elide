@@ -8,38 +8,38 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.schema;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionType;
 
 /**
  * A dimension but supporting extra metadata needed to generate SQL.
  */
-public class SQLDimension implements Dimension {
+public class SQLDimensionColumn implements DimensionColumn {
 
-    private final Dimension wrapped;
-    private final String columnAlias;
-    private final String tableAlias;
-    private final Path joinPath;
+    protected final DimensionColumn wrapped;
+    protected final String columnAlias;
+    protected final String tableAlias;
+    protected final Path joinPath;
 
     /**
-     * Constructor
+     * Constructor.
      * @param dimension a wrapped dimension.
      * @param columnAlias The column alias in SQL to refer to this dimension.
      * @param tableAlias The table alias in SQL where this dimension lives.
      */
-    public SQLDimension(Dimension dimension, String columnAlias, String tableAlias) {
+    public SQLDimensionColumn(DimensionColumn dimension, String columnAlias, String tableAlias) {
         this(dimension, columnAlias, tableAlias, null);
     }
 
     /**
-     * Constructor
+     * Constructor.
      * @param dimension a wrapped dimension.
      * @param columnAlias The column alias in SQL to refer to this dimension.
      * @param tableAlias The table alias in SQL where this dimension lives.
      * @param joinPath A '.' separated path through the entity relationship graph that describes
      *                 how to join the time dimension into the current AnalyticView.
      */
-    public SQLDimension(Dimension dimension, String columnAlias, String tableAlias, Path joinPath) {
+    public SQLDimensionColumn(DimensionColumn dimension, String columnAlias, String tableAlias, Path joinPath) {
         this.wrapped = dimension;
         this.columnAlias = columnAlias;
         this.tableAlias = tableAlias;

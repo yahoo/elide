@@ -16,15 +16,15 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLDimension;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -184,7 +184,11 @@ public class SQLQueryEngine implements QueryEngine {
         if (! query.getDimensions().isEmpty())  {
             builder.groupByClause(extractGroupBy(query));
 
-            joinPredicates.addAll(extractPathElements(query.getDimensions()));
+            joinPredicates.addAll(extractPathElements(query
+                    .getDimensions()
+                    .stream()
+                    .map(requestedDim -> requestedDim.toDimensionColumn(query.getSchema()))
+                    .collect(Collectors.toSet())));
         }
 
         if (query.getSorting() != null) {
@@ -224,11 +228,11 @@ public class SQLQueryEngine implements QueryEngine {
      * @param groupByDims The list of dimensions we are grouping on.
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path.PathElement> extractPathElements(Set<Dimension> groupByDims) {
+    private Set<Path.PathElement> extractPathElements(Set<DimensionColumn> groupByDims) {
         return groupByDims.stream()
-            .map((SQLDimension.class::cast))
+            .map((SQLDimensionColumn.class::cast))
             .filter((dim) -> dim.getJoinPath() != null)
-            .map(SQLDimension::getJoinPath)
+            .map(SQLDimensionColumn::getJoinPath)
             .map((path) -> extractPathElements(path))
             .flatMap((elements) -> elements.stream())
             .collect(Collectors.toSet());
@@ -411,8 +415,9 @@ public class SQLQueryEngine implements QueryEngine {
         Query clientQuery = sql.getClientQuery();
 
         String groupByDimensions = clientQuery.getDimensions().stream()
-                .map((SQLDimension.class::cast))
-                .map(SQLDimension::getColumnName)
+                .map(requestedDim -> clientQuery.getSchema().getDimension(requestedDim.getName()))
+                .map((SQLDimensionColumn.class::cast))
+                .map(SQLDimensionColumn::getColumnName)
                 .collect(Collectors.joining(","));
 
         String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
@@ -440,10 +445,7 @@ public class SQLQueryEngine implements QueryEngine {
                 })
                 .collect(Collectors.toList());
 
-        List<String> dimensionProjections = query.getDimensions().stream()
-                .map((SQLDimension.class::cast))
-                .map(SQLDimension::getColumnReference)
-                .collect(Collectors.toList());
+        List<String> dimensionProjections = extractDimensionProjections(query);
 
         String projectionClause = metricProjections.stream()
                 .collect(Collectors.joining(","));
@@ -462,13 +464,21 @@ public class SQLQueryEngine implements QueryEngine {
      * @return The SQL GROUP BY clause
      */
     private String extractGroupBy(Query query) {
-        List<String> dimensionProjections = query.getDimensions().stream()
-                .map((SQLDimension.class::cast))
-                .map(SQLDimension::getColumnReference)
-                .collect(Collectors.toList());
-
-        return "GROUP BY " + dimensionProjections.stream()
+        return "GROUP BY " + extractDimensionProjections(query).stream()
                 .collect(Collectors.joining(","));
+    }
+
+    /**
+     * extracts the SQL column references for the dimensions from the query.
+     * @param query
+     * @return
+     */
+    private List<String> extractDimensionProjections(Query query) {
+        return query.getDimensions().stream()
+                .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
+                .map((SQLDimensionColumn.class::cast))
+                .map(SQLDimensionColumn::getColumnReference)
+                .collect(Collectors.toList());
     }
 
     /**

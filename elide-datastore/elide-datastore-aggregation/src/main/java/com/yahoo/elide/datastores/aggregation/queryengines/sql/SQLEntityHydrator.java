@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.Query;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.AbstractEntityHydrator;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.AccessLevel;

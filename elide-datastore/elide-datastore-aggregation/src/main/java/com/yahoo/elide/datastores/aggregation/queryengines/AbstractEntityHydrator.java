@@ -6,9 +6,10 @@
 package com.yahoo.elide.datastores.aggregation.queryengines;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
+import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionType;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 
@@ -63,7 +64,7 @@ public abstract class AbstractEntityHydrator {
                 .collect(Collectors.toList());
 
         projections.addAll(this.query.getDimensions().stream()
-                .map(Dimension::getName)
+                .map(DimensionProjection::getName)
                 .collect(Collectors.toList()));
 
 
@@ -163,7 +164,7 @@ public abstract class AbstractEntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            Dimension dim = query.getSchema().getDimension(fieldName);
+            DimensionColumn dim = query.getSchema().getDimension(fieldName);
 
             if (dim != null && dim.getDimensionType() == DimensionType.ENTITY) {
                 getStitchList().todo(entityInstance, fieldName, value); // We don't hydrate relationships here.

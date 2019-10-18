@@ -14,8 +14,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.Dimension;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 
@@ -63,26 +63,28 @@ public class SQLSchema extends Schema {
     }
 
     @Override
-    protected Dimension constructDimension(String dimensionField, Class<?> cls, EntityDictionary entityDictionary) {
-        Dimension dim = super.constructDimension(dimensionField, cls, entityDictionary);
+    protected DimensionColumn constructDimension(String dimensionField,
+                                                 Class<?> cls, EntityDictionary entityDictionary) {
+        DimensionColumn dim = super.constructDimension(dimensionField, cls, entityDictionary);
 
         JoinTo joinTo = entityDictionary.getAttributeOrRelationAnnotation(cls, JoinTo.class, dimensionField);
 
         if (joinTo == null) {
             String columnName = getColumnName(entityClass, dimensionField);
 
-            if (dim instanceof TimeDimension) {
-                return new SQLTimeDimension(dim, columnName, getAlias());
+            if (dim instanceof TimeDimensionColumn) {
+                return new SQLTimeDimensionColumn((TimeDimensionColumn) dim, columnName, getAlias());
             }
-            return new SQLDimension(dim, columnName, getAlias());
+            return new SQLDimensionColumn(dim, columnName, getAlias());
         }
 
         Path path = new Path(entityClass, entityDictionary, joinTo.path());
 
-        if (dim instanceof TimeDimension) {
-            return new SQLTimeDimension(dim, getJoinColumn(path), getJoinTableAlias(path), path);
+        if (dim instanceof TimeDimensionColumn) {
+            return new SQLTimeDimensionColumn((TimeDimensionColumn) dim,
+                    getJoinColumn(path), getJoinTableAlias(path), path);
         }
-        return new SQLDimension(dim, getJoinColumn(path), getJoinTableAlias(path), path);
+        return new SQLDimensionColumn(dim, getJoinColumn(path), getJoinTableAlias(path), path);
     }
 
     /**
