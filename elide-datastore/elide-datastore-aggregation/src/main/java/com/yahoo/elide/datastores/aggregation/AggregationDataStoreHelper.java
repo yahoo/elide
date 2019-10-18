@@ -101,7 +101,7 @@ public class AggregationDataStoreHelper {
      */
     private Set<TimeDimensionProjection> resolveTimeDimensions() {
         return entityProjection.getAttributes().stream()
-                .filter(attribute -> schema.getDimension(attribute.getName()) instanceof TimeDimensionColumn)
+                .filter(attribute -> schema.getTimeDimension(attribute.getName()) != null)
                 .map(attribute -> {
                     TimeDimensionColumn timeDim = schema.getTimeDimension(attribute.getName());
 
@@ -151,7 +151,7 @@ public class AggregationDataStoreHelper {
         allColumns.addAll(getRelationships());
 
         return allColumns.stream()
-                .filter(columnName -> !(schema.getDimension(columnName) instanceof TimeDimensionColumn))
+                .filter(columnName -> schema.getTimeDimension(columnName) == null)
                 .map(columnName -> schema.getDimension(columnName))
                 .filter(Objects::nonNull)
                 .map(DimensionColumn::toProjectedDimension)
