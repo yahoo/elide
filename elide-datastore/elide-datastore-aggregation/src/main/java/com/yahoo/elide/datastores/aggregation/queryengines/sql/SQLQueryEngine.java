@@ -445,11 +445,7 @@ public class SQLQueryEngine implements QueryEngine {
                 })
                 .collect(Collectors.toList());
 
-        List<String> dimensionProjections = query.getDimensions().stream()
-                .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
-                .map((SQLDimensionColumn.class::cast))
-                .map(SQLDimensionColumn::getColumnReference)
-                .collect(Collectors.toList());
+        List<String> dimensionProjections = extractDimensionProjections(query);
 
         String projectionClause = metricProjections.stream()
                 .collect(Collectors.joining(","));
@@ -468,14 +464,21 @@ public class SQLQueryEngine implements QueryEngine {
      * @return The SQL GROUP BY clause
      */
     private String extractGroupBy(Query query) {
-        List<String> dimensionProjections = query.getDimensions().stream()
+        return "GROUP BY " + extractDimensionProjections(query).stream()
+                .collect(Collectors.joining(","));
+    }
+
+    /**
+     * extracts the SQL column references for the dimensions from the query.
+     * @param query
+     * @return
+     */
+    private List<String> extractDimensionProjections(Query query) {
+        return query.getDimensions().stream()
                 .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
                 .map((SQLDimensionColumn.class::cast))
                 .map(SQLDimensionColumn::getColumnReference)
                 .collect(Collectors.toList());
-
-        return "GROUP BY " + dimensionProjections.stream()
-                .collect(Collectors.joining(","));
     }
 
     /**
