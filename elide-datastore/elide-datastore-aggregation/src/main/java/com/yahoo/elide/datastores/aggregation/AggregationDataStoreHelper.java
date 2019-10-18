@@ -10,9 +10,9 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedTimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
@@ -24,7 +24,6 @@ import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -42,8 +41,8 @@ public class AggregationDataStoreHelper {
 
     private Schema schema;
     private EntityProjection entityProjection;
-    private Set<ProjectedDimension> projectedDimensions;
-    private Set<ProjectedTimeDimension> timeDimensions;
+    private Set<DimensionProjection> dimensionProjections;
+    private Set<TimeDimensionProjection> timeDimensions;
     private Map<Metric, Class<? extends Aggregation>> metricMap;
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
@@ -51,7 +50,7 @@ public class AggregationDataStoreHelper {
     public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection) {
         this.schema = schema;
         this.entityProjection = entityProjection;
-        projectedDimensions = resolveNonTimeDimensions();
+        dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         Set<Metric> metrics = new LinkedHashSet<>();
         resolveMetricList(metrics);
@@ -68,7 +67,7 @@ public class AggregationDataStoreHelper {
         return Query.builder()
                 .schema(schema)
                 .metrics(metricMap)
-                .groupDimensions(projectedDimensions)
+                .groupDimensions(dimensionProjections)
                 .timeDimensions(timeDimensions)
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
@@ -94,8 +93,8 @@ public class AggregationDataStoreHelper {
     }
 
     //TODO - Add tests in the next PR.
-    private Set<ProjectedTimeDimension> resolveTimeDimensions() {
-        Set<ProjectedTimeDimension> timeDims = new LinkedHashSet<>();
+    private Set<TimeDimensionProjection> resolveTimeDimensions() {
+        Set<TimeDimensionProjection> timeDims = new LinkedHashSet<>();
         //Only attributes can be time dimensions
         entityProjection.getAttributes().stream().forEach((attribute -> {
             TimeDimensionColumn timeDim = schema.getTimeDimension(attribute.getName());
@@ -112,7 +111,7 @@ public class AggregationDataStoreHelper {
             if (timeGrainArgument == null) {
 
                 //The first grain is the default.
-                requestedGrainDefinition = timeDim.getSupportedGrains()[0];
+                requestedGrainDefinition = timeDim.getSupportedGrains().iterator().next();
             } else {
                 String requestedGrainName = timeGrainArgument.getValue().toString();
 
@@ -123,7 +122,7 @@ public class AggregationDataStoreHelper {
                     throw new InvalidOperationException(String.format("Invalid grain %s", requestedGrainName));
                 }
 
-                requestedGrainDefinition = Arrays.stream(timeDim.getSupportedGrains())
+                requestedGrainDefinition = timeDim.getSupportedGrains().stream()
                         .filter(supportedGrainDef -> supportedGrainDef.grain().equals(requestedGrain))
                         .findAny()
                         .orElseThrow(() -> new InvalidOperationException(
@@ -140,7 +139,7 @@ public class AggregationDataStoreHelper {
     /**
      * Gets dimensions based on relationships and attributes from {@link EntityProjection}.
      */
-    private Set<ProjectedDimension> resolveNonTimeDimensions() {
+    private Set<DimensionProjection> resolveNonTimeDimensions() {
 
         Set<String> allColumns = getAttributes();
         allColumns.addAll(getRelationships());

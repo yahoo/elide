@@ -6,8 +6,10 @@
 package com.yahoo.elide.datastores.aggregation.schema.dimension;
 
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedTimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.google.common.base.Preconditions;
 
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -24,13 +26,15 @@ public interface TimeDimensionColumn extends DimensionColumn {
      * Get the requested time grain.
      * @return requested time grain.
      */
-    TimeGrainDefinition[] getSupportedGrains();
+    Set<TimeGrainDefinition> getSupportedGrains();
 
-    default ProjectedTimeDimension toProjectedDimension(final TimeGrainDefinition requestedGrain) {
+    default TimeDimensionProjection toProjectedDimension(final TimeGrainDefinition requestedGrain) {
+        Preconditions.checkArgument(getSupportedGrains().contains(requestedGrain));
+
         TimeZone requestedTimeZone = getTimeZone();
         String name = getName();
 
-        return new ProjectedTimeDimension() {
+        return new TimeDimensionProjection() {
             @Override
             public TimeZone getTimeZone() {
                 return requestedTimeZone;

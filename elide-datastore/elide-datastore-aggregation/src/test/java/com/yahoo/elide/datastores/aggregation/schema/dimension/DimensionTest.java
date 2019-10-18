@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.DegenerateDimension;
@@ -54,8 +53,7 @@ public class DimensionTest {
             CardinalitySize.LARGE,
             "recordedTime",
             TimeZone.getTimeZone("PST"),
-            new TimeGrainDefinition[0]
-    );
+            new HashSet<>());
 
     @Test
     public void testDimensionAsCollectionElement() {

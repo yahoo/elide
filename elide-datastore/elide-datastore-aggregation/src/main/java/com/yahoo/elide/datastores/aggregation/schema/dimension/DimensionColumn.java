@@ -8,12 +8,12 @@ package com.yahoo.elide.datastores.aggregation.schema.dimension;
 
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 
 /**
  * Represents schema metadata that describes a dimension column.
  */
-public interface DimensionColumn extends ProjectedDimension {
+public interface DimensionColumn extends DimensionProjection {
     /**
      * Returns a human-readable name (allowing spaces) of this {@link DimensionColumn} object as a {@link String}.
      *
@@ -71,9 +71,9 @@ public interface DimensionColumn extends ProjectedDimension {
      * Converts the schema column into a projected dimension.
      * @return the projected dimension.
      */
-    default ProjectedDimension toProjectedDimension() {
+    default DimensionProjection toProjectedDimension() {
         String name = getName();
-        return new ProjectedDimension() {
+        return new DimensionProjection() {
             @Override
             public String getName() {
                 return name;

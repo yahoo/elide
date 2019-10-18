@@ -15,8 +15,8 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColu
 
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -33,7 +33,7 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
     @Getter
     private final TimeZone timeZone;
     @Getter
-    private TimeGrainDefinition[] supportedGrains;
+    private Set<TimeGrainDefinition> supportedGrains;
 
     /**
      * Constructor.
@@ -57,7 +57,7 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
             CardinalitySize cardinality,
             String friendlyName,
             TimeZone timeZone,
-            TimeGrainDefinition[] supportedGrains
+            Set<TimeGrainDefinition> supportedGrains
     ) {
         super(schema, dimensionField, annotation, fieldType, cardinality, friendlyName, ColumnType.TEMPORAL);
         this.timeZone = Objects.requireNonNull(timeZone, "timeZone");
@@ -65,7 +65,7 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
     }
 
     @Override
-    public TimeGrainDefinition[] getSupportedGrains() {
+    public Set<TimeGrainDefinition> getSupportedGrains() {
         return supportedGrains;
     }
 
@@ -111,7 +111,8 @@ public class TimeDimension extends DegenerateDimension implements TimeDimensionC
     public String toString() {
         return new StringJoiner(", ", TimeDimension.class.getSimpleName() + "[", "]")
                 .add("timeZone=" + getTimeZone().getDisplayName())
-                .add("timeGrains=" + Arrays.stream(getSupportedGrains())
+                .add("timeGrains=" + getSupportedGrains()
+                        .stream()
                         .map(TimeGrainDefinition::grain)
                         .collect(Collectors.toSet()))
                 .add("columnType=" + getColumnType())

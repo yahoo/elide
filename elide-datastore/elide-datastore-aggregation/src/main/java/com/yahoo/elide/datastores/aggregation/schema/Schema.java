@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.impl.TimeDimensio
 import com.yahoo.elide.datastores.aggregation.schema.metric.AggregatedMetric;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
+import com.google.common.collect.Sets;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,8 +56,7 @@ public class Schema {
     protected final Class<?> entityClass;
     @Getter
     protected final Set<Metric> metrics;
-    @Getter
-    protected final Set<DimensionColumn> dimensions;
+    protected final Map<String, DimensionColumn> dimensions;
     @Getter(value = AccessLevel.PROTECTED)
     protected final EntityDictionary entityDictionary;
 
@@ -102,10 +104,7 @@ public class Schema {
      * @return {@link DimensionColumn} found or {@code null} if not found
      */
     public DimensionColumn getDimension(String dimensionName) {
-        return getDimensions().stream()
-                .filter(dimension -> dimension.getName().equals(dimensionName))
-                .findAny()
-                .orElse(null);
+        return dimensions.get(dimensionName);
     }
 
     /**
@@ -116,12 +115,13 @@ public class Schema {
      * @return {@link TimeDimensionColumn} found or {@code null} if not found
      */
     public TimeDimensionColumn getTimeDimension(String dimensionName) {
-        return getDimensions().stream()
-                .filter(dimension -> dimension.getName().equals(dimensionName))
-                .filter(dimension -> dimension instanceof TimeDimensionColumn)
-                .map(TimeDimensionColumn.class::cast)
-                .findAny()
-                .orElse(null);
+        DimensionColumn dimension = dimensions.get(dimensionName);
+
+        if (dimension instanceof TimeDimensionColumn) {
+            return (TimeDimensionColumn) dimension;
+        }
+
+        return null;
     }
 
     /**
@@ -166,6 +166,14 @@ public class Schema {
      */
     public String getAlias() {
         return FilterPredicate.getTypeAlias(entityClass);
+    }
+
+    /**
+     * Returns the set of all dimensions.
+     * @return The set of all dimensions.
+     */
+    public Set<DimensionColumn> getDimensions() {
+        return dimensions.values().stream().collect(Collectors.toSet());
     }
 
     /**
@@ -284,7 +292,7 @@ public class Schema {
                     cardinality,
                     friendlyName,
                     TimeZone.getTimeZone(temporal.timeZone()),
-                    temporal.grains()
+                    Sets.newHashSet(temporal.grains())
             );
 
         }
@@ -323,15 +331,10 @@ public class Schema {
      *
      * @return all non-metric fields as {@link DimensionColumn} objects
      */
-    private Set<DimensionColumn> getAllDimensions() {
+    private Map<String, DimensionColumn> getAllDimensions() {
         return getEntityDictionary().getAllFields(getEntityClass()).stream()
                 .filter(field -> !isMetricField(field))
                 .map(field -> constructDimension(field, getEntityClass(), getEntityDictionary()))
-                .collect(
-                        Collectors.collectingAndThen(
-                                Collectors.toSet(),
-                                Collections::unmodifiableSet
-                        )
-                );
+                .collect(Collectors.toMap(DimensionColumn::getName, Function.identity()));
     }
 }

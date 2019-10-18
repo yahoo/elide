@@ -12,7 +12,7 @@ import java.util.TimeZone;
 /**
  * Represents a requested time dimension in a query.
  */
-public interface ProjectedTimeDimension extends ProjectedDimension {
+public interface TimeDimensionProjection extends DimensionProjection {
 
     /**
      * Get the requested time zone.

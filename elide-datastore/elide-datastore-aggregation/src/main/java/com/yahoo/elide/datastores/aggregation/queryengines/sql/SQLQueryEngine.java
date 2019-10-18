@@ -21,7 +21,7 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLDimension;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
@@ -230,9 +230,9 @@ public class SQLQueryEngine implements QueryEngine {
      */
     private Set<Path.PathElement> extractPathElements(Set<DimensionColumn> groupByDims) {
         return groupByDims.stream()
-            .map((SQLDimension.class::cast))
+            .map((SQLDimensionColumn.class::cast))
             .filter((dim) -> dim.getJoinPath() != null)
-            .map(SQLDimension::getJoinPath)
+            .map(SQLDimensionColumn::getJoinPath)
             .map((path) -> extractPathElements(path))
             .flatMap((elements) -> elements.stream())
             .collect(Collectors.toSet());
@@ -416,8 +416,8 @@ public class SQLQueryEngine implements QueryEngine {
 
         String groupByDimensions = clientQuery.getDimensions().stream()
                 .map(requestedDim -> clientQuery.getSchema().getDimension(requestedDim.getName()))
-                .map((SQLDimension.class::cast))
-                .map(SQLDimension::getColumnName)
+                .map((SQLDimensionColumn.class::cast))
+                .map(SQLDimensionColumn::getColumnName)
                 .collect(Collectors.joining(","));
 
         String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
@@ -447,8 +447,8 @@ public class SQLQueryEngine implements QueryEngine {
 
         List<String> dimensionProjections = query.getDimensions().stream()
                 .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
-                .map((SQLDimension.class::cast))
-                .map(SQLDimension::getColumnReference)
+                .map((SQLDimensionColumn.class::cast))
+                .map(SQLDimensionColumn::getColumnReference)
                 .collect(Collectors.toList());
 
         String projectionClause = metricProjections.stream()
@@ -470,8 +470,8 @@ public class SQLQueryEngine implements QueryEngine {
     private String extractGroupBy(Query query) {
         List<String> dimensionProjections = query.getDimensions().stream()
                 .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
-                .map((SQLDimension.class::cast))
-                .map(SQLDimension::getColumnReference)
+                .map((SQLDimensionColumn.class::cast))
+                .map(SQLDimensionColumn::getColumnReference)
                 .collect(Collectors.toList());
 
         return "GROUP BY " + dimensionProjections.stream()

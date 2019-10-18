@@ -13,12 +13,12 @@ import java.io.Serializable;
 /**
  * Represents a selected dimension in a Query.
  */
-public interface ProjectedDimension extends Serializable {
+public interface DimensionProjection extends Serializable {
 
     /**
-     * Returns the name of the entity representing this {@link ProjectedDimension} object as a {@link String}.
+     * Returns the name of the entity representing this {@link DimensionProjection} object as a {@link String}.
      *
-     * @return the name of the entity or interface representing this {@link ProjectedDimension}.
+     * @return the name of the entity or interface representing this {@link DimensionProjection}.
      */
     String getName();
 

@@ -73,17 +73,18 @@ public class SQLSchema extends Schema {
             String columnName = getColumnName(entityClass, dimensionField);
 
             if (dim instanceof TimeDimensionColumn) {
-                return new SQLTimeDimension((TimeDimensionColumn) dim, columnName, getAlias());
+                return new SQLTimeDimensionColumn((TimeDimensionColumn) dim, columnName, getAlias());
             }
-            return new SQLDimension(dim, columnName, getAlias());
+            return new SQLDimensionColumn(dim, columnName, getAlias());
         }
 
         Path path = new Path(entityClass, entityDictionary, joinTo.path());
 
         if (dim instanceof TimeDimensionColumn) {
-            return new SQLTimeDimension((TimeDimensionColumn) dim, getJoinColumn(path), getJoinTableAlias(path), path);
+            return new SQLTimeDimensionColumn((TimeDimensionColumn) dim,
+                    getJoinColumn(path), getJoinTableAlias(path), path);
         }
-        return new SQLDimension(dim, getJoinColumn(path), getJoinTableAlias(path), path);
+        return new SQLDimensionColumn(dim, getJoinColumn(path), getJoinTableAlias(path), path);
     }
 
     /**

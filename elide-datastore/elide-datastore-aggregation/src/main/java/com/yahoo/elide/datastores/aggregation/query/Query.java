@@ -36,10 +36,10 @@ public class Query {
     private final Map<Metric, Class<? extends Aggregation>> metrics;
 
     @Singular
-    private final Set<ProjectedDimension> groupDimensions;
+    private final Set<DimensionProjection> groupDimensions;
 
     @Singular
-    private final Set<ProjectedTimeDimension> timeDimensions;
+    private final Set<TimeDimensionProjection> timeDimensions;
 
     private final FilterExpression whereFilter;
     private final FilterExpression havingFilter;
@@ -51,7 +51,7 @@ public class Query {
      * Returns all the dimensions regardless of type.
      * @return All the dimensions.
      */
-    public Set<ProjectedDimension> getDimensions() {
+    public Set<DimensionProjection> getDimensions() {
         return Stream.concat(getGroupDimensions().stream(), getTimeDimensions().stream())
                 .collect(
                         Collectors.toCollection(LinkedHashSet::new)

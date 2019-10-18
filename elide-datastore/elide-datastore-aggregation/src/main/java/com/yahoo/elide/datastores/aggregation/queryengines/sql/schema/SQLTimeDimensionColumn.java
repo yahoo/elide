@@ -10,20 +10,21 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
  * A time dimension that supports special sauce needed to generate SQL.
  * This dimension will be created by the SQLQueryEngine in place of a plain TimeDimension.
  */
-public class SQLTimeDimension extends SQLDimension implements TimeDimensionColumn {
+public class SQLTimeDimensionColumn extends SQLDimensionColumn implements TimeDimensionColumn {
     /**
      * Constructor.
      * @param dimension a wrapped dimension.
      * @param columnAlias The column alias in SQL to refer to this dimension.
      * @param tableAlias The table alias in SQL where this dimension lives.
      */
-    public SQLTimeDimension(TimeDimensionColumn dimension, String columnAlias, String tableAlias) {
+    public SQLTimeDimensionColumn(TimeDimensionColumn dimension, String columnAlias, String tableAlias) {
         super(dimension, columnAlias, tableAlias);
     }
 
@@ -35,7 +36,7 @@ public class SQLTimeDimension extends SQLDimension implements TimeDimensionColum
      * @param joinPath A '.' separated path through the entity relationship graph that describes
      *                 how to join the time dimension into the current AnalyticView.
      */
-    public SQLTimeDimension(TimeDimensionColumn dimension, String columnAlias, String tableAlias, Path joinPath) {
+    public SQLTimeDimensionColumn(TimeDimensionColumn dimension, String columnAlias, String tableAlias, Path joinPath) {
         super(dimension, columnAlias, tableAlias, joinPath);
     }
 
@@ -46,7 +47,7 @@ public class SQLTimeDimension extends SQLDimension implements TimeDimensionColum
     }
 
     @Override
-    public TimeGrainDefinition[] getSupportedGrains() {
+    public Set<TimeGrainDefinition> getSupportedGrains() {
         return ((TimeDimensionColumn) wrapped).getSupportedGrains();
     }
 }

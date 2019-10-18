@@ -18,8 +18,8 @@ import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedTimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -617,14 +616,14 @@ public class SQLQueryEngineTest {
      * @param dimensionName The name of the column.
      * @return A newly constructed requested time dimension with the matching grain.
      */
-    private static ProjectedTimeDimension toTimeDimension(Schema schema, TimeGrain grain, String dimensionName) {
+    private static TimeDimensionProjection toTimeDimension(Schema schema, TimeGrain grain, String dimensionName) {
         TimeDimensionColumn column = schema.getTimeDimension(dimensionName);
 
         if (column == null) {
             return null;
         }
 
-        return Arrays.stream(column.getSupportedGrains())
+        return column.getSupportedGrains().stream()
                 .filter(supportedGrain -> supportedGrain.grain().equals(grain))
                 .findFirst()
                 .map(supportedGrain -> column.toProjectedDimension(supportedGrain))

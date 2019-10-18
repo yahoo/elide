@@ -14,7 +14,7 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionType;
 /**
  * A dimension but supporting extra metadata needed to generate SQL.
  */
-public class SQLDimension implements DimensionColumn {
+public class SQLDimensionColumn implements DimensionColumn {
 
     protected final DimensionColumn wrapped;
     protected final String columnAlias;
@@ -27,7 +27,7 @@ public class SQLDimension implements DimensionColumn {
      * @param columnAlias The column alias in SQL to refer to this dimension.
      * @param tableAlias The table alias in SQL where this dimension lives.
      */
-    public SQLDimension(DimensionColumn dimension, String columnAlias, String tableAlias) {
+    public SQLDimensionColumn(DimensionColumn dimension, String columnAlias, String tableAlias) {
         this(dimension, columnAlias, tableAlias, null);
     }
 
@@ -39,7 +39,7 @@ public class SQLDimension implements DimensionColumn {
      * @param joinPath A '.' separated path through the entity relationship graph that describes
      *                 how to join the time dimension into the current AnalyticView.
      */
-    public SQLDimension(DimensionColumn dimension, String columnAlias, String tableAlias, Path joinPath) {
+    public SQLDimensionColumn(DimensionColumn dimension, String columnAlias, String tableAlias, Path joinPath) {
         this.wrapped = dimension;
         this.columnAlias = columnAlias;
         this.tableAlias = tableAlias;

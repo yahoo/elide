@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.query.ProjectedDimension;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionType;
@@ -64,7 +64,7 @@ public abstract class AbstractEntityHydrator {
                 .collect(Collectors.toList());
 
         projections.addAll(this.query.getDimensions().stream()
-                .map(ProjectedDimension::getName)
+                .map(DimensionProjection::getName)
                 .collect(Collectors.toList()));
 
 
