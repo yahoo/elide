@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.core.EntityBinding.EMPTY_BINDING;
 
+import com.google.common.collect.Sets;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -1420,6 +1421,16 @@ public class EntityDictionary {
      */
     public void addArgumentsToAttributes(Class<?> cls, String attributeName, Set<ArgumentType> arguments) {
         getEntityBinding(cls).addArgumentsToAttribute(attributeName, arguments);
+    }
+
+    /**
+     * Add a single argument to the attribute
+     * @param cls The entity
+     * @param attributeName attribute name to which argument has to be added
+     * @param argument A single argument
+     */
+    public void addArgumentToAttributes(Class<?> cls, String attributeName, ArgumentType argument) {
+        this.addArgumentsToAttributes(cls, attributeName, Sets.newHashSet(argument));
     }
 
     /**

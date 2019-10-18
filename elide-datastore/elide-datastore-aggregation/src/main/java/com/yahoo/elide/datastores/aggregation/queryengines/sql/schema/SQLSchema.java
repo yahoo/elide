@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.schema;
 
+import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -18,9 +19,9 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import org.hibernate.annotations.Subselect;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -76,6 +77,11 @@ public class SQLSchema extends Schema {
             String columnName = getColumnName(entityClass, dimensionField);
 
             if (dim instanceof TimeDimensionColumn) {
+
+                //Add grain to the GraphQL schema.
+                entityDictionary.addArgumentToAttributes(this.entityClass, dimensionField,
+                        new ArgumentType("grain", TimeGrain.class));
+
                 return new SQLTimeDimensionColumn((TimeDimensionColumn) dim, columnName, getAlias());
             }
             return new SQLDimensionColumn(dim, columnName, getAlias());
