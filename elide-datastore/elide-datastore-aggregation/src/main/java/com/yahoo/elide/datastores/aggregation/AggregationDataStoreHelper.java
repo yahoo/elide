@@ -116,7 +116,7 @@ public class AggregationDataStoreHelper {
                         //The first grain is the default.
                         requestedGrainDefinition = timeDim.getSupportedGrains().stream()
                                 .findFirst()
-                                .orElseThrow(() -> new InvalidOperationException(
+                                .orElseThrow(() -> new IllegalStateException(
                                         String.format("Requested default grain, no grain defined on %s",
                                                 attribute.getName())));
                     } else {
