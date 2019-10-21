@@ -30,8 +30,6 @@ import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
-
-import org.hibernate.annotations.Subselect;
 import org.hibernate.jpa.QueryHints;
 
 import lombok.Getter;
@@ -49,7 +47,6 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import javax.persistence.Table;
 
 /**
  * QueryEngine for SQL backed stores.
@@ -182,7 +179,7 @@ public class SQLQueryEngine implements QueryEngine {
                     (predicate) -> { return generateHavingClauseColumnReference(predicate, query); }));
         }
 
-        if (! query.getDimensions().isEmpty())  {
+        if (!query.getDimensions().isEmpty())  {
             builder.groupByClause(extractGroupBy(query));
 
             joinPredicates.addAll(extractPathElements(query
@@ -299,40 +296,22 @@ public class SQLQueryEngine implements QueryEngine {
         //TODO - support joins where either side owns the relationship.
         //TODO - Support INNER and RIGHT joins.
         //TODO - Support toMany joins.
-        String relationshipName = pathElement.getFieldName();
-        Class<?> relationshipClass = pathElement.getFieldType();
-        String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
         Class<?> entityClass = pathElement.getType();
         String entityAlias = FilterPredicate.getTypeAlias(entityClass);
 
-
+        Class<?> relationshipClass = pathElement.getFieldType();
+        String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
+        String relationshipName = pathElement.getFieldName();
         String relationshipIdField = getColumnName(relationshipClass, dictionary.getIdFieldName(relationshipClass));
         String relationshipColumnName = getColumnName(entityClass, relationshipName);
-        Subselect subselectAnnotation = dictionary.getAnnotation(relationshipClass, Subselect.class);
 
-        if (subselectAnnotation == null) {
-            Table tableAnnotation = dictionary.getAnnotation(relationshipClass, Table.class);
-
-            String relationshipTableName = (tableAnnotation == null)
-                    ? dictionary.getJsonAliasFor(relationshipClass)
-                    : tableAnnotation.name();
-
-            return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
-                    relationshipTableName,
-                    relationshipAlias,
-                    entityAlias,
-                    relationshipColumnName,
-                    relationshipAlias,
-                    relationshipIdField);
-        } else {
-            return String.format("LEFT JOIN (%s) AS %s ON %s.%s = %s.%s",
-                    subselectAnnotation.value(),
-                    relationshipAlias,
-                    entityAlias,
-                    relationshipColumnName,
-                    relationshipAlias,
-                    relationshipIdField);
-        }
+        return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
+                SQLSchema.getTableOrSubselect(dictionary, relationshipClass),
+                relationshipAlias,
+                entityAlias,
+                relationshipColumnName,
+                relationshipAlias,
+                relationshipIdField);
     }
 
     /**

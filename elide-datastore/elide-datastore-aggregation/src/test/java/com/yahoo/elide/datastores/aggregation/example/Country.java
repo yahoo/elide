@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import lombok.Data;
 
@@ -23,7 +22,6 @@ import javax.persistence.Table;
 @Data
 @Entity
 @Include(rootLevel = true)
-@FromTable(name = "countries")
 @Table(name = "countries")
 @Cardinality(size = CardinalitySize.SMALL)
 public class Country {

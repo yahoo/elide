@@ -19,6 +19,8 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColu
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 
+import org.hibernate.annotations.Subselect;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -26,6 +28,7 @@ import lombok.ToString;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.JoinColumn;
+import javax.persistence.Table;
 
 /**
  * A subclass of Schema that supports additional metadata to construct the FROM clause of a SQL query.
@@ -116,15 +119,15 @@ public class SQLSchema extends Schema {
     /**
      * Maps a logical entity attribute into a physical SQL column name.
      * @param entityDictionary The dictionary for this elide instance.
-     * @param clazz The entity class.
+     * @param cls The entity class.
      * @param fieldName The entity attribute.
      * @return The physical SQL column name.
      */
-    public static String getColumnName(EntityDictionary entityDictionary, Class<?> clazz, String fieldName) {
-        Column[] column = entityDictionary.getAttributeOrRelationAnnotations(clazz, Column.class, fieldName);
+    public static String getColumnName(EntityDictionary entityDictionary, Class<?> cls, String fieldName) {
+        Column[] column = entityDictionary.getAttributeOrRelationAnnotations(cls, Column.class, fieldName);
 
         // this would only be valid for dimension columns
-        JoinColumn[] joinColumn = entityDictionary.getAttributeOrRelationAnnotations(clazz,
+        JoinColumn[] joinColumn = entityDictionary.getAttributeOrRelationAnnotations(cls,
                 JoinColumn.class, fieldName);
 
         if (column == null || column.length == 0) {
@@ -139,13 +142,35 @@ public class SQLSchema extends Schema {
     }
 
     /**
-     * Returns the physical database column name of an entity field.
-     * @param clazz The entity which owns the field.
-     * @param fieldName The field name to lookup
-     * @return
+     * Maps an entity class to a physical table of subselect query, if neither {@link Table} nor {@link Subselect}
+     * annotation is present on this class, use the class alias as default.
+     *
+     * @param entityDictionary The dictionary for this elide instance.
+     * @param cls The entity class.
+     * @return The physical SQL table or subselect query.
      */
-    private String getColumnName(Class<?> clazz, String fieldName) {
-        return getColumnName(entityDictionary, clazz, fieldName);
+    public static String getTableOrSubselect(EntityDictionary entityDictionary, Class<?> cls) {
+        Subselect subselectAnnotation = entityDictionary.getAnnotation(cls, Subselect.class);
+
+        if (subselectAnnotation == null) {
+            Table tableAnnotation = entityDictionary.getAnnotation(cls, Table.class);
+
+            return (tableAnnotation == null)
+                    ? entityDictionary.getJsonAliasFor(cls)
+                    : tableAnnotation.name();
+        } else {
+            return "(" + subselectAnnotation.value() + ")";
+        }
+    }
+
+    /**
+     * Returns the physical database column name of an entity field.
+     * @param cls The entity which owns the field.
+     * @param fieldName The field name to lookup
+     * @return physical database column name of an entity field
+     */
+    private String getColumnName(Class<?> cls, String fieldName) {
+        return getColumnName(entityDictionary, cls, fieldName);
     }
 
     private String getJoinColumn(Path path) {

@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 
 import org.hibernate.annotations.Subselect;
 
@@ -25,7 +24,6 @@ import javax.persistence.Id;
 @Entity
 @Include(rootLevel = true)
 @Subselect(value = "select * from countries")
-@FromSubquery(sql = "select * from countries")
 @Cardinality(size = CardinalitySize.SMALL)
 public class SubCountry {
 
