@@ -169,6 +169,222 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
+    /**
+     * Test the case that a where clause is promoted into having clause.
+     * @throws Exception
+     */
+    @Test
+    public void wherePromotionTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"overallRating==\\\"Good\\\",lowScore<\\\"45\\\"\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field("overallRating"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 35),
+                                        field("overallRating", "Good"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Jon Doe")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("lowScore", 72),
+                                        field("overallRating", "Good"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Han")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    /**
+     * Test the case that a where clause, which requires dimension join, is promoted into having clause.
+     * @throws Exception
+     */
+    @Test
+    public void havingClauseJoinTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"countryIsoCode==\\\"USA\\\",lowScore<\\\"45\\\"\""),
+                                        argument("sort", "\"lowScore\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field("countryIsoCode"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name"),
+                                                        field("id")
+                                                )
+                                        ),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 35),
+                                        field("countryIsoCode", "USA"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "United States"),
+                                                        field("id", "840")
+                                                )
+                                        ),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Jon Doe")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("lowScore", 241),
+                                        field("countryIsoCode", "USA"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "United States"),
+                                                        field("id", "840")
+                                                )
+                                        ),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Jane Doe")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    /**
+     * Test invalid where promotion on a dimension field that is not grouped.
+     * @throws Exception
+     */
+    @Test
+    public void ungroupedHavingDimensionTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"countryIsoCode==\\\"USA\\\",lowScore<\\\"45\\\"\"")
+                                ),
+                                selections(
+                                        field("lowScore")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
+                + "'Dimension field countryIsoCode must be grouped before filtering in having clause.'\"";
+
+        runQueryWithExpectedError(graphQLRequest, errorMessage);
+    }
+
+    /**
+     * Test invalid having clause on a metric field that is not aggregated.
+     * @throws Exception
+     */
+    @Test
+    public void nonAggregatedHavingMetricTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"highScore<\\\"45\\\"\"")
+                                ),
+                                selections(
+                                        field("lowScore")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
+                + "'Metric field highScore must be aggregated before filtering in having clause.'\"";
+
+        runQueryWithExpectedError(graphQLRequest, errorMessage);
+    }
+
+    /**
+     * Test invalid where promotion on a different class than the queried class.
+     * @throws Exception
+     */
+    @Test
+    public void invalidHavingClauseClassTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"country.isoCode==\\\"USA\\\",lowScore<\\\"45\\\"\"")
+                                ),
+                                selections(
+                                        field("lowScore")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
+                + "'Classes don't match when try filtering on Country in having clause of PlayerStats.'\"";
+
+        runQueryWithExpectedError(graphQLRequest, errorMessage);
+    }
+
     @Test
     public void whereFilterTest() throws Exception {
         String graphQLRequest = document(
@@ -277,10 +493,27 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         runQueryWithExpectedResult(graphQLQuery, null, expected);
     }
 
+    private void runQueryWithExpectedError(
+            String graphQLQuery,
+            Map<String, Object> variables,
+            String errorMessage
+    ) throws IOException {
+        compareErrorMessage(runQuery(graphQLQuery, variables), errorMessage);
+    }
+
+    private void runQueryWithExpectedError(String graphQLQuery, String errorMessage) throws IOException {
+        runQueryWithExpectedError(graphQLQuery, null, errorMessage);
+    }
+
     private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
         JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
         JsonNode expectedNode = JSON_MAPPER.readTree(expected);
         assertEquals(expectedNode, responseNode);
+    }
+
+    private void compareErrorMessage(ValidatableResponse response, String expected) throws IOException {
+        JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
+        assertEquals(expected, responseNode.get("errors").get(0).get("message").toString());
     }
 
     private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
