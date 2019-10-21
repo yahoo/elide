@@ -7,7 +7,6 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.core.EntityBinding.EMPTY_BINDING;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -30,6 +29,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;

@@ -10,12 +10,9 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
-import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
-import graphql.language.Field;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

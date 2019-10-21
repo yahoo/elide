@@ -41,6 +41,8 @@ import javax.persistence.ManyToOne;
 @FromTable(name = "playerStats")
 public class PlayerStats {
 
+    public static final String DAY_FORMAT =
+
     /**
      * PK.
      */
