@@ -636,12 +636,37 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
+     * Checks whether the new entity is already a part of the relationship
+     * @param fieldName which relation link
+     * @param toAdd the new relation
+     * @return boolean representing the result of the check
+     *
+     * This method does not handle the case where the toAdd entity is newly created,
+     * since newly created entities have null id there is no easy way to check for identity
+     */
+    public boolean relationshipAlreadyExists(String fieldName, PersistentResource toAdd) {
+        Object relation = this.getValueUnchecked(fieldName);
+        String toAddId = toAdd.getId();
+        if (toAddId == null) {
+            return false;
+        }
+        if (relation instanceof Collection) {
+            return ((Collection) relation).stream().anyMatch((obj -> dictionary.getId(obj).equals(toAddId)));
+        } else {
+            return toAddId.equals(dictionary.getId(relation));
+        }
+    }
+
+    /**
      * Add relation link from a given parent resource to a child resource.
      *
      * @param fieldName which relation link
      * @param newRelation the new relation
      */
     public void addRelation(String fieldName, PersistentResource newRelation) {
+        if (!newRelation.isNewlyCreated() && relationshipAlreadyExists(fieldName, newRelation)) {
+            return;
+        }
         checkSharePermission(Collections.singleton(newRelation));
         Object relation = this.getValueUnchecked(fieldName);
 
