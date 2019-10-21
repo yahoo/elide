@@ -93,51 +93,57 @@ public class AggregationDataStoreHelper {
     }
 
     //TODO - Add tests in the next PR.
+    /**
+     * Gets time dimensions based on relationships and attributes from {@link EntityProjection}.
+     *
+     * @return projections for time dimension columns
+     * @throws InvalidOperationException Thrown if a requested time grain is not supported.
+     */
     private Set<TimeDimensionProjection> resolveTimeDimensions() {
-        Set<TimeDimensionProjection> timeDims = new LinkedHashSet<>();
-        //Only attributes can be time dimensions
-        entityProjection.getAttributes().stream().forEach((attribute -> {
-            TimeDimensionColumn timeDim = schema.getTimeDimension(attribute.getName());
-            if (timeDim == null) {
-                return;
-            }
+        return entityProjection.getAttributes().stream()
+                .filter(attribute -> schema.getTimeDimension(attribute.getName()) != null)
+                .map(attribute -> {
+                    TimeDimensionColumn timeDim = schema.getTimeDimension(attribute.getName());
 
-            Argument timeGrainArgument = attribute.getArguments().stream()
-                    .filter(attr -> attr.getName().equals("grain"))
-                    .findAny()
-                    .orElse(null);
+                    Argument timeGrainArgument = attribute.getArguments().stream()
+                            .filter(attr -> attr.getName().equals("grain"))
+                            .findAny()
+                            .orElse(null);
 
-            TimeGrainDefinition requestedGrainDefinition;
-            if (timeGrainArgument == null) {
+                    TimeGrainDefinition requestedGrainDefinition;
+                    if (timeGrainArgument == null) {
 
-                //The first grain is the default.
-                requestedGrainDefinition = timeDim.getSupportedGrains().iterator().next();
-            } else {
-                String requestedGrainName = timeGrainArgument.getValue().toString();
+                        //The first grain is the default.
+                        requestedGrainDefinition = timeDim.getSupportedGrains().stream()
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalStateException(
+                                        String.format("Requested default grain, no grain defined on %s",
+                                                attribute.getName())));
+                    } else {
+                        String requestedGrainName = timeGrainArgument.getValue().toString();
 
-                TimeGrain requestedGrain;
-                try {
-                    requestedGrain = TimeGrain.valueOf(requestedGrainName);
-                } catch (IllegalArgumentException e) {
-                    throw new InvalidOperationException(String.format("Invalid grain %s", requestedGrainName));
-                }
+                        TimeGrain requestedGrain;
+                        try {
+                            requestedGrain = TimeGrain.valueOf(requestedGrainName);
+                        } catch (IllegalArgumentException e) {
+                            throw new InvalidOperationException(String.format("Invalid grain %s", requestedGrainName));
+                        }
 
-                requestedGrainDefinition = timeDim.getSupportedGrains().stream()
-                        .filter(supportedGrainDef -> supportedGrainDef.grain().equals(requestedGrain))
-                        .findAny()
-                        .orElseThrow(() -> new InvalidOperationException(
-                                String.format("Requested grain %s, not supported on %s",
-                                        requestedGrainName, attribute.getName())));
-            }
+                        requestedGrainDefinition = timeDim.getSupportedGrains().stream()
+                                .filter(supportedGrainDef -> supportedGrainDef.grain().equals(requestedGrain))
+                                .findAny()
+                                .orElseThrow(() -> new InvalidOperationException(
+                                        String.format("Requested grain %s, not supported on %s",
+                                                requestedGrainName, attribute.getName())));
+                    }
 
-            timeDims.add(timeDim.toProjectedDimension(requestedGrainDefinition));
-        }));
-
-        return timeDims;
+                    return timeDim.toProjectedDimension(requestedGrainDefinition);
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
-     * Gets dimensions based on relationships and attributes from {@link EntityProjection}.
+     * Gets dimensions except time dimensions based on relationships and attributes from {@link EntityProjection}.
      */
     private Set<DimensionProjection> resolveNonTimeDimensions() {
 
@@ -145,9 +151,9 @@ public class AggregationDataStoreHelper {
         allColumns.addAll(getRelationships());
 
         return allColumns.stream()
+                .filter(columnName -> schema.getTimeDimension(columnName) == null)
                 .map(columnName -> schema.getDimension(columnName))
                 .filter(Objects::nonNull)
-                .filter(column -> ! (column instanceof TimeDimensionColumn))
                 .map(DimensionColumn::toProjectedDimension)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
