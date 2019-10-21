@@ -83,7 +83,6 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         //We do not want the update to one method to be called when we add the existing entity to the relation
         funResource.addRelation("relation1", childResource);
         verify(tx, never()).updateToManyRelation(eq(tx), eq(child), eq("relation1"), any(), any(), eq(goodScope));
-        //verify(tx, times(1)).updateToManyRelation(eq(tx), eq(child), eq("relation1"), any(), any(), eq(goodScope));
     }
 
     @Test
