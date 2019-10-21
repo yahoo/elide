@@ -12,6 +12,7 @@ import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
+import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
@@ -28,6 +29,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
             public void populateEntityDictionary(EntityDictionary dictionary) {
                 dictionary.bindEntity(PlayerStats.class);
                 dictionary.bindEntity(Country.class);
+                dictionary.bindEntity(SubCountry.class);
                 dictionary.bindEntity(PlayerStatsView.class);
                 dictionary.bindEntity(Player.class);
                 dictionary.bindEntity(VideoGame.class);

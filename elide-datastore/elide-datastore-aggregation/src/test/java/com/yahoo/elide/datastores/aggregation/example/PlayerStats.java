@@ -24,10 +24,11 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.Date;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -66,9 +67,19 @@ public class PlayerStats {
     private Country country;
 
     /**
+     * A subselect dimension.
+     */
+    private SubCountry subCountry;
+
+    /**
      * A dimension field joined to this table.
      */
     private String countryIsoCode;
+
+    /**
+     * A dimension field joined to this table.
+     */
+    private String subCountryIsoCode;
 
     /**
      * A table dimension.
@@ -115,7 +126,7 @@ public class PlayerStats {
         this.overallRating = overallRating;
     }
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "country_id")
     public Country getCountry() {
         return country;
@@ -125,7 +136,17 @@ public class PlayerStats {
         this.country = country;
     }
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "sub_country_id")
+    public SubCountry getSubCountry() {
+        return subCountry;
+    }
+
+    public void setSubCountry(final SubCountry subCountry) {
+        this.subCountry = subCountry;
+    }
+
+    @ManyToOne
     @JoinColumn(name = "player_id")
     public Player getPlayer() {
         return player;
@@ -156,5 +177,16 @@ public class PlayerStats {
 
     public void setCountryIsoCode(String isoCode) {
         this.countryIsoCode = isoCode;
+    }
+
+
+    @JoinTo(path = "subCountry.isoCode")
+    @Column(updatable = false, insertable = false) // subselect field should be read-only
+    public String getSubCountryIsoCode() {
+        return subCountryIsoCode;
+    }
+
+    public void setSubCountryIsoCode(String isoCode) {
+        this.subCountryIsoCode = isoCode;
     }
 }

@@ -31,6 +31,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
 
+import org.hibernate.annotations.Subselect;
 import org.hibernate.jpa.QueryHints;
 
 import lombok.Getter;
@@ -304,21 +305,34 @@ public class SQLQueryEngine implements QueryEngine {
         Class<?> entityClass = pathElement.getType();
         String entityAlias = FilterPredicate.getTypeAlias(entityClass);
 
-        Table tableAnnotation = dictionary.getAnnotation(relationshipClass, Table.class);
-
-        String relationshipTableName = (tableAnnotation == null)
-                ? dictionary.getJsonAliasFor(relationshipClass)
-                : tableAnnotation.name();
 
         String relationshipIdField = getColumnName(relationshipClass, dictionary.getIdFieldName(relationshipClass));
+        String relationshipColumnName = getColumnName(entityClass, relationshipName);
+        Subselect subselectAnnotation = dictionary.getAnnotation(relationshipClass, Subselect.class);
 
-        return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
-                relationshipTableName,
-                relationshipAlias,
-                entityAlias,
-                getColumnName(entityClass, relationshipName),
-                relationshipAlias,
-                relationshipIdField);
+        if (subselectAnnotation == null) {
+            Table tableAnnotation = dictionary.getAnnotation(relationshipClass, Table.class);
+
+            String relationshipTableName = (tableAnnotation == null)
+                    ? dictionary.getJsonAliasFor(relationshipClass)
+                    : tableAnnotation.name();
+
+            return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
+                    relationshipTableName,
+                    relationshipAlias,
+                    entityAlias,
+                    relationshipColumnName,
+                    relationshipAlias,
+                    relationshipIdField);
+        } else {
+            return String.format("LEFT JOIN (%s) AS %s ON %s.%s = %s.%s",
+                    subselectAnnotation.value(),
+                    relationshipAlias,
+                    entityAlias,
+                    relationshipColumnName,
+                    relationshipAlias,
+                    relationshipIdField);
+        }
     }
 
     /**
