@@ -5,24 +5,25 @@ CREATE TABLE IF NOT EXISTS playerStats
       lowScore BIGINT,
       overallRating VARCHAR(255),
       country_id VARCHAR(255),
+      sub_country_id VARCHAR(255),
       player_id BIGINT,
       recordedDate DATETIME
     ) AS SELECT * FROM CSVREAD('classpath:player_stats.csv');
 
-CREATE TABLE IF NOT EXISTS country
+CREATE TABLE IF NOT EXISTS countries
     (
       id VARCHAR(255),
       isoCode VARCHAR(255),
       name VARCHAR(255)
     ) AS SELECT * FROM CSVREAD('classpath:country.csv');
 
-CREATE TABLE IF NOT EXISTS player
+CREATE TABLE IF NOT EXISTS players
     (
       id BIGINT,
       name VARCHAR(255)
     ) AS SELECT * FROM CSVREAD('classpath:player.csv');
 
-CREATE TABLE IF NOT EXISTS videoGame
+CREATE TABLE IF NOT EXISTS videoGames
     (
       id BIGINT,
       game_rounds BIGINT,

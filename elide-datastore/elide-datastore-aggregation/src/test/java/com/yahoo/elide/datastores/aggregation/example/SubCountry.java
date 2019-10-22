@@ -10,21 +10,22 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 
+import org.hibernate.annotations.Subselect;
+
 import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
- * A root level entity for testing AggregationDataStore.
+ * A root level entity for testing AggregationDataStore with @Subselect annotation
  */
 @Data
 @Entity
 @Include(rootLevel = true)
-@Table(name = "countries")
+@Subselect(value = "select * from countries")
 @Cardinality(size = CardinalitySize.SMALL)
-public class Country {
+public class SubCountry {
 
     private String id;
 
