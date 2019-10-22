@@ -1,5 +1,11 @@
 # Change Log
 
+## 4.5.6
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/01f630782f1bf6d51acd293fab811d3c63998014) Fix elide4.5.5 (#1040) 
+      * There was a compilation change required in FilterExpressionCheck that break SEMVER.
+      * elide-blog-example had pom issues that prevented artifacts syncing with maven central.
+
 ## 4.5.5
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/1b293735fa2e316fc6c1697efb10e16f80c79ff5) Bump version.jackson from 2.9.9 to 2.9.10 (#981) 
