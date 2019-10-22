@@ -30,7 +30,6 @@ import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
-
 import org.hibernate.jpa.QueryHints;
 
 import lombok.Getter;
@@ -48,7 +47,6 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import javax.persistence.Table;
 
 /**
  * QueryEngine for SQL backed stores.
@@ -184,7 +182,7 @@ public class SQLQueryEngine implements QueryEngine {
                     (predicate) -> generateHavingClauseColumnReference(predicate, query)));
         }
 
-        if (! query.getDimensions().isEmpty())  {
+        if (!query.getDimensions().isEmpty())  {
             builder.groupByClause(extractGroupBy(query));
 
             joinPredicates.addAll(extractPathElements(query
@@ -301,25 +299,20 @@ public class SQLQueryEngine implements QueryEngine {
         //TODO - support joins where either side owns the relationship.
         //TODO - Support INNER and RIGHT joins.
         //TODO - Support toMany joins.
-        String relationshipName = pathElement.getFieldName();
-        Class<?> relationshipClass = pathElement.getFieldType();
-        String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
         Class<?> entityClass = pathElement.getType();
         String entityAlias = FilterPredicate.getTypeAlias(entityClass);
 
-        Table tableAnnotation = dictionary.getAnnotation(relationshipClass, Table.class);
-
-        String relationshipTableName = (tableAnnotation == null)
-                ? dictionary.getJsonAliasFor(relationshipClass)
-                : tableAnnotation.name();
-
+        Class<?> relationshipClass = pathElement.getFieldType();
+        String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
+        String relationshipName = pathElement.getFieldName();
         String relationshipIdField = getColumnName(relationshipClass, dictionary.getIdFieldName(relationshipClass));
+        String relationshipColumnName = getColumnName(entityClass, relationshipName);
 
         return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
-                relationshipTableName,
+                SQLSchema.getTableOrSubselect(dictionary, relationshipClass),
                 relationshipAlias,
                 entityAlias,
-                getColumnName(entityClass, relationshipName),
+                relationshipColumnName,
                 relationshipAlias,
                 relationshipIdField);
     }

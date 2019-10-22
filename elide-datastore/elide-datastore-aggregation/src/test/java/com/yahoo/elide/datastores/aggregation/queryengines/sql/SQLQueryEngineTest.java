@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.aggregation.queryengines;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,15 +18,15 @@ import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
+import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
-
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -57,6 +57,7 @@ public class SQLQueryEngineTest {
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(Country.class);
+        dictionary.bindEntity(SubCountry.class);
         dictionary.bindEntity(Player.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
