@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
@@ -195,7 +196,7 @@ public class SQLQueryEngine implements QueryEngine {
         if (query.getSorting() != null) {
             Map<Path, Sorting.SortOrder> sortClauses = query.getSorting().getValidSortingRules(entityClass, dictionary);
 
-            builder.orderByClause(extractOrderBy(entityClass, sortClauses, query));
+            builder.orderByClause(extractOrderBy(entityClass, sortClauses, schema, query));
 
             joinPredicates.addAll(extractPathElements(sortClauses));
         }
@@ -341,7 +342,8 @@ public class SQLQueryEngine implements QueryEngine {
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A SQL expression
      */
-    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses, Query query) {
+    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses, SQLSchema schema,
+                                  Query query) {
         if (sortClauses.isEmpty()) {
             return "";
         }
@@ -360,11 +362,14 @@ public class SQLQueryEngine implements QueryEngine {
                             + "."
                             + getColumnName(entityClass, last.getFieldName());
 
-                    List<Metric> metricField = query.getMetrics().keySet().stream()
-                            .filter(m -> m.getName().equals(last.getFieldName())).collect(Collectors.toList());
-                    if (!metricField.isEmpty()) {
-                        Metric currentMetric = metricField.get(0);
-                        orderByType = currentMetric.getMetricExpression(query.getMetrics().get(currentMetric));
+                    if (last.getType() == entityClass) {
+                        Metric currentMetric = schema.getMetric(last.getFieldName());
+                        if (currentMetric != null && query.getMetrics().keySet().contains(currentMetric)) {
+                            orderByType = currentMetric.getMetricExpression(query.getMetrics().get(currentMetric));
+                        }
+                        else if (currentMetric != null) {
+                            throw new InvalidOperationException("Can't sort on metric that is not present in query");
+                        }
                     }
 
                     return orderByType

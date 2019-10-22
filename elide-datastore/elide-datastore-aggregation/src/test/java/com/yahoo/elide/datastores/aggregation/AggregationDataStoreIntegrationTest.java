@@ -551,6 +551,114 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    public void nestedSortingTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"-country.name\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name"),
+                                                        field("id")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 241),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "United States"),
+                                                        field("id", "840")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("lowScore", 72),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Hong Kong"),
+                                                        field("id", "344")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void invalidSortingTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"highScore\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name"),
+                                                        field("id")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 2412),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "United States"),
+                                                        field("id", "840")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("highScore", 1000),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Hong Kong"),
+                                                        field("id", "344")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     @Disabled
     //FIXME Needs metric computation support for test case to be valid.
     public void aggregationComputedMetricTest() throws Exception {
