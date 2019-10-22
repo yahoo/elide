@@ -5,9 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
@@ -28,6 +31,14 @@ public abstract class AggregationDataStore implements DataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         queryEngine = queryEngineFactory.buildQueryEngine(dictionary);
+
+        /* Add 'grain' argument to each TimeDimensionColumn */
+        for (Schema schema: queryEngine.getSchemas()) {
+            for (TimeDimensionColumn timeDim : schema.getTimeDimensions()) {
+                dictionary.addArgumentToAttributes(schema.getEntityClass(), timeDim.getName(),
+                        new ArgumentType("grain", String.class));
+            }
+        }
     }
 
     @Override

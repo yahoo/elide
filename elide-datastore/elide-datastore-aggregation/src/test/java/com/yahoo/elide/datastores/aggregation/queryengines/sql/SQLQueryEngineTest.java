@@ -677,7 +677,7 @@ public class SQLQueryEngineTest {
     }
 
     /**
-     * Test filter by time dimension
+     * Test filter by time dimension.
      */
     @Test
     public void testFilterByTemporalDimension() throws Exception {

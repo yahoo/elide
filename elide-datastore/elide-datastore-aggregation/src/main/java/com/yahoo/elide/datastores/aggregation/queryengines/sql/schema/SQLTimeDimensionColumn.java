@@ -69,6 +69,7 @@ public class SQLTimeDimensionColumn extends SQLDimensionColumn implements TimeDi
         TimeGrainDefinition definition = getSupportedGrains().stream()
                 .filter(grainDef -> grainDef.grain().equals(requestedGrain)).findFirst().get();
 
+        //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return String.format(definition.expression(), getColumnReference());
     }
 }

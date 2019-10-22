@@ -84,6 +84,11 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     @Override
+    public List<Schema> getSchemas() {
+        return schemas.values().stream().collect(Collectors.toList());
+    }
+
+    @Override
     public Iterable<Object> executeQuery(Query query) {
         EntityManager entityManager = null;
         EntityTransaction transaction = null;

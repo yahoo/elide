@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.schema;
 
-import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -76,12 +75,7 @@ public class SQLSchema extends Schema {
             String columnName = getColumnName(entityClass, dimensionField);
 
             if (dim instanceof TimeDimensionColumn) {
-
-                //Add grain to the GraphQL schema.
-                entityDictionary.addArgumentToAttributes(this.entityClass, dimensionField,
-                        new ArgumentType("grain", String.class));
-
-                return new SQLTimeDimensionColumn((TimeDimensionColumn) dim, columnName, getAlias());
+               return new SQLTimeDimensionColumn((TimeDimensionColumn) dim, columnName, getAlias());
             }
             return new SQLDimensionColumn(dim, columnName, getAlias());
         }

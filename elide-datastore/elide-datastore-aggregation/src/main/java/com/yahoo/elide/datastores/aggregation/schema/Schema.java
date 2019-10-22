@@ -53,7 +53,7 @@ import java.util.stream.Stream;
 public class Schema {
 
     @Getter
-    protected final Class<?> entityClass;
+    public final Class<?> entityClass;
     @Getter
     protected final Set<Metric> metrics;
     protected final Map<String, DimensionColumn> dimensions;
@@ -122,6 +122,17 @@ public class Schema {
         }
 
         return null;
+    }
+
+    /**
+     * Returns the complete list of time dimensions.
+     * @return the complete list of time dimensions.
+     */
+    public List<TimeDimensionColumn> getTimeDimensions() {
+        return dimensions.values().stream()
+                .filter(dim -> dim instanceof TimeDimensionColumn)
+                .map(TimeDimensionColumn.class::cast)
+                .collect(Collectors.toList());
     }
 
     /**
