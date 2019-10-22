@@ -7,19 +7,19 @@ package com.yahoo.elide.datastores.aggregation.datastores.presto;
 
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStoreTransaction;
-import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 
 /**
  * Presto Data Store Transaction
  */
 public class PrestoDataStoreTransaction extends AggregationDataStoreTransaction {
-    public PrestoDataStoreTransaction(QueryEngine queryEngine) {
+    public PrestoDataStoreTransaction(SQLQueryEngine queryEngine) {
         super(queryEngine);
     }
 
     @Override
     public boolean supportsPagination(Class<?> entityClass, Pagination pagination) {
         // Presto doesn't support pagination with offset
-        return pagination.getOffset() == 0;
+        return pagination == null || pagination.getOffset() == 0;
     }
 }
