@@ -157,7 +157,7 @@
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-continuation</artifactId>
-                <version>9.4.19.v20190610</version>
+                <version>9.4.21.v20190926</version>
             </dependency>
             <dependency>
                 <groupId>mysql</groupId>
