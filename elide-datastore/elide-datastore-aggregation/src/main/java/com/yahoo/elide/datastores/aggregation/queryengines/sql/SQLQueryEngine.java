@@ -170,13 +170,16 @@ public class SQLQueryEngine implements QueryEngine {
 
         if (query.getWhereFilter() != null) {
             joinPredicates.addAll(extractPathElements(query.getWhereFilter()));
-            builder.whereClause("WHERE " + translateFilterExpression(query.getWhereFilter(),
+            builder.whereClause("WHERE " + translateFilterExpression(
+                    query.getWhereFilter(),
                     this::generateWhereClauseColumnReference));
         }
 
         if (query.getHavingFilter() != null) {
-            builder.havingClause("HAVING " + translateFilterExpression(query.getHavingFilter(),
-                    (predicate) -> { return generateHavingClauseColumnReference(predicate, query); }));
+            joinPredicates.addAll(extractPathElements(query.getHavingFilter()));
+            builder.havingClause("HAVING " + translateFilterExpression(
+                    query.getHavingFilter(),
+                    (predicate) -> generateHavingClauseColumnReference(predicate, query)));
         }
 
         if (!query.getDimensions().isEmpty())  {
@@ -511,14 +514,20 @@ public class SQLQueryEngine implements QueryEngine {
         Path.PathElement last = predicate.getPath().lastElement().get();
         Class<?> lastClass = last.getType();
 
-        if (! lastClass.equals(query.getSchema().getEntityClass())) {
+        if (!lastClass.equals(query.getSchema().getEntityClass())) {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 
         Schema schema = schemas.get(lastClass);
         Metric metric = schema.getMetric(last.getFieldName());
-        Class<? extends Aggregation> agg = query.getMetrics().get(metric);
+        if (metric != null) {
+            // if the having clause is applied on a metric field, should use aggregation expression
+            Class<? extends Aggregation> agg = query.getMetrics().get(metric);
 
-        return metric.getMetricExpression(agg);
+            return metric.getMetricExpression(agg);
+        } else {
+            // if the having clause is applied on a dimension field, should be the same as a where expression
+            return generateWhereClauseColumnReference(predicate.getPath());
+        }
     }
 }

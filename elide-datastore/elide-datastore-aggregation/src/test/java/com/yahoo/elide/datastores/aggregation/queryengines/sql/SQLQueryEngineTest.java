@@ -357,6 +357,44 @@ public class SQLQueryEngineTest {
     }
 
     /**
+     * Test having clause integrates with group by clause and join.
+     *
+     * @throws Exception exception
+     */
+    @Test
+    public void testHavingClauseJoin() throws Exception {
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .groupDimension(playerStatsSchema.getDimension("countryIsoCode"))
+                .havingFilter(filterParser.parseFilterExpression("countryIsoCode==USA",
+                        PlayerStats.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setOverallRating("Great");
+        stats0.setCountryIsoCode("USA");
+        stats0.setHighScore(2412);
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setOverallRating("Good");
+        stats1.setCountryIsoCode("USA");
+        stats1.setHighScore(1234);
+
+        assertEquals(2, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
+    }
+
+    /**
      * Test group by, having, dimension, metric at the same time.
      *
      * @throws Exception exception
