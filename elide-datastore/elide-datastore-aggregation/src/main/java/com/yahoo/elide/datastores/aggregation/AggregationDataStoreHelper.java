@@ -5,8 +5,13 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.NotFilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
@@ -90,6 +95,10 @@ public class AggregationDataStoreHelper {
         FilterConstraints constraints = filterExpression.accept(visitor);
         whereFilter = constraints.getWhereExpression();
         havingFilter = constraints.getHavingExpression();
+
+        if (havingFilter != null) {
+            validateHavingClause(havingFilter);
+        }
     }
 
     //TODO - Add tests in the next PR.
@@ -200,5 +209,56 @@ public class AggregationDataStoreHelper {
     private Set<String> getRelationships() {
         return entityProjection.getRelationships().stream()
                 .map(Relationship::getName).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Validate the having clause before execution. Having clause is not as flexible as where clause,
+     * the fields in having clause must be either or these two:
+     * 1. A grouped by dimension in this query
+     * 2. An aggregated metric in this query
+     *
+     * All grouped by dimensions are defined in the entity bean, so the last entity class of a filter path
+     * must match entity class of the query.
+     *
+     * @param havingClause having clause generated from this query
+     */
+    private void validateHavingClause(FilterExpression havingClause) {
+        if (havingClause instanceof FilterPredicate) {
+            Path path = ((FilterPredicate) havingClause).getPath();
+            Path.PathElement last = path.lastElement().get();
+            Class<?> cls = last.getType();
+            String field = last.getFieldName();
+
+            if (cls != schema.getEntityClass()) {
+                throw new InvalidOperationException(
+                        String.format(
+                                "Classes don't match when try filtering on %s in having clause of %s.",
+                                cls.getSimpleName(),
+                                schema.getEntityClass().getSimpleName()));
+            }
+
+            if (schema.isMetricField(field)) {
+                Metric metric = schema.getMetric(field);
+                if (!metricMap.containsKey(metric)) {
+                    throw new InvalidOperationException(
+                            String.format(
+                                    "Metric field %s must be aggregated before filtering in having clause.", field));
+                }
+            } else {
+                if (dimensionProjections.stream().noneMatch(dim -> dim.getName().equals(field))) {
+                    throw new InvalidOperationException(
+                            String.format(
+                                    "Dimension field %s must be grouped before filtering in having clause.", field));
+                }
+            }
+        } else if (havingClause instanceof AndFilterExpression) {
+            validateHavingClause(((AndFilterExpression) havingClause).getLeft());
+            validateHavingClause(((AndFilterExpression) havingClause).getRight());
+        } else if (havingClause instanceof OrFilterExpression) {
+            validateHavingClause(((OrFilterExpression) havingClause).getLeft());
+            validateHavingClause(((OrFilterExpression) havingClause).getRight());
+        } else if (havingClause instanceof NotFilterExpression) {
+            validateHavingClause(((NotFilterExpression) havingClause).getNegated());
+        }
     }
 }
