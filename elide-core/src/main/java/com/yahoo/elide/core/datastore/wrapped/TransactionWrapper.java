@@ -9,6 +9,7 @@ package com.yahoo.elide.core.datastore.wrapped;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -91,8 +92,8 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass) {
-        return tx.supportsPagination(entityClass);
+    public boolean supportsPagination(Class<?> entityClass, Pagination pagination) {
+        return tx.supportsPagination(entityClass, pagination);
     }
 
     @Override

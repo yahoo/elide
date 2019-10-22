@@ -10,6 +10,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
 import com.yahoo.elide.request.EntityProjection;
@@ -176,7 +177,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass) {
+    public boolean supportsPagination(Class<?> entityClass, Pagination pagination) {
         return false;
     }
 

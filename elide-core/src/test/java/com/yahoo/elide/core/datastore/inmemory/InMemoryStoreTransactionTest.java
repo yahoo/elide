@@ -137,7 +137,8 @@ public class InMemoryStoreTransactionTest {
                 .filterExpression(expression)
                 .build();
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class), any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.FULL);
         when(wrappedTransaction.loadObjects(eq(projection), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
@@ -167,9 +168,10 @@ public class InMemoryStoreTransactionTest {
         ArgumentCaptor<Relationship> relationshipArgument = ArgumentCaptor.forClass(Relationship.class);
 
         when(scope.getNewPersistentResources()).thenReturn(Sets.newHashSet(mock(PersistentResource.class)));
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.getRelation(eq(inMemoryStoreTransaction), eq(author), any(), eq(scope))).thenReturn(books);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.getRelation(eq(inMemoryStoreTransaction), eq(author), any(), eq(scope)))
+                .thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.getRelation(
                 inMemoryStoreTransaction, author, relationship, scope);
@@ -201,8 +203,8 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.NONE);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -235,8 +237,8 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.PARTIAL);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.PARTIAL);
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
@@ -268,10 +270,9 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsSorting(eq(Book.class),
-                any())).thenReturn(true);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsSorting(eq(Book.class), any())).thenReturn(true);
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
@@ -302,10 +303,10 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsSorting(eq(Book.class),
-                any())).thenReturn(false);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsSorting(eq(Book.class), any()))
+                .thenReturn(false);
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
@@ -343,10 +344,9 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
-        when(wrappedTransaction.supportsSorting(eq(Book.class),
-                any())).thenReturn(true);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.NONE);
+        when(wrappedTransaction.supportsSorting(eq(Book.class), any())).thenReturn(true);
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
@@ -377,9 +377,9 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -408,9 +408,9 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(false);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(false);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -446,9 +446,9 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.NONE);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -485,11 +485,10 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
-        when(wrappedTransaction.supportsFiltering(eq(Book.class),
-                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsSorting(eq(Book.class),
-                any())).thenReturn(false);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class), any()))
+                .thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsSorting(eq(Book.class), any())).thenReturn(false);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 

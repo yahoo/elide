@@ -9,12 +9,17 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
 public abstract class AggregationDataStore implements DataStore {
 
     private final QueryEngineFactory queryEngineFactory;
+
+    @Getter(value = AccessLevel.PROTECTED)
     private QueryEngine queryEngine;
 
     public AggregationDataStore(QueryEngineFactory queryEngineFactory) {
@@ -32,6 +37,6 @@ public abstract class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new AggregationDataStoreTransaction(queryEngine);
+        return new AggregationDataStoreTransaction(getQueryEngine());
     }
 }

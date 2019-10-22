@@ -462,7 +462,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             boolean filteredInMemory,
             boolean sortedInMemory
     ) {
-        if (!tx.supportsPagination(entityClass)
+        if (!pagination.isPresent()
+                || !tx.supportsPagination(entityClass, pagination.get())
                 || filteredInMemory
                 || sortedInMemory) {
             return Pair.of(Optional.empty(), pagination);
@@ -472,7 +473,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
          * by also performing in memory.  This allows the ORM the opportunity to manage its own SQL query generation
          * to avoid N+1.
          */
-        } else if (pagination.isPresent() && pagination.get().isDefaultInstance()) {
+        } else if (pagination.get().isDefaultInstance()) {
             return Pair.of(pagination, pagination);
         } else {
             return Pair.of(pagination, Optional.empty());

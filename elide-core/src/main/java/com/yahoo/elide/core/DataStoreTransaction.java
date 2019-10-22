@@ -8,6 +8,7 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -270,7 +271,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entityClass The entity class that is being paged.
      * @return true if pagination is possible
      */
-    default boolean supportsPagination(Class<?> entityClass) {
+    default boolean supportsPagination(Class<?> entityClass, Pagination pagination) {
         return true;
     }
 }
