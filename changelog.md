@@ -1,5 +1,37 @@
 # Change Log
 
+## 4.5.5
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/1b293735fa2e316fc6c1697efb10e16f80c79ff5) Bump version.jackson from 2.9.9 to 2.9.10 (#981) 
+   * [view commit](https://github.com/yahoo/elide/commit/b3f913ca4464dfd8400257e0f51025aa5c088a31) Update jackson-databind to use version property (#988) 
+   * [view commit](https://github.com/yahoo/elide/commit/c9483378230ead3413cc8e2e37134469637d132f) update types (#946) 
+   * [view commit](https://github.com/yahoo/elide/commit/cb2b6a9837ac0b6cd8a59864847a95dbe42097ce) Bump lombok from 1.18.8 to 1.18.10 (#984) 
+   * [view commit](https://github.com/yahoo/elide/commit/1be081714e8f82ea98ff3b7355d4219277be2e27) Update Apache Commons Beanutils and ANTLR4 CharStreams (#942) 
+   * [view commit](https://github.com/yahoo/elide/commit/93af9b282859952d961374fb1e720c2bfefc3e82) Bump version.jackson from 2.9.10 to 2.10.0 (#989) 
+   * [view commit](https://github.com/yahoo/elide/commit/59ce2b0197cadad4c7d281d07613a30920bd0943) Bump maven-shade-plugin from 3.1.0 to 3.2.1 (#985) 
+   * [view commit](https://github.com/yahoo/elide/commit/fc09deb880ebbc048a72a1b5fb6ea44f37bdc1ad) Bump resteasy.version from 3.1.4.Final to 3.9.0.Final (#979) 
+   * [view commit](https://github.com/yahoo/elide/commit/c65b8c60eac93de9f4565351d8894e00252a1db7) Bump javax.ws.rs-api from 2.0.1 to 2.1.1 (#980) 
+   * [view commit](https://github.com/yahoo/elide/commit/f1aacfff1f2a88c5b87892925457c6a306eb3cf3) Bump javax.transaction-api from 1.2 to 1.3 (#982) 
+   * [view commit](https://github.com/yahoo/elide/commit/0f354bd3408e5c1ab55b427bca36ef935d3ed35c) Bump jedis from 3.0.1 to 3.1.0 (#983) 
+   * [view commit](https://github.com/yahoo/elide/commit/04424843476ccca18f9c3fa7093ad48fefaaf444) ISSUE 864 Fix primitive id field RSQL filter (#866) 
+   * [view commit](https://github.com/yahoo/elide/commit/f6c430238247e4fed1ca401de748aa633980a109) Bump liquibase-core from 3.5.3 to 3.8.0 (#1000) 
+   * [view commit](https://github.com/yahoo/elide/commit/45adbb85b187cd198be5b14ed17aad338a37f4aa) Issue 952 remove testng (#1004) 
+   * [view commit](https://github.com/yahoo/elide/commit/210868f4961be7a5d22d5a15f4226be6da95ad91) Fixed release distribution for elide-example (#1003) 
+   * [view commit](https://github.com/yahoo/elide/commit/c33239dfda53b17c7c2bdd79eba8c9dc7cec5c0b) Bump gson from 2.8.5 to 2.8.6 (#1001) 
+   * [view commit](https://github.com/yahoo/elide/commit/4ce68469660d9a64b613b41314dc35b1b9fb35f7) Bump swagger-core from 1.5.22 to 1.5.23 (#999) 
+   * [view commit](https://github.com/yahoo/elide/commit/6f26ba7ddab303c4f2618c684dfd0a4f33cf7272) Bump jersey-container-servlet-core from 2.29 to 2.29.1 (#998) 
+   * [view commit](https://github.com/yahoo/elide/commit/1a68e3975d590e45942953799249a263b1fce3f5) Bump commons-collections4 from 4.1 to 4.4 (#1013) 
+   * [view commit](https://github.com/yahoo/elide/commit/58f4114bbd90e5b8b6d5e1359fda9f7bf6415f76) Bump hibernate-search-orm from 5.11.2.Final to 5.11.3.Final (#1012) 
+   * [view commit](https://github.com/yahoo/elide/commit/ffabb8784ac718dfbaa4dc34567df57de53ce738) Bump jacoco-maven-plugin from 0.8.4 to 0.8.5 (#1011) 
+   * [view commit](https://github.com/yahoo/elide/commit/65a911c9a3410ca84e9578f9cdad9d8167fe3701) Bump postgresql from 42.2.7 to 42.2.8 (#1009) 
+   * [view commit](https://github.com/yahoo/elide/commit/105cff0782d93e3b7b9704fe3cd6a56ab145700a) Fixes #1007 (#1014) 
+   * [view commit](https://github.com/yahoo/elide/commit/8af100d2035281460a5d1314e4f783225ba92d44) Bump javassist from 3.25.0-GA to 3.26.0-GA (#997) 
+   * [view commit](https://github.com/yahoo/elide/commit/9d3f2f0b568be2445a3dce78f4e0f77b7b001634) Bump rest-assured from 4.1.1 to 4.1.2 (#996) 
+   * [view commit](https://github.com/yahoo/elide/commit/7c4238953a2f24203d5e30322e2c900a1d083ff9) Bump version.jetty from 9.4.20.v20190813 to 9.4.21.v20190926 (#995) 
+   * [view commit](https://github.com/yahoo/elide/commit/14655adaebf31b1e2b980bb5330ce582b3a5c5ee) Bump mysql-connector-java from 8.0.17 to 8.0.18 (#1032) 
+   * [view commit](https://github.com/yahoo/elide/commit/252dbbc38d400967109517e10a941af86b8f4c5b) Avoid checking share permission for redundant add (#1037) 
+   * [view commit](https://github.com/yahoo/elide/commit/ab3136b539af522d93b8d76da7929b4efb57c1fd) Bump rxjava from 2.2.12 to 2.2.13 (#1031) 
+
 ## 4.5.4
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/5a10ae4e7897abd1304f9438fe66f5d4ad786f69) Nested update (#978) 
