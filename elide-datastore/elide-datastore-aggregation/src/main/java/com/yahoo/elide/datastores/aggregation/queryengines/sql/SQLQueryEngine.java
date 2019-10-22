@@ -466,22 +466,7 @@ public class SQLQueryEngine implements QueryEngine {
      * @return The SQL GROUP BY clause
      */
     private String extractGroupBy(Query query) {
-        List<String> dimensionStrings = query.getGroupDimensions().stream()
-                .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
-                .map((SQLDimensionColumn.class::cast))
-                .map(SQLDimensionColumn::getColumnReference)
-                .collect(Collectors.toList());
-
-        dimensionStrings.addAll(query.getTimeDimensions().stream()
-                .map(requestedDim -> {
-                    SQLTimeDimensionColumn timeDim = (SQLTimeDimensionColumn)
-                            query.getSchema().getTimeDimension(requestedDim.getName());
-
-                    return timeDim.getColumnReference(requestedDim.getTimeGrain().grain());
-                }).collect(Collectors.toList()));
-
-        return "GROUP BY " + dimensionStrings.stream()
-                .collect(Collectors.joining(","));
+       return "GROUP BY " + extractDimensionProjections(query).stream().collect(Collectors.joining(","));
     }
 
     /**
@@ -501,8 +486,7 @@ public class SQLQueryEngine implements QueryEngine {
                     SQLTimeDimensionColumn timeDim = (SQLTimeDimensionColumn)
                             query.getSchema().getTimeDimension(requestedDim.getName());
 
-                    return timeDim.getColumnReference(requestedDim.getTimeGrain().grain())
-                            + " AS " + timeDim.getColumnName();
+                    return timeDim.getColumnReference(requestedDim.getTimeGrain().grain());
                 }).collect(Collectors.toList()));
 
         return dimensionStrings;
