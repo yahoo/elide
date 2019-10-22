@@ -11,8 +11,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
-import com.google.common.base.Preconditions;
-
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -63,11 +61,9 @@ public class SQLTimeDimensionColumn extends SQLDimensionColumn implements TimeDi
      * @return Something like "table_alias.column_name"
      */
     public String getColumnReference(TimeGrain requestedGrain) {
-        Preconditions.checkArgument(getSupportedGrains().stream()
-                .anyMatch((grainDef -> grainDef.grain().equals(requestedGrain))));
-
         TimeGrainDefinition definition = getSupportedGrains().stream()
-                .filter(grainDef -> grainDef.grain().equals(requestedGrain)).findFirst().get();
+                .filter(grainDef -> grainDef.grain().equals(requestedGrain)).findFirst()
+                .orElseThrow(() -> new IllegalStateException("Requested time grain not supported."));
 
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return String.format(definition.expression(), getColumnReference());

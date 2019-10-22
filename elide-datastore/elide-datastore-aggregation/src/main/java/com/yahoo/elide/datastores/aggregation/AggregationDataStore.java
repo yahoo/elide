@@ -35,7 +35,7 @@ public abstract class AggregationDataStore implements DataStore {
         /* Add 'grain' argument to each TimeDimensionColumn */
         for (Schema schema: queryEngine.getSchemas()) {
             for (TimeDimensionColumn timeDim : schema.getTimeDimensions()) {
-                dictionary.addArgumentToAttributes(schema.getEntityClass(), timeDim.getName(),
+                dictionary.addArgumentToAttribute(schema.getEntityClass(), timeDim.getName(),
                         new ArgumentType("grain", String.class));
             }
         }

@@ -75,7 +75,7 @@ public class SQLSchema extends Schema {
             String columnName = getColumnName(entityClass, dimensionField);
 
             if (dim instanceof TimeDimensionColumn) {
-               return new SQLTimeDimensionColumn((TimeDimensionColumn) dim, columnName, getAlias());
+                return new SQLTimeDimensionColumn((TimeDimensionColumn) dim, columnName, getAlias());
             }
             return new SQLDimensionColumn(dim, columnName, getAlias());
         }

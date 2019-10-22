@@ -53,7 +53,7 @@ import java.util.stream.Stream;
 public class Schema {
 
     @Getter
-    public final Class<?> entityClass;
+    protected final Class<?> entityClass;
     @Getter
     protected final Set<Metric> metrics;
     protected final Map<String, DimensionColumn> dimensions;

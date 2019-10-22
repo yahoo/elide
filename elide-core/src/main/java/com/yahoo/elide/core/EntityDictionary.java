@@ -1429,7 +1429,7 @@ public class EntityDictionary {
      * @param attributeName attribute name to which argument has to be added
      * @param argument A single argument
      */
-    public void addArgumentToAttributes(Class<?> cls, String attributeName, ArgumentType argument) {
+    public void addArgumentToAttribute(Class<?> cls, String attributeName, ArgumentType argument) {
         this.addArgumentsToAttributes(cls, attributeName, Sets.newHashSet(argument));
     }
 
