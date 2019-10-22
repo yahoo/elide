@@ -9,7 +9,11 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.common.collect.Lists;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -645,6 +649,62 @@ public class SQLQueryEngineTest {
         assertEquals(stats1, results.get(0));
         assertEquals(stats2, results.get(1));
         assertEquals(stats3, results.get(2));
+    }
+
+    /**
+     * Test month grain query.
+     */
+    @Test
+    public void testTotalScoreByMonth() {
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.MONTH, "recordedDate"))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setHighScore(4646);
+        stats0.setRecordedDate(Timestamp.valueOf("2019-07-01 00:00:00"));
+
+        assertEquals(1, results.size());
+        assertEquals(stats0, results.get(0));
+    }
+
+    /**
+     * Test filter by time dimension
+     */
+    @Test
+    public void testFilterByTemporalDimension() throws Exception {
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
+
+        FilterPredicate predicate = new FilterPredicate(
+                new Path(PlayerStats.class, dictionary, "recordedDate"),
+                Operator.IN,
+                Lists.newArrayList(Timestamp.valueOf("2019-07-11 00:00:00")));
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
+                .whereFilter(predicate)
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setHighScore(2412);
+        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
+        assertEquals(1, results.size());
+        assertEquals(stats0, results.get(0));
     }
 
     //TODO - Add Invalid Request Tests

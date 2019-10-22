@@ -41,7 +41,8 @@ import javax.persistence.ManyToOne;
 @FromTable(name = "playerStats")
 public class PlayerStats {
 
-    public static final String DAY_FORMAT =
+    public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
+    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')";
 
     /**
      * PK.
@@ -163,7 +164,10 @@ public class PlayerStats {
      * {@link EntityDimensionTest#testCardinalityScan()}.
      * @return the date of the player session.
      */
-    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = "") }, timeZone = "UTC")
+    @Temporal(grains = {
+            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DAY_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
+    }, timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }
