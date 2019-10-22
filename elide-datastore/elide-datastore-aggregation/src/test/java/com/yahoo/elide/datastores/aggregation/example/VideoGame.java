@@ -14,13 +14,15 @@ import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * A root level entity for testing AggregationDataStore.
  */
 @Entity
 @Include(rootLevel = true)
-@FromTable(name = "videoGame")
+@Table(name = "videoGames")
+@FromTable(name = "videoGames")
 public class VideoGame {
 
     @Id
