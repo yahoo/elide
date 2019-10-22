@@ -477,6 +477,36 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
+    @Test
+    public void timeGrainAggregationTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore"),
+                                        field("recordedDate", arguments(
+                                                argument("grain", "\"month\"")
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 2412),
+                                        field("recordedDate", "2019-07-01T00:00Z")
+                                )
+                        )
+                )).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
     private void create(String query, Map<String, Object> variables) throws IOException {
         runQuery(toJsonQuery(query, variables));
     }

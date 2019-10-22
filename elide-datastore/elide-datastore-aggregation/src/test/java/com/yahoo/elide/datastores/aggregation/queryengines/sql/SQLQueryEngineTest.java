@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.google.common.collect.Lists;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -31,6 +30,7 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColu
 import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

@@ -6,11 +6,12 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.schema;
 
-import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+
+import com.google.common.base.Preconditions;
 
 import java.util.Set;
 import java.util.TimeZone;

@@ -31,6 +31,7 @@ import com.yahoo.elide.request.Relationship;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -109,46 +110,47 @@ public class AggregationDataStoreHelper {
      * @throws InvalidOperationException Thrown if a requested time grain is not supported.
      */
     private Set<TimeDimensionProjection> resolveTimeDimensions() {
-        return entityProjection.getAttributes().stream()
-                .filter(attribute -> schema.getTimeDimension(attribute.getName()) != null)
-                .map(attribute -> {
-                    TimeDimensionColumn timeDim = schema.getTimeDimension(attribute.getName());
 
-                    Argument timeGrainArgument = attribute.getArguments().stream()
-                            .filter(attr -> attr.getName().equals("grain"))
-                            .findAny()
-                            .orElse(null);
+        Set<TimeDimensionProjection> timeDims = new LinkedHashSet<>();
+        //Only attributes can be time dimensions
+        entityProjection.getAttributes().stream().forEach((attribute -> {
+            TimeDimensionColumn timeDim = schema.getTimeDimension(attribute.getName());
+            if (timeDim == null) {
+                return;
+            }
 
-                    TimeGrainDefinition requestedGrainDefinition;
-                    if (timeGrainArgument == null) {
+            Argument timeGrainArgument = attribute.getArguments().stream()
+                    .filter(attr -> attr.getName().equals("grain"))
+                    .findAny()
+                    .orElse(null);
 
-                        //The first grain is the default.
-                        requestedGrainDefinition = timeDim.getSupportedGrains().stream()
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalStateException(
-                                        String.format("Requested default grain, no grain defined on %s",
-                                                attribute.getName())));
-                    } else {
-                        String requestedGrainName = timeGrainArgument.getValue().toString();
+            TimeGrainDefinition requestedGrainDefinition;
+            if (timeGrainArgument == null) {
 
-                        TimeGrain requestedGrain;
-                        try {
-                            requestedGrain = TimeGrain.valueOf(requestedGrainName);
-                        } catch (IllegalArgumentException e) {
-                            throw new InvalidOperationException(String.format("Invalid grain %s", requestedGrainName));
-                        }
+                //The first grain is the default.
+                requestedGrainDefinition = timeDim.getSupportedGrains().iterator().next();
+            } else {
+                String requestedGrainName = timeGrainArgument.getValue().toString().toUpperCase(Locale.ENGLISH);
 
-                        requestedGrainDefinition = timeDim.getSupportedGrains().stream()
-                                .filter(supportedGrainDef -> supportedGrainDef.grain().equals(requestedGrain))
-                                .findAny()
-                                .orElseThrow(() -> new InvalidOperationException(
-                                        String.format("Requested grain %s, not supported on %s",
-                                                requestedGrainName, attribute.getName())));
-                    }
+                TimeGrain requestedGrain;
+                try {
+                    requestedGrain = TimeGrain.valueOf(requestedGrainName);
+                } catch (IllegalArgumentException e) {
+                    throw new InvalidOperationException(String.format("Invalid grain %s", requestedGrainName));
+                }
 
-                    return timeDim.toProjectedDimension(requestedGrainDefinition);
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                requestedGrainDefinition = timeDim.getSupportedGrains().stream()
+                        .filter(supportedGrainDef -> supportedGrainDef.grain().equals(requestedGrain))
+                        .findAny()
+                        .orElseThrow(() -> new InvalidOperationException(
+                                String.format("Requested grain %s, not supported on %s",
+                                        requestedGrainName, attribute.getName())));
+            }
+
+            timeDims.add(timeDim.toProjectedDimension(requestedGrainDefinition));
+        }));
+
+        return timeDims;
     }
 
     /**

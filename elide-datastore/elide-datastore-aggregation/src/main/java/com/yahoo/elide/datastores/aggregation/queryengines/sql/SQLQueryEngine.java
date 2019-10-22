@@ -26,7 +26,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLTimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 import com.yahoo.elide.utils.coerce.CoerceUtil;

@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import org.hibernate.annotations.Subselect;
 import lombok.EqualsAndHashCode;
@@ -80,7 +79,7 @@ public class SQLSchema extends Schema {
 
                 //Add grain to the GraphQL schema.
                 entityDictionary.addArgumentToAttributes(this.entityClass, dimensionField,
-                        new ArgumentType("grain", TimeGrain.class));
+                        new ArgumentType("grain", String.class));
 
                 return new SQLTimeDimensionColumn((TimeDimensionColumn) dim, columnName, getAlias());
             }
