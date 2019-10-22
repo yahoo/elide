@@ -13,7 +13,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFac
 /**
  * Presto Date Store
  */
-public class PrestoDataStore extends AggregationDataStore {
+public abstract class PrestoDataStore extends AggregationDataStore {
     public PrestoDataStore(SQLQueryEngineFactory queryEngineFactory) {
         super(queryEngineFactory);
     }
