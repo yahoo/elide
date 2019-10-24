@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -12,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
@@ -51,8 +53,9 @@ public class AggregationDataStoreHelper {
     private Map<Metric, Class<? extends Aggregation>> metricMap;
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
+    private EntityDictionary dictionary;
 
-    public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection) {
+    public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection, EntityDictionary dictionary) {
         this.schema = schema;
         this.entityProjection = entityProjection;
         dimensionProjections = resolveNonTimeDimensions();
@@ -62,6 +65,8 @@ public class AggregationDataStoreHelper {
         metricMap = new LinkedHashMap<>();
         resolveMetricMap(metrics);
         splitFilters();
+        this.dictionary = dictionary;
+        validateSorting(entityProjection.getSorting());
     }
 
     /**
@@ -259,6 +264,37 @@ public class AggregationDataStoreHelper {
             validateHavingClause(((OrFilterExpression) havingClause).getRight());
         } else if (havingClause instanceof NotFilterExpression) {
             validateHavingClause(((NotFilterExpression) havingClause).getNegated());
+        }
+    }
+
+    private void validateSorting(Sorting sorting) {
+        if (sorting != null) {
+            Map<Path, Sorting.SortOrder> sortClauses =
+                    sorting.getValidSortingRules(schema.getEntityClass(), dictionary);
+            sortClauses.entrySet().stream()
+                    .forEach((entry) -> {
+                        Path path = entry.getKey();
+                        if (path.lastElement().get().getType() == schema.getEntityClass()) {
+                            String currentField = path.lastElement().get().getFieldName();
+                            checkFieldStatus(currentField);
+                        }
+
+            });
+        }
+    }
+
+    private void checkFieldStatus(String currentField) {
+        if (schema.getDimensions().stream().anyMatch(dim -> dim.getName().contains(currentField))) {
+            if (!dimensionProjections.stream().anyMatch(dim -> dim.getName().equals(currentField))) {
+                // Add current field to dimensionProjections
+                dimensionProjections.add(schema.getDimension(currentField).toProjectedDimension());
+            }
+        }
+        else if (schema.getMetrics().stream().anyMatch(m -> m.getName().contains(currentField))) {
+            if (!metricMap.keySet().stream().anyMatch(m -> m.getName().equals(currentField))) {
+                // Metric not specified in query
+                throw new InvalidOperationException("Can't sort on metric that is not present in query");
+            }
         }
     }
 }

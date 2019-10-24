@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
@@ -363,12 +362,9 @@ public class SQLQueryEngine implements QueryEngine {
                             + getColumnName(entityClass, last.getFieldName());
 
                     if (last.getType() == entityClass) {
-                        Metric currentMetric = schema.getMetric(last.getFieldName());
+                        Metric currentMetric = schema.getMetric(getColumnName(entityClass, last.getFieldName()));
                         if (currentMetric != null && query.getMetrics().keySet().contains(currentMetric)) {
                             orderByType = currentMetric.getMetricExpression(query.getMetrics().get(currentMetric));
-                        }
-                        else if (currentMetric != null) {
-                            throw new InvalidOperationException("Can't sort on metric that is not present in query");
                         }
                     }
 

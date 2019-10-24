@@ -475,6 +475,39 @@ public class SQLQueryEngineTest {
         assertEquals(stats2, results.get(2));
     }
 
+    @Test
+    public void testSortAggregatedMetric() {
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
+
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("lowScore", Sorting.SortOrder.desc);
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .sorting(new Sorting(sortMap))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(241);
+        stats0.setOverallRating("Great");
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setLowScore(107);
+        stats1.setOverallRating("Good");
+
+        assertEquals(2, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
+    }
+
+
     /**
      * Test hydrating multiple relationship values. Make sure the objects are constructed correctly.
      */
