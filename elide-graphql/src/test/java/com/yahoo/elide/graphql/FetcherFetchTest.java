@@ -27,11 +27,6 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootMultiple() throws Exception {
-        assertParsingFails(loadGraphQLRequest("fetch/rootMultiple.graphql"));
-    }
-
-    @Test
     public void testRootUnknownField() throws Exception {
         assertParsingFails(loadGraphQLRequest("fetch/rootUnknownField.graphql"));
     }

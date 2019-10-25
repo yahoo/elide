@@ -791,6 +791,89 @@ public class GraphQLEndpointTest {
         assertHasErrors(response);
     }
 
+
+    @Test
+    public void testMultipleRoot() throws JSONException {
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "author",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        ),
+                        field(
+                                "author",
+                                selections(
+                                        field(
+                                                "books",
+                                                selection(
+                                                        field("title")
+                                                )
+                                        )
+                                )
+                        ),
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String graphQLResponse = document(
+                selections(
+                        field(
+                                "author",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "Ricky Carmichael"),
+                                        field(
+                                                "books",
+                                                selections(
+                                                        field("title", "My first book")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("id", "2"),
+                                        field("name", "The Silent Author"),
+                                        field(
+                                                "books", "", false
+                                        )
+                                )
+                        ),
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "My first book"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name", "Ricky Carmichael")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        assert200EqualBody(response, graphQLResponse);
+    }
+
+
     private static String graphQLRequestToJSON(String request) {
         return graphQLRequestToJSON(request, new HashMap<>());
     }

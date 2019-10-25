@@ -44,7 +44,6 @@ import graphql.language.SourceLocation;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +68,7 @@ public class GraphQLEntityProjectionMaker {
     private final FragmentResolver fragmentResolver;
 
     private final Map<SourceLocation, Relationship> relationshipMap = new HashMap<>();
-    private final List<EntityProjection> rootProjections = new ArrayList<>();
+    private final Map<String, EntityProjection> rootProjections = new HashMap<>();
 
     /**
      * Constructor.
@@ -165,55 +164,45 @@ public class GraphQLEntityProjectionMaker {
      *         }
      *     }
      * </pre>
-     *
-     * <pre>
-     *     Query {
-     *         Book {
-     *             field1
-     *         },
-     *         Author {
-     *             field2
-     *         }
-     *     }
-     * </pre>
-     * Would be an invalid request as two classes-Book and Author-are both queried at root level.
-     *
      * @param selectionSet a root-level selection set
      */
     private void addRootProjection(SelectionSet selectionSet) {
         List<Selection> selections = selectionSet.getSelections();
-
-        // get the first selection as root selection
-        Selection rootSelection = selections.get(0);
-        if (!(rootSelection instanceof Field)) {
-            throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
-        }
-
-        String entityName = ((Field) rootSelection).getName();
-        if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
-            // '__schema' and '__type' would not be handled by entity projection
-            return;
-        }
-
-        Class<?> entityType = entityDictionary.getEntityClass(entityName);
-        if (entityType == null) {
-            throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", entityName));
-        }
-
-        Field fields = (Field) rootSelection;
+        Map<String, Field> rootSelectionField = new HashMap<>();
 
         // merging partial graphql selections, skip(1) because the first selection is already processed
-        selections.stream().skip(1).forEach(selection -> {
-            if (!(selection instanceof Field)) {
+        selections.stream().forEach(rootSelection -> {
+            if (!(rootSelection instanceof Field)) {
                 throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
             }
-            if (!entityName.equals(((Field) selection).getName())) {
-                throw new InvalidEntityBodyException("Can't select multiple entities in graphQL QUERY operation.");
+
+            String entityName = ((Field) rootSelection).getName();
+            if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
+                // '__schema' and '__type' would not be handled by entity projection
+                return;
             }
-            fields.getSelectionSet().getSelections().addAll(((Field) selection).getSelectionSet().getSelections());
+
+            if (rootSelectionField.containsKey(entityName)) {
+                Field fields = rootSelectionField.get(entityName);
+                fields.getSelectionSet().getSelections().addAll(
+                        ((Field) rootSelection).getSelectionSet().getSelections());
+            } else {
+                rootSelectionField.put(entityName, (Field) rootSelection);
+            }
         });
 
-        rootProjections.add(createProjection(entityType, fields));
+        rootSelectionField.entrySet()
+                .stream()
+                .forEach(selectionField -> {
+                    String entityName = selectionField.getKey();
+                    Class<?> entityType = entityDictionary.getEntityClass(selectionField.getKey());
+                    if (entityType == null) {
+                        throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
+                                selectionField.getKey()));
+                    }
+                    rootProjections.put(entityName,
+                            createProjection(entityType, selectionField.getValue()));
+                });
     }
 
     /**
