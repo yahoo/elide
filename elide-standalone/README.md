@@ -33,7 +33,7 @@ To actually start your Elide application, add the following to your main method:
 
 ```java
 public class Main {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
         @Override
         public String getModelPackageName() {
@@ -58,6 +58,8 @@ The Elide standalone application is for all new and existing users of Elide. Thi
 Below we'll walk through a complete example of setting up an Elide service without security.
 
 **If you're interested in seeing a more complete example, check out our [ready-to-run example](https://github.com/DennisMcWherter/elide-example-blog-kotlin).**
+
+You could also get a quicker experience of Elide using our [Docker image for this application](https://hub.docker.com/r/liujiaqi/elide-quick)
 
 ### Setup a Database (MySQL)
 
@@ -172,7 +174,7 @@ To start Elide, just run the `start()` method somewhere in your main function:
 
 ```java
 public class YourMain {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
         @Override
         public String getModelPackageName() {

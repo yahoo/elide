@@ -169,7 +169,7 @@ public class Book {
 
 ```java
 public class YourMain {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
 
     ElideStandaloneSettings settings = new ElideStandaloneSettings() {
 
