@@ -12,10 +12,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a field/relationship is coming from view, Elide would then ignore {@link java.beans.Transient}.
+ * Indicates that a field/relationship needs to be included, Elide would then ignore {@link java.beans.Transient}.
  */
 @Documented
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ViewField {
+public @interface IncludeField {
 }

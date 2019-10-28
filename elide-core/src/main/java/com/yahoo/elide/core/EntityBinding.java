@@ -24,7 +24,7 @@ import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.annotation.ToOne;
-import com.yahoo.elide.annotation.ViewField;
+import com.yahoo.elide.annotation.IncludeField;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.functions.LifeCycleHook;
 
@@ -259,7 +259,7 @@ public class EntityBinding {
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
             } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
-                    && !fieldOrMethod.isAnnotationPresent(ViewField.class)
+                    && !fieldOrMethod.isAnnotationPresent(IncludeField.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedRelationship.class)) {
                 continue; // Transient. Don't serialize

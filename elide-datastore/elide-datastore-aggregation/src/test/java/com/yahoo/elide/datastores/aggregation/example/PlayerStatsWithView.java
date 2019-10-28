@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
-import com.yahoo.elide.annotation.ViewField;
+import com.yahoo.elide.annotation.IncludeField;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
@@ -206,7 +206,7 @@ public class PlayerStatsWithView {
         this.subCountryIsoCode = isoCode;
     }
 
-    @ViewField
+    @IncludeField
     @Transient
     @ToOne
     @JoinTo(
@@ -216,21 +216,21 @@ public class PlayerStatsWithView {
         return countryView;
     }
 
-    @ViewField
+    @IncludeField
     @Transient
     @JoinTo(path = "countryView.isoCode")
     public String getCountryViewIsoCode() {
         return countryViewIsoCode;
     }
 
-    @ViewField
+    @IncludeField
     @Transient
     @JoinTo(path = "countryView.nestedView.isoCode")
     public String getCountryViewViewIsoCode() {
         return countryViewViewIsoCode;
     }
 
-    @ViewField
+    @IncludeField
     @Transient
     @JoinTo(path = "countryView.nestedRelationship.isoCode")
     public String getCountryViewRelationshipIsoCode() {
