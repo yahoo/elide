@@ -20,7 +20,11 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinClause;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.View;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.core.ViewDictionary;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
@@ -36,6 +40,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -55,14 +60,14 @@ import javax.persistence.EntityTransaction;
 public class SQLQueryEngine implements QueryEngine {
 
     private EntityManagerFactory emf;
-    private EntityDictionary dictionary;
+    private ViewDictionary dictionary;
 
     @Getter
     private Map<Class<?>, SQLSchema> schemas;
 
     public SQLQueryEngine(EntityManagerFactory emf, EntityDictionary dictionary) {
         this.emf = emf;
-        this.dictionary = dictionary;
+        this.dictionary = (ViewDictionary) dictionary;
 
         // Construct the list of schemas that will be managed by this query engine.
         schemas = dictionary.getBindings()
@@ -305,16 +310,44 @@ public class SQLQueryEngine implements QueryEngine {
         Class<?> relationshipClass = pathElement.getFieldType();
         String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
         String relationshipName = pathElement.getFieldName();
-        String relationshipIdField = getColumnName(relationshipClass, dictionary.getIdFieldName(relationshipClass));
         String relationshipColumnName = getColumnName(entityClass, relationshipName);
+        if (!dictionary.isView(relationshipClass)) {
+            String relationshipIdField = getColumnName(relationshipClass, dictionary.getIdFieldName(relationshipClass));
 
-        return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
-                SQLSchema.getTableOrSubselect(dictionary, relationshipClass),
-                relationshipAlias,
-                entityAlias,
-                relationshipColumnName,
-                relationshipAlias,
-                relationshipIdField);
+
+            return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
+                    SQLSchema.getTableOrSubselect(dictionary, relationshipClass),
+                    relationshipAlias,
+                    entityAlias,
+                    relationshipColumnName,
+                    relationshipAlias,
+                    relationshipIdField);
+        } else {
+            String view = dictionary.getAnnotation(relationshipClass, View.class).from();
+
+            List<JoinExpression> expressions = Arrays.asList(
+                    dictionary.getAttributeOrRelationAnnotation(
+                            entityClass,
+                            JoinClause.class,
+                            relationshipColumnName
+                    ).constraints());
+
+            String onClause = extractJoinExpression(expressions, entityAlias, relationshipAlias);
+
+            return String.format("LEFT JOIN %s AS %s ON %s",
+                    view,
+                    relationshipAlias,
+                    onClause);
+        }
+    }
+
+    private String extractJoinExpression(List<JoinExpression> expressions, String fromAlias, String joinToAlias) {
+        return expressions.stream()
+                .map(exp -> {
+                    String from = exp.from().replace("%s", fromAlias);
+                    String joinTo = exp.joinTo().replace("%s", joinToAlias);
+                    return from + exp.op() + joinTo;
+                }).collect(Collectors.joining(", "));
     }
 
     /**

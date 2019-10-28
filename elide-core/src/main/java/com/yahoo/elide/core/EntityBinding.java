@@ -24,11 +24,11 @@ import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.annotation.ToOne;
+import com.yahoo.elide.annotation.ViewField;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.functions.LifeCycleHook;
 
 import com.google.common.base.Throwables;
-
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +60,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -85,9 +84,9 @@ public class EntityBinding {
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
 
-    public final Class<?> entityClass;
+    public Class<?> entityClass;
     public final String jsonApiType;
-    public final String entityName;
+    public String entityName;
     @Getter
     public boolean idGenerated;
     @Getter
@@ -103,8 +102,8 @@ public class EntityBinding {
     private AccessType accessType;
 
     public final EntityPermissions entityPermissions;
-    public final List<String> attributes;
-    public final List<String> relationships;
+    public List<String> attributes;
+    public List<String> relationships;
     public final List<Class<?>> inheritedTypes;
     public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
     public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
@@ -127,7 +126,7 @@ public class EntityBinding {
     private static final String ALL_FIELDS = "*";
 
     /* empty binding constructor */
-    private EntityBinding() {
+    protected EntityBinding() {
         jsonApiType = null;
         entityName = null;
         attributes = new ArrayList<>();
@@ -260,6 +259,7 @@ public class EntityBinding {
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
             } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
+                    && !fieldOrMethod.isAnnotationPresent(ViewField.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedRelationship.class)) {
                 continue; // Transient. Don't serialize
@@ -315,7 +315,7 @@ public class EntityBinding {
      * @param deque Deque to convert
      * @return Deque as a list
      */
-    private static List<String> dequeToList(final Deque<String> deque) {
+    protected static List<String> dequeToList(final Deque<String> deque) {
         ArrayList<String> result = new ArrayList<>();
         deque.stream().forEachOrdered(result::add);
         result.sort(String.CASE_INSENSITIVE_ORDER);
@@ -327,7 +327,7 @@ public class EntityBinding {
      *
      * @param fieldOrMethod Field or method to bind
      */
-    private void bindAttrOrRelation(AccessibleObject fieldOrMethod) {
+    protected void bindAttrOrRelation(AccessibleObject fieldOrMethod) {
         boolean isRelation = RELATIONSHIP_TYPES.stream().anyMatch(fieldOrMethod::isAnnotationPresent);
 
         String fieldName = getFieldName(fieldOrMethod);

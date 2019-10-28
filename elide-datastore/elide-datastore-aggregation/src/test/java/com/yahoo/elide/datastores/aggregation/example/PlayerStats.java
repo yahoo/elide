@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ViewField;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
@@ -14,13 +15,16 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinClause;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.EntityDimensionTest;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Max;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Min;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Date;
@@ -29,6 +33,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -70,6 +75,11 @@ public class PlayerStats {
      * A subselect dimension.
      */
     private SubCountry subCountry;
+
+    private CountryView countryView;
+
+    @Setter
+    private String countryViewIsoCode;
 
     /**
      * A dimension field joined to this table.
@@ -188,5 +198,22 @@ public class PlayerStats {
 
     public void setSubCountryIsoCode(String isoCode) {
         this.subCountryIsoCode = isoCode;
+    }
+
+    @ViewField
+    @Transient
+    @ManyToOne
+    @JoinClause(
+            constraints = {@JoinExpression(from = "%s.country_id", op = "=", joinTo = "%s.id")}
+    )
+    public CountryView getCountryView() {
+        return countryView;
+    }
+
+    @ViewField
+    @Transient
+    @JoinTo(path = "countryView.isoCode")
+    public String getCountryViewIsoCode() {
+        return countryViewIsoCode;
     }
 }

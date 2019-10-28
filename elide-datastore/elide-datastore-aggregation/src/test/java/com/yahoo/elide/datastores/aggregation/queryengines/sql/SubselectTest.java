@@ -9,18 +9,12 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
@@ -30,46 +24,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
-public class SubselectTest {
-    private static EntityManagerFactory emf;
-    private static Schema playerStatsSchema;
-    private static EntityDictionary dictionary;
-    private static RSQLFilterDialect filterParser;
-
-    private static final Country HONG_KONG = new Country();
-    private static final Country USA = new Country();
+public class SubselectTest extends TestFramework {
     private static final SubCountry SUB_HONG_KONG = new SubCountry();
     private static final SubCountry SUB_USA = new SubCountry();
 
     @BeforeAll
     public static void init() {
-        emf = Persistence.createEntityManagerFactory("aggregationStore");
-        dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(PlayerStats.class);
-        dictionary.bindEntity(PlayerStatsView.class);
-        dictionary.bindEntity(Country.class);
-        dictionary.bindEntity(SubCountry.class);
-        dictionary.bindEntity(Player.class);
-        filterParser = new RSQLFilterDialect(dictionary);
-
-        playerStatsSchema = new SQLSchema(PlayerStats.class, dictionary);
-
-        HONG_KONG.setIsoCode("HKG");
-        HONG_KONG.setName("Hong Kong");
-        HONG_KONG.setId("344");
-
-        USA.setIsoCode("USA");
-        USA.setName("United States");
-        USA.setId("840");
+        QueryEngineTest.init();
 
         SUB_HONG_KONG.setIsoCode("HKG");
         SUB_HONG_KONG.setName("Hong Kong");
