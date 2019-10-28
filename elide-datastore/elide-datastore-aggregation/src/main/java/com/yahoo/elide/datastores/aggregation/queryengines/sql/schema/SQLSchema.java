@@ -72,7 +72,7 @@ public class SQLSchema extends Schema {
 
         JoinTo joinTo = entityDictionary.getAttributeOrRelationAnnotation(cls, JoinTo.class, dimensionField);
 
-        if (joinTo == null) {
+        if (joinTo == null || "".equals(joinTo.path())) {
             String columnName = getColumnName(entityClass, dimensionField);
 
             if (dim instanceof TimeDimensionColumn) {

@@ -30,7 +30,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class SubselectTest extends TestFramework {
+public class SubselectTest extends UnitTest {
     private static final SubCountry SUB_HONG_KONG = new SubCountry();
     private static final SubCountry SUB_USA = new SubCountry();
 

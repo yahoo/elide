@@ -32,12 +32,12 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class QueryEngineTest extends TestFramework {
+public class QueryEngineTest extends UnitTest {
     private static Schema playerStatsViewSchema;
 
     @BeforeAll
     public static void init() {
-        TestFramework.init();
+        UnitTest.init();
         playerStatsViewSchema = new SQLSchema(PlayerStatsView.class, dictionary);
     }
 

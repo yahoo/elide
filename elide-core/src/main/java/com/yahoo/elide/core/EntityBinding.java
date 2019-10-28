@@ -79,8 +79,8 @@ import javax.persistence.Transient;
  */
 public class EntityBinding {
 
-    private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
-    private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
+    protected static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
+    protected static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
 
@@ -350,7 +350,7 @@ public class EntityBinding {
         }
     }
 
-    private void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
+    protected final void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
         boolean manyToMany = fieldOrMethod.isAnnotationPresent(ManyToMany.class);
         boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
         boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
@@ -397,7 +397,7 @@ public class EntityBinding {
         fieldsToTypes.put(fieldName, fieldType);
     }
 
-    private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
+    protected final void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
         attributesDeque.push(fieldName);
         fieldsToValues.put(fieldName, fieldOrMethod);
         fieldsToTypes.put(fieldName, fieldType);

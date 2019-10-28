@@ -1,3 +1,9 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.core;
 
 import com.yahoo.elide.Injector;
@@ -14,9 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import javax.persistence.Entity;
 
 /**
@@ -63,7 +71,7 @@ public class ViewDictionary extends EntityDictionary {
         if (viewBindings.getOrDefault(lookupViewClass(cls), EMPTY_BINDING) != EMPTY_BINDING) {
             return;
         }
-        
+
         if (cls.isAnnotationPresent(Entity.class)) {
             log.trace("{} is an Entity, not a view.", cls.getName());
             return;
@@ -147,5 +155,18 @@ public class ViewDictionary extends EntityDictionary {
     @Override
     public String getId(Object value) {
         return value == null || isView(value.getClass()) ? null : super.getId(value);
+    }
+
+    /**
+     * Get a list of elide-bound relationships. Exclude the view relationships.
+     *
+     * @param entityClass Entity class to find relationships for
+     * @return List of elide-bound relationship names.
+     */
+    public List<String> getElideBoundRelationships(Class<?> entityClass) {
+        return getRelationships(entityClass).stream()
+                .filter(relationName -> getBindings().contains(getParameterizedType(entityClass, relationName)))
+                .filter(relationName -> !isView(getParameterizedType(entityClass, relationName)))
+                .collect(Collectors.toList());
     }
 }
