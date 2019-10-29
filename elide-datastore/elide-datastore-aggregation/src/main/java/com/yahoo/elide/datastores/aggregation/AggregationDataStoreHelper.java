@@ -268,6 +268,11 @@ public class AggregationDataStoreHelper {
         }
     }
 
+    /**
+     * Gets fields that are required for sorting based on {@link EntityProjection}.
+     * @param sorting {@link Sorting} that represents the sort order specified by the user
+     * @return List of names of fields that need to be sorted on
+     */
     private Set<String> getSortingFields(Sorting sorting) {
         Set<Path.PathElement> sortingFields = new LinkedHashSet<>();
         if (sorting != null) {
@@ -285,10 +290,14 @@ public class AggregationDataStoreHelper {
                         sortingFields.add(currentElement);
             });
         }
-        validateSorting(sortingFields);
+        sortingFields.stream().forEach(this::validateFieldStatus);
         return sortingFields.stream().map(sf -> sf.getFieldName()).collect(Collectors.toSet());
     }
 
+    /**
+     * Verifies that the current element in the path can be sorted on
+     * @param currentElement The field that we are inspecting and potentially sorting on
+     */
     private void validateFieldStatus(Path.PathElement currentElement) {
         String currentField = currentElement.getFieldName();
         Class<?> currentClass = currentElement.getType();
@@ -298,12 +307,8 @@ public class AggregationDataStoreHelper {
                 throw new InvalidOperationException("Can't sort on metric that is not present in query");
             }
         }
-        if (dictionary.getIdFieldName(currentClass).equals(currentField)) {
+        if (dictionary.getIdFieldName(currentClass).equals(currentField) || currentField.equals("id")) {
             throw new InvalidOperationException("Sorting on id field is not permitted");
         }
-    }
-
-    private void validateSorting(Set<Path.PathElement> sortingFields) {
-        sortingFields.stream().forEach(this::validateFieldStatus);
     }
 }

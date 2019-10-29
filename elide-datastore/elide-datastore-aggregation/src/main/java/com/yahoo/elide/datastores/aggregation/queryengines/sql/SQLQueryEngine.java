@@ -363,7 +363,7 @@ public class SQLQueryEngine implements QueryEngine {
 
                     if (last.getType() == entityClass) {
                         Metric currentMetric = schema.getMetric(getColumnName(entityClass, last.getFieldName()));
-                        if (currentMetric != null && query.getMetrics().keySet().contains(currentMetric)) {
+                        if (currentMetric != null && query.getMetrics().containsKey(currentMetric)) {
                             orderByType = currentMetric.getMetricExpression(query.getMetrics().get(currentMetric));
                         }
                     }
