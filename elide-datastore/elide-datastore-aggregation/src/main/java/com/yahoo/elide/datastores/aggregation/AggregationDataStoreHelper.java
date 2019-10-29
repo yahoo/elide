@@ -58,15 +58,14 @@ public class AggregationDataStoreHelper {
     public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection, EntityDictionary dictionary) {
         this.schema = schema;
         this.entityProjection = entityProjection;
-        dimensionProjections = resolveNonTimeDimensions();
-        timeDimensions = resolveTimeDimensions();
+        this.dictionary = dictionary;
         Set<Metric> metrics = new LinkedHashSet<>();
         resolveMetricList(metrics);
         metricMap = new LinkedHashMap<>();
         resolveMetricMap(metrics);
+        dimensionProjections = resolveNonTimeDimensions();
+        timeDimensions = resolveTimeDimensions();
         splitFilters();
-        this.dictionary = dictionary;
-        validateSorting(entityProjection.getSorting());
     }
 
     /**
@@ -163,6 +162,8 @@ public class AggregationDataStoreHelper {
 
         Set<String> allColumns = getAttributes();
         allColumns.addAll(getRelationships());
+        Set<String> sortingFields = getSortingFields(entityProjection.getSorting());
+        allColumns.addAll(sortingFields);
 
         return allColumns.stream()
                 .filter(columnName -> schema.getTimeDimension(columnName) == null)
@@ -267,34 +268,42 @@ public class AggregationDataStoreHelper {
         }
     }
 
-    private void validateSorting(Sorting sorting) {
+    private Set<String> getSortingFields(Sorting sorting) {
+        Set<Path.PathElement> sortingFields = new LinkedHashSet<>();
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses =
                     sorting.getValidSortingRules(schema.getEntityClass(), dictionary);
             sortClauses.entrySet().stream()
                     .forEach((entry) -> {
                         Path path = entry.getKey();
-                        if (path.lastElement().get().getType() == schema.getEntityClass()) {
-                            String currentField = path.lastElement().get().getFieldName();
-                            checkFieldStatus(currentField);
+                        //TODO add support for multiple level nested sorts
+                        if (path.getPathElements().size() > 2) {
+                            throw new UnsupportedOperationException(
+                                    "Currently sorting on double nested fields is not supported");
                         }
-
+                        Path.PathElement currentElement = path.getPathElements().get(0);
+                        sortingFields.add(currentElement);
             });
         }
+        validateSorting(sortingFields);
+        return sortingFields.stream().map(sf -> sf.getFieldName()).collect(Collectors.toSet());
     }
 
-    private void checkFieldStatus(String currentField) {
-        if (schema.getDimensions().stream().anyMatch(dim -> dim.getName().contains(currentField))) {
-            if (!dimensionProjections.stream().anyMatch(dim -> dim.getName().equals(currentField))) {
-                // Add current field to dimensionProjections
-                dimensionProjections.add(schema.getDimension(currentField).toProjectedDimension());
-            }
-        }
-        else if (schema.getMetrics().stream().anyMatch(m -> m.getName().contains(currentField))) {
-            if (!metricMap.keySet().stream().anyMatch(m -> m.getName().equals(currentField))) {
+    private void validateFieldStatus(Path.PathElement currentElement) {
+        String currentField = currentElement.getFieldName();
+        Class<?> currentClass = currentElement.getType();
+        if (schema.getMetrics().stream().anyMatch(m -> m.getName().contains(currentField))) {
+            if (metricMap.keySet().stream().noneMatch(m -> m.getName().equals(currentField))) {
                 // Metric not specified in query
                 throw new InvalidOperationException("Can't sort on metric that is not present in query");
             }
         }
+        if (dictionary.getIdFieldName(currentClass).equals(currentField)) {
+            throw new InvalidOperationException("Sorting on id field is not permitted");
+        }
+    }
+
+    private void validateSorting(Set<Path.PathElement> sortingFields) {
+        sortingFields.stream().forEach(this::validateFieldStatus);
     }
 }

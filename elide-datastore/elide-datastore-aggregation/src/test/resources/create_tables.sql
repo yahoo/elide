@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS countries
     (
       id VARCHAR(255),
       isoCode VARCHAR(255),
-      name VARCHAR(255)
+      name VARCHAR(255),
+      continent_id VARCHAR(255)
     ) AS SELECT * FROM CSVREAD('classpath:country.csv');
 
 CREATE TABLE IF NOT EXISTS players
@@ -29,3 +30,9 @@ CREATE TABLE IF NOT EXISTS videoGames
       game_rounds BIGINT,
       timeSpent BIGINT
     ) AS SELECT * FROM CSVREAD('classpath:video_games.csv');
+
+CREATE TABLE IF NOT EXISTS continents
+    (
+      id BIGINT,
+      name VARCHAR(255)
+    ) AS SELECT * FROM CSVREAD('classpath:continents.csv');

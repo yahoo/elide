@@ -14,6 +14,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -49,6 +50,8 @@ public class SQLQueryEngineTest {
 
     private static final Country HONG_KONG = new Country();
     private static final Country USA = new Country();
+    private static final Continent ASIA = new Continent();
+    private static final Continent NA = new Continent();
 
     @BeforeAll
     public static void init() {
@@ -64,13 +67,19 @@ public class SQLQueryEngineTest {
         playerStatsSchema = new SQLSchema(PlayerStats.class, dictionary);
         playerStatsViewSchema = new SQLSchema(PlayerStatsView.class, dictionary);
 
+        ASIA.setName("Asia");
+        ASIA.setId("1");
         HONG_KONG.setIsoCode("HKG");
         HONG_KONG.setName("Hong Kong");
         HONG_KONG.setId("344");
+        HONG_KONG.setContinent(ASIA);
 
+        NA.setName("North America");
+        NA.setId("2");
         USA.setIsoCode("USA");
         USA.setName("United States");
         USA.setId("840");
+        USA.setContinent(NA);
     }
 
     /**

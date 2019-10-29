@@ -400,8 +400,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name"),
-                                                        field("id")
+                                                        field("name")
                                                 )
                                         )
                                 )
@@ -419,8 +418,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "United States"),
-                                                        field("id", "840")
+                                                        field("name", "United States")
                                                 )
                                         )
                                 ),
@@ -430,8 +428,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "Hong Kong"),
-                                                        field("id", "344")
+                                                        field("name", "Hong Kong")
                                                 )
                                         )
                                 )
@@ -449,17 +446,11 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("sort", "\"country.name\"")
+                                        argument("sort", "\"overallRating\"")
                                 ),
                                 selections(
                                         field("lowScore"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name"),
-                                                        field("id")
-                                                )
-                                        )
+                                        field("overallRating")
                                 )
                         )
                 )
@@ -471,23 +462,11 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats",
                                 selections(
                                         field("lowScore", 72),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Hong Kong"),
-                                                        field("id", "344")
-                                                )
-                                        )
+                                        field("overallRating", "Good")
                                 ),
                                 selections(
                                         field("lowScore", 241),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States"),
-                                                        field("id", "840")
-                                                )
-                                        )
+                                        field("overallRating", "Great")
                                 )
                         )
                 )
@@ -510,8 +489,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name"),
-                                                        field("id")
+                                                        field("name")
                                                 )
                                         )
                                 )
@@ -528,8 +506,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "United States"),
-                                                        field("id", "840")
+                                                        field("name", "United States")
                                                 )
                                         )
                                 ),
@@ -538,8 +515,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "Hong Kong"),
-                                                        field("id", "344")
+                                                        field("name", "Hong Kong")
                                                 )
                                         )
                                 )
@@ -551,23 +527,16 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void nestedSortingTest() throws Exception {
+    public void implicitNestedSortingTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("sort", "\"-country.name\"")
+                                        argument("sort", "\"-country.name,lowScore\"")
                                 ),
                                 selections(
-                                        field("lowScore"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name"),
-                                                        field("id")
-                                                )
-                                        )
+                                        field("lowScore")
                                 )
                         )
                 )
@@ -578,24 +547,10 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 selections(
-                                        field("lowScore", 241),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States"),
-                                                        field("id", "840")
-                                                )
-                                        )
+                                        field("lowScore", 241)
                                 ),
                                 selections(
-                                        field("lowScore", 72),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Hong Kong"),
-                                                        field("id", "344")
-                                                )
-                                        )
+                                        field("lowScore", 72)
                                 )
                         )
                 )
@@ -682,8 +637,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name"),
-                                                        field("id")
+                                                        field("name")
                                                 )
                                         )
                                 )
@@ -692,6 +646,62 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         ).toQuery();
 
         String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on metric that is not present in query'\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void invalidQueryTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Must provide at least one metric in query'\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void sortingMultipleLevelNesting() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"country.continent.name\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name"),
+                                                        field(
+                                                                "continent",
+                                                                selections(
+                                                                        field("name")
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/playerStats) : Currently sorting on double nested fields is not supported\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }

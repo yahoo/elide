@@ -16,6 +16,7 @@
         <class>com.yahoo.elide.datastores.aggregation.example.Player</class>
         <class>com.yahoo.elide.datastores.aggregation.example.VideoGame</class>
         <class>com.yahoo.elide.datastores.aggregation.example.Player</class>
+        <class>com.yahoo.elide.datastores.aggregation.example.Continent</class>
 
 
         <properties>

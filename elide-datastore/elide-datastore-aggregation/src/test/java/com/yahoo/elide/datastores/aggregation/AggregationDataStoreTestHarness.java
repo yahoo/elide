@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -33,6 +34,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                 dictionary.bindEntity(PlayerStatsView.class);
                 dictionary.bindEntity(Player.class);
                 dictionary.bindEntity(VideoGame.class);
+                dictionary.bindEntity(Continent.class);
                 super.populateEntityDictionary(dictionary);
             }
         };
