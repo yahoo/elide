@@ -10,6 +10,7 @@ import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.IncludeField;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
@@ -24,7 +25,6 @@ import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.annotation.ToOne;
-import com.yahoo.elide.annotation.IncludeField;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.functions.LifeCycleHook;
 
@@ -104,7 +104,7 @@ public class EntityBinding {
     public final EntityPermissions entityPermissions;
     public List<String> attributes;
     public List<String> relationships;
-    public final List<Class<?>> inheritedTypes;
+    protected List<Class<?>> inheritedTypes;
     public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
     public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
 
@@ -581,7 +581,7 @@ public class EntityBinding {
         return annotation == NO_ANNOTATION ? null : annotationClass.cast(annotation);
     }
 
-    private List<Class<?>> getInheritedTypes(Class<?> entityClass) {
+    protected List<Class<?>> getInheritedTypes(Class<?> entityClass) {
         ArrayList<Class<?>> results = new ArrayList<>();
 
         for (Class<?> cls = entityClass.getSuperclass(); cls != Object.class; cls = cls.getSuperclass()) {

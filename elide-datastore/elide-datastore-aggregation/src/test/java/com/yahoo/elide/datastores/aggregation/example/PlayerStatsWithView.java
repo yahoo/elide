@@ -6,8 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.annotation.IncludeField;
+import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;

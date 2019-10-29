@@ -49,7 +49,7 @@ public class ViewDictionary extends EntityDictionary {
      * @param objClass provided class
      * @return class with view annotation
      */
-    private Class<?> lookupViewClass(Class<?> objClass) {
+    public Class<?> lookupViewClass(Class<?> objClass) {
         for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
             ViewBinding binding = viewBindings.getOrDefault(cls, EMPTY_BINDING);
             if (binding != EMPTY_BINDING) {

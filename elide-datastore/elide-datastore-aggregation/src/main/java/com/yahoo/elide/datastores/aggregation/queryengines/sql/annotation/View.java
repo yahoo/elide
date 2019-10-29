@@ -25,8 +25,14 @@ public @interface View {
     String name() default "";
 
     /**
+     * Whether this view is from a table directly
+     * @return True if the view is from a table
+     */
+    boolean isTable() default true;
+
+    /**
      * Table name or select statement to construct this view.
      * @return sql statement
      */
-    String from() default "";
+    String from();
 }

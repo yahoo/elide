@@ -21,6 +21,7 @@ public class ViewBinding extends EntityBinding {
     public ViewBinding(Class<?> cls, String name) {
         entityClass = cls;
         entityName = name;
+        inheritedTypes = getInheritedTypes(cls);
 
         // Map id's, attributes, and relationships
         List<AccessibleObject> fieldOrMethodList = getAllFields();

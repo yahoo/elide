@@ -316,7 +316,7 @@ public class SQLQueryEngine implements QueryEngine {
 
         String joinSource = view == null
                 ? SQLSchema.getTableOrSubselect(dictionary, relationshipClass)
-                : view.from();
+                : view.isTable() ? view.from() : "(" + view.from() + ")";
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(
                 entityClass,
@@ -337,12 +337,21 @@ public class SQLQueryEngine implements QueryEngine {
                 joinClause);
     }
 
+    /**
+     * Construct a join on clause based on given constraint expressions, replace "%from" with from table alias
+     * and "%join" with join table alias.
+     *
+     * @param expressions all constraint expression for a join clause
+     * @param fromAlias from table alias
+     * @param joinToAlias join to table alias
+     * @return sql string that represents a full join condition
+     */
     private String extractJoinExpression(List<JoinExpression> expressions, String fromAlias, String joinToAlias) {
         return expressions.stream()
                 .map(exp -> exp.value()
                         .replace("%from", fromAlias)
                         .replace("%join", joinToAlias))
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(" AND "));
     }
 
     /**
@@ -493,13 +502,14 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * extracts the SQL column references for the dimensions from the query.
+     * extracts the SQL column references for the dimensions from the query. Exclude view relationships.
      * @param query
      * @return
      */
     private List<String> extractDimensionProjections(Query query) {
         return query.getDimensions().stream()
                 .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
+                .filter(dim -> !dim.getDataType().isAnnotationPresent(View.class))
                 .map((SQLDimensionColumn.class::cast))
                 .map(SQLDimensionColumn::getColumnReference)
                 .collect(Collectors.toList());
