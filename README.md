@@ -12,6 +12,7 @@
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/alerts)
 [![Mentioned in Awesome Java](https://awesome.re/mentioned-badge.svg)](https://github.com/akullpp/awesome-java)
 [![Mentioned in Awesome GraphQL](https://awesome.re/mentioned-badge.svg)](https://github.com/chentsulin/awesome-graphql)
+[![BCH compliance](https://bettercodehub.com/edge/badge/yahoo/elide?branch=master)](https://bettercodehub.com/)
 
 *Read this in other languages: [中文](translations/zh/README.md).*
 
