@@ -12,7 +12,6 @@ import graphql.language.SourceLocation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -21,7 +20,7 @@ import java.util.Map;
  */
 @AllArgsConstructor
 public class GraphQLProjectionInfo {
-    @Getter private final Collection<EntityProjection> projections;
+    @Getter private final Map<String, EntityProjection> projections;
 
     @Getter private final Map<SourceLocation, Relationship> relationshipMap;
 }

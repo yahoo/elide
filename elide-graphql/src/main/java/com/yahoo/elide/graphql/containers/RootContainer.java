@@ -16,7 +16,10 @@ public class RootContainer implements GraphQLContainer {
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         return fetcher.fetchObject(
                 context.requestScope,
-                context.requestScope.getEntityProjection(),  // root-level projection
+                context.requestScope
+                        .getProjectionInfo()
+                        .getProjections()
+                        .get(context.outputType.getName()),  // root-level projection
                 context.ids
         );
     }

@@ -74,7 +74,7 @@ public interface ElideStandaloneSettings {
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary));
 
-        if (enableIS06081Dates()) {
+        if (enableISO8601Dates()) {
             builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
         }
 
@@ -167,7 +167,7 @@ public interface ElideStandaloneSettings {
      * Whether Dates should be ISO8601 strings (true) or epochs (false).
      * @return
      */
-    default boolean enableIS06081Dates() {
+    default boolean enableISO8601Dates() {
         return true;
     }
 
