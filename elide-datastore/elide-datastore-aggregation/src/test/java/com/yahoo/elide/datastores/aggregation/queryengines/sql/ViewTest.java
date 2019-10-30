@@ -8,7 +8,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
@@ -33,6 +35,23 @@ public class ViewTest extends UnitTest {
     public static void init() {
         UnitTest.init();
         playerStatsWithViewSchema = new SQLSchema(PlayerStatsWithView.class, dictionary);
+    }
+
+    @Test
+    public void testViewRelationFailure() throws Exception {
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
+
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
+
+        Query query = Query.builder()
+                .schema(playerStatsWithViewSchema)
+                .metric(playerStatsWithViewSchema.getMetric("lowScore"), Sum.class)
+                .groupDimension(playerStatsWithViewSchema.getDimension("countryView"))
+                .sorting(new Sorting(sortMap))
+                .build();
+
+        assertThrows(InvalidPredicateException.class, () -> engine.executeQuery(query));
     }
 
     @Test

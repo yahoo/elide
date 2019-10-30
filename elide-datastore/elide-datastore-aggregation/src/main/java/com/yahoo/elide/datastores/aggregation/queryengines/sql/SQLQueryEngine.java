@@ -491,8 +491,7 @@ public class SQLQueryEngine implements QueryEngine {
      * @return The SQL GROUP BY clause
      */
     private String extractGroupBy(Query query) {
-        return "GROUP BY " + extractDimensionProjections(query).stream()
-                .collect(Collectors.joining(","));
+        return "GROUP BY " + String.join(",", extractDimensionProjections(query));
     }
 
     /**
@@ -503,7 +502,13 @@ public class SQLQueryEngine implements QueryEngine {
     private List<String> extractDimensionProjections(Query query) {
         return query.getDimensions().stream()
                 .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
-                .filter(dim -> !dim.getDataType().isAnnotationPresent(View.class))
+                .filter(dim -> {
+                        if (dim.getDataType().isAnnotationPresent(View.class)) {
+                            throw  new InvalidPredicateException(
+                                    "Can't query on view relationship field: " + dim.getName());
+                        }
+                        return true;
+                })
                 .map((SQLDimensionColumn.class::cast))
                 .map(SQLDimensionColumn::getColumnReference)
                 .collect(Collectors.toList());
