@@ -38,9 +38,7 @@ public class GraphQLRequestScope extends RequestScope {
         super("/", null, transaction, user, new MultivaluedHashMap<>(), elideSettings);
         this.projectionInfo = projectionInfo;
 
-        // Entity Projection is retrieved from projectionInfo. This shall be removed.
-        if (projectionInfo.getProjections().size() > 0) {
-            this.setEntityProjection(projectionInfo.getProjections().entrySet().iterator().next().getValue());
-        }
+        // Entity Projection is retrieved from projectionInfo.
+        this.setEntityProjection(null);
     }
 }

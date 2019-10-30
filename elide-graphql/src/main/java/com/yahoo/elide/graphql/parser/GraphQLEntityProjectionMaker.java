@@ -168,7 +168,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addRootProjection(SelectionSet selectionSet) {
         List<Selection> selections = selectionSet.getSelections();
-        Map<String, Field> rootSelectionField = new HashMap<>();
+        Map<String, Field> rootSelectionFields = new HashMap<>();
 
         // merging partial graphql selections, skip(1) because the first selection is already processed
         selections.stream().forEach(rootSelection -> {
@@ -182,16 +182,16 @@ public class GraphQLEntityProjectionMaker {
                 return;
             }
 
-            if (rootSelectionField.containsKey(entityName)) {
-                Field fields = rootSelectionField.get(entityName);
+            if (rootSelectionFields.containsKey(entityName)) {
+                Field fields = rootSelectionFields.get(entityName);
                 fields.getSelectionSet().getSelections().addAll(
                         ((Field) rootSelection).getSelectionSet().getSelections());
             } else {
-                rootSelectionField.put(entityName, (Field) rootSelection);
+                rootSelectionFields.put(entityName, (Field) rootSelection);
             }
         });
 
-        rootSelectionField.entrySet()
+        rootSelectionFields.entrySet()
                 .stream()
                 .forEach(selectionField -> {
                     String entityName = selectionField.getKey();
