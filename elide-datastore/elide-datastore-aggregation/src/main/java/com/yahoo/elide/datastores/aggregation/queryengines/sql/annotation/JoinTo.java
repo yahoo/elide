@@ -28,10 +28,10 @@ public @interface JoinTo {
     String path() default "";
 
     /**
-     * Join on clause constraints for customizing relationship joins.
+     * Join on clause constraint for customizing relationship joins as a plain sql string. Provided in the model.
      * Use "%from" and "%join% to represent the two sides of join.
      *
      * @return join constraint like <code>%from.col1 = %join.col2</code>
      */
-    JoinExpression[] constraints() default {};
+    String joinClause() default "";
 }

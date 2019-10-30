@@ -20,7 +20,6 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.View;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLDimensionColumn;
@@ -38,7 +37,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -329,7 +327,7 @@ public class SQLQueryEngine implements QueryEngine {
                         relationshipColumnName,
                         relationshipAlias,
                         getColumnName(relationshipClass, dictionary.getIdFieldName(relationshipClass)))
-                : extractJoinExpression(Arrays.asList(joinTo.constraints()), entityAlias, relationshipAlias);
+                : extractJoinExpression(joinTo.joinClause(), entityAlias, relationshipAlias);
 
         return String.format("LEFT JOIN %s AS %s ON %s",
                 joinSource,
@@ -338,20 +336,16 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Construct a join on clause based on given constraint expressions, replace "%from" with from table alias
+     * Construct a join on clause based on given constraint expression, replace "%from" with from table alias
      * and "%join" with join table alias.
      *
-     * @param expressions all constraint expression for a join clause
+     * @param joinClause sql join constraint
      * @param fromAlias from table alias
      * @param joinToAlias join to table alias
      * @return sql string that represents a full join condition
      */
-    private String extractJoinExpression(List<JoinExpression> expressions, String fromAlias, String joinToAlias) {
-        return expressions.stream()
-                .map(exp -> exp.value()
-                        .replace("%from", fromAlias)
-                        .replace("%join", joinToAlias))
-                .collect(Collectors.joining(" AND "));
+    private String extractJoinExpression(String joinClause, String fromAlias, String joinToAlias) {
+        return joinClause.replace("%from", fromAlias).replace("%join", joinToAlias);
     }
 
     /**

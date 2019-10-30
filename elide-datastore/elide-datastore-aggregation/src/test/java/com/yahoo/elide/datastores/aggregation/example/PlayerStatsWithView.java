@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.IncludeField;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
@@ -16,7 +15,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.EntityDimensionTest;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Max;
@@ -33,7 +31,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -206,32 +203,22 @@ public class PlayerStatsWithView {
         this.subCountryIsoCode = isoCode;
     }
 
-    @IncludeField
-    @Transient
     @ToOne
-    @JoinTo(
-            constraints = {@JoinExpression("%from.country_id = %join.id")}
-    )
+    @JoinTo(joinClause = "%from.country_id = %join.id")
     public CountryView getCountryView() {
         return countryView;
     }
 
-    @IncludeField
-    @Transient
     @JoinTo(path = "countryView.isoCode")
     public String getCountryViewIsoCode() {
         return countryViewIsoCode;
     }
 
-    @IncludeField
-    @Transient
     @JoinTo(path = "countryView.nestedView.isoCode")
     public String getCountryViewViewIsoCode() {
         return countryViewViewIsoCode;
     }
 
-    @IncludeField
-    @Transient
     @JoinTo(path = "countryView.nestedRelationship.isoCode")
     public String getCountryViewRelationshipIsoCode() {
         return countryViewRelationshipIsoCode;
