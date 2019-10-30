@@ -62,7 +62,8 @@ public class SQLTimeDimensionColumn extends SQLDimensionColumn implements TimeDi
      */
     public String getColumnReference(TimeGrain requestedGrain) {
         TimeGrainDefinition definition = getSupportedGrains().stream()
-                .filter(grainDef -> grainDef.grain().equals(requestedGrain)).findFirst()
+                .filter(grainDef -> grainDef.grain().equals(requestedGrain))
+                .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Requested time grain not supported."));
 
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
