@@ -10,6 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.Relationship;
 
 import lombok.AllArgsConstructor;
@@ -36,7 +37,9 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
         String idFieldName = dictionary.getIdFieldName(parentClass);
 
         if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-            Object attribute = context.parentResource.getAttribute(fieldName);
+            Attribute requested = context.requestScope.getProjectionInfo()
+                    .getAttributeMap().getOrDefault(context.field.getSourceLocation(), null);
+            Object attribute = context.parentResource.getAttribute(requested);
             if (attribute instanceof Map) {
                 return ((Map<Object, Object>) attribute).entrySet().stream()
                         .map(MapEntryContainer::new)

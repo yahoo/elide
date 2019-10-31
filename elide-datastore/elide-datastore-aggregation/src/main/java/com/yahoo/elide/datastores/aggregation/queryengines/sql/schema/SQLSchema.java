@@ -20,7 +20,6 @@ import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 
 import org.hibernate.annotations.Subselect;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;

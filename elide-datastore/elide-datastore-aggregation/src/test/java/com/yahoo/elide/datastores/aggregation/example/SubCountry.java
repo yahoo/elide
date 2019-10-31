@@ -18,7 +18,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
- * A root level entity for testing AggregationDataStore with @Subselect annotation
+ * A root level entity for testing AggregationDataStore with @Subselect annotation.
  */
 @Data
 @Entity

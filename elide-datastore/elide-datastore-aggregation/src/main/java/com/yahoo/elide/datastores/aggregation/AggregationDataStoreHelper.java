@@ -31,6 +31,7 @@ import com.yahoo.elide.request.Relationship;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -101,7 +102,6 @@ public class AggregationDataStoreHelper {
         }
     }
 
-    //TODO - Add tests in the next PR.
     /**
      * Gets time dimensions based on relationships and attributes from {@link EntityProjection}.
      *
@@ -129,7 +129,7 @@ public class AggregationDataStoreHelper {
                                         String.format("Requested default grain, no grain defined on %s",
                                                 attribute.getName())));
                     } else {
-                        String requestedGrainName = timeGrainArgument.getValue().toString();
+                        String requestedGrainName = timeGrainArgument.getValue().toString().toUpperCase(Locale.ENGLISH);
 
                         TimeGrain requestedGrain;
                         try {

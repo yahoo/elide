@@ -69,6 +69,7 @@ public class GraphQLEntityProjectionMaker {
 
     private final Map<SourceLocation, Relationship> relationshipMap = new HashMap<>();
     private final Map<String, EntityProjection> rootProjections = new HashMap<>();
+    private final Map<SourceLocation, Attribute> attributeMap = new HashMap<>();
 
     /**
      * Constructor.
@@ -134,7 +135,7 @@ public class GraphQLEntityProjectionMaker {
             }
         });
 
-        return new GraphQLProjectionInfo(rootProjections, relationshipMap);
+        return new GraphQLProjectionInfo(rootProjections, relationshipMap, attributeMap);
     }
 
     /**
@@ -351,6 +352,7 @@ public class GraphQLEntityProjectionMaker {
                     .build();
 
             projectionBuilder.attribute(attribute);
+            attributeMap.put(attributeField.getSourceLocation(), attribute);
         } else {
             throw new InvalidEntityBodyException(String.format(
                             "Unknown attribute field {%s.%s}.",

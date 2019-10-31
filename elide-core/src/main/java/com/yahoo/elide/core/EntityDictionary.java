@@ -29,6 +29,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
@@ -1420,6 +1421,16 @@ public class EntityDictionary {
      */
     public void addArgumentsToAttributes(Class<?> cls, String attributeName, Set<ArgumentType> arguments) {
         getEntityBinding(cls).addArgumentsToAttribute(attributeName, arguments);
+    }
+
+    /**
+     * Add a single argument to the attribute
+     * @param cls The entity
+     * @param attributeName attribute name to which argument has to be added
+     * @param argument A single argument
+     */
+    public void addArgumentToAttribute(Class<?> cls, String attributeName, ArgumentType argument) {
+        this.addArgumentsToAttributes(cls, attributeName, Sets.newHashSet(argument));
     }
 
     /**

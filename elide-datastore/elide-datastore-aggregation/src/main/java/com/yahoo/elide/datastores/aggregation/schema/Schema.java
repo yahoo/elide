@@ -125,6 +125,17 @@ public class Schema {
     }
 
     /**
+     * Returns the complete list of time dimensions.
+     * @return the complete list of time dimensions.
+     */
+    public List<TimeDimensionColumn> getTimeDimensions() {
+        return dimensions.values().stream()
+                .filter(dim -> dim instanceof TimeDimensionColumn)
+                .map(TimeDimensionColumn.class::cast)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Finds the {@link Metric} by name.
      *
      * @param metricName  The entity field name associated with the searched {@link Metric}
