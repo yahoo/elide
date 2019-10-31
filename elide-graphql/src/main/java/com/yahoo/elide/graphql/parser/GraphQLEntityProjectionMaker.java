@@ -141,68 +141,39 @@ public class GraphQLEntityProjectionMaker {
      * Root projection would be an operation applied on an single entity class.
      * The EntityProjection tree would be constructed recursively to add all child projections.
      *
-     * Currently we only support one root class in each GraphQL {@link OperationDefinition} since
-     * each {@link EntityProjection} only has one entity class.
-     *
-     * For example
-     * <pre>
-     *     Query {
-     *         Book (arguments1) {
-     *             field1
-     *         },
-     *         Book (arguments2) {
-     *             field2
-     *         }
-     *     }
-     * </pre>
-     * Would be a valid GraphQL request, and would be resolved into (second query's arguments would be dropped)
-     * <pre>
-     *     Query {
-     *         Book (arguments1) {
-     *             field1,
-     *             field2
-     *         }
-     *     }
-     * </pre>
      * @param selectionSet a root-level selection set
      */
     private void addRootProjection(SelectionSet selectionSet) {
         List<Selection> selections = selectionSet.getSelections();
-        Map<String, Field> rootSelectionFields = new HashMap<>();
 
-        // merging partial graphql selections, skip(1) because the first selection is already processed
         selections.stream().forEach(rootSelection -> {
             if (!(rootSelection instanceof Field)) {
                 throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
             }
-
-            String entityName = ((Field) rootSelection).getName();
+            Field rootSelectionField = (Field) rootSelection;
+            String entityName = rootSelectionField.getName();
+            String aliasName = rootSelectionField.getAlias();
             if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
                 // '__schema' and '__type' would not be handled by entity projection
                 return;
             }
-
-            if (rootSelectionFields.containsKey(entityName)) {
-                Field fields = rootSelectionFields.get(entityName);
-                fields.getSelectionSet().getSelections().addAll(
-                        ((Field) rootSelection).getSelectionSet().getSelections());
-            } else {
-                rootSelectionFields.put(entityName, (Field) rootSelection);
+            Class<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName());
+            if (entityType == null) {
+                throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
+                        rootSelectionField.getName()));
             }
+
+
+            String keyName = (aliasName == null ? "" : aliasName) + ":" + entityName;
+            if (rootProjections.containsKey(keyName)) {
+                throw  new InvalidEntityBodyException(
+                        String.format("Found two root level query for Entity {%s} with same alias name",
+                                entityName));
+            }
+            rootProjections.put(keyName,
+                    createProjection(entityType, rootSelectionField));
         });
 
-        rootSelectionFields.entrySet()
-                .stream()
-                .forEach(selectionField -> {
-                    String entityName = selectionField.getKey();
-                    Class<?> entityType = entityDictionary.getEntityClass(selectionField.getKey());
-                    if (entityType == null) {
-                        throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
-                                selectionField.getKey()));
-                    }
-                    rootProjections.put(entityName,
-                            createProjection(entityType, selectionField.getValue()));
-                });
     }
 
     /**

@@ -337,22 +337,8 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String expectedData = document(
-                selection(
-                        field(
-                                "book",
-                                selections(
-                                        field("user1SecretField", "null", false),
-                                        field("id", "1"),
-                                        field("title", "My first book")
-                                )
-                        )
-                )
-        ).toResponse();
-
         Response response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
-        assert200DataEqual(response, expectedData);
     }
 
     @Test
@@ -800,12 +786,7 @@ public class GraphQLEndpointTest {
                                 "author",
                                 selections(
                                         field("id"),
-                                        field("name")
-                                )
-                        ),
-                        field(
-                                "author",
-                                selections(
+                                        field("name"),
                                         field(
                                                 "books",
                                                 selection(
