@@ -8,8 +8,8 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.Aggregation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -29,10 +29,10 @@ public class VideoGame {
     private Long id;
 
     @Column(name = "game_rounds")
-    @MetricAggregation(aggregations = {Sum.class})
+    @MetricAggregation(aggregations = {Aggregation.SUM})
     Long sessions;
 
-    @MetricAggregation(aggregations = {Sum.class})
+    @MetricAggregation(aggregations = {Aggregation.SUM})
     Long timeSpent;
 
     @MetricComputation(expression = "timeSpent / sessions")

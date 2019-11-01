@@ -5,8 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import java.io.Serializable;
 
@@ -22,12 +23,19 @@ public interface DimensionProjection extends Serializable {
      */
     String getName();
 
-    /**
-     * Given a schema, converts this requested dimension into a schema column.
-     * @param schema The provided schema
-     * @return A dimension column.
-     */
-    default DimensionColumn toDimensionColumn(Schema schema) {
-        return schema.getDimension(getName());
+    static DimensionProjection toDimensionProjection(Dimension dimension) {
+        return (DimensionProjection) dimension::getName;
+    }
+
+    static TimeDimensionProjection toDimensionProjection(TimeDimension dimension, TimeGrain grain) {
+        if (dimension.getSupportedGrains().contains(grain)) {
+            return new TimeDimensionProjection() {
+                @Override
+                public String getName() {
+                    return dimension.getName();
+                }
+            };
+        }
+        return null;
     }
 }

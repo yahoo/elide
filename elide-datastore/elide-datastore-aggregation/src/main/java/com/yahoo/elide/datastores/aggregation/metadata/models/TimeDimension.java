@@ -16,6 +16,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
 
@@ -28,7 +29,10 @@ import javax.persistence.Entity;
 @Entity
 @Data
 public class TimeDimension extends Dimension {
-    Set<TimeGrain> supportedGrains;
+
+    private TimeZone timezone;
+
+    private Set<TimeGrain> supportedGrains;
 
     public TimeDimension(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
         super(tableClass, fieldName, dictionary);

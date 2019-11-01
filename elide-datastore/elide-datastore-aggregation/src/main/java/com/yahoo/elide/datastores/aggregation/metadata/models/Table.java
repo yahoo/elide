@@ -63,6 +63,7 @@ public class Table {
         }
     }
 
+    @Transient
     private static Set<Column> resolveColumns(Class<?> cls, AggregationDictionary dictionary) {
         Set<Column> fields =  dictionary.getAllFields(cls).stream()
                 .map(field -> {
@@ -80,5 +81,42 @@ public class Table {
         fields.add(new Dimension(cls, dictionary.getIdFieldName(cls), dictionary));
 
         return fields;
+    }
+
+    @Transient
+    private <T extends Column> T getColumn(Class<T> cls, String fieldName) {
+        return columns.stream()
+                .filter(col -> cls.isAssignableFrom(col.getClass()) && (col.getName().equals(fieldName)))
+                .map(cls::cast)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Transient
+    public Metric getMetric(String fieldName) {
+        return getColumn(Metric.class, fieldName);
+    }
+
+    @Transient
+    public Dimension getDimension(String fieldName) {
+        return getColumn(Dimension.class, fieldName);
+    }
+
+    @Transient
+    public TimeDimension getTimeDimension(String fieldName) {
+        return getColumn(TimeDimension.class, fieldName);
+    }
+
+    @Transient
+    public <T extends Column> Set<T> getColumns(Class<T> cls) {
+        return columns.stream()
+                .filter(col -> cls.isAssignableFrom(col.getClass()))
+                .map(cls::cast)
+                .collect(Collectors.toSet());
+    }
+
+    @Transient
+    public boolean isMetric(String fieldName) {
+        return getColumns(Metric.class).stream().anyMatch(metric -> metric.getName().equals(fieldName));
     }
 }

@@ -9,16 +9,16 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
@@ -35,7 +35,7 @@ public class Metric extends Column {
 
     @ManyToMany
     @ToString.Exclude
-    private Set<MetricFunction> supportedFunctions;
+    private List<MetricFunction> supportedFunctions;
 
     public Metric(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
@@ -46,11 +46,11 @@ public class Metric extends Column {
                     MetricAggregation.class,
                     fieldName);
 
-            Class<? extends Aggregation>[] aggregations = metricAggregation.aggregations();
+            Aggregation[] aggregations = metricAggregation.aggregations();
 
             this.supportedFunctions = Arrays.stream(aggregations)
                     .map(MetricFunction::getAggregationFunction)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toList());
         } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricComputation.class)) {
             MetricComputation metricComputation = dictionary.getAttributeOrRelationAnnotation(
                     tableClass,
@@ -58,7 +58,7 @@ public class Metric extends Column {
                     fieldName);
 
             // TODO: parse MetricComputation expression
-            this.supportedFunctions = new HashSet<>();
+            this.supportedFunctions = new ArrayList<>();
         } else {
             throw new IllegalArgumentException(getId() + " is not a metric field");
         }

@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.AggregationDictionary.isAnalyticView;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -17,7 +18,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
+import java.util.HashMap;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
@@ -26,6 +29,7 @@ public class MetaDataStore extends HashMapDataStore {
 
     public MetaDataStore() {
         super(MetaDataStore.class.getPackage());
+        this.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
     }
 
     /**
@@ -69,5 +73,9 @@ public class MetaDataStore extends HashMapDataStore {
         } else if (object instanceof MetricFunction) {
             ((MetricFunction) object).getArguments().forEach(this::storeMetaData);
         }
+    }
+
+    public <T> Set<T> getMetaData(Class<T> cls) {
+        return dataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
     }
 }

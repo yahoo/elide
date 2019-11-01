@@ -12,28 +12,27 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -44,24 +43,25 @@ public class AggregationDataStoreHelper {
     //TODO Add support for user selected metrics.
     private static final int AGGREGATION_METHOD_INDEX = 0;
 
-    private Schema schema;
+    private Table table;
     private EntityProjection entityProjection;
     private Set<DimensionProjection> dimensionProjections;
     private Set<TimeDimensionProjection> timeDimensions;
-    private Map<Metric, Class<? extends Aggregation>> metricMap;
+    private Map<Metric, MetricFunction> metricMap;
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
 
-    public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection) {
-        this.schema = schema;
+    public AggregationDataStoreHelper(Table table, EntityProjection entityProjection) {
+        this.table = table;
         this.entityProjection = entityProjection;
+
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
-        Set<Metric> metrics = new LinkedHashSet<>();
-        resolveMetricList(metrics);
-        metricMap = new LinkedHashMap<>();
-        resolveMetricMap(metrics);
-        splitFilters();
+
+        if (table instanceof AnalyticView) {
+            metricMap = resolveMetricMap(resolveMetricList());
+            splitFilters();
+        }
     }
 
     /**
@@ -70,7 +70,7 @@ public class AggregationDataStoreHelper {
      */
     public Query getQuery() {
         return Query.builder()
-                .schema(schema)
+                .table(table)
                 .metrics(metricMap)
                 .groupDimensions(dimensionProjections)
                 .timeDimensions(timeDimensions)
@@ -91,7 +91,7 @@ public class AggregationDataStoreHelper {
             havingFilter = null;
             return;
         }
-        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(schema);
+        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(table);
         FilterConstraints constraints = filterExpression.accept(visitor);
         whereFilter = constraints.getWhereExpression();
         havingFilter = constraints.getHavingExpression();
@@ -110,43 +110,34 @@ public class AggregationDataStoreHelper {
      */
     private Set<TimeDimensionProjection> resolveTimeDimensions() {
         return entityProjection.getAttributes().stream()
-                .filter(attribute -> schema.getTimeDimension(attribute.getName()) != null)
+                .filter(attribute -> table.getTimeDimension(attribute.getName()) != null)
                 .map(attribute -> {
-                    TimeDimensionColumn timeDim = schema.getTimeDimension(attribute.getName());
+                    TimeDimension timeDim = table.getTimeDimension(attribute.getName());
 
-                    Argument timeGrainArgument = attribute.getArguments().stream()
+                    Argument grainArgument = attribute.getArguments().stream()
                             .filter(attr -> attr.getName().equals("grain"))
                             .findAny()
                             .orElse(null);
 
-                    TimeGrainDefinition requestedGrainDefinition;
-                    if (timeGrainArgument == null) {
-
+                    TimeGrain grain;
+                    if (grainArgument == null) {
                         //The first grain is the default.
-                        requestedGrainDefinition = timeDim.getSupportedGrains().stream()
+                        grain = timeDim.getSupportedGrains().stream()
                                 .findFirst()
                                 .orElseThrow(() -> new IllegalStateException(
                                         String.format("Requested default grain, no grain defined on %s",
                                                 attribute.getName())));
                     } else {
-                        String requestedGrainName = timeGrainArgument.getValue().toString();
+                        String requestedGrainName = grainArgument.getValue().toString();
 
-                        TimeGrain requestedGrain;
-                        try {
-                            requestedGrain = TimeGrain.valueOf(requestedGrainName);
-                        } catch (IllegalArgumentException e) {
-                            throw new InvalidOperationException(String.format("Invalid grain %s", requestedGrainName));
-                        }
-
-                        requestedGrainDefinition = timeDim.getSupportedGrains().stream()
-                                .filter(supportedGrainDef -> supportedGrainDef.grain().equals(requestedGrain))
-                                .findAny()
+                        grain = timeDim.getSupportedGrains().stream()
+                                .filter(g -> g.name().equals(requestedGrainName))
+                                .findFirst()
                                 .orElseThrow(() -> new InvalidOperationException(
-                                        String.format("Requested grain %s, not supported on %s",
-                                                requestedGrainName, attribute.getName())));
+                                        String.format("Invalid grain %s", requestedGrainName)));
                     }
 
-                    return timeDim.toProjectedDimension(requestedGrainDefinition);
+                    return DimensionProjection.toDimensionProjection(timeDim, grain);
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -155,42 +146,41 @@ public class AggregationDataStoreHelper {
      * Gets dimensions except time dimensions based on relationships and attributes from {@link EntityProjection}.
      */
     private Set<DimensionProjection> resolveNonTimeDimensions() {
-
         Set<String> allColumns = getAttributes();
         allColumns.addAll(getRelationships());
 
         return allColumns.stream()
-                .filter(columnName -> schema.getTimeDimension(columnName) == null)
-                .map(columnName -> schema.getDimension(columnName))
+                .filter(columnName -> table.getTimeDimension(columnName) == null)
+                .map(columnName -> table.getDimension(columnName))
                 .filter(Objects::nonNull)
-                .map(DimensionColumn::toProjectedDimension)
+                .map(DimensionProjection::toDimensionProjection)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
      * Gets metrics based on attributes from {@link EntityProjection}.
-     * @param metrics Empty set of {@link Metric} objects.
      */
-    private void resolveMetricList(Set<Metric> metrics) {
+    private Set<Metric> resolveMetricList() {
         Set<String> attributeNames = getAttributes();
-        for (Metric metric : schema.getMetrics()) {
-            if (attributeNames.contains(metric.getName())) {
-                metrics.add(metric);
-            }
-        }
+
+        return table.getColumns(Metric.class).stream()
+                .filter(m -> attributeNames.contains(m.getName()))
+                .collect(Collectors.toSet());
     }
 
     /**
-     * Constructs map between {@link Metric} objects and the type of {@link Aggregation} we want to use.
+     * Constructs map between {@link Metric} objects and the type of {@link MetricFunction} we want to use.
      * @param metrics Set of {@link Metric} objects.
      */
-    private void resolveMetricMap(Set<Metric> metrics) {
+    private Map<Metric, MetricFunction> resolveMetricMap(Set<Metric> metrics) {
         if (metrics.isEmpty()) {
             throw new InvalidOperationException("Must provide at least one metric in query");
         }
-        for (Metric metric : metrics) {
-            metricMap.put(metric, metric.getAggregations().get(AGGREGATION_METHOD_INDEX));
-        }
+
+        return metrics.stream().collect(
+                Collectors.toMap(
+                        Function.identity(),
+                        m -> m.getSupportedFunctions().get(AGGREGATION_METHOD_INDEX)));
     }
 
     /**
@@ -227,28 +217,30 @@ public class AggregationDataStoreHelper {
             Path path = ((FilterPredicate) havingClause).getPath();
             Path.PathElement last = path.lastElement().get();
             Class<?> cls = last.getType();
-            String field = last.getFieldName();
+            String fieldName = last.getFieldName();
 
-            if (cls != schema.getEntityClass()) {
+            if (cls != table.getCls()) {
                 throw new InvalidOperationException(
                         String.format(
                                 "Classes don't match when try filtering on %s in having clause of %s.",
                                 cls.getSimpleName(),
-                                schema.getEntityClass().getSimpleName()));
+                                table.getCls().getSimpleName()));
             }
 
-            if (schema.isMetricField(field)) {
-                Metric metric = schema.getMetric(field);
+            if (table.isMetric(fieldName)) {
+                Metric metric = table.getMetric(fieldName);
                 if (!metricMap.containsKey(metric)) {
                     throw new InvalidOperationException(
                             String.format(
-                                    "Metric field %s must be aggregated before filtering in having clause.", field));
+                                    "Metric field %s must be aggregated before filtering in having clause.",
+                                    fieldName));
                 }
             } else {
-                if (dimensionProjections.stream().noneMatch(dim -> dim.getName().equals(field))) {
+                if (dimensionProjections.stream().noneMatch(dim -> dim.getName().equals(fieldName))) {
                     throw new InvalidOperationException(
                             String.format(
-                                    "Dimension field %s must be grouped before filtering in having clause.", field));
+                                    "Dimension field %s must be grouped before filtering in having clause.",
+                                    fieldName));
                 }
             }
         } else if (havingClause instanceof AndFilterExpression) {

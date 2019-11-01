@@ -6,24 +6,27 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction.getAggregationFunction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.Aggregation;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -41,8 +44,9 @@ import javax.persistence.Persistence;
 
 public class SubselectTest {
     private static EntityManagerFactory emf;
-    private static Schema playerStatsSchema;
-    private static EntityDictionary dictionary;
+    private static Table playerStatsTable;
+    private static MetaDataStore metaDataStore = new MetaDataStore();
+    private static AggregationDictionary dictionary;
     private static RSQLFilterDialect filterParser;
 
     private static final Country HONG_KONG = new Country();
@@ -50,10 +54,12 @@ public class SubselectTest {
     private static final SubCountry SUB_HONG_KONG = new SubCountry();
     private static final SubCountry SUB_USA = new SubCountry();
 
+    private static QueryEngine engine;
+
     @BeforeAll
     public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = new AggregationDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(Country.class);
@@ -61,7 +67,7 @@ public class SubselectTest {
         dictionary.bindEntity(Player.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
-        playerStatsSchema = new SQLSchema(PlayerStats.class, dictionary);
+        playerStatsTable = new Table(PlayerStats.class, dictionary);
 
         HONG_KONG.setIsoCode("HKG");
         HONG_KONG.setName("Hong Kong");
@@ -78,6 +84,9 @@ public class SubselectTest {
         SUB_USA.setIsoCode("USA");
         SUB_USA.setName("United States");
         SUB_USA.setId("840");
+
+        metaDataStore.storeMetaData(dictionary);
+        engine = new SQLQueryEngine(emf, dictionary, metaDataStore);
     }
 
     /**
@@ -87,16 +96,14 @@ public class SubselectTest {
      */
     @Test
     public void testFilterJoin() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Query query = Query.builder()
-                .schema(playerStatsSchema)
-                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
-                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .groupDimension(playerStatsSchema.getDimension("subCountry"))
-                .groupDimension(playerStatsSchema.getDimension("country"))
-                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
+                .table(playerStatsTable)
+                .metric(playerStatsTable.getMetric("lowScore"), getAggregationFunction(Aggregation.SUM))
+                .metric(playerStatsTable.getMetric("highScore"), getAggregationFunction(Aggregation.SUM))
+                .groupDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .groupDimension(toProjection(playerStatsTable.getDimension("subCountry")))
+                .groupDimension(toProjection(playerStatsTable.getDimension("country")))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .whereFilter(filterParser.parseFilterExpression("subCountry.name=='United States'",
                         PlayerStats.class, false))
                 .build();
@@ -137,19 +144,17 @@ public class SubselectTest {
      */
     @Test
     public void testRelationshipHydration() {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("subCountry.name", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .schema(playerStatsSchema)
-                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
-                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .groupDimension(playerStatsSchema.getDimension("country"))
-                .groupDimension(playerStatsSchema.getDimension("subCountry"))
-                .timeDimension(toTimeDimension(playerStatsSchema, TimeGrain.DAY, "recordedDate"))
+                .table(playerStatsTable)
+                .metric(playerStatsTable.getMetric("lowScore"), getAggregationFunction(Aggregation.SUM))
+                .metric(playerStatsTable.getMetric("highScore"), getAggregationFunction(Aggregation.SUM))
+                .groupDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .groupDimension(toProjection(playerStatsTable.getDimension("country")))
+                .groupDimension(toProjection(playerStatsTable.getDimension("subCountry")))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -201,12 +206,10 @@ public class SubselectTest {
      */
     @Test
     public void testJoinToGroupBy() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Query query = Query.builder()
-                .schema(playerStatsSchema)
-                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .groupDimension(playerStatsSchema.getDimension("subCountryIsoCode"))
+                .table(playerStatsTable)
+                .metric(playerStatsTable.getMetric("highScore"), getAggregationFunction(Aggregation.SUM))
+                .groupDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -234,12 +237,10 @@ public class SubselectTest {
      */
     @Test
     public void testJoinToFilter() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Query query = Query.builder()
-                .schema(playerStatsSchema)
-                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .table(playerStatsTable)
+                .metric(playerStatsTable.getMetric("highScore"), getAggregationFunction(Aggregation.SUM))
+                .groupDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .whereFilter(filterParser.parseFilterExpression("subCountryIsoCode==USA",
                         PlayerStats.class, false))
                 .build();
@@ -269,16 +270,14 @@ public class SubselectTest {
      */
     @Test
     public void testJoinToSort() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("subCountryIsoCode", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .schema(playerStatsSchema)
-                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
-                .groupDimension(playerStatsSchema.getDimension("overallRating"))
-                .groupDimension(playerStatsSchema.getDimension("subCountry"))
+                .table(playerStatsTable)
+                .metric(playerStatsTable.getMetric("highScore"), getAggregationFunction(Aggregation.SUM))
+                .groupDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .groupDimension(toProjection(playerStatsTable.getDimension("subCountry")))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -311,23 +310,11 @@ public class SubselectTest {
 
     //TODO - Add Invalid Request Tests
 
-    /**
-     * Searches the schema for a time dimension column that matches the requested column name and time grain.
-     * @param grain The column time grain requested.
-     * @param dimensionName The name of the column.
-     * @return A newly constructed requested time dimension with the matching grain.
-     */
-    private static TimeDimensionProjection toTimeDimension(Schema schema, TimeGrain grain, String dimensionName) {
-        TimeDimensionColumn column = schema.getTimeDimension(dimensionName);
+    public static DimensionProjection toProjection(Dimension dimension) {
+        return DimensionProjection.toDimensionProjection(dimension);
+    }
 
-        if (column == null) {
-            return null;
-        }
-
-        return column.getSupportedGrains().stream()
-                .filter(supportedGrain -> supportedGrain.grain().equals(grain))
-                .findFirst()
-                .map(supportedGrain -> column.toProjectedDimension(supportedGrain))
-                .orElse(null);
+    public static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain) {
+        return DimensionProjection.toDimensionProjection(dimension, grain);
     }
 }

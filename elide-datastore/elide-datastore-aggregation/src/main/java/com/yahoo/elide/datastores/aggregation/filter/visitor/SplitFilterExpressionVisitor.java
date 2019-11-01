@@ -13,7 +13,7 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -62,19 +62,20 @@ import java.util.Objects;
 public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<FilterConstraints> {
 
     @Getter(value = AccessLevel.PRIVATE)
-    private final Schema schema;
+    private final Table table;
+
     @Getter(value = AccessLevel.PRIVATE)
     private final FilterExpressionNormalizationVisitor normalizationVisitor;
 
     /**
      * Constructor.
      *
-     * @param schema  Object that offers meta information about an entity field
+     * @param table  Object that offers meta information about an entity field
      *
      * @throws NullPointerException if any one of the argument is {@code null}
      */
-    public SplitFilterExpressionVisitor(final Schema schema) {
-        this.schema = Objects.requireNonNull(schema, "schema");
+    public SplitFilterExpressionVisitor(final Table table) {
+        this.table = Objects.requireNonNull(table, "table");
         this.normalizationVisitor = new FilterExpressionNormalizationVisitor();
     }
 
@@ -233,6 +234,6 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
     private boolean isHavingPredicate(final FilterPredicate filterPredicate) {
         String fieldName = filterPredicate.getField();
 
-        return getSchema().isMetricField(fieldName);
+        return getTable().isMetric(fieldName);
     }
 }
