@@ -10,9 +10,9 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Builder;
 import lombok.Data;
@@ -30,10 +30,10 @@ import java.util.stream.Stream;
 @Data
 @Builder
 public class Query {
-    private final Schema schema;
+    private final Table table;
 
     @Singular
-    private final Map<Metric, Class<? extends Aggregation>> metrics;
+    private final Map<Metric, MetricFunction> metrics;
 
     @Singular
     private final Set<DimensionProjection> groupDimensions;

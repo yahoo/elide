@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Metric;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -15,6 +16,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.security.checks.Check;
 
 import java.util.Map;
+import javax.persistence.Column;
+import javax.persistence.JoinColumn;
 
 /**
  * Dictionary that supports more aggregation data store specific functionality
@@ -47,5 +50,35 @@ public class AggregationDictionary extends EntityDictionary {
 
     public static boolean isAnalyticView(Class<?> cls) {
         return cls.isAnnotationPresent(FromTable.class) || cls.isAnnotationPresent(FromSubquery.class);
+    }
+
+    /**
+     * Maps a logical entity attribute into a physical SQL column name.
+     * @param cls The entity class.
+     * @param fieldName The entity attribute.
+     * @return The physical SQL column name.
+     */
+    public String getColumnName(Class<?> cls, String fieldName) {
+        Column[] column = getAttributeOrRelationAnnotations(cls, Column.class, fieldName);
+
+        // this would only be valid for dimension columns
+        JoinColumn[] joinColumn = getAttributeOrRelationAnnotations(cls, JoinColumn.class, fieldName);
+
+        if (column == null || column.length == 0) {
+            if (joinColumn == null || joinColumn.length == 0) {
+                return fieldName;
+            } else {
+                return joinColumn[0].name();
+            }
+        } else {
+            return column[0].name();
+        }
+    }
+
+    public String getJoinColumn(Path path) {
+        Path.PathElement last = path.lastElement().get();
+        Class<?> lastClass = last.getType();
+
+        return getColumnName(lastClass, last.getFieldName());
     }
 }

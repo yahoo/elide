@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
@@ -138,5 +139,9 @@ public class MetaDataStore extends HashMapDataStore {
         } else {
             dataStore.get(cls).put(id, object);
         }
+    }
+
+    public <T> Set<T> getMetaData(Class<T> cls) {
+        return dataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
     }
 }

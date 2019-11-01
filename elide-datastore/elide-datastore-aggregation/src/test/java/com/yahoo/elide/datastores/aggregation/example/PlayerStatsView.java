@@ -7,8 +7,8 @@ package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.Aggregation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Max;
 
 import lombok.Data;
 
@@ -35,7 +35,7 @@ public class PlayerStatsView {
     /**
      * A metric.
      */
-    @MetricAggregation(aggregations = {Max.class})
+    @MetricAggregation(aggregations = {Aggregation.MAX})
     private long highScore;
 
     /**

@@ -33,6 +33,8 @@ public abstract class Column {
 
     private String longName;
 
+    private String tableName;
+
     private String description;
 
     private String category;
@@ -44,7 +46,8 @@ public abstract class Column {
     private Set<Tag> columnTags;
 
     protected Column(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
-        this.id = dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
+        this.tableName = dictionary.getJsonAliasFor(tableClass);
+        this.id = tableName + "." + fieldName;
         this.name = fieldName;
         this.columnTags = new HashSet<>();
 
@@ -63,7 +66,7 @@ public abstract class Column {
             Class<?> fieldClass = dictionary.getType(tableClass, fieldName);
 
             if (dictionary.getIdFieldName(tableClass).equals(fieldName)) {
-                this.dataType = new DataType(dictionary.getJsonAliasFor(tableClass) + "." + fieldName, ValueType.ID);
+                this.dataType = new DataType(tableName + "." + fieldName, ValueType.ID);
             } else if (Date.class.isAssignableFrom(fieldClass)) {
                 this.dataType = new DataType(fieldClass.getSimpleName().toLowerCase(Locale.ENGLISH), ValueType.DATE);
             } else {

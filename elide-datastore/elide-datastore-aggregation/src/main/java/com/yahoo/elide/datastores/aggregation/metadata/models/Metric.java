@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 
 /**
  * Special column for AnalyticView which supports aggregation
@@ -26,7 +26,7 @@ import javax.persistence.ManyToMany;
 public class Metric extends Column {
     private Format defaultFormat;
 
-    @ManyToMany
+    @ManyToOne
     @ToString.Exclude
     private MetricFunction metricFunction;
 
