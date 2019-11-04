@@ -164,7 +164,7 @@ public class GraphQLEntityProjectionMaker {
             }
 
 
-            String keyName = (aliasName == null ? "" : aliasName) + ":" + entityName;
+            String keyName = GraphQLProjectionInfo.computeProjectionKey(aliasName, entityName);
             if (rootProjections.containsKey(keyName)) {
                 throw  new InvalidEntityBodyException(
                         String.format("Found two root level query for Entity {%s} with same alias name",

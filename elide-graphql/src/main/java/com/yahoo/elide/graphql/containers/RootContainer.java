@@ -16,14 +16,12 @@ public class RootContainer implements GraphQLContainer {
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         String entityName = context.field.getName();
         String aliasName = context.field.getAlias();
-        String keyName = (aliasName == null ? "" : aliasName) + ":" + entityName;
 
         return fetcher.fetchObject(
                 context.requestScope,
                 context.requestScope
                         .getProjectionInfo()
-                        .getProjections()
-                        .get(keyName),  // root-level projection
+                        .getProjection(aliasName, entityName), // root-level projection
                 context.ids
         );
     }

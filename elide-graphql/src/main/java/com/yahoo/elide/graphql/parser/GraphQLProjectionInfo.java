@@ -23,4 +23,12 @@ public class GraphQLProjectionInfo {
     @Getter private final Map<String, EntityProjection> projections;
 
     @Getter private final Map<SourceLocation, Relationship> relationshipMap;
+
+    public EntityProjection getProjection(String aliasName, String entityName) {
+        return projections.get(computeProjectionKey(aliasName, entityName));
+    }
+
+    public static String computeProjectionKey(String aliasName, String entityName) {
+        return (aliasName == null ? "" : aliasName) + ":" + entityName;
+    }
 }
