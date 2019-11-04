@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
@@ -36,7 +36,7 @@ public abstract class Column {
 
     private String category;
 
-    @ManyToMany
+    @ManyToOne
     private DataType dataType;
 
     @ToString.Exclude

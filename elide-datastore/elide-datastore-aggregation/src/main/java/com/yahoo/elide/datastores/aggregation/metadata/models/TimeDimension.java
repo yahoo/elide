@@ -8,8 +8,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,7 +26,7 @@ import javax.persistence.Entity;
 @Entity
 @Data
 public class TimeDimension extends Dimension {
-    Set<TimeGrain> supportedGrains;
+    Set<TimeDimensionGrain> supportedGrains;
 
     public TimeDimension(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
@@ -36,7 +34,7 @@ public class TimeDimension extends Dimension {
         Temporal temporal = dictionary.getAttributeOrRelationAnnotation(tableClass, Temporal.class, fieldName);
 
         this.supportedGrains = Arrays.stream(temporal.grains())
-                .map(TimeGrainDefinition::grain)
+                .map(grain -> new TimeDimensionGrain(getId(), grain))
                 .collect(Collectors.toSet());
     }
 }

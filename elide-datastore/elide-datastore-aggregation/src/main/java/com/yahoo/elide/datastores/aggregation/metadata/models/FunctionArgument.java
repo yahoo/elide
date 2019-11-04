@@ -12,11 +12,12 @@ import lombok.ToString;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 /**
  * Arguments that can be provided into a metric function
  */
-@Include(rootLevel = true, type = "functionArgument")
+@Include(type = "functionArgument")
 @Entity
 @Data
 @ToString
@@ -26,5 +27,6 @@ public class FunctionArgument {
 
     private String description;
 
-    private DataType valueType;
+    @ManyToOne
+    private DataType dataType;
 }

@@ -7,15 +7,20 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.AggregationDictionary.isAnalyticView;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
+import com.yahoo.elide.datastores.aggregation.metadata.models.DataType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 
 import java.util.Set;
 
@@ -23,31 +28,106 @@ import java.util.Set;
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
 public class MetaDataStore extends HashMapDataStore {
+    private static final Package MODEL_PACKAGE =
+            Package.getPackage("com.yahoo.elide.datastores.aggregation.metadata.models");
 
     public MetaDataStore() {
-        super(MetaDataStore.class.getPackage());
+        super(MODEL_PACKAGE);
+    }
+
+    public void populateEntityDictionary(EntityDictionary dictionary) {
+        super.populateEntityDictionary(dictionary);
+
+        if (dictionary instanceof AggregationDictionary) {
+            LoadMetaData((AggregationDictionary) dictionary);
+        }
     }
 
     /**
-     * Populate this meta data store with data models in an aggregation data store.
+     * Load meta data of models from an populated entity dictionary.
      *
      * @param dictionary entity dictionary used by an aggregation data store.
      */
-    public void storeMetaData(AggregationDictionary dictionary) {
+    public void LoadMetaData(AggregationDictionary dictionary) {
         Set<Class<?>> classes = dictionary.getBindings();
 
-        classes.forEach(cls -> storeMetaData(
-                isAnalyticView(cls)
-                        ? new AnalyticView(cls, dictionary)
-                        : new Table(cls, dictionary)));
+        classes.stream()
+                .filter(cls -> !MODEL_PACKAGE.equals(cls.getPackage()))
+                .forEach(cls -> AddTable(
+                        isAnalyticView(cls)
+                                ? new AnalyticView(cls, dictionary)
+                                : new Table(cls, dictionary)));
     }
 
     /**
-     * Add a meta data object into this data store.
+     * Add a table metadata object
+     *
+     * @param table table metadata
+     */
+    private void AddTable(Table table) {
+        AddMetaData(table);
+        table.getColumns().forEach(this::AddColumn);
+    }
+
+    /**
+     * Add a column metadata object
+     *
+     * @param column column metadata
+     */
+    private void AddColumn(Column column) {
+        AddMetaData(column);
+        AddDataType(column.getDataType());
+
+        if (column instanceof TimeDimension) {
+            ((TimeDimension) column).getSupportedGrains().forEach(this::AddTimeDimensionGrain);
+        } else if (column instanceof Metric) {
+            ((Metric) column).getSupportedFunctions().forEach(this::AddMetricFunction);
+        }
+    }
+
+    /**
+     * Add a metric function metadata object
+     *
+     * @param metricFunction metric function metadata
+     */
+    private void AddMetricFunction(MetricFunction metricFunction) {
+        AddMetaData(metricFunction);
+        metricFunction.getArguments().forEach(this::AddFunctionArgument);
+    }
+
+    /**
+     * Add a datatype metadata object
+     *
+     * @param dataType datatype metadata
+     */
+    private void AddDataType(DataType dataType) {
+        AddMetaData(dataType);
+    }
+
+    /**
+     * Add a function argument metadata object
+     *
+     * @param functionArgument function argument metadata
+     */
+    private void AddFunctionArgument(FunctionArgument functionArgument) {
+        AddMetaData(functionArgument);
+    }
+
+    /**
+     * Add a time dimension grain metadata object
+     *
+     * @param timeDimensionGrain time dimension grain metadata
+     */
+    private void AddTimeDimensionGrain(TimeDimensionGrain timeDimensionGrain) {
+        AddMetaData(timeDimensionGrain);
+    }
+
+    /**
+     * Add a meta data object into this data store, check for duplication
      *
      * @param object a meta data object
      */
-    private void storeMetaData(Object object) {
+    private void AddMetaData(Object object) {
         Class<?> cls = object.getClass();
         String id = getDictionary().getId(object);
 
@@ -55,19 +135,8 @@ public class MetaDataStore extends HashMapDataStore {
             if (!dataStore.get(cls).get(id).equals(object)) {
                 throw new DuplicateMappingException("Duplicated " + cls.getSimpleName() + " metadata " + id);
             }
-        }
-
-        dataStore.get(cls).put(id, object);
-
-        if (object instanceof Table) {
-            ((Table) object).getColumns().forEach(this::storeMetaData);
-        } else if (object instanceof Dimension) {
-            storeMetaData(((Dimension) object).getDataType());
-        } else if (object instanceof Metric) {
-            storeMetaData(((Metric) object).getDataType());
-            ((Metric) object).getSupportedFunctions().forEach(this::storeMetaData);
-        } else if (object instanceof MetricFunction) {
-            ((MetricFunction) object).getArguments().forEach(this::storeMetaData);
+        } else {
+            dataStore.get(cls).put(id, object);
         }
     }
 }
