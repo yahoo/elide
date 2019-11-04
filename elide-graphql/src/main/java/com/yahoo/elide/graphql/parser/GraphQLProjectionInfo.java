@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql.parser;
 
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import graphql.language.SourceLocation;
@@ -23,4 +24,14 @@ public class GraphQLProjectionInfo {
     @Getter private final Map<String, EntityProjection> projections;
 
     @Getter private final Map<SourceLocation, Relationship> relationshipMap;
+  
+    @Getter private final Map<SourceLocation, Attribute> attributeMap;
+  
+    public EntityProjection getProjection(String aliasName, String entityName) {
+        return projections.get(computeProjectionKey(aliasName, entityName));
+    }
+
+    public static String computeProjectionKey(String aliasName, String entityName) {
+        return (aliasName == null ? "" : aliasName) + ":" + entityName;
+    }
 }

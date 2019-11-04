@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLTimeDimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
@@ -80,6 +81,11 @@ public class SQLQueryEngine implements QueryEngine {
     @Override
     public Schema getSchema(Class<?> entityClass) {
         return schemas.get(entityClass);
+    }
+
+    @Override
+    public List<Schema> getSchemas() {
+        return schemas.values().stream().collect(Collectors.toList());
     }
 
     @Override
@@ -460,8 +466,7 @@ public class SQLQueryEngine implements QueryEngine {
      * @return The SQL GROUP BY clause
      */
     private String extractGroupBy(Query query) {
-        return "GROUP BY " + extractDimensionProjections(query).stream()
-                .collect(Collectors.joining(","));
+       return "GROUP BY " + extractDimensionProjections(query).stream().collect(Collectors.joining(","));
     }
 
     /**
@@ -470,11 +475,21 @@ public class SQLQueryEngine implements QueryEngine {
      * @return
      */
     private List<String> extractDimensionProjections(Query query) {
-        return query.getDimensions().stream()
+        List<String> dimensionStrings = query.getGroupDimensions().stream()
                 .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
                 .map((SQLDimensionColumn.class::cast))
                 .map(SQLDimensionColumn::getColumnReference)
                 .collect(Collectors.toList());
+
+        dimensionStrings.addAll(query.getTimeDimensions().stream()
+                .map(requestedDim -> {
+                    SQLTimeDimensionColumn timeDim = (SQLTimeDimensionColumn)
+                            query.getSchema().getTimeDimension(requestedDim.getName());
+
+                    return timeDim.getColumnReference(requestedDim.getTimeGrain().grain());
+                }).collect(Collectors.toList()));
+
+        return dimensionStrings;
     }
 
     /**

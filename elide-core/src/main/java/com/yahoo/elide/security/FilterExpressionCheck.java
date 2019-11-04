@@ -43,7 +43,6 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
         throw new UnsupportedOperationException();
     }
 
-
     /**
      * The filter expression is evaluated in memory if it cannot be pushed to the data store by elide for any reason.
      *

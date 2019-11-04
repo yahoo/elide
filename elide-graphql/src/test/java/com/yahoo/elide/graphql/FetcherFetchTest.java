@@ -201,11 +201,6 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testAliasPartialQuerySameAttribute() throws Exception {
-        runComparisonTest("aliasPartialQuerySameAttribute");
-    }
-
-    @Test
     public void testAliasAmbiguous() throws Exception {
         assertParsingFails(loadGraphQLRequest("fetch/aliasAmbiguous.graphql"));
     }
