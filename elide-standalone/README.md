@@ -33,7 +33,7 @@ To actually start your Elide application, add the following to your main method:
 
 ```java
 public class Main {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
         @Override
         public String getModelPackageName() {
