@@ -27,6 +27,15 @@ The Elide standalone application is for all new and existing users of Elide. Thi
 
 ## <a name="gettingstarted"></a>Getting Started
 
+To include `elide-standalone` into your project, add the single dependency:	
+```xml	
+<dependency>	
+  <groupId>com.yahoo.elide</groupId>	
+  <artifactId>elide-standalone</artifactId>	
+  <version>LATEST</version>	
+</dependency>	
+```
+
 A complete example of using Elide standalone to setup a simple service can be found [here](https://elide.io/pages/guide/01-start.html).
 
 ## <a name="usage"></a>Usage
