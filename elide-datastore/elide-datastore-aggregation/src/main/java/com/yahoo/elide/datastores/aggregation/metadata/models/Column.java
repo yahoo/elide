@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Tag;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
@@ -46,6 +47,12 @@ public abstract class Column {
         this.id = dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
         this.name = fieldName;
         this.columnTags = new HashSet<>();
+
+        Meta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, Meta.class, fieldName);
+        if (meta != null) {
+            this.longName = meta.longName();
+            this.description = meta.description();
+        }
 
         if (dictionary.isRelation(tableClass, fieldName)) {
             Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);

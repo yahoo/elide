@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,14 +14,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the specified entity field has a configured long name and field description for human to read on UI.
+ * Specify that a field in a table is metric field.
  */
 @Documented
-@Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Meta {
-
-    String longName() default "";
-
-    String description() default "";
+public @interface Metric {
+    Class<? extends MetricFunction> function();
 }

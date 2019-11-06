@@ -39,7 +39,7 @@ public class MetaDataStore extends HashMapDataStore {
         super.populateEntityDictionary(dictionary);
 
         if (dictionary instanceof AggregationDictionary) {
-            LoadMetaData((AggregationDictionary) dictionary);
+            loadMetaData((AggregationDictionary) dictionary);
         }
     }
 
@@ -48,87 +48,87 @@ public class MetaDataStore extends HashMapDataStore {
      *
      * @param dictionary entity dictionary used by an aggregation data store.
      */
-    public void LoadMetaData(AggregationDictionary dictionary) {
+    public void loadMetaData(AggregationDictionary dictionary) {
         Set<Class<?>> classes = dictionary.getBindings();
 
         classes.stream()
                 .filter(cls -> !MODEL_PACKAGE.equals(cls.getPackage()))
-                .forEach(cls -> AddTable(
+                .forEach(cls -> addTable(
                         isAnalyticView(cls)
                                 ? new AnalyticView(cls, dictionary)
                                 : new Table(cls, dictionary)));
     }
 
     /**
-     * Add a table metadata object
+     * Add a table metadata object.
      *
      * @param table table metadata
      */
-    private void AddTable(Table table) {
-        AddMetaData(table);
-        table.getColumns().forEach(this::AddColumn);
+    private void addTable(Table table) {
+        addMetaData(table);
+        table.getColumns().forEach(this::addColumn);
     }
 
     /**
-     * Add a column metadata object
+     * Add a column metadata object.
      *
      * @param column column metadata
      */
-    private void AddColumn(Column column) {
-        AddMetaData(column);
-        AddDataType(column.getDataType());
+    private void addColumn(Column column) {
+        addMetaData(column);
+        addDataType(column.getDataType());
 
         if (column instanceof TimeDimension) {
-            ((TimeDimension) column).getSupportedGrains().forEach(this::AddTimeDimensionGrain);
+            ((TimeDimension) column).getSupportedGrains().forEach(this::addTimeDimensionGrain);
         } else if (column instanceof Metric) {
-            ((Metric) column).getSupportedFunctions().forEach(this::AddMetricFunction);
+            addMetricFunction(((Metric) column).getMetricFunction());
         }
     }
 
     /**
-     * Add a metric function metadata object
+     * Add a metric function metadata object.
      *
      * @param metricFunction metric function metadata
      */
-    private void AddMetricFunction(MetricFunction metricFunction) {
-        AddMetaData(metricFunction);
-        metricFunction.getArguments().forEach(this::AddFunctionArgument);
+    private void addMetricFunction(MetricFunction metricFunction) {
+        addMetaData(metricFunction);
+        metricFunction.getArguments().forEach(this::addFunctionArgument);
     }
 
     /**
-     * Add a datatype metadata object
+     * Add a datatype metadata object.
      *
      * @param dataType datatype metadata
      */
-    private void AddDataType(DataType dataType) {
-        AddMetaData(dataType);
+    private void addDataType(DataType dataType) {
+        addMetaData(dataType);
     }
 
     /**
-     * Add a function argument metadata object
+     * Add a function argument metadata object.
      *
      * @param functionArgument function argument metadata
      */
-    private void AddFunctionArgument(FunctionArgument functionArgument) {
-        AddMetaData(functionArgument);
+    private void addFunctionArgument(FunctionArgument functionArgument) {
+        addMetaData(functionArgument);
     }
 
     /**
-     * Add a time dimension grain metadata object
+     * Add a time dimension grain metadata object.
      *
      * @param timeDimensionGrain time dimension grain metadata
      */
-    private void AddTimeDimensionGrain(TimeDimensionGrain timeDimensionGrain) {
-        AddMetaData(timeDimensionGrain);
+    private void addTimeDimensionGrain(TimeDimensionGrain timeDimensionGrain) {
+        addMetaData(timeDimensionGrain);
     }
 
     /**
-     * Add a meta data object into this data store, check for duplication
+     * Add a meta data object into this data store, check for duplication.
      *
      * @param object a meta data object
      */
-    private void AddMetaData(Object object) {
-        Class<?> cls = object.getClass();
+    private void addMetaData(Object object) {
+        Class<?> cls = this.getDictionary().lookupEntityClass(object.getClass());
         String id = getDictionary().getId(object);
 
         if (dataStore.get(cls).containsKey(id)) {

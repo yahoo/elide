@@ -23,10 +23,19 @@ import javax.persistence.ManyToOne;
 @ToString
 public class FunctionArgument {
     @Id
+    private String id;
+
     private String name;
 
     private String description;
 
     @ManyToOne
     private DataType dataType;
+
+    public FunctionArgument(String functionName, FunctionArgument argument) {
+        this.id = functionName + "." + argument.getName();
+        this.name = argument.getName();
+        this.description = argument.getDescription();
+        this.dataType = argument.getDataType();
+    }
 }

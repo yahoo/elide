@@ -6,21 +6,17 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Max;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Min;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 /**
  * Functions used to compute metrics.
@@ -30,14 +26,7 @@ import javax.persistence.ManyToMany;
 @Data
 @AllArgsConstructor
 @ToString
-public class MetricFunction {
-    private static final HashMap<Class<? extends Aggregation>, MetricFunction> AGGREGATION_FUNCTIONS =
-            new HashMap<Class<? extends Aggregation>, MetricFunction>() {{
-                put(Sum.class, new MetricFunction("sum", "sum", "sum", new HashSet<>()));
-                put(Min.class, new MetricFunction("min", "min", "min", new HashSet<>()));
-                put(Max.class, new MetricFunction("max", "max", "max", new HashSet<>()));
-            }};
-
+public abstract class MetricFunction {
     @Id
     private String name;
 
@@ -45,11 +34,10 @@ public class MetricFunction {
 
     private String description;
 
-    @ManyToMany()
+    @OneToMany
     @ToString.Exclude
     private Set<FunctionArgument> arguments;
 
-    public static MetricFunction getAggregationFunction(Class<? extends Aggregation> aggregation) {
-        return AGGREGATION_FUNCTIONS.get(aggregation);
-    }
+    @Transient
+    public abstract MetricFunctionInvocation invoke(String[] arguments, Metric metric, String alias);
 }

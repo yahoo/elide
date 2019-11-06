@@ -7,19 +7,12 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 
@@ -35,32 +28,24 @@ public class Metric extends Column {
 
     @ManyToMany
     @ToString.Exclude
-    private Set<MetricFunction> supportedFunctions;
+    private MetricFunction metricFunction;
 
     public Metric(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
 
-        if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricAggregation.class)) {
-            MetricAggregation metricAggregation = dictionary.getAttributeOrRelationAnnotation(
-                    tableClass,
-                    MetricAggregation.class,
-                    fieldName);
+        com.yahoo.elide.datastores.aggregation.annotation.Metric metric = dictionary.getAttributeOrRelationAnnotation(
+                tableClass,
+                com.yahoo.elide.datastores.aggregation.annotation.Metric.class,
+                fieldName);
 
-            Class<? extends Aggregation>[] aggregations = metricAggregation.aggregations();
-
-            this.supportedFunctions = Arrays.stream(aggregations)
-                    .map(MetricFunction::getAggregationFunction)
-                    .collect(Collectors.toSet());
-        } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricComputation.class)) {
-            MetricComputation metricComputation = dictionary.getAttributeOrRelationAnnotation(
-                    tableClass,
-                    MetricComputation.class,
-                    fieldName);
-
-            // TODO: parse MetricComputation expression
-            this.supportedFunctions = new HashSet<>();
-        } else {
+        if (metric == null) {
             throw new IllegalArgumentException(getId() + " is not a metric field");
+        } else {
+            try {
+                this.metricFunction = metric.function().newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new IllegalArgumentException("Can't initialize function for metric " + getId());
+            }
         }
     }
 }

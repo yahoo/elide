@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 
 import lombok.Data;
@@ -56,6 +57,12 @@ public class Table {
         this.cls = cls;
         this.name = dictionary.getJsonAliasFor(cls);
         this.columns = resolveColumns(cls, dictionary);
+
+        Meta meta = cls.getAnnotation(Meta.class);
+        if (meta != null) {
+            this.longName = meta.longName();
+            this.description = meta.description();
+        }
 
         Cardinality cardinality = dictionary.getAnnotation(cls, Cardinality.class);
         if (cardinality != null) {

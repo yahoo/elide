@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.annotation.Metric;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -41,8 +42,7 @@ public class AggregationDictionary extends EntityDictionary {
      * @return {@code true} if the field is a metric field
      */
     public boolean isMetricField(Class<?> cls, String fieldName) {
-        return attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class)
-                || attributeOrRelationAnnotationExists(cls, fieldName, MetricComputation.class);
+        return attributeOrRelationAnnotationExists(cls, fieldName, Metric.class);
     }
 
     public static boolean isAnalyticView(Class<?> cls) {
