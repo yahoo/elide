@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.example.metadata;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.functions.Max;
+import com.yahoo.elide.datastores.aggregation.metadata.models.metric.functions.Max;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 
 import lombok.Data;

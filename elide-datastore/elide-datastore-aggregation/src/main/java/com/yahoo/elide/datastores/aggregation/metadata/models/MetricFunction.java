@@ -6,13 +6,18 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.models.metric.AggregatedField;
+import com.yahoo.elide.datastores.aggregation.metadata.models.metric.MetricFunctionInvocation;
+import com.yahoo.elide.request.Argument;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -24,20 +29,36 @@ import javax.persistence.Transient;
 @Include(rootLevel = true, type = "metricFunction")
 @Entity
 @Data
-@AllArgsConstructor
 @ToString
 public abstract class MetricFunction {
     @Id
-    private String name;
+    public abstract String getName();
 
-    private String longName;
+    public abstract String getLongName();
 
-    private String description;
+    public abstract String getDescription();
 
     @OneToMany
-    @ToString.Exclude
-    private Set<FunctionArgument> arguments;
+    public abstract Set<FunctionArgument> getArguments();
 
     @Transient
-    public abstract MetricFunctionInvocation invoke(String[] arguments, Metric metric, String alias);
+    protected Function<String, String> getArgumentNameMapper() {
+        return Function.identity();
+    }
+
+    @Transient
+    public abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
+                                                    AggregatedField field,
+                                                    String alias);
+
+    @Transient
+    public final MetricFunctionInvocation invoke(List<Argument> arguments, AggregatedField field, String alias) {
+        return invoke(
+                arguments.stream()
+                        .collect(Collectors.toMap(
+                                arg -> getArgumentNameMapper().apply(arg.getName()),
+                                Function.identity())),
+                field,
+                alias);
+    }
 }
