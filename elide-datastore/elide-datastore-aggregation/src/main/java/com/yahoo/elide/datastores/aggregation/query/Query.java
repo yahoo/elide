@@ -10,8 +10,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Builder;
@@ -19,7 +18,7 @@ import lombok.Data;
 import lombok.Singular;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,10 +32,10 @@ public class Query {
     private final Table table;
 
     @Singular
-    private final Map<Metric, MetricFunction> metrics;
+    private final List<MetricFunctionInvocation> metrics;
 
     @Singular
-    private final Set<DimensionProjection> groupDimensions;
+    private final Set<DimensionProjection> groupByDimensions;
 
     @Singular
     private final Set<TimeDimensionProjection> timeDimensions;
@@ -52,7 +51,7 @@ public class Query {
      * @return All the dimensions.
      */
     public Set<DimensionProjection> getDimensions() {
-        return Stream.concat(getGroupDimensions().stream(), getTimeDimensions().stream())
+        return Stream.concat(getGroupByDimensions().stream(), getTimeDimensions().stream())
                 .collect(
                         Collectors.toCollection(LinkedHashSet::new)
                 );

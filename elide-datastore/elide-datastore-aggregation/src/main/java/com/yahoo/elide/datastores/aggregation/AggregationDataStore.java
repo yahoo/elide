@@ -44,7 +44,7 @@ public abstract class AggregationDataStore implements DataStore {
     }
 
     protected void populateEntityDictionary(AggregationDictionary dictionary) {
-        metaDataStore.loadMetaData(dictionary);
+        metaDataStore.populateEntityDictionary(dictionary);
         queryEngine = queryEngineFactory.buildQueryEngine(dictionary, metaDataStore);
     }
 

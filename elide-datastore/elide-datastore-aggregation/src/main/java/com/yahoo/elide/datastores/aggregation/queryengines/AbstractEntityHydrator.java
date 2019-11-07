@@ -7,8 +7,8 @@ package com.yahoo.elide.datastores.aggregation.queryengines;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.RelationshipType;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -58,14 +58,13 @@ public abstract class AbstractEntityHydrator {
         this.entityDictionary = entityDictionary;
 
         //Get all the projections from the client query.
-        List<String> projections = this.query.getMetrics().keySet().stream()
-                .map(Metric::getName)
+        List<String> projections = this.query.getMetrics().stream()
+                .map(MetricFunctionInvocation::getAlias)
                 .collect(Collectors.toList());
 
         projections.addAll(this.query.getDimensions().stream()
-                .map(DimensionProjection::getName)
+                .map(DimensionProjection::getAlias)
                 .collect(Collectors.toList()));
-
 
         results.forEach(result -> {
             Map<String, Object> row = new HashMap<>();

@@ -6,48 +6,44 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.schema;
 
+import static com.yahoo.elide.datastores.aggregation.AggregationDictionary.getClassAlias;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
+
+import lombok.Getter;
 
 /**
  * Physical Dimension in a sql table.
  */
-public class SQLDimension {
-    private final String columnAlias;
+public class SQLDimensionProjection {
+    @Getter
+    private final String columnName;
+
+    @Getter
     private final String tableAlias;
+
+    @Getter
+    private final String columnAlias;
+
+    @Getter
     private final Path joinPath;
 
     /**
      * Constructor.
-     *
-     * @param columnAlias The column alias in SQL to refer to this dimension.
+     *  @param columnName The column alias in SQL to refer to this dimension.
      * @param tableAlias The table alias in SQL where this dimension lives.
+     * @param columnAlias The alias to project this column out.
      */
-    public SQLDimension(String columnAlias, String tableAlias, Path joinPath) {
-        this.columnAlias = columnAlias;
+    public SQLDimensionProjection(String columnName, String tableAlias, String columnAlias, Path joinPath) {
+        this.columnName = columnName;
         this.tableAlias = tableAlias;
+        this.columnAlias = columnAlias;
         this.joinPath = joinPath;
-    }
-
-    public String getColumnName() {
-        return columnAlias;
-    }
-
-    public String getTableAlias() {
-        return tableAlias;
-    }
-
-    /**
-     * Returns the join path of this dimension.
-     * @return Something like "author.book.publisher.name"
-     */
-    public Path getJoinPath() {
-        return joinPath;
     }
 
     /**
@@ -67,12 +63,12 @@ public class SQLDimension {
      * @param dictionary dictionary that manage aggregation store models
      * @return constructed dimension
      */
-    public static SQLDimension constructSQLDimension(
+    public static SQLDimensionProjection constructSQLDimension(
             DimensionProjection dimension,
             Table table,
             AggregationDictionary dictionary) {
 
-        String fieldName = dimension.getName();
+        String fieldName = dimension.getDimension().getName();
         Class<?> tableCls = table.getCls();
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableCls, JoinTo.class, fieldName);
@@ -81,23 +77,28 @@ public class SQLDimension {
             String columnName = dictionary.getColumnName(tableCls, fieldName);
 
             if (dimension instanceof TimeDimensionProjection) {
-                return new SQLTimeDimension(
+                return new SQLTimeDimensionProjection(
                         columnName,
-                        SQLQueryEngine.getClassAlias(tableCls),
-                        null);
+                        getClassAlias(tableCls),
+                        null,
+                        ((TimeDimensionProjection) dimension).getDimension(),
+                        ((TimeDimensionProjection) dimension).getProjectedGrain());
             }
-            return new SQLDimension(columnName, SQLQueryEngine.getClassAlias(tableCls), null);
+            return new SQLDimensionProjection(columnName, getClassAlias(tableCls), dimension.getAlias(), null);
         } else {
             Path path = new Path(tableCls, dictionary, joinTo.path());
 
             if (dimension instanceof TimeDimensionProjection) {
-                return new SQLTimeDimension(
+                return new SQLTimeDimensionProjection(
                         dictionary.getJoinColumn(path),
                         getJoinTableAlias(path),
-                        path
+                        path,
+                        ((TimeDimensionProjection) dimension).getDimension(),
+                        ((TimeDimensionProjection) dimension).getProjectedGrain()
                 );
             }
-            return new SQLDimension(dictionary.getJoinColumn(path), getJoinTableAlias(path), path);
+            return new SQLDimensionProjection(
+                    dictionary.getJoinColumn(path), getJoinTableAlias(path), dimension.getAlias(), path);
         }
     }
 
@@ -105,6 +106,6 @@ public class SQLDimension {
         Path.PathElement last = path.lastElement().get();
         Class<?> lastClass = last.getType();
 
-        return SQLQueryEngine.getClassAlias(lastClass);
+        return getClassAlias(lastClass);
     }
 }

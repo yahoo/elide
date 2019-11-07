@@ -21,18 +21,40 @@ public interface DimensionProjection extends Serializable {
      *
      * @return the name of the entity or interface representing this {@link DimensionProjection}.
      */
-    String getName();
+    Dimension getDimension();
 
-    static DimensionProjection toDimensionProjection(Dimension dimension) {
-        return (DimensionProjection) dimension::getName;
+    String getAlias();
+
+    static DimensionProjection toProjection(Dimension dimension, String alias) {
+        return new DimensionProjection() {
+            @Override
+            public Dimension getDimension() {
+                return dimension;
+            }
+
+            @Override
+            public String getAlias() {
+                return alias;
+            }
+        };
     }
 
-    static TimeDimensionProjection toDimensionProjection(TimeDimension dimension, TimeGrain grain) {
-        if (dimension.getSupportedGrains().contains(grain)) {
+    static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain, String alias) {
+        if (dimension.getSupportedGrains().stream().anyMatch(g -> g.getGrain().equals(grain))) {
             return new TimeDimensionProjection() {
                 @Override
-                public String getName() {
-                    return dimension.getName();
+                public TimeGrain getProjectedGrain() {
+                    return grain;
+                }
+
+                @Override
+                public TimeDimension getDimension() {
+                    return dimension;
+                }
+
+                @Override
+                public String getAlias() {
+                    return alias;
                 }
             };
         }

@@ -1,4 +1,4 @@
-package com.yahoo.elide.datastores.aggregation.metadata.models.metric;
+package com.yahoo.elide.datastores.aggregation.metadata.metric;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;

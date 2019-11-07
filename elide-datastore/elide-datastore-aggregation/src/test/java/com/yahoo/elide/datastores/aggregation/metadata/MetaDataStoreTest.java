@@ -8,12 +8,12 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
-import com.yahoo.elide.datastores.aggregation.example.metadata.Country;
-import com.yahoo.elide.datastores.aggregation.example.metadata.Player;
-import com.yahoo.elide.datastores.aggregation.example.metadata.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.metadata.PlayerStatsView;
-import com.yahoo.elide.datastores.aggregation.example.metadata.SubCountry;
-import com.yahoo.elide.datastores.aggregation.example.metadata.VideoGame;
+import com.yahoo.elide.datastores.aggregation.example.Country;
+import com.yahoo.elide.datastores.aggregation.example.Player;
+import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
+import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
+import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

@@ -6,8 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.metadata.models.metric.AggregatedField;
-import com.yahoo.elide.datastores.aggregation.metadata.models.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatedField;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.request.Argument;
 
 import lombok.Data;
@@ -47,12 +47,12 @@ public abstract class MetricFunction {
     }
 
     @Transient
-    public abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
+    protected abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
                                                     AggregatedField field,
                                                     String alias);
 
     @Transient
-    public final MetricFunctionInvocation invoke(List<Argument> arguments, AggregatedField field, String alias) {
+    public final MetricFunctionInvocation invoke(Set<Argument> arguments, AggregatedField field, String alias) {
         return invoke(
                 arguments.stream()
                         .collect(Collectors.toMap(

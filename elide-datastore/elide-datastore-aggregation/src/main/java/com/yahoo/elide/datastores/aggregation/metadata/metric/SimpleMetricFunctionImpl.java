@@ -1,4 +1,4 @@
-package com.yahoo.elide.datastores.aggregation.metadata.models.metric;
+package com.yahoo.elide.datastores.aggregation.metadata.metric;
 
 import java.util.Collections;
 

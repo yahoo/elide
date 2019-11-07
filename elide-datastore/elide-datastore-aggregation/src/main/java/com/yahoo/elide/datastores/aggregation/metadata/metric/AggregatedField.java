@@ -1,4 +1,4 @@
-package com.yahoo.elide.datastores.aggregation.metadata.models.metric;
+package com.yahoo.elide.datastores.aggregation.metadata.metric;
 
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -14,6 +14,10 @@ public class AggregatedField {
 
     @Getter
     private String alias;
+
+    public final String getFieldName() {
+        return isMetricField ? metric.getName() : alias;
+    }
 
     public AggregatedField(String alias) {
         this.isMetricField = false;

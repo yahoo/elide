@@ -49,7 +49,7 @@ public class MetaDataStore extends HashMapDataStore {
      *
      * @param dictionary entity dictionary used by an aggregation data store.
      */
-    public void loadMetaData(AggregationDictionary dictionary) {
+    private void loadMetaData(AggregationDictionary dictionary) {
         Set<Class<?>> classes = dictionary.getBindings();
 
         classes.stream()

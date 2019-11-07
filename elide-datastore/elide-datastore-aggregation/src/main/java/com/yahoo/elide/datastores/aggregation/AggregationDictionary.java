@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.annotation.Metric;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
@@ -14,6 +15,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.security.checks.Check;
+
+import org.hibernate.annotations.Subselect;
 
 import java.util.Map;
 import javax.persistence.Column;
@@ -80,5 +83,31 @@ public class AggregationDictionary extends EntityDictionary {
         Class<?> lastClass = last.getType();
 
         return getColumnName(lastClass, last.getFieldName());
+    }
+
+    public static String getClassAlias(Class<?> entityClass) {
+        return FilterPredicate.getTypeAlias(entityClass);
+    }
+
+    /**
+     * Maps an entity class to a physical table of subselect query, if neither {@link javax.persistence.Table}
+     * nor {@link Subselect} annotation is present on this class, use the class alias as default.
+     *
+     * @param cls The entity class.
+     * @return The physical SQL table or subselect query.
+     */
+    public String getTableOrSubselect(Class<?> cls) {
+        Subselect subselectAnnotation = getAnnotation(cls, Subselect.class);
+
+        if (subselectAnnotation == null) {
+            javax.persistence.Table tableAnnotation =
+                    getAnnotation(cls, javax.persistence.Table.class);
+
+            return (tableAnnotation == null)
+                    ? getJsonAliasFor(cls)
+                    : tableAnnotation.name();
+        } else {
+            return "(" + subselectAnnotation.value() + ")";
+        }
     }
 }

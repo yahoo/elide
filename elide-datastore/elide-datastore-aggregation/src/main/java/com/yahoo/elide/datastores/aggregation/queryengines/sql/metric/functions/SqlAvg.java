@@ -8,4 +8,9 @@ public class SqlAvg extends SimpleSQLMetricFunction {
     public SqlAvg() {
         super("avg", "average", "sql average function");
     }
+
+    @Override
+    public String getExpression() {
+        return "AVG(%metric)";
+    }
 }
