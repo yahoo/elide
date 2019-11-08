@@ -65,7 +65,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Schema schema = queryEngine.getSchema(entityProjection.getType());
 
-        AggregationDataStoreHelper agHelper = new AggregationDataStoreHelper(schema, entityProjection);
+        AggregationDataStoreHelper agHelper = new AggregationDataStoreHelper(schema,
+                entityProjection, scope.getDictionary());
         return agHelper.getQuery();
     }
 }

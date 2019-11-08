@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -12,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
@@ -31,6 +33,7 @@ import com.yahoo.elide.request.Relationship;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +45,7 @@ import java.util.stream.Collectors;
  */
 public class AggregationDataStoreHelper {
 
+    //TODO refactor this class in the next PR
     //TODO Add support for user selected metrics.
     private static final int AGGREGATION_METHOD_INDEX = 0;
 
@@ -52,8 +56,10 @@ public class AggregationDataStoreHelper {
     private Map<Metric, Class<? extends Aggregation>> metricMap;
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
+    private EntityDictionary dictionary;
 
-    public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection) {
+    public AggregationDataStoreHelper(Schema schema, EntityProjection entityProjection, EntityDictionary dictionary) {
+        this.dictionary = dictionary;
         this.schema = schema;
         this.entityProjection = entityProjection;
         dimensionProjections = resolveNonTimeDimensions();
@@ -62,6 +68,7 @@ public class AggregationDataStoreHelper {
         resolveMetricList(metrics);
         metricMap = new LinkedHashMap<>();
         resolveMetricMap(metrics);
+        validateSorting();
         splitFilters();
     }
 
@@ -259,6 +266,45 @@ public class AggregationDataStoreHelper {
             validateHavingClause(((OrFilterExpression) havingClause).getRight());
         } else if (havingClause instanceof NotFilterExpression) {
             validateHavingClause(((NotFilterExpression) havingClause).getNegated());
+        }
+    }
+
+    /**
+     * Method to verify that all the sorting options provided
+     * by the user are valid and supported.
+     */
+    public void validateSorting() {
+        Sorting sorting = entityProjection.getSorting();
+        if (sorting == null) {
+            return;
+        }
+        Set<String> allFields = getRelationships();
+        allFields.addAll(getAttributes());
+        Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(entityProjection.getType(), dictionary);
+        sortClauses.keySet().forEach((path) -> validatePath(path, allFields));
+    }
+
+    /**
+     * Verifies that the current path can be sorted on
+     * @param path The path that we are validating
+     * @param allFields Set of all field names included in initial query
+     */
+    private void validatePath(Path path, Set<String> allFields) {
+        List<Path.PathElement> pathElemenets = path.getPathElements();
+
+        //TODO add support for double nested sorting
+        if (pathElemenets.size() > 2) {
+            throw new UnsupportedOperationException(
+                    "Currently sorting on double nested fields is not supported");
+        }
+        Path.PathElement currentElement = pathElemenets.get(0);
+        String currentField = currentElement.getFieldName();
+        Class<?> currentClass = currentElement.getType();
+        if (!allFields.stream().anyMatch(field -> field.equals(currentField))) {
+            throw new InvalidOperationException("Can't sort on field that is not present in query");
+        }
+        if (dictionary.getIdFieldName(currentClass).equals(currentField) || currentField.equals("id")) {
+            throw new InvalidOperationException("Sorting on id field is not permitted");
         }
     }
 }

@@ -17,6 +17,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -53,6 +54,8 @@ public class SQLQueryEngineTest {
 
     private static final Country HONG_KONG = new Country();
     private static final Country USA = new Country();
+    private static final Continent ASIA = new Continent();
+    private static final Continent NA = new Continent();
 
     @BeforeAll
     public static void init() {
@@ -68,13 +71,19 @@ public class SQLQueryEngineTest {
         playerStatsSchema = new SQLSchema(PlayerStats.class, dictionary);
         playerStatsViewSchema = new SQLSchema(PlayerStatsView.class, dictionary);
 
+        ASIA.setName("Asia");
+        ASIA.setId("1");
         HONG_KONG.setIsoCode("HKG");
         HONG_KONG.setName("Hong Kong");
         HONG_KONG.setId("344");
+        HONG_KONG.setContinent(ASIA);
 
+        NA.setName("North America");
+        NA.setId("2");
         USA.setIsoCode("USA");
         USA.setName("United States");
         USA.setId("840");
+        USA.setContinent(NA);
     }
 
     /**
@@ -705,6 +714,38 @@ public class SQLQueryEngineTest {
 
         assertEquals(1, results.size());
         assertEquals(stats0, results.get(0));
+    }
+
+    @Test
+    public void testSortAggregatedMetric() {
+        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
+
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("lowScore", Sorting.SortOrder.desc);
+
+        Query query = Query.builder()
+                .schema(playerStatsSchema)
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .sorting(new Sorting(sortMap))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(241);
+        stats0.setOverallRating("Great");
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setLowScore(107);
+        stats1.setOverallRating("Good");
+
+        assertEquals(2, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
     }
 
     //TODO - Add Invalid Request Tests

@@ -201,7 +201,7 @@ public class SQLQueryEngine implements QueryEngine {
         if (query.getSorting() != null) {
             Map<Path, Sorting.SortOrder> sortClauses = query.getSorting().getValidSortingRules(entityClass, dictionary);
 
-            builder.orderByClause(extractOrderBy(entityClass, sortClauses));
+            builder.orderByClause(extractOrderBy(entityClass, sortClauses, schema, query));
 
             joinPredicates.addAll(extractPathElements(sortClauses));
         }
@@ -347,7 +347,8 @@ public class SQLQueryEngine implements QueryEngine {
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A SQL expression
      */
-    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses) {
+    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses, SQLSchema schema,
+                                  Query query) {
         if (sortClauses.isEmpty()) {
             return "";
         }
@@ -362,9 +363,16 @@ public class SQLQueryEngine implements QueryEngine {
 
                     Path.PathElement last = path.lastElement().get();
 
-                    return FilterPredicate.getTypeAlias(last.getType())
+                    String orderByType = FilterPredicate.getTypeAlias(last.getType())
                             + "."
-                            + getColumnName(entityClass, last.getFieldName())
+                            + getColumnName(entityClass, last.getFieldName());
+
+                    Metric currentMetric = schema.getMetric(last.getFieldName());
+                    if (currentMetric != null && query.getMetrics().containsKey(currentMetric)) {
+                        orderByType = currentMetric.getMetricExpression(query.getMetrics().get(currentMetric));
+                    }
+
+                    return orderByType
                             + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 }).collect(Collectors.joining(","));
     }
