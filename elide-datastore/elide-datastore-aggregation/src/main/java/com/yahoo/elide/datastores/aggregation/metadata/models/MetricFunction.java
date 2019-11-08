@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 /**
  * Functions used to compute metrics.
@@ -54,12 +53,10 @@ public abstract class MetricFunction {
      *
      * @return a string-to-string mapping function
      */
-    @Transient
     protected Function<String, List<String>> getArgumentNameMapper() {
         return Collections::singletonList;
     }
 
-    @Transient
     protected abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
                                                     AggregatedField field,
                                                     String alias);
@@ -72,26 +69,20 @@ public abstract class MetricFunction {
      * @param alias result alias
      * @return an invoked metric function
      */
-    @Transient
     public final MetricFunctionInvocation invoke(Set<Argument> arguments, AggregatedField field, String alias) {
         Set<String> requiredArguments = getArgumentNames();
+        Set<String> providedArguments = arguments.stream()
+                .map(Argument::getName)
+                .collect(Collectors.toSet());
 
-        Map<String, Argument> providedArguments = arguments.stream()
-                .filter(arg -> requiredArguments.contains(arg.getName()))
-                .collect(Collectors.toMap(Argument::getName, Function.identity()));
+        if (!requiredArguments.equals(providedArguments)) {
+            throw new InvalidPredicateException(
+                    "Provided arguments doesn't match requirement for function " + getName() + ".");
+        }
 
         // map arguments to their actual name
-        Map<String, Argument> resolvedArguments = requiredArguments.stream()
-                .map(argName -> {
-                    if (!providedArguments.containsKey(argName)) {
-                        throw new InvalidPredicateException("Argument Not Found " + getName() + "." + argName + ".");
-                    }
-                    Argument arg = providedArguments.get(argName);
-                    List<String> actualNames = getArgumentNameMapper().apply(argName);
-                    return actualNames.stream().map(name -> new AbstractMap.SimpleEntry<>(name, arg));
-                })
-                .reduce(Stream.empty(), Stream::concat)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Argument> resolvedArguments = arguments.stream()
+                .collect(Collectors.toMap(Argument::getName, Function.identity()));
 
         return invoke(resolvedArguments, field, alias);
     }

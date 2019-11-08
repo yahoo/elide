@@ -70,7 +70,13 @@ public class Table {
         }
     }
 
-    @Transient
+    /**
+     * Add all columns of this table.
+     *
+     * @param cls table class
+     * @param dictionary dictionary contains the table class
+     * @return all resolved column metadata
+     */
     private static Set<Column> resolveColumns(Class<?> cls, AggregationDictionary dictionary) {
         Set<Column> fields =  dictionary.getAllFields(cls).stream()
                 .map(field -> {
@@ -90,7 +96,28 @@ public class Table {
         return fields;
     }
 
-    @Transient
+    /**
+     * Get all columns of a specific class, can be {@link Metric}, {@link TimeDimension} or {@link Dimension}
+     *
+     * @param cls metadata class
+     * @param <T> metadata class
+     * @return columns as requested type if found
+     */
+    public <T extends Column> Set<T> getColumns(Class<T> cls) {
+        return columns.stream()
+                .filter(col -> cls.isAssignableFrom(col.getClass()))
+                .map(cls::cast)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Get a field column as a specific class, can be {@link Metric}, {@link TimeDimension} or {@link Dimension}
+     *
+     * @param cls metadata class
+     * @param fieldName logical column name
+     * @param <T> metadata class
+     * @return column as requested type if found
+     */
     private <T extends Column> T getColumn(Class<T> cls, String fieldName) {
         return columns.stream()
                 .filter(col -> cls.isAssignableFrom(col.getClass()) && (col.getName().equals(fieldName)))
@@ -99,31 +126,19 @@ public class Table {
                 .orElse(null);
     }
 
-    @Transient
     public Metric getMetric(String fieldName) {
         return getColumn(Metric.class, fieldName);
     }
 
-    @Transient
     public Dimension getDimension(String fieldName) {
         return getColumn(Dimension.class, fieldName);
     }
 
-    @Transient
     public TimeDimension getTimeDimension(String fieldName) {
         return getColumn(TimeDimension.class, fieldName);
     }
 
-    @Transient
-    public <T extends Column> Set<T> getColumns(Class<T> cls) {
-        return columns.stream()
-                .filter(col -> cls.isAssignableFrom(col.getClass()))
-                .map(cls::cast)
-                .collect(Collectors.toSet());
-    }
-
-    @Transient
     public boolean isMetric(String fieldName) {
-        return getColumns(Metric.class).stream().anyMatch(metric -> metric.getName().equals(fieldName));
+        return getMetric(fieldName) != null;
     }
 }
