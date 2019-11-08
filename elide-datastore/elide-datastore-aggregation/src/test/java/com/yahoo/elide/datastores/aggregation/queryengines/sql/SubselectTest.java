@@ -13,6 +13,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -55,6 +56,8 @@ public class SubselectTest {
     private static final Country USA = new Country();
     private static final SubCountry SUB_HONG_KONG = new SubCountry();
     private static final SubCountry SUB_USA = new SubCountry();
+    private static final Continent ASIA = new Continent();
+    private static final Continent NA = new Continent();
 
     private static QueryEngine engine;
 
@@ -71,13 +74,19 @@ public class SubselectTest {
 
         playerStatsTable = new SQLAnalyticView(PlayerStats.class, dictionary);
 
+        ASIA.setName("Asia");
+        ASIA.setId("1");
         HONG_KONG.setIsoCode("HKG");
         HONG_KONG.setName("Hong Kong");
         HONG_KONG.setId("344");
+        HONG_KONG.setContinent(ASIA);
 
+        NA.setName("North America");
+        NA.setId("2");
         USA.setIsoCode("USA");
         USA.setName("United States");
         USA.setId("840");
+        USA.setContinent(NA);
 
         SUB_HONG_KONG.setIsoCode("HKG");
         SUB_HONG_KONG.setName("Hong Kong");

@@ -400,8 +400,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name"),
-                                                        field("id")
+                                                        field("name")
                                                 )
                                         )
                                 )
@@ -419,8 +418,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "United States"),
-                                                        field("id", "840")
+                                                        field("name", "United States")
                                                 )
                                         )
                                 ),
@@ -430,8 +428,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field(
                                                 "country",
                                                 selections(
-                                                        field("name", "Hong Kong"),
-                                                        field("id", "344")
+                                                        field("name", "Hong Kong")
                                                 )
                                         )
                                 )
@@ -440,6 +437,307 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void sortingTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"overallRating\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field("overallRating")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 35),
+                                        field("overallRating", "Good")
+                                ),
+                                selections(
+                                        field("lowScore", 241),
+                                        field("overallRating", "Great")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void aggregationSortingTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"-highScore\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 2412),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "United States")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("highScore", 1000),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Hong Kong")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void nestedDimensionNotInQuerySortingTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"-country.name,lowScore\"")
+                                ),
+                                selections(
+                                        field("lowScore")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on field that is not present in query'\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void sortingOnIdTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"id\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field("id")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Sorting on id field is not permitted'\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void multipleColumnsSortingTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"overallRating,player.name\"")
+                                ),
+                                selections(
+                                        field("overallRating"),
+                                        field("lowScore"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("overallRating", "Good"),
+                                        field("lowScore", 72),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Han")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("overallRating", "Good"),
+                                        field("lowScore", 35),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Jon Doe")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("overallRating", "Great"),
+                                        field("lowScore", 241),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Jane Doe")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void sortingOnMetricNotInQueryTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"highScore\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on field that is not present in query'\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    @Disabled
+    public void noMetricQueryTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Must provide at least one metric in query'\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void sortingMultipleLevelNesting() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"country.continent.name\"")
+                                ),
+                                selections(
+                                        field("lowScore"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name"),
+                                                        field(
+                                                                "continent",
+                                                                selections(
+                                                                        field("name")
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/playerStats) : Currently sorting on double nested fields is not supported\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    @Disabled
+    //TODO will add this on the next PR
+    public void ambiguiousFieldTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore"),
+                                        field("overallRating"),
+                                        field("playerName"),
+                                        field("player2Name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/playerStats) : Currently sorting on double nested fields is not supported\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
     }
 
     @Test
@@ -473,36 +771,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         )
                 )
         ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expected);
-    }
-
-    @Test
-    public void timeGrainAggregationTest() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "playerStats",
-                                selections(
-                                        field("highScore"),
-                                        field("recordedDate", arguments(
-                                                argument("grain", "\"month\"")
-                                        ))
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = document(
-                selections(
-                        field(
-                                "playerStats",
-                                selections(
-                                        field("highScore", 2412),
-                                        field("recordedDate", "2019-07-01T00:00Z")
-                                )
-                        )
-                )).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
     }

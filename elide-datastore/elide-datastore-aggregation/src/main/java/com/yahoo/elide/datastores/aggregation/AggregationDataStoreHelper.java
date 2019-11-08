@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -12,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
@@ -24,6 +26,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.request.Argument;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
@@ -32,6 +35,7 @@ import com.google.common.collect.Sets;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,26 +44,33 @@ import java.util.stream.Collectors;
  * Helper for Aggregation Data Store which does the work associated with extracting {@link Query}.
  */
 public class AggregationDataStoreHelper {
+
     private AnalyticView queriedTable;
+
+    //TODO refactor this class in the next PR
+    //TODO Add support for user selected metrics.
+    private static final int AGGREGATION_METHOD_INDEX = 0;
+
     private EntityProjection entityProjection;
     private Set<ColumnProjection> dimensionProjections;
     private Set<TimeDimensionProjection> timeDimensions;
     private List<MetricFunctionInvocation> metrics;
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
+    private EntityDictionary dictionary;
 
-    public AggregationDataStoreHelper(Table table, EntityProjection entityProjection) {
+    public AggregationDataStoreHelper(Table table, EntityProjection entityProjection, EntityDictionary dictionary) {
         if (!(table instanceof AnalyticView)) {
             throw new InvalidOperationException("Queried table is not analyticView: " + table.getName());
         }
 
         this.queriedTable = (AnalyticView) table;
         this.entityProjection = entityProjection;
-
+        this.dictionary = dictionary;
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
-
+        validateSorting();
         splitFilters();
     }
 
@@ -187,6 +198,15 @@ public class AggregationDataStoreHelper {
     }
 
     /**
+     * Gets attribute names from {@link EntityProjection}.
+     * @return relationships list of {@link Attribute} names
+     */
+    private Set<String> getAttributes() {
+        return entityProjection.getAttributes().stream()
+                .map(Attribute::getName).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
      * Validate the having clause before execution. Having clause is not as flexible as where clause,
      * the fields in having clause must be either or these two:
      * 1. A grouped by dimension in this query
@@ -236,6 +256,45 @@ public class AggregationDataStoreHelper {
             validateHavingClause(((OrFilterExpression) havingClause).getRight());
         } else if (havingClause instanceof NotFilterExpression) {
             validateHavingClause(((NotFilterExpression) havingClause).getNegated());
+        }
+    }
+
+    /**
+     * Method to verify that all the sorting options provided
+     * by the user are valid and supported.
+     */
+    public void validateSorting() {
+        Sorting sorting = entityProjection.getSorting();
+        if (sorting == null) {
+            return;
+        }
+        Set<String> allFields = getRelationships();
+        allFields.addAll(getAttributes());
+        Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(entityProjection.getType(), dictionary);
+        sortClauses.keySet().forEach((path) -> validatePath(path, allFields));
+    }
+
+    /**
+     * Verifies that the current path can be sorted on
+     * @param path The path that we are validating
+     * @param allFields Set of all field names included in initial query
+     */
+    private void validatePath(Path path, Set<String> allFields) {
+        List<Path.PathElement> pathElemenets = path.getPathElements();
+
+        //TODO add support for double nested sorting
+        if (pathElemenets.size() > 2) {
+            throw new UnsupportedOperationException(
+                    "Currently sorting on double nested fields is not supported");
+        }
+        Path.PathElement currentElement = pathElemenets.get(0);
+        String currentField = currentElement.getFieldName();
+        Class<?> currentClass = currentElement.getType();
+        if (!allFields.stream().anyMatch(field -> field.equals(currentField))) {
+            throw new InvalidOperationException("Can't sort on field that is not present in query");
+        }
+        if (dictionary.getIdFieldName(currentClass).equals(currentField) || currentField.equals("id")) {
+            throw new InvalidOperationException("Sorting on id field is not permitted");
         }
     }
 }

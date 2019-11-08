@@ -158,6 +158,7 @@ public class SQLQueryEngine implements QueryEngine {
                         throw new InvalidPredicateException("Non-SQL metric function on " + invocation.getAlias());
                     }
 
+
                     return ((SQLMetricFunction) function).resolve(
                             invocation.getArgumentMap(),
                             invocation.getAlias(),
@@ -174,7 +175,6 @@ public class SQLQueryEngine implements QueryEngine {
                 query.getWhereFilter(),
                 query.getHavingFilter());
     }
-
 
     /**
      * Given a JPA query, replaces any parameters with their values from client query.
