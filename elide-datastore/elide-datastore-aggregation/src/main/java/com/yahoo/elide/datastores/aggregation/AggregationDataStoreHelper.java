@@ -268,8 +268,7 @@ public class AggregationDataStoreHelper {
         if (sorting == null) {
             return;
         }
-        Set<String> allFields = getRelationships();
-        allFields.addAll(getAttributes());
+        Set<String> allFields = getAllFields();
         Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(entityProjection.getType(), dictionary);
         sortClauses.keySet().forEach((path) -> validateSortingPath(path, allFields));
     }
@@ -297,5 +296,11 @@ public class AggregationDataStoreHelper {
                 || currentField.equals(EntityDictionary.REGULAR_ID_NAME)) {
             throw new InvalidOperationException("Sorting on id field is not permitted");
         }
+    }
+
+    private Set<String> getAllFields() {
+        Set<String> allFields = getAttributes();
+        allFields.addAll(getRelationships());
+        return allFields;
     }
 }
