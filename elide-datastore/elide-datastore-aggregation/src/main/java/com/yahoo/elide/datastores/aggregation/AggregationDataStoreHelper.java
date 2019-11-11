@@ -271,7 +271,7 @@ public class AggregationDataStoreHelper {
         Set<String> allFields = getRelationships();
         allFields.addAll(getAttributes());
         Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(entityProjection.getType(), dictionary);
-        sortClauses.keySet().forEach((path) -> validatePath(path, allFields));
+        sortClauses.keySet().forEach((path) -> validateSortingPath(path, allFields));
     }
 
     /**
@@ -279,7 +279,7 @@ public class AggregationDataStoreHelper {
      * @param path The path that we are validating
      * @param allFields Set of all field names included in initial query
      */
-    private void validatePath(Path path, Set<String> allFields) {
+    private void validateSortingPath(Path path, Set<String> allFields) {
         List<Path.PathElement> pathElemenets = path.getPathElements();
 
         //TODO add support for double nested sorting
@@ -291,9 +291,10 @@ public class AggregationDataStoreHelper {
         String currentField = currentElement.getFieldName();
         Class<?> currentClass = currentElement.getType();
         if (!allFields.stream().anyMatch(field -> field.equals(currentField))) {
-            throw new InvalidOperationException("Can't sort on field that is not present in query");
+            throw new InvalidOperationException("Can't sort on " + currentField + " as it is not present in query");
         }
-        if (dictionary.getIdFieldName(currentClass).equals(currentField) || currentField.equals("id")) {
+        if (dictionary.getIdFieldName(currentClass).equals(currentField)
+                || currentField.equals(EntityDictionary.REGULAR_ID_NAME)) {
             throw new InvalidOperationException("Sorting on id field is not permitted");
         }
     }

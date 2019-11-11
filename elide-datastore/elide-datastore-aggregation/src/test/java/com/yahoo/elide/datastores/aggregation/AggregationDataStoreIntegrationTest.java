@@ -482,7 +482,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("sort", "\"-highScore\"")
+                                        argument("sort", "\"-country.name\"")
                                 ),
                                 selections(
                                         field("highScore"),
@@ -542,7 +542,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on field that is not present in query'\"";
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on country as it is not present in query'\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -655,7 +655,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on field that is not present in query'\"";
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on highScore as it is not present in query'\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
