@@ -482,7 +482,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("sort", "\"-country.name\"")
+                                        argument("sort", "\"-highScore\"")
                                 ),
                                 selections(
                                         field("highScore"),
