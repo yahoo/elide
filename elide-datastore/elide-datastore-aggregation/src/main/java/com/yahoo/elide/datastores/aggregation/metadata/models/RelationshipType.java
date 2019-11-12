@@ -5,26 +5,18 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.Entity;
-
 /**
  * Special data type that represents a relationship between tables.
  */
-@Entity
-@Include(rootLevel = true, type = "relationshipType")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class RelationshipType extends DataType {
-    private String tableName;
-
-    public RelationshipType(String name, String tableName) {
+    public RelationshipType(String name) {
         super(name, ValueType.RELATIONSHIP);
-        this.tableName = tableName;
     }
 }

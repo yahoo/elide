@@ -13,9 +13,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Basic implementation for Metric function.
@@ -41,8 +44,13 @@ public abstract class BasicMetricFunction extends MetricFunction {
         final MetricFunction function = this;
         return new MetricFunctionInvocation() {
             @Override
-            public Map<String, Argument> getArguments() {
-                return arguments;
+            public List<Argument> getArguments() {
+                return new ArrayList<>(arguments.values());
+            }
+
+            @Override
+            public Argument getArgument(String argumentName) {
+                return arguments.get(argumentName);
             }
 
             @Override

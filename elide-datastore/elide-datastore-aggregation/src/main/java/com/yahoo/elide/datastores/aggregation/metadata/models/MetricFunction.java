@@ -14,14 +14,10 @@ import com.yahoo.elide.request.Argument;
 import lombok.Data;
 import lombok.ToString;
 
-import java.util.AbstractMap;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -46,15 +42,6 @@ public abstract class MetricFunction {
 
     private Set<String> getArgumentNames() {
         return getArguments().stream().map(FunctionArgument::getName).collect(Collectors.toSet());
-    }
-
-    /**
-     * Metric function can have an argument name converter to convert an argument alias to actually argument name.
-     *
-     * @return a string-to-string mapping function
-     */
-    protected Function<String, List<String>> getArgumentNameMapper() {
-        return Collections::singletonList;
     }
 
     protected abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
