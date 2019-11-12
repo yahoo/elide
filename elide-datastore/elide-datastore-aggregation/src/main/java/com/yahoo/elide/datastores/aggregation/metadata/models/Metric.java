@@ -20,7 +20,7 @@ import javax.persistence.ManyToOne;
  * Special column for AnalyticView which supports aggregation.
  */
 @EqualsAndHashCode(callSuper = true)
-@Include(rootLevel = true, type = "metric")
+@Include(type = "metric")
 @Entity
 @Data
 public class Metric extends Column {

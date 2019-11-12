@@ -23,7 +23,7 @@ import javax.persistence.Entity;
  * This type of dimension can be used to support more specific aggregation logic e.g. DAILY/MONTHLY aggregation
  */
 @EqualsAndHashCode(callSuper = true)
-@Include(rootLevel = true, type = "timeDimension")
+@Include(type = "timeDimension")
 @Entity
 @Data
 public class TimeDimension extends Dimension {

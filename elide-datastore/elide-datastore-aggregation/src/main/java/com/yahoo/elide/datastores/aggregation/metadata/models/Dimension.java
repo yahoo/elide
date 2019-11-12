@@ -17,7 +17,7 @@ import javax.persistence.Entity;
  * Regular field in tables, can be grouped by if the table is an AnalyticView
  */
 @EqualsAndHashCode(callSuper = true)
-@Include(rootLevel = true, type = "dimension")
+@Include(type = "dimension")
 @Entity
 @Data
 public class Dimension extends Column {
