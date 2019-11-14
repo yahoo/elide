@@ -8,7 +8,6 @@ package com.yahoo.elide.spring.controllers;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +21,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MultivaluedHashMap;
+import lombok.extern.slf4j.Slf4j;
+
 import java.security.Principal;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
  * Spring rest controller for Elide JSON-API.
- * Based on 'https://github.com/illyasviel/elide-spring-boot/blob/master/elide-spring-boot-autoconfigure/src/main/java/org/illyasviel/elide/spring/boot/autoconfigure/ElideControllerAutoConfiguration.java'
+ * Based on 'https://github.com/illyasviel/elide-spring-boot/'
  */
 @Slf4j
 @RestController

@@ -16,6 +16,7 @@ import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.spring.config.ElideConfigProperties;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,14 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import com.yahoo.elide.spring.config.ElideConfigProperties;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
-
-import graphql.ExecutionInput;
-import graphql.ExecutionResult;
-import graphql.GraphQL;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -41,6 +36,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import graphql.ExecutionInput;
+import graphql.ExecutionResult;
+import graphql.GraphQL;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
@@ -50,7 +50,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -88,7 +87,8 @@ public class GraphqlController {
         this.api = new GraphQL(builder.build());
 
         // TODO - add serializers to allow for custom handling of ExecutionResult and GraphQLError objects
-        //GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer(elide.getElideSettings().isEncodeErrorResponses());
+        //GraphQLErrorSerializer errorSerializer =
+        // new GraphQLErrorSerializer(elide.getElideSettings().isEncodeErrorResponses());
         //SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
         //module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
         //module.addSerializer(GraphQLError.class, errorSerializer);

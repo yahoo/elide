@@ -5,14 +5,6 @@
  */
 package com.yahoo.elide.spring.tests;
 
-import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.spring.controllers.JsonApiController;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.jdbc.Sql;
-
-import javax.ws.rs.core.MediaType;
-
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
@@ -31,6 +23,15 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.equalTo;
 
+import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
+import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.spring.controllers.JsonApiController;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
+
+import javax.ws.rs.core.MediaType;
+
 /**
  * Example functional test.
  */
@@ -41,8 +42,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n" +
-                    "\t\t('com.example.repository','Example Repository','The code for this project');"
+            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project');"
     })
     void jsonApiGetTest() {
         when()
@@ -52,7 +53,7 @@ public class ControllerTest extends IntegrationTest {
                 .body(equalTo(
                         data(
                                 resource(
-                                        type( "group"),
+                                        type("group"),
                                         id("com.example.repository"),
                                         attributes(
                                                 attr("commonName", "Example Repository"),
@@ -71,8 +72,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n" +
-                    "\t\t('com.example.repository','Example Repository','The code for this project');"
+            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project');"
     })
     void jsonApiPatchTest() {
         given()
@@ -100,7 +101,7 @@ public class ControllerTest extends IntegrationTest {
                 .body(equalTo(
                         data(
                                 resource(
-                                        type( "group"),
+                                        type("group"),
                                         id("com.example.repository"),
                                         attributes(
                                                 attr("commonName", "Changed It."),
@@ -156,8 +157,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n" +
-                    "\t\t('com.example.repository','Example Repository','The code for this project');"
+            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project');"
     })
     void jsonApiDeleteTest() {
         when()
@@ -169,10 +170,10 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n" +
-                    "\t\t('com.example.repository','Example Repository','The code for this project');",
-            "INSERT INTO ArtifactProduct (name, commonName, description, group_name) VALUES\n" +
-                    "\t\t('foo','foo Core','The guts of foo','com.example.repository');"
+            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project');",
+            "INSERT INTO ArtifactProduct (name, commonName, description, group_name) VALUES\n"
+                    + "\t\t('foo','foo Core','The guts of foo','com.example.repository');"
     })
     void jsonApiDeleteRelationshipTest() {
         given()
@@ -219,12 +220,12 @@ public class ControllerTest extends IntegrationTest {
                         "group",
                         selections(
                             field("name", "com.example.repository"),
-                            field( "commonName", "Example Repository"),
+                            field("commonName", "Example Repository"),
                             field("description", "The code for this project")
                         ),
                         selections(
                             field("name", "com.yahoo.elide"),
-                            field( "commonName", "Elide"),
+                            field("commonName", "Elide"),
                             field("description", "The magical library powering this project")
                         )
                     )

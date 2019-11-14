@@ -7,10 +7,10 @@ package com.yahoo.elide.spring.models;
 
 import com.yahoo.elide.annotation.Include;
 
+import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import java.util.Date;
 
 @Include(type = "version")
 @Entity

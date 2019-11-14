@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.spring.config;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 
-import javax.validation.constraints.NotBlank;
+import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 
 /**
  * Configuration settings for Elide.

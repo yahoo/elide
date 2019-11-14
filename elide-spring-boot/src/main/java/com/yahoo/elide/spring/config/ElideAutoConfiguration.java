@@ -14,16 +14,18 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.persistence.EntityManagerFactory;
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
+
 import java.util.HashMap;
 import java.util.TimeZone;
+import javax.persistence.EntityManagerFactory;
 
 /**
  * Auto Configuration For Elide Services.  Override any of the beans (by defining your own) to change
