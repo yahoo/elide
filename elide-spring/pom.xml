@@ -44,6 +44,7 @@
 
     <modules>
         <module>elide-spring-boot-autoconfigure</module>
+        <module>elide-spring-boot-starter</module>
     </modules>
 
 </project>
