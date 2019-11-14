@@ -45,7 +45,7 @@ public class ControllerTest extends IntegrationTest {
             "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
                     + "\t\t('com.example.repository','Example Repository','The code for this project');"
     })
-    void jsonApiGetTest() {
+    public void jsonApiGetTest() {
         when()
                 .get("/json/group")
                 .then()
@@ -75,7 +75,7 @@ public class ControllerTest extends IntegrationTest {
             "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
                     + "\t\t('com.example.repository','Example Repository','The code for this project');"
     })
-    void jsonApiPatchTest() {
+    public void jsonApiPatchTest() {
         given()
             .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
             .body(
@@ -121,7 +121,7 @@ public class ControllerTest extends IntegrationTest {
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;"
     })
-    void jsonApiPostTest() {
+    public void jsonApiPostTest() {
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
                 .body(
@@ -160,7 +160,7 @@ public class ControllerTest extends IntegrationTest {
             "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
                     + "\t\t('com.example.repository','Example Repository','The code for this project');"
     })
-    void jsonApiDeleteTest() {
+    public void jsonApiDeleteTest() {
         when()
             .delete("/json/group/com.example.repository")
         .then()
@@ -175,7 +175,7 @@ public class ControllerTest extends IntegrationTest {
             "INSERT INTO ArtifactProduct (name, commonName, description, group_name) VALUES\n"
                     + "\t\t('foo','foo Core','The guts of foo','com.example.repository');"
     })
-    void jsonApiDeleteRelationshipTest() {
+    public void jsonApiDeleteRelationshipTest() {
         given()
             .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
             .body(datum(
@@ -196,7 +196,7 @@ public class ControllerTest extends IntegrationTest {
             "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
                     + "\t\t('com.example.repository','Example Repository','The code for this project');"
     })
-    void graphqlTest() {
+    public void graphqlTest() {
         given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -233,7 +233,7 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    void swaggerDocumentTest() {
+    public void swaggerDocumentTest() {
         when()
                 .get("/doc")
                 .then()

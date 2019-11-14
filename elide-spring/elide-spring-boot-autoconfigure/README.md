@@ -25,7 +25,7 @@ The Elide spring autoconfigure package provides the core code needed to use Elid
 | elide.swagger.name         | No         | 'Elide Service' | Swagger documentation requires an API name.              |
 | elide.swagger.version      | No         | '1.0'           | Swagger documentation requires an API version.           |
 
-## Entity Dictionary override.
+## Entity Dictionary Override
 
 By default, auto configuration creates an `EntityDictionary` with no checks or life cycle hooks registered. It does register spring as the dependency injection framework for Elide model injection.
 
@@ -37,7 +37,7 @@ By default, auto configuration creates an `EntityDictionary` with no checks or l
     }
 ```
 
-A typical override would add some checks and life cycle hooks.  _This is likely the only override you'll need_:
+A typical override would add some checks and life cycle hooks.  *This is likely the only override you'll need*:
 
 ```java
     @Bean
@@ -53,7 +53,7 @@ A typical override would add some checks and life cycle hooks.  _This is likely 
     }
 ```
 
-## Data Store override
+## Data Store Override
 By default, the auto configuration will wire up a JPA data store:
 
 ```java
@@ -68,7 +68,7 @@ By default, the auto configuration will wire up a JPA data store:
 
 Override this bean if you want a different store or multiple stores.
 
-## Swagger override
+## Swagger Override
 
 By default, Elide will generate swagger documentation for every model exposed into a single swagger document:
 
@@ -104,4 +104,3 @@ Reasons for doing this might include:
 2. Registering a custom `Serde` for type coercion.
 3. Changing the Elide filter dialect.
 4. Configuring a custom Elide audit logger.
-

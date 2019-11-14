@@ -20,7 +20,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 public class IntegrationTest {
 
     @LocalServerPort
-    int port;
+    protected int port;
 
     @BeforeAll
     public void setUp() {
