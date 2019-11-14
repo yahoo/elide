@@ -190,9 +190,12 @@ public class ControllerTest extends IntegrationTest {
     /**
      * This test demonstrates an example test using the GraphQL DSL.
      */
-    //@Test
-    //TODO - there are extra JSON nodes in the GraphQL response.  Elide needs a small fix.  The endpoint works
-    //but just returns extra json.
+    @Test
+    @Sql(statements = {
+            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
+            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project');"
+    })
     void graphqlTest() {
         given()
             .contentType(MediaType.APPLICATION_JSON)
@@ -222,11 +225,6 @@ public class ControllerTest extends IntegrationTest {
                             field("name", "com.example.repository"),
                             field("commonName", "Example Repository"),
                             field("description", "The code for this project")
-                        ),
-                        selections(
-                            field("name", "com.yahoo.elide"),
-                            field("commonName", "Elide"),
-                            field("description", "The magical library powering this project")
                         )
                     )
                 )

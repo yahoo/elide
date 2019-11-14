@@ -12,6 +12,8 @@ import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.graphql.ExecutionResultSerializer;
+import com.yahoo.elide.graphql.GraphQLErrorSerializer;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
@@ -19,8 +21,10 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
@@ -39,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.GraphQLError;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -87,12 +92,12 @@ public class GraphqlController {
         this.api = new GraphQL(builder.build());
 
         // TODO - add serializers to allow for custom handling of ExecutionResult and GraphQLError objects
-        //GraphQLErrorSerializer errorSerializer =
-        // new GraphQLErrorSerializer(elide.getElideSettings().isEncodeErrorResponses());
-        //SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
-        //module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
-        //module.addSerializer(GraphQLError.class, errorSerializer);
-        //elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
+        GraphQLErrorSerializer errorSerializer =
+         new GraphQLErrorSerializer(elide.getElideSettings().isEncodeErrorResponses());
+        SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
+        module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
+        module.addSerializer(GraphQLError.class, errorSerializer);
+        elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
     }
 
     /**
