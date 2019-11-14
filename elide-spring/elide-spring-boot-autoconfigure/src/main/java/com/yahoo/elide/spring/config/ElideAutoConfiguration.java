@@ -17,6 +17,7 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,6 +33,7 @@ import javax.persistence.EntityManagerFactory;
  * the default behavior.
  */
 @Configuration
+@EnableConfigurationProperties(ElideConfigProperties.class)
 public class ElideAutoConfiguration {
 
     /**
