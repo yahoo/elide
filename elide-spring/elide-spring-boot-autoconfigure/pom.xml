@@ -40,7 +40,7 @@
     </scm>
 
     <properties>
-        <spring.version>2.2.1.RELEASE</spring.version>
+        <spring.boot.version>2.2.1.RELEASE</spring.boot.version>
 
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
         <min_jdk_version>1.8</min_jdk_version>
@@ -55,30 +55,35 @@
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
             <version>4.5.7-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
             <version>4.5.7-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
             <version>4.5.7-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
             <version>4.5.7-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
             <version>4.5.7-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -91,37 +96,28 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${spring.boot.version}</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jetty</artifactId>
-            <version>${spring.version}</version>
-            <optional>true</optional>
-        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>${spring.version}</version>
+            <version>${spring.boot.version}</version>
             <optional>true</optional>
         </dependency>
+
+
+        <!-- Test Dependencies -->
 
         <!-- YAML for spring config -->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.25</version>
-            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
 
-        <!-- Test Dependencies -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
@@ -132,7 +128,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring.version}</version>
+            <version>${spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -162,12 +158,6 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.5.2</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${version.jackson}</version>
         </dependency>
     </dependencies>
 
