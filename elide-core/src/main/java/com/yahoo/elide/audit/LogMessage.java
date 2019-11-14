@@ -11,6 +11,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.ResourceLineage;
 import com.yahoo.elide.security.ChangeSpec;
 
+import com.yahoo.elide.security.User;
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleContext;
 
@@ -119,6 +120,19 @@ public class LogMessage {
                 }
                 ctx.setVariable(name, expression);
                 singleElementContext.setVariable(name, singleElementExpression);
+            }
+
+            final User user = record.getRequestScope().getUser();
+            if (user != null) {
+                final Object opaqueUser = user.getOpaqueUser();
+                if (opaqueUser != null) {
+                    final ValueExpression opaqueUserValueExpression = EXPRESSION_FACTORY
+                        .createValueExpression(
+                            opaqueUser, Object.class
+                        );
+                    ctx.setVariable("opaqueUser", opaqueUserValueExpression);
+                    singleElementContext.setVariable("opaqueUser", opaqueUserValueExpression);
+                }
             }
         }
 

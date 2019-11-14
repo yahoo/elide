@@ -15,6 +15,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.User;
 
 import com.google.common.collect.Sets;
 import example.Child;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +53,13 @@ public class LogMessageTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, null, null, null, null,
+        final RequestScope requestScope = new RequestScope(null, null, null, new User(
+            new Principal() {
+                @Override
+                public String getName() {
+                    return "aaron";
+                }
+            }), null,
                 new ElideSettingsBuilder(null)
                         .withAuditLogger(new TestAuditLogger())
                         .withEntityDictionary(dictionary)
@@ -60,6 +68,14 @@ public class LogMessageTest {
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, null, requestScope.getUUIDFor(parent), requestScope);
         childRecord = new PersistentResource<>(child, parentRecord, requestScope.getUUIDFor(child), requestScope);
         friendRecord = new PersistentResource<>(friend, childRecord, requestScope.getUUIDFor(friend), requestScope);
+    }
+
+    @Test
+    public void verifyOpaqueUserExpressions() {
+        final String[] expressions = { "${opaqueUser.name}", "${opaqueUser.name}" };
+        final LogMessage message = new LogMessage("{0} {1}", childRecord, expressions, 1, Optional.empty());
+        assertEquals("aaron aaron", message.getMessage(), "JEXL substitution evaluates correctly.");
+        assertEquals(Optional.empty(), message.getChangeSpec());
     }
 
     @Test
