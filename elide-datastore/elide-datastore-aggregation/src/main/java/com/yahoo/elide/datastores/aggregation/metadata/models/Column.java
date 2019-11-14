@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Tag;
@@ -17,12 +18,15 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
  */
+@Entity
+@Include(type = "column")
 @Data
 @ToString
 public abstract class Column {

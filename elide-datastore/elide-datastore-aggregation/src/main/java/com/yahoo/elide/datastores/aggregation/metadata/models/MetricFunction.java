@@ -25,7 +25,7 @@ import javax.persistence.OneToMany;
 /**
  * Functions used to compute metrics.
  */
-@Include(rootLevel = true, type = "metricFunction")
+@Include(type = "metricFunction")
 @Entity
 @Data
 @ToString

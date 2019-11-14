@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
 
 /**
  * TimeDimension is a dimension that represents time value.
@@ -27,6 +28,7 @@ import javax.persistence.Entity;
 @Entity
 @Data
 public class TimeDimension extends Dimension {
+    @ManyToMany
     Set<TimeDimensionGrain> supportedGrains;
 
     private TimeZone timezone;
