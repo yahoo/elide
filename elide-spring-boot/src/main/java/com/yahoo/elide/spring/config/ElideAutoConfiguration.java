@@ -42,7 +42,7 @@ public class ElideAutoConfiguration {
      * @return A new elide instance.
      */
     @Bean
-    @ConditionalOnMissingBean(Elide.class)
+    @ConditionalOnMissingBean
     public Elide initializeElide(EntityDictionary dictionary,
                           DataStore dataStore, ElideConfigProperties settings) {
 
@@ -67,7 +67,7 @@ public class ElideAutoConfiguration {
      * @return a newly configured EntityDictionary.
      */
     @Bean
-    @ConditionalOnMissingBean(EntityDictionary.class)
+    @ConditionalOnMissingBean
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory) {
         return new EntityDictionary(new HashMap<>(), beanFactory::autowireBean);
     }
@@ -78,7 +78,7 @@ public class ElideAutoConfiguration {
      * @return An instance of a JPA DataStore.
      */
     @Bean
-    @ConditionalOnMissingBean(DataStore.class)
+    @ConditionalOnMissingBean
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory) {
         return new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
@@ -92,7 +92,7 @@ public class ElideAutoConfiguration {
      * @return An instance of a JPA DataStore.
      */
     @Bean
-    @ConditionalOnMissingBean(Swagger.class)
+    @ConditionalOnMissingBean
     public Swagger buildSwagger(EntityDictionary dictionary, ElideConfigProperties settings) {
         Info info = new Info()
                 .title(settings.getSwagger().getName())
