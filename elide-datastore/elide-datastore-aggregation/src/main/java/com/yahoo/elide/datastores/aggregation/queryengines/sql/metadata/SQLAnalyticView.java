@@ -23,19 +23,11 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class SQLAnalyticView extends AnalyticView implements SQLTable {
-    private Set<SQLColumn> sqlColumns;
+    private Set<SQLColumn> SQLColumns;
 
     public SQLAnalyticView(Class<?> cls, AggregationDictionary dictionary) {
         super(cls, dictionary);
-        this.sqlColumns = resolveSQLDimensions(cls, dictionary);
-    }
-
-    @Override
-    public SQLColumn getSQLColumn(String fieldName) {
-        return sqlColumns.stream()
-                .filter(col -> col.getName().equals(fieldName))
-                .findFirst()
-                .orElseThrow(() -> new InternalServerErrorException("SQLField not found: " + fieldName));
+        this.SQLColumns = resolveSQLDimensions(cls, dictionary);
     }
 
     @Override

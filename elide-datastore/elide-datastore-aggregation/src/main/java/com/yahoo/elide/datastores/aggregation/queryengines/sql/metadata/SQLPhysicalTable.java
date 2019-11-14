@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.resolveSQLDimensions;
 
-import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
@@ -22,19 +21,11 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class SQLPhysicalTable extends Table implements SQLTable {
-    private Set<SQLColumn> sqlColumns;
+    private Set<SQLColumn> SQLColumns;
 
     public SQLPhysicalTable(Class<?> cls, AggregationDictionary dictionary) {
         super(cls, dictionary);
-        this.sqlColumns = resolveSQLDimensions(cls, dictionary);
-    }
-
-    @Override
-    public SQLColumn getSQLColumn(String fieldName) {
-        return sqlColumns.stream()
-                .filter(col -> col.getName().equals(fieldName))
-                .findFirst()
-                .orElseThrow(() -> new InternalServerErrorException("SQLField not found: " + fieldName));
+        this.SQLColumns = resolveSQLDimensions(cls, dictionary);
     }
 
     @Override

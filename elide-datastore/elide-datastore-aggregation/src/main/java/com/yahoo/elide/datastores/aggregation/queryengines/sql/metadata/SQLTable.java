@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
+import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
@@ -16,12 +17,24 @@ import java.util.stream.Collectors;
  */
 public interface SQLTable {
     /**
+     * Get sql column meta data.
+     *
+     * @return all sql columns
+     */
+    Set<SQLColumn> getSQLColumns();
+
+    /**
      * Get sql column meta data based on field name.
      *
      * @param fieldName field name
      * @return sql column
      */
-    SQLColumn getSQLColumn(String fieldName);
+    default SQLColumn getSQLColumn(String fieldName) {
+        return getSQLColumns().stream()
+                .filter(col -> col.getName().equals(fieldName))
+                .findFirst()
+                .orElseThrow(() -> new InternalServerErrorException("SQLField not found: " + fieldName));
+    }
 
     /**
      * Get this table as logical table form.
