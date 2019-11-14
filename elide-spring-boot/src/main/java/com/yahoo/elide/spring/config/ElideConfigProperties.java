@@ -6,7 +6,6 @@
 package com.yahoo.elide.spring.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.ComponentScan;
 
 import lombok.Data;
 
@@ -17,7 +16,6 @@ import javax.validation.constraints.NotBlank;
  */
 @Data
 @ConfigurationProperties(prefix = "elide")
-@ComponentScan
 public class ElideConfigProperties {
 
     /**
