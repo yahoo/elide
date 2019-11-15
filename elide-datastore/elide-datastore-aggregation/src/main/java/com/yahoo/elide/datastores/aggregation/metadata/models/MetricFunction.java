@@ -41,13 +41,18 @@ public abstract class MetricFunction {
     @OneToMany
     public abstract Set<FunctionArgument> getArguments();
 
-    private Set<String> getArgumentNames() {
-        return getArguments().stream().map(FunctionArgument::getName).collect(Collectors.toSet());
-    }
-
     protected abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
                                                        List<AggregatableField> fields,
                                                        String alias);
+
+    /**
+     * Get all required argument names for this metric function.
+     *
+     * @return all argument names
+     */
+    private Set<String> getArgumentNames() {
+        return getArguments().stream().map(FunctionArgument::getName).collect(Collectors.toSet());
+    }
 
     /**
      * Invoke this metric function with arguments, an aggregated field and projection alias.

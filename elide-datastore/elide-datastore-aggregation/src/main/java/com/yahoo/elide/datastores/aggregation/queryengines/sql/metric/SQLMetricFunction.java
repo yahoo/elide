@@ -23,9 +23,11 @@ import java.util.Set;
  */
 public abstract class SQLMetricFunction extends MetricFunction {
     /**
-     * Get SQL expression string of this metric.
+     * Construct sql expression with provided arguments and aggregated fields.
      *
-     * @return e.g. <code>SUM(%metric)</code>
+     * @param arguments arguments
+     * @param fields fields
+     * @return <code>FUNCTION(arg1, arg2, arg3, ...,  field1, field2, field3, ...)</code>
      */
     protected String buildSQL(Map<String, Argument> arguments, List<AggregatableField> fields) {
         throw new InternalServerErrorException("Metric function " + getName() + " doesn't have expression.");
