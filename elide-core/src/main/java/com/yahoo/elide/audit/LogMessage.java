@@ -122,7 +122,7 @@ public class LogMessage {
                 singleElementContext.setVariable(name, singleElementExpression);
             }
 
-            final User user = record.getRequestScope().getUser();
+            final User user = getUser();
             if (user != null) {
                 final Object opaqueUser = user.getOpaqueUser();
                 if (opaqueUser != null) {
@@ -176,6 +176,14 @@ public class LogMessage {
     public RequestScope getRequestScope() {
         if (record != null) {
             return record.getRequestScope();
+        }
+        return null;
+    }
+
+    public User getUser() {
+        RequestScope requetScope = getRequestScope();
+        if (requetScope != null) {
+            return requetScope.getUser();
         }
         return null;
     }
