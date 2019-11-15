@@ -8,10 +8,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatedField;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.BasicMetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -23,13 +22,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * SQL extension of {@link BasicMetricFunction} which would be invoked as sql and can construct sql templates.
+ * SQL extension of {@link MetricFunction} which would be invoked as sql and can construct sql templates.
  */
-public abstract class SQLBasicMetricFunction extends BasicMetricFunction {
-    public SQLBasicMetricFunction(String name, String longName, String description, Set<FunctionArgument> arguments) {
-        super(name, longName, description, arguments);
-    }
-
+public abstract class SQLBasicMetricFunction extends MetricFunction {
     /**
      * Get SQL expression string of this metric.
      *

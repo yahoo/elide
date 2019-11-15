@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions;
 
 import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatedField;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
@@ -11,8 +11,14 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.request.Argument;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,13 +28,20 @@ import java.util.Set;
 /**
  * Sql Metric Functions that can be applied on a physical metric field or an aggregated metric field.
  */
-public abstract class SimpleSQLMetricFunction extends SQLBasicMetricFunction {
-    public SimpleSQLMetricFunction(String name, String longName, String description, Set<FunctionArgument> arguments) {
-        super(name, longName, description, arguments);
-    }
+@EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
+@Data
+public abstract class SimpleSQLMetricFunction extends SQLMetricFunction {
+    private String name;
+
+    private String longName;
+
+    private String description;
+
+    private Set<FunctionArgument> arguments;
 
     public SimpleSQLMetricFunction(String name, String longName, String description) {
-        super(name, longName, description, Collections.emptySet());
+        this(name, longName, description, Collections.emptySet());
     }
 
     @Override

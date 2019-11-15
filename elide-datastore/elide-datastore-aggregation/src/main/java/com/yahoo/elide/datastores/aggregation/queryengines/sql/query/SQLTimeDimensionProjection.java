@@ -6,45 +6,49 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
+import lombok.Getter;
+
 /**
- * A time dimension that supports special sauce needed to generate SQL.
- * This dimension will be created by the SQLQueryEngine in place of a plain TimeDimension.
+ * Represents a projected sql time column for a specific time grain as an alias in a query.
  */
-public class SQLTimeDimensionProjection extends SQLDimensionProjection {
+public class SQLTimeDimensionProjection extends SQLColumnProjection implements TimeDimensionProjection {
     private final TimeDimension timeDimension;
+
+    @Getter
     private final TimeGrain grain;
 
     /**
      * Constructor.
      *
-     * @param columnName The column alias in SQL to refer to this dimension.
-     * @param tableAlias The table alias in SQL where this dimension lives.
+     * @param column The projected sql column
      * @param columnAlias The alias to project this column out.
-     * @param joinPath A '.' separated path through the entity relationship graph that describes
-     *                 how to join the time dimension into the current AnalyticView.
      * @param timeDimension The logical time dimension
      * @param grain The requested time grain
      */
-    public SQLTimeDimensionProjection(String columnName,
-                                      String tableAlias,
+    public SQLTimeDimensionProjection(SQLColumn column,
                                       String columnAlias,
-                                      Path joinPath,
                                       TimeDimension timeDimension,
                                       TimeGrain grain) {
-        super(columnName, tableAlias, columnAlias, joinPath);
+        super(column, columnAlias);
         this.timeDimension = timeDimension;
         this.grain = grain;
     }
 
+    @Override
+    public TimeDimension getTimeDimension() {
+        return this.timeDimension;
+    }
+
     /**
-     * Returns a String that identifies this dimension in a SQL query.
+     * Returns a String that identifies this time dimension in a SQL query.
      *
-     * @return Something like "table_alias.column_name"
+     * @return Something like "grain(table_alias.column_name)"
      */
     @Override
     public String getColumnReference() {

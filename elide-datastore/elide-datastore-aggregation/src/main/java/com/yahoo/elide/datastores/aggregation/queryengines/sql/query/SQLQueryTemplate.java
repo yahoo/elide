@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
@@ -35,7 +35,7 @@ public interface SQLQueryTemplate {
      *
      * @return non-time dimensions
      */
-    Set<DimensionProjection> getNonTimeDimensions();
+    Set<ColumnProjection> getNonTimeDimensions();
 
     /**
      * Get aggregated time dimension for this query
@@ -63,7 +63,7 @@ public interface SQLQueryTemplate {
      *
      * @return all GROUP BY dimensions
      */
-    default Set<DimensionProjection> getGroupByDimensions() {
+    default Set<ColumnProjection> getGroupByDimensions() {
         return getTimeDimension() == null
                 ? getNonTimeDimensions()
                 : Sets.union(getNonTimeDimensions(), Collections.singleton(getTimeDimension()));
@@ -93,7 +93,7 @@ public interface SQLQueryTemplate {
             }
 
             @Override
-            public Set<DimensionProjection> getNonTimeDimensions() {
+            public Set<ColumnProjection> getNonTimeDimensions() {
                 return wrapped.getNonTimeDimensions();
             }
 
@@ -142,7 +142,7 @@ public interface SQLQueryTemplate {
                 }
 
                 @Override
-                public Set<DimensionProjection> getNonTimeDimensions() {
+                public Set<ColumnProjection> getNonTimeDimensions() {
                     return first.getNonTimeDimensions();
                 }
 
