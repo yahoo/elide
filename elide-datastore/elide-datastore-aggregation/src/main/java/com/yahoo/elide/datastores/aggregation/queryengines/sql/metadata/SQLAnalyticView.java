@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.resolveSQLDimensions;
 
-import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -31,7 +30,7 @@ public class SQLAnalyticView extends AnalyticView implements SQLTable {
     }
 
     @Override
-    public Table getLogicalTable() {
+    public Table asTable() {
         return this;
     }
 }

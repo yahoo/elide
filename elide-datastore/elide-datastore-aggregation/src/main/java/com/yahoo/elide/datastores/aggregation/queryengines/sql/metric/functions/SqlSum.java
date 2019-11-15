@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions;
 
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SimpleSQLMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.BasicSQLMetricFunction;
 
 /**
  * Sum of a field.
  */
-public class SqlSum extends SimpleSQLMetricFunction {
+public class SqlSum extends BasicSQLMetricFunction {
     public SqlSum() {
         super("sum", "sum", "sql sum function");
     }

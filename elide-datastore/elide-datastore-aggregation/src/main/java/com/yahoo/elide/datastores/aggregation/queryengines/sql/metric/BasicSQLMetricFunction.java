@@ -3,16 +3,14 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric;
 
 import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatedField;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.request.Argument;
 
@@ -20,18 +18,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Sql Metric Functions that can be applied on a physical metric field or an aggregated metric field.
+ * A basic implementation of {@link SQLMetricFunction} with attributes and simple resolve methods.
  */
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public abstract class SimpleSQLMetricFunction extends SQLMetricFunction {
+public abstract class BasicSQLMetricFunction extends SQLMetricFunction {
     private String name;
 
     private String longName;
@@ -40,15 +39,48 @@ public abstract class SimpleSQLMetricFunction extends SQLMetricFunction {
 
     private Set<FunctionArgument> arguments;
 
-    public SimpleSQLMetricFunction(String name, String longName, String description) {
+    public BasicSQLMetricFunction(String name, String longName, String description) {
         this(name, longName, description, Collections.emptySet());
+    }
+
+    @Override
+    protected SQLMetricFunctionInvocation invokeAsSQL(Map<String, Argument> arguments,
+                                                      AggregatedField field,
+                                                      String alias) {
+        final SQLMetricFunction function = this;
+        return new SQLMetricFunctionInvocation() {
+            @Override
+            public SQLMetricFunction getFunction() {
+                return function;
+            }
+
+            @Override
+            public List<Argument> getArguments() {
+                return new ArrayList<>(arguments.values());
+            }
+
+            @Override
+            public Argument getArgument(String argumentName) {
+                return arguments.get(argumentName);
+            }
+
+            @Override
+            public AggregatedField getAggregatedField() {
+                return field;
+            }
+
+            @Override
+            public String getAlias() {
+                return alias;
+            }
+        };
     }
 
     @Override
     public SQLQueryTemplate resolve(Map<String, Argument> arguments,
                                     Metric metric,
                                     String alias,
-                                    Set<DimensionProjection> dimensions,
+                                    Set<ColumnProjection> dimensions,
                                     TimeDimensionProjection timeDimension) {
         SQLMetricFunctionInvocation invoked = invokeAsSQL(arguments, new AggregatedField(metric), alias);
         return new SQLQueryTemplate() {
@@ -58,7 +90,7 @@ public abstract class SimpleSQLMetricFunction extends SQLMetricFunction {
             }
 
             @Override
-            public Set<DimensionProjection> getNonTimeDimensions() {
+            public Set<ColumnProjection> getNonTimeDimensions() {
                 return dimensions;
             }
 
@@ -92,7 +124,7 @@ public abstract class SimpleSQLMetricFunction extends SQLMetricFunction {
             }
 
             @Override
-            public Set<DimensionProjection> getNonTimeDimensions() {
+            public Set<ColumnProjection> getNonTimeDimensions() {
                 return subQuery.getNonTimeDimensions();
             }
 

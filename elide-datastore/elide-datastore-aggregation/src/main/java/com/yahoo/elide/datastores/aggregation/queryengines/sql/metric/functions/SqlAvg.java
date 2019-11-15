@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions;
 
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SimpleSQLMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.BasicSQLMetricFunction;
 
 /**
  * Average of a field.
  */
-public class SqlAvg extends SimpleSQLMetricFunction {
+public class SqlAvg extends BasicSQLMetricFunction {
     public SqlAvg() {
         super("avg", "average", "sql average function");
     }

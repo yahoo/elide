@@ -20,16 +20,16 @@ import java.util.Set;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SQLPhysicalTable extends Table implements SQLTable {
+public class SQLTableImpl extends Table implements SQLTable {
     private Set<SQLColumn> SQLColumns;
 
-    public SQLPhysicalTable(Class<?> cls, AggregationDictionary dictionary) {
+    public SQLTableImpl(Class<?> cls, AggregationDictionary dictionary) {
         super(cls, dictionary);
         this.SQLColumns = resolveSQLDimensions(cls, dictionary);
     }
 
     @Override
-    public Table getLogicalTable() {
+    public Table asTable() {
         return this;
     }
 }

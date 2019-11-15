@@ -41,7 +41,7 @@ public interface SQLTable {
      *
      * @return logical table object of this table.
      */
-    Table getLogicalTable();
+    Table asTable();
 
     /**
      * Resolve all sql columns of a table.

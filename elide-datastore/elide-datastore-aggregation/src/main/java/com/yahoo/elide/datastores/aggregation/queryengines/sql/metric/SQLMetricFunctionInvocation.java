@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric;
 
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.request.Argument;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * Represents an invoked metric function with alias and arguments provided in user request.
  */
 public interface SQLMetricFunctionInvocation extends MetricFunctionInvocation {
-    SQLBasicMetricFunction getFunction();
+    SQLMetricFunction getFunction();
 
     /**
      * Get sql expression of this invocation.
@@ -39,7 +39,7 @@ public interface SQLMetricFunctionInvocation extends MetricFunctionInvocation {
      * @param timeDimension time dimension
      * @return a sql query template
      */
-    default SQLQueryTemplate resolve(Set<DimensionProjection> dimensions, TimeDimensionProjection timeDimension) {
+    default SQLQueryTemplate resolve(Set<ColumnProjection> dimensions, TimeDimensionProjection timeDimension) {
         if (!getAggregatedField().isMetricField()) {
             throw new InvalidPredicateException("Can't create sql query template on metric alias.");
         }

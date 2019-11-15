@@ -6,25 +6,22 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric;
 
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatedField;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
-import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.request.Argument;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * SQL extension of {@link MetricFunction} which would be invoked as sql and can construct sql templates.
  */
-public abstract class SQLBasicMetricFunction extends MetricFunction {
+public abstract class SQLMetricFunction extends MetricFunction {
     /**
      * Get SQL expression string of this metric.
      *
@@ -47,37 +44,9 @@ public abstract class SQLBasicMetricFunction extends MetricFunction {
      * @param alias result alias
      * @return an invoked sql metric function
      */
-    protected SQLMetricFunctionInvocation invokeAsSQL(Map<String, Argument> arguments,
-                                                      AggregatedField field,
-                                                      String alias) {
-        final SQLBasicMetricFunction function = this;
-        return new SQLMetricFunctionInvocation() {
-            @Override
-            public SQLBasicMetricFunction getFunction() {
-                return function;
-            }
-
-            @Override
-            public List<Argument> getArguments() {
-                return new ArrayList<>(arguments.values());
-            }
-
-            @Override
-            public Argument getArgument(String argumentName) {
-                return arguments.get(argumentName);
-            }
-
-            @Override
-            public AggregatedField getAggregatedField() {
-                return field;
-            }
-
-            @Override
-            public String getAlias() {
-                return alias;
-            }
-        };
-    }
+    protected abstract SQLMetricFunctionInvocation invokeAsSQL(Map<String, Argument> arguments,
+                                                               AggregatedField field,
+                                                               String alias);
 
     /**
      * Construct a sql query template for a physical table with provided information.
@@ -93,7 +62,7 @@ public abstract class SQLBasicMetricFunction extends MetricFunction {
     public abstract SQLQueryTemplate resolve(Map<String, Argument> arguments,
                                              Metric metric,
                                              String alias,
-                                             Set<DimensionProjection> dimensions,
+                                             Set<ColumnProjection> dimensions,
                                              TimeDimensionProjection timeDimension);
 
     /**
@@ -106,10 +75,8 @@ public abstract class SQLBasicMetricFunction extends MetricFunction {
      * @param subQuery subquery temple
      * @return <code>SELECT function(metric, arguments) AS alias FROM subquery</code>
      */
-    public SQLQueryTemplate resolve(Map<String, Argument> arguments,
-                                    MetricFunctionInvocation metric,
-                                    String alias,
-                                    SQLQueryTemplate subQuery) {
-        throw new InvalidOperationException("Can't apply aggregation " + getName() + " on nested query.");
-    }
+    public abstract SQLQueryTemplate resolve(Map<String, Argument> arguments,
+                                             MetricFunctionInvocation metric,
+                                             String alias,
+                                             SQLQueryTemplate subQuery);
 }

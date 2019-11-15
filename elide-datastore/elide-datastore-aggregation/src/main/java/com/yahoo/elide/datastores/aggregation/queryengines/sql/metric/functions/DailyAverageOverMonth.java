@@ -6,10 +6,12 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions;
 
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLBasicMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.BasicSQLMetricFunction;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 import com.yahoo.elide.request.Argument;
@@ -22,7 +24,7 @@ import java.util.Set;
  * Daily average value of a metric monthly.
  * Would create a query to calculate the daily sum, and then create a query to calculate the monthly average.
  */
-public class DailyAverageOverMonth extends SQLBasicMetricFunction {
+public class DailyAverageOverMonth extends BasicSQLMetricFunction {
     public DailyAverageOverMonth() {
         super(
                 "dailyAvgOverMonth",
@@ -35,7 +37,7 @@ public class DailyAverageOverMonth extends SQLBasicMetricFunction {
     public SQLQueryTemplate resolve(Map<String, Argument> arguments,
                                     Metric metric,
                                     String alias,
-                                    Set<DimensionProjection> dimensions,
+                                    Set<ColumnProjection> dimensions,
                                     TimeDimensionProjection timeDimension) {
         try {
             SQLQueryTemplate subQuery = SqlSum.class.newInstance().resolve(
@@ -53,5 +55,13 @@ public class DailyAverageOverMonth extends SQLBasicMetricFunction {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new InternalServerErrorException("Can't construct subquery template for " + getName() + ".");
         }
+    }
+
+    @Override
+    public SQLQueryTemplate resolve(Map<String, Argument> arguments,
+                                             MetricFunctionInvocation metric,
+                                             String alias,
+                                             SQLQueryTemplate subQuery) {
+        throw new InvalidOperationException("Can't apply aggregation " + getName() + " on nested query.");
     }
 }

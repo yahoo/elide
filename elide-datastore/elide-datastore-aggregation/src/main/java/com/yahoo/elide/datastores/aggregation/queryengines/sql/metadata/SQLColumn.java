@@ -50,4 +50,13 @@ public class SQLColumn extends Column {
 
         return getClassAlias(lastClass);
     }
+
+    /**
+     * Returns a String that identifies this column in a physical sql table/view.
+     *
+     * @return e.g. <code>table_alias.column_name</code>
+     */
+    public String getReference() {
+        return getTableAlias() + "." + getColumnName();
+    }
 }
