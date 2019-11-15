@@ -1,0 +1,31 @@
+server:
+  port: 4001
+
+elide:
+  modelPackage: 'example.models'
+  json-api:
+    path: /json
+    enabled: true
+  graphql:
+    path: /graphql
+    enabled: true
+  swagger:
+    path: /doc
+    enabled: true
+    version: "1.0"
+
+spring:
+  jpa:
+    hibernate:
+      show_sql: true
+      naming:
+        physical-strategy: 'org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl'
+      dialect: 'org.hibernate.dialect.H2Dialect'
+      ddl-auto: 'create'
+      jdbc:
+        use_scrollable_resultset: true
+  datasource:
+    url: 'jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1'
+    username: 'sa'
+    password: ''
+    driver-class-name: 'org.h2.Driver'
