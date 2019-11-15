@@ -27,12 +27,12 @@ public class GraphQLErrorSerializer extends StdSerializer<GraphQLError> {
      * Construct a new GraphQLErrorSerializer, optionally with error encoding enabled.
      * @param encodeErrors true if the message field should be encoded
      */
-    protected GraphQLErrorSerializer(boolean encodeErrors) {
+    public GraphQLErrorSerializer(boolean encodeErrors) {
         super(GraphQLError.class);
         this.encodeErrors = encodeErrors;
     }
 
-    protected GraphQLErrorSerializer() {
+    public GraphQLErrorSerializer() {
         this(false);
     }
 

@@ -9,6 +9,7 @@ import com.yahoo.elide.core.RequestScope;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
@@ -49,6 +50,12 @@ public class NonJtaTransaction extends AbstractJpaTransaction {
                 transaction.rollback();
             }
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+        em.close();
     }
 
     @Override

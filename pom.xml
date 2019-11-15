@@ -24,6 +24,7 @@
         <module>elide-example</module>
         <module>elide-contrib</module>
         <module>elide-standalone</module>
+        <module>elide-spring</module>
     </modules>
 
     <issueManagement>
