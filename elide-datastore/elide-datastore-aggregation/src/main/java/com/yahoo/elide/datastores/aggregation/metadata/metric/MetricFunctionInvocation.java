@@ -42,7 +42,7 @@ public interface MetricFunctionInvocation extends AggregatableField {
      *
      * @return all aggregatable fields
      */
-    List<AggregatableField> getAggregatables();
+    List<AggregatableField> getFields();
 
     /**
      * Get alias of this invocation.

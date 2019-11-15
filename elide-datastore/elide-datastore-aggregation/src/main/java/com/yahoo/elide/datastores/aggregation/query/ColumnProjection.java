@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -13,23 +14,35 @@ import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 import java.io.Serializable;
 
 /**
- * Represents a selected dimension in a Query.
+ * Represents a projected column as an alias in a query.
  */
-public interface DimensionProjection extends Serializable {
+public interface ColumnProjection extends Serializable {
 
     /**
-     * Returns the name of the entity representing this {@link DimensionProjection} object as a {@link String}.
+     * Get the projected column.
      *
-     * @return the name of the entity or interface representing this {@link DimensionProjection}.
+     * @return column
      */
-    Column getDimension();
+    Column getColumn();
 
+    /**
+     * Get the projection alias.
+     *
+     * @return alias
+     */
     String getAlias();
 
-    static DimensionProjection toProjection(Dimension dimension, String alias) {
-        return new DimensionProjection() {
+    /**
+     * Project a dimension as alias.
+     *
+     * @param dimension dimension column
+     * @param alias alias
+     * @return a projection represents that "dimension AS alias"
+     */
+    static ColumnProjection toProjection(Dimension dimension, String alias) {
+        return new ColumnProjection() {
             @Override
-            public Dimension getDimension() {
+            public Dimension getColumn() {
                 return dimension;
             }
 
@@ -40,6 +53,14 @@ public interface DimensionProjection extends Serializable {
         };
     }
 
+    /**
+     * Project a time dimension as alias with specific time grain.
+     *
+     * @param dimension time dimension column
+     * @param grain projected time grain
+     * @param alias alias
+     * @return a projection represents that "grain(dimension) AS alias"
+     */
     static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain, String alias) {
         if (dimension.getSupportedGrains().stream().anyMatch(g -> g.getGrain().equals(grain))) {
             return new TimeDimensionProjection() {
@@ -59,6 +80,6 @@ public interface DimensionProjection extends Serializable {
                 }
             };
         }
-        return null;
+        throw new InvalidValueException(dimension.getId() + " doesn't support grain " + grain);
     }
 }

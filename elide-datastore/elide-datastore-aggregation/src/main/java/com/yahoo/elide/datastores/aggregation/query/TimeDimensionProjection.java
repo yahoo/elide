@@ -6,50 +6,23 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
+import java.util.TimeZone;
 
 /**
  * Represents a requested time dimension in a query.
  */
-public interface TimeColumnProjection extends ColumnProjection {
-    TimeDimension getTimeColumn();
-    TimeGrain getGrain();
+public interface TimeDimensionProjection extends DimensionProjection {
 
     /**
-     * Convert this projection to a new time grain.
-     *
-     * @param newGrain new time grain
-     * @return a new projection
+     * Get the requested time zone.
+     * @return requested time zone.
      */
-    default TimeColumnProjection toTimeGrain(TimeGrain newGrain) {
-        if (getTimeColumn().getSupportedGrains().stream().noneMatch(g -> g.getGrain().equals(newGrain))) {
-            throw new InvalidValueException(getTimeColumn().getId() + " doesn't support grain " + newGrain);
-        }
+    TimeZone getTimeZone();
 
-        TimeColumnProjection projection = this;
-        return new TimeColumnProjection() {
-            @Override
-            public TimeDimension getTimeColumn() {
-                return projection.getTimeColumn();
-            }
-
-            @Override
-            public TimeGrain getGrain() {
-                return newGrain;
-            }
-
-            @Override
-            public String getAlias() {
-                return projection.getAlias();
-            }
-        };
-    }
-
-    @Override
-    default Column getColumn() {
-        return getTimeColumn();
-    }
+    /**
+     * Get the requested time grain.
+     * @return requested time grain.
+     */
+    TimeGrainDefinition getTimeGrain();
 }

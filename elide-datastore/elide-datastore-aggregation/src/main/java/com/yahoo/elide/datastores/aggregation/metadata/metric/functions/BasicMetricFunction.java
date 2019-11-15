@@ -62,7 +62,7 @@ public abstract class BasicMetricFunction extends MetricFunction {
             }
 
             @Override
-            public List<AggregatableField> getAggregatables() {
+            public List<AggregatableField> getFields() {
                 return fields;
             }
 

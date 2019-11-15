@@ -22,17 +22,6 @@ import java.util.Set;
  * SQL extension of {@link MetricFunction} which would be invoked as sql and can construct sql templates.
  */
 public abstract class SQLMetricFunction extends MetricFunction {
-    /**
-     * Construct sql expression with provided arguments and aggregated fields.
-     *
-     * @param arguments arguments
-     * @param fields fields
-     * @return <code>FUNCTION(arg1, arg2, arg3, ...,  field1, field2, field3, ...)</code>
-     */
-    protected String buildSQL(Map<String, Argument> arguments, List<AggregatableField> fields) {
-        throw new InternalServerErrorException("Metric function " + getName() + " doesn't have expression.");
-    }
-
     @Override
     public final MetricFunctionInvocation invoke(Map<String, Argument> arguments,
                                                  List<AggregatableField> fields,
@@ -53,15 +42,26 @@ public abstract class SQLMetricFunction extends MetricFunction {
                                                                String alias);
 
     /**
+     * Construct sql expression with provided arguments and aggregated fields.
+     *
+     * @param arguments arguments
+     * @param fields fields
+     * @return <code>FUNCTION(arg1, arg2, arg3, ...,  field1, field2, field3, ...)</code>
+     */
+    protected String buildSQL(Map<String, Argument> arguments, List<AggregatableField> fields) {
+        throw new InternalServerErrorException("Metric function " + getName() + " doesn't have expression.");
+    }
+
+    /**
      * Construct a sql query template for a physical table with provided information.
      * Table name would be filled in when convert the template into real query.
      *
      * @param arguments arguments provided in the request
-     * @param fields metric fields to apply this function
+     * @param fields metric fields in the table to apply this function
      * @param alias result alias
      * @param dimensions groupBy dimensions
      * @param timeDimension aggregated time dimension
-     * @return <code>SELECT function(metric, arguments) AS alias GROUP BY dimensions, timeDimension </code>
+     * @return <code>SELECT function(arguments, fields) AS alias GROUP BY dimensions, timeDimension </code>
      */
     public abstract SQLQueryTemplate resolve(Map<String, Argument> arguments,
                                              List<AggregatableField> fields,
@@ -74,10 +74,10 @@ public abstract class SQLMetricFunction extends MetricFunction {
      * Projections dimension would match the subquery dimensions.
      *
      * @param arguments arguments provided in the request
-     * @param fields aggregated metric fields in subquery
+     * @param fields aggregated metric fields in subquery to apply this function
      * @param alias result alias
      * @param subQuery subquery temple
-     * @return <code>SELECT function(metric, arguments) AS alias FROM subquery</code>
+     * @return <code>SELECT function(arguments, fields) AS alias GROUP BY subquery.dimensions</code>
      */
     public abstract SQLQueryTemplate resolve(Map<String, Argument> arguments,
                                              List<AggregatableField> fields,

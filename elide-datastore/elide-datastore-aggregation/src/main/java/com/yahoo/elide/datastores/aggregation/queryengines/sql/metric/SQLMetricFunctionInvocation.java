@@ -16,20 +16,21 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Represents an invoked metric function with alias and arguments provided in user request.
+ * Represents an invoked sql metric function with alias and arguments provided in user request.
  */
 public interface SQLMetricFunctionInvocation extends MetricFunctionInvocation {
+    @Override
     SQLMetricFunction getFunction();
 
     /**
      * Get sql expression of this invocation.
      *
-     * @return <code>function(aggregatedField, arguments)</code>
+     * @return e.g. <code>SUM(field1)</code>
      */
     String getSQL();
 
     /**
-     * Construct a query template based on this invocation.
+     * Construct a query template for this invocation.
      *
      * @param dimensions groupBy dimensions
      * @param timeDimension time dimension
@@ -38,7 +39,7 @@ public interface SQLMetricFunctionInvocation extends MetricFunctionInvocation {
     default SQLQueryTemplate resolve(Set<ColumnProjection> dimensions, TimeDimensionProjection timeDimension) {
         return getFunction().resolve(
                 getArguments().stream().collect(Collectors.toMap(Argument::getName, Function.identity())),
-                getAggregatables(),
+                getFields(),
                 getAlias(),
                 dimensions,
                 timeDimension);

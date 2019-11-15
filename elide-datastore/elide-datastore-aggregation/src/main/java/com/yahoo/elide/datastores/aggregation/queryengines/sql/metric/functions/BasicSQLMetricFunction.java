@@ -39,6 +39,13 @@ public abstract class BasicSQLMetricFunction extends SQLMetricFunction {
 
     private Set<FunctionArgument> arguments;
 
+    /**
+     * Constructor, there is no arguments as default
+     *
+     * @param name name
+     * @param longName long name
+     * @param description function description
+     */
     public BasicSQLMetricFunction(String name, String longName, String description) {
         this(name, longName, description, Collections.emptySet());
     }
@@ -70,7 +77,7 @@ public abstract class BasicSQLMetricFunction extends SQLMetricFunction {
             }
 
             @Override
-            public List<AggregatableField> getAggregatables() {
+            public List<AggregatableField> getFields() {
                 return fields;
             }
 

@@ -63,11 +63,11 @@ public class SQLColumnProjection implements ColumnProjection {
     }
 
     /**
-     * Build a SQL dimension for a dimension projection.
+     * Convert a projection into a sql projection
      *
-     * @param projection dimension to project out
-     * @param table table that contains this dimension
-     * @return constructed dimension
+     * @param projection original projection
+     * @param table sql table that contains the projected column
+     * @return sql column projection
      */
     public static SQLColumnProjection constructSQLProjection(ColumnProjection projection, SQLTable table) {
         String fieldName = projection.getColumn().getName();
