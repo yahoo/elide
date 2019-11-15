@@ -22,11 +22,11 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class SQLAnalyticView extends AnalyticView implements SQLTable {
-    private Set<SQLColumn> SQLColumns;
+    private Set<SQLColumn> sqlColumns;
 
     public SQLAnalyticView(Class<?> cls, AggregationDictionary dictionary) {
         super(cls, dictionary);
-        this.SQLColumns = resolveSQLDimensions(cls, dictionary);
+        this.sqlColumns = resolveSQLDimensions(cls, dictionary);
     }
 
     @Override

@@ -21,7 +21,7 @@ public interface SQLTable {
      *
      * @return all sql columns
      */
-    Set<SQLColumn> getSQLColumns();
+    Set<SQLColumn> getSqlColumns();
 
     /**
      * Get sql column meta data based on field name.
@@ -30,7 +30,7 @@ public interface SQLTable {
      * @return sql column
      */
     default SQLColumn getSQLColumn(String fieldName) {
-        return getSQLColumns().stream()
+        return getSqlColumns().stream()
                 .filter(col -> col.getName().equals(fieldName))
                 .findFirst()
                 .orElseThrow(() -> new InternalServerErrorException("SQLField not found: " + fieldName));

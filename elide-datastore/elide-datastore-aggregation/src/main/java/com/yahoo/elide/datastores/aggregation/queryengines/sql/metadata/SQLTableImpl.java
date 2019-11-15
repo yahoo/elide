@@ -21,11 +21,11 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class SQLTableImpl extends Table implements SQLTable {
-    private Set<SQLColumn> SQLColumns;
+    private Set<SQLColumn> sqlColumns;
 
     public SQLTableImpl(Class<?> cls, AggregationDictionary dictionary) {
         super(cls, dictionary);
-        this.SQLColumns = resolveSQLDimensions(cls, dictionary);
+        this.sqlColumns = resolveSQLDimensions(cls, dictionary);
     }
 
     @Override
