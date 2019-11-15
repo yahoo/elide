@@ -22,19 +22,21 @@ public class SQLTimeDimensionProjection extends SQLDimensionProjection {
     /**
      * Constructor.
      *
-     * @param columnAlias The column alias in SQL to refer to this dimension.
+     * @param columnName The column alias in SQL to refer to this dimension.
      * @param tableAlias The table alias in SQL where this dimension lives.
+     * @param columnAlias The alias to project this column out.
      * @param joinPath A '.' separated path through the entity relationship graph that describes
      *                 how to join the time dimension into the current AnalyticView.
      * @param timeDimension The logical time dimension
      * @param grain The requested time grain
      */
-    public SQLTimeDimensionProjection(String columnAlias,
+    public SQLTimeDimensionProjection(String columnName,
                                       String tableAlias,
+                                      String columnAlias,
                                       Path joinPath,
                                       TimeDimension timeDimension,
                                       TimeGrain grain) {
-        super(columnAlias, tableAlias, columnAlias, joinPath);
+        super(columnName, tableAlias, columnAlias, joinPath);
         this.timeDimension = timeDimension;
         this.grain = grain;
     }

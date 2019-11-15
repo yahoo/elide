@@ -35,6 +35,8 @@ public class SQLDimensionProjection {
      *  @param columnName The column alias in SQL to refer to this dimension.
      * @param tableAlias The table alias in SQL where this dimension lives.
      * @param columnAlias The alias to project this column out.
+     * @param joinPath A '.' separated path through the entity relationship graph that describe
+     *                 how to join the time dimension into the current AnalyticView.
      */
     public SQLDimensionProjection(String columnName, String tableAlias, String columnAlias, Path joinPath) {
         this.columnName = columnName;
@@ -68,6 +70,7 @@ public class SQLDimensionProjection {
             return new SQLTimeDimensionProjection(
                     sqlColumn.getColumnName(),
                     sqlColumn.getTableAlias(),
+                    projection.getAlias(),
                     sqlColumn.getJoinPath(),
                     ((TimeDimensionProjection) projection).getDimension(),
                     ((TimeDimensionProjection) projection).getProjectedGrain());
