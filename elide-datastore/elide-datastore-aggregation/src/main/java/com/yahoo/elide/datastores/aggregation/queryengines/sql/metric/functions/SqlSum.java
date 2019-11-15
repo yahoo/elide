@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions;
 
 import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatableField;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.BasicSQLMetricFunction;
 import com.yahoo.elide.request.Argument;
 
 import java.util.List;

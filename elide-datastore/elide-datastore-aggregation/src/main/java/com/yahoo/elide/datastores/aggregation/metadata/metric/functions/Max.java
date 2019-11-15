@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.metric.functions;
 
-import com.yahoo.elide.datastores.aggregation.metadata.metric.BasicMetricFunction;
-
 /**
  * Canned MAX metric function.
  */

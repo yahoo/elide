@@ -35,10 +35,20 @@ public class SQLColumnProjection implements ColumnProjection {
         this.alias = columnAlias;
     }
 
+    /**
+     * Get the sql join path to this field.
+     *
+     * @return join path
+     */
     public Path getJoinPath() {
         return this.column == null ? null : column.getJoinPath();
     }
 
+    /**
+     * Get physical column name of this projection.
+     *
+     * @return column name
+     */
     public String getColumnName() {
         return this.column == null ? getAlias() : column.getColumnName();
     }

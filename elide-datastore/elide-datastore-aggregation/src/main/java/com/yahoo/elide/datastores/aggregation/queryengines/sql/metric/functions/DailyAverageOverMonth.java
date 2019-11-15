@@ -10,7 +10,6 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatableField;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.BasicSQLMetricFunction;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 import com.yahoo.elide.request.Argument;
