@@ -48,9 +48,7 @@ public class ElideStandaloneTest {
         elide = new ElideStandalone(new ElideStandaloneSettings() {
 
             @Override
-            public ElideSettings getElideSettings(ServiceLocator injector) {
-                EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
-
+            public Properties getDatabaseProperties() {
                 Properties options = new Properties();
 
                 options.put("hibernate.show_sql", "true");
@@ -63,22 +61,12 @@ public class ElideStandaloneTest {
                 options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE;");
                 options.put("javax.persistence.jdbc.user", "sa");
                 options.put("javax.persistence.jdbc.password", "");
+                return options;
+            }
 
-                EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(Post.class.getPackage().getName(), options);
-                DataStore dataStore = new JpaDataStore(
-                        () -> { return entityManagerFactory.createEntityManager(); },
-                        (em -> { return new NonJtaTransaction(em); }));
-
-                dataStore.populateEntityDictionary(dictionary);
-
-                ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                        .withUseFilterExpressions(true)
-                        .withEntityDictionary(dictionary)
-                        .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                        .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
-                        .withAuditLogger(getAuditLogger());
-
-                return builder.build();
+            @Override
+            public String getModelPackageName() {
+                return Post.class.getPackage().getName();
             }
 
             @Override
@@ -116,7 +104,7 @@ public class ElideStandaloneTest {
                   "           \"id\": \"1\",\n" +
                   "           \"attributes\": {\n" +
                   "             \"content\": \"This is my first post. woot.\",\n" +
-                  "             \"date\" : \"0\"\n" +
+                  "             \"date\" : \"2019-01-01T00:00Z\"\n" +
                   "           }\n" +
                   "         }\n" +
                   "       }")
