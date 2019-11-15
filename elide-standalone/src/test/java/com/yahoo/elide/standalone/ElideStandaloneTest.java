@@ -75,7 +75,8 @@ public class ElideStandaloneTest {
                         .withUseFilterExpressions(true)
                         .withEntityDictionary(dictionary)
                         .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                        .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary));
+                        .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withAuditLogger(getAuditLogger());
 
                 return builder.build();
             }
