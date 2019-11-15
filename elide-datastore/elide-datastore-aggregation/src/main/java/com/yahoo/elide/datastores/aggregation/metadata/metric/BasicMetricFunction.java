@@ -39,7 +39,9 @@ public abstract class BasicMetricFunction extends MetricFunction {
     }
 
     @Override
-    public MetricFunctionInvocation invoke(Map<String, Argument> arguments, AggregatedField field, String alias) {
+    public MetricFunctionInvocation invoke(Map<String, Argument> arguments,
+                                           List<AggregatableField> fields,
+                                           String alias) {
         final MetricFunction function = this;
         return new MetricFunctionInvocation() {
             @Override
@@ -58,8 +60,8 @@ public abstract class BasicMetricFunction extends MetricFunction {
             }
 
             @Override
-            public AggregatedField getAggregatedField() {
-                return field;
+            public List<AggregatableField> getAggregatables() {
+                return fields;
             }
 
             @Override

@@ -189,12 +189,12 @@ public class SQLQueryConstructor {
 
         SQLMetricFunctionInvocation metric = template.getMetrics().stream()
                 // TODO: filter predicate should support alias
-                .filter(invocation -> invocation.getAggregatedField().getFieldName().equals(fieldName))
+                .filter(invocation -> invocation.getAlias().equals(fieldName))
                 .findFirst()
                 .orElse(null);
 
         if (metric != null) {
-            return metric.toSQLExpression();
+            return metric.getSQL();
         } else {
             ColumnProjection dimension = template.getGroupByDimensions().stream()
                     .filter(projection -> projection.getAlias().equals(fieldName))
@@ -217,7 +217,7 @@ public class SQLQueryConstructor {
      */
     private String aliasProject(SQLQueryTemplate template) {
         List<String> metricProjections = template.getMetrics().stream()
-                .map(invocation -> invocation.toSQLExpression() + " AS " + invocation.getAlias())
+                .map(invocation -> invocation.getSQL() + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = aliasProjectDimensions(template).stream()
@@ -277,12 +277,12 @@ public class SQLQueryConstructor {
 
         SQLMetricFunctionInvocation metric = template.getMetrics().stream()
                 // TODO: filter predicate should support alias
-                .filter(invocation -> invocation.getAggregatedField().getFieldName().equals(fieldName))
+                .filter(invocation -> invocation.getAlias().equals(fieldName))
                 .findFirst()
                 .orElse(null);
 
         if (metric != null) {
-            return metric.toSQLExpression();
+            return metric.getSQL();
         } else {
             return generateColumnReference(predicate);
         }
@@ -299,7 +299,7 @@ public class SQLQueryConstructor {
     private String referenceProject(SQLQueryTemplate template, SQLTable table) {
         // TODO: project metric field using table column reference
         List<String> metricProjections = template.getMetrics().stream()
-                .map(invocation -> invocation.toSQLExpression() + " AS " + invocation.getAlias())
+                .map(invocation -> invocation.getSQL() + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = referenceProjectDimensions(template, table).stream()

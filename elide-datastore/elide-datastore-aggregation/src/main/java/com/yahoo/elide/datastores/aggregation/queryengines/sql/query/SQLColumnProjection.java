@@ -34,7 +34,7 @@ public class SQLColumnProjection implements ColumnProjection {
         this.column = column;
         this.alias = columnAlias;
     }
-    
+
     public Path getJoinPath() {
         return this.column == null ? null : column.getJoinPath();
     }

@@ -7,13 +7,14 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatedField;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatableField;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.request.Argument;
 
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -45,18 +46,20 @@ public abstract class MetricFunction {
     }
 
     protected abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
-                                                    AggregatedField field,
-                                                    String alias);
+                                                       List<AggregatableField> fields,
+                                                       String alias);
 
     /**
      * Invoke this metric function with arguments, an aggregated field and projection alias.
      *
      * @param arguments arguments provided in the request
-     * @param field field to apply this function
+     * @param fields fields to apply this function
      * @param alias result alias
      * @return an invoked metric function
      */
-    public final MetricFunctionInvocation invoke(Set<Argument> arguments, AggregatedField field, String alias) {
+    public final MetricFunctionInvocation invoke(Set<Argument> arguments,
+                                                 List<AggregatableField> fields,
+                                                 String alias) {
         Set<String> requiredArguments = getArgumentNames();
         Set<String> providedArguments = arguments.stream()
                 .map(Argument::getName)
@@ -71,6 +74,6 @@ public abstract class MetricFunction {
         Map<String, Argument> resolvedArguments = arguments.stream()
                 .collect(Collectors.toMap(Argument::getName, Function.identity()));
 
-        return invoke(resolvedArguments, field, alias);
+        return invoke(resolvedArguments, fields, alias);
     }
 }

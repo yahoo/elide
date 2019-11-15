@@ -5,10 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric;
 
-import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatedField;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatableField;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -45,13 +43,18 @@ public abstract class BasicSQLMetricFunction extends SQLMetricFunction {
 
     @Override
     protected SQLMetricFunctionInvocation invokeAsSQL(Map<String, Argument> arguments,
-                                                      AggregatedField field,
+                                                      List<AggregatableField> fields,
                                                       String alias) {
-        final SQLMetricFunction function = this;
+        final BasicSQLMetricFunction function = this;
         return new SQLMetricFunctionInvocation() {
             @Override
             public SQLMetricFunction getFunction() {
                 return function;
+            }
+
+            @Override
+            public String getSQL() {
+                return function.buildSQL(arguments, fields);
             }
 
             @Override
@@ -65,8 +68,8 @@ public abstract class BasicSQLMetricFunction extends SQLMetricFunction {
             }
 
             @Override
-            public AggregatedField getAggregatedField() {
-                return field;
+            public List<AggregatableField> getAggregatables() {
+                return fields;
             }
 
             @Override
@@ -78,11 +81,11 @@ public abstract class BasicSQLMetricFunction extends SQLMetricFunction {
 
     @Override
     public SQLQueryTemplate resolve(Map<String, Argument> arguments,
-                                    Metric metric,
+                                    List<AggregatableField> fields,
                                     String alias,
                                     Set<ColumnProjection> dimensions,
                                     TimeDimensionProjection timeDimension) {
-        SQLMetricFunctionInvocation invoked = invokeAsSQL(arguments, new AggregatedField(metric), alias);
+        SQLMetricFunctionInvocation invoked = invokeAsSQL(arguments, fields, alias);
         return new SQLQueryTemplate() {
             @Override
             public List<SQLMetricFunctionInvocation> getMetrics() {
@@ -113,10 +116,10 @@ public abstract class BasicSQLMetricFunction extends SQLMetricFunction {
 
     @Override
     public SQLQueryTemplate resolve(Map<String, Argument> arguments,
-                                    MetricFunctionInvocation metric,
+                                    List<AggregatableField> fields,
                                     String alias,
                                     SQLQueryTemplate subQuery) {
-        SQLMetricFunctionInvocation invoked = invokeAsSQL(arguments, new AggregatedField(metric.getAlias()), alias);
+        SQLMetricFunctionInvocation invoked = invokeAsSQL(arguments, fields, alias);
         return new SQLQueryTemplate() {
             @Override
             public List<SQLMetricFunctionInvocation> getMetrics() {

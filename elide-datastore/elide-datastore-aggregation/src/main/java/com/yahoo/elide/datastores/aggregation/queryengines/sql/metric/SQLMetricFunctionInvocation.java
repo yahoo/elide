@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric;
 
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
@@ -27,10 +26,7 @@ public interface SQLMetricFunctionInvocation extends MetricFunctionInvocation {
      *
      * @return <code>function(aggregatedField, arguments)</code>
      */
-    default String toSQLExpression() {
-        // TODO: insert arguments into expression
-        return getFunction().getSQLExpression().replace("%metric", getAggregatedField().getFieldName());
-    }
+    String getSQL();
 
     /**
      * Construct a query template based on this invocation.
@@ -40,12 +36,9 @@ public interface SQLMetricFunctionInvocation extends MetricFunctionInvocation {
      * @return a sql query template
      */
     default SQLQueryTemplate resolve(Set<ColumnProjection> dimensions, TimeDimensionProjection timeDimension) {
-        if (!getAggregatedField().isMetricField()) {
-            throw new InvalidPredicateException("Can't create sql query template on metric alias.");
-        }
         return getFunction().resolve(
                 getArguments().stream().collect(Collectors.toMap(Argument::getName, Function.identity())),
-                getAggregatedField().getMetric(),
+                getAggregatables(),
                 getAlias(),
                 dimensions,
                 timeDimension);

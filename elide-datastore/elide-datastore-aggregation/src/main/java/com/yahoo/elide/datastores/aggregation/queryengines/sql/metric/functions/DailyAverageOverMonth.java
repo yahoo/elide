@@ -7,8 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions
 
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatableField;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.BasicSQLMetricFunction;
@@ -16,7 +15,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTem
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 import com.yahoo.elide.request.Argument;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,21 +36,21 @@ public class DailyAverageOverMonth extends BasicSQLMetricFunction {
 
     @Override
     public SQLQueryTemplate resolve(Map<String, Argument> arguments,
-                                    Metric metric,
+                                    List<AggregatableField> fields,
                                     String alias,
                                     Set<ColumnProjection> dimensions,
                                     TimeDimensionProjection timeDimension) {
         try {
             SQLQueryTemplate subQuery = SqlSum.class.newInstance().resolve(
                     arguments,
-                    metric,
+                    fields,
                     alias,
                     dimensions,
                     timeDimension.toTimeGrain(TimeGrain.DAY));
 
             return SqlAvg.class.newInstance().resolve(
                     arguments,
-                    subQuery.getMetrics().get(0),
+                    new ArrayList<>(subQuery.getMetrics()),
                     alias,
                     subQuery.toTimeGrain(TimeGrain.MONTH));
         } catch (InstantiationException | IllegalAccessException e) {
@@ -59,9 +60,9 @@ public class DailyAverageOverMonth extends BasicSQLMetricFunction {
 
     @Override
     public SQLQueryTemplate resolve(Map<String, Argument> arguments,
-                                             MetricFunctionInvocation metric,
-                                             String alias,
-                                             SQLQueryTemplate subQuery) {
+                                    List<AggregatableField> fields,
+                                    String alias,
+                                    SQLQueryTemplate subQuery) {
         throw new InvalidOperationException("Can't apply aggregation " + getName() + " on nested query.");
     }
 }
