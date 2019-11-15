@@ -6,14 +6,11 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.datastores.aggregation.AggregationDictionary.getClassAlias;
-
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import lombok.Getter;
 
@@ -58,54 +55,28 @@ public class SQLDimensionProjection {
     /**
      * Build a SQL dimension for a dimension projection.
      *
-     * @param dimension dimension to project out
+     * @param projection dimension to project out
      * @param table table that contains this dimension
-     * @param dictionary dictionary that manage aggregation store models
      * @return constructed dimension
      */
-    public static SQLDimensionProjection constructSQLDimension(
-            DimensionProjection dimension,
-            Table table,
-            AggregationDictionary dictionary) {
+    public static SQLDimensionProjection constructSQLDimension(DimensionProjection projection,
+                                                               SQLTable table) {
+        String fieldName = projection.getDimension().getName();
+        SQLColumn sqlColumn = table.getSQLColumn(fieldName);
 
-        String fieldName = dimension.getDimension().getName();
-        Class<?> tableCls = table.getCls();
-
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableCls, JoinTo.class, fieldName);
-
-        if (joinTo == null) {
-            String columnName = dictionary.getColumnName(tableCls, fieldName);
-
-            if (dimension instanceof TimeDimensionProjection) {
-                return new SQLTimeDimensionProjection(
-                        columnName,
-                        getClassAlias(tableCls),
-                        null,
-                        ((TimeDimensionProjection) dimension).getDimension(),
-                        ((TimeDimensionProjection) dimension).getProjectedGrain());
-            }
-            return new SQLDimensionProjection(columnName, getClassAlias(tableCls), dimension.getAlias(), null);
-        } else {
-            Path path = new Path(tableCls, dictionary, joinTo.path());
-
-            if (dimension instanceof TimeDimensionProjection) {
-                return new SQLTimeDimensionProjection(
-                        dictionary.getJoinColumn(path),
-                        getJoinTableAlias(path),
-                        path,
-                        ((TimeDimensionProjection) dimension).getDimension(),
-                        ((TimeDimensionProjection) dimension).getProjectedGrain()
-                );
-            }
-            return new SQLDimensionProjection(
-                    dictionary.getJoinColumn(path), getJoinTableAlias(path), dimension.getAlias(), path);
+        if (projection instanceof TimeDimensionProjection) {
+            return new SQLTimeDimensionProjection(
+                    sqlColumn.getColumnName(),
+                    sqlColumn.getTableAlias(),
+                    sqlColumn.getJoinPath(),
+                    ((TimeDimensionProjection) projection).getDimension(),
+                    ((TimeDimensionProjection) projection).getProjectedGrain());
         }
-    }
 
-    private static String getJoinTableAlias(Path path) {
-        Path.PathElement last = path.lastElement().get();
-        Class<?> lastClass = last.getType();
-
-        return getClassAlias(lastClass);
+        return new SQLDimensionProjection(
+                sqlColumn.getColumnName(),
+                sqlColumn.getTableAlias(),
+                projection.getAlias(),
+                sqlColumn.getJoinPath());
     }
 }
