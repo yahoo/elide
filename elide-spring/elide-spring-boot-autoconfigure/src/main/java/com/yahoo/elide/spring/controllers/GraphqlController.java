@@ -55,7 +55,7 @@ public class GraphqlController {
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
     public ResponseEntity<String> post(@RequestBody String graphQLDocument, Principal user) {
 
-        ElideResponse response = runner.post(graphQLDocument, user);
+        ElideResponse response = runner.run(graphQLDocument, user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 }

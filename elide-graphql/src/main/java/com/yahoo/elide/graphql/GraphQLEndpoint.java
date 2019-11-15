@@ -61,7 +61,7 @@ public class GraphQLEndpoint {
             @Context SecurityContext securityContext,
             String graphQLDocument) {
 
-        ElideResponse response = runner.post(graphQLDocument, getUser.apply(securityContext));
+        ElideResponse response = runner.run(graphQLDocument, getUser.apply(securityContext));
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }
 }

@@ -31,7 +31,6 @@ By default, auto configuration creates an `EntityDictionary` with no checks or l
 
 ```java
     @Bean
-    @ConditionalOnMissingBean
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory) {
         return new EntityDictionary(new HashMap<>(), beanFactory::autowireBean);
     }
@@ -41,7 +40,6 @@ A typical override would add some checks and life cycle hooks.  *This is likely 
 
 ```java
     @Bean
-    @ConditionalOnMissingBean
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory) {
         HashMap<String, Class<? extends Check>> checkMappings = new HashMap<>();
         checkMappings.put("allow all", Role.ALL.class);
@@ -58,7 +56,6 @@ By default, the auto configuration will wire up a JPA data store:
 
 ```java
     @Bean
-    @ConditionalOnMissingBean
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory) {
         return new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
@@ -74,7 +71,6 @@ By default, Elide will generate swagger documentation for every model exposed in
 
 ```java
     @Bean
-    @ConditionalOnMissingBean
     public Swagger buildSwagger(EntityDictionary dictionary, ElideConfigProperties settings) {
         Info info = new Info()
                 .title(settings.getSwagger().getName())
@@ -104,3 +100,22 @@ Reasons for doing this might include:
 2. Registering a custom `Serde` for type coercion.
 3. Changing the Elide filter dialect.
 4. Configuring a custom Elide audit logger.
+
+```java
+    @Bean
+    public Elide initializeElide(EntityDictionary dictionary,
+                          DataStore dataStore, ElideConfigProperties settings) {
+
+        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
+                .withEntityDictionary(dictionary)
+                .withDefaultMaxPageSize(settings.getMaxPageSize())
+                .withDefaultPageSize(settings.getPageSize())
+                .withUseFilterExpressions(true)
+                .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
+                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withAuditLogger(new Slf4jLogger())
+                .withEncodeErrorResponses(true)
+                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+
+        return new Elide(builder.build());
+```

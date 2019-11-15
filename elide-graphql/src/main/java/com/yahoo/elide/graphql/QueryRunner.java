@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -56,6 +56,10 @@ public class QueryRunner {
     private static final String VARIABLES = "variables";
     private static final String MUTATION = "mutation";
 
+    /**
+     * Builds a new query runner.
+     * @param elide The singular elide instance for this service.
+     */
     public QueryRunner(Elide elide) {
         this.elide = elide;
 
@@ -73,7 +77,13 @@ public class QueryRunner {
         elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
     }
 
-    public ElideResponse post(String graphQLDocument, Object user) {
+    /**
+     * Execute a GraphQL query and return the response.
+     * @param graphQLDocument The graphQL document (wrapped in JSON payload).
+     * @param user The user who issued the query.
+     * @return The response.
+     */
+    public ElideResponse run(String graphQLDocument, Object user) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
