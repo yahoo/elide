@@ -9,6 +9,7 @@ import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
+@Configuration
 @RequestMapping(value = "${elide.swagger.path}")
 @ConditionalOnExpression("${elide.swagger.enabled:false}")
 public class SwaggerController {

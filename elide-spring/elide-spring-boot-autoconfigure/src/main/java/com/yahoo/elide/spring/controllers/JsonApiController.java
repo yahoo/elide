@@ -10,6 +10,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
  */
 @Slf4j
 @RestController
+@Configuration
 @RequestMapping(value = "${elide.json-api.path}")
 @ConditionalOnExpression("${elide.json-api.enabled:false}")
 public class JsonApiController {
