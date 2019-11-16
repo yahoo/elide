@@ -24,6 +24,7 @@
         <module>elide-example</module>
         <module>elide-contrib</module>
         <module>elide-standalone</module>
+        <module>elide-spring</module>
     </modules>
 
     <issueManagement>
@@ -122,7 +123,7 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
-                <version>1.7.28</version>
+                <version>1.7.29</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -326,7 +327,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.1.2</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.gmaven</groupId>
@@ -363,7 +364,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -505,7 +506,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>5.2.1</version>
+                <version>5.2.3</version>
                 <configuration>
                     <failBuildOnCVSS>6</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
