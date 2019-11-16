@@ -8,6 +8,8 @@ package com.yahoo.elide.standalone.config;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 
+import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -72,7 +74,8 @@ public interface ElideStandaloneSettings {
                 .withUseFilterExpressions(true)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary));
+                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withAuditLogger(getAuditLogger());
 
         if (enableIS06081Dates()) {
             builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
@@ -228,5 +231,14 @@ public interface ElideStandaloneSettings {
      */
     default void updateServletContextHandler(ServletContextHandler servletContextHandler) {
         // Do nothing
+    }
+
+    /**
+     * Gets the audit logger for elide
+     *
+     * @return Default: Slf4jLogger
+     */
+    default AuditLogger getAuditLogger() {
+        return new Slf4jLogger();
     }
 }
