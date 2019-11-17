@@ -122,17 +122,14 @@ public class LogMessage {
                 singleElementContext.setVariable(name, singleElementExpression);
             }
 
-            final User user = getUser();
+            final Object user = getUser();
             if (user != null) {
-                final Object opaqueUser = user.getOpaqueUser();
-                if (opaqueUser != null) {
-                    final ValueExpression opaqueUserValueExpression = EXPRESSION_FACTORY
-                        .createValueExpression(
-                            opaqueUser, Object.class
-                        );
-                    ctx.setVariable("opaqueUser", opaqueUserValueExpression);
-                    singleElementContext.setVariable("opaqueUser", opaqueUserValueExpression);
-                }
+                final ValueExpression opaqueUserValueExpression = EXPRESSION_FACTORY
+                    .createValueExpression(
+                        user, Object.class
+                    );
+                ctx.setVariable("opaqueUser", opaqueUserValueExpression);
+                singleElementContext.setVariable("opaqueUser", opaqueUserValueExpression);
             }
         }
 
@@ -180,10 +177,13 @@ public class LogMessage {
         return null;
     }
 
-    public User getUser() {
+    public Object getUser() {
         RequestScope requetScope = getRequestScope();
         if (requetScope != null) {
-            return requetScope.getUser();
+            User = requestScope.getUser();
+            if (user != null) {
+                return user.getOpaqueUser();
+            }
         }
         return null;
     }
