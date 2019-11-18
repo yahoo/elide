@@ -178,8 +178,8 @@ public class LogMessage {
     }
 
     public Object getUser() {
-        RequestScope requetScope = getRequestScope();
-        if (requetScope != null) {
+        RequestScope requestScope = getRequestScope();
+        if (requestScope != null) {
             User user = requestScope.getUser();
             if (user != null) {
                 return user.getOpaqueUser();
