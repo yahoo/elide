@@ -10,8 +10,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.annotation.Metric;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.security.checks.Check;
@@ -39,8 +37,7 @@ public class AggregationDictionary extends EntityDictionary {
      * <p>
      * A field is a metric field iff that field is annotated by at least one of
      * <ol>
-     *     <li> {@link MetricAggregation}
-     *     <li> {@link MetricComputation}
+     *     <li> {@link Metric}
      * </ol>
      *
      * @param fieldName  The entity field
@@ -110,17 +107,25 @@ public class AggregationDictionary extends EntityDictionary {
      * @return The physical SQL table or subselect query.
      */
     public String getTableOrSubselect(Class<?> cls) {
-        Subselect subselectAnnotation = getAnnotation(cls, Subselect.class);
-
-        if (subselectAnnotation == null) {
+        if (isSubselect(cls)) {
+            return getAnnotation(cls, Subselect.class).value();
+        } else {
             javax.persistence.Table tableAnnotation =
                     getAnnotation(cls, javax.persistence.Table.class);
 
             return (tableAnnotation == null)
                     ? getJsonAliasFor(cls)
                     : tableAnnotation.name();
-        } else {
-            return "(" + subselectAnnotation.value() + ")";
         }
+    }
+
+    /**
+     * Check whether a class is mapped to a subselect query instead of a physical table.
+     *
+     * @param cls The entity class
+     * @return True if the class has {@link Subselect} annotation
+     */
+    public boolean isSubselect(Class<?> cls) {
+        return cls.isAnnotationPresent(Subselect.class);
     }
 }

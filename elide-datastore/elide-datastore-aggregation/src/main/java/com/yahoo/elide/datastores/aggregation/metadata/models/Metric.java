@@ -38,18 +38,14 @@ public class Metric extends Column {
                 com.yahoo.elide.datastores.aggregation.annotation.Metric.class,
                 fieldName);
 
-        if (metric == null) {
-            throw new IllegalArgumentException(getId() + " is not a metric field");
-        } else {
-            try {
-                this.metricFunction = metric.function().newInstance();
-                metricFunction.setName(getId() + "[" + metricFunction.getName() + "]");
-                metricFunction.setExpression(String.format(
-                        metricFunction.getExpression(),
-                        dictionary.getColumnName(tableClass, fieldName)));
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new IllegalArgumentException("Can't initialize function for metric " + getId());
-            }
+        try {
+            this.metricFunction = metric.function().newInstance();
+            metricFunction.setName(getId() + "[" + metricFunction.getName() + "]");
+            metricFunction.setExpression(String.format(
+                    metricFunction.getExpression(),
+                    dictionary.getColumnName(tableClass, fieldName)));
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalArgumentException("Can't initialize function for metric " + getId());
         }
     }
 }
