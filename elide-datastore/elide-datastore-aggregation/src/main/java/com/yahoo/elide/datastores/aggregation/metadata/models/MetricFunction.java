@@ -7,20 +7,21 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatedField;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.request.Argument;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 /**
  * Functions used to compute metrics.
@@ -29,34 +30,71 @@ import javax.persistence.OneToMany;
 @Entity
 @Data
 @ToString
-public abstract class MetricFunction {
+@AllArgsConstructor
+public class MetricFunction {
     @Id
-    public abstract String getName();
+    private String name;
 
-    public abstract String getLongName();
+    private String longName;
 
-    public abstract String getDescription();
+    private String description;
 
-    @OneToMany
-    public abstract Set<FunctionArgument> getArguments();
+    private String expression;
 
+    private Set<FunctionArgument> arguments;
+
+    protected MetricFunctionInvocation invoke(Map<String, Argument> arguments, String alias) {
+        final MetricFunction function = this;
+        return new MetricFunctionInvocation() {
+            @Override
+            public List<Argument> getArguments() {
+                return new ArrayList<>(arguments.values());
+            }
+
+            @Override
+            public Argument getArgument(String argumentName) {
+                return arguments.get(argumentName);
+            }
+
+            @Override
+            public MetricFunction getFunction() {
+                return function;
+            }
+
+            @Override
+            public String getAlias() {
+                return alias;
+            }
+        };
+    }
+
+    /**
+     * Construct full metric expression using arguments.
+     *
+     * @param arguments provided arguments
+     * @return <code>FUNCTION(field1, field2, ..., arg1, arg2, ...)</code>
+     */
+    public String constructExpression(Map<String, Argument> arguments) {
+        return getExpression();
+    }
+
+    /**
+     * Get all required argument names for this metric function.
+     *
+     * @return all argument names
+     */
     private Set<String> getArgumentNames() {
         return getArguments().stream().map(FunctionArgument::getName).collect(Collectors.toSet());
     }
-
-    protected abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
-                                                    AggregatedField field,
-                                                    String alias);
 
     /**
      * Invoke this metric function with arguments, an aggregated field and projection alias.
      *
      * @param arguments arguments provided in the request
-     * @param field field to apply this function
      * @param alias result alias
      * @return an invoked metric function
      */
-    public final MetricFunctionInvocation invoke(Set<Argument> arguments, AggregatedField field, String alias) {
+    public final MetricFunctionInvocation invoke(Set<Argument> arguments, String alias) {
         Set<String> requiredArguments = getArgumentNames();
         Set<String> providedArguments = arguments.stream()
                 .map(Argument::getName)
@@ -71,6 +109,6 @@ public abstract class MetricFunction {
         Map<String, Argument> resolvedArguments = arguments.stream()
                 .collect(Collectors.toMap(Argument::getName, Function.identity()));
 
-        return invoke(resolvedArguments, field, alias);
+        return invoke(resolvedArguments, alias);
     }
 }

@@ -11,21 +11,21 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
 import java.io.Serializable;
 
 /**
- * Represents a selected dimension in a Query.
+ * Represents a selected dimension in a Query.	
  */
 public interface DimensionProjection extends Serializable {
 
     /**
-     * Returns the name of the entity representing this {@link DimensionProjection} object as a {@link String}.
+     * Returns the name of the entity representing this {@link DimensionProjection} object as a {@link String}.	
      *
-     * @return the name of the entity or interface representing this {@link DimensionProjection}.
+     * @return the name of the entity or interface representing this {@link DimensionProjection}.	
      */
     String getName();
 
     /**
-     * Given a schema, converts this requested dimension into a schema column.
-     * @param schema The provided schema
-     * @return A dimension column.
+     * Given a schema, converts this requested dimension into a schema column.	
+     * @param schema The provided schema	
+     * @return A dimension column.	
      */
     default DimensionColumn toDimensionColumn(Schema schema) {
         return schema.getDimension(getName());
