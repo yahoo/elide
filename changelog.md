@@ -1,5 +1,30 @@
 # Change Log
 
+## 4.5.7
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/1625319a2755cc615716c322057156c45645b707) Added Elide Support For Spring Boot (#1070) 
+   * [view commit](https://github.com/yahoo/elide/commit/cba356a4afed56760d670e41f1b822ef8cd3dc1a) Expose audit logger in standalone (#1075) 
+   4.1.1 (#1033) 
+   * [view commit](https://github.com/yahoo/elide/commit/6248156e848e84d64b76a99a4c89122f2434430a) Expose opaque user in audits (#1074) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/a1f04eb8bbbdde02379c4ce9e462fa3aacc589ed) Bump mockito-core from 3.0.0 to 3.1.0 (#1036) 
+   * [view commit](https://github.com/yahoo/elide/commit/26ec44156b4578e3c7d8cd9e9d6bd21812707ccd) Added awesome badges for Java & GraphQL (#1045) 
+   * [view commit](https://github.com/yahoo/elide/commit/124ada06d4490fb7973b822b2f14b1f1a21b1ebe) Bump jersey-container-jetty-servlet from 2.29 to 2.29.1 (#1030) 
+   * [view commit](https://github.com/yahoo/elide/commit/4faca446b90fbfc53cf23986e35a80c124b0e537) Bump jetty-continuation from 9.4.19.v20190610 to 9.4.22.v20191022 (#1050) 
+   * [view commit](https://github.com/yahoo/elide/commit/2ce4d51168bfc975b37fe846ef17b997c53f5abd) Bump log4j-over-slf4j from 1.7.26 to 1.7.28 (#1048) 
+   * [view commit](https://github.com/yahoo/elide/commit/748da7726c9dd7db22c6c2c7aedad3137395a489) Bump swagger-core from 1.5.23 to 1.5.24 (#1047) 
+   * [view commit](https://github.com/yahoo/elide/commit/19a9e5ace0c30389f3c5a407607c4d1964a6a459) Update README.md (#1062) 
+   * [view commit](https://github.com/yahoo/elide/commit/600e4423a6c0ee87d4f1ac7b6ae711fc4a66dcef) Updated Elide standalone docs to point to main elide.io getting started docs (#1063) 
+   * [view commit](https://github.com/yahoo/elide/commit/ffea4422f664e4bcc0b4e68cfb4db386b53a65a3) Update README.md (#1065) 
+   * [view commit](https://github.com/yahoo/elide/commit/643454ac2f64eeeb722a0355602a0c9ed3e62f00) Bump rxjava from 2.2.13 to 2.2.14 (#1061) 
+   * [view commit](https://github.com/yahoo/elide/commit/5b2fd8079b7bc0ce13c3729c28831dd17c41cf69) Bump maven-jar-plugin from 3.1.2 to 3.2.0 (#1060) 
+   * [view commit](https://github.com/yahoo/elide/commit/bd6f02cbd307d7dc7ec91778de20aafa9afe1b8d) Bump maven-source-plugin from 3.1.0 to 3.2.0 (#1059) 
+   * [view commit](https://github.com/yahoo/elide/commit/c96f889a3e31596d54932a521fb4614fdc1b9b62) Bump dependency-check-maven from 5.2.1 to 5.2.3 (#1069) 
+   * [view commit](https://github.com/yahoo/elide/commit/7533433829951b4872f892d6b85ea79c8ec4e6be) Bump log4j-over-slf4j from 1.7.28 to 1.7.29 (#1058) 
+   * [view commit](https://github.com/yahoo/elide/commit/2fd764bcdfa6f6ac322c49954294bd5abd7fc9fb) Bump version.jetty from 9.4.21.v20190926 to 9.4.22.v20191022 (#1046) 
+   * [view commit](https://github.com/yahoo/elide/commit/55261b095c1d0f8797d38efc6401479790cf0972) Bump metrics.version from 4.1.0 to 
+
 ## 4.5.6
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/01f630782f1bf6d51acd293fab811d3c63998014) Fix elide4.5.5 (#1040) 
