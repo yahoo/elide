@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatableField;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,7 +23,7 @@ import javax.persistence.ManyToOne;
 @Include(type = "metric")
 @Entity
 @Data
-public class Metric extends Column implements AggregatableField {
+public class Metric extends Column {
     private Format defaultFormat;
 
     @ManyToOne
@@ -44,6 +43,10 @@ public class Metric extends Column implements AggregatableField {
         } else {
             try {
                 this.metricFunction = metric.function().newInstance();
+                metricFunction.setName(getId() + "[" + metricFunction.getName() + "]");
+                metricFunction.setExpression(String.format(
+                        metricFunction.getExpression(),
+                        dictionary.getColumnName(tableClass, fieldName)));
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new IllegalArgumentException("Can't initialize function for metric " + getId());
             }

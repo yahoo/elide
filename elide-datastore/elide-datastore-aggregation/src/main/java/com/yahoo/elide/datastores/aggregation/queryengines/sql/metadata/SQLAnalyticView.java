@@ -9,28 +9,26 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
  * SQL extension of {@link AnalyticView} which also contains sql column meta data.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SQLAnalyticView extends AnalyticView implements SQLTable {
-    private Set<SQLColumn> sqlColumns;
+public class SQLAnalyticView extends AnalyticView {
+    private Map<String, SQLColumn> sqlColumns;
 
     public SQLAnalyticView(Class<?> cls, AggregationDictionary dictionary) {
         super(cls, dictionary);
         this.sqlColumns = resolveSQLDimensions(cls, dictionary);
     }
 
-    @Override
-    public Table asTable() {
-        return this;
+    public SQLColumn getColumn(String fieldName) {
+        return sqlColumns.get(fieldName);
     }
 }

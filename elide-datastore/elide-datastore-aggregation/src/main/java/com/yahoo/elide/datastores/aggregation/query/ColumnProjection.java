@@ -17,7 +17,6 @@ import java.io.Serializable;
  * Represents a projected column as an alias in a query.
  */
 public interface ColumnProjection extends Serializable {
-
     /**
      * Get the projected column.
      *
