@@ -9,6 +9,9 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
+import lombok.AccessLevel;
+import lombok.Setter;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +35,8 @@ public class MultiplexManager implements DataStore {
 
     protected final List<DataStore> dataStores;
     protected final ConcurrentHashMap<Class<?>, DataStore> dataStoreMap = new ConcurrentHashMap<>();
+
+    @Setter(AccessLevel.PROTECTED)
     private EntityDictionary dictionary;
 
     /**

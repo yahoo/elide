@@ -14,9 +14,12 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.framework.AggregationITResourceConfig;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +41,10 @@ import javax.ws.rs.core.MediaType;
  * Integration tests for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
+
+    public AggregationDataStoreIntegrationTest() {
+        super(AggregationITResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
 
     QueryEngineFactory queryEngineFactory;
 
@@ -498,13 +505,56 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 selections(
-                                        field("highScore", 2412),
+                                        field("highScore", 4646),
                                         field("recordedDate", "2019-07-01T00:00Z")
                                 )
                         )
                 )).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testGetMetaData() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .log()
+                .all()
+                .statusCode(HttpStatus.SC_OK);
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/analyticView")
+                .then()
+                .log()
+                .all()
+                .statusCode(HttpStatus.SC_OK);
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/dimension")
+                .then()
+                .log()
+                .all()
+                .statusCode(HttpStatus.SC_OK);
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/metric")
+                .then()
+                .log()
+                .all()
+                .statusCode(HttpStatus.SC_OK);
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/timeDimension")
+                .then()
+                .log()
+                .all()
+                .statusCode(HttpStatus.SC_OK);
     }
 
     private void create(String query, Map<String, Object> variables) throws IOException {

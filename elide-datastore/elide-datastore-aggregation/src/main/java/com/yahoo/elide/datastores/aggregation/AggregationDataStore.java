@@ -9,8 +9,11 @@ import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColumn;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+
+import lombok.Getter;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
@@ -18,10 +21,15 @@ import com.yahoo.elide.datastores.aggregation.schema.dimension.TimeDimensionColu
 public abstract class AggregationDataStore implements DataStore {
 
     private final QueryEngineFactory queryEngineFactory;
+
+    @Getter
+    private final MetaDataStore metaDataStore;
+
     private QueryEngine queryEngine;
 
     public AggregationDataStore(QueryEngineFactory queryEngineFactory) {
         this.queryEngineFactory = queryEngineFactory;
+        this.metaDataStore = new MetaDataStore();
     }
 
     /**
@@ -30,12 +38,23 @@ public abstract class AggregationDataStore implements DataStore {
      */
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        queryEngine = queryEngineFactory.buildQueryEngine(dictionary);
+        if (dictionary instanceof AggregationDictionary) {
+            populateEntityDictionary((AggregationDictionary) dictionary);
+        } else {
+            throw new IllegalArgumentException("Dictionary doesn't support aggregation.");
+        }
+    }
+
+    protected void populateEntityDictionary(AggregationDictionary dictionary) {
+        metaDataStore.populateEntityDictionary(dictionary);
+        queryEngine = queryEngineFactory.buildQueryEngine(dictionary, metaDataStore);
 
         /* Add 'grain' argument to each TimeDimensionColumn */
-        for (Schema schema: queryEngine.getSchemas()) {
-            for (TimeDimensionColumn timeDim : schema.getTimeDimensions()) {
-                dictionary.addArgumentToAttribute(schema.getEntityClass(), timeDim.getName(),
+        for (AnalyticView table : metaDataStore.getMetaData(AnalyticView.class)) {
+            for (TimeDimension timeDim : table.getColumns(TimeDimension.class)) {
+                dictionary.addArgumentToAttribute(
+                        table.getCls(),
+                        timeDim.getName(),
                         new ArgumentType("grain", String.class));
             }
         }

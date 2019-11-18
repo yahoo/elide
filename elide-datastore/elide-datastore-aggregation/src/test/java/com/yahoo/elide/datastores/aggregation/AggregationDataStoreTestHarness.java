@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
@@ -24,9 +23,9 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
     @Override
     public DataStore getDataStore() {
-        return new AggregationDataStore(queryEngineFactory) {
+        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory) {
             @Override
-            public void populateEntityDictionary(EntityDictionary dictionary) {
+            public void populateEntityDictionary(AggregationDictionary dictionary) {
                 dictionary.bindEntity(PlayerStats.class);
                 dictionary.bindEntity(Country.class);
                 dictionary.bindEntity(SubCountry.class);
@@ -36,6 +35,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                 super.populateEntityDictionary(dictionary);
             }
         };
+
+        return new AggregationManager(aggregationDataStore);
     }
 
     public void cleanseTestData() {

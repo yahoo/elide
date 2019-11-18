@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -18,11 +17,13 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -41,19 +42,19 @@ public class SplitFilterExpressionVisitorTest {
             Collections.singletonList(99)
     );
 
-    private static EntityDictionary entityDictionary;
-    private static Schema schema;
+    private static AggregationDictionary entityDictionary;
+    private static Table table;
     private static FilterExpressionVisitor<FilterConstraints> splitFilterExpressionVisitor;
 
     @BeforeAll
     public static void setupEntityDictionary() {
-        entityDictionary = new EntityDictionary(Collections.emptyMap());
+        entityDictionary = new AggregationDictionary(Collections.emptyMap());
         entityDictionary.bindEntity(PlayerStats.class);
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(SubCountry.class);
         entityDictionary.bindEntity(Player.class);
-        schema = new Schema(PlayerStats.class, entityDictionary);
-        splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(schema);
+        table = new Table(PlayerStats.class, entityDictionary);
+        splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(table);
     }
 
     @Test

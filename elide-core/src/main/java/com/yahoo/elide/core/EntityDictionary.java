@@ -813,9 +813,14 @@ public class EntityDictionary {
             return;
         }
 
-        Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
-        Include include = annotation instanceof Include ? (Include) annotation : null;
-        Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+        Include include = cls.getDeclaredAnnotation(Include.class);
+        Exclude exclude = cls.getDeclaredAnnotation(Exclude.class);
+
+        if (include == null && exclude == null) {
+            Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
+            include = annotation instanceof Include ? (Include) annotation : null;
+            exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+        }
         Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
 
         if (exclude != null) {
