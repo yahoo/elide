@@ -10,12 +10,13 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
-import com.yahoo.elide.datastores.aggregation.annotation.Metric;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlSum;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMin;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import lombok.EqualsAndHashCode;
@@ -98,7 +99,7 @@ public class PlayerStats {
         this.id = id;
     }
 
-    @Metric(function = SqlSum.class)
+    @MetricAggregation(function = SqlMax.class)
     @Meta(longName = "awesome score", description = "very awesome score")
     public long getHighScore() {
         return highScore;
@@ -108,7 +109,7 @@ public class PlayerStats {
         this.highScore = highScore;
     }
 
-    @Metric(function = SqlSum.class)
+    @MetricAggregation(function = SqlMin.class)
     public long getLowScore() {
         return lowScore;
     }

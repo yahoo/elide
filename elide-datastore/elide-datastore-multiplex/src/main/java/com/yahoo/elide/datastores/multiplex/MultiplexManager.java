@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <li>Attempt to reverse DB1 commit fails
  * </ul>
  */
-public class MultiplexManager implements DataStore {
+public final class MultiplexManager implements DataStore {
 
     protected final List<DataStore> dataStores;
     protected final ConcurrentHashMap<Class<?>, DataStore> dataStoreMap = new ConcurrentHashMap<>();
@@ -61,6 +61,13 @@ public class MultiplexManager implements DataStore {
                 // bind to multiplex dictionary
                 dictionary.bindEntity(cls);
                 dictionary.bindInitializer(subordinateDictionary::initializeEntity, cls);
+                // copy attribute arguments
+                subordinateDictionary.getAttributes(cls).forEach(
+                        attribute -> dictionary.addArgumentsToAttribute(
+                                cls,
+                                attribute,
+                                subordinateDictionary.getAttributeArguments(cls, attribute))
+                );
             }
         }
     }

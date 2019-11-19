@@ -5,7 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
+
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Data;
@@ -23,7 +25,7 @@ import java.util.stream.Collectors;
 public class SQLTable extends Table {
     private Map<String, SQLColumn> sqlColumns;
 
-    public SQLTable(Class<?> cls, AggregationDictionary dictionary) {
+    public SQLTable(Class<?> cls, EntityDictionary dictionary) {
         super(cls, dictionary);
         this.sqlColumns = resolveSQLDimensions(cls, dictionary);
     }
@@ -35,9 +37,9 @@ public class SQLTable extends Table {
      * @param dictionary dictionary contains the table class
      * @return all resolved sql column metadata
      */
-    public static Map<String, SQLColumn> resolveSQLDimensions(Class<?> cls, AggregationDictionary dictionary) {
+    public static Map<String, SQLColumn> resolveSQLDimensions(Class<?> cls, EntityDictionary dictionary) {
         return dictionary.getAllFields(cls).stream()
-                .filter(field -> !dictionary.isMetricField(cls, field))
+                .filter(field -> !isMetricField(dictionary, cls, field))
                 .collect(Collectors.toMap(Function.identity(), field -> new SQLColumn(cls, field, dictionary)));
     }
 

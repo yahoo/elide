@@ -6,7 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
 
 import lombok.Data;
@@ -30,12 +31,12 @@ public class Metric extends Column {
     @ToString.Exclude
     private MetricFunction metricFunction;
 
-    public Metric(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
+    public Metric(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
 
-        com.yahoo.elide.datastores.aggregation.annotation.Metric metric = dictionary.getAttributeOrRelationAnnotation(
+        MetricAggregation metric = dictionary.getAttributeOrRelationAnnotation(
                 tableClass,
-                com.yahoo.elide.datastores.aggregation.annotation.Metric.class,
+                MetricAggregation.class,
                 fieldName);
 
         try {
@@ -43,7 +44,7 @@ public class Metric extends Column {
             metricFunction.setName(getId() + "[" + metricFunction.getName() + "]");
             metricFunction.setExpression(String.format(
                     metricFunction.getExpression(),
-                    dictionary.getColumnName(tableClass, fieldName)));
+                    dictionary.getAnnotatedColumnName(tableClass, fieldName)));
         } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalArgumentException("Can't initialize function for metric " + getId());
         }

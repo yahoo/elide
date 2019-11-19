@@ -13,8 +13,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 
-import lombok.Getter;
-
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
@@ -22,14 +20,13 @@ public abstract class AggregationDataStore implements DataStore {
 
     private final QueryEngineFactory queryEngineFactory;
 
-    @Getter
     private final MetaDataStore metaDataStore;
 
     private QueryEngine queryEngine;
 
-    public AggregationDataStore(QueryEngineFactory queryEngineFactory) {
+    public AggregationDataStore(QueryEngineFactory queryEngineFactory, MetaDataStore metaDataStore) {
         this.queryEngineFactory = queryEngineFactory;
-        this.metaDataStore = new MetaDataStore();
+        this.metaDataStore = metaDataStore;
     }
 
     /**
@@ -38,15 +35,7 @@ public abstract class AggregationDataStore implements DataStore {
      */
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        if (dictionary instanceof AggregationDictionary) {
-            populateEntityDictionary((AggregationDictionary) dictionary);
-        } else {
-            throw new IllegalArgumentException("Dictionary doesn't support aggregation.");
-        }
-    }
-
-    protected void populateEntityDictionary(AggregationDictionary dictionary) {
-        metaDataStore.populateEntityDictionary(dictionary);
+        metaDataStore.loadMetaData(dictionary);
         queryEngine = queryEngineFactory.buildQueryEngine(dictionary, metaDataStore);
 
         /* Add 'grain' argument to each TimeDimensionColumn */

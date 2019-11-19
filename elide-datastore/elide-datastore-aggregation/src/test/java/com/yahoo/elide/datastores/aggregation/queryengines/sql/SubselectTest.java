@@ -9,9 +9,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
@@ -48,7 +48,7 @@ public class SubselectTest {
     private static EntityManagerFactory emf;
     private static Table playerStatsTable;
     private static MetaDataStore metaDataStore = new MetaDataStore();
-    private static AggregationDictionary dictionary;
+    private static EntityDictionary dictionary;
     private static RSQLFilterDialect filterParser;
 
     private static final Country HONG_KONG = new Country();
@@ -61,7 +61,7 @@ public class SubselectTest {
     @BeforeAll
     public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
-        dictionary = new AggregationDictionary(new HashMap<>());
+        dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(Country.class);
@@ -220,7 +220,7 @@ public class SubselectTest {
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
-        stats1.setHighScore(3646);
+        stats1.setHighScore(2412);
         stats1.setSubCountryIsoCode("USA");
 
         PlayerStats stats2 = new PlayerStats();

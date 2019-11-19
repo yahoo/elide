@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.core.EntityDictionary;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,7 +21,7 @@ import javax.persistence.Entity;
 @Entity
 @Data
 public class Dimension extends Column {
-    public Dimension(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
+    public Dimension(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
     }
 }

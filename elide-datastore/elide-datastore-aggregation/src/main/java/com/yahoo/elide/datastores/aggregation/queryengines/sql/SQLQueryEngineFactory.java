@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.QueryEngineFactory;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -23,7 +23,7 @@ public class SQLQueryEngineFactory implements QueryEngineFactory {
     }
 
     @Override
-    public QueryEngine buildQueryEngine(AggregationDictionary dictionary, MetaDataStore metaDataStore) {
+    public QueryEngine buildQueryEngine(EntityDictionary dictionary, MetaDataStore metaDataStore) {
         return new SQLQueryEngine(emf, dictionary, metaDataStore);
     }
 }

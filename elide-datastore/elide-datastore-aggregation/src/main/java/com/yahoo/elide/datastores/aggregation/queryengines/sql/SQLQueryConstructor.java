@@ -5,8 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import static com.yahoo.elide.datastores.aggregation.AggregationDictionary.getClassAlias;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -14,7 +15,6 @@ import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -29,6 +29,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnaly
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 
+import org.hibernate.annotations.Subselect;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -37,14 +39,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Class to construct query template into real sql query
  */
 public class SQLQueryConstructor {
-    private final AggregationDictionary dictionary;
+    private final EntityDictionary dictionary;
 
-    public SQLQueryConstructor(AggregationDictionary dictionary) {
+    public SQLQueryConstructor(EntityDictionary dictionary) {
         this.dictionary = dictionary;
     }
 
@@ -119,81 +122,6 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Construct directly projection GROUP BY clause using col aliases.
-     *
-     * @param dimensions columns to project out
-     * @return <code>GROUP BY col1, col2, ...</code>
-     */
-    private String aliasProjectGroupBy(Set<ColumnProjection> dimensions) {
-        return "GROUP BY " + dimensions.stream()
-                .map(ColumnProjection::getAlias)
-                .collect(Collectors.joining(", "));
-    }
-
-    /**
-     * Construct HAVING clause filter using aliases to reference fields. Metric fields need to be aggregated in HAVING.
-     *
-     * @param predicate a filter predicate in HAVING clause
-     * @param table Elide logical table this query is querying
-     * @param template query template
-     * @return an filter/constraint expression that can be put in HAVING clause
-     */
-    private String aliasProjectHavingFilter(FilterPredicate predicate, Table table, SQLQueryTemplate template) {
-        Path.PathElement last = predicate.getPath().lastElement().get();
-        Class<?> lastClass = last.getType();
-        String fieldName = last.getFieldName();
-
-        if (!lastClass.equals(table.getCls())) {
-            throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
-        }
-
-        MetricFunctionInvocation metric = template.getMetrics().stream()
-                // TODO: filter predicate should support alias
-                .filter(invocation -> invocation.getAlias().equals(fieldName))
-                .findFirst()
-                .orElse(null);
-
-        if (metric != null) {
-            return metric.getFunctionExpression();
-        } else {
-            ColumnProjection dimension = template.getGroupByDimensions().stream()
-                    .filter(projection -> projection.getAlias().equals(fieldName))
-                    .findFirst()
-                    .orElse(null);
-
-            if (dimension == null) {
-                throw new InvalidPredicateException("Having clause field not found " + fieldName);
-            } else {
-                return dimension.getAlias();
-            }
-        }
-    }
-
-    /**
-     * Construct SELECT statement expression with metrics and dimensions directly using alias from subquery.
-     *
-     * @param template query template with nested subquery
-     * @return <code>SELECT function(metric1) AS alias1, dimension1 AS alias2</code>
-     */
-    private String aliasProject(SQLQueryTemplate template) {
-        List<String> metricProjections = template.getMetrics().stream()
-                .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
-                .collect(Collectors.toList());
-
-        List<String> dimensionProjections = template.getGroupByDimensions().stream()
-                .map(projection -> projection.getAlias() + " AS " + projection.getAlias())
-                .collect(Collectors.toList());
-
-        String projectionClause = String.join(",", metricProjections);
-
-        if (!dimensionProjections.isEmpty()) {
-            projectionClause = projectionClause + "," + String.join(",", dimensionProjections);
-        }
-
-        return projectionClause;
-    }
-
-    /**
      * Construct directly projection GROUP BY clause using column reference.
      *
      * @param groupByDimensions columns to project out
@@ -254,13 +182,8 @@ public class SQLQueryConstructor {
                 .map(dimension ->  resolveSQLColumnReference(dimension, queriedTable) + " AS " + dimension.getAlias())
                 .collect(Collectors.toList());
 
-        String projectionClause = String.join(",", metricProjections);
-
-        if (!dimensionProjections.isEmpty()) {
-            projectionClause = projectionClause + "," + String.join(",", dimensionProjections);
-        }
-
-        return projectionClause;
+        return Stream.concat(metricProjections.stream(), dimensionProjections.stream())
+                .collect(Collectors.joining(","));
     }
 
     /**
@@ -282,15 +205,14 @@ public class SQLQueryConstructor {
         String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
         String relationshipName = pathElement.getFieldName();
 
-        String relationshipIdField = dictionary.getColumnName(
+        String relationshipIdField = dictionary.getAnnotatedColumnName(
                 relationshipClass,
                 dictionary.getIdFieldName(relationshipClass));
-        String relationshipColumnName = dictionary.getColumnName(
-                entityClass,
-                relationshipName);
+
+        String relationshipColumnName = dictionary.getAnnotatedColumnName(entityClass, relationshipName);
 
         return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
-                constructTableOrSubselect(relationshipClass, dictionary),
+                constructTableOrSubselect(relationshipClass),
                 relationshipAlias,
                 entityAlias,
                 relationshipColumnName,
@@ -303,13 +225,12 @@ public class SQLQueryConstructor {
      * Make a select statement for a table a sub select query.
      *
      * @param cls entity class
-     * @param dictionary dictionary
      * @return <code>tableName</code> or <code>(subselect query)</code>
      */
-    private static String constructTableOrSubselect(Class<?> cls, AggregationDictionary dictionary) {
-        return dictionary.isSubselect(cls)
-                ? "(" + dictionary.getTableOrSubselect(cls) + ")"
-                : dictionary.getTableOrSubselect(cls);
+    private String constructTableOrSubselect(Class<?> cls) {
+        return isSubselect(cls)
+                ? "(" + resolveTableOrSubselect(dictionary, cls) + ")"
+                : resolveTableOrSubselect(dictionary, cls);
     }
 
     /**
@@ -334,7 +255,7 @@ public class SQLQueryConstructor {
                     Path.PathElement last = path.lastElement().get();
 
                     return getClassAlias(last.getType()) + "."
-                            + dictionary.getColumnName(entityClass, last.getFieldName())
+                            + dictionary.getAnnotatedColumnName(entityClass, last.getFieldName())
                             + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 }).collect(Collectors.joining(","));
     }
@@ -461,7 +382,7 @@ public class SQLQueryConstructor {
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
 
         if (joinTo == null) {
-            return getClassAlias(lastClass) + "." + dictionary.getColumnName(lastClass, last.getFieldName());
+            return getClassAlias(lastClass) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
         } else {
             return generateColumnReference(new Path(lastClass, dictionary, joinTo.path()));
         }
@@ -503,5 +424,35 @@ public class SQLQueryConstructor {
         } else {
             return sqlColumn.getReference();
         }
+    }
+
+    /**
+     * Maps an entity class to a physical table of subselect query, if neither {@link javax.persistence.Table}
+     * nor {@link Subselect} annotation is present on this class, use the class alias as default.
+     *
+     * @param cls The entity class.
+     * @return The physical SQL table or subselect query.
+     */
+    private static String resolveTableOrSubselect(EntityDictionary dictionary, Class<?> cls) {
+        if (isSubselect(cls)) {
+            return dictionary.getAnnotation(cls, Subselect.class).value();
+        } else {
+            javax.persistence.Table tableAnnotation =
+                    dictionary.getAnnotation(cls, javax.persistence.Table.class);
+
+            return (tableAnnotation == null)
+                    ? dictionary.getJsonAliasFor(cls)
+                    : tableAnnotation.name();
+        }
+    }
+
+    /**
+     * Check whether a class is mapped to a subselect query instead of a physical table.
+     *
+     * @param cls The entity class
+     * @return True if the class has {@link Subselect} annotation
+     */
+    private static boolean isSubselect(Class<?> cls) {
+        return cls.isAnnotationPresent(Subselect.class);
     }
 }

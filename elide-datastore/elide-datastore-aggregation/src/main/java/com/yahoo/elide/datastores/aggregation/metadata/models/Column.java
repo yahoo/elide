@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Tag;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -49,7 +49,7 @@ public abstract class Column {
     @ToString.Exclude
     private Set<Tag> columnTags;
 
-    protected Column(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
+    protected Column(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         this.tableName = dictionary.getJsonAliasFor(tableClass);
         this.id = tableName + "." + fieldName;
         this.name = fieldName;

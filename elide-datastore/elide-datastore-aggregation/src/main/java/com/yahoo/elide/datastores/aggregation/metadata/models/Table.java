@@ -5,8 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
+
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
@@ -48,7 +50,7 @@ public class Table {
     @ToString.Exclude
     private Set<Column> columns;
 
-    public Table(Class<?> cls, AggregationDictionary dictionary) {
+    public Table(Class<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBindings().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
@@ -77,10 +79,10 @@ public class Table {
      * @param dictionary dictionary contains the table class
      * @return all resolved column metadata
      */
-    private static Set<Column> resolveColumns(Class<?> cls, AggregationDictionary dictionary) {
+    private static Set<Column> resolveColumns(Class<?> cls, EntityDictionary dictionary) {
         Set<Column> fields =  dictionary.getAllFields(cls).stream()
                 .map(field -> {
-                    if (dictionary.isMetricField(cls, field)) {
+                    if (isMetricField(dictionary, cls, field)) {
                         return new Metric(cls, field, dictionary);
                     } else if (dictionary.attributeOrRelationAnnotationExists(cls, field, Temporal.class)) {
                         return new TimeDimension(cls, field, dictionary);

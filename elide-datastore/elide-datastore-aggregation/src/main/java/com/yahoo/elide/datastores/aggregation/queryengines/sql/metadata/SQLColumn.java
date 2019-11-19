@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import static com.yahoo.elide.datastores.aggregation.AggregationDictionary.getClassAlias;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
@@ -27,18 +27,18 @@ public class SQLColumn extends Column {
     @Getter
     private final Path joinPath;
 
-    protected SQLColumn(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
+    protected SQLColumn(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
 
         if (joinTo == null) {
-            this.columnName = dictionary.getColumnName(tableClass, fieldName);
+            this.columnName = dictionary.getAnnotatedColumnName(tableClass, fieldName);
             this.tableAlias = getClassAlias(tableClass);
             this.joinPath = null;
         } else {
             Path path = new Path(tableClass, dictionary, joinTo.path());
-            this.columnName = dictionary.getJoinColumn(path);
+            this.columnName = resolveJoinColumn(dictionary, path);
             this.tableAlias = getJoinTableAlias(path);
             this.joinPath = path;
         }
@@ -58,5 +58,18 @@ public class SQLColumn extends Column {
      */
     public String getReference() {
         return getTableAlias() + "." + getColumnName();
+    }
+
+    /**
+     * Maps a logical entity path into a physical SQL column name.
+     *
+     * @param path entity join path
+     * @return joined column name
+     */
+    public static String resolveJoinColumn(EntityDictionary dictionary, Path path) {
+        Path.PathElement last = path.lastElement().get();
+        Class<?> lastClass = last.getType();
+
+        return dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
     }
 }

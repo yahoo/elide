@@ -11,13 +11,13 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SubselectT
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
@@ -48,7 +48,7 @@ public class SQLQueryEngineTest {
     private static EntityManagerFactory emf;
     private static Table playerStatsTable;
     private static Table playerStatsViewTable;
-    private static AggregationDictionary dictionary;
+    private static EntityDictionary dictionary;
     private static RSQLFilterDialect filterParser;
     private static QueryEngine engine;
 
@@ -58,7 +58,7 @@ public class SQLQueryEngineTest {
     @BeforeAll
     public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
-        dictionary = new AggregationDictionary(new HashMap<>());
+        dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(Country.class);
@@ -343,7 +343,7 @@ public class SQLQueryEngineTest {
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
         stats1.setOverallRating("Good");
-        stats1.setHighScore(2234);
+        stats1.setHighScore(1234);
 
         assertEquals(1, results.size());
         assertEquals(stats1, results.get(0));
@@ -535,7 +535,7 @@ public class SQLQueryEngineTest {
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
-        stats1.setHighScore(3646);
+        stats1.setHighScore(2412);
         stats1.setCountryIsoCode("USA");
 
         PlayerStats stats2 = new PlayerStats();
@@ -642,7 +642,7 @@ public class SQLQueryEngineTest {
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
-        stats0.setHighScore(4646);
+        stats0.setHighScore(2412);
         stats0.setRecordedDate(Timestamp.valueOf("2019-07-01 00:00:00"));
 
         assertEquals(1, results.size());

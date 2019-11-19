@@ -46,7 +46,8 @@ public interface TimeDimensionProjection extends ColumnProjection {
      * @return a new projection
      */
     default TimeDimensionProjection toTimeGrain(TimeGrain newGrain) {
-        if (getTimeDimension().getSupportedGrains().stream().noneMatch(g -> g.getGrain().equals(newGrain))) {
+        if (getTimeDimension().getSupportedGrains().stream()
+                .noneMatch(supportedGrain -> supportedGrain.getGrain().equals(newGrain))) {
             throw new InvalidValueException(getTimeDimension().getId() + " doesn't support grain " + newGrain);
         }
 

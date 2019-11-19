@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
@@ -50,12 +50,12 @@ import javax.persistence.EntityTransaction;
 public class SQLQueryEngine implements QueryEngine {
 
     private final EntityManagerFactory emf;
-    private final AggregationDictionary dictionary;
+    private final EntityDictionary dictionary;
 
     @Getter
     private Map<Class<?>, Table> tables;
 
-    public SQLQueryEngine(EntityManagerFactory emf, AggregationDictionary dictionary, MetaDataStore metaDataStore) {
+    public SQLQueryEngine(EntityManagerFactory emf, EntityDictionary dictionary, MetaDataStore metaDataStore) {
         this.emf = emf;
         this.dictionary = dictionary;
 
@@ -240,5 +240,15 @@ public class SQLQueryEngine implements QueryEngine {
         return query.getDimensions().stream()
                 .map(projection -> queriedTable.getColumn(projection.getColumn().getName()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get alias for an entity class.
+     *
+     * @param entityClass entity class
+     * @return alias
+     */
+    public static String getClassAlias(Class<?> entityClass) {
+        return FilterPredicate.getTypeAlias(entityClass);
     }
 }

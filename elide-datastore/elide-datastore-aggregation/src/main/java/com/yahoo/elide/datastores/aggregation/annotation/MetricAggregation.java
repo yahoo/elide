@@ -17,8 +17,8 @@ import java.lang.annotation.Target;
  * Specify that a field in a table is metric field.
  */
 @Documented
-@Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Metric {
+public @interface MetricAggregation {
     Class<? extends MetricFunction> function();
 }
