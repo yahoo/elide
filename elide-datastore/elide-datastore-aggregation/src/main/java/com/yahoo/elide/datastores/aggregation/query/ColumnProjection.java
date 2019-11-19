@@ -12,6 +12,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import java.io.Serializable;
+import java.util.TimeZone;
 
 /**
  * Represents a projected column as an alias in a query.
@@ -61,11 +62,17 @@ public interface ColumnProjection extends Serializable {
      * @return a projection represents that "grain(dimension) AS alias"
      */
     static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain, String alias) {
+        // TODO: get time zone from the request
         if (dimension.getSupportedGrains().stream().anyMatch(g -> g.getGrain().equals(grain))) {
             return new TimeDimensionProjection() {
                 @Override
                 public TimeGrain getGrain() {
                     return grain;
+                }
+
+                @Override
+                public TimeZone getTimeZone() {
+                    return null;
                 }
 
                 @Override

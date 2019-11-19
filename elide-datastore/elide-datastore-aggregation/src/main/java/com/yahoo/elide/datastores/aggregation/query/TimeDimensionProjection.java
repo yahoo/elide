@@ -11,6 +11,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
+import java.util.TimeZone;
+
 /**
  * Represents a requested time dimension in a query.
  */
@@ -40,6 +42,13 @@ public interface TimeDimensionProjection extends ColumnProjection {
     TimeGrain getGrain();
 
     /**
+     * Get the requested time zone
+     *
+     * @return time zone
+     */
+    TimeZone getTimeZone();
+
+    /**
      * Convert this projection to a new time grain.
      *
      * @param newGrain new time grain
@@ -61,6 +70,11 @@ public interface TimeDimensionProjection extends ColumnProjection {
             @Override
             public TimeGrain getGrain() {
                 return newGrain;
+            }
+
+            @Override
+            public TimeZone getTimeZone() {
+                return projection.getTimeZone();
             }
 
             @Override
