@@ -198,7 +198,7 @@ public class ModelBuilderTest {
         Set<ArgumentType> arguments = new HashSet<>();
         arguments.add(new ArgumentType(SORT, Sorting.SortOrder.class));
         arguments.add(new ArgumentType(TYPE, String.class));
-        dictionary.addArgumentsToAttributes(Book.class, PUBLISH_DATE, arguments);
+        dictionary.addArgumentsToAttribute(Book.class, PUBLISH_DATE, arguments);
 
         DataFetcher fetcher = mock(DataFetcher.class);
         ModelBuilder builder = new ModelBuilder(dictionary, fetcher);

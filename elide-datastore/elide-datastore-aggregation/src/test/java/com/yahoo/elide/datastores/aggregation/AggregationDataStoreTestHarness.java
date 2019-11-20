@@ -14,6 +14,8 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private QueryEngineFactory queryEngineFactory;
@@ -24,7 +26,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
     @Override
     public DataStore getDataStore() {
-        return new AggregationDataStore(queryEngineFactory) {
+        MetaDataStore metaDataStore = new MetaDataStore();
+        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore) {
             @Override
             public void populateEntityDictionary(EntityDictionary dictionary) {
                 dictionary.bindEntity(PlayerStats.class);
@@ -36,6 +39,9 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                 super.populateEntityDictionary(dictionary);
             }
         };
+
+        // meta data store needs to be put at first to populate meta data models
+        return new MultiplexManager(metaDataStore, aggregationDataStore);
     }
 
     public void cleanseTestData() {
