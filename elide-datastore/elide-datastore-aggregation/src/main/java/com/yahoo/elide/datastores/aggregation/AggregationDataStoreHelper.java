@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * Helper for Aggregation Data Store which does the work associated with extracting {@link Query}.
  */
 public class AggregationDataStoreHelper {
-    private Table table;
+    private AnalyticView queriedTable;
     private EntityProjection entityProjection;
     private Set<ColumnProjection> dimensionProjections;
     private Set<TimeDimensionProjection> timeDimensions;
@@ -49,16 +49,18 @@ public class AggregationDataStoreHelper {
     private FilterExpression havingFilter;
 
     public AggregationDataStoreHelper(Table table, EntityProjection entityProjection) {
-        this.table = table;
+        if (!(table instanceof AnalyticView)) {
+            throw new InvalidOperationException("Queried table is not analyticView: " + table.getName());
+        }
+
+        this.queriedTable = (AnalyticView) table;
         this.entityProjection = entityProjection;
 
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
+        metrics = resolveMetrics();
 
-        if (table instanceof AnalyticView) {
-            metrics = resolveMetrics();
-            splitFilters();
-        }
+        splitFilters();
     }
 
     /**
@@ -67,7 +69,7 @@ public class AggregationDataStoreHelper {
      */
     public Query getQuery() {
         return Query.builder()
-                .table(table)
+                .analyticView(queriedTable)
                 .metrics(metrics)
                 .groupByDimensions(dimensionProjections)
                 .timeDimensions(timeDimensions)
@@ -88,7 +90,7 @@ public class AggregationDataStoreHelper {
             havingFilter = null;
             return;
         }
-        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(table);
+        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(queriedTable);
         FilterConstraints constraints = filterExpression.accept(visitor);
         whereFilter = constraints.getWhereExpression();
         havingFilter = constraints.getHavingExpression();
@@ -106,9 +108,9 @@ public class AggregationDataStoreHelper {
      */
     private Set<TimeDimensionProjection> resolveTimeDimensions() {
         return entityProjection.getAttributes().stream()
-                .filter(attribute -> table.getTimeDimension(attribute.getName()) != null)
+                .filter(attribute -> queriedTable.getTimeDimension(attribute.getName()) != null)
                 .map(timeDimAttr -> {
-                    TimeDimension timeDim = table.getTimeDimension(timeDimAttr.getName());
+                    TimeDimension timeDim = queriedTable.getTimeDimension(timeDimAttr.getName());
 
                     Argument grainArgument = timeDimAttr.getArguments().stream()
                             .filter(attr -> attr.getName().equals("grain"))
@@ -144,9 +146,9 @@ public class AggregationDataStoreHelper {
      */
     private Set<ColumnProjection> resolveNonTimeDimensions() {
         Set<ColumnProjection> attributes = entityProjection.getAttributes().stream()
-                .filter(attribute -> table.getTimeDimension(attribute.getName()) == null)
+                .filter(attribute -> queriedTable.getTimeDimension(attribute.getName()) == null)
                 .map(dimAttr -> {
-                    Dimension dimension = table.getDimension(dimAttr.getName());
+                    Dimension dimension = queriedTable.getDimension(dimAttr.getName());
                     return dimension == null ? null : ColumnProjection.toProjection(dimension, dimAttr.getAlias());
                 })
                 .filter(Objects::nonNull)
@@ -154,7 +156,7 @@ public class AggregationDataStoreHelper {
 
         Set<ColumnProjection> relationships = entityProjection.getRelationships().stream()
                 .map(dimAttr -> {
-                    Dimension dimension = table.getDimension(dimAttr.getName());
+                    Dimension dimension = queriedTable.getDimension(dimAttr.getName());
                     return dimension == null ? null : ColumnProjection.toProjection(dimension, dimAttr.getAlias());
                 })
                 .filter(Objects::nonNull)
@@ -168,8 +170,8 @@ public class AggregationDataStoreHelper {
      */
     private List<MetricFunctionInvocation> resolveMetrics() {
         return entityProjection.getAttributes().stream()
-                .filter(attribute -> table.isMetric(attribute.getName()))
-                .map(attribute -> table.getMetric(attribute.getName())
+                .filter(attribute -> queriedTable.isMetric(attribute.getName()))
+                .map(attribute -> queriedTable.getMetric(attribute.getName())
                         .getMetricFunction()
                         .invoke(attribute.getArguments(), attribute.getAlias()))
                 .collect(Collectors.toList());
@@ -203,15 +205,15 @@ public class AggregationDataStoreHelper {
             Class<?> cls = last.getType();
             String fieldName = last.getFieldName();
 
-            if (cls != table.getCls()) {
+            if (cls != queriedTable.getCls()) {
                 throw new InvalidOperationException(
                         String.format(
                                 "Classes don't match when try filtering on %s in having clause of %s.",
                                 cls.getSimpleName(),
-                                table.getCls().getSimpleName()));
+                                queriedTable.getCls().getSimpleName()));
             }
 
-            if (table.isMetric(fieldName)) {
+            if (queriedTable.isMetric(fieldName)) {
                 if (metrics.stream().noneMatch(m -> m.getAlias().equals(fieldName))) {
                     throw new InvalidOperationException(
                             String.format(

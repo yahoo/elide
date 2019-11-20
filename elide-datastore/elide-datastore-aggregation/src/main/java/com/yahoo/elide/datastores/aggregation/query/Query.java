@@ -11,7 +11,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 @Data
 @Builder
 public class Query {
-    private final Table table;
+    private final AnalyticView analyticView;
 
     @Singular
     private final List<MetricFunctionInvocation> metrics;

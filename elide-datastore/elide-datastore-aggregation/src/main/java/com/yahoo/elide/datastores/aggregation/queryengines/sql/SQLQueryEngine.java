@@ -214,9 +214,10 @@ public class SQLQueryEngine implements QueryEngine {
     private SQLQuery toPageTotalSQL(SQLQuery sql) {
         // TODO: refactor this method
         String groupByDimensions =
-                extractSQLDimensions(sql.getClientQuery(), (SQLAnalyticView) sql.getClientQuery().getTable()).stream()
-                .map(SQLColumn::getColumnName)
-                .collect(Collectors.joining(", "));
+                extractSQLDimensions(sql.getClientQuery(), (SQLAnalyticView) sql.getClientQuery().getAnalyticView())
+                        .stream()
+                        .map(SQLColumn::getColumnName)
+                        .collect(Collectors.joining(", "));
 
         String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
 

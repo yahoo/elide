@@ -20,9 +20,9 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -46,7 +46,7 @@ import javax.persistence.Persistence;
 
 public class SubselectTest {
     private static EntityManagerFactory emf;
-    private static Table playerStatsTable;
+    private static AnalyticView playerStatsTable;
     private static MetaDataStore metaDataStore = new MetaDataStore();
     private static EntityDictionary dictionary;
     private static RSQLFilterDialect filterParser;
@@ -99,7 +99,7 @@ public class SubselectTest {
     @Test
     public void testFilterJoin() throws Exception {
         Query query = Query.builder()
-                .table(playerStatsTable)
+                .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
@@ -151,7 +151,7 @@ public class SubselectTest {
         sortMap.put("subCountry.name", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .table(playerStatsTable)
+                .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
@@ -210,7 +210,7 @@ public class SubselectTest {
     @Test
     public void testJoinToGroupBy() throws Exception {
         Query query = Query.builder()
-                .table(playerStatsTable)
+                .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .build();
@@ -241,7 +241,7 @@ public class SubselectTest {
     @Test
     public void testJoinToFilter() throws Exception {
         Query query = Query.builder()
-                .table(playerStatsTable)
+                .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .whereFilter(filterParser.parseFilterExpression("subCountryIsoCode==USA",
@@ -277,7 +277,7 @@ public class SubselectTest {
         sortMap.put("subCountryIsoCode", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .table(playerStatsTable)
+                .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountry")))

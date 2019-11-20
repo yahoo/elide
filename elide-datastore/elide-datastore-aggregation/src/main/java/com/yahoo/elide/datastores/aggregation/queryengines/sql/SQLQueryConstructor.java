@@ -66,9 +66,8 @@ public class SQLQueryConstructor {
                                     Sorting sorting,
                                     FilterExpression whereClause,
                                     FilterExpression havingClause) {
-        SQLAnalyticView sqlAnalyticView = (SQLAnalyticView) clientQuery.getTable();
-        Table elideTable = clientQuery.getTable();
-        Class<?> tableCls = clientQuery.getTable().getCls();
+        SQLAnalyticView queriedTable = (SQLAnalyticView) clientQuery.getAnalyticView();
+        Class<?> tableCls = clientQuery.getAnalyticView().getCls();
         String tableAlias = getClassAlias(tableCls);
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
@@ -79,17 +78,17 @@ public class SQLQueryConstructor {
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
                 : tableCls.isAnnotationPresent(FromTable.class)
                 ? tableCls.getAnnotation(FromTable.class).name()
-                : elideTable.getName();
+                : queriedTable.getName();
 
         builder.fromClause(String.format("%s AS %s", tableStatement, tableAlias));
 
-        builder.projectionClause(referenceProject(template, sqlAnalyticView));
+        builder.projectionClause(constructProjectionWithReference(template, queriedTable));
 
         Set<ColumnProjection> groupByDimensions = template.getGroupByDimensions();
 
         if (!groupByDimensions.isEmpty()) {
-            builder.groupByClause(referenceProjectGroupBy(groupByDimensions, sqlAnalyticView));
-            joinPredicates.addAll(extractPathElements(groupByDimensions, sqlAnalyticView));
+            builder.groupByClause(constructGroupByWithReference(groupByDimensions, queriedTable));
+            joinPredicates.addAll(extractPathElements(groupByDimensions, queriedTable));
         }
 
         if (whereClause != null) {
@@ -103,7 +102,7 @@ public class SQLQueryConstructor {
             joinPredicates.addAll(extractPathElements(havingClause));
             builder.havingClause("HAVING " + translateFilterExpression(
                     havingClause,
-                    (predicate) -> referenceProjectHavingFilter(predicate, elideTable, template)));
+                    (predicate) -> constructHavingClauseWithReference(predicate, queriedTable, template)));
         }
 
         if (sorting != null) {
@@ -128,7 +127,8 @@ public class SQLQueryConstructor {
      * @param queriedTable queried analytic view
      * @return <code>GROUP BY tb1.col1, tb2.col2, ...</code>
      */
-    private String referenceProjectGroupBy(Set<ColumnProjection> groupByDimensions, SQLAnalyticView queriedTable) {
+    private String constructGroupByWithReference(Set<ColumnProjection> groupByDimensions,
+                                                 SQLAnalyticView queriedTable) {
         return "GROUP BY " + groupByDimensions.stream()
                 .map(dimension -> resolveSQLColumnReference(dimension, queriedTable))
                 .collect(Collectors.joining(", "));
@@ -142,7 +142,9 @@ public class SQLQueryConstructor {
      * @param template query template
      * @return an filter/constraint expression that can be put in HAVING clause
      */
-    private String referenceProjectHavingFilter(FilterPredicate predicate, Table table, SQLQueryTemplate template) {
+    private String constructHavingClauseWithReference(FilterPredicate predicate,
+                                                      Table table,
+                                                      SQLQueryTemplate template) {
         Path.PathElement last = predicate.getPath().lastElement().get();
         Class<?> lastClass = last.getType();
         String fieldName = last.getFieldName();
@@ -172,7 +174,7 @@ public class SQLQueryConstructor {
      * @param queriedTable queried analytic view
      * @return <code>SELECT function(metric1) AS alias1, tb1.dimension1 AS alias2</code>
      */
-    private String referenceProject(SQLQueryTemplate template, SQLAnalyticView queriedTable) {
+    private String constructProjectionWithReference(SQLQueryTemplate template, SQLAnalyticView queriedTable) {
         // TODO: project metric field using table column reference
         List<String> metricProjections = template.getMetrics().stream()
                 .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
