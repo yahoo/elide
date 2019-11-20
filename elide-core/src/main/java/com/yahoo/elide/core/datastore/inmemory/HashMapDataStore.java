@@ -34,7 +34,7 @@ import javax.persistence.Entity;
  * Simple in-memory only database.
  */
 public class HashMapDataStore implements DataStore, DataStoreTestHarness {
-    private final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
+    protected final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
     @Getter private EntityDictionary dictionary;
     @Getter private final Set<Package> beanPackages;
     @Getter private final ConcurrentHashMap<Class<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();

@@ -7,14 +7,13 @@ package com.yahoo.elide.datastores.aggregation.queryengines;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.RelationshipType;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionType;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
 
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import lombok.AccessLevel;
@@ -59,14 +58,13 @@ public abstract class AbstractEntityHydrator {
         this.entityDictionary = entityDictionary;
 
         //Get all the projections from the client query.
-        List<String> projections = this.query.getMetrics().keySet().stream()
-                .map(Metric::getName)
+        List<String> projections = this.query.getMetrics().stream()
+                .map(MetricFunctionInvocation::getAlias)
                 .collect(Collectors.toList());
 
         projections.addAll(this.query.getDimensions().stream()
-                .map(DimensionProjection::getName)
+                .map(ColumnProjection::getAlias)
                 .collect(Collectors.toList()));
-
 
         results.forEach(result -> {
             Map<String, Object> row = new HashMap<>();
@@ -153,7 +151,7 @@ public abstract class AbstractEntityHydrator {
      * @return A hydrated entity object.
      */
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
-        Class<?> entityClass = query.getSchema().getEntityClass();
+        Class<?> entityClass = query.getAnalyticView().getCls();
 
         //Construct the object.
         Object entityInstance;
@@ -164,9 +162,9 @@ public abstract class AbstractEntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            DimensionColumn dim = query.getSchema().getDimension(fieldName);
+            Dimension dim = query.getAnalyticView().getDimension(fieldName);
 
-            if (dim != null && dim.getDimensionType() == DimensionType.ENTITY) {
+            if (dim != null && dim.getDataType() instanceof RelationshipType) {
                 getStitchList().todo(entityInstance, fieldName, value); // We don't hydrate relationships here.
             } else {
                 getEntityDictionary().setValue(entityInstance, fieldName, value);
@@ -196,7 +194,7 @@ public abstract class AbstractEntityHydrator {
             String joinField = entry.getKey();
             List<Object> joinFieldIds = entry.getValue();
             Class<?> relationshipType = getEntityDictionary().getParameterizedType(
-                    getQuery().getSchema().getEntityClass(),
+                    getQuery().getAnalyticView().getCls(),
                     joinField);
 
             getStitchList().populateLookup(relationshipType, getRelationshipValues(relationshipType, joinFieldIds));

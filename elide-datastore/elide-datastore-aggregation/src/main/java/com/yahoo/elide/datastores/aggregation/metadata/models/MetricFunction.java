@@ -22,6 +22,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  * Functions used to compute metrics.
@@ -41,6 +42,7 @@ public class MetricFunction {
 
     private String expression;
 
+    @OneToMany
     private Set<FunctionArgument> arguments;
 
     protected MetricFunctionInvocation invoke(Map<String, Argument> arguments, String alias) {

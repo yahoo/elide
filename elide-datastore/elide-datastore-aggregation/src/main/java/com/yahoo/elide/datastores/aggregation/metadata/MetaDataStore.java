@@ -5,13 +5,11 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.datastores.aggregation.AggregationDictionary.isAnalyticView;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.DataType;
@@ -21,6 +19,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,18 +38,14 @@ public class MetaDataStore extends HashMapDataStore {
 
     public void populateEntityDictionary(EntityDictionary dictionary) {
         super.populateEntityDictionary(dictionary);
-
-        if (dictionary instanceof AggregationDictionary) {
-            loadMetaData((AggregationDictionary) dictionary);
-        }
     }
 
     /**
-     * Load meta data of models from an populated entity dictionary.
+     * Load meta data of models from an external populated entity dictionary.
      *
      * @param dictionary entity dictionary used by an aggregation data store.
      */
-    private void loadMetaData(AggregationDictionary dictionary) {
+    public void loadMetaData(EntityDictionary dictionary) {
         Set<Class<?>> classes = dictionary.getBindings();
 
         classes.stream()
@@ -143,5 +139,33 @@ public class MetaDataStore extends HashMapDataStore {
 
     public <T> Set<T> getMetaData(Class<T> cls) {
         return dataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns whether or not an entity field is a metric field.
+     * <p>
+     * A field is a metric field iff that field is annotated by at least one of
+     * <ol>
+     *     <li> {@link MetricAggregation}
+     * </ol>
+     *
+     * @param dictionary entity dictionary in current Elide instance
+     * @param cls entity class
+     * @param fieldName The entity field
+     *
+     * @return {@code true} if the field is a metric field
+     */
+    public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
+        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
+    }
+
+    /**
+     * Returns whether an entity class is analytic view
+     *
+     * @param cls entity class
+     * @return True if {@link FromTable} or {@link FromSubquery} is presented.
+     */
+    private static boolean isAnalyticView(Class<?> cls) {
+        return cls.isAnnotationPresent(FromTable.class) || cls.isAnnotationPresent(FromSubquery.class);
     }
 }

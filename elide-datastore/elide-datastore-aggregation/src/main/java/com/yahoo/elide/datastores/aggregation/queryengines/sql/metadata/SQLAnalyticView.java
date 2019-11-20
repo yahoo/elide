@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.resolveSQLDimensions;
 
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 
 import lombok.Data;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class SQLAnalyticView extends AnalyticView {
     private Map<String, SQLColumn> sqlColumns;
 
-    public SQLAnalyticView(Class<?> cls, AggregationDictionary dictionary) {
+    public SQLAnalyticView(Class<?> cls, EntityDictionary dictionary) {
         super(cls, dictionary);
         this.sqlColumns = resolveSQLDimensions(cls, dictionary);
     }

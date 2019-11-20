@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.core.EntityDictionary;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,7 +34,7 @@ public class AnalyticView extends Table {
     @ToString.Exclude
     private Set<Dimension> dimensions;
 
-    public AnalyticView(Class<?> cls, AggregationDictionary dictionary) {
+    public AnalyticView(Class<?> cls, EntityDictionary dictionary) {
         super(cls, dictionary);
 
         metrics = getColumns().stream()

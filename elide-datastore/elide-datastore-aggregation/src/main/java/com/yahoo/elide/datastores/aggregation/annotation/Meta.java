@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * Indicates that the specified entity field has a configured long name and field description for human to read on UI.
  */
 @Documented
-@Target({ElementType.FIELD, ElementType.METHOD})
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Meta {
 

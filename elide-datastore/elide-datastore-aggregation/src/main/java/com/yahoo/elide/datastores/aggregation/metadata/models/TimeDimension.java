@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 
 import lombok.Data;
@@ -33,7 +33,7 @@ public class TimeDimension extends Dimension {
 
     private TimeZone timezone;
 
-    public TimeDimension(Class<?> tableClass, String fieldName, AggregationDictionary dictionary) {
+    public TimeDimension(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
 
         Temporal temporal = dictionary.getAttributeOrRelationAnnotation(tableClass, Temporal.class, fieldName);

@@ -60,6 +60,11 @@
             <artifactId>elide-graphql</artifactId>
             <version>5.0.0-pr3-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-multiplex</artifactId>
+            <version>5.0.0-pr3-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>

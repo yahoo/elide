@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.datastores.aggregation.query.Query;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;

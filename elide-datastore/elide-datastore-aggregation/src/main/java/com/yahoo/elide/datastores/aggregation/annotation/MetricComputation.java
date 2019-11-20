@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -19,7 +19,7 @@ import java.lang.annotation.Target;
  * Example: {@literal @}ComputedMetric(expression = '(fieldA * fieldB) / 100').The field names should match the Elide
  * data model field names.
  * <p>
- * {@code expression} can also be composite. During {@link Schema} construction, it will substitute attribute names in
+ * {@code expression} can also be composite. During {@link Table} construction, it will substitute attribute names in
  * the provided expression with either:
  * <ul>
  *     <li> The column alias for that column in the query, or
@@ -45,7 +45,7 @@ import java.lang.annotation.Target;
  * }
  * }
  * </pre>
- * During {@link Schema} construction, {@code timeSpentPerSession} the provided expression will be substituted with
+ * During {@link Table} construction, {@code timeSpentPerSession} the provided expression will be substituted with
  * {@code timeSpent / sessions}.
  */
 @Documented

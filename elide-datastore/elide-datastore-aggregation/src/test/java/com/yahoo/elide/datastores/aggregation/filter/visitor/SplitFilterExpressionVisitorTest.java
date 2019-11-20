@@ -22,7 +22,8 @@ import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,7 @@ public class SplitFilterExpressionVisitorTest {
     );
 
     private static EntityDictionary entityDictionary;
-    private static Schema schema;
+    private static Table table;
     private static FilterExpressionVisitor<FilterConstraints> splitFilterExpressionVisitor;
 
     @BeforeAll
@@ -52,8 +53,8 @@ public class SplitFilterExpressionVisitorTest {
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(SubCountry.class);
         entityDictionary.bindEntity(Player.class);
-        schema = new Schema(PlayerStats.class, entityDictionary);
-        splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(schema);
+        table = new Table(PlayerStats.class, entityDictionary);
+        splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(table);
     }
 
     @Test
