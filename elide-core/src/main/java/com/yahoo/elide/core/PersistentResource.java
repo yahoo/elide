@@ -1104,7 +1104,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param attr Attribute name
      * @return Object value for attribute
      */
+    @Deprecated
     public Object getAttribute(String attr) {
+        return this.getValueChecked(attr);
+    }
+
+    /**
+     * Get the value for a particular attribute (i.e. non-relational field)
+     * @param attr the Attribute
+     * @return Object value for attribute
+     */
+    public Object getAttribute(Attribute attr) {
         return this.getValueChecked(attr);
     }
 
@@ -1363,11 +1373,24 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param fieldName the field name
      * @return value value
      */
+    @Deprecated
     protected Object getValueChecked(String fieldName) {
         requestScope.publishLifecycleEvent(this, CRUDEvent.CRUDAction.READ);
         requestScope.publishLifecycleEvent(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, requestScope);
+    }
+
+    /**
+     * Gets a value from an entity and checks read permissions.
+     * @param attribute the attribute to fetch.
+     * @return value value
+     */
+    protected Object getValueChecked(Attribute attribute) {
+        requestScope.publishLifecycleEvent(this, CRUDEvent.CRUDAction.READ);
+        requestScope.publishLifecycleEvent(this, attribute.getName(), CRUDEvent.CRUDAction.READ, Optional.empty());
+        checkFieldAwareDeferPermissions(ReadPermission.class, attribute.getName(), (Object) null, (Object) null);
+        return transaction.getAttribute(getObject(), attribute, requestScope);
     }
 
     /**

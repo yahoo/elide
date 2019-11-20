@@ -29,6 +29,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +62,9 @@ import java.util.stream.Collectors;
 
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.Transient;
 import javax.ws.rs.WebApplicationException;
 
@@ -812,9 +815,14 @@ public class EntityDictionary {
             return;
         }
 
-        Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
-        Include include = annotation instanceof Include ? (Include) annotation : null;
-        Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+        Include include = cls.getDeclaredAnnotation(Include.class);
+        Exclude exclude = cls.getDeclaredAnnotation(Exclude.class);
+
+        if (include == null && exclude == null) {
+            Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
+            include = annotation instanceof Include ? (Include) annotation : null;
+            exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+        }
         Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
 
         if (exclude != null) {
@@ -1418,8 +1426,18 @@ public class EntityDictionary {
      * @param attributeName attribute name to which argument has to be added
      * @param arguments Set of Argument type containing name and type of each argument.
      */
-    public void addArgumentsToAttributes(Class<?> cls, String attributeName, Set<ArgumentType> arguments) {
+    public void addArgumentsToAttribute(Class<?> cls, String attributeName, Set<ArgumentType> arguments) {
         getEntityBinding(cls).addArgumentsToAttribute(attributeName, arguments);
+    }
+
+    /**
+     * Add a single argument to the attribute
+     * @param cls The entity
+     * @param attributeName attribute name to which argument has to be added
+     * @param argument A single argument
+     */
+    public void addArgumentToAttribute(Class<?> cls, String attributeName, ArgumentType argument) {
+        this.addArgumentsToAttribute(cls, attributeName, Sets.newHashSet(argument));
     }
 
     /**
@@ -1430,5 +1448,29 @@ public class EntityDictionary {
      */
     public Set<ArgumentType> getAttributeArguments(Class<?> cls, String attributeName) {
         return entityBindings.getOrDefault(cls, EMPTY_BINDING).getAttributeArguments(attributeName);
+    }
+
+    /**
+     * Get column name using JPA.
+     *
+     * @param cls The entity class.
+     * @param fieldName The entity attribute.
+     * @return The jpa column name.
+     */
+    public String getAnnotatedColumnName(Class<?> cls, String fieldName) {
+        Column[] column = getAttributeOrRelationAnnotations(cls, Column.class, fieldName);
+
+        // this would only be valid for dimension columns
+        JoinColumn[] joinColumn = getAttributeOrRelationAnnotations(cls, JoinColumn.class, fieldName);
+
+        if (column == null || column.length == 0) {
+            if (joinColumn == null || joinColumn.length == 0) {
+                return fieldName;
+            } else {
+                return joinColumn[0].name();
+            }
+        } else {
+            return column[0].name();
+        }
     }
 }

@@ -6,12 +6,11 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 
 /**
  * Interface that constructs {@link QueryEngine} based on given entityDictionary.
  */
 public interface QueryEngineFactory {
-
-    public QueryEngine buildQueryEngine(EntityDictionary dictionary);
-
+    QueryEngine buildQueryEngine(EntityDictionary dictionary, MetaDataStore metaDataStore);
 }

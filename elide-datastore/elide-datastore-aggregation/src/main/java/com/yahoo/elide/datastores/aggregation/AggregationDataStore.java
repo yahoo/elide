@@ -5,9 +5,13 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
@@ -15,10 +19,14 @@ import com.yahoo.elide.core.EntityDictionary;
 public abstract class AggregationDataStore implements DataStore {
 
     private final QueryEngineFactory queryEngineFactory;
+
+    private final MetaDataStore metaDataStore;
+
     private QueryEngine queryEngine;
 
-    public AggregationDataStore(QueryEngineFactory queryEngineFactory) {
+    public AggregationDataStore(QueryEngineFactory queryEngineFactory, MetaDataStore metaDataStore) {
         this.queryEngineFactory = queryEngineFactory;
+        this.metaDataStore = metaDataStore;
     }
 
     /**
@@ -27,7 +35,18 @@ public abstract class AggregationDataStore implements DataStore {
      */
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        queryEngine = queryEngineFactory.buildQueryEngine(dictionary);
+        metaDataStore.loadMetaData(dictionary);
+        queryEngine = queryEngineFactory.buildQueryEngine(dictionary, metaDataStore);
+
+        /* Add 'grain' argument to each TimeDimensionColumn */
+        for (AnalyticView table : metaDataStore.getMetaData(AnalyticView.class)) {
+            for (TimeDimension timeDim : table.getColumns(TimeDimension.class)) {
+                dictionary.addArgumentToAttribute(
+                        table.getCls(),
+                        timeDim.getName(),
+                        new ArgumentType("grain", String.class));
+            }
+        }
     }
 
     @Override

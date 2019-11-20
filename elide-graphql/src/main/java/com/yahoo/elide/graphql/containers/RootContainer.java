@@ -14,9 +14,14 @@ import com.yahoo.elide.graphql.PersistentResourceFetcher;
 public class RootContainer implements GraphQLContainer {
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
+        String entityName = context.field.getName();
+        String aliasName = context.field.getAlias();
+
         return fetcher.fetchObject(
                 context.requestScope,
-                context.requestScope.getEntityProjection(),  // root-level projection
+                context.requestScope
+                        .getProjectionInfo()
+                        .getProjection(aliasName, entityName), // root-level projection
                 context.ids
         );
     }

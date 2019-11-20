@@ -15,9 +15,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.EntityDimensionTest;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Max;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Min;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMin;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import lombok.EqualsAndHashCode;
@@ -41,6 +40,9 @@ import javax.persistence.ManyToOne;
 @ToString
 @FromTable(name = "playerStats")
 public class PlayerStats {
+
+    public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
+    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')";
 
     /**
      * PK.
@@ -101,7 +103,7 @@ public class PlayerStats {
         this.id = id;
     }
 
-    @MetricAggregation(aggregations = {Max.class, Min.class})
+    @MetricAggregation(function = SqlMax.class)
     @Meta(longName = "awesome score", description = "very awesome score")
     public long getHighScore() {
         return highScore;
@@ -111,7 +113,7 @@ public class PlayerStats {
         this.highScore = highScore;
     }
 
-    @MetricAggregation(aggregations = {Max.class, Min.class})
+    @MetricAggregation(function = SqlMin.class)
     public long getLowScore() {
         return lowScore;
     }
@@ -162,10 +164,13 @@ public class PlayerStats {
 
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
-     * {@link EntityDimensionTest#testCardinalityScan()}.
+     *
      * @return the date of the player session.
      */
-    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = "") }, timeZone = "UTC")
+    @Temporal(grains = {
+            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DAY_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
+    }, timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }

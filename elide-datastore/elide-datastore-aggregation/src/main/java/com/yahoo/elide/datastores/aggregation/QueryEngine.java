@@ -7,8 +7,8 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
 
 /**
  * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
@@ -68,5 +68,5 @@ public interface QueryEngine {
      * @param entityClass The class to map to a schema.
      * @return The schema that represents the provided entity.
      */
-    Schema getSchema(Class<?> entityClass);
+    Table getTable(Class<?> entityClass);
 }

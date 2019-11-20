@@ -44,7 +44,6 @@ import graphql.language.SourceLocation;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +68,8 @@ public class GraphQLEntityProjectionMaker {
     private final FragmentResolver fragmentResolver;
 
     private final Map<SourceLocation, Relationship> relationshipMap = new HashMap<>();
-    private final List<EntityProjection> rootProjections = new ArrayList<>();
+    private final Map<String, EntityProjection> rootProjections = new HashMap<>();
+    private final Map<SourceLocation, Attribute> attributeMap = new HashMap<>();
 
     /**
      * Constructor.
@@ -135,85 +135,46 @@ public class GraphQLEntityProjectionMaker {
             }
         });
 
-        return new GraphQLProjectionInfo(rootProjections, relationshipMap);
+        return new GraphQLProjectionInfo(rootProjections, relationshipMap, attributeMap);
     }
 
     /**
      * Root projection would be an operation applied on an single entity class.
      * The EntityProjection tree would be constructed recursively to add all child projections.
      *
-     * Currently we only support one root class in each GraphQL {@link OperationDefinition} since
-     * each {@link EntityProjection} only has one entity class.
-     *
-     * For example
-     * <pre>
-     *     Query {
-     *         Book (arguments1) {
-     *             field1
-     *         },
-     *         Book (arguments2) {
-     *             field2
-     *         }
-     *     }
-     * </pre>
-     * Would be a valid GraphQL request, and would be resolved into (second query's arguments would be dropped)
-     * <pre>
-     *     Query {
-     *         Book (arguments1) {
-     *             field1,
-     *             field2
-     *         }
-     *     }
-     * </pre>
-     *
-     * <pre>
-     *     Query {
-     *         Book {
-     *             field1
-     *         },
-     *         Author {
-     *             field2
-     *         }
-     *     }
-     * </pre>
-     * Would be an invalid request as two classes-Book and Author-are both queried at root level.
-     *
      * @param selectionSet a root-level selection set
      */
     private void addRootProjection(SelectionSet selectionSet) {
         List<Selection> selections = selectionSet.getSelections();
 
-        // get the first selection as root selection
-        Selection rootSelection = selections.get(0);
-        if (!(rootSelection instanceof Field)) {
-            throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
-        }
-
-        String entityName = ((Field) rootSelection).getName();
-        if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
-            // '__schema' and '__type' would not be handled by entity projection
-            return;
-        }
-
-        Class<?> entityType = entityDictionary.getEntityClass(entityName);
-        if (entityType == null) {
-            throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.", entityName));
-        }
-
-        Field fields = (Field) rootSelection;
-
-        // merging partial graphql selections, skip(1) because the first selection is already processed
-        selections.stream().skip(1).forEach(selection -> {
-            if (!(selection instanceof Field)) {
+        selections.stream().forEach(rootSelection -> {
+            if (!(rootSelection instanceof Field)) {
                 throw new InvalidEntityBodyException("Entity selection must be a graphQL field.");
             }
-            if (!entityName.equals(((Field) selection).getName())) {
-                throw new InvalidEntityBodyException("Can't select multiple entities in graphQL QUERY operation.");
+            Field rootSelectionField = (Field) rootSelection;
+            String entityName = rootSelectionField.getName();
+            String aliasName = rootSelectionField.getAlias();
+            if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
+                // '__schema' and '__type' would not be handled by entity projection
+                return;
             }
-            fields.getSelectionSet().getSelections().addAll(((Field) selection).getSelectionSet().getSelections());
+            Class<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName());
+            if (entityType == null) {
+                throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
+                        rootSelectionField.getName()));
+            }
+
+
+            String keyName = GraphQLProjectionInfo.computeProjectionKey(aliasName, entityName);
+            if (rootProjections.containsKey(keyName)) {
+                throw  new InvalidEntityBodyException(
+                        String.format("Found two root level query for Entity {%s} with same alias name",
+                                entityName));
+            }
+            rootProjections.put(keyName,
+                    createProjection(entityType, rootSelectionField));
         });
 
-        rootProjections.add(createProjection(entityType, fields));
     }
 
     /**
@@ -362,6 +323,7 @@ public class GraphQLEntityProjectionMaker {
                     .build();
 
             projectionBuilder.attribute(attribute);
+            attributeMap.put(attributeField.getSourceLocation(), attribute);
         } else {
             throw new InvalidEntityBodyException(String.format(
                             "Unknown attribute field {%s.%s}.",

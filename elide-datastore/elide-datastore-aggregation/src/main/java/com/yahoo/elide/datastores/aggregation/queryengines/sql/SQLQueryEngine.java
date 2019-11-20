@@ -3,34 +3,29 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.FilterTranslator;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.View;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLDimensionColumn;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.dimension.DimensionColumn;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Metric;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
-import com.google.common.base.Preconditions;
 import org.hibernate.jpa.QueryHints;
 
 import lombok.Getter;
@@ -54,32 +49,29 @@ import javax.persistence.EntityTransaction;
 @Slf4j
 public class SQLQueryEngine implements QueryEngine {
 
-    private EntityManagerFactory emf;
-    private EntityDictionary dictionary;
+    private final EntityManagerFactory emf;
+    private final EntityDictionary dictionary;
 
     @Getter
-    private Map<Class<?>, SQLSchema> schemas;
+    private Map<Class<?>, Table> tables;
 
-    public SQLQueryEngine(EntityManagerFactory emf, EntityDictionary dictionary) {
+    public SQLQueryEngine(EntityManagerFactory emf, EntityDictionary dictionary, MetaDataStore metaDataStore) {
         this.emf = emf;
         this.dictionary = dictionary;
 
-        // Construct the list of schemas that will be managed by this query engine.
-        schemas = dictionary.getBindings()
-                .stream()
-                .filter((clazz) ->
-                        dictionary.getAnnotation(clazz, FromTable.class) != null
-                                || dictionary.getAnnotation(clazz, FromSubquery.class) != null
-                )
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        (clazz) -> (new SQLSchema(clazz, dictionary))
-                ));
+        Set<Table> tables = metaDataStore.getMetaData(Table.class);
+        tables.addAll(metaDataStore.getMetaData(AnalyticView.class));
+
+        this.tables = tables.stream()
+                .map(table -> table instanceof AnalyticView
+                        ? new SQLAnalyticView(table.getCls(), dictionary)
+                        : new SQLTable(table.getCls(), dictionary))
+                .collect(Collectors.toMap(Table::getCls, Function.identity()));
     }
 
     @Override
-    public Schema getSchema(Class<?> entityClass) {
-        return schemas.get(entityClass);
+    public Table getTable(Class<?> entityClass) {
+        return tables.get(entityClass);
     }
 
     @Override
@@ -95,13 +87,8 @@ public class SQLQueryEngine implements QueryEngine {
                 transaction.begin();
             }
 
-            SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
-
-            //Make sure we actually manage this schema.
-            Preconditions.checkNotNull(schema);
-
-            //Translate the query into SQL.
-            SQLQuery sql = toSQL(query, schema);
+            // Translate the query into SQL.
+            SQLQuery sql = toSQL(query);
             log.debug("SQL Query: " + sql);
 
             javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
@@ -131,10 +118,10 @@ public class SQLQueryEngine implements QueryEngine {
                 }
             }
 
-            //Supply the query parameters to the query
+            // Supply the query parameters to the query
             supplyFilterQueryParameters(query, jpaQuery);
 
-            //Run the primary query and log the time spent.
+            // Run the primary query and log the time spent.
             List<Object> results = new TimedFunction<>(
                     () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
                     "Running Query: " + sql).get();
@@ -152,250 +139,46 @@ public class SQLQueryEngine implements QueryEngine {
 
     /**
      * Translates the client query into SQL.
+     *
      * @param query the client query.
-     * @param schema SQL schema.
      * @return the SQL query.
      */
-    protected SQLQuery toSQL(Query query, SQLSchema schema) {
-        Class<?> entityClass = schema.getEntityClass();
+    protected SQLQuery toSQL(Query query) {
+        Set<ColumnProjection> groupByDimensions = new LinkedHashSet<>(query.getGroupByDimensions());
+        Set<TimeDimensionProjection> timeDimensions = new LinkedHashSet<>(query.getTimeDimensions());
 
-        SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(query);
+        // TODO: handle the case of more than one time dimensions
+        TimeDimensionProjection timeDimension = timeDimensions.stream().findFirst().orElse(null);
 
-        String tableName = schema.getTableDefinition();
-        String tableAlias = schema.getAlias();
+        SQLQueryTemplate queryTemplate = query.getMetrics().stream()
+                .map(invocation -> {
+                    MetricFunction function = invocation.getFunction();
 
-        builder.projectionClause(extractProjection(query));
+                    if (!(function instanceof SQLMetricFunction)) {
+                        throw new InvalidPredicateException("Non-SQL metric function on " + invocation.getAlias());
+                    }
 
-        Set<Path.PathElement> joinPredicates = new LinkedHashSet<>();
+                    return ((SQLMetricFunction) function).resolve(
+                            invocation.getArgumentMap(),
+                            invocation.getAlias(),
+                            groupByDimensions,
+                            timeDimension);
+                })
+                .reduce(SQLQueryTemplate::merge)
+                .orElseThrow(() -> new InvalidPredicateException("Metric function not found"));
 
-        if (query.getWhereFilter() != null) {
-            joinPredicates.addAll(extractPathElements(query.getWhereFilter()));
-            builder.whereClause("WHERE " + translateFilterExpression(
-                    query.getWhereFilter(),
-                    this::generateWhereClauseColumnReference));
-        }
-
-        if (query.getHavingFilter() != null) {
-            joinPredicates.addAll(extractPathElements(query.getHavingFilter()));
-            builder.havingClause("HAVING " + translateFilterExpression(
-                    query.getHavingFilter(),
-                    (predicate) -> generateHavingClauseColumnReference(predicate, query)));
-        }
-
-        if (!query.getDimensions().isEmpty())  {
-            builder.groupByClause(extractGroupBy(query));
-
-            joinPredicates.addAll(
-                    extractPathElements(
-                            query.getDimensions().stream()
-                                    .map(requestedDim -> requestedDim.toDimensionColumn(query.getSchema()))
-                                    .collect(Collectors.toSet())
-                    )
-            );
-        }
-
-        if (query.getSorting() != null) {
-            Map<Path, Sorting.SortOrder> sortClauses = query.getSorting().getValidSortingRules(entityClass, dictionary);
-
-            builder.orderByClause(extractOrderBy(entityClass, sortClauses));
-
-            joinPredicates.addAll(extractPathElements(sortClauses));
-        }
-
-        String joinClause = joinPredicates.stream()
-                .map(this::extractJoin)
-                .collect(Collectors.joining(" "));
-
-        builder.joinClause(joinClause);
-
-        builder.fromClause(String.format("%s AS %s", tableName, tableAlias));
-
-        return builder.build();
+        return new SQLQueryConstructor(dictionary).resolveTemplate(
+                query,
+                queryTemplate,
+                query.getSorting(),
+                query.getWhereFilter(),
+                query.getHavingFilter());
     }
 
-    /**
-     * Translates a filter expression into SQL.
-     * @param expression The filter expression
-     * @param columnGenerator A function which generates a column reference in SQL from a FilterPredicate.
-     * @return A SQL expression
-     */
-    private String translateFilterExpression(FilterExpression expression,
-                                             Function<FilterPredicate, String> columnGenerator) {
-        FilterTranslator filterVisitor = new FilterTranslator();
-
-        return filterVisitor.apply(expression, columnGenerator);
-    }
-
-    /**
-     * Given the set of group by dimensions, extract any entity relationship traversals that require joins.
-     * @param groupByDims The list of dimensions we are grouping on.
-     * @return A set of path elements that capture a relationship traversal.
-     */
-    private List<Path.PathElement> extractPathElements(Set<DimensionColumn> groupByDims) {
-        return groupByDims.stream()
-            .map((SQLDimensionColumn.class::cast))
-            .filter((dim) -> dim.getJoinPath() != null)
-            .map(SQLDimensionColumn::getJoinPath)
-            .map((path) -> extractPathElements(path))
-            .flatMap((elements) -> elements.stream())
-            .collect(Collectors.toList());
-    }
-
-    /**
-     * Given a filter expression, extracts any entity relationship traversals that require joins.
-     * @param expression The filter expression
-     * @return A set of path elements that capture a relationship traversal.
-     */
-    private List<Path.PathElement> extractPathElements(FilterExpression expression) {
-        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
-
-        return predicates.stream()
-                .map(FilterPredicate::getPath)
-                .map(this::expandJoinToPath)
-                .filter(path -> path.getPathElements().size() > 1)
-                .map((path) -> extractPathElements(path))
-                .flatMap((elements) -> elements.stream())
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Expands a predicate path (from a sort or filter predicate) to the path contained in
-     * the JoinTo annotation.  If no JoinTo annotation is present, the original path is returned.
-     * @param path The path to expand.
-     * @return The expanded path.
-     */
-    private Path expandJoinToPath(Path path) {
-        List<Path.PathElement> pathElements = path.getPathElements();
-        Path.PathElement pathElement = pathElements.get(0);
-
-        Class<?> type = pathElement.getType();
-        String fieldName = pathElement.getFieldName();
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(type, JoinTo.class, fieldName);
-
-        if (joinTo == null || "".equals(joinTo.path())) {
-            return path;
-        }
-
-        return new Path(pathElement.getType(), dictionary, joinTo.path());
-    }
-
-    /**
-     * Given a path , extracts any entity relationship traversals that require joins.
-     * @param path The path
-     * @return A set of path elements that capture a relationship traversal.
-     */
-    private List<Path.PathElement> extractPathElements(Path path) {
-        return path.getPathElements().stream()
-                .filter((p) -> dictionary.isRelation(p.getType(), p.getFieldName()))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Given one component of the path taken to reach a particular field, extracts any table
-     * joins that are required to perform the traversal to the field.
-     * @param pathElement A field or relationship traversal from an entity
-     * @return A SQL expression
-     */
-    private String extractJoin(Path.PathElement pathElement) {
-        //TODO - support composite join keys.
-        //TODO - support joins where either side owns the relationship.
-        //TODO - Support INNER and RIGHT joins.
-        //TODO - Support toMany joins.
-        Class<?> entityClass = pathElement.getType();
-        String entityAlias = FilterPredicate.getTypeAlias(entityClass);
-
-        Class<?> relationshipClass = pathElement.getFieldType();
-        String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
-        String relationshipName = pathElement.getFieldName();
-        String relationshipColumnName = getColumnName(entityClass, relationshipName);
-
-        // resolve the right hand side of JOIN
-        View view = dictionary.getAnnotation(relationshipClass, View.class);
-
-        String joinSource = view == null
-                ? SQLSchema.getTableOrSubselect(dictionary, relationshipClass)
-                : view.isTable() ? view.from() : "(" + view.from() + ")";
-
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(
-                entityClass,
-                JoinTo.class,
-                relationshipColumnName);
-
-        String joinClause = joinTo == null
-                ? String.format("%s.%s = %s.%s",
-                        entityAlias,
-                        relationshipColumnName,
-                        relationshipAlias,
-                        getColumnName(relationshipClass, dictionary.getIdFieldName(relationshipClass)))
-                : extractJoinExpression(joinTo.joinClause(), entityAlias, relationshipAlias);
-
-        return String.format("LEFT JOIN %s AS %s ON %s",
-                joinSource,
-                relationshipAlias,
-                joinClause);
-    }
-
-    /**
-     * Construct a join on clause based on given constraint expression, replace "%from" with from table alias
-     * and "%join" with join table alias.
-     *
-     * @param joinClause sql join constraint
-     * @param fromAlias from table alias
-     * @param joinToAlias join to table alias
-     * @return sql string that represents a full join condition
-     */
-    private String extractJoinExpression(String joinClause, String fromAlias, String joinToAlias) {
-        return joinClause.replace("%from", fromAlias).replace("%join", joinToAlias);
-    }
-
-    /**
-     * Given a list of columns to sort on, extracts any entity relationship traversals that require joins.
-     * @param sortClauses The list of sort columns and their sort order (ascending or descending).
-     * @return A set of path elements that capture a relationship traversal.
-     */
-    private Set<Path.PathElement> extractPathElements(Map<Path, Sorting.SortOrder> sortClauses) {
-        if (sortClauses.isEmpty()) {
-            return new LinkedHashSet<>();
-        }
-
-        return sortClauses.entrySet().stream()
-                .map(Map.Entry::getKey)
-                .map(this::expandJoinToPath)
-                .map((path) -> extractPathElements(path))
-                .flatMap((elements) -> elements.stream())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    /**
-     * Given a list of columns to sort on, constructs an ORDER BY clause in SQL.
-     * @param entityClass The class to sort.
-     * @param sortClauses The list of sort columns and their sort order (ascending or descending).
-     * @return A SQL expression
-     */
-    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses) {
-        if (sortClauses.isEmpty()) {
-            return "";
-        }
-
-        //TODO - Ensure that order by columns are also present in the group by.
-
-        return " ORDER BY " + sortClauses.entrySet().stream()
-                .map((entry) -> {
-                    Path path = entry.getKey();
-                    path = expandJoinToPath(path);
-                    Sorting.SortOrder order = entry.getValue();
-
-                    Path.PathElement last = path.lastElement().get();
-
-                    return FilterPredicate.getTypeAlias(last.getType())
-                            + "."
-                            + getColumnName(entityClass, last.getFieldName())
-                            + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
-                }).collect(Collectors.joining(","));
-    }
 
     /**
      * Given a JPA query, replaces any parameters with their values from client query.
+     *
      * @param query The client query
      * @param jpaQuery The JPA query
      */
@@ -422,30 +205,19 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Returns the physical database column name of an entity field.  Note - we can't use Schema here because
-     * we need to look at both Dimension table and Fact table fields.
-     * @param entityClass The JPA/Elide entity
-     * @param fieldName The field name to lookup
-     * @return
-     */
-    private String getColumnName(Class<?> entityClass, String fieldName) {
-        return SQLSchema.getColumnName(dictionary, entityClass, fieldName);
-    }
-
-    /**
      * Takes a SQLQuery and creates a new clone that instead returns the total number of records of the original
      * query.
+     *
      * @param sql The original query
      * @return A new query that returns the total number of records.
      */
     private SQLQuery toPageTotalSQL(SQLQuery sql) {
-        Query clientQuery = sql.getClientQuery();
-
-        String groupByDimensions = clientQuery.getDimensions().stream()
-                .map(requestedDim -> clientQuery.getSchema().getDimension(requestedDim.getName()))
-                .map((SQLDimensionColumn.class::cast))
-                .map(SQLDimensionColumn::getColumnName)
-                .collect(Collectors.joining(","));
+        // TODO: refactor this method
+        String groupByDimensions =
+                extractSQLDimensions(sql.getClientQuery(), (SQLAnalyticView) sql.getClientQuery().getAnalyticView())
+                        .stream()
+                        .map(SQLColumn::getColumnName)
+                        .collect(Collectors.joining(", "));
 
         String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
 
@@ -459,112 +231,25 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Given a client query, constructs the list of columns to project from a database table.
-     * @param query The client query
-     * @return A SQL fragment to use in the SELECT .. statement.
+     * Extract dimension projects in a query to sql dimensions
+     *
+     * @param query requested query
+     * @param queriedTable queried analytic view
+     * @return sql dimensions in this query
      */
-    private String extractProjection(Query query) {
-        List<String> metricProjections = query.getMetrics().entrySet().stream()
-                .map((entry) -> {
-                    Metric metric = entry.getKey();
-                    Class<? extends Aggregation> agg = entry.getValue();
-                    return metric.getMetricExpression(agg) + " AS " + metric.getName();
-                })
-                .collect(Collectors.toList());
-
-        List<String> dimensionProjections = extractDimensionProjections(query);
-
-        String projectionClause = metricProjections.stream()
-                .collect(Collectors.joining(","));
-
-        if (!dimensionProjections.isEmpty()) {
-            projectionClause = projectionClause + "," + dimensionProjections.stream()
-                    .collect(Collectors.joining(","));
-        }
-
-        return projectionClause;
-    }
-
-    /**
-     * Extracts a GROUP BY SQL clause.
-     * @param query A client query
-     * @return The SQL GROUP BY clause
-     */
-    private String extractGroupBy(Query query) {
-        return "GROUP BY " + String.join(",", extractDimensionProjections(query));
-    }
-
-    /**
-     * extracts the SQL column references for the dimensions from the query. Exclude view relationships.
-     * @param query
-     * @return
-     */
-    private List<String> extractDimensionProjections(Query query) {
+    private List<SQLColumn> extractSQLDimensions(Query query, SQLAnalyticView queriedTable) {
         return query.getDimensions().stream()
-                .map(requestedDim -> query.getSchema().getDimension(requestedDim.getName()))
-                .filter(dim -> {
-                        if (dim.getDataType().isAnnotationPresent(View.class)) {
-                            throw  new InvalidPredicateException(
-                                    "Can't query on view relationship field: " + dim.getName());
-                        }
-                        return true;
-                })
-                .map((SQLDimensionColumn.class::cast))
-                .map(SQLDimensionColumn::getColumnReference)
+                .map(projection -> queriedTable.getColumn(projection.getColumn().getName()))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Converts a filter predicate into a SQL WHERE clause column reference.
-     * @param predicate The predicate to convert
-     * @return A SQL fragment that references a database column
+     * Get alias for an entity class.
+     *
+     * @param entityClass entity class
+     * @return alias
      */
-    private String generateWhereClauseColumnReference(FilterPredicate predicate) {
-        return generateWhereClauseColumnReference(predicate.getPath());
-    }
-
-    /**
-     * Converts a filter predicate path into a SQL WHERE clause column reference.
-     * @param path The predicate path to convert
-     * @return A SQL fragment that references a database column
-     */
-    private String generateWhereClauseColumnReference(Path path) {
-        Path.PathElement last = path.lastElement().get();
-        Class<?> lastClass = last.getType();
-        String fieldName = last.getFieldName();
-
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
-
-        if (joinTo == null) {
-            return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
-        } else {
-            return generateWhereClauseColumnReference(new Path(lastClass, dictionary, joinTo.path()));
-        }
-    }
-
-    /**
-     * Converts a filter predicate into a SQL HAVING clause column reference.
-     * @param predicate The predicate to convert
-     * @return A SQL fragment that references a database column
-     */
-    private String generateHavingClauseColumnReference(FilterPredicate predicate, Query query) {
-        Path.PathElement last = predicate.getPath().lastElement().get();
-        Class<?> lastClass = last.getType();
-
-        if (!lastClass.equals(query.getSchema().getEntityClass())) {
-            throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
-        }
-
-        Schema schema = schemas.get(lastClass);
-        Metric metric = schema.getMetric(last.getFieldName());
-        if (metric != null) {
-            // if the having clause is applied on a metric field, should use aggregation expression
-            Class<? extends Aggregation> agg = query.getMetrics().get(metric);
-
-            return metric.getMetricExpression(agg);
-        } else {
-            // if the having clause is applied on a dimension field, should be the same as a where expression
-            return generateWhereClauseColumnReference(predicate.getPath());
-        }
+    public static String getClassAlias(Class<?> entityClass) {
+        return FilterPredicate.getTypeAlias(entityClass);
     }
 }

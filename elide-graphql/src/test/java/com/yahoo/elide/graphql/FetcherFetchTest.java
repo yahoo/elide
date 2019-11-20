@@ -27,11 +27,6 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootMultiple() throws Exception {
-        assertParsingFails(loadGraphQLRequest("fetch/rootMultiple.graphql"));
-    }
-
-    @Test
     public void testRootUnknownField() throws Exception {
         assertParsingFails(loadGraphQLRequest("fetch/rootUnknownField.graphql"));
     }
@@ -203,11 +198,6 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testAliasSameRelationship() throws Exception {
         runComparisonTest("aliasSameRelationship");
-    }
-
-    @Test
-    public void testAliasPartialQuerySameAttribute() throws Exception {
-        runComparisonTest("aliasPartialQuerySameAttribute");
     }
 
     @Test
