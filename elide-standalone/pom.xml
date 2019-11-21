@@ -49,7 +49,7 @@
         <!-- Versions -->
         <jetty.version>9.4.17.v20190418</jetty.version>
         <logback.version>1.2.3</logback.version>
-        <metrics.version>4.1.0</metrics.version>
+        <metrics.version>4.1.1</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -217,7 +217,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>4.1.1</version>
+            <version>4.1.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -246,7 +246,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.2.0</version>
             </plugin>
         </plugins>
     </build>

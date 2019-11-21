@@ -271,7 +271,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         for (Entity entity : entitySet) {
             graphWalker(entity, this::updateRelationship);
             PersistentResource<?> childResource = entity.toPersistentResource();
-            if (!context.isRoot() && (childResource.isNewlyCreated() || context.parentResource.isNewlyCreated())) {
+            if (!context.isRoot()) {
                 /* add relation between parent and nested entity */
                 assert context.parentResource != null;
                 context.parentResource.addRelation(context.field.getName(), childResource);

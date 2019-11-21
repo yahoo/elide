@@ -11,11 +11,47 @@
     <description>Elide example using javax.persistence, MySQL and Elide Security</description>
     <groupId>com.yahoo.elide</groupId>
     <version>5.0.0-pr3-SNAPSHOT</version>
+    <url>https://github.com/yahoo/elide</url>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/yahoo/elide/issues</url>
+    </issueManagement>
+
+    <inceptionYear>2015</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray-elide-repo</id>
+            <url>https://api.bintray.com/maven/yahoo/maven/elide;publish=1</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <url>https://github.com/yahoo/elide.git</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <jar.finalName>elide-blog-example</jar.finalName>
-        <postgres.version>42.2.7</postgres.version>
-        <liquibase.version>3.5.3</liquibase.version>
+        <postgres.version>42.2.8</postgres.version>
+        <liquibase.version>3.8.0</liquibase.version>
     </properties>
 
     <dependencies>
@@ -94,6 +130,32 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

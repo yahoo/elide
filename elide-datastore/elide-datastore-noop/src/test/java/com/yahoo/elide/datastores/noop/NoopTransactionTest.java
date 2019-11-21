@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.noop;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
 
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -19,18 +19,20 @@ import com.yahoo.elide.request.EntityProjection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.HashMap;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class NoopTransactionTest {
     private DataStoreTransaction tx = new NoopTransaction();
     private NoopBean bean = new NoopBean();
     private RequestScope requestScope;
     private EntityDictionary dictionary;
 
-    @BeforeClass
+    @BeforeAll
     public void setup() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(NoopBean.class);
@@ -90,7 +92,7 @@ public class NoopTransactionTest {
                 .type(NoopBean.class)
                 .build(), requestScope);
         NoopBean bean = iterable.iterator().next();
-        assertEquals(bean.getId(), (Long) 1L);
+        assertEquals((Long) 1L, bean.getId());
     }
 
     @Test

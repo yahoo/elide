@@ -1898,7 +1898,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testIsIdGenerated() {
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
-
         PersistentResource<Child> generated = new PersistentResource<>(new Child(), null, "1", scope);
 
         assertTrue(generated.isIdGenerated(),
@@ -2282,20 +2281,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parent.setChildren(Sets.newHashSet(child));
         parent.setSpouses(new HashSet<>());
         return parent;
-    }
-
-    private static Child newChild(int id) {
-        Child child = new Child();
-        child.setId(id);
-        child.setParents(new HashSet<>());
-        child.setFriends(new HashSet<>());
-        return child;
-    }
-
-    private static Child newChild(int id, String name) {
-        Child child = newChild(id);
-        child.setName(name);
-        return child;
     }
 
     /* ChangeSpec-specific test elements */

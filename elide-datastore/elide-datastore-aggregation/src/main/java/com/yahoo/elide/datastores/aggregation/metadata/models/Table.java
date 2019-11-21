@@ -61,6 +61,7 @@ public class Table {
         this.name = dictionary instanceof ViewDictionary && ((ViewDictionary) dictionary).isView(cls)
                 ? ((ViewDictionary) dictionary).getViewName(cls)
                 : dictionary.getJsonAliasFor(cls);
+
         this.columns = resolveColumns(cls, dictionary);
 
         Meta meta = cls.getAnnotation(Meta.class);

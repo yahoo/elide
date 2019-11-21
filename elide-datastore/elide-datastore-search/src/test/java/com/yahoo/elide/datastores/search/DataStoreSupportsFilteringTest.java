@@ -6,13 +6,14 @@
 
 package com.yahoo.elide.datastores.search;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -25,17 +26,18 @@ import com.yahoo.elide.datastores.search.models.Item;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import org.h2.store.fs.FileUtils;
-import org.testng.Assert;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.Date;
 import java.util.HashMap;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DataStoreSupportsFilteringTest {
 
     private RSQLFilterDialect filterParser;
@@ -65,17 +67,17 @@ public class DataStoreSupportsFilteringTest {
         CoerceUtil.register(Date.class, new ISO8601DateSerde());
     }
 
-    @BeforeSuite
+    @BeforeAll
     public void initialize() {
         FileUtils.createDirectory("/tmp/lucene");
     }
 
-    @AfterSuite
+    @AfterAll
     public void cleanup() {
         FileUtils.deleteRecursive("/tmp/lucene", false);
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void beforeMethods() {
         reset(wrappedTransaction);
     }
@@ -87,7 +89,7 @@ public class DataStoreSupportsFilteringTest {
         FilterExpression filter = filterParser.parseFilterExpression("name==*rum*",
                 Item.class, false);
 
-        Assert.assertEquals(testTransaction.supportsFiltering(Item.class, filter), DataStoreTransaction.FeatureSupport.FULL);
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
     }
 
     @Test
@@ -97,7 +99,7 @@ public class DataStoreSupportsFilteringTest {
         FilterExpression filter = filterParser.parseFilterExpression("description==*rum*",
                 Item.class, false);
 
-        Assert.assertEquals(testTransaction.supportsFiltering(Item.class, filter), DataStoreTransaction.FeatureSupport.FULL);
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
     }
 
     @Test
@@ -107,26 +109,26 @@ public class DataStoreSupportsFilteringTest {
         FilterExpression filter = filterParser.parseFilterExpression("price==123",
                 Item.class, false);
 
-        Assert.assertEquals(testTransaction.supportsFiltering(Item.class, filter), null);
+        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
         verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
     }
 
-    @Test(expectedExceptions = InvalidValueException.class)
+    @Test
     public void testNgramTooSmall() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ru*",
                 Item.class, false);
 
-        testTransaction.supportsFiltering(Item.class, filter);
+        assertThrows(InvalidValueException.class, () -> testTransaction.supportsFiltering(Item.class, filter));
     }
 
-    @Test(expectedExceptions = InvalidValueException.class)
+    @Test
     public void testNgramTooLarge() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*abcdefghijk*",
                 Item.class, false);
 
-        testTransaction.supportsFiltering(Item.class, filter);
+        assertThrows(InvalidValueException.class, () -> testTransaction.supportsFiltering(Item.class, filter));
     }
 
     @Test
@@ -135,7 +137,7 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==abcdefghijk",
                 Item.class, false);
 
-        Assert.assertEquals(testTransaction.supportsFiltering(Item.class, filter), null);
+        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
         verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
     }
 
@@ -145,7 +147,7 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ruabc*",
                 Item.class, false);
 
-        Assert.assertEquals(testTransaction.supportsFiltering(Item.class, filter), DataStoreTransaction.FeatureSupport.FULL);
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
     }
 
     @Test
@@ -154,7 +156,7 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==*rum*",
                 Item.class, false);
 
-        Assert.assertEquals(testTransaction.supportsFiltering(Item.class, filter), DataStoreTransaction.FeatureSupport.FULL);
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
     }
 
     @Test
@@ -163,7 +165,7 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==drum*",
                 Item.class, false);
 
-        Assert.assertEquals(testTransaction.supportsFiltering(Item.class, filter), DataStoreTransaction.FeatureSupport.PARTIAL);
+        assertEquals(DataStoreTransaction.FeatureSupport.PARTIAL, testTransaction.supportsFiltering(Item.class, filter));
     }
 
     @Test
@@ -172,7 +174,7 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==drum",
                 Item.class, false);
 
-        Assert.assertEquals(testTransaction.supportsFiltering(Item.class, filter), null);
+        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
         verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
     }
 }

@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.search;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -30,11 +31,11 @@ import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 
 import com.google.common.collect.Lists;
 import org.h2.store.fs.FileUtils;
-import org.testng.Assert;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ import java.util.stream.StreamSupport;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DataStoreLoadTest {
 
     private RSQLFilterDialect filterParser;
@@ -76,17 +78,17 @@ public class DataStoreLoadTest {
         CoerceUtil.register(Date.class, new ISO8601DateSerde());
     }
 
-    @BeforeSuite
+    @BeforeAll
     public void initialize() {
         FileUtils.createDirectory("/tmp/lucene");
     }
 
-    @AfterSuite
+    @AfterAll
     public void cleanup() {
         FileUtils.deleteRecursive("/tmp/lucene", false);
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void beforeMethods() {
         reset(wrappedTransaction);
     }
@@ -326,7 +328,7 @@ public class DataStoreLoadTest {
                 .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(2L));
-        Assert.assertEquals(pagination.getPageTotals(), 3);
+        assertEquals(pagination.getPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -352,7 +354,7 @@ public class DataStoreLoadTest {
                 .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(5L));
-        Assert.assertEquals(pagination.getPageTotals(), 3);
+        assertEquals(pagination.getPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -363,7 +365,7 @@ public class DataStoreLoadTest {
 
         String actual = FilterExpressionToLuceneQuery.escapeWhiteSpace(toReplace);
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     private void assertListMatches(Iterable<Object> actual, List<Long> expectedIds) {
@@ -372,7 +374,7 @@ public class DataStoreLoadTest {
                 .map(Item::getId)
                 .collect(Collectors.toList());
 
-        Assert.assertEquals(actualIds, expectedIds);
+        assertEquals(expectedIds, actualIds);
     }
 
     private void assertListContains(Iterable<Object> actual, List<Long> expectedIds) {
@@ -384,6 +386,6 @@ public class DataStoreLoadTest {
 
         List<Long> expectedIdsSorted = expectedIds.stream().sorted().collect(Collectors.toList());
 
-        Assert.assertEquals(actualIds, expectedIdsSorted);
+        assertEquals(expectedIdsSorted, actualIds);
     }
 }
