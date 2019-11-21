@@ -7,10 +7,10 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.core;
 
 import com.yahoo.elide.Injector;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityBinding;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.View;
 import com.yahoo.elide.security.checks.Check;
 
 import com.google.common.collect.Sets;
@@ -42,7 +42,7 @@ public class ViewDictionary extends EntityDictionary {
     }
 
     /**
-     * Follow for this class or super-class for {@link View} annotation.
+     * Follow for this class or super-class to find a class that is included by not an entity
      *
      * @param objClass provided class
      * @return class with view annotation
@@ -53,7 +53,7 @@ public class ViewDictionary extends EntityDictionary {
             if (binding != EMPTY_BINDING) {
                 return binding.entityClass;
             }
-            if (cls.isAnnotationPresent(View.class)) {
+            if (cls.isAnnotationPresent(Include.class) && !cls.isAnnotationPresent(Entity.class)) {
                 return cls;
             }
         }
@@ -75,9 +75,9 @@ public class ViewDictionary extends EntityDictionary {
             return;
         }
 
-        View view = cls.getAnnotation(View.class);
-        if (view == null) {
-            log.trace("Missing view definition {}", cls.getName());
+        Include include = cls.getAnnotation(Include.class);
+        if (include == null) {
+            log.trace("No @Include {}", cls.getName());
             return;
         }
 
@@ -142,6 +142,16 @@ public class ViewDictionary extends EntityDictionary {
     }
 
     /**
+     * TODO
+     * @param cls
+     * @param identifier
+     * @return
+     */
+    public boolean isViewRelationship(Class<?> cls, String identifier) {
+        return isRelation(cls, identifier) && isView(getParameterizedType(cls, identifier));
+    }
+
+    /**
      * Check whether an entity is defined as a view.
      *
      * @param entityName entity class name
@@ -152,18 +162,18 @@ public class ViewDictionary extends EntityDictionary {
     }
 
     /**
-     * Get the view name of an entity class, the name should be provided in {@link View} annotation or use the class
+     * Get the view name of an entity class, the name should be provided in {@link Include} annotation or use the class
      * simple name as default.
      *
      * @param cls entity class
      * @return view name
      */
     public String getViewName(Class<?> cls) {
-        View view = cls.getAnnotation(View.class);
+        Include include = cls.getAnnotation(Include.class);
 
-        return !"".equals(view.name())
-                ? view.name()
-                : StringUtils.uncapitalize(cls.getSimpleName());
+        return "".equals(include.type())
+                ? StringUtils.uncapitalize(cls.getSimpleName())
+                : include.type();
     }
 
     /**
@@ -183,6 +193,7 @@ public class ViewDictionary extends EntityDictionary {
      * @param entityClass Entity class to find relationships for
      * @return List of elide-bound relationship names.
      */
+    @Override
     public List<String> getElideBoundRelationships(Class<?> entityClass) {
         return getRelationships(entityClass).stream()
                 .filter(relationName -> getBindings().contains(getParameterizedType(entityClass, relationName)))

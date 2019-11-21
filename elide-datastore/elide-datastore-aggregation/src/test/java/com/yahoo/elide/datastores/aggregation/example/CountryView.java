@@ -5,21 +5,22 @@
  */
 package com.yahoo.elide.datastores.aggregation.example;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.View;
 
 import lombok.Data;
 
 import javax.persistence.Column;
-import javax.persistence.Id;
 
 /**
  * A view version of table countries.
  */
 @Data
-@View(from = "countries")
+@Include
+@FromTable(name = "countries")
 public class CountryView {
 
     private String id;
@@ -44,7 +45,6 @@ public class CountryView {
     @JoinTo(path = "nestedRelationship.isoCode")
     private String nestedRelationshipIsoCode;
 
-    @Id
     public String getId() {
         return id;
     }

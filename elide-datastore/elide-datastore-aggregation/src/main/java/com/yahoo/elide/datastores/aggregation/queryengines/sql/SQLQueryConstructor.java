@@ -25,7 +25,7 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.View;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.core.ViewDictionary;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -180,11 +180,15 @@ public class SQLQueryConstructor {
                 .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
+        Class<?> tableClass = queriedTable.getCls();
+
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
                 .map(dimension -> {
                     // view object can't be projected
-                    if (dictionary.getParameterizedType(queriedTable.getCls(), dimension.getColumn().getName())
-                            .isAnnotationPresent(View.class)) {
+                    if (dictionary instanceof ViewDictionary &&
+                            ((ViewDictionary) dictionary).isViewRelationship(
+                                    tableClass,
+                                    dimension.getColumn().getName())) {
                         throw  new InvalidPredicateException(
                                 "Can't query on view relationship field: " + dimension.getColumn().getName());
                     }
@@ -217,11 +221,7 @@ public class SQLQueryConstructor {
         String relationshipColumnName = dictionary.getAnnotatedColumnName(entityClass, relationshipName);
 
         // resolve the right hand side of JOIN
-        View view = dictionary.getAnnotation(relationshipClass, View.class);
-
-        String joinSource = view == null
-                ? constructTableOrSubselect(relationshipClass)
-                : view.isTable() ? view.from() : "(" + view.from() + ")";
+        String joinSource = constructTableOrSubselect(relationshipClass);
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(
                 entityClass,
@@ -459,14 +459,22 @@ public class SQLQueryConstructor {
      */
     private static String resolveTableOrSubselect(EntityDictionary dictionary, Class<?> cls) {
         if (isSubselect(cls)) {
-            return dictionary.getAnnotation(cls, Subselect.class).value();
+            if (cls.isAnnotationPresent(FromSubquery.class)) {
+                return dictionary.getAnnotation(cls, FromSubquery.class).sql();
+            } else {
+                return dictionary.getAnnotation(cls, Subselect.class).value();
+            }
         } else {
             javax.persistence.Table tableAnnotation =
                     dictionary.getAnnotation(cls, javax.persistence.Table.class);
 
-            return (tableAnnotation == null)
-                    ? dictionary.getJsonAliasFor(cls)
-                    : tableAnnotation.name();
+            if (tableAnnotation != null) {
+                return tableAnnotation.name();
+            } else {
+                FromTable fromTableAnnotation = dictionary.getAnnotation(cls, FromTable.class);
+
+                return fromTableAnnotation == null ? dictionary.getJsonAliasFor(cls) : fromTableAnnotation.name();
+            }
         }
     }
 
@@ -490,6 +498,6 @@ public class SQLQueryConstructor {
      * @return True if the class has {@link Subselect} annotation
      */
     private static boolean isSubselect(Class<?> cls) {
-        return cls.isAnnotationPresent(Subselect.class);
+        return cls.isAnnotationPresent(Subselect.class) || cls.isAnnotationPresent(FromSubquery.class);
     }
 }

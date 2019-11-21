@@ -5,8 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.example;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.View;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import lombok.Data;
 
@@ -16,7 +17,8 @@ import javax.persistence.Id;
  * A nested view for testing.
  */
 @Data
-@View(from = "countries")
+@Include
+@FromTable(name = "countries")
 public class CountryViewNested {
 
     private String id;

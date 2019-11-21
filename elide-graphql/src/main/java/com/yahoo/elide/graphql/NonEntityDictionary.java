@@ -10,7 +10,7 @@ import com.yahoo.elide.core.EntityBinding;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,7 +32,7 @@ public class NonEntityDictionary extends EntityDictionary {
      */
     @Override
     public void bindEntity(Class<?> cls) {
-        String type = WordUtils.uncapitalize(cls.getSimpleName());
+        String type = StringUtils.uncapitalize(cls.getSimpleName());
 
         Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
 
