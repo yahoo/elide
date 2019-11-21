@@ -18,8 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.annotation.Annotation;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,16 +75,13 @@ public class ViewDictionary extends EntityDictionary {
             return;
         }
 
-        Annotation annotation = getFirstAnnotation(cls, Collections.singletonList(View.class));
-        View view = annotation instanceof View ? (View) annotation : null;
+        View view = cls.getAnnotation(View.class);
         if (view == null) {
             log.trace("Missing view definition {}", cls.getName());
             return;
         }
 
-        String viewName = !"".equals(view.name())
-                    ? view.name()
-                    : StringUtils.uncapitalize(cls.getSimpleName());
+        String viewName = getViewName(cls);
 
         Class<?> duplicate = bindJsonApiToEntity.put(viewName, cls);
         if (duplicate != null && !duplicate.equals(cls)) {
@@ -114,6 +109,16 @@ public class ViewDictionary extends EntityDictionary {
         } catch (IllegalArgumentException e) {
             return super.getEntityBinding(entityClass);
         }
+    }
+
+    @Override
+    public Class<?> getType(Class<?> entityClass, String identifier) {
+        if (!isView(entityClass)) {
+            return super.getType(entityClass, identifier);
+        }
+
+        ConcurrentHashMap<String, Class<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
+        return fieldTypes == null ? null : fieldTypes.get(identifier);
     }
 
     /**
@@ -144,6 +149,21 @@ public class ViewDictionary extends EntityDictionary {
      */
     public boolean isView(String entityName) {
         return viewBindings.containsKey(getEntityClass(entityName));
+    }
+
+    /**
+     * Get the view name of an entity class, the name should be provided in {@link View} annotation or use the class
+     * simple name as default.
+     *
+     * @param cls entity class
+     * @return view name
+     */
+    public String getViewName(Class<?> cls) {
+        View view = cls.getAnnotation(View.class);
+
+        return !"".equals(view.name())
+                ? view.name()
+                : StringUtils.uncapitalize(cls.getSimpleName());
     }
 
     /**

@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.CountryView;
 import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
@@ -15,22 +16,34 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.core.ViewDictionary;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
+import java.util.Collections;
 import java.util.HashMap;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 public abstract class UnitTest {
     protected static EntityManagerFactory emf;
-    protected static Schema playerStatsSchema;
+    protected static AnalyticView playerStatsTable;
     protected static ViewDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
+    protected static MetaDataStore metaDataStore = new MetaDataStore();
 
     protected static final Country HONG_KONG = new Country();
     protected static final Country USA = new Country();
+
+    protected static QueryEngine engine;
 
     public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
@@ -45,7 +58,12 @@ public abstract class UnitTest {
         dictionary.bindView(CountryViewNested.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
-        playerStatsSchema = new SQLSchema(PlayerStats.class, dictionary);
+        playerStatsTable = new SQLAnalyticView(PlayerStats.class, dictionary);
+
+        metaDataStore.populateEntityDictionary(dictionary);
+        metaDataStore.loadMetaData(dictionary);
+
+        engine = new SQLQueryEngine(emf, dictionary, metaDataStore);
 
         HONG_KONG.setIsoCode("HKG");
         HONG_KONG.setName("Hong Kong");
@@ -54,5 +72,17 @@ public abstract class UnitTest {
         USA.setIsoCode("USA");
         USA.setName("United States");
         USA.setId("840");
+    }
+
+    public static ColumnProjection toProjection(Dimension dimension) {
+        return ColumnProjection.toProjection(dimension, dimension.getName());
+    }
+
+    public static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain) {
+        return ColumnProjection.toProjection(dimension, grain, dimension.getName());
+    }
+
+    public static MetricFunctionInvocation invoke(Metric metric) {
+        return metric.getMetricFunction().invoke(Collections.emptySet(), metric.getName());
     }
 }

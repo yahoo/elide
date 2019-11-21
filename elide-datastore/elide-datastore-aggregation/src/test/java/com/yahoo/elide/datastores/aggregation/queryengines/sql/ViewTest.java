@@ -12,12 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.schema.SQLSchema;
-import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.datastores.aggregation.schema.metric.Sum;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,25 +27,23 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class ViewTest extends UnitTest {
-    protected static Schema playerStatsWithViewSchema;
+    protected static AnalyticView playerStatsWithViewSchema;
 
     @BeforeAll
     public static void init() {
         UnitTest.init();
-        playerStatsWithViewSchema = new SQLSchema(PlayerStatsWithView.class, dictionary);
+        playerStatsWithViewSchema = new SQLAnalyticView(PlayerStatsWithView.class, dictionary);
     }
 
     @Test
-    public void testViewRelationFailure() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
+    public void testViewRelationFailure() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .schema(playerStatsWithViewSchema)
-                .metric(playerStatsWithViewSchema.getMetric("lowScore"), Sum.class)
-                .groupDimension(playerStatsWithViewSchema.getDimension("countryView"))
+                .analyticView(playerStatsWithViewSchema)
+                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryView")))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -55,16 +51,14 @@ public class ViewTest extends UnitTest {
     }
 
     @Test
-    public void testViewAttribute() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
+    public void testViewAttribute() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .schema(playerStatsWithViewSchema)
-                .metric(playerStatsWithViewSchema.getMetric("lowScore"), Sum.class)
-                .groupDimension(playerStatsWithViewSchema.getDimension("countryViewIsoCode"))
+                .analyticView(playerStatsWithViewSchema)
+                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryViewIsoCode")))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -73,7 +67,7 @@ public class ViewTest extends UnitTest {
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
-        usa0.setLowScore(276);
+        usa0.setLowScore(35);
         usa0.setCountryViewIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
@@ -92,15 +86,13 @@ public class ViewTest extends UnitTest {
 
     @Test
     public void testNestedViewAttribute() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .schema(playerStatsWithViewSchema)
-                .metric(playerStatsWithViewSchema.getMetric("lowScore"), Sum.class)
-                .groupDimension(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode"))
+                .analyticView(playerStatsWithViewSchema)
+                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -109,7 +101,7 @@ public class ViewTest extends UnitTest {
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
-        usa0.setLowScore(276);
+        usa0.setLowScore(35);
         usa0.setCountryViewViewIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
@@ -128,15 +120,14 @@ public class ViewTest extends UnitTest {
 
     @Test
     public void testNestedRelationshipAttribute() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .schema(playerStatsWithViewSchema)
-                .metric(playerStatsWithViewSchema.getMetric("lowScore"), Sum.class)
-                .groupDimension(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode"))
+                .analyticView(playerStatsWithViewSchema)
+                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .groupByDimension(
+                        toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -145,7 +136,7 @@ public class ViewTest extends UnitTest {
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
-        usa0.setLowScore(276);
+        usa0.setLowScore(35);
         usa0.setCountryViewRelationshipIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
@@ -164,15 +155,14 @@ public class ViewTest extends UnitTest {
 
     @Test
     public void testSortingViewAttribute() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryView.isoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .schema(playerStatsWithViewSchema)
-                .metric(playerStatsWithViewSchema.getMetric("lowScore"), Sum.class)
-                .groupDimension(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode"))
+                .analyticView(playerStatsWithViewSchema)
+                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .groupByDimension(
+                        toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -181,7 +171,7 @@ public class ViewTest extends UnitTest {
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
-        usa0.setLowScore(276);
+        usa0.setLowScore(35);
         usa0.setCountryViewRelationshipIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
@@ -200,15 +190,14 @@ public class ViewTest extends UnitTest {
 
     @Test
     public void testSortingNestedViewAttribute() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryView.nestedView.isoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .schema(playerStatsWithViewSchema)
-                .metric(playerStatsWithViewSchema.getMetric("lowScore"), Sum.class)
-                .groupDimension(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode"))
+                .analyticView(playerStatsWithViewSchema)
+                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .groupByDimension(
+                        toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -217,7 +206,7 @@ public class ViewTest extends UnitTest {
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
-        usa0.setLowScore(276);
+        usa0.setLowScore(35);
         usa0.setCountryViewRelationshipIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
@@ -236,15 +225,14 @@ public class ViewTest extends UnitTest {
 
     @Test
     public void testSortingNestedRelationshipAttribute() throws Exception {
-        QueryEngine engine = new SQLQueryEngine(emf, dictionary);
-
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryView.nestedRelationship.isoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .schema(playerStatsWithViewSchema)
-                .metric(playerStatsWithViewSchema.getMetric("lowScore"), Sum.class)
-                .groupDimension(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode"))
+                .analyticView(playerStatsWithViewSchema)
+                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .groupByDimension(
+                        toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -253,7 +241,7 @@ public class ViewTest extends UnitTest {
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
-        usa0.setLowScore(276);
+        usa0.setLowScore(35);
         usa0.setCountryViewRelationshipIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();

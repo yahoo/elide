@@ -25,6 +25,7 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.View;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -32,7 +33,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTem
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +72,7 @@ public class SQLQueryConstructor {
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
 
-        Set<Path.PathElement> joinPredicates = new HashSet<>();
+        Set<Path.PathElement> joinPredicates = new LinkedHashSet<>();
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
@@ -181,7 +181,15 @@ public class SQLQueryConstructor {
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
-                .map(dimension ->  resolveSQLColumnReference(dimension, queriedTable) + " AS " + dimension.getAlias())
+                .map(dimension -> {
+                    // view object can't be projected
+                    if (dictionary.getParameterizedType(queriedTable.getCls(), dimension.getColumn().getName())
+                            .isAnnotationPresent(View.class)) {
+                        throw  new InvalidPredicateException(
+                                "Can't query on view relationship field: " + dimension.getColumn().getName());
+                    }
+                    return resolveSQLColumnReference(dimension, queriedTable) + " AS " + dimension.getAlias();
+                })
                 .collect(Collectors.toList());
 
         return Stream.concat(metricProjections.stream(), dimensionProjections.stream())
@@ -206,20 +214,34 @@ public class SQLQueryConstructor {
         Class<?> relationshipClass = pathElement.getFieldType();
         String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
         String relationshipName = pathElement.getFieldName();
-
-        String relationshipIdField = dictionary.getAnnotatedColumnName(
-                relationshipClass,
-                dictionary.getIdFieldName(relationshipClass));
-
         String relationshipColumnName = dictionary.getAnnotatedColumnName(entityClass, relationshipName);
 
-        return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
-                constructTableOrSubselect(relationshipClass),
-                relationshipAlias,
+        // resolve the right hand side of JOIN
+        View view = dictionary.getAnnotation(relationshipClass, View.class);
+
+        String joinSource = view == null
+                ? constructTableOrSubselect(relationshipClass)
+                : view.isTable() ? view.from() : "(" + view.from() + ")";
+
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(
+                entityClass,
+                JoinTo.class,
+                relationshipColumnName);
+
+        String joinClause = joinTo == null
+                ? String.format("%s.%s = %s.%s",
                 entityAlias,
                 relationshipColumnName,
                 relationshipAlias,
-                relationshipIdField);
+                dictionary.getAnnotatedColumnName(
+                        relationshipClass,
+                        dictionary.getIdFieldName(relationshipClass)))
+                : extractJoinExpression(joinTo.joinClause(), entityAlias, relationshipAlias);
+
+        return String.format("LEFT JOIN %s AS %s ON %s",
+                joinSource,
+                relationshipAlias,
+                joinClause);
     }
 
 
@@ -277,7 +299,7 @@ public class SQLQueryConstructor {
         String fieldName = pathElement.getFieldName();
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(type, JoinTo.class, fieldName);
 
-        if (joinTo == null) {
+        if (joinTo == null || joinTo.path().equals("")) {
             return path;
         }
 
@@ -331,7 +353,7 @@ public class SQLQueryConstructor {
                 .map(SQLColumn::getJoinPath)
                 .map(this::extractPathElements)
                 .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -446,6 +468,19 @@ public class SQLQueryConstructor {
                     ? dictionary.getJsonAliasFor(cls)
                     : tableAnnotation.name();
         }
+    }
+
+    /**
+     * Construct a join on clause based on given constraint expression, replace "%from" with from table alias
+     * and "%join" with join table alias.
+     *
+     * @param joinClause sql join constraint
+     * @param fromAlias from table alias
+     * @param joinToAlias join to table alias
+     * @return sql string that represents a full join condition
+     */
+    private String extractJoinExpression(String joinClause, String fromAlias, String joinToAlias) {
+        return joinClause.replace("%from", fromAlias).replace("%join", joinToAlias);
     }
 
     /**
