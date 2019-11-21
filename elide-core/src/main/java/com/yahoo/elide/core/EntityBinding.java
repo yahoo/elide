@@ -10,7 +10,6 @@ import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.IncludeField;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
@@ -259,7 +258,6 @@ public class EntityBinding {
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
             } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
-                    && !fieldOrMethod.isAnnotationPresent(IncludeField.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedRelationship.class)) {
                 continue; // Transient. Don't serialize
