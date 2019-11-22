@@ -661,7 +661,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    @Disabled
     public void noMetricQueryTest() throws Exception {
         String graphQLRequest = document(
                 selection(
