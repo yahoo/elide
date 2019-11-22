@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -40,7 +39,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.Entity;
 
 /**
  * Class to construct query template into real sql query
@@ -185,16 +183,17 @@ public class SQLQueryConstructor {
 
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
                 .map(dimension -> {
-                    // view object can't be projected
                     String fieldName = dimension.getColumn().getName();
+
+                    // relation to Non-JPA Entities object can't be projected
                     if (dictionary.isRelation(tableClass, fieldName)) {
                         Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);
-                        if (relationshipClass.isAnnotationPresent(Include.class)
-                                && !relationshipClass.isAnnotationPresent(Entity.class)) {
+                        if (!dictionary.isJPAEntity(relationshipClass)) {
                             throw new InvalidPredicateException(
-                                    "Can't query on view relationship field: " + dimension.getColumn().getName());
+                                    "Can't query on non-JPA relationship field: " + dimension.getColumn().getName());
                         }
                     }
+
                     return resolveSQLColumnReference(dimension, queriedTable) + " AS " + dimension.getAlias();
                 })
                 .collect(Collectors.toList());

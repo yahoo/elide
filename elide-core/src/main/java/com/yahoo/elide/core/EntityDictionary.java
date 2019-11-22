@@ -1079,7 +1079,7 @@ public class EntityDictionary {
     public final boolean isJPAEntity(Class<?> objClass) {
         try {
             lookupEntityClass(objClass);
-            return true;
+            return objClass.isAnnotationPresent(Entity.class);
         } catch (IllegalArgumentException e) {
             return false;
         }
