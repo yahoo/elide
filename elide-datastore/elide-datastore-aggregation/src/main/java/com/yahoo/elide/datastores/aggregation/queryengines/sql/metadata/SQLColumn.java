@@ -10,9 +10,11 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEn
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
 import lombok.Getter;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * SQLColumn contains meta data about underlying physical table.
@@ -26,6 +28,8 @@ public class SQLColumn extends Column {
 
     @Getter
     private final Path joinPath;
+
+    private String fieldName;
 
     protected SQLColumn(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
@@ -57,7 +61,11 @@ public class SQLColumn extends Column {
      * @return e.g. <code>table_alias.column_name</code>
      */
     public String getReference() {
-        return getTableAlias() + "." + getColumnName();
+        if (joinPath == null) {
+            return getTableAlias() + "." + getColumnName();
+        }
+        String suffix =  joinPath.getPathElements().get(0).getFieldName();
+        return getTableAlias() + "_" + suffix + "." + getColumnName();
     }
 
     /**

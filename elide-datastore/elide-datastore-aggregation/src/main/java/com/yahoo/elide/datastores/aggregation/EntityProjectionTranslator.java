@@ -40,10 +40,6 @@ public class EntityProjectionTranslator {
 
     private AnalyticView queriedTable;
 
-    //TODO refactor this class in the next PR
-    //TODO Add support for user selected metrics.
-    private static final int AGGREGATION_METHOD_INDEX = 0;
-
     private EntityProjection entityProjection;
     private Set<ColumnProjection> dimensionProjections;
     private Set<TimeDimensionProjection> timeDimensions;

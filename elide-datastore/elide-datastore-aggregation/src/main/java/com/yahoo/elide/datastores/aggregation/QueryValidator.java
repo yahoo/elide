@@ -148,7 +148,7 @@ public class QueryValidator {
         if (!allFields.stream().anyMatch(field -> field.equals(currentField))) {
             throw new InvalidOperationException("Can't sort on " + currentField + " as it is not present in query");
         }
-        if (dictionary.getIdFieldName(currentClass).equals(currentField)
+        if (currentField.equals(dictionary.getIdFieldName(currentClass))
                 || currentField.equals(EntityDictionary.REGULAR_ID_NAME)) {
             throw new InvalidOperationException("Sorting on id field is not permitted");
         }

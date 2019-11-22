@@ -717,8 +717,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    @Disabled
-    //TODO will add this on the next PR
     public void ambiguiousFieldTest() throws Exception {
         String graphQLRequest = document(
                 selection(
@@ -734,9 +732,32 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Currently sorting on double nested fields is not supported\"";
-
-        runQueryWithExpectedError(graphQLRequest, expected);
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 72),
+                                        field("overallRating", "Good"),
+                                        field("playerName", "Han"),
+                                        field("player2Name", "Jon Doe")
+                                ),
+                                selections(
+                                        field("lowScore", 35),
+                                        field("overallRating", "Good"),
+                                        field("playerName", "Jon Doe"),
+                                        field("player2Name", "Jane Doe")
+                                ),
+                                selections(
+                                        field("lowScore", 241),
+                                        field("overallRating", "Great"),
+                                        field("playerName", "Jane Doe"),
+                                        field("player2Name", "Han")
+                                )
+                        )
+                )
+        ).toResponse();
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test

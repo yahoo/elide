@@ -215,10 +215,10 @@ public class SQLQueryConstructor {
 
         return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
                 constructTableOrSubselect(relationshipClass),
-                relationshipAlias,
+                relationshipAlias + "_" + relationshipName,
                 entityAlias,
                 relationshipColumnName,
-                relationshipAlias,
+                relationshipAlias + "_" + relationshipName,
                 relationshipIdField);
     }
 
@@ -427,7 +427,6 @@ public class SQLQueryConstructor {
      */
     private String resolveSQLColumnReference(ColumnProjection columnProjection, SQLAnalyticView queriedTable) {
         SQLColumn sqlColumn = queriedTable.getColumn(columnProjection.getColumn().getName());
-
         if (columnProjection instanceof TimeDimensionProjection) {
             TimeDimension timeDimension = ((TimeDimensionProjection) columnProjection).getTimeDimension();
             TimeDimensionGrain grainInfo = timeDimension.getSupportedGrains().stream()
