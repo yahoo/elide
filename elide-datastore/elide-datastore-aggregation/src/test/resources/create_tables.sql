@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS playerStats
     (
-      id VARCHAR(255),
       highScore BIGINT,
       lowScore BIGINT,
       overallRating VARCHAR(255),
