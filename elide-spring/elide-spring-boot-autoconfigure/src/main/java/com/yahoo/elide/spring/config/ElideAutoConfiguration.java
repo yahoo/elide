@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.spring.config;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
@@ -86,9 +87,12 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngineFactory queryEngineFactory) {
+    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
+                                    QueryEngineFactory queryEngineFactory,
+                                    ElideConfigProperties settings) throws ClassNotFoundException {
+        String packageName = settings.getModelPackage();
+        MetaDataStore metaDataStore = new MetaDataStore(packageName);
 
-        MetaDataStore metaDataStore = new MetaDataStore();
         AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
 
         JpaDataStore jpaDataStore = new JpaDataStore(

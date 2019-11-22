@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 
 public class MetaDataStoreTest {
-    private static MetaDataStore dataStore = new MetaDataStore();
+    private static MetaDataStore dataStore = new MetaDataStore(PlayerStats.class.getPackage());
 
     @BeforeAll
     public static void setup() {
@@ -34,7 +34,6 @@ public class MetaDataStoreTest {
         dictionary.bindEntity(VideoGame.class);
 
         dataStore.populateEntityDictionary(dictionary);
-        dataStore.loadMetaData(dictionary);
     }
 
     @Test

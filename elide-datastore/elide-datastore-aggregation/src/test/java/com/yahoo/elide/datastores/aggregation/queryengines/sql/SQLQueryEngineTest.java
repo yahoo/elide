@@ -69,7 +69,7 @@ public class SQLQueryEngineTest {
         playerStatsTable = new SQLAnalyticView(PlayerStats.class, dictionary);
         playerStatsViewTable = new SQLAnalyticView(PlayerStatsView.class, dictionary);
 
-        MetaDataStore metaDataStore = new MetaDataStore();
+        MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
         metaDataStore.populateEntityDictionary(dictionary);
         engine = new SQLQueryEngine(emf, dictionary, metaDataStore);
 

@@ -1,0 +1,1 @@
+package com.yahoo.elide.spring.models;

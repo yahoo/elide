@@ -2,7 +2,7 @@ server:
   port: 4001
 
 elide:
-  modelPackage: 'example.models'
+  modelPackage: 'com.yahoo.elide.spring.models'
   json-api:
     path: /json
     enabled: true
