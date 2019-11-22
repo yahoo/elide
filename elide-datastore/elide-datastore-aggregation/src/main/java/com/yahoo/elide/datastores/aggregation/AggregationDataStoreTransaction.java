@@ -64,8 +64,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     @VisibleForTesting
     Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Table table = queryEngine.getTable(entityProjection.getType());
-        EntityProjectionTranslator agHelper = new EntityProjectionTranslator(table,
+        EntityProjectionTranslator translator = new EntityProjectionTranslator(table,
                 entityProjection, scope.getDictionary());
-        return agHelper.getQuery();
+        return translator.getQuery();
     }
 }
