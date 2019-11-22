@@ -12,9 +12,14 @@ import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.QueryEngineFactory;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
+import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -81,10 +86,17 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory) {
-        return new JpaDataStore(
+    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngineFactory queryEngineFactory) {
+
+        MetaDataStore metaDataStore = new MetaDataStore();
+        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
+
+        JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                (em -> { return new NonJtaTransaction(em); }));
+                    (em -> { return new NonJtaTransaction(em); }));
+
+        // meta data store needs to be put at first to populate meta data models
+        return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
     }
 
     /**
@@ -105,5 +117,11 @@ public class ElideAutoConfiguration {
         Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
 
         return swagger;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public QueryEngineFactory buildQueryEngineFactory(EntityManagerFactory entityManagerFactory) {
+        return new SQLQueryEngineFactory(entityManagerFactory);
     }
 }

@@ -16,7 +16,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
-public abstract class AggregationDataStore implements DataStore {
+public class AggregationDataStore implements DataStore {
 
     private final QueryEngineFactory queryEngineFactory;
 
