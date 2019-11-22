@@ -78,14 +78,14 @@ import javax.persistence.Transient;
  */
 public class EntityBinding {
 
-    protected static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
-    protected static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
+    private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
+    private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
 
-    public Class<?> entityClass;
+    public final Class<?> entityClass;
     public final String jsonApiType;
-    public String entityName;
+    public final String entityName;
     @Getter
     public boolean idGenerated;
     @Getter
@@ -101,9 +101,9 @@ public class EntityBinding {
     private AccessType accessType;
 
     public final EntityPermissions entityPermissions;
-    public List<String> attributes;
-    public List<String> relationships;
-    protected List<Class<?>> inheritedTypes;
+    public final List<String> attributes;
+    public final List<String> relationships;
+    public final List<Class<?>> inheritedTypes;
     public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
     public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
 
@@ -125,7 +125,7 @@ public class EntityBinding {
     private static final String ALL_FIELDS = "*";
 
     /* empty binding constructor */
-    protected EntityBinding() {
+    private EntityBinding() {
         jsonApiType = null;
         entityName = null;
         attributes = new ArrayList<>();
@@ -313,7 +313,7 @@ public class EntityBinding {
      * @param deque Deque to convert
      * @return Deque as a list
      */
-    protected static List<String> dequeToList(final Deque<String> deque) {
+    private static List<String> dequeToList(final Deque<String> deque) {
         ArrayList<String> result = new ArrayList<>();
         deque.stream().forEachOrdered(result::add);
         result.sort(String.CASE_INSENSITIVE_ORDER);
@@ -325,7 +325,7 @@ public class EntityBinding {
      *
      * @param fieldOrMethod Field or method to bind
      */
-    protected void bindAttrOrRelation(AccessibleObject fieldOrMethod) {
+    private void bindAttrOrRelation(AccessibleObject fieldOrMethod) {
         boolean isRelation = RELATIONSHIP_TYPES.stream().anyMatch(fieldOrMethod::isAnnotationPresent);
 
         String fieldName = getFieldName(fieldOrMethod);
@@ -348,7 +348,7 @@ public class EntityBinding {
         }
     }
 
-    protected final void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
+    private void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
         boolean manyToMany = fieldOrMethod.isAnnotationPresent(ManyToMany.class);
         boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
         boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
@@ -395,7 +395,7 @@ public class EntityBinding {
         fieldsToTypes.put(fieldName, fieldType);
     }
 
-    protected final void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
+    private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
         attributesDeque.push(fieldName);
         fieldsToValues.put(fieldName, fieldOrMethod);
         fieldsToTypes.put(fieldName, fieldType);
@@ -579,7 +579,7 @@ public class EntityBinding {
         return annotation == NO_ANNOTATION ? null : annotationClass.cast(annotation);
     }
 
-    protected List<Class<?>> getInheritedTypes(Class<?> entityClass) {
+    private List<Class<?>> getInheritedTypes(Class<?> entityClass) {
         ArrayList<Class<?>> results = new ArrayList<>();
 
         for (Class<?> cls = entityClass.getSuperclass(); cls != Object.class; cls = cls.getSuperclass()) {
