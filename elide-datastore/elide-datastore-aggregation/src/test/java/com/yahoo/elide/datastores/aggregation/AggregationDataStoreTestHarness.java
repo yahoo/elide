@@ -23,6 +23,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     @Override
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
+
         AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
 
         DataStore jpaStore = new JpaDataStore(

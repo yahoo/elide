@@ -28,7 +28,6 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-
 /**
  * A root level entity for testing AggregationDataStore.
  */
@@ -89,6 +88,8 @@ public class PlayerStats {
      * A table dimension.
      */
     private Player player;
+
+    private Player player2;
 
     private Date recordedDate;
 
@@ -195,5 +196,37 @@ public class PlayerStats {
 
     public void setSubCountryIsoCode(String isoCode) {
         this.subCountryIsoCode = isoCode;
+    }
+
+    @JoinColumn(name = "player2_id")
+    @ManyToOne
+    public Player getPlayer2() {
+        return player2;
+    }
+
+    public void setPlayer2(Player player2) {
+        this.player2 = player2;
+    }
+
+    private String playerName;
+
+    private String player2Name;
+
+    @JoinTo(path = "player.name")
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    @JoinTo(path = "player2.name")
+    public String getPlayer2Name() {
+        return player2Name;
+    }
+
+    public void setPlayer2Name(String player2Name) {
+        this.player2Name = player2Name;
     }
 }

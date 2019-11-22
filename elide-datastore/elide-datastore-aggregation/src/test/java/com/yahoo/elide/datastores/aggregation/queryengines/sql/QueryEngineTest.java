@@ -638,5 +638,35 @@ public class QueryEngineTest extends UnitTest {
         assertEquals(stats0, results.get(0));
     }
 
+    @Test
+    public void testSortAggregatedMetric() {
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("lowScore", Sorting.SortOrder.desc);
+
+        Query query = Query.builder()
+                .analyticView(playerStatsTable)
+                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                .sorting(new Sorting(sortMap))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(241);
+        stats0.setOverallRating("Great");
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setLowScore(35);
+        stats1.setOverallRating("Good");
+
+        assertEquals(2, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
+    }
+
     //TODO - Add Invalid Request Tests
 }

@@ -8,32 +8,21 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-/**
- * A root level entity for testing AggregationDataStore.
- */
+@Data
 @Entity
 @Include(rootLevel = true)
-@Table(name = "players")
-@Cardinality(size = CardinalitySize.MEDIUM)
-@Data
-public class Player {
+@Table(name = "continents")
+@Cardinality(size = CardinalitySize.SMALL)
+public class Continent {
 
     @Id
-    private long id;
+    private String id;
 
-    @FriendlyName
     private String name;
-
-    @OneToOne
-    @JoinColumn(name = "opponent_id")
-    private Player opponent;
 }

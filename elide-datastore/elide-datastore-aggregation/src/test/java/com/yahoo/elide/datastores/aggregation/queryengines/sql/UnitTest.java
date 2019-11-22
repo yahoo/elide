@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.CountryView;
 import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
@@ -42,6 +43,8 @@ public abstract class UnitTest {
 
     protected static final Country HONG_KONG = new Country();
     protected static final Country USA = new Country();
+    protected static final Continent ASIA = new Continent();
+    protected static final Continent NA = new Continent();
 
     protected static QueryEngine engine;
 
@@ -64,13 +67,21 @@ public abstract class UnitTest {
 
         engine = new SQLQueryEngine(emf, metaDataStore);
 
+        ASIA.setName("Asia");
+        ASIA.setId("1");
+
+        NA.setName("North America");
+        NA.setId("2");
+
         HONG_KONG.setIsoCode("HKG");
         HONG_KONG.setName("Hong Kong");
         HONG_KONG.setId("344");
+        HONG_KONG.setContinent(ASIA);
 
         USA.setIsoCode("USA");
         USA.setName("United States");
         USA.setId("840");
+        USA.setContinent(NA);
     }
 
     public static ColumnProjection toProjection(Dimension dimension) {

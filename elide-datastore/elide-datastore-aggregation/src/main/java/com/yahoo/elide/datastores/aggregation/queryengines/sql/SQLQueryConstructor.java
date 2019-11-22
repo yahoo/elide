@@ -106,7 +106,7 @@ public class SQLQueryConstructor {
 
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(tableCls, dictionary);
-            builder.orderByClause(extractOrderBy(tableCls, sortClauses));
+            builder.orderByClause(extractOrderBy(tableCls, sortClauses, queriedTable, template));
             joinPredicates.addAll(extractPathElements(sortClauses));
         }
 
@@ -261,17 +261,18 @@ public class SQLQueryConstructor {
 
     /**
      * Given a list of columns to sort on, constructs an ORDER BY clause in SQL.
-     *
      * @param entityClass The class to sort.
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A SQL expression
      */
-    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses) {
+    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses, SQLAnalyticView table,
+                                  SQLQueryTemplate template) {
         if (sortClauses.isEmpty()) {
             return "";
         }
 
         //TODO - Ensure that order by columns are also present in the group by.
+
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
                     Path path = entry.getKey();
@@ -280,8 +281,21 @@ public class SQLQueryConstructor {
 
                     Path.PathElement last = path.lastElement().get();
 
-                    return getClassAlias(last.getType()) + "."
-                            + dictionary.getAnnotatedColumnName(entityClass, last.getFieldName())
+                    String orderByType = FilterPredicate.getTypeAlias(last.getType())
+                            + "."
+                            + dictionary.getAnnotatedColumnName(entityClass, last.getFieldName());
+
+                    MetricFunctionInvocation metric = template.getMetrics().stream()
+                            // TODO: filter predicate should support alias
+                            .filter(invocation -> invocation.getAlias().equals(last.getFieldName()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (metric != null) {
+                        orderByType = metric.getFunctionExpression();
+                    }
+
+                    return orderByType
                             + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 }).collect(Collectors.joining(","));
     }
