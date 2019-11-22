@@ -811,29 +811,15 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        if (entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING) != EMPTY_BINDING) {
+        Optional<Include> includeNeeded = needsInclude(cls, lookupEntityClass(cls));
+
+        if (!includeNeeded.isPresent()) {
             return;
         }
 
-        Include include = cls.getDeclaredAnnotation(Include.class);
-        Exclude exclude = cls.getDeclaredAnnotation(Exclude.class);
+        Include include = includeNeeded.get();
 
-        if (include == null && exclude == null) {
-            Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
-            include = annotation instanceof Include ? (Include) annotation : null;
-            exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
-        }
-        Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
-
-        if (exclude != null) {
-            log.trace("Exclude {}", cls.getName());
-            return;
-        }
-
-        if (include == null) {
-            log.trace("Missing include {}", cls.getName());
-            return;
-        }
+        Entity entity = (Entity) getFirstAnnotation(cls, Collections.singletonList(Entity.class));
 
         String name;
         if (entity == null || "".equals(entity.name())) {
@@ -859,6 +845,41 @@ public class EntityDictionary {
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }
+    }
+
+    /**
+     * Check whether needs to include a new entity class.
+     * If the class is already bound or has {@link Exclude} annotation, don't include it.
+     *
+     * @param cls new class to check
+     * @param entityClass super class which has {@link Entity} annotation
+     * @return {@link Include} annotation if needs to include
+     */
+    public final Optional<Include> needsInclude(Class<?> cls, Class<?> entityClass) {
+        if (entityClass != null && entityBindings.getOrDefault(entityClass, EMPTY_BINDING) != EMPTY_BINDING) {
+            return Optional.empty();
+        }
+
+        Include include = cls.getDeclaredAnnotation(Include.class);
+        Exclude exclude = cls.getDeclaredAnnotation(Exclude.class);
+
+        if (include == null && exclude == null) {
+            Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
+            include = annotation instanceof Include ? (Include) annotation : null;
+            exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+        }
+
+        if (exclude != null) {
+            log.trace("Exclude {}", cls.getName());
+            return Optional.empty();
+        }
+
+        if (include == null) {
+            log.trace("Missing include {}", cls.getName());
+            return Optional.empty();
+        }
+
+        return Optional.of(include);
     }
 
     /**
@@ -1031,7 +1052,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Follow for this class or super-class for Entity annotation.
+     * Follow for this class or super-class for JPA {@link Entity} annotation.
      *
      * @param objClass provided class
      * @return class with Entity annotation
@@ -1047,6 +1068,21 @@ public class EntityDictionary {
             }
         }
         throw new IllegalArgumentException("Unknown Entity " + objClass);
+    }
+
+    /**
+     * Check whether a class is a JPA entity
+     *
+     * @param objClass class
+     * @return True if it is a JPA entity
+     */
+    public final boolean isJPAEntity(Class<?> objClass) {
+        try {
+            lookupEntityClass(objClass);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     /**

@@ -8,49 +8,57 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
 import lombok.Data;
 
 import javax.persistence.Column;
+import javax.persistence.Table;
 
 /**
  * A view version of table countries.
  */
 @Data
 @Include
-@FromTable(name = "countries")
+@Table(name = "countries")
 public class CountryView {
-
-    private String id;
+    @Column(name = "id")
+    private String countryId;
 
     private String isoCode;
 
     private String name;
 
+    private CountryViewNested nestedView;
+
     @ToOne
     @JoinTo(
             joinClause = "%from.id = %join.id"
     )
-    private CountryViewNested nestedView;
+    public CountryViewNested getNestedView() {
+        return nestedView;
+    }
 
     @JoinTo(path = "nestedView.isoCode")
     private String nestedViewIsoCode;
 
+    private Country nestedRelationship;
+
     @ToOne
     @Column(name = "id")
-    private Country nestedRelationship;
+    public Country getNestedRelationship() {
+        return nestedRelationship;
+    }
 
     @JoinTo(path = "nestedRelationship.isoCode")
     private String nestedRelationshipIsoCode;
 
-    public String getId() {
-        return id;
+    public String getCountryId() {
+        return countryId;
     }
 
-    public void setId(final String id) {
-        this.id = id;
+    public void setCountryId(final String countryId) {
+        this.countryId = countryId;
     }
 
     public String getIsoCode() {

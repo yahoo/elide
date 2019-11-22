@@ -13,7 +13,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.core.ViewDictionary;
 
 import lombok.Data;
 import lombok.ToString;
@@ -58,9 +57,7 @@ public class Table {
         }
 
         this.cls = cls;
-        this.name = dictionary instanceof ViewDictionary && ((ViewDictionary) dictionary).isView(cls)
-                ? ((ViewDictionary) dictionary).getViewName(cls)
-                : dictionary.getJsonAliasFor(cls);
+        this.name = dictionary.getJsonAliasFor(cls);
 
         this.columns = resolveColumns(cls, dictionary);
 
@@ -96,8 +93,8 @@ public class Table {
                 })
                 .collect(Collectors.toSet());
 
-        // add id field, views don't have id
-        if (!(dictionary instanceof ViewDictionary) || !((ViewDictionary) dictionary).isView(cls)) {
+        // add id field if exists
+        if (dictionary.getIdFieldName(cls) != null) {
             fields.add(new Dimension(cls, dictionary.getIdFieldName(cls), dictionary));
         }
 

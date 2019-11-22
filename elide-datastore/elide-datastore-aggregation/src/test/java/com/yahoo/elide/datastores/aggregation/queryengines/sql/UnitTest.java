@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import com.yahoo.elide.core.NonEntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Country;
@@ -24,19 +25,17 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.core.ViewDictionary;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import java.util.Collections;
-import java.util.HashMap;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 public abstract class UnitTest {
     protected static EntityManagerFactory emf;
     protected static AnalyticView playerStatsTable;
-    protected static ViewDictionary dictionary;
+    protected static NonEntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
     protected static MetaDataStore metaDataStore = new MetaDataStore();
 
@@ -47,15 +46,15 @@ public abstract class UnitTest {
 
     public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
-        dictionary = new ViewDictionary(new HashMap<>());
+        dictionary = new NonEntityDictionary();
         dictionary.bindEntity(PlayerStatsWithView.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(Country.class);
         dictionary.bindEntity(SubCountry.class);
         dictionary.bindEntity(Player.class);
-        dictionary.bindView(CountryView.class);
-        dictionary.bindView(CountryViewNested.class);
+        dictionary.bindEntity(CountryView.class);
+        dictionary.bindEntity(CountryViewNested.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
         playerStatsTable = new SQLAnalyticView(PlayerStats.class, dictionary);

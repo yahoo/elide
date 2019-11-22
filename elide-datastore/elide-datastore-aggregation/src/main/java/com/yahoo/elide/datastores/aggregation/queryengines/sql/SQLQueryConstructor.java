@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -25,7 +26,6 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.core.ViewDictionary;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.Entity;
 
 /**
  * Class to construct query template into real sql query
@@ -185,12 +186,14 @@ public class SQLQueryConstructor {
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
                 .map(dimension -> {
                     // view object can't be projected
-                    if (dictionary instanceof ViewDictionary &&
-                            ((ViewDictionary) dictionary).isViewRelationship(
-                                    tableClass,
-                                    dimension.getColumn().getName())) {
-                        throw  new InvalidPredicateException(
-                                "Can't query on view relationship field: " + dimension.getColumn().getName());
+                    String fieldName = dimension.getColumn().getName();
+                    if (dictionary.isRelation(tableClass, fieldName)) {
+                        Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);
+                        if (relationshipClass.isAnnotationPresent(Include.class)
+                                && !relationshipClass.isAnnotationPresent(Entity.class)) {
+                            throw new InvalidPredicateException(
+                                    "Can't query on view relationship field: " + dimension.getColumn().getName());
+                        }
                     }
                     return resolveSQLColumnReference(dimension, queriedTable) + " AS " + dimension.getAlias();
                 })
@@ -452,7 +455,7 @@ public class SQLQueryConstructor {
 
     /**
      * Maps an entity class to a physical table of subselect query, if neither {@link javax.persistence.Table}
-     * nor {@link Subselect} annotation is present on this class, use the class alias as default.
+     * nor {@link Subselect} annotation is present on this class, try {@link FromTable} and {@link FromSubquery}.
      *
      * @param cls The entity class.
      * @return The physical SQL table or subselect query.
@@ -465,17 +468,37 @@ public class SQLQueryConstructor {
                 return dictionary.getAnnotation(cls, Subselect.class).value();
             }
         } else {
-            javax.persistence.Table tableAnnotation =
+            javax.persistence.Table table =
                     dictionary.getAnnotation(cls, javax.persistence.Table.class);
 
-            if (tableAnnotation != null) {
-                return tableAnnotation.name();
+            if (table != null) {
+                return resolveTableAnnotation(table);
             } else {
-                FromTable fromTableAnnotation = dictionary.getAnnotation(cls, FromTable.class);
+                FromTable fromTable = dictionary.getAnnotation(cls, FromTable.class);
 
-                return fromTableAnnotation == null ? dictionary.getJsonAliasFor(cls) : fromTableAnnotation.name();
+                return fromTable != null ? fromTable.name() : dictionary.getJsonAliasFor(cls);
             }
         }
+    }
+
+    /**
+     * Get the full table name from JPA {@link javax.persistence.Table} annotation.
+     *
+     * @param table table annotation
+     * @return <code>catalog.schema.name</code>
+     */
+    private static String resolveTableAnnotation(javax.persistence.Table table) {
+        StringBuilder fullTableName = new StringBuilder();
+
+        if (!"".equals(table.catalog())) {
+            fullTableName.append(table.catalog()).append(".");
+        }
+        if (!"".equals(table.schema())) {
+            fullTableName.append(table.schema()).append(".");
+        }
+        fullTableName.append(table.name());
+
+        return fullTableName.toString();
     }
 
     /**

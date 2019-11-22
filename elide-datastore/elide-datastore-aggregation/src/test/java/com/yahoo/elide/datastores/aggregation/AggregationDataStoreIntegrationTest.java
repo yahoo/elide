@@ -16,8 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.framework.AggregationResourceConfig;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +42,10 @@ import javax.ws.rs.core.MediaType;
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     QueryEngineFactory queryEngineFactory;
+
+    public AggregationDataStoreIntegrationTest() {
+        super(AggregationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 

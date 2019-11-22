@@ -14,6 +14,7 @@ import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.NonEntityDictionary;
 
 import graphql.Scalars;
 import graphql.schema.DataFetcher;

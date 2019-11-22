@@ -10,7 +10,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Tag;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.core.ViewDictionary;
 
 import lombok.Data;
 import lombok.ToString;
@@ -51,9 +50,7 @@ public abstract class Column {
     private Set<Tag> columnTags;
 
     protected Column(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        this.tableName = dictionary instanceof ViewDictionary && ((ViewDictionary) dictionary).isView(tableClass)
-                ? ((ViewDictionary) dictionary).getViewName(tableClass)
-                : dictionary.getJsonAliasFor(tableClass);
+        this.tableName = dictionary.getJsonAliasFor(tableClass);
         this.id = tableName + "." + fieldName;
         this.name = fieldName;
         this.columnTags = new HashSet<>();
