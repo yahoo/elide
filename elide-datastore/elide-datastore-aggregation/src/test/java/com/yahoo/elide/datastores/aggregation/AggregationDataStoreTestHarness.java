@@ -9,12 +9,15 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
+import com.yahoo.elide.datastores.jpa.JpaDataStore;
+import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
-    private QueryEngineFactory queryEngineFactory;
+    private SQLQueryEngineFactory queryEngineFactory;
 
-    public AggregationDataStoreTestHarness(QueryEngineFactory queryEngineFactory) {
+    public AggregationDataStoreTestHarness(SQLQueryEngineFactory queryEngineFactory) {
         this.queryEngineFactory = queryEngineFactory;
     }
 
@@ -23,9 +26,13 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
         AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
 
+        DataStore jpaStore = new JpaDataStore(
+                () -> { return queryEngineFactory.getEmf().createEntityManager(); },
+                (entityManager) -> { return new NonJtaTransaction(entityManager); }
+        );
 
         // meta data store needs to be put at first to populate meta data models
-        return new MultiplexManager(metaDataStore, aggregationDataStore);
+        return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);
     }
 
     public void cleanseTestData() {

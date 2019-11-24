@@ -88,7 +88,7 @@ public class SubselectTest {
         SUB_USA.setId("840");
 
         metaDataStore.populateEntityDictionary(dictionary);
-        engine = new SQLQueryEngine(emf, dictionary, metaDataStore);
+        engine = new SQLQueryEngine(emf, metaDataStore);
     }
 
     /**

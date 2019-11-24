@@ -39,7 +39,7 @@ import javax.ws.rs.core.MediaType;
  * Integration tests for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
-    QueryEngineFactory queryEngineFactory;
+    SQLQueryEngineFactory queryEngineFactory;
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 

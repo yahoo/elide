@@ -43,6 +43,9 @@ public class MetaDataStore extends HashMapDataStore {
             FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class};
 
     @Getter
+    EntityDictionary metadataDictionary;
+
+    @Getter
     private final String scanPackageName;
 
     public MetaDataStore(Package scanPackage) {
@@ -64,14 +67,14 @@ public class MetaDataStore extends HashMapDataStore {
      * Load meta data of models from an external populated entity dictionary.
      */
     private void loadMetaData() {
-        EntityDictionary tableDictionary = new EntityDictionary(new HashMap<>());
+        metadataDictionary = new EntityDictionary(new HashMap<>());
         for (Class<? extends Annotation> cls : METADATA_STORE_CLASSES) {
             ClassScanner.getAnnotatedClasses(scanPackageName, cls).stream().forEach(modelClass -> {
-                tableDictionary.bindEntity(modelClass);
+                metadataDictionary.bindEntity(modelClass);
                 addTable(
                         isAnalyticView(modelClass)
-                                ? new AnalyticView(modelClass, tableDictionary)
-                                : new Table(modelClass, tableDictionary));
+                                ? new AnalyticView(modelClass, metadataDictionary)
+                                : new Table(modelClass, metadataDictionary));
             });
         }
     }

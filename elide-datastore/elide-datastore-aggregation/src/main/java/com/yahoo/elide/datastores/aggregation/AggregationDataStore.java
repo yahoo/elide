@@ -55,7 +55,7 @@ public class AggregationDataStore implements DataStore {
             });
         }
 
-        queryEngine = queryEngineFactory.buildQueryEngine(dictionary, metaDataStore);
+        queryEngine = queryEngineFactory.buildQueryEngine(metaDataStore);
 
         /* Add 'grain' argument to each TimeDimensionColumn */
         for (AnalyticView table : metaDataStore.getMetaData(AnalyticView.class)) {
