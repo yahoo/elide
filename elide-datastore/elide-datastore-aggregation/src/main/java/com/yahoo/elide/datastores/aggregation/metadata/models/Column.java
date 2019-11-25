@@ -63,8 +63,7 @@ public abstract class Column {
 
         if (dictionary.isRelation(tableClass, fieldName)) {
             Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);
-            this.dataType = new RelationshipType(
-                    this.id + "[" + relationshipClass.getSimpleName().toLowerCase(Locale.ENGLISH) + "]");
+            this.dataType = new RelationshipType(dictionary.getJsonAliasFor(relationshipClass));
         } else {
             Class<?> fieldClass = dictionary.getType(tableClass, fieldName);
 
