@@ -59,7 +59,6 @@ public class MetaDataStore extends HashMapDataStore {
 
     public void populateEntityDictionary(EntityDictionary dictionary) {
         super.populateEntityDictionary(dictionary);
-
         loadMetaData();
     }
 

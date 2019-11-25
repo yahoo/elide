@@ -103,13 +103,7 @@ public class JsonApiModelResolver extends ModelResolver {
     private Property processAttribute(Class<?> clazz, String attributeName, Class<?> attributeClazz,
         ModelConverterContext context, Iterator<ModelConverter> next) {
 
-        Property attribute;
-        try {
-            attribute = super.resolveProperty(attributeClazz, context, null, next);
-        } catch (NullPointerException e) {
-            System.out.println(String.format("Class %s Attribute %s", clazz, attributeName));
-            throw e;
-        }
+        Property attribute = super.resolveProperty(attributeClazz, context, null, next);
 
         String permissions = getFieldPermissions(clazz, attributeName);
         String description = getFieldDescription(clazz, attributeName);
