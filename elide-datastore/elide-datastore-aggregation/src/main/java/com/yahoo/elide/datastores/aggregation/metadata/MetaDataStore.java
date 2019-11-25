@@ -42,6 +42,10 @@ public class MetaDataStore extends HashMapDataStore {
     private static final Class[] METADATA_STORE_CLASSES = {
             FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class};
 
+    /**
+     * A separate dictionary (not exposed to Elide core), that tracks all of the entities
+     * that the QueryEngine interacts with.
+     */
     @Getter
     EntityDictionary metadataDictionary;
 
@@ -55,6 +59,13 @@ public class MetaDataStore extends HashMapDataStore {
     public MetaDataStore(String scanPackageName) {
         super(META_DATA_PACKAGE);
         this.scanPackageName = scanPackageName;
+
+        this.metadataDictionary = new EntityDictionary(new HashMap<>());
+        for (Class<? extends Annotation> cls : METADATA_STORE_CLASSES) {
+            ClassScanner.getAnnotatedClasses(scanPackageName, cls).stream().forEach(modelClass -> {
+                metadataDictionary.bindEntity(modelClass);
+            });
+        }
     }
 
     public void populateEntityDictionary(EntityDictionary dictionary) {
@@ -63,13 +74,11 @@ public class MetaDataStore extends HashMapDataStore {
     }
 
     /**
-     * Load meta data of models from an external populated entity dictionary.
+     * Load meta data of models that are needed by the QueryEngine.
      */
     private void loadMetaData() {
-        metadataDictionary = new EntityDictionary(new HashMap<>());
         for (Class<? extends Annotation> cls : METADATA_STORE_CLASSES) {
             ClassScanner.getAnnotatedClasses(scanPackageName, cls).stream().forEach(modelClass -> {
-                metadataDictionary.bindEntity(modelClass);
                 addTable(
                         isAnalyticView(modelClass)
                                 ? new AnalyticView(modelClass, metadataDictionary)
