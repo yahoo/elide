@@ -9,8 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-
 /**
  * Configuration settings for Elide.
  */
