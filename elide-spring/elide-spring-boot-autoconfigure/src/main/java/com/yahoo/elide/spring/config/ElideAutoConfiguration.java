@@ -17,13 +17,9 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
@@ -31,7 +27,6 @@ import io.swagger.models.Swagger;
 import java.util.HashMap;
 import java.util.TimeZone;
 import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
 
 /**
  * Auto Configuration For Elide Services.  Override any of the beans (by defining your own) to change
@@ -113,34 +108,5 @@ public class ElideAutoConfiguration {
         Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
 
         return swagger;
-    }
-
-    /**
-     * Configure the EntityManagerFactory used by Elide.  Elide model packages are limited to those specified
-     * in the elide configuration.  By default, the factory uses the Spring JPA settings that are configured
-     * in the application properties (prefix 'spring.jpa').  The factory also uses the default data source.
-     * @param jpaSettings Spring JPA Settings.
-     * @param elideSettings Elide Settings
-     * @param dataSource Default Data Source.
-     * @return A new EntityManagerFactory bean.
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory(JpaProperties jpaSettings,
-                                                                       ElideConfigProperties elideSettings,
-                                                                       DataSource dataSource) {
-
-        LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
-        emf.setPackagesToScan(new String[]{elideSettings.getModelPackage()});
-        emf.setDataSource(dataSource);
-
-        AbstractJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setShowSql(jpaSettings.isShowSql());
-        vendorAdapter.setGenerateDdl(jpaSettings.isGenerateDdl());
-
-        emf.setJpaVendorAdapter(vendorAdapter);
-        emf.setJpaPropertyMap(jpaSettings.getProperties());
-
-        return emf;
     }
 }

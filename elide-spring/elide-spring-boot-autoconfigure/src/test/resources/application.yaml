@@ -2,7 +2,6 @@ server:
   port: 4001
 
 elide:
-  modelPackage: 'com.yahoo.elide.spring.models'
   json-api:
     path: /json
     enabled: true
@@ -16,14 +15,17 @@ elide:
 
 spring:
   jpa:
+    show_sql: true
     properties:
       hibernate:
-        show_sql: true
         dialect: 'org.hibernate.dialect.H2Dialect'
-        hbm2ddl:
-          auto: 'create'
         jdbc:
           use_scrollable_resultset: true
+    hibernate:
+      naming:
+        physical-strategy: 'org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl'
+      ddl-auto: 'create'
+
   datasource:
     url: 'jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1'
     username: 'sa'

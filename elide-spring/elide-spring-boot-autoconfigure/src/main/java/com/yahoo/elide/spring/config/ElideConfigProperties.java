@@ -34,12 +34,6 @@ public class ElideConfigProperties {
     private SwaggerControllerProperties swagger;
 
     /**
-     * Root package name of the Elide data models.
-     */
-    @NotBlank
-    private String modelPackage;
-
-    /**
      * Default pagination size for collections if the client doesn't paginate.
      */
     private int pageSize = 500;

@@ -27,7 +27,6 @@ Elide can be configured in `application.yaml` with settings like this:
 
 ```yaml
 elide:
-  modelPackage: 'example.models'
   pageSize: 1000
   maxPageSize: 10000
   json-api:
