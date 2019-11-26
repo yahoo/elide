@@ -19,16 +19,14 @@ import lombok.ToString;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
 /**
- * Super class of all logical or physical tables
+ * Super class of all logical or physical tables.
  */
 @Include(rootLevel = true, type = "table")
-@Entity
 @Data
 @ToString
 public class Table {

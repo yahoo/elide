@@ -811,7 +811,7 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        if (entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING) != EMPTY_BINDING) {
+        if (lookupBoundClass(cls) != null) {
             return;
         }
 
@@ -855,7 +855,7 @@ public class EntityDictionary {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(this, cls, type, name));
+        entityBindings.put(cls, new EntityBinding(this, cls, type, name));
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }
@@ -1046,12 +1046,21 @@ public class EntityDictionary {
                 return cls;
             }
         }
+        throw new IllegalArgumentException("Unbound Entity " + objClass);
+    }
 
-        //After checking Entity.class and not finding, look for Include.
-        if (objClass != null && objClass.isAnnotationPresent(Include.class)) {
-            return objClass;
+    /**
+     * Return bound entity or null.
+     *
+     * @param objClass provided class
+     * @return Bound class.
+     */
+    public Class<?> lookupBoundClass(Class<?> objClass) {
+        EntityBinding binding = entityBindings.getOrDefault(objClass, EMPTY_BINDING);
+        if (binding != EMPTY_BINDING) {
+            return binding.entityClass;
         }
-        throw new IllegalArgumentException("Unknown Entity " + objClass);
+        return null;
     }
 
     /**
@@ -1420,9 +1429,11 @@ public class EntityDictionary {
      * @param entityClass the class to bind.
      */
     private void bindIfUnbound(Class<?> entityClass) {
-        if (! entityBindings.containsKey(lookupEntityClass(entityClass))) {
-            bindEntity(entityClass);
+        if (lookupBoundClass(entityClass) != null) {
+            return;
         }
+
+        bindEntity(entityClass);
     }
 
     /**

@@ -18,14 +18,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
  */
-@Entity
 @Include(type = "column")
 @Data
 @ToString
