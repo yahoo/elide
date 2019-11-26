@@ -1038,6 +1038,11 @@ public class EntityDictionary {
                 return cls;
             }
         }
+
+        //After checking Entity.class and not finding, look for Include.
+        if (objClass != null && objClass.isAnnotationPresent(Include.class)) {
+            return objClass;
+        }
         throw new IllegalArgumentException("Unknown Entity " + objClass);
     }
 
