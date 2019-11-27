@@ -470,7 +470,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
-    public void testChildBinding() {
+    public void testEntityInheritanceBinding() {
         @Entity
         @Include
         class SuperclassBinding {
@@ -487,12 +487,136 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(SuperclassBinding.class);
 
         assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
-        // repeat
-        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubclassBinding.class));
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubsubclassBinding.class));
+    }
+
+    @Test
+    public void testEntityInheritanceBindingOverride() {
+        @Entity
+        @Include
+        class SuperclassBinding {
+            @Id
+            private long id;
+        }
+
+        class SubclassBinding extends SuperclassBinding {
+        }
+
+        @Entity
+        @Include
+        class SubsubclassBinding extends SubclassBinding {
+            @Id
+            private long id;
+        }
+
+        this.bindEntity(SuperclassBinding.class);
+        this.bindEntity(SubsubclassBinding.class);
+
+        assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SubsubclassBinding.class, getEntityBinding(SubsubclassBinding.class).entityClass);
+
+        assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupEntityClass(SubclassBinding.class));
+        assertEquals(SubsubclassBinding.class, lookupEntityClass(SubsubclassBinding.class));
+    }
+
+    @Test
+    public void testMissingEntityBinding() {
+        @Entity
+        class SuperclassBinding {
+            @Id
+            private long id;
+        }
+
+        this.bindEntity(SuperclassBinding.class);
+
+        assertEquals(null, getEntityBinding(SuperclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
+    }
+
+    @Test
+    public void testNonEntityInheritanceBinding() {
+        @Include
+        class SuperclassBinding {
+            @Id
+            private long id;
+        }
+
+        class SubclassBinding extends SuperclassBinding {
+        }
+
+        class SubsubclassBinding extends SubclassBinding {
+        }
+
+        this.bindEntity(SuperclassBinding.class);
+
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
+
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
+    }
+
+    @Test
+    public void testNonEntityInheritanceBindingOverride() {
+        @Include
+        class SuperclassBinding {
+            @Id
+            private long id;
+        }
+
+        class SubclassBinding extends SuperclassBinding {
+        }
+
+        @Include
+        class SubsubclassBinding extends SubclassBinding {
+            @Id
+            private long id;
+        }
+
+        this.bindEntity(SuperclassBinding.class);
+        this.bindEntity(SubsubclassBinding.class);
+
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
+        assertEquals(SubsubclassBinding.class, getEntityBinding(SubsubclassBinding.class).entityClass);
+
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SubsubclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
+    }
+
+    @Test
+    public void testNonEntityInheritanceBindingExclusion() {
+        @Include
+        class SuperclassBinding {
+            @Id
+            private long id;
+        }
+
+        class SubclassBinding extends SuperclassBinding {
+        }
+
+        @Exclude
+        class SubsubclassBinding extends SubclassBinding {
+        }
+
+        this.bindEntity(SuperclassBinding.class);
+        this.bindEntity(SubsubclassBinding.class);
+
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
+        assertThrows(IllegalArgumentException.class, () -> { getEntityBinding(SubsubclassBinding.class); });
+
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(null, lookupIncludeClass(SubsubclassBinding.class));
     }
 
     @Test

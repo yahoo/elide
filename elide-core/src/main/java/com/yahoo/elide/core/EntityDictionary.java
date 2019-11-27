@@ -1069,13 +1069,13 @@ public class EntityDictionary {
     }
 
     /**
-     * Follow for this class or super-class for Entity annotation.
+     * Follow for this class or super-class for Include annotation.
      *
      * @param objClass provided class
-     * @return class with Entity annotation
+     * @return class with Include annotation or
      */
     public Class<?> lookupIncludeClass(Class<?> objClass) {
-        Annotation first = getFirstAnnotation(objClass, Arrays.asList(Include.class, Exclude.class));
+        Annotation first = getFirstAnnotation(objClass, Arrays.asList(Exclude.class, Include.class));
         if (first instanceof Include) {
             Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Include.class);
             if (declaringClass != null) {
@@ -1085,6 +1085,12 @@ public class EntityDictionary {
         return null;
     }
 
+    /**
+     * Search a class hierarchy to find the first instance of a declared annotation.
+     * @param objClass The class to start searching.
+     * @param annotationClass The annotation to search for.
+     * @return The class which declares the annotation or null.
+     */
     public Class<?> lookupAnnotationDeclarationClass(Class<?> objClass, Class<? extends Annotation> annotationClass) {
         for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
             if (cls.getDeclaredAnnotation(annotationClass) != null) {
@@ -1101,7 +1107,7 @@ public class EntityDictionary {
      * @return Bound class.
      */
     public Class<?> lookupBoundClass(Class<?> objClass) {
-        //Common case - we can avoid reflection...
+        //Common case - we can avoid reflection by checking the map ...
         EntityBinding binding = entityBindings.getOrDefault(objClass, EMPTY_BINDING);
         if (binding != EMPTY_BINDING) {
             return binding.entityClass;
