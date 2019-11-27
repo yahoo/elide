@@ -75,6 +75,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(Manager.class);
         this.bindEntity(Employee.class);
         this.bindEntity(Job.class);
+        this.bindEntity(NoId.class);
 
         checkNames.forcePut("user has all access", Role.ALL.class);
     }
@@ -336,7 +337,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 "getIdAnnotations returns an empty collection if there is no ID field for given class");
     }
 
-    @Entity
+    @Include
     class NoId {
 
     }

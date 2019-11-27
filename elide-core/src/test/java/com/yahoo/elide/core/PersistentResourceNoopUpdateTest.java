@@ -26,7 +26,7 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
     PersistentResourceNoopUpdateTest() {
         goodUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
                 new User(1), null, elideSettings);
-        init();
+        initDictionary();
         reset(goodUserScope.getTransaction());
     }
     @Test

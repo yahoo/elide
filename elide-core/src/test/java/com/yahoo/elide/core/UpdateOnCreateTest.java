@@ -18,8 +18,6 @@ import com.yahoo.elide.security.User;
 
 import example.Author;
 import example.Book;
-import example.Editor;
-import example.Publisher;
 import example.UpdateAndCreate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,15 +40,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
 
     public UpdateOnCreateTest() {
         super();
-        init();
-    }
-
-    public void init() {
-        dictionary.bindEntity(Author.class);
-        dictionary.bindEntity(Book.class);
-        dictionary.bindEntity(Publisher.class);
-        dictionary.bindEntity(Editor.class);
-        dictionary.bindEntity(UpdateAndCreate.class);
+        initDictionary();
     }
 
     //----------------------------------------- ** Entity Creation ** -------------------------------------------------

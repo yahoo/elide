@@ -171,11 +171,28 @@ public class EntityDictionary {
         return m;
     }
 
+    /**
+     * Returns an entity binding if the provided class has been bound in the dictionary.
+     * Otherwise the behavior depends on whether the unbound class is an Entity or not.
+     * If it is not an Entity, we return an EMPTY_BINDING.  This preserves existing behavior for relationships
+     * which are entities but not bound.  Otherwise, we throw an exception - which also preserves behavior
+     * for unbound non-entities.
+     * @param entityClass
+     * @return
+     */
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
         if (isMappedInterface(entityClass)) {
             return EMPTY_BINDING;
         }
-        return entityBindings.getOrDefault(lookupEntityClass(entityClass), EMPTY_BINDING);
+        Class<?> lookupClass = lookupBoundClass(entityClass);
+
+        if (lookupClass != null) {
+            return entityBindings.get(lookupClass);
+        }
+
+        //Will throw an exception if entityClass is not an entity.
+        lookupEntityClass(entityClass);
+        return EMPTY_BINDING;
     }
 
     public boolean isMappedInterface(Class<?> interfaceClass) {
@@ -855,7 +872,7 @@ public class EntityDictionary {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        entityBindings.put(cls, new EntityBinding(this, cls, type, name));
+        entityBindings.put(lookupIncludeClass(cls), new EntityBinding(this, cls, type, name));
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }
@@ -1037,17 +1054,36 @@ public class EntityDictionary {
      * @return class with Entity annotation
      */
     public Class<?> lookupEntityClass(Class<?> objClass) {
-        for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
-            EntityBinding binding = entityBindings.getOrDefault(cls, EMPTY_BINDING);
-            if (binding != EMPTY_BINDING) {
-                return binding.entityClass;
-            }
-            if (cls.isAnnotationPresent(Entity.class)) {
-                return cls;
-            }
+        Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Entity.class);
+        if (declaringClass != null) {
+            return declaringClass;
         }
         throw new IllegalArgumentException("Unbound Entity " + objClass);
     }
+
+    /**
+     * Follow for this class or super-class for Entity annotation.
+     *
+     * @param objClass provided class
+     * @return class with Entity annotation
+     */
+    public Class<?> lookupIncludeClass(Class<?> objClass) {
+        Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Include.class);
+        if (declaringClass != null) {
+            return declaringClass;
+        }
+        throw new IllegalArgumentException("Unbound Entity " + objClass);
+    }
+
+    public Class<?> lookupAnnotationDeclarationClass(Class<?> objClass, Class<? extends Annotation> annotationClass) {
+        for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
+            if (cls.getDeclaredAnnotation(annotationClass) != null) {
+                return cls;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Return bound entity or null.
@@ -1056,12 +1092,14 @@ public class EntityDictionary {
      * @return Bound class.
      */
     public Class<?> lookupBoundClass(Class<?> objClass) {
-        EntityBinding binding = entityBindings.getOrDefault(objClass, EMPTY_BINDING);
+        Class<?> declaredClass = lookupIncludeClass(objClass);
+        EntityBinding binding = entityBindings.getOrDefault(declaredClass, EMPTY_BINDING);
         if (binding != EMPTY_BINDING) {
             return binding.entityClass;
         }
         return null;
     }
+
 
     /**
      * Retrieve the accessible object for a field from a target object.
@@ -1213,10 +1251,10 @@ public class EntityDictionary {
             for (String relationship : getElideBoundRelationships(clazz)) {
                 Class<?> relationshipClass = getParameterizedType(clazz, relationship);
 
+
                 try {
                     lookupEntityClass(relationshipClass);
                 } catch (IllegalArgumentException e) {
-
                     /* The relationship hasn't been bound */
                     continue;
                 }

@@ -11,6 +11,8 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 
+import example.Author;
+import example.Book;
 import example.Child;
 import example.ComputedBean;
 import example.FirstClassFields;
@@ -25,8 +27,10 @@ import example.NoReadEntity;
 import example.NoShareEntity;
 import example.NoUpdateEntity;
 import example.Parent;
+import example.Publisher;
 import example.Right;
 import example.TestCheckMappings;
+import example.UpdateAndCreate;
 import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
@@ -35,12 +39,16 @@ import nocreate.NoCreateEntity;
 import java.util.HashSet;
 
 public class PersistenceResourceTestSetup extends PersistentResource {
-
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
 
-
     protected final ElideSettings elideSettings;
-    void init() {
+
+    protected static EntityDictionary initDictionary() {
+        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+        dictionary.bindEntity(UpdateAndCreate.class);
+        dictionary.bindEntity(Author.class);
+        dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(FunWithPermissions.class);
@@ -63,6 +71,15 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         dictionary.bindEntity(ContainerWithPackageShare.class);
         dictionary.bindEntity(ShareableWithPackageShare.class);
         dictionary.bindEntity(UnshareableWithEntityUnshare.class);
+        return dictionary;
+    }
+    protected static ElideSettings initSettings() {
+        return new ElideSettingsBuilder(null)
+                .withEntityDictionary(initDictionary())
+                .withAuditLogger(MOCK_AUDIT_LOGGER)
+                .withDefaultMaxPageSize(10)
+                .withDefaultPageSize(10)
+                .build();
     }
 
     public PersistenceResourceTestSetup() {
@@ -71,22 +88,11 @@ public class PersistenceResourceTestSetup extends PersistentResource {
                 null,
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
                 new RequestScope(null, null, null, null, null,
-                        new ElideSettingsBuilder(null)
-                                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                                .withAuditLogger(MOCK_AUDIT_LOGGER)
-                                .withDefaultMaxPageSize(10)
-                                .withDefaultPageSize(10)
-                                .build()
+                        initSettings()
                 )
         );
 
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
-                .withAuditLogger(MOCK_AUDIT_LOGGER)
-                .withDefaultMaxPageSize(10)
-                .withDefaultPageSize(10)
-                .build();
-        init();
+        elideSettings = initSettings();
     }
 
     protected static Child newChild(int id) {

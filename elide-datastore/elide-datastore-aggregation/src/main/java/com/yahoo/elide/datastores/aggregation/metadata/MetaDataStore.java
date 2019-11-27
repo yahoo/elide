@@ -156,7 +156,7 @@ public class MetaDataStore extends HashMapDataStore {
      * @param object a meta data object
      */
     private void addMetaData(Object object) {
-        Class<?> cls = this.getDictionary().lookupEntityClass(object.getClass());
+        Class<?> cls = this.getDictionary().lookupBoundClass(object.getClass());
         String id = getDictionary().getId(object);
 
         if (dataStore.get(cls).containsKey(id)) {
