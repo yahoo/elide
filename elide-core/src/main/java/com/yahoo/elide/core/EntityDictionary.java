@@ -184,10 +184,17 @@ public class EntityDictionary {
         if (isMappedInterface(entityClass)) {
             return EMPTY_BINDING;
         }
-        Class<?> lookupClass = lookupBoundClass(entityClass);
 
-        if (lookupClass != null) {
-            return entityBindings.get(lookupClass);
+        //Common case of no inheritance.  This lookup is a performance boost so we don't have to do reflection.
+        EntityBinding binding = entityBindings.get(entityClass);
+        if (binding != null) {
+            return binding;
+        }
+
+        Class<?> declaredClass = lookupBoundClass(entityClass);
+
+        if (declaredClass != null) {
+            return entityBindings.get(declaredClass);
         }
 
         //Will throw an exception if entityClass is not an entity.
@@ -1068,11 +1075,14 @@ public class EntityDictionary {
      * @return class with Entity annotation
      */
     public Class<?> lookupIncludeClass(Class<?> objClass) {
-        Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Include.class);
-        if (declaringClass != null) {
-            return declaringClass;
+        Annotation first = getFirstAnnotation(objClass, Arrays.asList(Include.class, Exclude.class));
+        if (first instanceof Include) {
+            Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Include.class);
+            if (declaringClass != null) {
+                return declaringClass;
+            }
         }
-        throw new IllegalArgumentException("Unbound Entity " + objClass);
+        return null;
     }
 
     public Class<?> lookupAnnotationDeclarationClass(Class<?> objClass, Class<? extends Annotation> annotationClass) {
@@ -1084,7 +1094,6 @@ public class EntityDictionary {
         return null;
     }
 
-
     /**
      * Return bound entity or null.
      *
@@ -1092,8 +1101,18 @@ public class EntityDictionary {
      * @return Bound class.
      */
     public Class<?> lookupBoundClass(Class<?> objClass) {
+        //Common case - we can avoid reflection...
+        EntityBinding binding = entityBindings.getOrDefault(objClass, EMPTY_BINDING);
+        if (binding != EMPTY_BINDING) {
+            return binding.entityClass;
+        }
+
         Class<?> declaredClass = lookupIncludeClass(objClass);
-        EntityBinding binding = entityBindings.getOrDefault(declaredClass, EMPTY_BINDING);
+        if (declaredClass == null) {
+            return null;
+        }
+
+        binding = entityBindings.getOrDefault(declaredClass, EMPTY_BINDING);
         if (binding != EMPTY_BINDING) {
             return binding.entityClass;
         }
@@ -1252,9 +1271,7 @@ public class EntityDictionary {
                 Class<?> relationshipClass = getParameterizedType(clazz, relationship);
 
 
-                try {
-                    lookupEntityClass(relationshipClass);
-                } catch (IllegalArgumentException e) {
+                if (lookupBoundClass(relationshipClass) == null) {
                     /* The relationship hasn't been bound */
                     continue;
                 }
