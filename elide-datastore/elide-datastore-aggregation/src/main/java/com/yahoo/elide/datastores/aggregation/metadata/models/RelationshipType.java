@@ -15,7 +15,6 @@ import lombok.EqualsAndHashCode;
  * Special data type that represents a relationship between tables.
  */
 @Data
-@Exclude
 @EqualsAndHashCode(callSuper = true)
 public class RelationshipType extends DataType {
     public RelationshipType(String name) {
