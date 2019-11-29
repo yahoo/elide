@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;

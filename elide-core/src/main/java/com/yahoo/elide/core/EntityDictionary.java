@@ -14,7 +14,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
@@ -836,28 +835,19 @@ public class EntityDictionary {
      */
     public void bindEntity(Class<?> cls) {
         if (lookupBoundClass(cls) != null) {
+            //Ignore duplicate bindings.
             return;
         }
 
-        Include include = cls.getDeclaredAnnotation(Include.class);
-        Exclude exclude = cls.getDeclaredAnnotation(Exclude.class);
+        Class<?> declaredClass = lookupIncludeClass(cls);
 
-        if (include == null && exclude == null) {
-            Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
-            include = annotation instanceof Include ? (Include) annotation : null;
-            exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+        if (declaredClass == null) {
+            log.trace("Missing include or excluded class {}", cls.getName());
+            return;
         }
+
+        Include include = declaredClass.getDeclaredAnnotation(Include.class);
         Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
-
-        if (exclude != null) {
-            log.trace("Exclude {}", cls.getName());
-            return;
-        }
-
-        if (include == null) {
-            log.trace("Missing include {}", cls.getName());
-            return;
-        }
 
         String name;
         if (entity == null || "".equals(entity.name())) {
@@ -873,15 +863,10 @@ public class EntityDictionary {
             type = include.type();
         }
 
-        Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
-        if (duplicate != null && !duplicate.equals(cls)) {
-            log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
-            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
-        }
-
-        entityBindings.put(lookupIncludeClass(cls), new EntityBinding(this, cls, type, name));
+        bindJsonApiToEntity.put(type, declaredClass);
+        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass, type, name));
         if (include.rootLevel()) {
-            bindEntityRoots.add(cls);
+            bindEntityRoots.add(declaredClass);
         }
     }
 
@@ -1011,7 +996,11 @@ public class EntityDictionary {
         try {
             AccessibleObject idField = null;
             for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
-                idField = getEntityBinding(cls).getIdField();
+                try {
+                    idField = getEntityBinding(cls).getIdField();
+                } catch (NullPointerException e) {
+                    System.out.println("Class: " + cls.getSimpleName() + " ID Field: " + idField.toString());
+                }
             }
             if (idField instanceof Field) {
                 return String.valueOf(((Field) idField).get(value));
