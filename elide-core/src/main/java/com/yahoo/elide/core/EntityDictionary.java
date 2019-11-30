@@ -1449,10 +1449,8 @@ public class EntityDictionary {
      * @param entityClass the class to bind.
      */
     private void bindIfUnbound(Class<?> entityClass) {
-        if (lookupBoundClass(entityClass) != null) {
-            return;
+        if (lookupBoundClass(entityClass) == null) {
+            bindEntity(entityClass);
         }
-
-        bindEntity(entityClass);
     }
 }
