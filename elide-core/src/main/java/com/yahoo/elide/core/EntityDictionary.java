@@ -952,7 +952,7 @@ public class EntityDictionary {
         Annotation annotation = null;
         for (Class<?> cls = entityClass; annotation == null && cls != null; cls = cls.getSuperclass()) {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
-                annotation = cls.getAnnotation(annotationClass);
+                annotation = cls.getDeclaredAnnotation(annotationClass);
                 if (annotation != null) {
                     break;
                 }
@@ -961,7 +961,7 @@ public class EntityDictionary {
         // no class annotation, try packages
         for (Package pkg = entityClass.getPackage(); annotation == null && pkg != null; pkg = getParentPackage(pkg)) {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
-                annotation = pkg.getAnnotation(annotationClass);
+                annotation = pkg.getDeclaredAnnotation(annotationClass);
                 if (annotation != null) {
                     break;
                 }
