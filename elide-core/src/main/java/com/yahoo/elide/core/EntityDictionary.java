@@ -846,7 +846,7 @@ public class EntityDictionary {
             return;
         }
 
-        Include include = declaredClass.getDeclaredAnnotation(Include.class);
+        Include include = (Include) getFirstAnnotation(cls, Arrays.asList(Include.class));
         Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
 
         String name;
@@ -1070,6 +1070,9 @@ public class EntityDictionary {
             if (declaringClass != null) {
                 return declaringClass;
             }
+
+            //If we didn't find Include declared on a class, it must be declared at the package level.
+            return objClass;
         }
         return null;
     }
