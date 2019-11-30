@@ -62,12 +62,12 @@ public class InMemoryFilterExecutorTest {
             super(checks);
         }
         @Override
-        public Class<?> lookupEntityClass(Class<?> objClass) {
+        public Class<?> lookupBoundClass(Class<?> objClass) {
             // Special handling for mocked Book class which has Entity annotation
             if (objClass.getName().contains("$MockitoMock$")) {
                 objClass = objClass.getSuperclass();
             }
-            return super.lookupEntityClass(objClass);
+            return super.lookupBoundClass(objClass);
         }
 
     }

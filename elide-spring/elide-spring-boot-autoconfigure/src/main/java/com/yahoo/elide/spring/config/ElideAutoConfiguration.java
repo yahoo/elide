@@ -77,7 +77,6 @@ public class ElideAutoConfiguration {
     /**
      * Creates the DataStore Elide.  Override to use a different store.
      * @param entityManagerFactory The JPA factory which creates entity managers.
-     * @param settings Elide Settings.
      * @return An instance of a JPA DataStore.
      */
     @Bean

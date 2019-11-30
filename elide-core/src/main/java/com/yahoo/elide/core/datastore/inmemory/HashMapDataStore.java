@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -21,8 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-
-import javax.persistence.Entity;
 
 /**
  * Simple in-memory only database.
@@ -41,7 +40,7 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
         this.beanPackages = beanPackages;
 
         for (Package beanPackage : beanPackages) {
-            ClassScanner.getAnnotatedClasses(beanPackage, Entity.class).stream().forEach(modelClass -> {
+            ClassScanner.getAnnotatedClasses(beanPackage, Include.class).stream().forEach(modelClass -> {
                 if (modelClass.getName().startsWith(beanPackage.getName())) {
                     dataStore.put(modelClass, Collections.synchronizedMap(new LinkedHashMap<>()));
                 }
