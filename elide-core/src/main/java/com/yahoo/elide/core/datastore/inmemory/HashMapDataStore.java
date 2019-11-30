@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     protected final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
-    @Getter private EntityDictionary dictionary;
+    @Getter protected EntityDictionary dictionary;
     @Getter private final Set<Package> beanPackages;
     @Getter private final ConcurrentHashMap<Class<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
 

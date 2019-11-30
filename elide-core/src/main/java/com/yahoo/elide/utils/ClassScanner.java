@@ -10,6 +10,7 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;
@@ -41,9 +42,26 @@ public class ClassScanner {
 
         configurationBuilder.addUrls(ClasspathHelper.forPackage(packageName));
         configurationBuilder.setScanners(new SubTypesScanner(), new TypeAnnotationsScanner());
+        configurationBuilder.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
 
         Reflections reflections = new Reflections(configurationBuilder);
 
         return reflections.getTypesAnnotatedWith(annotation, true);
+    }
+
+    /**
+     * Returns all classes within a package.
+     * @param packageName The root package to search.
+     * @return All the classes within a package.
+     */
+    static public Set<Class<?>> getAllClasses(String packageName) {
+        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+
+        configurationBuilder.addUrls(ClasspathHelper.forPackage(packageName));
+        configurationBuilder.setScanners(new SubTypesScanner(false));
+        configurationBuilder.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
+
+        Reflections reflections = new Reflections(configurationBuilder);
+        return reflections.getSubTypesOf(Object.class);
     }
 }

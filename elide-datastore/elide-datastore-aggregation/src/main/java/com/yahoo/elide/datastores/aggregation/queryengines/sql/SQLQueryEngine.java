@@ -57,7 +57,7 @@ public class SQLQueryEngine implements QueryEngine {
 
     public SQLQueryEngine(EntityManagerFactory emf, MetaDataStore metaDataStore) {
         this.emf = emf;
-        this.dictionary = metaDataStore.getMetadataDictionary();
+        this.dictionary = metaDataStore.getDictionary();
 
         Set<Table> tables = metaDataStore.getMetaData(Table.class);
         tables.addAll(metaDataStore.getMetaData(AnalyticView.class));

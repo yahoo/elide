@@ -42,13 +42,6 @@ public class MetaDataStore extends HashMapDataStore {
     private static final Class[] METADATA_STORE_CLASSES = {
             FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class};
 
-    /**
-     * A separate dictionary (not exposed to Elide core), that tracks all of the entities
-     * that the QueryEngine interacts with.
-     */
-    @Getter
-    EntityDictionary metadataDictionary;
-
     @Getter
     private final String scanPackageName;
 
@@ -60,31 +53,29 @@ public class MetaDataStore extends HashMapDataStore {
         super(META_DATA_PACKAGE);
         this.scanPackageName = scanPackageName;
 
-        this.metadataDictionary = new EntityDictionary(new HashMap<>());
-        for (Class<? extends Annotation> cls : METADATA_STORE_CLASSES) {
-            ClassScanner.getAnnotatedClasses(scanPackageName, cls).stream().forEach(modelClass -> {
-                metadataDictionary.bindEntity(modelClass);
-            });
-        }
-    }
+        this.dictionary = new EntityDictionary(new HashMap<>());
 
-    public void populateEntityDictionary(EntityDictionary dictionary) {
-        super.populateEntityDictionary(dictionary);
-        loadMetaData();
-    }
+        ClassScanner.getAllClasses(Table.class.getPackage().getName()).stream().forEach(cls -> {
+            dictionary.bindEntity(cls);
+        });
 
-    /**
-     * Load meta data of models that are needed by the QueryEngine.
-     */
-    private void loadMetaData() {
         for (Class<? extends Annotation> cls : METADATA_STORE_CLASSES) {
+            dictionary.bindEntity(cls);
             ClassScanner.getAnnotatedClasses(scanPackageName, cls).stream().forEach(modelClass -> {
+                dictionary.bindEntity(modelClass);
                 addTable(
                         isAnalyticView(modelClass)
-                                ? new AnalyticView(modelClass, metadataDictionary)
-                                : new Table(modelClass, metadataDictionary));
+                                ? new AnalyticView(modelClass, dictionary)
+                                : new Table(modelClass, dictionary));
             });
         }
+    }
+
+    @Override
+    public void populateEntityDictionary(EntityDictionary dictionary) {
+        ClassScanner.getAllClasses(Table.class.getPackage().getName()).stream().forEach(cls -> {
+            dictionary.bindEntity(cls);
+        });
     }
 
     /**
@@ -156,8 +147,8 @@ public class MetaDataStore extends HashMapDataStore {
      * @param object a meta data object
      */
     private void addMetaData(Object object) {
-        Class<?> cls = this.getDictionary().lookupBoundClass(object.getClass());
-        String id = getDictionary().getId(object);
+        Class<?> cls = dictionary.lookupBoundClass(object.getClass());
+        String id = dictionary.getId(object);
 
         if (dataStore.get(cls).containsKey(id)) {
             if (!dataStore.get(cls).get(id).equals(object)) {
