@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -30,8 +29,6 @@ public class SubselectTest extends UnitTest {
     private static final SubCountry SUB_HONG_KONG = new SubCountry();
     private static final SubCountry SUB_USA = new SubCountry();
 
-    private static QueryEngine engine;
-
     @BeforeAll
     public static void init() {
         UnitTest.init();
@@ -43,8 +40,6 @@ public class SubselectTest extends UnitTest {
         SUB_USA.setIsoCode("USA");
         SUB_USA.setName("United States");
         SUB_USA.setId("840");
-
-        engine = new SQLQueryEngine(emf, dictionary, metaDataStore);
     }
 
     /**

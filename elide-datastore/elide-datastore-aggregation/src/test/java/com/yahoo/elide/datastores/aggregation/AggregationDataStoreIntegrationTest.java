@@ -41,7 +41,7 @@ import javax.ws.rs.core.MediaType;
  * Integration tests for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
-    QueryEngineFactory queryEngineFactory;
+    SQLQueryEngineFactory queryEngineFactory;
 
     public AggregationDataStoreIntegrationTest() {
         super(AggregationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());

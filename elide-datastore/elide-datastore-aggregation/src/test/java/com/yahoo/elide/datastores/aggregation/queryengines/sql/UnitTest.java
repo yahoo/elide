@@ -37,7 +37,7 @@ public abstract class UnitTest {
     protected static AnalyticView playerStatsTable;
     protected static NonEntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
-    protected static MetaDataStore metaDataStore = new MetaDataStore();
+    protected static MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
 
     protected static final Country HONG_KONG = new Country();
     protected static final Country USA = new Country();
@@ -60,9 +60,8 @@ public abstract class UnitTest {
         playerStatsTable = new SQLAnalyticView(PlayerStats.class, dictionary);
 
         metaDataStore.populateEntityDictionary(dictionary);
-        metaDataStore.loadMetaData(dictionary);
 
-        engine = new SQLQueryEngine(emf, dictionary, metaDataStore);
+        engine = new SQLQueryEngine(emf, metaDataStore);
 
         HONG_KONG.setIsoCode("HKG");
         HONG_KONG.setName("Hong Kong");

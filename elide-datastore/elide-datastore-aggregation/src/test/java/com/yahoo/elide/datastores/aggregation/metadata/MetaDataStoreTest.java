@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class MetaDataStoreTest {
-    private static MetaDataStore dataStore = new MetaDataStore();
+    private static MetaDataStore dataStore = new MetaDataStore(PlayerStats.class.getPackage());
 
     @BeforeAll
     public static void setup() {
@@ -36,7 +36,6 @@ public class MetaDataStoreTest {
         dictionary.bindEntity(CountryViewNested.class);
 
         dataStore.populateEntityDictionary(dictionary);
-        dataStore.loadMetaData(dictionary);
     }
 
     @Test

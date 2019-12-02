@@ -70,7 +70,6 @@ import example.Shape;
 import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -108,32 +107,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     private final User goodUser = new User(1);
     private final User badUser = new User(-1);
     private DataStoreTransaction tx = mock(DataStoreTransaction.class);
-
-    @BeforeAll
-    void init() {
-        dictionary.bindEntity(Child.class);
-        dictionary.bindEntity(Parent.class);
-        dictionary.bindEntity(FunWithPermissions.class);
-        dictionary.bindEntity(Job.class);
-        dictionary.bindEntity(Left.class);
-        dictionary.bindEntity(Right.class);
-        dictionary.bindEntity(NoReadEntity.class);
-        dictionary.bindEntity(NoDeleteEntity.class);
-        dictionary.bindEntity(NoUpdateEntity.class);
-        dictionary.bindEntity(NoCreateEntity.class);
-        dictionary.bindEntity(NoShareEntity.class);
-        dictionary.bindEntity(example.User.class);
-        dictionary.bindEntity(FirstClassFields.class);
-        dictionary.bindEntity(MapColorShape.class);
-        dictionary.bindEntity(ChangeSpecModel.class);
-        dictionary.bindEntity(ChangeSpecChild.class);
-        dictionary.bindEntity(Invoice.class);
-        dictionary.bindEntity(LineItem.class);
-        dictionary.bindEntity(ComputedBean.class);
-        dictionary.bindEntity(ContainerWithPackageShare.class);
-        dictionary.bindEntity(ShareableWithPackageShare.class);
-        dictionary.bindEntity(UnshareableWithEntityUnshare.class);
-    }
 
     @BeforeEach
     public void beforeTest() {

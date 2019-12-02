@@ -5,19 +5,14 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.utils.ClassScanner;
 
 import com.google.common.collect.Sets;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-
 import lombok.Getter;
 
 import java.util.Collections;
@@ -28,14 +23,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.persistence.Entity;
-
 /**
  * Simple in-memory only database.
  */
 public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     protected final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
-    @Getter private EntityDictionary dictionary;
+    @Getter protected EntityDictionary dictionary;
     @Getter private final Set<Package> beanPackages;
     @Getter private final ConcurrentHashMap<Class<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
 
@@ -45,24 +38,14 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
 
     public HashMapDataStore(Set<Package> beanPackages) {
         this.beanPackages = beanPackages;
-        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
 
         for (Package beanPackage : beanPackages) {
-            configurationBuilder.addUrls(ClasspathHelper.forPackage(beanPackage.getName()));
+            ClassScanner.getAnnotatedClasses(beanPackage, Include.class).stream().forEach(modelClass -> {
+                if (modelClass.getName().startsWith(beanPackage.getName())) {
+                    dataStore.put(modelClass, Collections.synchronizedMap(new LinkedHashMap<>()));
+                }
+            });
         }
-        configurationBuilder.setScanners(new SubTypesScanner(), new TypeAnnotationsScanner());
-
-        Reflections reflections = new Reflections(configurationBuilder);
-
-        reflections.getTypesAnnotatedWith(Entity.class).stream()
-                .forEach((cls) -> {
-                    for (Package beanPackage : beanPackages) {
-                        if (cls.getName().startsWith(beanPackage.getName())) {
-                            dataStore.put(cls, Collections.synchronizedMap(new LinkedHashMap<>()));
-                            break;
-                        }
-                    }
-                });
     }
 
     @Override

@@ -53,7 +53,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     @Override
     public final boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        Class<?> entityClass = coreScope(requestScope).getDictionary().lookupEntityClass(object.getClass());
+        Class<?> entityClass = coreScope(requestScope).getDictionary().lookupBoundClass(object.getClass());
         FilterExpression filterExpression = getFilterExpression(entityClass, requestScope);
         return filterExpression.accept(new FilterExpressionCheckEvaluationVisitor(object, this, requestScope));
     }
@@ -102,7 +102,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
             Class<?> type,
             String method,
             EntityDictionary dictionary) throws NoSuchMethodException {
-        FilterExpressionPath path = dictionary.lookupEntityClass(type)
+        FilterExpressionPath path = dictionary.lookupBoundClass(type)
                 .getMethod(method)
                 .getAnnotation(FilterExpressionPath.class);
         return path;

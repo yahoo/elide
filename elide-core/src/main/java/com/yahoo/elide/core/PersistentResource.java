@@ -1169,7 +1169,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     @Override
     @JsonIgnore
     public Class<T> getResourceClass() {
-        return (Class) dictionary.lookupEntityClass(obj.getClass());
+        return (Class) dictionary.lookupBoundClass(obj.getClass());
     }
 
     /**
