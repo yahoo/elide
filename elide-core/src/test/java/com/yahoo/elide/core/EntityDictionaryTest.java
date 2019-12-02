@@ -638,6 +638,16 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
+    public void testGetFirstAnnotationConflict() {
+        @Exclude
+        @Include
+        class Foo { }
+
+        Annotation first = getFirstAnnotation(Foo.class, Arrays.asList(Exclude.class, Include.class));
+        assertTrue(first instanceof Exclude);
+    }
+
+    @Test
     public void testBadLookupEntityClass() {
         assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(null));
         assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(Object.class));

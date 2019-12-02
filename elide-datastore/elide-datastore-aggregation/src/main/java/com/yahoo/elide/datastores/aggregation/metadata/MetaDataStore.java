@@ -39,7 +39,7 @@ public class MetaDataStore extends HashMapDataStore {
     public static final Package META_DATA_PACKAGE =
             Package.getPackage("com.yahoo.elide.datastores.aggregation.metadata.models");
 
-    private static final Class[] METADATA_STORE_CLASSES = {
+    private static final Class[] METADATA_STORE_ANNOTATIONS = {
             FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class};
 
     @Getter
@@ -59,7 +59,7 @@ public class MetaDataStore extends HashMapDataStore {
             dictionary.bindEntity(cls);
         });
 
-        for (Class<? extends Annotation> cls : METADATA_STORE_CLASSES) {
+        for (Class<? extends Annotation> cls : METADATA_STORE_ANNOTATIONS) {
             dictionary.bindEntity(cls);
             ClassScanner.getAnnotatedClasses(scanPackageName, cls).stream().forEach(modelClass -> {
                 dictionary.bindEntity(modelClass);
@@ -73,7 +73,7 @@ public class MetaDataStore extends HashMapDataStore {
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        ClassScanner.getAllClasses(Table.class.getPackage().getName()).stream().forEach(cls -> {
+        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).stream().forEach(cls -> {
             dictionary.bindEntity(cls);
         });
     }
