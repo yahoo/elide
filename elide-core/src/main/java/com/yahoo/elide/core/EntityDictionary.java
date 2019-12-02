@@ -1127,7 +1127,7 @@ public class EntityDictionary {
     public final boolean isJPAEntity(Class<?> objClass) {
         try {
             lookupEntityClass(objClass);
-            return objClass.isAnnotationPresent(Entity.class);
+            return true;
         } catch (IllegalArgumentException e) {
             return false;
         }
