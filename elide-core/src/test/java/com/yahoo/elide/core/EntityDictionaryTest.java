@@ -624,9 +624,13 @@ public class EntityDictionaryTest extends EntityDictionary {
         class Foo { }
 
         @Include
-        class Bar extends Foo {}
+        class Bar extends Foo {
 
-        class Baz extends Bar {}
+        }
+
+        class Baz extends Bar {
+
+        }
 
         Annotation first = getFirstAnnotation(Baz.class, Arrays.asList(Exclude.class, Include.class));
         assertTrue(first instanceof Include);
