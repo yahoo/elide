@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.NonEntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -47,7 +46,7 @@ public class SplitFilterExpressionVisitorTest {
 
     @BeforeAll
     public static void setupEntityDictionary() {
-        EntityDictionary entityDictionary = new NonEntityDictionary(Collections.emptyMap());
+        EntityDictionary entityDictionary = new EntityDictionary(Collections.emptyMap());
         entityDictionary.bindEntity(PlayerStats.class);
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(SubCountry.class);

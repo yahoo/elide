@@ -871,41 +871,6 @@ public class EntityDictionary {
     }
 
     /**
-     * Check whether needs to include a new entity class.
-     * If the class is already bound or has {@link Exclude} annotation, don't include it.
-     *
-     * @param cls new class to check
-     * @param entityClass super class which has {@link Entity} annotation
-     * @return {@link Include} annotation if needs to include
-     */
-    public final Optional<Include> needsInclude(Class<?> cls, Class<?> entityClass) {
-        if (entityClass != null && entityBindings.getOrDefault(entityClass, EMPTY_BINDING) != EMPTY_BINDING) {
-            return Optional.empty();
-        }
-
-        Include include = cls.getDeclaredAnnotation(Include.class);
-        Exclude exclude = cls.getDeclaredAnnotation(Exclude.class);
-
-        if (include == null && exclude == null) {
-            Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
-            include = annotation instanceof Include ? (Include) annotation : null;
-            exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
-        }
-
-        if (exclude != null) {
-            log.trace("Exclude {}", cls.getName());
-            return Optional.empty();
-        }
-
-        if (include == null) {
-            log.trace("Missing include {}", cls.getName());
-            return Optional.empty();
-        }
-
-        return Optional.of(include);
-    }
-
-    /**
      * Return annotation from class, parents or package.
      *
      * @param record          the record

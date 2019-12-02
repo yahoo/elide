@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.multiplex;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.NonEntityDictionary;
 
 import lombok.AccessLevel;
 import lombok.Setter;
@@ -53,9 +52,7 @@ public final class MultiplexManager implements DataStore {
         this.dictionary = dictionary;
 
         for (DataStore dataStore : dataStores) {
-            EntityDictionary subordinateDictionary = dictionary instanceof NonEntityDictionary
-                    ? new NonEntityDictionary(dictionary.getCheckMappings())
-                    : new EntityDictionary(dictionary.getCheckMappings());
+            EntityDictionary subordinateDictionary = new EntityDictionary(dictionary.getCheckMappings());
 
             dataStore.populateEntityDictionary(subordinateDictionary);
             for (Class<?> cls : subordinateDictionary.getBindings()) {

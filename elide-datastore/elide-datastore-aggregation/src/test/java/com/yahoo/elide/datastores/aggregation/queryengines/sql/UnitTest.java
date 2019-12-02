@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import com.yahoo.elide.core.NonEntityDictionary;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Country;
@@ -29,13 +29,14 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnaly
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import java.util.Collections;
+import java.util.HashMap;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 public abstract class UnitTest {
     protected static EntityManagerFactory emf;
     protected static AnalyticView playerStatsTable;
-    protected static NonEntityDictionary dictionary;
+    protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
     protected static MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
 
@@ -46,7 +47,7 @@ public abstract class UnitTest {
 
     public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
-        dictionary = new NonEntityDictionary();
+        dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStatsWithView.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(PlayerStats.class);

@@ -11,7 +11,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.NonEntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -47,7 +46,7 @@ public class AggregationTestBinder extends AbstractBinder {
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
-                EntityDictionary dictionary = new NonEntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
+                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
                 RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 
