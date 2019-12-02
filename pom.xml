@@ -509,7 +509,6 @@
                 <version>5.2.3</version>
                 <configuration>
                     <failBuildOnCVSS>6</failBuildOnCVSS>
-                    <skip>true</skip>
                     <skipSystemScope>true</skipSystemScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     <suppressionFile>suppressions.xml</suppressionFile>
