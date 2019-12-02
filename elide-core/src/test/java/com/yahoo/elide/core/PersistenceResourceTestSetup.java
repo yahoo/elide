@@ -73,6 +73,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         dictionary.bindEntity(UnshareableWithEntityUnshare.class);
         return dictionary;
     }
+
     protected static ElideSettings initSettings() {
         return new ElideSettingsBuilder(null)
                 .withEntityDictionary(initDictionary())
