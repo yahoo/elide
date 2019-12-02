@@ -1069,6 +1069,12 @@ public class EntityDictionary {
     public Class<?> lookupIncludeClass(Class<?> objClass) {
         Annotation first = getFirstAnnotation(objClass, Arrays.asList(Exclude.class, Include.class));
         if (first instanceof Include) {
+            Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Include.class);
+            if (declaringClass != null) {
+                return declaringClass;
+            }
+
+            //If we didn't find Include declared on a class, it must be declared at the package level.
             return objClass;
         }
         return null;
@@ -1088,6 +1094,7 @@ public class EntityDictionary {
         }
         return null;
     }
+
 
     /**
      * Return bound entity or null.
@@ -1518,7 +1525,7 @@ public class EntityDictionary {
      * @param entityClass the class to bind.
      */
     private void bindIfUnbound(Class<?> entityClass) {
-        if (! isClassBound(entityClass)) {
+        if (lookupBoundClass(entityClass) == null) {
             bindEntity(entityClass);
         }
     }

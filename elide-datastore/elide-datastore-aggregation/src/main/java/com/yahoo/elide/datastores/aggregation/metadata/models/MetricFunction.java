@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -28,7 +27,6 @@ import javax.persistence.OneToMany;
  * Functions used to compute metrics.
  */
 @Include(type = "metricFunction")
-@Entity
 @Data
 @ToString
 @AllArgsConstructor

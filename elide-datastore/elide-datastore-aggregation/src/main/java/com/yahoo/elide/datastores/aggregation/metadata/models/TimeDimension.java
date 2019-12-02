@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 
 /**
@@ -25,7 +24,6 @@ import javax.persistence.ManyToMany;
  */
 @EqualsAndHashCode(callSuper = true)
 @Include(type = "timeDimension")
-@Entity
 @Data
 public class TimeDimension extends Dimension {
     @ManyToMany

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;
@@ -15,7 +14,6 @@ import lombok.EqualsAndHashCode;
  * Special data type that represents a relationship between tables.
  */
 @Data
-@Exclude
 @EqualsAndHashCode(callSuper = true)
 public class RelationshipType extends DataType {
     public RelationshipType(String name) {

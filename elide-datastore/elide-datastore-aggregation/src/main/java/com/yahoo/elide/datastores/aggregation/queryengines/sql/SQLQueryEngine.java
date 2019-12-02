@@ -50,22 +50,22 @@ import javax.persistence.EntityTransaction;
 public class SQLQueryEngine implements QueryEngine {
 
     private final EntityManagerFactory emf;
-    private final EntityDictionary dictionary;
+    private final EntityDictionary metadataDictionary;
 
     @Getter
     private Map<Class<?>, Table> tables;
 
-    public SQLQueryEngine(EntityManagerFactory emf, EntityDictionary dictionary, MetaDataStore metaDataStore) {
+    public SQLQueryEngine(EntityManagerFactory emf, MetaDataStore metaDataStore) {
         this.emf = emf;
-        this.dictionary = dictionary;
+        this.metadataDictionary = metaDataStore.getDictionary();
 
         Set<Table> tables = metaDataStore.getMetaData(Table.class);
         tables.addAll(metaDataStore.getMetaData(AnalyticView.class));
 
         this.tables = tables.stream()
                 .map(table -> table instanceof AnalyticView
-                        ? new SQLAnalyticView(table.getCls(), dictionary)
-                        : new SQLTable(table.getCls(), dictionary))
+                        ? new SQLAnalyticView(table.getCls(), metadataDictionary)
+                        : new SQLTable(table.getCls(), metadataDictionary))
                 .collect(Collectors.toMap(Table::getCls, Function.identity()));
     }
 
@@ -126,7 +126,7 @@ public class SQLQueryEngine implements QueryEngine {
                     () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
                     "Running Query: " + sql).get();
 
-            return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
+            return new SQLEntityHydrator(results, query, metadataDictionary, entityManager).hydrate();
         } finally {
             if (transaction != null && transaction.isActive()) {
                 transaction.commit();
@@ -167,7 +167,7 @@ public class SQLQueryEngine implements QueryEngine {
                 .reduce(SQLQueryTemplate::merge)
                 .orElseThrow(() -> new InvalidPredicateException("Metric function not found"));
 
-        return new SQLQueryConstructor(dictionary).resolveTemplate(
+        return new SQLQueryConstructor(metadataDictionary).resolveTemplate(
                 query,
                 queryTemplate,
                 query.getSorting(),

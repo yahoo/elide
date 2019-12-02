@@ -11,14 +11,11 @@ import com.yahoo.elide.core.EntityDictionary;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.Entity;
-
 /**
- * Regular field in tables, can be grouped by if the table is an AnalyticView
+ * Regular field in tables, can be grouped by if the table is an AnalyticView.
  */
 @EqualsAndHashCode(callSuper = true)
 @Include(type = "dimension")
-@Entity
 @Data
 public class Dimension extends Column {
     public Dimension(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {

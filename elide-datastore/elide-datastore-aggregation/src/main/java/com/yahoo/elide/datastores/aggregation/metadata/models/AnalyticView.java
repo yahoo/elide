@@ -14,7 +14,6 @@ import lombok.ToString;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 
 /**
@@ -22,7 +21,6 @@ import javax.persistence.OneToMany;
  */
 @EqualsAndHashCode(callSuper = true)
 @Include(rootLevel = true, type = "analyticView")
-@Entity
 @Data
 public class AnalyticView extends Table {
 

@@ -6,42 +6,33 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
-import com.yahoo.elide.datastores.aggregation.example.SubCountry;
-import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
+import com.yahoo.elide.datastores.jpa.JpaDataStore;
+import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
-    private QueryEngineFactory queryEngineFactory;
+    private SQLQueryEngineFactory queryEngineFactory;
 
-    public AggregationDataStoreTestHarness(QueryEngineFactory queryEngineFactory) {
+    public AggregationDataStoreTestHarness(SQLQueryEngineFactory queryEngineFactory) {
         this.queryEngineFactory = queryEngineFactory;
     }
 
     @Override
     public DataStore getDataStore() {
-        MetaDataStore metaDataStore = new MetaDataStore();
-        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore) {
-            @Override
-            public void populateEntityDictionary(EntityDictionary dictionary) {
-                dictionary.bindEntity(PlayerStats.class);
-                dictionary.bindEntity(Country.class);
-                dictionary.bindEntity(SubCountry.class);
-                dictionary.bindEntity(PlayerStatsView.class);
-                dictionary.bindEntity(Player.class);
-                dictionary.bindEntity(VideoGame.class);
-                super.populateEntityDictionary(dictionary);
-            }
-        };
+        MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
+        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
+
+        DataStore jpaStore = new JpaDataStore(
+                () -> { return queryEngineFactory.getEmf().createEntityManager(); },
+                (entityManager) -> { return new NonJtaTransaction(entityManager); }
+        );
 
         // meta data store needs to be put at first to populate meta data models
-        return new MultiplexManager(metaDataStore, aggregationDataStore);
+        return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);
     }
 
     public void cleanseTestData() {

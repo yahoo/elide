@@ -19,14 +19,12 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
- * Data type of a column
+ * Data type of a column.
  */
 @Include(rootLevel = true, type = "dataType")
-@Entity
 @Data
 @AllArgsConstructor
 @ToString

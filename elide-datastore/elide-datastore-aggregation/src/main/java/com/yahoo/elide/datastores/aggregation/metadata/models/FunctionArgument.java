@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.Include;
 import lombok.Data;
 import lombok.ToString;
 
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
@@ -18,7 +17,6 @@ import javax.persistence.ManyToOne;
  * Arguments that can be provided into a metric function.
  */
 @Include(type = "functionArgument")
-@Entity
 @Data
 @ToString
 public class FunctionArgument {
