@@ -12,14 +12,15 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.datastores.aggregation.framework.AggregationResourceConfig;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,10 +43,6 @@ import javax.ws.rs.core.MediaType;
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     SQLQueryEngineFactory queryEngineFactory;
-
-    public AggregationDataStoreIntegrationTest() {
-        super(AggregationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
-    }
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
@@ -514,46 +511,126 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void testGetMetaData() {
+    public void basicViewAggregationTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStatsWithView",
+                                selections(
+                                        field("highScore"),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        ),
+                                        field("countryViewIsoCode")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStatsWithView",
+                                selections(
+                                        field("highScore", 1000),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Hong Kong")
+                                                )
+                                        ),
+                                        field("countryViewIsoCode", "HKG")
+                                ),
+                                selections(
+                                        field("highScore", 2412),
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "United States")
+                                                )
+                                        ),
+                                        field("countryViewIsoCode", "USA")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void metaDataTest() {
         given()
                 .accept("application/vnd.api+json")
-                .get("/table")
+                .get("/table/country")
                 .then()
-                .log()
-                .all()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.cardinality", equalTo("SMALL"))
+                .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/analyticView")
+                .get("/analyticView/playerStats")
                 .then()
-                .log()
-                .all()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.cardinality", equalTo("LARGE"))
+                .body(
+                        "data.relationships.dimensions.data.id",
+                        hasItems(
+                                "playerStats.id",
+                                "playerStats.player",
+                                "playerStats.country",
+                                "playerStats.subCountry",
+                                "playerStats.recordedDate",
+                                "playerStats.overallRating",
+                                "playerStats.countryIsoCode",
+                                "playerStats.subCountryIsoCode"))
+                .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"));
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/dimension")
+                .get("/dimension/playerStats.player")
                 .then()
-                .log()
-                .all()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("player"))
+                .body("data.attributes.tableName", equalTo("playerStats"))
+                .body("data.relationships.dataType.data.id", equalTo("player"));
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/metric")
+                .get("/metric/playerStats.lowScore?include=metricFunction")
                 .then()
-                .log()
-                .all()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("lowScore"))
+                .body("data.attributes.tableName", equalTo("playerStats"))
+                .body("data.relationships.dataType.data.id", equalTo("p_bigint"))
+                .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
+                .body("included.id", hasItem("playerStats.lowScore[min]"))
+                .body("included.attributes.description", hasItem("sql min function"))
+                .body("included.attributes.expression", hasItem("MIN(lowScore)"))
+                .body("included.attributes.longName", hasItem("min"));
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/timeDimension")
+                .get("/timeDimension/playerStats.recordedDate?include=supportedGrains")
                 .then()
-                .log()
-                .all()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("recordedDate"))
+                .body("data.attributes.tableName", equalTo("playerStats"))
+                .body("data.relationships.dataType.data.id", equalTo("date"))
+                .body(
+                        "data.relationships.supportedGrains.data.id",
+                        hasItems("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
+                .body("included.id", hasItems("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
+                .body("included.attributes.grain", hasItems("DAY", "MONTH"))
+                .body(
+                        "included.attributes.expression",
+                        hasItems(
+                                "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
+                                "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')"));
     }
 
     private void create(String query, Map<String, Object> variables) throws IOException {

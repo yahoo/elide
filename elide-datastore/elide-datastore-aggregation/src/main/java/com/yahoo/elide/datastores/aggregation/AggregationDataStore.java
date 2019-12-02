@@ -16,7 +16,10 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.utils.ClassScanner;
 
+import org.hibernate.annotations.Subselect;
+
 import java.lang.annotation.Annotation;
+import javax.persistence.Table;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
@@ -34,7 +37,8 @@ public class AggregationDataStore implements DataStore {
     /**
      * These are the classes the Aggregation Store manages.
      */
-    private static final Class[] AGGREGATION_STORE_CLASSES = { FromTable.class, FromSubquery.class };
+    private static final Class[] AGGREGATION_STORE_CLASSES = {
+            Subselect.class, Table.class, FromTable.class, FromSubquery.class };
 
     public AggregationDataStore(QueryEngineFactory queryEngineFactory,
                                 MetaDataStore metaDataStore) {
