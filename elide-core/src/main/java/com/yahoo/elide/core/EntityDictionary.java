@@ -844,7 +844,7 @@ public class EntityDictionary {
         }
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
-        Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
+        Entity entity = (Entity) getFirstAnnotation(declaredClass, Arrays.asList(Entity.class));
 
         String name;
         if (entity == null || "".equals(entity.name())) {
