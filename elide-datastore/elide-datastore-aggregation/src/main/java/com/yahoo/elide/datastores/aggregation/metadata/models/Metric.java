@@ -14,7 +14,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
 /**
@@ -22,7 +21,6 @@ import javax.persistence.ManyToOne;
  */
 @EqualsAndHashCode(callSuper = true)
 @Include(type = "metric")
-@Entity
 @Data
 public class Metric extends Column {
     private Format defaultFormat;

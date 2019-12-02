@@ -21,7 +21,14 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.utils.ClassScanner;
 
+import org.hibernate.annotations.Subselect;
+
+import lombok.Getter;
+
+import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,28 +39,43 @@ public class MetaDataStore extends HashMapDataStore {
     public static final Package META_DATA_PACKAGE =
             Package.getPackage("com.yahoo.elide.datastores.aggregation.metadata.models");
 
-    public MetaDataStore() {
+    private static final Class[] METADATA_STORE_ANNOTATIONS = {
+            FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class};
+
+    @Getter
+    private final String scanPackageName;
+
+    public MetaDataStore(Package scanPackage) {
+        this (scanPackage.getName());
+    }
+
+    public MetaDataStore(String scanPackageName) {
         super(META_DATA_PACKAGE);
+        this.scanPackageName = scanPackageName;
+
+        this.dictionary = new EntityDictionary(new HashMap<>());
+
+        ClassScanner.getAllClasses(Table.class.getPackage().getName()).stream().forEach(cls -> {
+            dictionary.bindEntity(cls);
+        });
+
+        for (Class<? extends Annotation> cls : METADATA_STORE_ANNOTATIONS) {
+            dictionary.bindEntity(cls);
+            ClassScanner.getAnnotatedClasses(scanPackageName, cls).stream().forEach(modelClass -> {
+                dictionary.bindEntity(modelClass);
+                addTable(
+                        isAnalyticView(modelClass)
+                                ? new AnalyticView(modelClass, dictionary)
+                                : new Table(modelClass, dictionary));
+            });
+        }
     }
 
+    @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        super.populateEntityDictionary(dictionary);
-    }
-
-    /**
-     * Load meta data of models from an external populated entity dictionary.
-     *
-     * @param dictionary entity dictionary used by an aggregation data store.
-     */
-    public void loadMetaData(EntityDictionary dictionary) {
-        Set<Class<?>> classes = dictionary.getBindings();
-
-        classes.stream()
-                .filter(cls -> !META_DATA_PACKAGE.equals(cls.getPackage()))
-                .forEach(cls -> addTable(
-                        isAnalyticView(cls)
-                                ? new AnalyticView(cls, dictionary)
-                                : new Table(cls, dictionary)));
+        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).stream().forEach(cls -> {
+            dictionary.bindEntity(cls);
+        });
     }
 
     /**
@@ -125,8 +147,8 @@ public class MetaDataStore extends HashMapDataStore {
      * @param object a meta data object
      */
     private void addMetaData(Object object) {
-        Class<?> cls = this.getDictionary().lookupEntityClass(object.getClass());
-        String id = getDictionary().getId(object);
+        Class<?> cls = dictionary.lookupBoundClass(object.getClass());
+        String id = dictionary.getId(object);
 
         if (dataStore.get(cls).containsKey(id)) {
             if (!dataStore.get(cls).get(id).equals(object)) {
@@ -160,7 +182,7 @@ public class MetaDataStore extends HashMapDataStore {
     }
 
     /**
-     * Returns whether an entity class is analytic view
+     * Returns whether an entity class is analytic view.
      *
      * @param cls entity class
      * @return True if {@link FromTable} or {@link FromSubquery} is presented.

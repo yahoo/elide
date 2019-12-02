@@ -69,9 +69,9 @@ public class SQLQueryEngineTest {
         playerStatsTable = new SQLAnalyticView(PlayerStats.class, dictionary);
         playerStatsViewTable = new SQLAnalyticView(PlayerStatsView.class, dictionary);
 
-        MetaDataStore metaDataStore = new MetaDataStore();
+        MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
         metaDataStore.populateEntityDictionary(dictionary);
-        engine = new SQLQueryEngine(emf, dictionary, metaDataStore);
+        engine = new SQLQueryEngine(emf, metaDataStore);
 
         HONG_KONG.setIsoCode("HKG");
         HONG_KONG.setName("Hong Kong");

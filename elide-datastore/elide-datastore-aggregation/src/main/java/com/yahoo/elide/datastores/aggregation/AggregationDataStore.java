@@ -12,11 +12,16 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.utils.ClassScanner;
+
+import java.lang.annotation.Annotation;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
-public abstract class AggregationDataStore implements DataStore {
+public class AggregationDataStore implements DataStore {
 
     private final QueryEngineFactory queryEngineFactory;
 
@@ -24,9 +29,18 @@ public abstract class AggregationDataStore implements DataStore {
 
     private QueryEngine queryEngine;
 
-    public AggregationDataStore(QueryEngineFactory queryEngineFactory, MetaDataStore metaDataStore) {
+    private final String modelPackageName;
+
+    /**
+     * These are the classes the Aggregation Store manages.
+     */
+    private static final Class[] AGGREGATION_STORE_CLASSES = { FromTable.class, FromSubquery.class };
+
+    public AggregationDataStore(QueryEngineFactory queryEngineFactory,
+                                MetaDataStore metaDataStore) {
         this.queryEngineFactory = queryEngineFactory;
         this.metaDataStore = metaDataStore;
+        this.modelPackageName = metaDataStore.getScanPackageName();
     }
 
     /**
@@ -35,8 +49,13 @@ public abstract class AggregationDataStore implements DataStore {
      */
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        metaDataStore.loadMetaData(dictionary);
-        queryEngine = queryEngineFactory.buildQueryEngine(dictionary, metaDataStore);
+        for (Class<? extends Annotation> cls : AGGREGATION_STORE_CLASSES) {
+            ClassScanner.getAnnotatedClasses(modelPackageName, cls).stream().forEach(modelClass -> {
+                dictionary.bindEntity(modelClass);
+            });
+        }
+
+        queryEngine = queryEngineFactory.buildQueryEngine(metaDataStore);
 
         /* Add 'grain' argument to each TimeDimensionColumn */
         for (AnalyticView table : metaDataStore.getMetaData(AnalyticView.class)) {

@@ -118,7 +118,7 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
-    public final ConcurrentHashMap<AccessibleObject, Set<ArgumentType>> attributeArgumets = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<AccessibleObject, Set<ArgumentType>> attributeArguments = new ConcurrentHashMap<>();
 
     public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
@@ -600,12 +600,12 @@ public class EntityBinding {
     public void addArgumentsToAttribute(String attribute, Set<ArgumentType> arguments) {
         AccessibleObject fieldObject = fieldsToValues.get(attribute);
         if (fieldObject != null && arguments != null) {
-            Set<ArgumentType> existingArgs = attributeArgumets.get(fieldObject);
+            Set<ArgumentType> existingArgs = attributeArguments.get(fieldObject);
             if (existingArgs != null) {
                 //Replace any argument names with new value
                 existingArgs.addAll(arguments);
             } else {
-                attributeArgumets.put(fieldObject, arguments);
+                attributeArguments.put(fieldObject, new HashSet<>(arguments));
             }
         }
     }
@@ -618,7 +618,7 @@ public class EntityBinding {
     public Set<ArgumentType> getAttributeArguments(String attribute) {
         AccessibleObject fieldObject = fieldsToValues.get(attribute);
         return (fieldObject != null)
-                ? attributeArgumets.getOrDefault(fieldObject, EMPTY_ATTRIBUTES_ARGS)
+                ? attributeArguments.getOrDefault(fieldObject, EMPTY_ATTRIBUTES_ARGS)
                 : EMPTY_ATTRIBUTES_ARGS;
     }
 }

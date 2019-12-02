@@ -47,7 +47,7 @@ import javax.persistence.Persistence;
 public class SubselectTest {
     private static EntityManagerFactory emf;
     private static AnalyticView playerStatsTable;
-    private static MetaDataStore metaDataStore = new MetaDataStore();
+    private static MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
     private static EntityDictionary dictionary;
     private static RSQLFilterDialect filterParser;
 
@@ -88,7 +88,7 @@ public class SubselectTest {
         SUB_USA.setId("840");
 
         metaDataStore.populateEntityDictionary(dictionary);
-        engine = new SQLQueryEngine(emf, dictionary, metaDataStore);
+        engine = new SQLQueryEngine(emf, metaDataStore);
     }
 
     /**

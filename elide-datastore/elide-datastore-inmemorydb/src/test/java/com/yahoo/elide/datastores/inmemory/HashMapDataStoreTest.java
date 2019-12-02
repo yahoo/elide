@@ -49,7 +49,6 @@ public class HashMapDataStoreTest {
         assertNotNull(entityDictionary.getJsonAliasFor(SecondBean.class));
         assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(NonEntity.class));
         assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(ExcludedBean.class));
-
     }
 
     @Test
