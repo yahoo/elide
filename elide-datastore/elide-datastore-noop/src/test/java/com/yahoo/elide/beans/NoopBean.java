@@ -7,13 +7,11 @@ package com.yahoo.elide.beans;
 
 import com.yahoo.elide.annotation.Include;
 
-import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
  * Simple bean intended to not be persisted
  */
-@Entity
 @Include(type = "theNoopBean")
 public class NoopBean {
     private Long id;

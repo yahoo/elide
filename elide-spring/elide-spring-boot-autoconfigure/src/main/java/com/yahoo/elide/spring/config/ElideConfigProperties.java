@@ -9,8 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-
 /**
  * Configuration settings for Elide.
  */
@@ -32,12 +30,6 @@ public class ElideConfigProperties {
      * Settings for the Swagger document controller.
      */
     private SwaggerControllerProperties swagger;
-
-    /**
-     * Root package name of the Elide data models.
-     */
-    @NotBlank
-    private String modelPackage;
 
     /**
      * Default pagination size for collections if the client doesn't paginate.
