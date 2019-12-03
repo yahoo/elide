@@ -19,6 +19,7 @@ import com.yahoo.elide.utils.ClassScanner;
 import org.hibernate.annotations.Subselect;
 
 import java.lang.annotation.Annotation;
+import javax.persistence.Entity;
 import javax.persistence.Table;
 
 /**
@@ -54,8 +55,11 @@ public class AggregationDataStore implements DataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         for (Class<? extends Annotation> cls : AGGREGATION_STORE_CLASSES) {
-            ClassScanner.getAnnotatedClasses(modelPackageName, cls).stream().forEach(modelClass -> {
-                dictionary.bindEntity(modelClass);
+            ClassScanner.getAnnotatedClasses(modelPackageName, cls).forEach(modelClass -> {
+                // bind non-jpa entities, including analyticViews and views
+                if (!modelClass.isAnnotationPresent(Entity.class)) {
+                    dictionary.bindEntity(modelClass);
+                }
             });
         }
 
