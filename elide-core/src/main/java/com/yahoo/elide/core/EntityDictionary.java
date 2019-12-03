@@ -831,7 +831,7 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        if (lookupBoundClass(cls) != null) {
+        if (isClassBound(cls)) {
             //Ignore duplicate bindings.
             return;
         }
@@ -1063,12 +1063,6 @@ public class EntityDictionary {
     public Class<?> lookupIncludeClass(Class<?> objClass) {
         Annotation first = getFirstAnnotation(objClass, Arrays.asList(Exclude.class, Include.class));
         if (first instanceof Include) {
-            Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Include.class);
-            if (declaringClass != null) {
-                return declaringClass;
-            }
-
-            //If we didn't find Include declared on a class, it must be declared at the package level.
             return objClass;
         }
         return null;
@@ -1111,7 +1105,25 @@ public class EntityDictionary {
         if (binding != EMPTY_BINDING) {
             return binding.entityClass;
         }
-        return null;
+
+        try {
+            //Special Case for ORM proxied objects.  If the class is a proxy,
+            //and it is unbound, try the superclass.
+            return lookupEntityClass(declaredClass.getSuperclass());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Return if the class has been bound or not.  Only safe to call while binding an entity (does not consider
+     * ORM proxy objects).
+     *
+     * @param objClass provided class
+     * @return true if the class is already bound.
+     */
+    private boolean isClassBound(Class<?> objClass) {
+        return (entityBindings.getOrDefault(objClass, EMPTY_BINDING) != EMPTY_BINDING);
     }
 
 
@@ -1449,7 +1461,7 @@ public class EntityDictionary {
      * @param entityClass the class to bind.
      */
     private void bindIfUnbound(Class<?> entityClass) {
-        if (lookupBoundClass(entityClass) == null) {
+        if (! isClassBound(entityClass)) {
             bindEntity(entityClass);
         }
     }

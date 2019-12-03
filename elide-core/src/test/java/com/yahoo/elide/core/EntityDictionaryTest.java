@@ -484,8 +484,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         this.bindEntity(SuperclassBinding.class);
+        this.bindEntity(SubclassBinding.class);
+        this.bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
@@ -513,10 +515,11 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         this.bindEntity(SuperclassBinding.class);
+        this.bindEntity(SubclassBinding.class);
         this.bindEntity(SubsubclassBinding.class);
 
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
-        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SubsubclassBinding.class, getEntityBinding(SubsubclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
@@ -553,13 +556,15 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         this.bindEntity(SuperclassBinding.class);
+        this.bindEntity(SubclassBinding.class);
+        this.bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
-        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
+        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SubsubclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
     }
 
     @Test
@@ -580,14 +585,15 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         this.bindEntity(SuperclassBinding.class);
+        this.bindEntity(SubclassBinding.class);
         this.bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
         assertEquals(SubsubclassBinding.class, getEntityBinding(SubsubclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
         assertEquals(SubsubclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
     }
 
@@ -607,14 +613,15 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         this.bindEntity(SuperclassBinding.class);
+        this.bindEntity(SubclassBinding.class);
         this.bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
         assertThrows(IllegalArgumentException.class, () -> { getEntityBinding(SubsubclassBinding.class); });
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
         assertEquals(null, lookupIncludeClass(SubsubclassBinding.class));
     }
 
