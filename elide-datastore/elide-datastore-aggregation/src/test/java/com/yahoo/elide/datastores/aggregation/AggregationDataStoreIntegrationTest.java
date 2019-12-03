@@ -562,6 +562,18 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    public void jsonApiAggregationTest() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/playerStats")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", hasItems("0", "1", "2"))
+                .body("data.attributes.highScore", hasItems(1000, 1234, 2412))
+                .body("data.relationships.country.data.id", hasItems("840", "344"));
+    }
+
+    @Test
     public void metaDataTest() {
         given()
                 .accept("application/vnd.api+json")
