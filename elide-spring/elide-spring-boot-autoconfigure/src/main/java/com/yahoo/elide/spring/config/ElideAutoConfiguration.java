@@ -81,10 +81,11 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory) {
+    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory) throws ClassNotFoundException {
+
         return new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                (em -> { return new NonJtaTransaction(em); }));
+                    (em -> { return new NonJtaTransaction(em); }));
     }
 
     /**

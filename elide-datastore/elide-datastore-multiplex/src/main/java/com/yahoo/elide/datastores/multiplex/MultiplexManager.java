@@ -82,7 +82,7 @@ public class MultiplexManager implements DataStore {
      */
     protected <T> DataStore getSubManager(Class<T> cls) {
         // Follow for this class or super-class for Entity annotation
-        Class<T> type = (Class<T>) dictionary.lookupEntityClass(cls);
+        Class<T> type = (Class<T>) dictionary.lookupBoundClass(cls);
         return dataStoreMap.get(type);
     }
 }

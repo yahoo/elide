@@ -5,12 +5,10 @@
  */
 package com.yahoo.elide.standalone;
 
-import com.google.common.reflect.ClassPath;
-
+import com.yahoo.elide.utils.ClassScanner;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -68,16 +66,8 @@ public class Util {
      * @return All entities found in package.
      */
     public static List<String> getAllEntities(String packageName) {
-
-        try {
-            return ClassPath.from(Util.class.getClassLoader())
-                    .getTopLevelClassesRecursive(packageName)
-                    .stream()
-                    .filter((classInfo) -> classInfo.load().isAnnotationPresent(Entity.class))
-                    .map(ClassPath.ClassInfo::getName)
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+        return ClassScanner.getAnnotatedClasses(packageName, Entity.class).stream()
+                .map(Class::getName)
+                .collect(Collectors.toList());
     }
 }
