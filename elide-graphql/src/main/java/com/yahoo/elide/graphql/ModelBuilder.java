@@ -242,13 +242,11 @@ public class ModelBuilder {
                 .name("_node__" + entityName);
 
         String id = dictionary.getIdFieldName(entityClass);
-        if (id != null) {
-            /* our id types are DeferredId objects (not Scalars.GraphQLID) */
-            builder.field(newFieldDefinition()
-                    .name(id)
-                    .dataFetcher(dataFetcher)
-                    .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
-        }
+        /* our id types are DeferredId objects (not Scalars.GraphQLID) */
+        builder.field(newFieldDefinition()
+                .name(id)
+                .dataFetcher(dataFetcher)
+                .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);

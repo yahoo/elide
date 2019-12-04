@@ -16,11 +16,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.utils.ClassScanner;
 
-import org.hibernate.annotations.Subselect;
-
 import java.lang.annotation.Annotation;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
@@ -39,7 +35,7 @@ public class AggregationDataStore implements DataStore {
      * These are the classes the Aggregation Store manages.
      */
     private static final Class[] AGGREGATION_STORE_CLASSES = {
-            Subselect.class, Table.class, FromTable.class, FromSubquery.class };
+            FromTable.class, FromSubquery.class };
 
     public AggregationDataStore(QueryEngineFactory queryEngineFactory,
                                 MetaDataStore metaDataStore) {
@@ -55,12 +51,8 @@ public class AggregationDataStore implements DataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         for (Class<? extends Annotation> cls : AGGREGATION_STORE_CLASSES) {
-            ClassScanner.getAnnotatedClasses(modelPackageName, cls).forEach(modelClass -> {
-                // bind non-jpa entities, including analyticViews and views
-                if (!modelClass.isAnnotationPresent(Entity.class)) {
-                    dictionary.bindEntity(modelClass);
-                }
-            });
+            // bind non-jpa entities, including analyticViews and views
+            ClassScanner.getAnnotatedClasses(modelPackageName, cls).forEach(dictionary::bindEntity);
         }
 
         queryEngine = queryEngineFactory.buildQueryEngine(metaDataStore);
