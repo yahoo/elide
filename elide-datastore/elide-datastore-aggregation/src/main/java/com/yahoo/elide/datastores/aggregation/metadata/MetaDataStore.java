@@ -55,14 +55,18 @@ public class MetaDataStore extends HashMapDataStore {
 
         this.dictionary = new EntityDictionary(new HashMap<>());
 
-        ClassScanner.getAllClasses(Table.class.getPackage().getName()).stream().forEach(cls -> {
-            dictionary.bindEntity(cls);
-        });
+        ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(cls -> dictionary.bindEntity(cls));
 
+        // bind data models in the package
         for (Class<? extends Annotation> cls : METADATA_STORE_ANNOTATIONS) {
-            dictionary.bindEntity(cls);
-            ClassScanner.getAnnotatedClasses(scanPackageName, cls).stream().forEach(modelClass -> {
+            ClassScanner.getAnnotatedClasses(scanPackageName, cls).forEach(modelClass -> {
                 dictionary.bindEntity(modelClass);
+            });
+        }
+
+        // resolve meta data from the bound models
+        for (Class<? extends Annotation> cls : METADATA_STORE_ANNOTATIONS) {
+            ClassScanner.getAnnotatedClasses(scanPackageName, cls).forEach(modelClass -> {
                 addTable(
                         isAnalyticView(modelClass)
                                 ? new AnalyticView(modelClass, dictionary)

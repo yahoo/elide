@@ -32,7 +32,7 @@ public class SQLColumn extends Column {
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
 
-        if (joinTo == null) {
+        if (joinTo == null || joinTo.path().equals("")) {
             this.columnName = dictionary.getAnnotatedColumnName(tableClass, fieldName);
             this.tableAlias = getClassAlias(tableClass);
             this.joinPath = null;

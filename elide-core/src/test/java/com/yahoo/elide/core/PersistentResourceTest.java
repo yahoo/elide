@@ -1871,7 +1871,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testIsIdGenerated() {
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
-
         PersistentResource<Child> generated = new PersistentResource<>(new Child(), null, "1", scope);
 
         assertTrue(generated.isIdGenerated(),

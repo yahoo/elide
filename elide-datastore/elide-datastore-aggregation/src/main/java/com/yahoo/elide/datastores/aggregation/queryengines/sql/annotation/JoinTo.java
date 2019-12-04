@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates that the annotated entity field is derived from a join to another table.
+ * This annotation must be present for relationship to views.
  */
 @Documented
 @Target({ElementType.FIELD, ElementType.METHOD})
@@ -24,5 +25,13 @@ public @interface JoinTo {
      * If the current entity is author, then a path would be "book.publisher.name".
      * @return The path
      */
-    String path();
+    String path() default "";
+
+    /**
+     * Join on clause constraint for customizing relationship joins as a plain sql string. Provided in the model.
+     * Use "%from" and "%join% to represent the two sides of join.
+     *
+     * @return join constraint like <code>%from.col1 = %join.col2</code>
+     */
+    String joinClause() default "";
 }

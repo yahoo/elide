@@ -56,6 +56,7 @@ public class Table {
 
         this.cls = cls;
         this.name = dictionary.getJsonAliasFor(cls);
+
         this.columns = resolveColumns(cls, dictionary);
 
         Meta meta = cls.getAnnotation(Meta.class);
@@ -90,8 +91,10 @@ public class Table {
                 })
                 .collect(Collectors.toSet());
 
-        // add id field
-        fields.add(new Dimension(cls, dictionary.getIdFieldName(cls), dictionary));
+        // add id field if exists
+        if (dictionary.getIdFieldName(cls) != null) {
+            fields.add(new Dimension(cls, dictionary.getIdFieldName(cls), dictionary));
+        }
 
         return fields;
     }

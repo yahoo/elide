@@ -61,12 +61,11 @@ public abstract class Column {
 
         if (dictionary.isRelation(tableClass, fieldName)) {
             Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);
-            this.dataType = new RelationshipType(
-                    this.id + "[" + relationshipClass.getSimpleName().toLowerCase(Locale.ENGLISH) + "]");
+            this.dataType = new RelationshipType(dictionary.getJsonAliasFor(relationshipClass));
         } else {
             Class<?> fieldClass = dictionary.getType(tableClass, fieldName);
 
-            if (dictionary.getIdFieldName(tableClass).equals(fieldName)) {
+            if (fieldName.equals(dictionary.getIdFieldName(tableClass))) {
                 this.dataType = new DataType(tableName + "." + fieldName, ValueType.ID);
             } else if (Date.class.isAssignableFrom(fieldClass)) {
                 this.dataType = new DataType(fieldClass.getSimpleName().toLowerCase(Locale.ENGLISH), ValueType.DATE);

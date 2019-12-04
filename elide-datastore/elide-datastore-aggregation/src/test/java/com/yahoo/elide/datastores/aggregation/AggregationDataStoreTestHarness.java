@@ -27,8 +27,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
 
         DataStore jpaStore = new JpaDataStore(
-                () -> { return queryEngineFactory.getEmf().createEntityManager(); },
-                (entityManager) -> { return new NonJtaTransaction(entityManager); }
+                () -> queryEngineFactory.getEmf().createEntityManager(),
+                NonJtaTransaction::new
         );
 
         // meta data store needs to be put at first to populate meta data models
