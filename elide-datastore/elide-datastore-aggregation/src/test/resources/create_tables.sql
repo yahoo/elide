@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS playerStats
     (
-      id VARCHAR(255),
       highScore BIGINT,
       lowScore BIGINT,
       overallRating VARCHAR(255),
@@ -25,7 +24,6 @@ CREATE TABLE IF NOT EXISTS players
 
 CREATE TABLE IF NOT EXISTS videoGames
     (
-      id BIGINT,
       game_rounds BIGINT,
       timeSpent BIGINT
     ) AS SELECT * FROM CSVREAD('classpath:video_games.csv');

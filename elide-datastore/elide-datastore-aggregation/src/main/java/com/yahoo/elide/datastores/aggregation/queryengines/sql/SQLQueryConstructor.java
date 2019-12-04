@@ -32,7 +32,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTem
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +71,7 @@ public class SQLQueryConstructor {
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
 
-        Set<Path.PathElement> joinPredicates = new HashSet<>();
+        Set<Path.PathElement> joinPredicates = new LinkedHashSet<>();
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
@@ -180,8 +179,23 @@ public class SQLQueryConstructor {
                 .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
+        Class<?> tableClass = queriedTable.getCls();
+
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
-                .map(dimension ->  resolveSQLColumnReference(dimension, queriedTable) + " AS " + dimension.getAlias())
+                .map(dimension -> {
+                    String fieldName = dimension.getColumn().getName();
+
+                    // relation to Non-JPA Entities object can't be projected
+                    if (dictionary.isRelation(tableClass, fieldName)) {
+                        Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);
+                        if (!dictionary.isJPAEntity(relationshipClass)) {
+                            throw new InvalidPredicateException(
+                                    "Can't query on non-JPA relationship field: " + dimension.getColumn().getName());
+                        }
+                    }
+
+                    return resolveSQLColumnReference(dimension, queriedTable) + " AS " + dimension.getAlias();
+                })
                 .collect(Collectors.toList());
 
         return Stream.concat(metricProjections.stream(), dimensionProjections.stream())
@@ -206,20 +220,30 @@ public class SQLQueryConstructor {
         Class<?> relationshipClass = pathElement.getFieldType();
         String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
         String relationshipName = pathElement.getFieldName();
-
-        String relationshipIdField = dictionary.getAnnotatedColumnName(
-                relationshipClass,
-                dictionary.getIdFieldName(relationshipClass));
-
         String relationshipColumnName = dictionary.getAnnotatedColumnName(entityClass, relationshipName);
 
-        return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
-                constructTableOrSubselect(relationshipClass),
-                relationshipAlias,
+        // resolve the right hand side of JOIN
+        String joinSource = constructTableOrSubselect(relationshipClass);
+
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(
+                entityClass,
+                JoinTo.class,
+                relationshipColumnName);
+
+        String joinClause = joinTo == null
+                ? String.format("%s.%s = %s.%s",
                 entityAlias,
                 relationshipColumnName,
                 relationshipAlias,
-                relationshipIdField);
+                dictionary.getAnnotatedColumnName(
+                        relationshipClass,
+                        dictionary.getIdFieldName(relationshipClass)))
+                : extractJoinExpression(joinTo.joinClause(), entityAlias, relationshipAlias);
+
+        return String.format("LEFT JOIN %s AS %s ON %s",
+                joinSource,
+                relationshipAlias,
+                joinClause);
     }
 
 
@@ -277,7 +301,7 @@ public class SQLQueryConstructor {
         String fieldName = pathElement.getFieldName();
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(type, JoinTo.class, fieldName);
 
-        if (joinTo == null) {
+        if (joinTo == null || joinTo.path().equals("")) {
             return path;
         }
 
@@ -331,7 +355,7 @@ public class SQLQueryConstructor {
                 .map(SQLColumn::getJoinPath)
                 .map(this::extractPathElements)
                 .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -430,22 +454,63 @@ public class SQLQueryConstructor {
 
     /**
      * Maps an entity class to a physical table of subselect query, if neither {@link javax.persistence.Table}
-     * nor {@link Subselect} annotation is present on this class, use the class alias as default.
+     * nor {@link Subselect} annotation is present on this class, try {@link FromTable} and {@link FromSubquery}.
      *
      * @param cls The entity class.
      * @return The physical SQL table or subselect query.
      */
     private static String resolveTableOrSubselect(EntityDictionary dictionary, Class<?> cls) {
         if (isSubselect(cls)) {
-            return dictionary.getAnnotation(cls, Subselect.class).value();
+            if (cls.isAnnotationPresent(FromSubquery.class)) {
+                return dictionary.getAnnotation(cls, FromSubquery.class).sql();
+            } else {
+                return dictionary.getAnnotation(cls, Subselect.class).value();
+            }
         } else {
-            javax.persistence.Table tableAnnotation =
+            javax.persistence.Table table =
                     dictionary.getAnnotation(cls, javax.persistence.Table.class);
 
-            return (tableAnnotation == null)
-                    ? dictionary.getJsonAliasFor(cls)
-                    : tableAnnotation.name();
+            if (table != null) {
+                return resolveTableAnnotation(table);
+            } else {
+                FromTable fromTable = dictionary.getAnnotation(cls, FromTable.class);
+
+                return fromTable != null ? fromTable.name() : dictionary.getJsonAliasFor(cls);
+            }
         }
+    }
+
+    /**
+     * Get the full table name from JPA {@link javax.persistence.Table} annotation.
+     *
+     * @param table table annotation
+     * @return <code>catalog.schema.name</code>
+     */
+    private static String resolveTableAnnotation(javax.persistence.Table table) {
+        StringBuilder fullTableName = new StringBuilder();
+
+        if (!"".equals(table.catalog())) {
+            fullTableName.append(table.catalog()).append(".");
+        }
+        if (!"".equals(table.schema())) {
+            fullTableName.append(table.schema()).append(".");
+        }
+        fullTableName.append(table.name());
+
+        return fullTableName.toString();
+    }
+
+    /**
+     * Construct a join on clause based on given constraint expression, replace "%from" with from table alias
+     * and "%join" with join table alias.
+     *
+     * @param joinClause sql join constraint
+     * @param fromAlias from table alias
+     * @param joinToAlias join to table alias
+     * @return sql string that represents a full join condition
+     */
+    private String extractJoinExpression(String joinClause, String fromAlias, String joinToAlias) {
+        return joinClause.replace("%from", fromAlias).replace("%join", joinToAlias);
     }
 
     /**
@@ -455,6 +520,6 @@ public class SQLQueryConstructor {
      * @return True if the class has {@link Subselect} annotation
      */
     private static boolean isSubselect(Class<?> cls) {
-        return cls.isAnnotationPresent(Subselect.class);
+        return cls.isAnnotationPresent(Subselect.class) || cls.isAnnotationPresent(FromSubquery.class);
     }
 }

@@ -1,4 +1,4 @@
-id,highScore,lowScore,overallRating,country_id,sub_country_id,player_id,recordedDate
-Jon Doe,1234,35,Good,840,840,1,2019-07-12 00:00:00
-Jane Doe,2412,241,Great,840,840,2,2019-07-11 00:00:00
-Han,1000,72,Good,344,344,3,2019-07-13 00:00:00
+highScore,lowScore,overallRating,country_id,sub_country_id,player_id,recordedDate
+1234,35,Good,840,840,1,2019-07-12 00:00:00
+2412,241,Great,840,840,2,2019-07-11 00:00:00
+1000,72,Good,344,344,3,2019-07-13 00:00:00

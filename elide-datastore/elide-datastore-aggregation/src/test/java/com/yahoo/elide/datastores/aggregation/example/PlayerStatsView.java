@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.
 
 import lombok.Data;
 
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
@@ -20,7 +19,6 @@ import javax.persistence.OneToOne;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Entity
 @Include(rootLevel = true)
 @Data
 @FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name as countryName FROM playerStats AS stats LEFT JOIN countries AS c ON stats.country_id = c.id WHERE stats.overallRating = 'Great'")

@@ -12,16 +12,12 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlSum;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Entity
 @Include(rootLevel = true)
-@Table(name = "videoGames")
 @FromTable(name = "videoGames")
 public class VideoGame {
 

@@ -28,7 +28,6 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.functions.LifeCycleHook;
 
 import com.google.common.base.Throwables;
-
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +59,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;

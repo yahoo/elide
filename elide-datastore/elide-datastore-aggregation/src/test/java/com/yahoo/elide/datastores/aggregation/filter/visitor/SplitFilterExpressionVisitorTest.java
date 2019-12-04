@@ -42,18 +42,16 @@ public class SplitFilterExpressionVisitorTest {
             Collections.singletonList(99)
     );
 
-    private static EntityDictionary entityDictionary;
-    private static Table table;
     private static FilterExpressionVisitor<FilterConstraints> splitFilterExpressionVisitor;
 
     @BeforeAll
     public static void setupEntityDictionary() {
-        entityDictionary = new EntityDictionary(Collections.emptyMap());
+        EntityDictionary entityDictionary = new EntityDictionary(Collections.emptyMap());
         entityDictionary.bindEntity(PlayerStats.class);
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(SubCountry.class);
         entityDictionary.bindEntity(Player.class);
-        table = new Table(PlayerStats.class, entityDictionary);
+        Table table = new Table(PlayerStats.class, entityDictionary);
         splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(table);
     }
 

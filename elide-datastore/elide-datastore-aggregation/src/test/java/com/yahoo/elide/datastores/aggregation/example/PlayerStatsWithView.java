@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
@@ -37,10 +38,7 @@ import javax.persistence.ManyToOne;
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
-public class PlayerStats {
-
-    public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
-    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')";
+public class PlayerStatsWithView {
 
     /**
      * PK.
@@ -72,8 +70,16 @@ public class PlayerStats {
      */
     private SubCountry subCountry;
 
+    private CountryView countryView;
+
     @Setter
     private String countryViewIsoCode;
+
+    @Setter
+    private String countryViewViewIsoCode;
+
+    @Setter
+    private String countryViewRelationshipIsoCode;
 
     /**
      * A dimension field joined to this table.
@@ -161,14 +167,11 @@ public class PlayerStats {
     }
 
     /**
-     * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
+     * <b>DO NOT put {@link Cardinality} annotation on this field</b>.
      *
      * @return the date of the player session.
      */
-    @Temporal(grains = {
-            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DAY_FORMAT),
-            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
-    }, timeZone = "UTC")
+    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = "") }, timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }
@@ -195,5 +198,26 @@ public class PlayerStats {
 
     public void setSubCountryIsoCode(String isoCode) {
         this.subCountryIsoCode = isoCode;
+    }
+
+    @ToOne
+    @JoinTo(joinClause = "%from.country_id = %join.id")
+    public CountryView getCountryView() {
+        return countryView;
+    }
+
+    @JoinTo(path = "countryView.isoCode")
+    public String getCountryViewIsoCode() {
+        return countryViewIsoCode;
+    }
+
+    @JoinTo(path = "countryView.nestedView.isoCode")
+    public String getCountryViewViewIsoCode() {
+        return countryViewViewIsoCode;
+    }
+
+    @JoinTo(path = "countryView.nestedRelationship.isoCode")
+    public String getCountryViewRelationshipIsoCode() {
+        return countryViewRelationshipIsoCode;
     }
 }

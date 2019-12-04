@@ -34,7 +34,8 @@ public class AggregationDataStore implements DataStore {
     /**
      * These are the classes the Aggregation Store manages.
      */
-    private static final Class[] AGGREGATION_STORE_CLASSES = { FromTable.class, FromSubquery.class };
+    private static final Class[] AGGREGATION_STORE_CLASSES = {
+            FromTable.class, FromSubquery.class };
 
     public AggregationDataStore(QueryEngineFactory queryEngineFactory,
                                 MetaDataStore metaDataStore) {
@@ -50,9 +51,8 @@ public class AggregationDataStore implements DataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         for (Class<? extends Annotation> cls : AGGREGATION_STORE_CLASSES) {
-            ClassScanner.getAnnotatedClasses(modelPackageName, cls).stream().forEach(modelClass -> {
-                dictionary.bindEntity(modelClass);
-            });
+            // bind non-jpa entities, including analyticViews and views
+            ClassScanner.getAnnotatedClasses(modelPackageName, cls).forEach(dictionary::bindEntity);
         }
 
         queryEngine = queryEngineFactory.buildQueryEngine(metaDataStore);

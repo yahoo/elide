@@ -846,8 +846,8 @@ public class EntityDictionary {
             return;
         }
 
-        Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
-        Entity entity = (Entity) getFirstAnnotation(declaredClass, Arrays.asList(Entity.class));
+        Include include = (Include) getFirstAnnotation(declaredClass, Collections.singletonList(Include.class));
+        Entity entity = (Entity) getFirstAnnotation(declaredClass, Collections.singletonList(Entity.class));
 
         String name;
         if (entity == null || "".equals(entity.name())) {
@@ -1044,7 +1044,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Follow for this class or super-class for Entity annotation.
+     * Follow for this class or super-class for JPA {@link Entity} annotation.
      *
      * @param objClass provided class
      * @return class with Entity annotation
@@ -1117,6 +1117,21 @@ public class EntityDictionary {
         return null;
     }
 
+
+    /**
+     * Check whether a class is a JPA entity
+     *
+     * @param objClass class
+     * @return True if it is a JPA entity
+     */
+    public final boolean isJPAEntity(Class<?> objClass) {
+        try {
+            lookupEntityClass(objClass);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
 
     /**
      * Retrieve the accessible object for a field from a target object.
