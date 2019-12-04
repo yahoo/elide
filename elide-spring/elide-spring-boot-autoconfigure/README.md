@@ -13,7 +13,6 @@ The Elide spring autoconfigure package provides the core code needed to use Elid
 
 | *Property*                 | *Required* |  *Default*      | *Description*                                            |
 | -------------------------- | -----------| --------------- | -------------------------------------------------------- |
-| elide.modelPackage         | Yes        | N/A             | Root package where the elide models live.                |
 | elide.pageSize             | No         | 500             | Default pagination page size for collections             |
 | elide.maxPageSize          | No         | 10000           | Max pagination page size a client can request.           |
 | elide.json-api.path        | No         | '/'             | URL path prefix for JSON-API endpoint.                   |

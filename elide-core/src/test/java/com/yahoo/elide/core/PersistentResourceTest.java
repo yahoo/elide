@@ -109,7 +109,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 new User(1), null, elideSettings);
         badUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
                 new User(-1), null, elideSettings);
-        init();
         reset(goodUserScope.getTransaction());
     }
 
