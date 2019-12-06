@@ -1,5 +1,19 @@
 # Change Log
 
+## 4.5.8
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/6e05ce93624855a5968eac4f989131e10d518e08) Elide can bind non JPA entities.  Class scanning logic is consolidated. (#1088) 
+   
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/872c43cdf64bce31acd45f54a30d2a1e855b01f2) Bump liquibase-core from 3.8.0 to 3.8.1 (#1082) 
+   * [view commit](https://github.com/yahoo/elide/commit/d3f73941bed705404c4d667072193edfb71338a1) Bump version.jetty from 9.4.22.v20191022 to 9.4.24.v20191120 (#1086) 
+   * [view commit](https://github.com/yahoo/elide/commit/08fd3f53373c41a386b38c5679fa19a427061a50) Bump jackson-module-jaxb-annotations from 2.10.0 to 2.10.1 (#1080) 
+   * [view commit](https://github.com/yahoo/elide/commit/c37a342b65513a69064c42fb80cc6b190bcfef7e) Upgraded dependencies to pass OWASP security scan (#1096) 
+   * [view commit](https://github.com/yahoo/elide/commit/1b9c8aa1acec370f8f1d5f112c4658acef1eddb7) Bump resteasy.version from 3.9.0.Final to 3.9.3.Final (#1091) 
+   * [view commit](https://github.com/yahoo/elide/commit/2d0f033bd1f10803c2b6152407ffdc3d2ac4bba2) Bump swagger-core from 1.5.24 to 1.6.0 (#1079) 
+   * [view commit](https://github.com/yahoo/elide/commit/482e344eabd052287a255bb8f8efddfb2b34e4e7) Bump wagon-ssh-external from 3.3.3 to 3.3.4 (#1078) 
+   * [view commit](https://github.com/yahoo/elide/commit/b4900d5dd42c27ff6b65f18070b0aca7650c9d61) Bump version.jackson from 2.10.0 to 2.10.1 (#1076) 
+
 ## 4.5.7
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/1625319a2755cc615716c322057156c45645b707) Added Elide Support For Spring Boot (#1070) 
