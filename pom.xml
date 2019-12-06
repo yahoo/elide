@@ -526,7 +526,7 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ssh-external</artifactId>
-                <version>3.3.3</version>
+                <version>3.3.4</version>
             </extension>
         </extensions>
     </build>
