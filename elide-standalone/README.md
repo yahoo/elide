@@ -175,7 +175,7 @@ Don't forget to replace localhost:8080 with your Heroku URL if running from Hero
          }'
   ```
 
-Here are the respective repsonses:
+Here are the respective responses:
 
 #### JSON-API
   ```json
