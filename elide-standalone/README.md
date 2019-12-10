@@ -102,7 +102,7 @@ The first models we’ll need are `ArtifactGroup`, `ArtifactProduct`, and `Artif
 
 So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create the schema in the database that our models will use.   Our example uses liquibase to manage the schema.  When Heroku releases the application, our example will execute the [database migrations][https://github.com/aklish/elide-heroku-example/blob/master/src/main/resources/db/changelog/changelog.xml] to configure the database with some test data automatically.  This demo uses Postgres.  Feel free to modify the migration script if you are using a different database provider.
 
-There may be more tables in your database than models in your project.  Similarly, there may be more columns in a table than in a particular model.  Not only will our models work just fine, but we expect that models will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building micro-services - each service in your system can expose only the slice of the database that it requires.
+There may be more tables in your database than models in your project or vice versa.  Similarly, there may be more columns in a table than in a particular model or vice versa.  Not only will our models work just fine, but we expect that models will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building micro-services - each service in your system can expose only the slice of the database that it requires.
 
 ### App & Settings
 
@@ -123,11 +123,17 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
 
   ```java
   public class Settings implements ElideStandaloneSettings {
+      /**
+       * Tells elide where our models live.
+       */
       @Override
       public String getModelPackageName() {
           return ArtifactGroup.class.getPackage().getName();
       }
 
+      /**
+       * Configuration properties for how to talk to the database.
+       */
       @Override
       public Properties getDatabaseProperties() {
           Properties options = new Properties();
