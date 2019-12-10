@@ -1,3 +1,11 @@
+Table of Contents
+=================
+
+  * [Overview](#overview)
+  * [Who is this for?](#whofor)
+  * [Getting Started](#gettingstarted)
+  * [More Detailed Examples](#moredetail)
+
 ## <a name="overview"></a>Overview
 
 The Elide standalone application is a configurable web server using Elide. While Elide is typically a pluggable **middleware** framework, we have constructed a flexible and complete service to allow you to get started quickly.
@@ -8,12 +16,15 @@ The Elide standalone application takes an opinionated stance on its technology s
   1. Start your web service:
      * `$ java -jar YOUR_APP.jar`
 
-
 ## <a name="whofor"></a>Who is this for?
 
 The Elide standalone application is an alternative to Spring Boot for getting started quickly with Elide.  However, if you need more flexibility in your application than what is provided, then you should consider using the Elide __middleware__ directly.
 
 ## <a name="gettingstarted"></a>Getting Started
+
+This tutorial will use elide-standalone, and all of the code is [available here](https://github.com/aklish/elide-heroku-example).  You can deploy and play with this example on Heroku or locally.  The landing page will let you toggle between the [swagger UI](https://swagger.io/tools/swagger-ui) and [Graphiql](https://github.com/graphql/graphiql) for the example service.
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/aklish/elide-heroku-example)
 
 ### Add Elide as a Dependency
 
@@ -89,9 +100,9 @@ The first models we’ll need are `ArtifactGroup`, `ArtifactProduct`, and `Artif
 
 ### Spin up the API
 
-So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create the schema in the database that our beans will use.   Our example uses liquibase to manage the schema.  When Heroku releases the application, our example will execute the [database migrations][https://github.com/aklish/elide-heroku-example/blob/master/src/main/resources/db/changelog/changelog.xml] to configure the database with some test data automatically.  This demo uses Postgres.  Feel free to modify the migration script if you are using a different database provider.
+So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create the schema in the database that our models will use.   Our example uses liquibase to manage the schema.  When Heroku releases the application, our example will execute the [database migrations][https://github.com/aklish/elide-heroku-example/blob/master/src/main/resources/db/changelog/changelog.xml] to configure the database with some test data automatically.  This demo uses Postgres.  Feel free to modify the migration script if you are using a different database provider.
 
-There may be more tables in your database than models in your project.  Similarly, there may be more columns in a table than in a particular bean.  Not only will our models work just fine, but we expect that models will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building micro-services - each service in your system can expose only the slice of the database that it requires.
+There may be more tables in your database than models in your project.  Similarly, there may be more columns in a table than in a particular model.  Not only will our models work just fine, but we expect that models will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building micro-services - each service in your system can expose only the slice of the database that it requires.
 
 ### App & Settings
 
@@ -257,7 +268,7 @@ Here are the respective responses:
   ```
 ### Looking at more data
 
-You can navigate through the entity relationship graph defined in the beans and explore relationships:
+You can navigate through the entity relationship graph defined in the models and explore relationships:
 
 ```
 List groups:                 group/
@@ -290,7 +301,7 @@ Fortunately for us adding data is just as easy as reading data. For now let’s 
 ### Modifying Data
 
 Notice that, when we created it, we did not set any of the attributes of our new product record.  Updating our
-data to help our users is just as easy as it is to add new data. Let’s update our bean with the following cURL call.
+data to help our users is just as easy as it is to add new data. Let’s update our model with the following cURL call.
 
 #### JSON-API
   ```curl
