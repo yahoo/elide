@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.config;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.Injector;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
@@ -71,7 +72,22 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory) {
-        return new EntityDictionary(new HashMap<>(), beanFactory::autowireBean);
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>(),
+                new Injector() {
+                    @Override
+                    public void inject(Object entity) {
+                        beanFactory.autowireBean(entity);
+                    }
+
+                    @Override
+                    public <T> T instantiate(Class<T> cls) {
+                        return beanFactory.createBean(cls);
+                    }
+                });
+
+        dictionary.scanForSecurityChecks();
+        dictionary.scanForLifeCycleHooks();
+        return dictionary;
     }
 
     /**

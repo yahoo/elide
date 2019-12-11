@@ -8,6 +8,7 @@ package com.yahoo.elide.standalone.config;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 
+import com.yahoo.elide.Injector;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
@@ -68,7 +69,21 @@ public interface ElideStandaloneSettings {
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
 
-        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(), injector::inject);
+        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
+                new Injector() {
+                    @Override
+                    public void inject(Object entity) {
+                        injector.inject(entity);
+                    }
+
+                    @Override
+                    public <T> T instantiate(Class<T> cls) {
+                        return injector.create(cls);
+                    }
+                });
+
+        dictionary.scanForLifeCycleHooks();
+        dictionary.scanForSecurityChecks();
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withUseFilterExpressions(true)

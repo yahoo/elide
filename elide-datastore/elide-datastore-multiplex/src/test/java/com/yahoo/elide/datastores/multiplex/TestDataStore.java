@@ -13,12 +13,7 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
+import com.yahoo.elide.utils.ClassScanner;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -36,13 +31,7 @@ class TestDataStore implements DataStore, DataStoreTransaction {
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
-                .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
-        reflections.getTypesAnnotatedWith(Entity.class).stream()
-                .filter(entityAnnotatedClass -> entityAnnotatedClass.getPackage().getName()
-                        .startsWith(beanPackage.getName()))
-                .forEach(dictionary::bindEntity);
+        ClassScanner.getAnnotatedClasses(beanPackage, Entity.class).stream().forEach(dictionary::bindEntity);
     }
 
     @Override
