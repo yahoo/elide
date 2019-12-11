@@ -1,5 +1,7 @@
 # Elide Spring Boot Starter
 
+For more information on Elide, visit [elide.io](https://elide.io).
+
 Opinionated jar which packages dependencies to get started with Elide and Spring Boot.  The starter includes:
 1. Spring Boot Web (minus tomcat)
 2. Spring Boot Jetty
@@ -43,3 +45,6 @@ elide:
 ```
 
 For more information on custom configuration, see the [elide-spring-boot-autoconfigure documentation](https://github.com/yahoo/elide/blob/master/elide-spring/elide-spring-boot-autoconfigure/README.md).
+
+## License
+This project is licensed under the terms of the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) open source license.
