@@ -1224,7 +1224,7 @@ public class EntityDictionary {
         }
 
         for (Class<?> cls : ClassScanner.getAnnotatedClasses(Hook.class)) {
-            if (Check.class.isAssignableFrom(cls)) {
+            if (LifeCycleHook.class.isAssignableFrom(cls)) {
                 Hook hookMetadata = cls.getAnnotation(Hook.class);
                 Class<?> entity = null;
                 for (Type genericInterface : cls.getGenericInterfaces()) {
