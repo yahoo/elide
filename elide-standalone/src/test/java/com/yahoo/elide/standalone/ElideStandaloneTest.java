@@ -115,6 +115,29 @@ public class ElideStandaloneTest {
     }
 
     @Test
+    public void testForbiddenJsonAPIPost() {
+        String result = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{\n" +
+                        "         \"data\": {\n" +
+                        "           \"type\": \"post\",\n" +
+                        "           \"id\": \"2\",\n" +
+                        "           \"attributes\": {\n" +
+                        "             \"content\": \"This is my first post. woot.\",\n" +
+                        "             \"date\" : \"2019-01-01T00:00Z\",\n" +
+                        "             \"abusiveContent\" : true\n" +
+                        "           }\n" +
+                        "         }\n" +
+                        "       }")
+                .post("/api/v1/post")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .extract().body().asString();
+    }
+
+    @Test
     public void testMetricsServlet() throws Exception {
         given()
                 .when()

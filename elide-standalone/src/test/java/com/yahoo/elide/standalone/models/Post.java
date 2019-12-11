@@ -6,7 +6,11 @@
 
 package com.yahoo.elide.standalone.models;
 
+import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.standalone.checks.AdminCheck;
+import lombok.ToString;
 
 import java.util.Date;
 
@@ -18,10 +22,12 @@ import javax.persistence.TemporalType;
 
 @Entity
 @Include(rootLevel = true)
+@ToString
 public class Post {
     private long id;
     private String content;
     private Date date;
+    private boolean abusiveContent;
 
     @Id
     public long getId() {
@@ -48,5 +54,15 @@ public class Post {
 
     public void setContent(String content) {
             this.content = content;
-        }
+    }
+
+    @CreatePermission(expression = AdminCheck.USER_IS_ADMIN)
+    @UpdatePermission(expression = AdminCheck.USER_IS_ADMIN)
+    public boolean getAbusiveContent() {
+        return abusiveContent;
+    }
+
+    public void setAbusiveContent(boolean abusiveContent) {
+        this.abusiveContent = abusiveContent;
+    }
 }

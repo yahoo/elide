@@ -42,8 +42,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project');"
+            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
     })
     public void jsonApiGetTest() {
         when()
@@ -57,6 +57,7 @@ public class ControllerTest extends IntegrationTest {
                                         id("com.example.repository"),
                                         attributes(
                                                 attr("commonName", "Example Repository"),
+                                                attr("deprecated", false),
                                                 attr("description", "The code for this project")
                                         ),
                                         relationships(
@@ -72,8 +73,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project');"
+            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
     })
     public void jsonApiPatchTest() {
         given()
@@ -105,6 +106,7 @@ public class ControllerTest extends IntegrationTest {
                                         id("com.example.repository"),
                                         attributes(
                                                 attr("commonName", "Changed It."),
+                                                attr("deprecated", false),
                                                 attr("description", "The code for this project")
                                         ),
                                         relationships(
@@ -115,6 +117,33 @@ public class ControllerTest extends IntegrationTest {
                 )
                 .log().all()
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
+            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
+    })
+    public void jsonForbiddenApiPatchTest() {
+        given()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("group"),
+                                        id("com.example.repository"),
+                                        attributes(
+                                                attr("commonName", "Changed It."),
+                                                attr("deprecated", true)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/json/group/com.example.repository")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     @Test
@@ -144,6 +173,7 @@ public class ControllerTest extends IntegrationTest {
                                 id("com.example.repository"),
                                 attributes(
                                         attr("commonName", "New group."),
+                                        attr("deprecated", false),
                                         attr("description", "")
                                 ),
                                 relationships(
@@ -157,8 +187,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project');"
+            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
     })
     public void jsonApiDeleteTest() {
         when()
@@ -170,8 +200,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project');",
+            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);",
             "INSERT INTO ArtifactProduct (name, commonName, description, group_name) VALUES\n"
                     + "\t\t('foo','foo Core','The guts of foo','com.example.repository');"
     })
@@ -193,8 +223,8 @@ public class ControllerTest extends IntegrationTest {
     @Test
     @Sql(statements = {
             "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project');"
+            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
     })
     public void graphqlTest() {
         given()
