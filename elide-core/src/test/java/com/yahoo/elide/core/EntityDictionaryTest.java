@@ -124,10 +124,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         @Hook(lifeCycle = OnDeletePostCommit.class)
         class Bar implements LifeCycleHook<Publisher> {
-            public Bar() {
-
-            }
-
             @Override
             public void execute(Publisher publisher, RequestScope requestScope, Optional<ChangeSpec> changes) {
                 //NOOP
@@ -137,6 +133,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
             @Override
             public void inject(Object entity) {
+                //NOOP
             }
 
             @Override
@@ -176,10 +173,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         @Hook(lifeCycle = OnDeletePreCommit.class, allFields = true)
         class FooBar implements LifeCycleHook<Author> {
-            public FooBar() {
-
-            }
-
             @Override
             public void execute(Author author, RequestScope requestScope, Optional<ChangeSpec> changes) {
                 //NOOP
@@ -189,6 +182,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
             @Override
             public void inject(Object entity) {
+                //NOOP
             }
 
             @Override
@@ -212,10 +206,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         @Hook(lifeCycle = OnCreatePostCommit.class, fieldOrMethodName = "name")
         class Foo implements LifeCycleHook<Author> {
-            public Foo() {
-
-            }
-
             @Override
             public void execute(Author author, RequestScope requestScope, Optional<ChangeSpec> changes) {
                 //NOOP
@@ -225,6 +215,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
             @Override
             public void inject(Object entity) {
+                //NOOP
             }
 
             @Override

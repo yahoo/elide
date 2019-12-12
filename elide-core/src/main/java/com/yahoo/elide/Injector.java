@@ -28,7 +28,7 @@ public interface Injector {
         try {
             return cls.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 }
