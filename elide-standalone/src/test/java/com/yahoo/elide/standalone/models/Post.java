@@ -10,7 +10,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.standalone.checks.AdminCheck;
-import lombok.ToString;
+import lombok.Data;
 
 import java.util.Date;
 
@@ -22,47 +22,18 @@ import javax.persistence.TemporalType;
 
 @Entity
 @Include(rootLevel = true)
-@ToString
+@Data
 public class Post {
-    private long id;
-    private String content;
-    private Date date;
-    private boolean abusiveContent;
-
     @Id
-    public long getId() {
-            return id;
-        }
-
-    public void setId(long id) {
-            this.id = id;
-        }
+    private long id;
 
     @Column(nullable = false)
-    public String getContent() {
-            return content;
-        }
+    private String content;
 
     @Temporal( TemporalType.TIMESTAMP )
-    public Date getDate() {
-            return date;
-        }
-
-    public void setDate(Date date) {
-            this.date = date;
-        }
-
-    public void setContent(String content) {
-            this.content = content;
-    }
+    private Date date;
 
     @CreatePermission(expression = AdminCheck.USER_IS_ADMIN)
     @UpdatePermission(expression = AdminCheck.USER_IS_ADMIN)
-    public boolean getAbusiveContent() {
-        return abusiveContent;
-    }
-
-    public void setAbusiveContent(boolean abusiveContent) {
-        this.abusiveContent = abusiveContent;
-    }
+    private boolean abusiveContent;
 }

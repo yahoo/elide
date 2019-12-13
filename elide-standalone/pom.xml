@@ -197,6 +197,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Elide Test Helpers -->
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-test-helpers</artifactId>
+            <version>4.5.9-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- H2 -->
         <dependency>
             <groupId>com.h2database</groupId>
