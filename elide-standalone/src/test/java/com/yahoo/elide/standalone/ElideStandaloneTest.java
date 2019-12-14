@@ -94,7 +94,7 @@ public class ElideStandaloneTest {
 
     @Test
     public void testJsonAPIPost() {
-        String result = given()
+        given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .body(
@@ -117,26 +117,26 @@ public class ElideStandaloneTest {
 
     @Test
     public void testForbiddenJsonAPIPost() {
-        String result = given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                    datum(
-                        resource(
-                            type("post"),
-                            id("2"),
-                            attributes(
-                                attr("content", "This is my first post. woot."),
-                                attr("date", "2019-01-01T00:00Z"),
-                                attr("abusiveContent", true)
-                            )
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(
+                datum(
+                    resource(
+                        type("post"),
+                        id("2"),
+                        attributes(
+                            attr("content", "This is my first post. woot."),
+                            attr("date", "2019-01-01T00:00Z"),
+                            attr("abusiveContent", true)
                         )
                     )
                 )
-                .post("/api/v1/post")
-                .then()
-                .statusCode(HttpStatus.SC_FORBIDDEN)
-                .extract().body().asString();
+            )
+            .post("/api/v1/post")
+            .then()
+            .statusCode(HttpStatus.SC_FORBIDDEN)
+            .extract().body().asString();
     }
 
     @Test
