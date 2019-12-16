@@ -7,6 +7,8 @@ package com.yahoo.elide.spring.tests;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
@@ -21,12 +23,14 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 
+import com.yahoo.elide.spring.models.ArtifactGroup;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -268,5 +272,41 @@ public class ControllerTest extends IntegrationTest {
                 .get("/doc")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    @Sql(statements = {
+            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
+    })
+    public void graphqlTestForbiddenCreate() {
+        ArtifactGroup group = new ArtifactGroup();
+        group.setDeprecated(true);
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        query(
+                                selection(
+                                        field("group",
+                                                arguments(
+                                                        argument("op", "UPSERT"),
+                                                        argument("data", group)
+                                                ),
+                                                selections(
+                                                        field("name"),
+                                                        field("commonName"),
+                                                        field("description")
+                                                )
+                                        )
+                                )
+                        )
+                        ).toQuery() + "\" }"
+                )
+                .log().all()
+                .when()
+                .post("/graphql")
+                .then()
+                .body("errors", contains("ForbiddenAccessException"))
+                .statusCode(200);
     }
 }

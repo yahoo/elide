@@ -9,7 +9,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.spring.checks.AdminCheck;
-import lombok.ToString;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ import javax.persistence.OneToMany;
 
 @Include(rootLevel = true, type = "group")
 @Entity
-@ToString
+@Data
 public class ArtifactGroup {
     @Id
     private String name = "";

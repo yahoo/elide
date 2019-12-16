@@ -11,6 +11,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.ErrorObjects;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -216,7 +217,13 @@ public class QueryRunner {
                     .responseCode(e.getResponse().getStatus())
                     .body(e.getResponse().getEntity().toString()).build();
         } catch (HttpStatusException e) {
-            log.debug("Caught HTTP status exception {}", e.getStatus(), e);
+            if (e instanceof ForbiddenAccessException) {
+                if (log.isDebugEnabled()) {
+                    log.debug("{}", ((ForbiddenAccessException) e).getLoggedMessage());
+                }
+            } else {
+                log.debug("Caught HTTP status exception {}", e.getStatus(), e);
+            }
             return buildErrorResponse(new HttpStatusException(200, "") {
                 @Override
                 public int getStatus() {
