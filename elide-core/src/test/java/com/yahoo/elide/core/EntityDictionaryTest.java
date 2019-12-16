@@ -12,37 +12,28 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.Hook;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.models.generics.Employee;
 import com.yahoo.elide.models.generics.Manager;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
 import com.yahoo.elide.security.checks.prefab.Role;
 
-import example.Author;
 import example.Child;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
 import example.Job;
 import example.Left;
 import example.Parent;
-import example.Publisher;
 import example.Right;
 import example.StringId;
 import example.User;
@@ -54,7 +45,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.AccessType;
@@ -117,124 +107,6 @@ public class EntityDictionaryTest extends EntityDictionary {
         testDictionary.scanForSecurityChecks();
 
         assertEquals("User is Admin", testDictionary.getCheckIdentifier(Foo.class));
-    }
-
-    @Test
-    public void testEntityHookScan() {
-
-        @Hook(lifeCycle = OnDeletePostCommit.class)
-        class Bar implements LifeCycleHook<Publisher> {
-            @Override
-            public void execute(Publisher publisher, RequestScope requestScope, Optional<ChangeSpec> changes) {
-                //NOOP
-            }
-        }
-
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
-            @Override
-            public void inject(Object entity) {
-                //NOOP
-            }
-
-            @Override
-            public <T> T instantiate(Class<T> cls) {
-                 return (T) new Bar();
-            }
-        });
-
-        testDictionary.scanForLifeCycleHooks();
-
-        Collection<LifeCycleHook> triggers = testDictionary.getTriggers(Publisher.class,  OnDeletePostCommit.class, "");
-        assertEquals(1, triggers.size());
-        assertTrue(triggers.iterator().next() instanceof Bar);
-
-        triggers = testDictionary.getTriggers(Publisher.class,  OnDeletePostCommit.class);
-        assertEquals(0, triggers.size());
-    }
-
-    @Test
-    public void testNoInjectorRegisteredOnScan() {
-
-        @Hook(lifeCycle = OnDeletePostCommit.class, allFields = true)
-        class Foo implements LifeCycleHook<Author> {
-            @Override
-            public void execute(Author author, RequestScope requestScope, Optional<ChangeSpec> changes) {
-                //NOOP
-            }
-        }
-
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
-
-        assertThrows(IllegalStateException.class, () -> testDictionary.scanForLifeCycleHooks());
-    }
-
-    @Test
-    public void testEntityHookScanAllFields() {
-
-        @Hook(lifeCycle = OnDeletePreCommit.class, allFields = true)
-        class FooBar implements LifeCycleHook<Author> {
-            @Override
-            public void execute(Author author, RequestScope requestScope, Optional<ChangeSpec> changes) {
-                //NOOP
-            }
-        }
-
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
-            @Override
-            public void inject(Object entity) {
-                //NOOP
-            }
-
-            @Override
-            public <T> T instantiate(Class<T> cls) {
-                return (T) new FooBar();
-            }
-        });
-
-        testDictionary.scanForLifeCycleHooks();
-
-        Collection<LifeCycleHook> triggers = testDictionary.getTriggers(Author.class,  OnDeletePreCommit.class);
-        assertEquals(1, triggers.size());
-        assertTrue(triggers.iterator().next() instanceof FooBar);
-
-        triggers = testDictionary.getTriggers(Author.class,  OnDeletePreCommit.class, "");
-        assertEquals(0, triggers.size());
-    }
-
-    @Test
-    public void testEntityHookScanSpecificFields() {
-
-        @Hook(lifeCycle = OnCreatePostCommit.class, fieldOrMethodName = "name")
-        class Foo implements LifeCycleHook<Author> {
-            @Override
-            public void execute(Author author, RequestScope requestScope, Optional<ChangeSpec> changes) {
-                //NOOP
-            }
-        }
-
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
-            @Override
-            public void inject(Object entity) {
-                //NOOP
-            }
-
-            @Override
-            public <T> T instantiate(Class<T> cls) {
-                return (T) new Foo();
-            }
-        });
-
-        testDictionary.scanForLifeCycleHooks();
-
-        Collection<LifeCycleHook> triggers = testDictionary.getTriggers(Author.class,  OnCreatePostCommit.class);
-        assertEquals(0, triggers.size());
-
-        triggers = testDictionary.getTriggers(Author.class,  OnCreatePostCommit.class, "");
-        assertEquals(0, triggers.size());
-
-        triggers = testDictionary.getTriggers(Author.class,  OnCreatePostCommit.class, "name");
-        assertEquals(1, triggers.size());
-        assertTrue(triggers.iterator().next() instanceof Foo);
     }
 
     @Test

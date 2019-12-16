@@ -1,4 +1,5 @@
 /*
+ * Copyright 2018, Yahoo Inc.
  * Copyright 2018, the original author or authors.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
@@ -11,7 +12,6 @@ import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.Hook;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.SecurityCheck;
@@ -43,8 +43,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1207,55 +1205,6 @@ public class EntityDictionary {
                 checkNames.put(securityCheckMeta.value(), cls.asSubclass(Check.class));
             } else {
                 throw new IllegalStateException("Class annotated with SecurityCheck is not a Check");
-            }
-        }
-    }
-
-    /**
-     * Scan for lifecycle hooks and automatically binds them to the dictionary.
-     */
-    public void scanForLifeCycleHooks() {
-        // Logic is based on https://github.com/illyasviel/elide-spring-boot/blob/master
-        // /elide-spring-boot-autoconfigure/src/main/java/org/illyasviel/elide
-        // /spring/boot/autoconfigure/ElideAutoConfiguration.java
-
-        if (injector == null) {
-            throw new IllegalStateException("Cannot scan for lifecycle hooks without Dependency Injection configured");
-        }
-
-        for (Class<?> cls : ClassScanner.getAnnotatedClasses(Hook.class)) {
-            if (LifeCycleHook.class.isAssignableFrom(cls)) {
-                Hook hookMetadata = cls.getAnnotation(Hook.class);
-                Class<?> entity = null;
-                for (Type genericInterface : cls.getGenericInterfaces()) {
-                    if (genericInterface instanceof ParameterizedType
-                            && ((ParameterizedType) genericInterface).getRawType().equals(LifeCycleHook.class)) {
-                        Type[] genericTypes = ((ParameterizedType) genericInterface).getActualTypeArguments();
-                        entity = (Class<?>) genericTypes[0];
-                    }
-                }
-                if (entity == null) {
-                    throw new IllegalStateException("entity is null, this should not be thrown");
-                }
-
-                if (hookMetadata.fieldOrMethodName().equals("")) {
-                    bindTrigger(entity, hookMetadata.lifeCycle(),
-                            (LifeCycleHook) injector.instantiate(cls), hookMetadata.allFields());
-                } else {
-                    bindTrigger(entity, hookMetadata.lifeCycle(),
-                            hookMetadata.fieldOrMethodName(), (LifeCycleHook) injector.instantiate(cls));
-                }
-
-                log.debug("Register Elide Function Hook: bindTrigger({}, {}, \"{}\", {}, {})",
-                        entity.getCanonicalName(),
-                        hookMetadata.lifeCycle().getSimpleName(),
-                        hookMetadata.fieldOrMethodName(),
-                        hookMetadata.allFields(),
-                        cls.getCanonicalName());
-
-            } else {
-                throw new IllegalStateException("The class[" + cls.getCanonicalName()
-                        + "] being annotated with @Hook must implements LifeCycleHook<T>.");
             }
         }
     }

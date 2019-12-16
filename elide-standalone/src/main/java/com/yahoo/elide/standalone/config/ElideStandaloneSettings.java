@@ -82,7 +82,6 @@ public interface ElideStandaloneSettings {
                     }
                 });
 
-        dictionary.scanForLifeCycleHooks();
         dictionary.scanForSecurityChecks();
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)

@@ -86,7 +86,6 @@ public class ElideAutoConfiguration {
                 });
 
         dictionary.scanForSecurityChecks();
-        dictionary.scanForLifeCycleHooks();
         return dictionary;
     }
 
