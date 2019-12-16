@@ -836,15 +836,15 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        if (isClassBound(cls)) {
-            //Ignore duplicate bindings.
-            return;
-        }
-
         Class<?> declaredClass = lookupIncludeClass(cls);
 
         if (declaredClass == null) {
             log.trace("Missing include or excluded class {}", cls.getName());
+            return;
+        }
+
+        if (isClassBound(declaredClass)) {
+            //Ignore duplicate bindings.
             return;
         }
 
