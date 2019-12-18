@@ -30,7 +30,6 @@ import javax.persistence.Id;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 
-
 public class JpaDataStoreTest {
     public static class TestGenerator implements JPQLPredicateGenerator {
         @Override
