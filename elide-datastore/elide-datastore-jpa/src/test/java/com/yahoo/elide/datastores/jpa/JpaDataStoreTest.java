@@ -63,7 +63,6 @@ public class JpaDataStoreTest {
 
         JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused) -> { return null; });
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(Test.class);
 
 
         try {
@@ -73,5 +72,30 @@ public class JpaDataStoreTest {
         } finally {
             FilterTranslator.registerJPQLGenerator(Operator.IN, Test.class, "name", null);
         }
+    }
+
+    @Test
+    public void verifyManualEntityBinding() {
+
+        @Include
+        @Entity
+        class Test {
+            @Id
+            private long id;
+
+            private String name;
+        }
+
+        Metamodel mockModel = mock(Metamodel.class);
+        when(mockModel.getEntities()).thenReturn(Sets.newHashSet());
+
+        EntityManager managerMock = mock(EntityManager.class);
+        when(managerMock.getMetamodel()).thenReturn(mockModel);
+
+        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused) -> { return null; }, Test.class);
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        store.populateEntityDictionary(dictionary);
+
+        assertNotNull(dictionary.lookupBoundClass(Test.class));
     }
 }
