@@ -10,6 +10,9 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.EntityType;
 
@@ -19,15 +22,28 @@ import javax.persistence.metamodel.EntityType;
 public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier transactionSupplier;
+    protected final Set<Class<?>> modelsToBind;
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
-                        JpaTransactionSupplier transactionSupplier) {
+                        JpaTransactionSupplier transactionSupplier,
+                        Class<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.transactionSupplier = transactionSupplier;
+        this.modelsToBind = new HashSet<>();
+        for (Class<?> model : models) {
+            modelsToBind.add(model);
+        }
     }
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
+        // If the user provided models, we'll manually add them and skip scanning for entities.
+        if (! modelsToBind.isEmpty()) {
+            modelsToBind.stream().forEach((model) -> bindEntityClass(model, dictionary));
+            return;
+        }
+
+        // Use the entities defined in the entity manager factory.
         for (EntityType type : entityManagerSupplier.get().getMetamodel().getEntities()) {
             try {
                 Class<?> mappedClass = type.getJavaType();
