@@ -5,15 +5,13 @@
  */
 package com.yahoo.elide.utils;
 
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Scans a package for classes by looking at files in the classpath.
@@ -38,15 +36,25 @@ public class ClassScanner {
      * @return The classes
      */
     static public Set<Class<?>> getAnnotatedClasses(String packageName, Class<? extends Annotation> annotation) {
-        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().whitelistPackages(packageName).scan()) {
+            return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
+                    .map((ClassInfo::loadClass))
+                    .collect(Collectors.toSet());
+        }
+    }
 
-        configurationBuilder.addUrls(ClasspathHelper.forPackage(packageName));
-        configurationBuilder.setScanners(new SubTypesScanner(), new TypeAnnotationsScanner());
-        configurationBuilder.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
-
-        Reflections reflections = new Reflections(configurationBuilder);
-
-        return reflections.getTypesAnnotatedWith(annotation, true);
+    /**
+     * Scans all classes accessible from the context class loader which belong to the current class loader.
+     *
+     * @param annotation  Annotation to search
+     * @return The classes
+     */
+    static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> annotation) {
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().scan()) {
+            return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
+                    .map((ClassInfo::loadClass))
+                    .collect(Collectors.toSet());
+        }
     }
 
     /**
@@ -55,13 +63,10 @@ public class ClassScanner {
      * @return All the classes within a package.
      */
     static public Set<Class<?>> getAllClasses(String packageName) {
-        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-
-        configurationBuilder.addUrls(ClasspathHelper.forPackage(packageName));
-        configurationBuilder.setScanners(new SubTypesScanner(false));
-        configurationBuilder.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
-
-        Reflections reflections = new Reflections(configurationBuilder);
-        return reflections.getSubTypesOf(Object.class);
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().whitelistPackages(packageName).scan()) {
+            return scanResult.getAllClasses().stream()
+                    .map((ClassInfo::loadClass))
+                    .collect(Collectors.toSet());
+        }
     }
 }
