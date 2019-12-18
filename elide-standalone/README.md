@@ -22,9 +22,9 @@ The Elide standalone application is an alternative to Spring Boot for getting st
 
 ## <a name="gettingstarted"></a>Getting Started
 
-This tutorial will use elide-standalone, and all of the code is [available here](https://github.com/aklish/elide-heroku-example).  You can deploy and play with this example on Heroku or locally.  The landing page will let you toggle between the [swagger UI](https://swagger.io/tools/swagger-ui) and [Graphiql](https://github.com/graphql/graphiql) for the example service.
+This tutorial will use elide-standalone, and all of the code is [available here](https://github.com/yahoo/elide-standalone-example).  You can deploy and play with this example on Heroku or locally.  The landing page will let you toggle between the [swagger UI](https://swagger.io/tools/swagger-ui) and [Graphiql](https://github.com/graphql/graphiql) for the example service.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/aklish/elide-heroku-example)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yahoo/elide-standalone-example)
 
 ### Add Elide as a Dependency
 
@@ -100,7 +100,7 @@ The first models we’ll need are `ArtifactGroup`, `ArtifactProduct`, and `Artif
 
 ### Spin up the API
 
-So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create the schema in the database that our models will use.   Our example uses liquibase to manage the schema.  When Heroku releases the application, our example will execute the [database migrations][https://github.com/aklish/elide-heroku-example/blob/master/src/main/resources/db/changelog/changelog.xml] to configure the database with some test data automatically.  This demo uses Postgres.  Feel free to modify the migration script if you are using a different database provider.
+So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create the schema in the database that our models will use.   Our example uses liquibase to manage the schema.  When Heroku releases the application, our example will execute the [database migrations](https://github.com/yahoo/elide-standalone-example/blob/master/src/main/resources/db/changelog/changelog.xml) to configure the database with some test data automatically.  This demo uses Postgres.  Feel free to modify the migration script if you are using a different database provider.
 
 There may be more tables in your database than models in your project or vice versa.  Similarly, there may be more columns in a table than in a particular model or vice versa.  Not only will our models work just fine, but we expect that models will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building micro-services - each service in your system can expose only the slice of the database that it requires.
 
@@ -152,9 +152,9 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
 
 ### Supporting Files
 
-Elide standalone uses a JPA data store (the thing that talks to the database) that is [configured programmatically](https://github.com/aklish/elide-heroku-example/blob/master/src/main/java/example/Settings.java#L95-L111) (no persistence.xml required).
+Elide standalone uses a JPA data store (the thing that talks to the database) that is [configured programmatically](https://github.com/yahoo/elide-standalone-example/blob/master/src/main/java/example/Settings.java#L95-L111) (no persistence.xml required).
 
-If you want to see the logs from your shiny new API, you will also want a [log4j config](https://github.com/aklish/elide-heroku-example/blob/master/src/main/resources/log4j2.xml).
+If you want to see the logs from your shiny new API, you will also want a [log4j config](https://github.com/yahoo/elide-standalone-example/blob/master/src/main/resources/log4j2.xml).
 Your log4j config should go in `src/main/resources` so log4j can find it.
 
 ### Running
