@@ -1,5 +1,23 @@
 # Change Log
 
+## 4.5.9
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/c5de4be19d1a103abff08fe90abb5a60af39fc5a) Entity dictionary auto-scan for security checks and lifecycle hooks. (#1108) 
+   * [view commit](https://github.com/yahoo/elide/commit/d92fadc66e502ef279f11a3e3cdafdabdc2ecb7b) Added manual override in JpaDataStore to explicitly bind entities (#1114) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/b86539e654a7b092a3f479f74c0b3a11e64f0669) Migrate legacy getting started to elide standalone readme (#1106) 
+   * [view commit](https://github.com/yahoo/elide/commit/2b41c138d6a9388384628b872138cd2cb777fb68) Added license and link to central docs (#1107) 
+   * [view commit](https://github.com/yahoo/elide/commit/4b36a95ef897f6edbc4430a28de423982a9600c3) Update README.md 
+   * [view commit](https://github.com/yahoo/elide/commit/d36520b9afe1fde93caea93b1e5aee7fb432e4c9) Update README.md 
+   * [view commit](https://github.com/yahoo/elide/commit/02a43983fddfaa16ddd7b7d890694867c99ff4de) Bump slf4j-api from 1.7.28 to 1.7.30 (#1115) 
+   * [view commit](https://github.com/yahoo/elide/commit/415ffcef4981bbdc4632b693a2d7a49d340938aa) Bump mockito-core from 3.1.0 to 3.2.4 (#1111) 
+   * [view commit](https://github.com/yahoo/elide/commit/fc3c39fd5a27a4b7543f98f57e3f25069606a60d) Bump rxjava from 2.2.14 to 2.2.16 (#1110) 
+   * [view commit](https://github.com/yahoo/elide/commit/43c2e488c0c184e2db876fa807951c3ba139555c) Bump spring.boot.version from 2.2.1.RELEASE to 2.2.2.RELEASE (#1099) 
+   * [view commit](https://github.com/yahoo/elide/commit/d1366a53b03f27a2e1188c5ebc2a67f318b72c28) Bump metrics.version from 4.1.1 to 4.1.2 (#1104) 
+   * [view commit](https://github.com/yahoo/elide/commit/80cc3ea7a035d8b4d3965bb97442b2b2ee931fff) Bump hibernate-search-orm from 5.11.3.Final to 5.11.4.Final (#1102) 
+   * [view commit](https://github.com/yahoo/elide/commit/fc9de75ab137e37674b8da44cb4de7f4aac14834) Bump postgresql from 42.2.8 to 42.2.9 (#1100) 
+
 ## 4.5.8
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/6e05ce93624855a5968eac4f989131e10d518e08) Elide can bind non JPA entities.  Class scanning logic is consolidated. (#1088) 
