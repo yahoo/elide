@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
@@ -23,7 +22,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
     @Override
     public DataStore getDataStore() {
-        MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
+        MetaDataStore metaDataStore = new MetaDataStore();
         AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
 
         DataStore jpaStore = new JpaDataStore(

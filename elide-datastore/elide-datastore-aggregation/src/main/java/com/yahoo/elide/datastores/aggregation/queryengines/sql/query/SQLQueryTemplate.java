@@ -29,21 +29,21 @@ public interface SQLQueryTemplate {
     List<MetricFunctionInvocation> getMetrics();
 
     /**
-     * Get all non-time dimensions in this query
+     * Get all non-time dimensions in this query.
      *
      * @return non-time dimensions
      */
     Set<ColumnProjection> getNonTimeDimensions();
 
     /**
-     * Get aggregated time dimension for this query
+     * Get aggregated time dimension for this query.
      *
      * @return time dimension
      */
     TimeDimensionProjection getTimeDimension();
 
     /**
-     * Get all GROUP BY dimensions in this query, include time and non-time dimensions
+     * Get all GROUP BY dimensions in this query, include time and non-time dimensions.
      *
      * @return all GROUP BY dimensions
      */

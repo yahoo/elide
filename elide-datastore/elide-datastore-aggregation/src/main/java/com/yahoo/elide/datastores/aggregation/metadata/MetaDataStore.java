@@ -25,8 +25,6 @@ import com.yahoo.elide.utils.ClassScanner;
 
 import org.hibernate.annotations.Subselect;
 
-import lombok.Getter;
-
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Set;
@@ -42,16 +40,8 @@ public class MetaDataStore extends HashMapDataStore {
     private static final Class[] METADATA_STORE_ANNOTATIONS = {
             FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class};
 
-    @Getter
-    private final String scanPackageName;
-
-    public MetaDataStore(Package scanPackage) {
-        this (scanPackage.getName());
-    }
-
-    public MetaDataStore(String scanPackageName) {
+    public MetaDataStore() {
         super(META_DATA_PACKAGE);
-        this.scanPackageName = scanPackageName;
 
         this.dictionary = new EntityDictionary(new HashMap<>());
 
@@ -59,14 +49,14 @@ public class MetaDataStore extends HashMapDataStore {
 
         // bind data models in the package
         for (Class<? extends Annotation> cls : METADATA_STORE_ANNOTATIONS) {
-            ClassScanner.getAnnotatedClasses(scanPackageName, cls).forEach(modelClass -> {
+            ClassScanner.getAnnotatedClasses(cls).forEach(modelClass -> {
                 dictionary.bindEntity(modelClass);
             });
         }
 
         // resolve meta data from the bound models
         for (Class<? extends Annotation> cls : METADATA_STORE_ANNOTATIONS) {
-            ClassScanner.getAnnotatedClasses(scanPackageName, cls).forEach(modelClass -> {
+            ClassScanner.getAnnotatedClasses(cls).forEach(modelClass -> {
                 addTable(
                         isAnalyticView(modelClass)
                                 ? new AnalyticView(modelClass, dictionary)

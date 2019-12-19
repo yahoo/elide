@@ -231,7 +231,7 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Extract dimension projects in a query to sql dimensions
+     * Extract dimension projects in a query to sql dimensions.
      *
      * @param query requested query
      * @param queriedTable queried analytic view

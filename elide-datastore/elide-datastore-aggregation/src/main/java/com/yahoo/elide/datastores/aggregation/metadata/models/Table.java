@@ -80,6 +80,7 @@ public class Table {
      */
     private static Set<Column> resolveColumns(Class<?> cls, EntityDictionary dictionary) {
         Set<Column> fields =  dictionary.getAllFields(cls).stream()
+                .filter((field) -> Column.getDataType(cls, field, dictionary) != null)
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
                         return new Metric(cls, field, dictionary);
@@ -100,7 +101,7 @@ public class Table {
     }
 
     /**
-     * Get all columns of a specific class, can be {@link Metric}, {@link TimeDimension} or {@link Dimension}
+     * Get all columns of a specific class, can be {@link Metric}, {@link TimeDimension} or {@link Dimension}.
      *
      * @param cls metadata class
      * @param <T> metadata class
@@ -114,7 +115,7 @@ public class Table {
     }
 
     /**
-     * Get a field column as a specific class, can be {@link Metric}, {@link TimeDimension} or {@link Dimension}
+     * Get a field column as a specific class, can be {@link Metric}, {@link TimeDimension} or {@link Dimension}.
      *
      * @param cls metadata class
      * @param fieldName logical column name

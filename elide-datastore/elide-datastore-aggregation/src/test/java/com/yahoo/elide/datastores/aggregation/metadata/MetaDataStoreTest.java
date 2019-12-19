@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 
 public class MetaDataStoreTest {
-    private static MetaDataStore dataStore = new MetaDataStore(PlayerStats.class.getPackage());
+    private static MetaDataStore dataStore = new MetaDataStore();
 
     @BeforeAll
     public static void setup() {

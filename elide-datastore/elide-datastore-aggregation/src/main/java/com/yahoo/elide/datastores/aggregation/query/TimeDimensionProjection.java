@@ -42,7 +42,7 @@ public interface TimeDimensionProjection extends ColumnProjection {
     TimeGrain getGrain();
 
     /**
-     * Get the requested time zone
+     * Get the requested time zone.
      *
      * @return time zone
      */

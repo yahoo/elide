@@ -59,23 +59,29 @@ public abstract class Column {
             this.description = meta.description();
         }
 
+        dataType = getDataType(tableClass, fieldName, dictionary);
+        if (dataType == null) {
+            throw new IllegalArgumentException("Unknown data type for " + this.id);
+        }
+    }
+
+    public static DataType getDataType(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
+        String tableName = dictionary.getJsonAliasFor(tableClass);
+        DataType dataType;
         if (dictionary.isRelation(tableClass, fieldName)) {
             Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);
-            this.dataType = new RelationshipType(dictionary.getJsonAliasFor(relationshipClass));
+            dataType = new RelationshipType(dictionary.getJsonAliasFor(relationshipClass));
         } else {
             Class<?> fieldClass = dictionary.getType(tableClass, fieldName);
 
             if (fieldName.equals(dictionary.getIdFieldName(tableClass))) {
-                this.dataType = new DataType(tableName + "." + fieldName, ValueType.ID);
+                dataType = new DataType(tableName + "." + fieldName, ValueType.ID);
             } else if (Date.class.isAssignableFrom(fieldClass)) {
-                this.dataType = new DataType(fieldClass.getSimpleName().toLowerCase(Locale.ENGLISH), ValueType.DATE);
+                dataType = new DataType(fieldClass.getSimpleName().toLowerCase(Locale.ENGLISH), ValueType.DATE);
             } else {
-                DataType dataType = DataType.getScalarType(fieldClass);
-                if (dataType == null) {
-                    throw new IllegalArgumentException("Unknown data type for " + this.id);
-                }
-                this.dataType = dataType;
+                dataType = DataType.getScalarType(fieldClass);
             }
         }
+        return dataType;
     }
 }

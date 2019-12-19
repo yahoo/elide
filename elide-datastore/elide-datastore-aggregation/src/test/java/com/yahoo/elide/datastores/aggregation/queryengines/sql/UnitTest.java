@@ -38,7 +38,7 @@ public abstract class UnitTest {
     protected static AnalyticView playerStatsTable;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
-    protected static MetaDataStore metaDataStore = new MetaDataStore(PlayerStats.class.getPackage());
+    protected static MetaDataStore metaDataStore = new MetaDataStore();
 
     protected static final Country HONG_KONG = new Country();
     protected static final Country USA = new Country();

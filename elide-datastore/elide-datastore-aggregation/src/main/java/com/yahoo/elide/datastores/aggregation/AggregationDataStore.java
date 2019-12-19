@@ -29,8 +29,6 @@ public class AggregationDataStore implements DataStore {
 
     private QueryEngine queryEngine;
 
-    private final String modelPackageName;
-
     /**
      * These are the classes the Aggregation Store manages.
      */
@@ -41,7 +39,6 @@ public class AggregationDataStore implements DataStore {
                                 MetaDataStore metaDataStore) {
         this.queryEngineFactory = queryEngineFactory;
         this.metaDataStore = metaDataStore;
-        this.modelPackageName = metaDataStore.getScanPackageName();
     }
 
     /**
@@ -52,7 +49,7 @@ public class AggregationDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         for (Class<? extends Annotation> cls : AGGREGATION_STORE_CLASSES) {
             // bind non-jpa entities, including analyticViews and views
-            ClassScanner.getAnnotatedClasses(modelPackageName, cls).forEach(dictionary::bindEntity);
+            ClassScanner.getAnnotatedClasses(cls).forEach(dictionary::bindEntity);
         }
 
         queryEngine = queryEngineFactory.buildQueryEngine(metaDataStore);

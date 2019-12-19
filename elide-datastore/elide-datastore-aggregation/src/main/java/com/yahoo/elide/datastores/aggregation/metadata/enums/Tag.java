@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
 /**
- * Tag attached to fields
+ * Tag attached to fields.
  */
 public enum Tag {
     DISPLAY

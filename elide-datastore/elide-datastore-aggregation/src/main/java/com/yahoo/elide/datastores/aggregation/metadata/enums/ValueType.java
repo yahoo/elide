@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
 /**
- * Actual value type of a data type
+ * Actual value type of a data type.
  */
 public enum ValueType {
     DATE,

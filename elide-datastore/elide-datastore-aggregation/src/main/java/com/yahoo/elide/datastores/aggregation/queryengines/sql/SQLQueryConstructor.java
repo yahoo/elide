@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Class to construct query template into real sql query
+ * Class to construct query template into real sql query.
  */
 public class SQLQueryConstructor {
     private final EntityDictionary dictionary;

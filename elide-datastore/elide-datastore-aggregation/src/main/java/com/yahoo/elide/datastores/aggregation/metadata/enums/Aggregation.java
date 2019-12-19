@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
 /**
- * Aggregation functions
+ * Aggregation functions.
  */
 public enum Aggregation {
     SUM,
