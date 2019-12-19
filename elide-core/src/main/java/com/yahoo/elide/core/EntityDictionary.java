@@ -1540,7 +1540,9 @@ public class EntityDictionary {
      * @param entityClass the class to bind.
      */
     private void bindIfUnbound(Class<?> entityClass) {
-        if (lookupBoundClass(entityClass) == null) {
+        /* This is safe to call with non-proxy objects. Not safe to call with ORM proxy objects. */
+
+        if (! isClassBound(entityClass)) {
             bindEntity(entityClass);
         }
     }
