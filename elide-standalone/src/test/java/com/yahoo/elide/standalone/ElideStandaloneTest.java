@@ -17,7 +17,6 @@ import static org.hamcrest.Matchers.hasKey;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-import com.yahoo.elide.standalone.models.Post;
 
 import com.google.common.collect.Maps;
 import io.swagger.models.Info;
@@ -65,24 +64,8 @@ public class ElideStandaloneTest {
 
             @Override
             public String getModelPackageName() {
-                return Post.class.getPackage().getName();
+                return "com.yahoo.elide.standalone.models";
             }
-
-            @Override
-            public Map<String, Swagger> enableSwagger() {
-                EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
-
-                dictionary.bindEntity(Post.class);
-                Info info = new Info().title("Test Service").version("1.0");
-
-                SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
-                Swagger swagger = builder.build();
-
-                Map<String, Swagger> docs = new HashMap<>();
-                docs.put("test", swagger);
-                return docs;
-            }
-
         });
         elide.start(false);
     }
@@ -158,13 +141,5 @@ public class ElideStandaloneTest {
                 .statusCode(501); //Returns 'Not Implemented' if there are no Health Checks Registered
     }
 
-    @Test
-    public void testSwaggerEndpoint() throws Exception {
-        given()
-                .when()
-                .get("/swagger/doc/test")
-                .then()
-                .statusCode(200);
-    }
 }
 

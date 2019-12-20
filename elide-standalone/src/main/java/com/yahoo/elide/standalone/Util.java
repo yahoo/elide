@@ -6,11 +6,18 @@
 package com.yahoo.elide.standalone;
 
 import com.yahoo.elide.utils.ClassScanner;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 
+import org.mdkt.compiler.InMemoryJavaCompiler;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -51,12 +58,61 @@ public class Util {
             options.put("javax.persistence.jdbc.password", "elide123");
         }
 
-        PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
-                getAllEntities(modelPackageName), options);
+        InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance().useParentClassLoader(new MyClassLoader(ClassLoader.getSystemClassLoader()));
 
-        return new EntityManagerFactoryBuilderImpl(
-                new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>())
+        String post = "package com.yahoo.elide.standalone.models;\n" +
+                "\n" +
+                "import com.yahoo.elide.annotation.CreatePermission;\n" +
+                "import com.yahoo.elide.annotation.Include;\n" +
+                "import com.yahoo.elide.annotation.UpdatePermission;\n" +
+                "import com.yahoo.elide.standalone.checks.AdminCheck;\n" +
+                "import lombok.Data;\n" +
+                "\n" +
+                "import java.util.Date;\n" +
+                "\n" +
+                "import javax.persistence.Column;\n" +
+                "import javax.persistence.Entity;\n" +
+                "import javax.persistence.Id;\n" +
+                "import javax.persistence.Temporal;\n" +
+                "import javax.persistence.TemporalType;\n" +
+                "\n" +
+                "@Entity\n" +
+                "@Include(rootLevel = true)\n" +
+                "@Data\n" +
+                "public class Post {\n" +
+                "    @Id\n" +
+                "    private long id;\n" +
+                "\n" +
+                "    @Column(nullable = false)\n" +
+                "    private String content;\n" +
+                "\n" +
+                "    @Temporal( TemporalType.TIMESTAMP )\n" +
+                "    private Date date;\n" +
+                "\n" +
+                "    @CreatePermission(expression = AdminCheck.USER_IS_ADMIN)\n" +
+                "    @UpdatePermission(expression = AdminCheck.USER_IS_ADMIN)\n" +
+                "    private boolean abusiveContent;\n" +
+                "}";
+
+        try {
+            Class<?> foo = compiler.compile("com.yahoo.elide.standalone.models.Post", post);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+
+        Collection<ClassLoader> classLoaders = new ArrayList<>();
+        classLoaders.add(compiler.getClassloader());
+
+        options.put(AvailableSettings.CLASSLOADERS, classLoaders);
+
+        PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
+                getAllEntities(modelPackageName), options, compiler.getClassloader());
+
+        EntityManagerFactory impl = new EntityManagerFactoryBuilderImpl(
+                new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>(), compiler.getClassloader())
                 .build();
+
+        return impl;
     }
 
     /**
@@ -66,8 +122,6 @@ public class Util {
      * @return All entities found in package.
      */
     public static List<String> getAllEntities(String packageName) {
-        return ClassScanner.getAnnotatedClasses(packageName, Entity.class).stream()
-                .map(Class::getName)
-                .collect(Collectors.toList());
+        return Arrays.asList("com.yahoo.elide.standalone.models.Post");
     }
 }

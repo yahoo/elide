@@ -25,10 +25,12 @@ import javax.sql.DataSource;
 @Data
 public class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
 
-    public PersistenceUnitInfoImpl(String persistenceUnitName, List<String> managedClassNames, Properties properties) {
+    public PersistenceUnitInfoImpl(String persistenceUnitName, List<String> managedClassNames, Properties properties, ClassLoader loader) {
         this.persistenceUnitName = persistenceUnitName;
         this.managedClassNames = managedClassNames;
         this.properties = properties;
+        this.classLoader = loader;
+        this.newTempClassLoader = loader;
     }
 
     private String persistenceUnitName;
@@ -53,4 +55,12 @@ public class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
     }
 
     public void addTransformer(ClassTransformer classTransformer) { }
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    public List<String> getManagedClassNames() {
+        return managedClassNames;
+    }
 }
