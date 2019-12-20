@@ -25,7 +25,6 @@ import com.yahoo.elide.utils.ClassScanner;
 
 import org.hibernate.annotations.Subselect;
 
-import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,22 +46,19 @@ public class MetaDataStore extends HashMapDataStore {
 
         ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(cls -> dictionary.bindEntity(cls));
 
+        Set<Class<?>> modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
+
         // bind data models in the package
-        for (Class<? extends Annotation> cls : METADATA_STORE_ANNOTATIONS) {
-            ClassScanner.getAnnotatedClasses(cls).forEach(modelClass -> {
+        modelsToBind.forEach(modelClass -> {
                 dictionary.bindEntity(modelClass);
-            });
-        }
+        });
 
         // resolve meta data from the bound models
-        for (Class<? extends Annotation> cls : METADATA_STORE_ANNOTATIONS) {
-            ClassScanner.getAnnotatedClasses(cls).forEach(modelClass -> {
-                addTable(
-                        isAnalyticView(modelClass)
-                                ? new AnalyticView(modelClass, dictionary)
-                                : new Table(modelClass, dictionary));
-            });
-        }
+        modelsToBind.forEach(modelClass -> {
+            addTable(isAnalyticView(modelClass)
+                ? new AnalyticView(modelClass, dictionary)
+                : new Table(modelClass, dictionary));
+        });
     }
 
     @Override
