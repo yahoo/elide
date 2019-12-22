@@ -33,22 +33,24 @@ import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.spring.models.ArtifactGroup;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import javax.ws.rs.core.MediaType;
 
 /**
  * Example functional test.
  */
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
+@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        statements = "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
+                + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
+@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+        statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
 public class ControllerTest extends IntegrationTest {
     /**
      * This test demonstrates an example test using the JSON-API DSL.
      */
     @Test
-    @Sql(statements = {
-            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
-    })
     public void jsonApiGetTest() {
         when()
                 .get("/json/group")
@@ -75,11 +77,6 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    @Sql(statements = {
-            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
-    })
     public void jsonApiPatchTest() {
         given()
             .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
@@ -124,11 +121,6 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    @Sql(statements = {
-            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
-    })
     public void jsonForbiddenApiPatchTest() {
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
@@ -151,9 +143,6 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    @Sql(statements = {
-            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;"
-    })
     public void jsonApiPostTest() {
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
@@ -161,7 +150,7 @@ public class ControllerTest extends IntegrationTest {
                         datum(
                                 resource(
                                         type("group"),
-                                        id("com.example.repository"),
+                                        id("com.example.repository2"),
                                         attributes(
                                                 attr("commonName", "New group.")
                                         )
@@ -174,7 +163,7 @@ public class ControllerTest extends IntegrationTest {
                 .body(equalTo(datum(
                         resource(
                                 type("group"),
-                                id("com.example.repository"),
+                                id("com.example.repository2"),
                                 attributes(
                                         attr("commonName", "New group."),
                                         attr("deprecated", false),
@@ -189,11 +178,6 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    @Sql(statements = {
-            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
-    })
     public void jsonApiDeleteTest() {
         when()
             .delete("/json/group/com.example.repository")
@@ -203,9 +187,6 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     @Sql(statements = {
-            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);",
             "INSERT INTO ArtifactProduct (name, commonName, description, group_name) VALUES\n"
                     + "\t\t('foo','foo Core','The guts of foo','com.example.repository');"
     })
@@ -225,11 +206,6 @@ public class ControllerTest extends IntegrationTest {
      * This test demonstrates an example test using the GraphQL DSL.
      */
     @Test
-    @Sql(statements = {
-            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-            "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
-    })
     public void graphqlTest() {
         given()
             .contentType(MediaType.APPLICATION_JSON)
@@ -275,9 +251,6 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
-    @Sql(statements = {
-            "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;",
-    })
     public void graphqlTestForbiddenCreate() {
         ArtifactGroup group = new ArtifactGroup();
         group.setDeprecated(true);
