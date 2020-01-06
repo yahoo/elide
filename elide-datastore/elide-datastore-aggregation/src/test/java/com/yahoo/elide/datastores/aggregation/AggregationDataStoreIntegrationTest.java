@@ -720,13 +720,14 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    @Disabled
-    //TODO will add this on the next PR
-    public void ambiguiousFieldTest() throws Exception {
+    public void ambiguousFieldTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
                                 "playerStats",
+                                arguments(
+                                        argument("sort", "\"lowScore\"")
+                                ),
                                 selections(
                                         field("lowScore"),
                                         field("overallRating"),
@@ -737,9 +738,33 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Currently sorting on double nested fields is not supported\"";
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 35),
+                                        field("overallRating", "Good"),
+                                        field("playerName", "Jon Doe"),
+                                        field("player2Name", "Jane Doe")
+                                ),
+                                selections(
+                                        field("lowScore", 72),
+                                        field("overallRating", "Good"),
+                                        field("playerName", "Han"),
+                                        field("player2Name", "Jon Doe")
+                                ),
+                                selections(
+                                        field("lowScore", 241),
+                                        field("overallRating", "Great"),
+                                        field("playerName", "Jane Doe"),
+                                        field("player2Name", "Han")
+                                )
+                        )
+                )
+        ).toResponse();
 
-        runQueryWithExpectedError(graphQLRequest, expected);
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test

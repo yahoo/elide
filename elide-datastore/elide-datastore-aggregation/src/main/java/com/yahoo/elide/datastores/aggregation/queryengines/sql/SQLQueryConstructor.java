@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getJoinPathAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -28,13 +29,19 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
+import com.yahoo.elide.utils.JoinTrieNode;
 
 import org.hibernate.annotations.Subselect;
 
+import javafx.util.Pair;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -71,7 +78,7 @@ public class SQLQueryConstructor {
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
 
-        Set<Path.PathElement> joinPredicates = new LinkedHashSet<>();
+        JoinTrieNode joinPaths = new JoinTrieNode(tableCls);
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
@@ -87,34 +94,34 @@ public class SQLQueryConstructor {
 
         if (!groupByDimensions.isEmpty()) {
             builder.groupByClause(constructGroupByWithReference(groupByDimensions, queriedTable));
-            joinPredicates.addAll(extractPathElements(groupByDimensions, queriedTable));
+
+            joinPaths.addPaths(extractJoinPaths(groupByDimensions, queriedTable), dictionary);
         }
 
         if (whereClause != null) {
-            joinPredicates.addAll(extractPathElements(whereClause));
             builder.whereClause("WHERE " + translateFilterExpression(
                     whereClause,
                     this::generateColumnReference));
+
+            joinPaths.addPaths(extractJoinPaths(whereClause), dictionary);
         }
 
         if (havingClause != null) {
-            joinPredicates.addAll(extractPathElements(havingClause));
             builder.havingClause("HAVING " + translateFilterExpression(
                     havingClause,
                     (predicate) -> constructHavingClauseWithReference(predicate, queriedTable, template)));
+
+            joinPaths.addPaths(extractJoinPaths(havingClause), dictionary);
         }
 
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(tableCls, dictionary);
             builder.orderByClause(extractOrderBy(tableCls, sortClauses, queriedTable, template));
-            joinPredicates.addAll(extractPathElements(sortClauses));
+
+            joinPaths.addPaths(extractJoinPaths(sortClauses), dictionary);
         }
 
-        String joinClause = joinPredicates.stream()
-                .map(this::extractJoin)
-                .collect(Collectors.joining(" "));
-
-        builder.joinClause(joinClause);
+        builder.joinClause(extractJoin(joinPaths));
 
         return builder.build();
     }
@@ -203,42 +210,72 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Given one component of the path taken to reach a particular field, extracts any table
-     * joins that are required to perform the traversal to the field.
+     * Build full join clause for all join paths in a {@link JoinTrieNode}.
      *
-     * @param pathElement A field or relationship traversal from an entity
-     * @return A SQL JOIN expression
+     * @param root root node which type is the queried table class
+     * @return built join clause that contains all need relationship for this query.
      */
-    private String extractJoin(Path.PathElement pathElement) {
+    private String extractJoin(JoinTrieNode root) {
+        Queue<Pair<String, JoinTrieNode>> todo = new ArrayDeque<>();
+        todo.add(new Pair<>(getClassAlias(root.getType()), root));
+        List<String> joinClauses = new ArrayList<>();
+
+        while (!todo.isEmpty()) {
+            Pair<String, JoinTrieNode> current = todo.remove();
+            String parentAlias = current.getKey();
+            JoinTrieNode parent = current.getValue();
+            Map<String, JoinTrieNode> fields = parent.getFields();
+
+            fields.forEach((name, child) -> {
+                joinClauses.add(extractJoin(parent.getType(), parentAlias, child.getType(), name));
+
+                if (child.getFields().size() > 0) {
+                    todo.add(new Pair<>(parentAlias + "_" + name, child));
+                }
+            });
+        }
+
+        return String.join(" ", joinClauses);
+    }
+
+    /**
+     * Build a join clause for joining a relationship table to the parent table.
+     *
+     * @param parentClass parent class
+     * @param parentAlias parent table alias
+     * @param relationshipClass relationship class
+     * @param relationshipName relationship field name
+     * @return built join clause i.e. <code>LEFT JOIN table1 AS dimension1 ON table0.dim_id = dimension1.id</code>
+     */
+    private String extractJoin(Class<?> parentClass,
+                               String parentAlias,
+                               Class<?> relationshipClass,
+                               String relationshipName) {
         //TODO - support composite join keys.
         //TODO - support joins where either side owns the relationship.
         //TODO - Support INNER and RIGHT joins.
         //TODO - Support toMany joins.
-        Class<?> entityClass = pathElement.getType();
-        String entityAlias = FilterPredicate.getTypeAlias(entityClass);
 
-        Class<?> relationshipClass = pathElement.getFieldType();
-        String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
-        String relationshipName = pathElement.getFieldName();
-        String relationshipColumnName = dictionary.getAnnotatedColumnName(entityClass, relationshipName);
+        String relationshipAlias = parentAlias + "_" + relationshipName;
+        String relationshipColumnName = dictionary.getAnnotatedColumnName(parentClass, relationshipName);
 
         // resolve the right hand side of JOIN
         String joinSource = constructTableOrSubselect(relationshipClass);
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(
-                entityClass,
+                parentClass,
                 JoinTo.class,
                 relationshipColumnName);
 
         String joinClause = joinTo == null
                 ? String.format("%s.%s = %s.%s",
-                entityAlias,
+                parentAlias,
                 relationshipColumnName,
                 relationshipAlias,
                 dictionary.getAnnotatedColumnName(
                         relationshipClass,
                         dictionary.getIdFieldName(relationshipClass)))
-                : extractJoinExpression(joinTo.joinClause(), entityAlias, relationshipAlias);
+                : extractJoinExpression(joinTo.joinClause(), parentAlias, relationshipAlias);
 
         return String.format("LEFT JOIN %s AS %s ON %s",
                 joinSource,
@@ -281,7 +318,7 @@ public class SQLQueryConstructor {
 
                     Path.PathElement last = path.lastElement().get();
 
-                    String orderByType = FilterPredicate.getTypeAlias(last.getType())
+                    String orderByType = getJoinPathAlias(path)
                             + "."
                             + dictionary.getAnnotatedColumnName(entityClass, last.getFieldName());
 
@@ -328,15 +365,13 @@ public class SQLQueryConstructor {
      * @param expression The filter expression
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path.PathElement> extractPathElements(FilterExpression expression) {
+    private Set<Path> extractJoinPaths(FilterExpression expression) {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
                 .map(FilterPredicate::getPath)
                 .map(this::expandJoinToPath)
                 .filter(path -> path.getPathElements().size() > 1)
-                .map(this::extractPathElements)
-                .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -346,11 +381,9 @@ public class SQLQueryConstructor {
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path.PathElement> extractPathElements(Map<Path, Sorting.SortOrder> sortClauses) {
+    private Set<Path> extractJoinPaths(Map<Path, Sorting.SortOrder> sortClauses) {
         return sortClauses.keySet().stream()
                 .map(this::expandJoinToPath)
-                .map(this::extractPathElements)
-                .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -362,25 +395,11 @@ public class SQLQueryConstructor {
      * @param queriedTable queried analytic view
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path.PathElement> extractPathElements(Set<ColumnProjection> groupByDimensions,
-                                                      SQLAnalyticView queriedTable) {
+    private Set<Path> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
+                                       SQLAnalyticView queriedTable) {
         return resolveSQLColumns(groupByDimensions, queriedTable).stream()
                 .filter((dim) -> dim.getJoinPath() != null)
                 .map(SQLColumn::getJoinPath)
-                .map(this::extractPathElements)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    /**
-     * Given a path , extracts any entity relationship traversals that require joins.
-     *
-     * @param path The path
-     * @return A set of path elements that capture a relationship traversal.
-     */
-    private Set<Path.PathElement> extractPathElements(Path path) {
-        return path.getPathElements().stream()
-                .filter((p) -> dictionary.isRelation(p.getType(), p.getFieldName()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -422,7 +441,7 @@ public class SQLQueryConstructor {
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
 
         if (joinTo == null) {
-            return getClassAlias(lastClass) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
+            return getJoinPathAlias(path) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
         } else {
             return generateColumnReference(new Path(lastClass, dictionary, joinTo.path()));
         }

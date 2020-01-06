@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -251,5 +252,25 @@ public class SQLQueryEngine implements QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return FilterPredicate.getTypeAlias(entityClass);
+    }
+
+    /**
+     * Generate alias for represent the join path.
+     * The path would start with the class alias of the first element, and then each field would append "_fieldName" to
+     * the result.
+     * The last element would not be included as that's not a part of the join path.
+     *
+     * @param path path that represents a relationship chain
+     * @return join path alias, i.e. <code>foo.bar.baz</code> would be <code>foo_bar</code>
+     */
+    public static String getJoinPathAlias(Path path) {
+        List<Path.PathElement> elements = path.getPathElements();
+        StringBuilder result = new StringBuilder(getClassAlias(elements.get(0).getType()));
+
+        for (int i = 0; i < elements.size() - 1; i++) {
+            result.append("_").append(elements.get(i).getFieldName());
+        }
+
+        return result.toString();
     }
 }

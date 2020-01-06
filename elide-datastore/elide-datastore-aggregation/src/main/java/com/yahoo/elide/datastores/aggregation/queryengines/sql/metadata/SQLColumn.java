@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getJoinPathAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -57,7 +58,11 @@ public class SQLColumn extends Column {
      * @return e.g. <code>table_alias.column_name</code>
      */
     public String getReference() {
-        return getTableAlias() + "." + getColumnName();
+        if (joinPath == null) {
+            return getTableAlias() + "." + getColumnName();
+        }
+
+        return getJoinPathAlias(joinPath) + "." + getColumnName();
     }
 
     /**
