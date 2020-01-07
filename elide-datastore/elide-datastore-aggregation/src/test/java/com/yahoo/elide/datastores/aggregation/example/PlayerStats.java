@@ -89,7 +89,14 @@ public class PlayerStats {
      */
     private Player player;
 
+    /**
+     * A table dimension.
+     */
     private Player player2;
+
+    private String playerName;
+
+    private String player2Name;
 
     private Date recordedDate;
 
@@ -207,10 +214,6 @@ public class PlayerStats {
     public void setPlayer2(Player player2) {
         this.player2 = player2;
     }
-
-    private String playerName;
-
-    private String player2Name;
 
     @JoinTo(path = "player.name")
     public String getPlayerName() {

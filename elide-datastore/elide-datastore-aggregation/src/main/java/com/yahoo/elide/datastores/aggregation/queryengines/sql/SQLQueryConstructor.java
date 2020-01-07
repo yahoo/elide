@@ -116,7 +116,7 @@ public class SQLQueryConstructor {
 
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(tableCls, dictionary);
-            builder.orderByClause(extractOrderBy(tableCls, sortClauses, queriedTable, template));
+            builder.orderByClause(extractOrderBy(tableCls, sortClauses, template));
 
             joinPaths.addPaths(extractJoinPaths(sortClauses), dictionary);
         }
@@ -302,7 +302,8 @@ public class SQLQueryConstructor {
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A SQL expression
      */
-    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses, SQLAnalyticView table,
+    private String extractOrderBy(Class<?> entityClass,
+                                  Map<Path, Sorting.SortOrder> sortClauses,
                                   SQLQueryTemplate template) {
         if (sortClauses.isEmpty()) {
             return "";
