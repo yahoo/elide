@@ -246,9 +246,12 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Converts a filter predicate path into a SQL WHERE/HAVING clause column reference.
+     * Converts a filter predicate path into a SQL column reference.
+     * All other code should use this method to generate sql column reference, no matter where the reference is used (
+     * select statement, group by clause, where clause, having clause or order by clause).
      *
      * @param path The predicate path to convert
+     * @param dictionary dictionary to expand joinTo path
      * @return A SQL fragment that references a database column
      */
     public static String generateColumnReference(Path path, EntityDictionary dictionary) {
