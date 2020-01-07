@@ -83,7 +83,7 @@ public class Field extends Selection {
 
     @Override
     public String toResponse() {
-        if (selectionSet instanceof String || selectionSet instanceof Number) {
+        if (selectionSet instanceof String || selectionSet instanceof Number || selectionSet instanceof Boolean) {
             // scalar response field
             return String.format(
                     "\"%s\":%s",

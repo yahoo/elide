@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.SQLExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -246,25 +247,41 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Converts a filter predicate path into a SQL column reference.
+     * Converts a full relationship path into a SQL column reference.
      * All other code should use this method to generate sql column reference, no matter where the reference is used (
      * select statement, group by clause, where clause, having clause or order by clause).
      *
      * @param path The predicate path to convert
      * @param dictionary dictionary to expand joinTo path
+     * @param expressions outer layer sql expression to be applied on this field
      * @return A SQL fragment that references a database column
      */
-    public static String generateColumnReference(Path path, EntityDictionary dictionary) {
+    public static String generateColumnReference(Path path, EntityDictionary dictionary, List<String> expressions) {
         Path.PathElement last = path.lastElement().get();
         Class<?> lastClass = last.getType();
         String fieldName = last.getFieldName();
 
+        SQLExpression expr = dictionary.getAttributeOrRelationAnnotation(
+                lastClass, SQLExpression.class, fieldName);
+
+        if (expr != null && !"".equals(expr.value())) {
+            expressions.add(expr.value());
+        }
+
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
 
         if (joinTo == null) {
-            return getJoinPathAlias(path) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
+            // the initial reference is the physical column reference
+            String columnReference = getJoinPathAlias(path)
+                    + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
+
+            // wrap the expression from inner layer to outer
+            for (int i = expressions.size() - 1; i >= 0; i--) {
+                columnReference = expressions.get(i).replace("%reference", columnReference);
+            }
+            return columnReference;
         } else {
-            return generateColumnReference(new Path(lastClass, dictionary, joinTo.path()), dictionary);
+            return generateColumnReference(new Path(lastClass, dictionary, joinTo.path()), dictionary, expressions);
         }
     }
 

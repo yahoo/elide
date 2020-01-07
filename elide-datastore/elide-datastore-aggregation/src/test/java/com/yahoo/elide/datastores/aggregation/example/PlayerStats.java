@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.SQLExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMin;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
@@ -41,72 +42,77 @@ public class PlayerStats {
     public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
     public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')";
 
-    /**
-     * PK.
-     */
+    // PK
+    @Setter
     private String id;
 
-    /**
-     * A metric.
-     */
+    // A metric
+    @Setter
     private long highScore;
 
-    /**
-     * A metric.
-     */
+    // A metric
+    @Setter
     private long lowScore;
 
-    /**
-     * A degenerate dimension.
-     */
+    // degenerated dimension
+    @Setter
     private String overallRating;
 
-    /**
-     * A table dimension.
-     */
+    // time dimension
+    @Setter
+    private Date recordedDate;
+
+    // relationship dimension
+    @Setter
     private Country country;
 
-    /**
-     * A subselect dimension.
-     */
+    // degenerated dimension from relationship
+    @Setter
+    private String countryIsoCode;
+
+    // relationship dimension using @Subselect
+    @Setter
     private SubCountry subCountry;
 
+    // degenerated dimension from relationship using @Subselect
+    @Setter
+    private String subCountryIsoCode;
+
+    // degenerated dimension using view
     @Setter
     private String countryViewIsoCode;
 
-    /**
-     * A dimension field joined to this table.
-     */
-    private String countryIsoCode;
-
-    /**
-     * A dimension field joined to this table.
-     */
-    private String subCountryIsoCode;
-
-    /**
-     * A table dimension.
-     */
+    // relationship dimension
+    @Setter
     private Player player;
 
-    /**
-     * A table dimension.
-     */
+    // relationship dimension to the same table
+    @Setter
     private Player player2;
 
+    // degenerated dimension from relationship
+    @Setter
     private String playerName;
 
+    // degenerated dimension from relationship
+    @Setter
     private String player2Name;
 
-    private Date recordedDate;
+    // degenerated dimension using sql expression
+    @Setter
+    private int playerLevel;
+
+    // degenerated dimension using sql expression from relationship dimension
+    @Setter
+    private boolean inUsa;
+
+    // degenerated dimension using sql expression on another sql expression from relationship dimension
+    @Setter
+    private String countryIsInUsa;
 
     @Id
     public String getId() {
         return id;
-    }
-
-    public void setId(final String id) {
-        this.id = id;
     }
 
     @MetricAggregation(function = SqlMax.class)
@@ -115,17 +121,9 @@ public class PlayerStats {
         return highScore;
     }
 
-    public void setHighScore(final long highScore) {
-        this.highScore = highScore;
-    }
-
     @MetricAggregation(function = SqlMin.class)
     public long getLowScore() {
         return lowScore;
-    }
-
-    public void setLowScore(final long lowScore) {
-        this.lowScore = lowScore;
     }
 
     @FriendlyName
@@ -134,18 +132,10 @@ public class PlayerStats {
         return overallRating;
     }
 
-    public void setOverallRating(final String overallRating) {
-        this.overallRating = overallRating;
-    }
-
     @ManyToOne
     @JoinColumn(name = "country_id")
     public Country getCountry() {
         return country;
-    }
-
-    public void setCountry(final Country country) {
-        this.country = country;
     }
 
     @ManyToOne
@@ -154,18 +144,10 @@ public class PlayerStats {
         return subCountry;
     }
 
-    public void setSubCountry(final SubCountry subCountry) {
-        this.subCountry = subCountry;
-    }
-
     @ManyToOne
     @JoinColumn(name = "player_id")
     public Player getPlayer() {
         return player;
-    }
-
-    public void setPlayer(final Player player) {
-        this.player = player;
     }
 
     /**
@@ -181,28 +163,15 @@ public class PlayerStats {
         return recordedDate;
     }
 
-    public void setRecordedDate(final Date recordedDate) {
-        this.recordedDate = recordedDate;
-    }
-
     @JoinTo(path = "country.isoCode")
     public String getCountryIsoCode() {
         return countryIsoCode;
     }
 
-    public void setCountryIsoCode(String isoCode) {
-        this.countryIsoCode = isoCode;
-    }
-
-
     @JoinTo(path = "subCountry.isoCode")
     @Column(updatable = false, insertable = false) // subselect field should be read-only
     public String getSubCountryIsoCode() {
         return subCountryIsoCode;
-    }
-
-    public void setSubCountryIsoCode(String isoCode) {
-        this.subCountryIsoCode = isoCode;
     }
 
     @JoinColumn(name = "player2_id")
@@ -211,17 +180,9 @@ public class PlayerStats {
         return player2;
     }
 
-    public void setPlayer2(Player player2) {
-        this.player2 = player2;
-    }
-
     @JoinTo(path = "player.name")
     public String getPlayerName() {
         return playerName;
-    }
-
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
     }
 
     @JoinTo(path = "player2.name")
@@ -229,7 +190,20 @@ public class PlayerStats {
         return player2Name;
     }
 
-    public void setPlayer2Name(String player2Name) {
-        this.player2Name = player2Name;
+    @SQLExpression("CASE WHEN %reference = 'Good' THEN 1 ELSE 2 END")
+    @Column(name = "overallRating")
+    public int getPlayerLevel() {
+        return playerLevel;
+    }
+
+    @JoinTo(path = "country.inUsa")
+    public boolean isInUsa() {
+        return inUsa;
+    }
+
+    @SQLExpression("CASE WHEN %reference THEN 'true' ELSE 'false' END")
+    @JoinTo(path = "country.inUsa")
+    public String getCountryIsInUsa() {
+        return countryIsInUsa;
     }
 }

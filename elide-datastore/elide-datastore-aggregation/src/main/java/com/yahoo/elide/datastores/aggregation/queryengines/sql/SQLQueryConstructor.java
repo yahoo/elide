@@ -26,6 +26,7 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.SQLExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -310,7 +311,8 @@ public class SQLQueryConstructor {
 
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
-                    Path expandedPath = expandJoinToPath(entry.getKey());
+                    Path originalSortingPath = entry.getKey();
+                    Path expandedPath = expandJoinToPath(originalSortingPath);
                     Sorting.SortOrder order = entry.getValue();
 
                     Path.PathElement last = expandedPath.lastElement().get();
@@ -321,11 +323,28 @@ public class SQLQueryConstructor {
                             .findFirst()
                             .orElse(null);
 
-                    String orderByClause = metric == null
-                            ? generateColumnReference(expandedPath, dictionary)
-                            : metric.getFunctionExpression();
+                    if (metric != null) {
+                        return metric.getFunctionExpression()
+                                + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
+                    }
 
-                    return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
+                    // if the order by path is not expanded, means that there is not joining needed for this sorting,
+                    // then we don't need to wrap the outer sql expression
+                    Path.PathElement root = originalSortingPath.getPathElements().get(0);
+
+                    SQLExpression sqlExpr = expandedPath == originalSortingPath
+                            ? null
+                            : dictionary.getAttributeOrRelationAnnotation(
+                                    root.getType(), SQLExpression.class, root.getFieldName());
+
+                    List<String> expressions = new ArrayList<>();
+
+                    if (sqlExpr != null && !"".equals(sqlExpr.value())) {
+                        expressions.add(sqlExpr.value());
+                    }
+
+                    return generateColumnReference(expandedPath, dictionary, expressions)
+                            + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
                 .collect(Collectors.joining(","));
     }
@@ -417,7 +436,7 @@ public class SQLQueryConstructor {
      * @return A SQL fragment that references a database column
      */
     private String generatePredicateReference(FilterPredicate predicate) {
-        return generateColumnReference(predicate.getPath(), dictionary);
+        return generateColumnReference(predicate.getPath(), dictionary, new ArrayList<>());
     }
 
     /**

@@ -853,6 +853,121 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
+    /**
+     * Test sql expression in where, sorting, group by and projection.
+     * @throws Exception exception
+     */
+    @Test
+    public void basicSQLExpressionTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"playerLevel\""),
+                                        argument("filter", "\"playerLevel>\\\"0\\\"\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("playerLevel")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 1234),
+                                        field("playerLevel", 1)
+                                ),
+                                selections(
+                                        field("highScore", 2412),
+                                        field("playerLevel", 2)
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    /**
+     * Test relationship sql expression in where, sorting, group by and projection.
+     * @throws Exception exception
+     */
+    @Test
+    public void relationshipSQLExpressionTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"inUsa\""),
+                                        argument("filter", "\"inUsa=in=\\\"true\\\"\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("inUsa")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 2412),
+                                        field("inUsa", true)
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    /**
+     * Test a wrapped sql expression on a relationship sql expression in where, sorting, group by and projection.
+     * @throws Exception exception
+     */
+    @Test
+    public void wrappedRelationshipSQLExpressionTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"countryIsInUsa\""),
+                                        argument("filter", "\"countryIsInUsa=in=\\\"true\\\"\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("countryIsInUsa")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 2412),
+                                        field("countryIsInUsa", "true")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
     @Test
     public void jsonApiAggregationTest() {
         given()

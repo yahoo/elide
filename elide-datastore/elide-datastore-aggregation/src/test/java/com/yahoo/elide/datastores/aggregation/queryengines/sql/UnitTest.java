@@ -82,6 +82,7 @@ public abstract class UnitTest {
         USA.setName("United States");
         USA.setId("840");
         USA.setContinent(NA);
+        USA.setInUsa(true);
     }
 
     public static ColumnProjection toProjection(Dimension dimension) {
