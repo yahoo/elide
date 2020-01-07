@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getJoinPathAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -20,10 +20,7 @@ import lombok.Getter;
  */
 public class SQLColumn extends Column {
     @Getter
-    private final String columnName;
-
-    @Getter
-    private final String tableAlias;
+    private final String reference;
 
     @Getter
     private final Path joinPath;
@@ -34,47 +31,12 @@ public class SQLColumn extends Column {
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
 
         if (joinTo == null || joinTo.path().equals("")) {
-            this.columnName = dictionary.getAnnotatedColumnName(tableClass, fieldName);
-            this.tableAlias = getClassAlias(tableClass);
+            this.reference = getClassAlias(tableClass) + "." + dictionary.getAnnotatedColumnName(tableClass, fieldName);
             this.joinPath = null;
         } else {
             Path path = new Path(tableClass, dictionary, joinTo.path());
-            this.columnName = resolveJoinColumn(dictionary, path);
-            this.tableAlias = getJoinTableAlias(path);
+            this.reference = generateColumnReference(path, dictionary);
             this.joinPath = path;
         }
-    }
-
-    private static String getJoinTableAlias(Path path) {
-        Path.PathElement last = path.lastElement().get();
-        Class<?> lastClass = last.getType();
-
-        return getClassAlias(lastClass);
-    }
-
-    /**
-     * Returns a String that identifies this column in a physical sql table/view.
-     *
-     * @return e.g. <code>table_alias.column_name</code>
-     */
-    public String getReference() {
-        if (joinPath == null) {
-            return getTableAlias() + "." + getColumnName();
-        }
-
-        return getJoinPathAlias(joinPath) + "." + getColumnName();
-    }
-
-    /**
-     * Maps a logical entity path into a physical SQL column name.
-     *
-     * @param path entity join path
-     * @return joined column name
-     */
-    public static String resolveJoinColumn(EntityDictionary dictionary, Path path) {
-        Path.PathElement last = path.lastElement().get();
-        Class<?> lastClass = last.getType();
-
-        return dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
     }
 }

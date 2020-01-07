@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getJoinPathAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -99,9 +99,7 @@ public class SQLQueryConstructor {
         }
 
         if (whereClause != null) {
-            builder.whereClause("WHERE " + translateFilterExpression(
-                    whereClause,
-                    this::generateColumnReference));
+            builder.whereClause("WHERE " + translateFilterExpression(whereClause, this::generatePredicateReference));
 
             joinPaths.addPaths(extractJoinPaths(whereClause), dictionary);
         }
@@ -116,7 +114,7 @@ public class SQLQueryConstructor {
 
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(tableCls, dictionary);
-            builder.orderByClause(extractOrderBy(tableCls, sortClauses, template));
+            builder.orderByClause(extractOrderBy(sortClauses, template));
 
             joinPaths.addPaths(extractJoinPaths(sortClauses), dictionary);
         }
@@ -168,7 +166,7 @@ public class SQLQueryConstructor {
         if (metric != null) {
             return metric.getFunctionExpression();
         } else {
-            return generateColumnReference(predicate);
+            return generatePredicateReference(predicate);
         }
     }
 
@@ -216,7 +214,9 @@ public class SQLQueryConstructor {
      * @return built join clause that contains all needed relationship dimension joins for this query.
      */
     private String extractJoin(JoinTrieNode root) {
+        // parentAlias-JoinTrieNode pairs queue
         Queue<Pair<String, JoinTrieNode>> todo = new ArrayDeque<>();
+
         todo.add(new Pair<>(getClassAlias(root.getType()), root));
         List<String> joinClauses = new ArrayList<>();
 
@@ -298,13 +298,10 @@ public class SQLQueryConstructor {
 
     /**
      * Given a list of columns to sort on, constructs an ORDER BY clause in SQL.
-     * @param entityClass The class to sort.
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A SQL expression
      */
-    private String extractOrderBy(Class<?> entityClass,
-                                  Map<Path, Sorting.SortOrder> sortClauses,
-                                  SQLQueryTemplate template) {
+    private String extractOrderBy(Map<Path, Sorting.SortOrder> sortClauses, SQLQueryTemplate template) {
         if (sortClauses.isEmpty()) {
             return "";
         }
@@ -313,15 +310,10 @@ public class SQLQueryConstructor {
 
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
-                    Path path = entry.getKey();
-                    path = expandJoinToPath(path);
+                    Path expandedPath = expandJoinToPath(entry.getKey());
                     Sorting.SortOrder order = entry.getValue();
 
-                    Path.PathElement last = path.lastElement().get();
-
-                    String orderByType = getJoinPathAlias(path)
-                            + "."
-                            + dictionary.getAnnotatedColumnName(entityClass, last.getFieldName());
+                    Path.PathElement last = expandedPath.lastElement().get();
 
                     MetricFunctionInvocation metric = template.getMetrics().stream()
                             // TODO: filter predicate should support alias
@@ -329,13 +321,13 @@ public class SQLQueryConstructor {
                             .findFirst()
                             .orElse(null);
 
-                    if (metric != null) {
-                        orderByType = metric.getFunctionExpression();
-                    }
+                    String orderByClause = metric == null
+                            ? generateColumnReference(expandedPath, dictionary)
+                            : metric.getFunctionExpression();
 
-                    return orderByType
-                            + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
-                }).collect(Collectors.joining(","));
+                    return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
+                })
+                .collect(Collectors.joining(","));
     }
 
     /**
@@ -346,18 +338,18 @@ public class SQLQueryConstructor {
      * @return The expanded path.
      */
     private Path expandJoinToPath(Path path) {
-        List<Path.PathElement> pathElements = path.getPathElements();
-        Path.PathElement pathElement = pathElements.get(0);
+        Path.PathElement pathRoot = path.getPathElements().get(0);
 
-        Class<?> type = pathElement.getType();
-        String fieldName = pathElement.getFieldName();
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(type, JoinTo.class, fieldName);
+        Class<?> entityClass = pathRoot.getType();
+        String fieldName = pathRoot.getFieldName();
+
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(entityClass, JoinTo.class, fieldName);
 
         if (joinTo == null || joinTo.path().equals("")) {
             return path;
         }
 
-        return new Path(pathElement.getType(), dictionary, joinTo.path());
+        return new Path(entityClass, dictionary, joinTo.path());
     }
 
     /**
@@ -424,28 +416,8 @@ public class SQLQueryConstructor {
      * @param predicate The predicate to convert
      * @return A SQL fragment that references a database column
      */
-    private String generateColumnReference(FilterPredicate predicate) {
-        return generateColumnReference(predicate.getPath());
-    }
-
-    /**
-     * Converts a filter predicate path into a SQL WHERE/HAVING clause column reference.
-     *
-     * @param path The predicate path to convert
-     * @return A SQL fragment that references a database column
-     */
-    private String generateColumnReference(Path path) {
-        Path.PathElement last = path.lastElement().get();
-        Class<?> lastClass = last.getType();
-        String fieldName = last.getFieldName();
-
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
-
-        if (joinTo == null) {
-            return getJoinPathAlias(path) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
-        } else {
-            return generateColumnReference(new Path(lastClass, dictionary, joinTo.path()));
-        }
+    private String generatePredicateReference(FilterPredicate predicate) {
+        return generateColumnReference(predicate.getPath(), dictionary);
     }
 
     /**
@@ -501,8 +473,7 @@ public class SQLQueryConstructor {
                 return dictionary.getAnnotation(cls, Subselect.class).value();
             }
         } else {
-            javax.persistence.Table table =
-                    dictionary.getAnnotation(cls, javax.persistence.Table.class);
+            javax.persistence.Table table = dictionary.getAnnotation(cls, javax.persistence.Table.class);
 
             if (table != null) {
                 return resolveTableAnnotation(table);
