@@ -213,7 +213,7 @@ public class SQLQueryConstructor {
      * Build full join clause for all join paths in a {@link JoinTrieNode}.
      *
      * @param root root node which type is the queried table class
-     * @return built join clause that contains all need relationship for this query.
+     * @return built join clause that contains all needed relationship dimension joins for this query.
      */
     private String extractJoin(JoinTrieNode root) {
         Queue<Pair<String, JoinTrieNode>> todo = new ArrayDeque<>();
@@ -239,7 +239,7 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Build a join clause for joining a relationship table to the parent table.
+     * Build a single dimension join clause for joining a relationship table to the parent table.
      *
      * @param parentClass parent class
      * @param parentAlias parent table alias

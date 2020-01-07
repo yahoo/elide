@@ -41,11 +41,12 @@ public class JoinTrieNode {
         JoinTrieNode node = this;
 
         for (Path.PathElement pathElement : path.getPathElements()) {
-            if (!dictionary.isRelation(pathElement.getType(), pathElement.getFieldName())) {
+            Class<?> entityClass = pathElement.getType();
+            String fieldName = pathElement.getFieldName();
+
+            if (!dictionary.isRelation(entityClass, fieldName)) {
                 break;
             }
-
-            String fieldName = pathElement.getFieldName();
 
             if (!fields.containsKey(fieldName)) {
                 node.addField(fieldName, new JoinTrieNode(pathElement.getFieldType()));
