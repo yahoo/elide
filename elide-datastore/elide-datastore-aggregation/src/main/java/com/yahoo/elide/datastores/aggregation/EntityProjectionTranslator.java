@@ -76,7 +76,7 @@ public class EntityProjectionTranslator {
                 .sorting(entityProjection.getSorting())
                 .pagination(entityProjection.getPagination())
                 .build();
-        QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary, entityProjection.getType());
+        QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();
         return query;
     }

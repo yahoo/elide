@@ -383,7 +383,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         ).toQuery();
 
         String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "'Classes don't match when try filtering on Country in having clause of PlayerStats.'\"";
+                + "'Can't filter on relationship field [PlayerStats].country/[Country].isoCode in HAVING clause "
+                + "when querying table PlayerStats.'\"";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }

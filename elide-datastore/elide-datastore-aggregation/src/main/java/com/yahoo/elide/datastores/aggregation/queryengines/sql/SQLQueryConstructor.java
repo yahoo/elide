@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
@@ -33,15 +34,10 @@ import com.yahoo.elide.utils.JoinTrieNode;
 
 import org.hibernate.annotations.Subselect;
 
-import javafx.util.Pair;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -214,26 +210,16 @@ public class SQLQueryConstructor {
      * @return built join clause that contains all needed relationship dimension joins for this query.
      */
     private String extractJoin(JoinTrieNode root) {
-        // parentAlias-JoinTrieNode pairs queue
-        Queue<Pair<String, JoinTrieNode>> todo = new ArrayDeque<>();
-
-        todo.add(new Pair<>(getClassAlias(root.getType()), root));
-        List<String> joinClauses = new ArrayList<>();
-
-        while (!todo.isEmpty()) {
-            Pair<String, JoinTrieNode> current = todo.remove();
-            String parentAlias = current.getKey();
-            JoinTrieNode parent = current.getValue();
-            Map<String, JoinTrieNode> fields = parent.getFields();
-
-            fields.forEach((name, child) -> {
-                joinClauses.add(extractJoin(parent.getType(), parentAlias, child.getType(), name));
-
-                if (child.getFields().size() > 0) {
-                    todo.add(new Pair<>(parentAlias + "_" + name, child));
-                }
-            });
-        }
+        List<String> joinClauses = root.levelOrderedTraverse(
+                (parentNodeResultPair, childField) ->
+                        extractJoin(
+                                parentNodeResultPair.getKey().getType(),
+                                parentNodeResultPair.getValue(),
+                                childField.getValue().getType(),
+                                childField.getKey()),
+                (parentResult, childField) -> appendAlias(parentResult.getValue(), childField.getKey()),
+                getClassAlias(root.getType())
+        );
 
         return String.join(" ", joinClauses);
     }

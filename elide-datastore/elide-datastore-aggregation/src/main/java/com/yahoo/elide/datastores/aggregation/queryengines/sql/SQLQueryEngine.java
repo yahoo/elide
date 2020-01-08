@@ -289,12 +289,23 @@ public class SQLQueryEngine implements QueryEngine {
      */
     public static String getJoinPathAlias(Path path) {
         List<Path.PathElement> elements = path.getPathElements();
-        StringBuilder result = new StringBuilder(getClassAlias(elements.get(0).getType()));
+        String result = getClassAlias(elements.get(0).getType());
 
         for (int i = 0; i < elements.size() - 1; i++) {
-            result.append("_").append(elements.get(i).getFieldName());
+            result = appendAlias(result, elements.get(i).getFieldName());
         }
 
-        return result.toString();
+        return result;
+    }
+
+    /**
+     * Append a new field to a parent alias to get new alias.
+     *
+     * @param parentAlias parent path alias
+     * @param fieldName field name
+     * @return alias for the field
+     */
+    public static String appendAlias(String parentAlias, String fieldName) {
+        return parentAlias + "_" + fieldName;
     }
 }
