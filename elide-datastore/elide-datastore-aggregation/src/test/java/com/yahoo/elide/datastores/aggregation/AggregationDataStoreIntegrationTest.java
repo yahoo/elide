@@ -664,54 +664,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void ambiguousFieldTest() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "playerStats",
-                                arguments(
-                                        argument("sort", "\"lowScore\"")
-                                ),
-                                selections(
-                                        field("lowScore"),
-                                        field("overallRating"),
-                                        field("playerName"),
-                                        field("player2Name")
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = document(
-                selections(
-                        field(
-                                "playerStats",
-                                selections(
-                                        field("lowScore", 35),
-                                        field("overallRating", "Good"),
-                                        field("playerName", "Jon Doe"),
-                                        field("player2Name", "Jane Doe")
-                                ),
-                                selections(
-                                        field("lowScore", 72),
-                                        field("overallRating", "Good"),
-                                        field("playerName", "Han"),
-                                        field("player2Name", "Jon Doe")
-                                ),
-                                selections(
-                                        field("lowScore", 241),
-                                        field("overallRating", "Great"),
-                                        field("playerName", "Jane Doe"),
-                                        field("player2Name", "Han")
-                                )
-                        )
-                )
-        ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expected);
-    }
-
-    @Test
     @Disabled
     //FIXME Needs metric computation support for test case to be valid.
     public void aggregationComputedMetricTest() throws Exception {
