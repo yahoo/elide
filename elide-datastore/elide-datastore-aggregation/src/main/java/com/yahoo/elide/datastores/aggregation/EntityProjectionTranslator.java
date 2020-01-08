@@ -66,7 +66,7 @@ public class EntityProjectionTranslator {
      * @return {@link Query} query object with all the parameters provided by user.
      */
     public Query getQuery() {
-        Query query =  Query.builder()
+        Query query = Query.builder()
                 .analyticView(queriedTable)
                 .metrics(metrics)
                 .groupByDimensions(dimensionProjections)

@@ -119,10 +119,11 @@ public class RootCollectionPageTotalsQueryBuilderTest {
         String expected =
                 "SELECT COUNT(DISTINCT example_Author) FROM example.Author AS example_Author "
                 + "LEFT JOIN example_Author.books example_Author_books "
-                + "LEFT JOIN example_Author_books.chapters example_Book_chapters "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher "
-                + "WHERE (example_Book_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
-                + "OR example_Book_publisher.name IN (:books_publisher_name_XXX))";
+                + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters "
+                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher "
+                + "WHERE (example_Author_books_chapters.title IN "
+                + "(:books_chapters_title_XXX, :books_chapters_title_XXX) "
+                + "OR example_Author_books_publisher.name IN (:books_publisher_name_XXX))";
 
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");

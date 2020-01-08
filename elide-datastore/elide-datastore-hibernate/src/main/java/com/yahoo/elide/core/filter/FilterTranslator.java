@@ -51,13 +51,10 @@ public class FilterTranslator implements FilterOperation<String> {
     private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
     private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
 
-    public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_NO_ALIAS = (predicate) -> {
-        return predicate.getFieldPath();
-    };
+    public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_NO_ALIAS = FilterPredicate::getFieldPath;
 
-    public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_WITH_ALIAS = (predicate) -> {
-        return predicate.getAlias() + "." + predicate.getField();
-    };
+    public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_WITH_ALIAS =
+            (predicate) -> FilterPredicate.getPathAlias(predicate.getPath()) + "." + predicate.getField();
 
     static {
         predicateOverrides = new HashMap<>();

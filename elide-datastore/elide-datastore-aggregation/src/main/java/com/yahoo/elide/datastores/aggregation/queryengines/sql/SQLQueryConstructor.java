@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.appendAlias;
+import static com.yahoo.elide.core.filter.FilterPredicate.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
