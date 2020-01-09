@@ -31,7 +31,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
-import com.yahoo.elide.utils.JoinTrieNode;
 
 import org.hibernate.annotations.Subselect;
 
@@ -206,7 +205,7 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Build full join clause for all join paths in a {@link JoinTrieNode}.
+     * Build full join clause for all join paths.
      *
      * @param joinPaths paths that require joins
      * @return built join clause that contains all needed relationship dimension joins for this query.
