@@ -15,23 +15,13 @@ import static graphql.schema.GraphQLObjectType.newObject;
 import com.yahoo.elide.core.EntityDictionary;
 
 import graphql.Scalars;
-import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLEnumType;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLInputObjectField;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLInputType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLScalarType;
+import graphql.schema.*;
+import io.github.classgraph.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Contains methods that convert from a class to a GraphQL input or query type.
@@ -41,6 +31,34 @@ public class GraphQLConversionUtils {
     protected static final String MAP = "Map";
     protected static final String KEY = "key";
     protected static final String VALUE = "value";
+
+    private final static Map<Class<?>, GraphQLScalarType> SCALAR_MAP = new HashMap<>();
+
+    static {
+        final String elideTypeAnnotation = ElideScalarType.class.getCanonicalName();
+        try (ScanResult scanResult =
+                     new ClassGraph()
+                             .enableAllInfo()
+                             .scan()) {
+            for (ClassInfo typeClassInfo : scanResult.getClassesWithAnnotation(elideTypeAnnotation)) {
+                if (typeClassInfo.implementsInterface(Coercing.class.getCanonicalName())) {
+                    AnnotationInfo elideAnnotationInfo = typeClassInfo.getAnnotationInfo(elideTypeAnnotation);
+                    Coercing<?, ?> coercing = (Coercing<?, ?>) typeClassInfo.loadClass()
+                            .getConstructor()
+                            .newInstance();
+                    ElideScalarType annotation = (ElideScalarType) elideAnnotationInfo.loadClassAndInstantiate();
+                    log.info("Detected custom GraphQL scalar : " + typeClassInfo.getName());
+                    SCALAR_MAP.put(annotation.type(), new GraphQLScalarType(annotation.name(),
+                            annotation.description(), coercing));
+                }
+            }
+        } catch (NoSuchMethodException
+                | IllegalAccessException
+                | InstantiationException
+                | InvocationTargetException e) {
+            throw new RuntimeException("Error while scanning custom GraphQL scalars:" + e.getLocalizedMessage());
+        }
+    }
 
     protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
     protected EntityDictionary entityDictionary;
@@ -74,12 +92,13 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLShort;
         } else if (clazz.equals(String.class)) {
             return Scalars.GraphQLString;
-        } else if (Date.class.isAssignableFrom(clazz)) {
-            return GraphQLScalars.GRAPHQL_DATE_TYPE;
         } else if (clazz.equals(BigDecimal.class)) {
             return Scalars.GraphQLBigDecimal;
+        } else if (Date.class.isAssignableFrom(clazz)) {
+            return GraphQLScalars.GRAPHQL_DATE_TYPE;
+        } else if (SCALAR_MAP.containsKey(clazz)) {
+            return SCALAR_MAP.get(clazz);
         }
-
         return null;
     }
 
