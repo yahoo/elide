@@ -16,6 +16,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
+import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
@@ -32,12 +33,12 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class QueryEngineTest extends UnitTest {
+public class QueryEngineTest extends SQLUnitTest {
     private static AnalyticView playerStatsViewTable;
 
     @BeforeAll
     public static void init() {
-        UnitTest.init();
+        SQLUnitTest.init();
 
         playerStatsViewTable = new SQLAnalyticView(PlayerStatsView.class, dictionary);
     }

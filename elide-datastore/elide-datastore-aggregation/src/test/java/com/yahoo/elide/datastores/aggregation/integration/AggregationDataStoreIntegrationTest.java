@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation;
+package com.yahoo.elide.datastores.aggregation.integration;
 
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
@@ -19,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
 

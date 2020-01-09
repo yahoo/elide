@@ -3,8 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-
-package com.yahoo.elide.datastores.aggregation.queryengines.sql;
+package com.yahoo.elide.datastores.aggregation.framework;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -26,6 +25,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
@@ -34,7 +34,7 @@ import java.util.HashMap;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
-public abstract class UnitTest {
+public abstract class SQLUnitTest {
     protected static EntityManagerFactory emf;
     protected static AnalyticView playerStatsTable;
     protected static EntityDictionary dictionary;
@@ -59,6 +59,7 @@ public abstract class UnitTest {
         dictionary.bindEntity(Player.class);
         dictionary.bindEntity(CountryView.class);
         dictionary.bindEntity(CountryViewNested.class);
+        dictionary.bindEntity(Continent.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
         playerStatsTable = new SQLAnalyticView(PlayerStats.class, dictionary);
