@@ -7,8 +7,10 @@ package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.graphql.scalars.OffsetDateTimeScalar;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
+import com.yahoo.elide.utils.coerce.converters.OffsetDateTimeSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import org.junit.jupiter.api.AfterAll;
@@ -20,6 +22,9 @@ import graphql.language.IntValue;
 import graphql.language.StringValue;
 
 import java.math.BigInteger;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -37,6 +42,8 @@ public class GraphQLScalarsTest {
                 "yyyy-MM-dd'T'HH:mm'Z'",
                 TimeZone.getTimeZone("UTC"),
                 java.sql.Date.class));
+
+        CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
     }
 
     @AfterAll
@@ -63,6 +70,30 @@ public class GraphQLScalarsTest {
         Object actual = GraphQLScalars.GRAPHQL_DATE_TYPE.getCoercing().serialize(date);
         String expected = "1970-01-01T00:00Z";
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGraphQLOffsetDateTimeSerialize() {
+        OffsetDateTime offsetDateTime =
+                OffsetDateTime.of(1995, 11, 2,
+                        16, 45, 4, 56,
+                        ZoneOffset.ofHoursMinutes(5,30));
+        String expected = "1995-11-02T16:45:04.000000056+05:30";
+        OffsetDateTimeScalar offsetDateTimeScalar = new OffsetDateTimeScalar();
+        Object actualDate = offsetDateTimeScalar.serialize(offsetDateTime);
+        assertEquals(expected, actualDate);
+    }
+
+    @Test
+    public void testGraphQLOffsetDateTimeDeserialize() {
+        OffsetDateTime expectedDate =
+                OffsetDateTime.of(1995, 11, 2,
+                        16, 45, 4, 56,
+                        ZoneOffset.ofHoursMinutes(5,30));
+        String input = "1995-11-02T16:45:04.000000056+05:30";
+        OffsetDateTimeScalar offsetDateTimeScalar = new OffsetDateTimeScalar();
+        Object actualDate = offsetDateTimeScalar.parseLiteral(new StringValue(input));
+        assertEquals(expectedDate, actualDate);
     }
 
     @Test
