@@ -27,7 +27,6 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.SQLExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -112,7 +111,7 @@ public class SQLQueryConstructor {
 
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(tableCls, dictionary);
-            builder.orderByClause(extractOrderBy(sortClauses, template));
+            builder.orderByClause(extractOrderBy(sortClauses, queriedTable, template));
 
             joinPaths.addAll(extractJoinPaths(sortClauses));
         }
@@ -308,10 +307,15 @@ public class SQLQueryConstructor {
 
     /**
      * Given a list of columns to sort on, constructs an ORDER BY clause in SQL.
-     * @param sortClauses The list of sort columns and their sort order (ascending or descending).
-     * @return A SQL expression
+     *
+     * @param sortClauses requested Elide sorting clauses
+     * @param queriedTable queried logical table
+     * @param template sql template object
+     * @return SQL ORDER BY clause expression
      */
-    private String extractOrderBy(Map<Path, Sorting.SortOrder> sortClauses, SQLQueryTemplate template) {
+    private String extractOrderBy(Map<Path, Sorting.SortOrder> sortClauses,
+                                  SQLAnalyticView queriedTable,
+                                  SQLQueryTemplate template) {
         if (sortClauses.isEmpty()) {
             return "";
         }
@@ -332,27 +336,13 @@ public class SQLQueryConstructor {
                             .findFirst()
                             .orElse(null);
 
-                    if (metric != null) {
+                    // if the sorted field is a metric field on this queried table, it should be present in the request
+                    if (metric != null && last.getType() == queriedTable.getCls()) {
                         return metric.getFunctionExpression()
                                 + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                     }
 
-                    // if the order by path is not expanded, means that there is not joining needed for this sorting,
-                    // then we don't need to wrap the outer sql expression
-                    Path.PathElement root = originalSortingPath.getPathElements().get(0);
-
-                    SQLExpression sqlExpr = expandedPath == originalSortingPath
-                            ? null
-                            : dictionary.getAttributeOrRelationAnnotation(
-                                    root.getType(), SQLExpression.class, root.getFieldName());
-
-                    List<String> expressions = new ArrayList<>();
-
-                    if (sqlExpr != null && !"".equals(sqlExpr.value())) {
-                        expressions.add(sqlExpr.value());
-                    }
-
-                    return generateColumnReference(expandedPath, dictionary, expressions)
+                    return generateColumnReference(originalSortingPath, dictionary, new ArrayList<>())
                             + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
                 .collect(Collectors.joining(","));
