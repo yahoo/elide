@@ -14,6 +14,7 @@ import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.core.EntityDictionary;
 
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import graphql.Scalars;
 import graphql.schema.*;
 import io.github.classgraph.*;
@@ -41,13 +42,21 @@ public class GraphQLConversionUtils {
                              .enableAllInfo()
                              .scan()) {
             for (ClassInfo typeClassInfo : scanResult.getClassesWithAnnotation(elideTypeAnnotation)) {
-                if (typeClassInfo.implementsInterface(Coercing.class.getCanonicalName())) {
+                if (typeClassInfo.implementsInterface(ElideCoercing.class.getCanonicalName())) {
                     AnnotationInfo elideAnnotationInfo = typeClassInfo.getAnnotationInfo(elideTypeAnnotation);
-                    Coercing<?, ?> coercing = (Coercing<?, ?>) typeClassInfo.loadClass()
+                    ElideCoercing<?, ?> coercing = (ElideCoercing<?, ?>) typeClassInfo.loadClass()
                             .getConstructor()
                             .newInstance();
                     ElideScalarType annotation = (ElideScalarType) elideAnnotationInfo.loadClassAndInstantiate();
-                    log.info("Detected custom GraphQL scalar : " + typeClassInfo.getName());
+                    if (annotation.usesSerdeOfType() != Void.class) {
+                        if (coercing.getSerde() != null) {
+                            CoerceUtil.register(annotation.usesSerdeOfType(), coercing.getSerde());
+                            log.info("Registering Serde of type : {}", coercing.getSerde().getClass());
+                        } else {
+                            log.warn("Serde should not be null if not already registered: {}", typeClassInfo.getName());
+                        }
+                    }
+                    log.info("Detected custom GraphQL scalar : {}", typeClassInfo.getName());
                     SCALAR_MAP.put(annotation.type(), new GraphQLScalarType(annotation.name(),
                             annotation.description(), coercing));
                 }

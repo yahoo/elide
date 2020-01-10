@@ -15,5 +15,7 @@ import java.lang.annotation.Target;
 public @interface ElideScalarType {
     Class<?> type();
     String name();
-    String description();
+    String description() default "Custom Elide Scalar type";
+    Class<?> usesSerdeOfType() default Void.class;  //This type will be used to register Serde in CoerceUtil
+                                                    //Keep default Void value if no serde is used or already registered
 }
