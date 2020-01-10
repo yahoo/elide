@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -675,6 +676,102 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
         assertEquals(stats2, results.get(2));
+    }
+
+    /**
+     * Test sql expression in where, sorting, group by and projection.
+     * @throws ParseException exception
+     */
+    @Test
+    public void testBasicSQLExpression() throws ParseException {
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("playerLevel", Sorting.SortOrder.asc);
+
+        Query query = Query.builder()
+                .analyticView(playerStatsTable)
+                .groupByDimension(toProjection(playerStatsTable.getDimension("playerLevel")))
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .sorting(new Sorting(sortMap))
+                .whereFilter(filterParser.parseFilterExpression("playerLevel > 0",
+                        PlayerStats.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setHighScore(1234);
+        stats0.setPlayerLevel(1);
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setHighScore(2412);
+        stats1.setPlayerLevel(2);
+
+        assertEquals(2, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
+    }
+
+    /**
+     * Test relationship sql expression in where, sorting, group by and projection.
+     * @throws ParseException exception
+     */
+    @Test
+    public void testRelationshipSQLExpression() throws ParseException {
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("inUsa", Sorting.SortOrder.asc);
+
+        Query query = Query.builder()
+                .analyticView(playerStatsTable)
+                .groupByDimension(toProjection(playerStatsTable.getDimension("inUsa")))
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .sorting(new Sorting(sortMap))
+                .whereFilter(filterParser.parseFilterExpression("inUsa=in=true",
+                        PlayerStats.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setHighScore(2412);
+        stats0.setInUsa(true);
+
+        assertEquals(1, results.size());
+        assertEquals(stats0, results.get(0));
+    }
+
+    /**
+     * Test a wrapped sql expression on a relationship sql expression in where, sorting, group by and projection.
+     * @throws ParseException exception
+     */
+    @Test
+    public void testWrappedSQLExpression() throws ParseException {
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("countryIsInUsa", Sorting.SortOrder.asc);
+
+        Query query = Query.builder()
+                .analyticView(playerStatsTable)
+                .groupByDimension(toProjection(playerStatsTable.getDimension("countryIsInUsa")))
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .sorting(new Sorting(sortMap))
+                .whereFilter(filterParser.parseFilterExpression("countryIsInUsa=in=true",
+                        PlayerStats.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setHighScore(2412);
+        stats0.setCountryIsInUsa("true");
+
+        assertEquals(1, results.size());
+        assertEquals(stats0, results.get(0));
     }
 
     //TODO - Add Invalid Request Tests
