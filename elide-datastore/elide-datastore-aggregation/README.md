@@ -18,6 +18,18 @@ Analytic models are any Elide models that are annotated with:
 
 The AggregationDataStore will automatically scan and bind any Elide models that contain these annotations.
 
+```java
+@Include(rootLevel = true)
+@FromTable(name = "playerStats")
+public class PlayerStats {
+```
+
+```java
+@Include(rootLevel = true)
+@FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name as countryName FROM playerStats AS stats LEFT JOIN countries AS c ON stats.country_id = c.id WHERE stats.overallRating = 'Great'")
+public class PlayerStatsView {
+```
+
 ## Metrics
 A Metric is any field that is annotated with `MetricAggregation`.  
 
@@ -27,11 +39,8 @@ The `MetricAggregation` annotation is bound to an implementation of a `MetricFun
 zero or more arguments that are passed in the client API request.  The MetricFunction is also responsible for constructing a templated SQL expression for the metric.  This template is expanded during SQL query construction with the client provided arguments and the physical name of the table column.
 
 ```java
-    @MetricAggregation(function = SqlMax.class)
-    @Meta(longName = "awesome score", description = "very awesome score")
-    public long getHighScore() {
-        return highScore;
-    }
+@MetricAggregation(function = SqlMax.class)
+private long highScore;
 ```
 
 The `SqlMax` function could be defined as:
@@ -68,6 +77,38 @@ TBD - this is going to change anyway so will document later.
 Date and time attributes can be marked with the `Temporal` annotation.  The `Temporal` annotation exposes to the client a set of supported time grains.  Each grain has a name (DAILY) and a native SQL expression that converts the underlying physical column to that particular time grain.
 
 All temporal dimensions are parameterized by time grain in the GraphQL API - allowing the client to change the grain at query time.
+
+```java
+public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
+public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')";
+
+@Temporal(grains = {
+        @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DAY_FORMAT),
+        @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
+}, timeZone = "UTC")
+private Date recordedData;
+```
+
+# Metadata Annotations
+
+## Cardinality
+
+The `Cardinality` annotation can mark a dimension attribute with a relative size (small, medium, or large).
+
+```java
+@Cardinality(size = CardinalitySize.MEDIUM)
+private String rating;
+```
+
+## Meta
+
+The `Meta` annotation can provide a name and description for any metric or dimension column.
+
+```java
+@MetricAggregation(function = SqlMax.class)
+@Meta(longName = "awesome score", description = "very awesome score")
+private long highScore;
+```
 
 # Caveates
 
