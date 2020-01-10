@@ -19,6 +19,4 @@ public class OffsetDateTimeSerde implements Serde<String, OffsetDateTime> {
     public String serialize(OffsetDateTime val) {
         return val.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
-
 }
-
