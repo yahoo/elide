@@ -13,6 +13,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -38,6 +39,6 @@ public class TimeDimension extends Dimension {
 
         this.supportedGrains = Arrays.stream(temporal.grains())
                 .map(grain -> new TimeDimensionGrain(getId(), grain))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

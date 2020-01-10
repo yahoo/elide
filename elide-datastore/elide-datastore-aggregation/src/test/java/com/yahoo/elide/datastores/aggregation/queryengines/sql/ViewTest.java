@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
+import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
@@ -26,12 +27,12 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class ViewTest extends UnitTest {
+public class ViewTest extends SQLUnitTest {
     protected static AnalyticView playerStatsWithViewSchema;
 
     @BeforeAll
     public static void init() {
-        UnitTest.init();
+        SQLUnitTest.init();
         playerStatsWithViewSchema = new SQLAnalyticView(PlayerStatsWithView.class, dictionary);
     }
 

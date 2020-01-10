@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
@@ -25,13 +26,13 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class SubselectTest extends UnitTest {
+public class SubselectTest extends SQLUnitTest {
     private static final SubCountry SUB_HONG_KONG = new SubCountry();
     private static final SubCountry SUB_USA = new SubCountry();
 
     @BeforeAll
     public static void init() {
-        UnitTest.init();
+        SQLUnitTest.init();
 
         SUB_HONG_KONG.setIsoCode("HKG");
         SUB_HONG_KONG.setName("Hong Kong");

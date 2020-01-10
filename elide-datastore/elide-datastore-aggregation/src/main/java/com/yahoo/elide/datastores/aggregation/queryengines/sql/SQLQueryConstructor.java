@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.core.filter.FilterPredicate.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
@@ -30,19 +31,15 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.SQLExp
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
-import com.yahoo.elide.utils.JoinTrieNode;
 
 import org.hibernate.annotations.Subselect;
 
-import javafx.util.Pair;
-
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -79,7 +76,7 @@ public class SQLQueryConstructor {
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
 
-        JoinTrieNode joinPaths = new JoinTrieNode(tableCls);
+        Set<Path> joinPaths = new HashSet<>();
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
@@ -96,13 +93,13 @@ public class SQLQueryConstructor {
         if (!groupByDimensions.isEmpty()) {
             builder.groupByClause(constructGroupByWithReference(groupByDimensions, queriedTable));
 
-            joinPaths.addPaths(extractJoinPaths(groupByDimensions, queriedTable), dictionary);
+            joinPaths.addAll(extractJoinPaths(groupByDimensions, queriedTable));
         }
 
         if (whereClause != null) {
             builder.whereClause("WHERE " + translateFilterExpression(whereClause, this::generatePredicateReference));
 
-            joinPaths.addPaths(extractJoinPaths(whereClause), dictionary);
+            joinPaths.addAll(extractJoinPaths(whereClause));
         }
 
         if (havingClause != null) {
@@ -110,14 +107,14 @@ public class SQLQueryConstructor {
                     havingClause,
                     (predicate) -> constructHavingClauseWithReference(predicate, queriedTable, template)));
 
-            joinPaths.addPaths(extractJoinPaths(havingClause), dictionary);
+            joinPaths.addAll(extractJoinPaths(havingClause));
         }
 
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(tableCls, dictionary);
             builder.orderByClause(extractOrderBy(sortClauses, template));
 
-            joinPaths.addPaths(extractJoinPaths(sortClauses), dictionary);
+            joinPaths.addAll(extractJoinPaths(sortClauses));
         }
 
         builder.joinClause(extractJoin(joinPaths));
@@ -209,34 +206,47 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Build full join clause for all join paths in a {@link JoinTrieNode}.
+     * Build full join clause for all join paths.
      *
-     * @param root root node which type is the queried table class
+     * @param joinPaths paths that require joins
      * @return built join clause that contains all needed relationship dimension joins for this query.
      */
-    private String extractJoin(JoinTrieNode root) {
-        // parentAlias-JoinTrieNode pairs queue
-        Queue<Pair<String, JoinTrieNode>> todo = new ArrayDeque<>();
+    private String extractJoin(Set<Path> joinPaths) {
+        Set<String> joinClauses = new LinkedHashSet<>();
 
-        todo.add(new Pair<>(getClassAlias(root.getType()), root));
-        List<String> joinClauses = new ArrayList<>();
-
-        while (!todo.isEmpty()) {
-            Pair<String, JoinTrieNode> current = todo.remove();
-            String parentAlias = current.getKey();
-            JoinTrieNode parent = current.getValue();
-            Map<String, JoinTrieNode> fields = parent.getFields();
-
-            fields.forEach((name, child) -> {
-                joinClauses.add(extractJoin(parent.getType(), parentAlias, child.getType(), name));
-
-                if (child.getFields().size() > 0) {
-                    todo.add(new Pair<>(parentAlias + "_" + name, child));
-                }
-            });
-        }
+        joinPaths.forEach(path -> addJoinClauses(path, joinClauses));
 
         return String.join(" ", joinClauses);
+    }
+
+    /**
+     * Add a join clause to a set of join clauses.
+     *
+     * @param joinPath join path
+     * @param alreadyJoined A set of joins that have already been computed.
+     */
+    private void addJoinClauses(Path joinPath, Set<String> alreadyJoined) {
+        String parentAlias = getClassAlias(joinPath.getPathElements().get(0).getType());
+
+        for (Path.PathElement pathElement : joinPath.getPathElements()) {
+            String fieldName = pathElement.getFieldName();
+            Class<?> parentClass = pathElement.getType();
+
+            // Nothing left to join.
+            if (! dictionary.isRelation(parentClass, fieldName)) {
+                return;
+            }
+
+            String joinFragment = extractJoinClause(
+                    parentClass,
+                    parentAlias,
+                    pathElement.getFieldType(),
+                    fieldName);
+
+            alreadyJoined.add(joinFragment);
+
+            parentAlias = appendAlias(parentAlias, fieldName);
+        }
     }
 
     /**
@@ -248,16 +258,15 @@ public class SQLQueryConstructor {
      * @param relationshipName relationship field name
      * @return built join clause i.e. <code>LEFT JOIN table1 AS dimension1 ON table0.dim_id = dimension1.id</code>
      */
-    private String extractJoin(Class<?> parentClass,
-                               String parentAlias,
-                               Class<?> relationshipClass,
-                               String relationshipName) {
+    private String extractJoinClause(Class<?> parentClass,
+                                     String parentAlias,
+                                     Class<?> relationshipClass,
+                                     String relationshipName) {
         //TODO - support composite join keys.
         //TODO - support joins where either side owns the relationship.
         //TODO - Support INNER and RIGHT joins.
         //TODO - Support toMany joins.
-
-        String relationshipAlias = parentAlias + "_" + relationshipName;
+        String relationshipAlias = appendAlias(parentAlias, relationshipName);
         String relationshipColumnName = dictionary.getAnnotatedColumnName(parentClass, relationshipName);
 
         // resolve the right hand side of JOIN

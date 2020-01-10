@@ -18,28 +18,32 @@ import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvo
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Class that checks whether a constructed {@link Query} object can be executed.
+ * Checks include validate sorting, having clause and make sure there is at least 1 metric queried.
+ */
 public class QueryValidator {
-
     private Query query;
     private Set<String> allFields;
     private EntityDictionary dictionary;
-    private Class<?> type;
     private AnalyticView queriedTable;
+    private Class<?> queriedClass;
     private List<MetricFunctionInvocation> metrics;
     private Set<ColumnProjection> dimensionProjections;
 
-    public QueryValidator(Query query, Set<String> allFields, EntityDictionary dictionary, Class<?> type) {
+    public QueryValidator(Query query, Set<String> allFields, EntityDictionary dictionary) {
         this.query = query;
         this.allFields = allFields;
         this.dictionary = dictionary;
-        this.type = type;
         this.queriedTable = query.getAnalyticView();
+        this.queriedClass = queriedTable.getCls();
         this.metrics = query.getMetrics();
         this.dimensionProjections = query.getDimensions();
     }
@@ -48,8 +52,7 @@ public class QueryValidator {
      * Method that handles all checks to make sure query is valid before we attempt to execute the query.
      */
     public void validate() {
-        FilterExpression havingClause = query.getHavingFilter();
-        validateHavingClause(havingClause);
+        validateHavingClause(query.getHavingFilter());
         validateSorting();
         validateMetricFunction();
     }
@@ -85,8 +88,8 @@ public class QueryValidator {
             if (cls != queriedTable.getCls()) {
                 throw new InvalidOperationException(
                         String.format(
-                                "Classes don't match when try filtering on %s in having clause of %s.",
-                                cls.getSimpleName(),
+                                "Can't filter on relationship field %s in HAVING clause when querying table %s.",
+                                path.toString(),
                                 queriedTable.getCls().getSimpleName()));
             }
 
@@ -125,7 +128,8 @@ public class QueryValidator {
         if (sorting == null) {
             return;
         }
-        Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(type, dictionary);
+
+        Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(queriedClass, dictionary);
         sortClauses.keySet().forEach((path) -> validateSortingPath(path, allFields));
     }
 
@@ -135,17 +139,19 @@ public class QueryValidator {
      * @param allFields Set of all field names included in initial query
      */
     private void validateSortingPath(Path path, Set<String> allFields) {
-        List<Path.PathElement> pathElemenets = path.getPathElements();
+        List<Path.PathElement> pathElements = path.getPathElements();
 
-        //TODO add support for double nested sorting
-        if (pathElemenets.size() > 2) {
+        // TODO: add support for double nested sorting
+        if (pathElements.size() > 2) {
             throw new UnsupportedOperationException(
                     "Currently sorting on double nested fields is not supported");
         }
-        Path.PathElement currentElement = pathElemenets.get(0);
+        Path.PathElement currentElement = pathElements.get(0);
         String currentField = currentElement.getFieldName();
         Class<?> currentClass = currentElement.getType();
-        if (!allFields.stream().anyMatch(field -> field.equals(currentField))) {
+
+        // TODO: support sorting using alias
+        if (allFields.stream().noneMatch(field -> field.equals(currentField))) {
             throw new InvalidOperationException("Can't sort on " + currentField + " as it is not present in query");
         }
         if (dictionary.getIdFieldName(currentClass).equals(currentField)

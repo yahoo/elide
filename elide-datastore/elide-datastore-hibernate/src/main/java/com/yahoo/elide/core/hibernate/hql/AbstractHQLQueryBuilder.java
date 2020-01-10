@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
+import static com.yahoo.elide.core.filter.FilterPredicate.appendAlias;
+import static com.yahoo.elide.core.filter.FilterPredicate.getTypeAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RelationshipType;
@@ -155,23 +158,22 @@ public abstract class AbstractHQLQueryBuilder {
         for (Path.PathElement pathElement : predicate.getPath().getPathElements()) {
             String fieldName = pathElement.getFieldName();
             Class<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
-            String typeAlias = FilterPredicate.getTypeAlias(typeClass);
+            String typeAlias = getTypeAlias(typeClass);
 
-            //Nothing left to join.
+            // Nothing left to join.
             if (! dictionary.isRelation(pathElement.getType(), fieldName)) {
                 return joinClause.toString();
             }
 
-            String alias = typeAlias + UNDERSCORE + fieldName;
+            String alias = previousAlias == null
+                    ? appendAlias(typeAlias, fieldName)
+                    : appendAlias(previousAlias, fieldName);
 
-            String joinFragment;
+            String joinFragment = previousAlias == null
+                    ? LEFT + JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE
+                    : LEFT + JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
 
             //This is the first path element
-            if (previousAlias == null) {
-                joinFragment = LEFT + JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE;
-            } else {
-                joinFragment = LEFT + JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
-            }
 
             if (!alreadyJoined.contains(joinFragment)) {
                 joinClause.append(joinFragment);

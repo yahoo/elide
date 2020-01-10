@@ -66,7 +66,7 @@ public class EntityProjectionTranslator {
      * @return {@link Query} query object with all the parameters provided by user.
      */
     public Query getQuery() {
-        Query query =  Query.builder()
+        Query query = Query.builder()
                 .analyticView(queriedTable)
                 .metrics(metrics)
                 .groupByDimensions(dimensionProjections)
@@ -76,7 +76,8 @@ public class EntityProjectionTranslator {
                 .sorting(entityProjection.getSorting())
                 .pagination(entityProjection.getPagination())
                 .build();
-        QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary, entityProjection.getType());
+
+        QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();
         return query;
     }
@@ -114,10 +115,10 @@ public class EntityProjectionTranslator {
                             .findAny()
                             .orElse(null);
 
-                    TimeDimensionGrain grain;
+                    TimeDimensionGrain resolvedGrain;
                     if (grainArgument == null) {
                         //The first grain is the default.
-                        grain = timeDim.getSupportedGrains().stream()
+                        resolvedGrain = timeDim.getSupportedGrains().stream()
                                 .findFirst()
                                 .orElseThrow(() -> new IllegalStateException(
                                         String.format("Requested default grain, no grain defined on %s",
@@ -125,15 +126,17 @@ public class EntityProjectionTranslator {
                     } else {
                         String requestedGrainName = grainArgument.getValue().toString();
 
-                        grain = timeDim.getSupportedGrains().stream()
-                                .filter(g ->
-                                        g.getGrain().name().toLowerCase(Locale.ENGLISH).equals(requestedGrainName))
+                        resolvedGrain = timeDim.getSupportedGrains().stream()
+                                .filter(supportedGrain -> supportedGrain.getGrain().name().toLowerCase(Locale.ENGLISH)
+                                        .equals(requestedGrainName))
                                 .findFirst()
                                 .orElseThrow(() -> new InvalidOperationException(
-                                        String.format("Invalid grain %s", requestedGrainName)));
+                                        String.format("Unsupported grain %s for field %s",
+                                                requestedGrainName,
+                                                timeDimAttr.getName())));
                     }
 
-                    return ColumnProjection.toProjection(timeDim, grain.getGrain(), timeDimAttr.getAlias());
+                    return ColumnProjection.toProjection(timeDim, resolvedGrain.getGrain(), timeDimAttr.getAlias());
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }

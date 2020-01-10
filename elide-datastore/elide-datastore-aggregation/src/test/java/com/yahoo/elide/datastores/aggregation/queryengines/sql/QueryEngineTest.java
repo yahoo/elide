@@ -16,6 +16,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
+import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
@@ -32,12 +33,12 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class QueryEngineTest extends UnitTest {
+public class QueryEngineTest extends SQLUnitTest {
     private static AnalyticView playerStatsViewTable;
 
     @BeforeAll
     public static void init() {
-        UnitTest.init();
+        SQLUnitTest.init();
 
         playerStatsViewTable = new SQLAnalyticView(PlayerStatsView.class, dictionary);
     }
@@ -91,7 +92,6 @@ public class QueryEngineTest extends UnitTest {
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
@@ -104,7 +104,6 @@ public class QueryEngineTest extends UnitTest {
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
         stats1.setLowScore(241);
-        stats1.setHighScore(2412);
         stats1.setOverallRating("Great");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
@@ -122,10 +121,7 @@ public class QueryEngineTest extends UnitTest {
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .whereFilter(filterParser.parseFilterExpression("country.name=='United States'",
                         PlayerStats.class, false))
                 .build();
@@ -135,25 +131,13 @@ public class QueryEngineTest extends UnitTest {
 
         PlayerStats usa0 = new PlayerStats();
         usa0.setId("0");
-        usa0.setLowScore(241);
-        usa0.setHighScore(2412);
-        usa0.setOverallRating("Great");
+        usa0.setLowScore(35);
         usa0.setCountry(USA);
-        usa0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
-        PlayerStats usa1 = new PlayerStats();
-        usa1.setId("1");
-        usa1.setLowScore(35);
-        usa1.setHighScore(1234);
-        usa1.setOverallRating("Good");
-        usa1.setCountry(USA);
-        usa1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
-
-        assertEquals(2, results.size());
+        assertEquals(1, results.size());
         assertEquals(usa0, results.get(0));
-        assertEquals(usa1, results.get(1));
 
-        // test join
+        // test relationship hydration
         PlayerStats actualStats1 = (PlayerStats) results.get(0);
         assertNotNull(actualStats1.getCountry());
     }
@@ -185,11 +169,9 @@ public class QueryEngineTest extends UnitTest {
 
     /**
      * Test a view which filters on "stats.overallRating = 'Great'".
-     *
-     * @throws Exception exception
      */
     @Test
-    public void testSubqueryLoad() throws Exception {
+    public void testSubqueryLoad() {
         Query query = Query.builder()
                 .analyticView(playerStatsViewTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
@@ -259,7 +241,6 @@ public class QueryEngineTest extends UnitTest {
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .pagination(pagination)
@@ -272,7 +253,6 @@ public class QueryEngineTest extends UnitTest {
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
         stats1.setLowScore(35);
-        stats1.setHighScore(1234);
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
@@ -351,7 +331,7 @@ public class QueryEngineTest extends UnitTest {
      * @throws Exception exception
      */
     @Test
-    public void testTheEverythingQuery() throws Exception {
+    public void testEdgeCasesQuery() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("player.name", Sorting.SortOrder.asc);
 
@@ -429,14 +409,13 @@ public class QueryEngineTest extends UnitTest {
     public void testRelationshipHydration() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("country.name", Sorting.SortOrder.desc);
+        sortMap.put("overallRating", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .sorting(new Sorting(sortMap))
                 .build();
 
@@ -446,26 +425,20 @@ public class QueryEngineTest extends UnitTest {
         PlayerStats usa0 = new PlayerStats();
         usa0.setId("0");
         usa0.setLowScore(241);
-        usa0.setHighScore(2412);
         usa0.setOverallRating("Great");
         usa0.setCountry(USA);
-        usa0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
         PlayerStats usa1 = new PlayerStats();
         usa1.setId("1");
         usa1.setLowScore(35);
-        usa1.setHighScore(1234);
         usa1.setOverallRating("Good");
         usa1.setCountry(USA);
-        usa1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
         PlayerStats hk2 = new PlayerStats();
         hk2.setId("2");
         hk2.setLowScore(72);
-        hk2.setHighScore(1000);
         hk2.setOverallRating("Good");
         hk2.setCountry(HONG_KONG);
-        hk2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
 
         assertEquals(3, results.size());
         assertEquals(usa0, results.get(0));
@@ -479,11 +452,9 @@ public class QueryEngineTest extends UnitTest {
 
     /**
      * Test grouping by a dimension with a JoinTo annotation.
-     *
-     * @throws Exception exception
      */
     @Test
-    public void testJoinToGroupBy() throws Exception {
+    public void testJoinToGroupBy() {
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
@@ -543,11 +514,9 @@ public class QueryEngineTest extends UnitTest {
 
     /**
      * Test grouping by a dimension with a JoinTo annotation.
-     *
-     * @throws Exception exception
      */
     @Test
-    public void testJoinToSort() throws Exception {
+    public void testJoinToSort() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryIsoCode", Sorting.SortOrder.asc);
 
@@ -613,7 +582,7 @@ public class QueryEngineTest extends UnitTest {
      * Test filter by time dimension.
      */
     @Test
-    public void testFilterByTemporalDimension() throws Exception {
+    public void testFilterByTemporalDimension() {
         FilterPredicate predicate = new FilterPredicate(
                 new Path(PlayerStats.class, dictionary, "recordedDate"),
                 Operator.IN,
@@ -666,6 +635,46 @@ public class QueryEngineTest extends UnitTest {
         assertEquals(2, results.size());
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
+    }
+
+    @Test
+    public void testAmbiguousFields() {
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("lowScore", Sorting.SortOrder.asc);
+
+        Query query = Query.builder()
+                .analyticView(playerStatsTable)
+                .groupByDimension(toProjection(playerStatsTable.getDimension("playerName")))
+                .groupByDimension(toProjection(playerStatsTable.getDimension("player2Name")))
+                .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                .sorting(new Sorting(sortMap))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(35);
+        stats0.setPlayerName("Jon Doe");
+        stats0.setPlayer2Name("Jane Doe");
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setLowScore(72);
+        stats1.setPlayerName("Han");
+        stats1.setPlayer2Name("Jon Doe");
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("2");
+        stats2.setLowScore(241);
+        stats2.setPlayerName("Jane Doe");
+        stats2.setPlayer2Name("Han");
+
+        assertEquals(3, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
+        assertEquals(stats2, results.get(2));
     }
 
     //TODO - Add Invalid Request Tests

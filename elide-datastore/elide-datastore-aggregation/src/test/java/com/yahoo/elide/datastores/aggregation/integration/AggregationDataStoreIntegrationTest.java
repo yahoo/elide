@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation;
+package com.yahoo.elide.datastores.aggregation.integration;
 
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
@@ -19,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
 
@@ -115,6 +117,38 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    public void whereFilterTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"overallRating==\\\"Good\\\"\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("overallRating")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 1234),
+                                        field("overallRating", "Good")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void havingFilterTest() throws Exception {
         String graphQLRequest = document(
                 selection(
@@ -126,13 +160,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore"),
                                         field("overallRating"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name"),
-                                                        field("id")
-                                                )
-                                        ),
                                         field(
                                                 "player",
                                                 selections(
@@ -152,13 +179,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field("lowScore", 35),
                                         field("overallRating", "Good"),
                                         field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States"),
-                                                        field("id", "840")
-                                                )
-                                        ),
-                                        field(
                                                 "player",
                                                 selections(
                                                         field("name", "Jon Doe")
@@ -174,7 +194,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     /**
      * Test the case that a where clause is promoted into having clause.
-     * @throws Exception
+     * @throws Exception exception
      */
     @Test
     public void wherePromotionTest() throws Exception {
@@ -232,7 +252,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     /**
      * Test the case that a where clause, which requires dimension join, is promoted into having clause.
-     * @throws Exception
+     * @throws Exception exception
      */
     @Test
     public void havingClauseJoinTest() throws Exception {
@@ -247,13 +267,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore"),
                                         field("countryIsoCode"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name"),
-                                                        field("id")
-                                                )
-                                        ),
                                         field(
                                                 "player",
                                                 selections(
@@ -273,13 +286,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field("lowScore", 35),
                                         field("countryIsoCode", "USA"),
                                         field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States"),
-                                                        field("id", "840")
-                                                )
-                                        ),
-                                        field(
                                                 "player",
                                                 selections(
                                                         field("name", "Jon Doe")
@@ -289,13 +295,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore", 241),
                                         field("countryIsoCode", "USA"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States"),
-                                                        field("id", "840")
-                                                )
-                                        ),
                                         field(
                                                 "player",
                                                 selections(
@@ -312,7 +311,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     /**
      * Test invalid where promotion on a dimension field that is not grouped.
-     * @throws Exception
+     * @throws Exception exception
      */
     @Test
     public void ungroupedHavingDimensionTest() throws Exception {
@@ -338,7 +337,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     /**
      * Test invalid having clause on a metric field that is not aggregated.
-     * @throws Exception
+     * @throws Exception exception
      */
     @Test
     public void nonAggregatedHavingMetricTest() throws Exception {
@@ -364,7 +363,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     /**
      * Test invalid where promotion on a different class than the queried class.
-     * @throws Exception
+     * @throws Exception exception
      */
     @Test
     public void invalidHavingClauseClassTest() throws Exception {
@@ -383,67 +382,14 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         ).toQuery();
 
         String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "'Classes don't match when try filtering on Country in having clause of PlayerStats.'\"";
+                + "'Can't filter on relationship field [PlayerStats].country/[Country].isoCode in HAVING clause "
+                + "when querying table PlayerStats.'\"";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
 
     @Test
-    public void whereFilterTest() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "playerStats",
-                                arguments(
-                                        argument("filter", "\"overallRating==\\\"Good\\\"\"")
-                                ),
-                                selections(
-                                        field("highScore"),
-                                        field("overallRating"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = document(
-                selections(
-                        field(
-                                "playerStats",
-                                selections(
-                                        field("highScore", 1234),
-                                        field("overallRating", "Good"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States")
-                                                )
-                                        )
-                                ),
-                                selections(
-                                        field("highScore", 1000),
-                                        field("overallRating", "Good"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Hong Kong")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expected);
-    }
-
-    @Test
-    public void sortingTest() throws Exception {
+    public void dimensionSortingTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
@@ -479,7 +425,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void aggregationSortingTest() throws Exception {
+    public void metricSortingTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
@@ -530,28 +476,71 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void nestedDimensionNotInQuerySortingTest() throws Exception {
+    public void multipleColumnsSortingTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("sort", "\"-country.name,lowScore\"")
+                                        argument("sort", "\"overallRating,player.name\"")
                                 ),
                                 selections(
-                                        field("lowScore")
+                                        field("lowScore"),
+                                        field("overallRating"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name")
+                                                )
+                                        )
                                 )
                         )
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on country as it is not present in query'\"";
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 72),
+                                        field("overallRating", "Good"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Han")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("lowScore", 35),
+                                        field("overallRating", "Good"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Jon Doe")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("lowScore", 241),
+                                        field("overallRating", "Great"),
+                                        field(
+                                                "player",
+                                                selections(
+                                                        field("name", "Jane Doe")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
 
-        runQueryWithExpectedError(graphQLRequest, expected);
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test
-    public void sortingOnIdTest() throws Exception {
+    public void idSortingTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
@@ -573,67 +562,24 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void multipleColumnsSortingTest() throws Exception {
+    public void nestedDimensionNotInQuerySortingTest() throws Exception {
         String graphQLRequest = document(
                 selection(
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("sort", "\"overallRating,player.name\"")
+                                        argument("sort", "\"-country.name,lowScore\"")
                                 ),
                                 selections(
-                                        field("overallRating"),
-                                        field("lowScore"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
+                                        field("lowScore")
                                 )
                         )
                 )
         ).toQuery();
 
-        String expected = document(
-                selections(
-                        field(
-                                "playerStats",
-                                selections(
-                                        field("overallRating", "Good"),
-                                        field("lowScore", 72),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Han")
-                                                )
-                                        )
-                                ),
-                                selections(
-                                        field("overallRating", "Good"),
-                                        field("lowScore", 35),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Jon Doe")
-                                                )
-                                        )
-                                ),
-                                selections(
-                                        field("overallRating", "Great"),
-                                        field("lowScore", 241),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Jane Doe")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toResponse();
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on country as it is not present in query'\"";
 
-        runQueryWithExpectedResult(graphQLRequest, expected);
+        runQueryWithExpectedError(graphQLRequest, expected);
     }
 
     @Test
@@ -717,54 +663,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         String expected = "\"Exception while fetching data (/playerStats) : Currently sorting on double nested fields is not supported\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
-    }
-
-    @Test
-    public void ambiguousFieldTest() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "playerStats",
-                                arguments(
-                                        argument("sort", "\"lowScore\"")
-                                ),
-                                selections(
-                                        field("lowScore"),
-                                        field("overallRating"),
-                                        field("playerName"),
-                                        field("player2Name")
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = document(
-                selections(
-                        field(
-                                "playerStats",
-                                selections(
-                                        field("lowScore", 35),
-                                        field("overallRating", "Good"),
-                                        field("playerName", "Jon Doe"),
-                                        field("player2Name", "Jane Doe")
-                                ),
-                                selections(
-                                        field("lowScore", 72),
-                                        field("overallRating", "Good"),
-                                        field("playerName", "Han"),
-                                        field("player2Name", "Jon Doe")
-                                ),
-                                selections(
-                                        field("lowScore", 241),
-                                        field("overallRating", "Great"),
-                                        field("playerName", "Jane Doe"),
-                                        field("player2Name", "Han")
-                                )
-                        )
-                )
-        ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test
