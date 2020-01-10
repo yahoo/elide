@@ -324,11 +324,10 @@ public class SQLQueryConstructor {
 
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
-                    Path originalSortingPath = entry.getKey();
-                    Path expandedPath = expandJoinToPath(originalSortingPath);
+                    Path path = entry.getKey();
                     Sorting.SortOrder order = entry.getValue();
 
-                    Path.PathElement last = expandedPath.lastElement().get();
+                    Path.PathElement last = path.lastElement().get();
 
                     MetricFunctionInvocation metric = template.getMetrics().stream()
                             // TODO: filter predicate should support alias
@@ -342,7 +341,7 @@ public class SQLQueryConstructor {
                                 + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                     }
 
-                    return generateColumnReference(originalSortingPath, dictionary, new ArrayList<>())
+                    return generateColumnReference(path, dictionary, new ArrayList<>())
                             + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
                 .collect(Collectors.joining(","));
