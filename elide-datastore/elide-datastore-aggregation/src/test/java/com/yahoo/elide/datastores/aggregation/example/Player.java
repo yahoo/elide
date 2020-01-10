@@ -9,12 +9,11 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+
 import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -32,8 +31,4 @@ public class Player {
 
     @FriendlyName
     private String name;
-
-    @OneToOne
-    @JoinColumn(name = "opponent_id")
-    private Player opponent;
 }

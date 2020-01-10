@@ -21,8 +21,7 @@ CREATE TABLE IF NOT EXISTS countries
 CREATE TABLE IF NOT EXISTS players
     (
       id BIGINT,
-      name VARCHAR(255),
-      opponent_id VARCHAR(255)
+      name VARCHAR(255)
     ) AS SELECT * FROM CSVREAD('classpath:player.csv');
 
 CREATE TABLE IF NOT EXISTS videoGames
