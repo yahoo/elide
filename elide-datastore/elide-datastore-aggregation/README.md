@@ -8,13 +8,84 @@ The `AggregationDataStore` exposes read-only medadata about every table, metric,
 
 # Querying
 
+## JSON-API
+
+Models in the `AggregationDataStore` can be queried via JSON-API or GraphQL.  However, only GraphQL supports the ability to pass parameters to model attributes.  As a result, some model features are unavailable in JSON-API including:
+ - Parameterized Metrics (metrics that take arguments from the API request).
+ - Multiple time grain conversions for a given time field (a single time field can be converted to day or month grain).
+
+## GraphQL
+
+In this query, the client requests the high score per player and player rating:
+
+```
+{
+  "query": "{
+    playerStats {
+      edges {
+        node {
+          highScore 
+          overallRating 
+          playerId
+        }
+      }
+    }
+  }
+}
+```
+
+The result would look like :
+
+```
+{
+  "data": {
+    "playerStats": {
+      "edges": [
+        {
+          "node": {
+            "highScore": 1234,
+            "overallRating": "Good",
+            "deus"
+          }
+        },
+        {
+          "node": {
+            "highScore": 2412,
+            "overallRating": "Great",
+            "player1"
+          }
+        },
+        {
+          "node": {
+            "highScore": 1000,
+            "overallRating": "Good",
+            "zork"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+Elide would generate a SQL query similar to:
+
+```sql
+SELECT highScore, overallRating, playerId from playerStats GROUP BY overallRating, playerId;
+```
+
+## Filtering
+
+When a filter is applied to a dimension, it is added to the WHERE clause of the query.  When a filter is applied to a metric, it is added to the HAVING clause.
+If a filter expression includes a boolean OR of a metric and dimension filter, the entire expression will run as a HAVING clause.
+
 # Model Construction
 
 ## Tables
 
 Analytic models are any Elide models that are annotated with:
 1. `FromTable` - References a database table or view name.
-2. `FromSubquery` - References a native SQL query that is used to populate the model.
+2. `FromSubquery` - References a native SQL query that is used to populate the model.  The underlying database must support SQL subqueries in the FROM clause.
 
 The AggregationDataStore will automatically scan and bind any Elide models that contain these annotations.
 
@@ -33,10 +104,7 @@ public class PlayerStatsView {
 ## Metrics
 A Metric is any field that is annotated with `MetricAggregation`.  
 
-Metrics can be parameterized with zero or more arguments that are passed in the client API request.
-
-The `MetricAggregation` annotation is bound to an implementation of a `MetricFunction`.  A MetricFunction can be parameterized with
-zero or more arguments that are passed in the client API request.  The MetricFunction is also responsible for constructing a templated SQL expression for the metric.  This template is expanded during SQL query construction with the client provided arguments and the physical name of the table column.
+The `MetricAggregation` annotation is bound to an implementation of a `MetricFunction`.  A MetricFunction can be parameterized with zero or more arguments that are passed in the client API request.  The MetricFunction is also responsible for constructing a templated SQL expression for the metric.  This template is expanded during SQL query construction with the client provided arguments and the physical name of the table column.
 
 ```java
 @MetricAggregation(function = SqlMax.class)
@@ -74,7 +142,7 @@ TBD - this is going to change anyway so will document later.
 
 ## Time Dimensions
 
-Date and time attributes can be marked with the `Temporal` annotation.  The `Temporal` annotation exposes to the client a set of supported time grains.  Each grain has a name (DAILY) and a native SQL expression that converts the underlying physical column to that particular time grain.
+Date and time attributes can be marked with the `Temporal` annotation.  The `Temporal` annotation exposes a set of supported time grains to the client.  Each grain has a name (DAY) and a native SQL expression that converts the underlying physical column to that particular time grain.
 
 All temporal dimensions are parameterized by time grain in the GraphQL API - allowing the client to change the grain at query time.
 
