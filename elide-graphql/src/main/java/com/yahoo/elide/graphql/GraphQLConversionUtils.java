@@ -16,13 +16,28 @@ import com.yahoo.elide.core.EntityDictionary;
 
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import graphql.Scalars;
-import graphql.schema.*;
-import io.github.classgraph.*;
+import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectField;
+import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLInputType;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLScalarType;
+import io.github.classgraph.AnnotationInfo;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Contains methods that convert from a class to a GraphQL input or query type.
@@ -65,7 +80,9 @@ public class GraphQLConversionUtils {
                 | IllegalAccessException
                 | InstantiationException
                 | InvocationTargetException e) {
-            throw new RuntimeException("Error while scanning custom GraphQL scalars:" + e.getLocalizedMessage());
+            log.error("Error while scanning custom GraphQL scalars:" + e.getLocalizedMessage(), e);
+            throw new UnableToAddScalarException("Error while scanning custom GraphQL scalars:"
+                    + e.getLocalizedMessage());
         }
     }
 

@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.utils.coerce.converters;
 
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
