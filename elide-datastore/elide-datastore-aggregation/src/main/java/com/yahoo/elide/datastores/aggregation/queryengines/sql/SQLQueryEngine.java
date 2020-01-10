@@ -5,7 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.core.filter.FilterPredicate.getPathAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -19,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -216,7 +220,7 @@ public class SQLQueryEngine implements QueryEngine {
         String groupByDimensions =
                 extractSQLDimensions(sql.getClientQuery(), (SQLAnalyticView) sql.getClientQuery().getAnalyticView())
                         .stream()
-                        .map(SQLColumn::getColumnName)
+                        .map(SQLColumn::getReference)
                         .collect(Collectors.joining(", "));
 
         String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
@@ -241,6 +245,29 @@ public class SQLQueryEngine implements QueryEngine {
         return query.getDimensions().stream()
                 .map(projection -> queriedTable.getColumn(projection.getColumn().getName()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a filter predicate path into a SQL column reference.
+     * All other code should use this method to generate sql column reference, no matter where the reference is used (
+     * select statement, group by clause, where clause, having clause or order by clause).
+     *
+     * @param path The predicate path to convert
+     * @param dictionary dictionary to expand joinTo path
+     * @return A SQL fragment that references a database column
+     */
+    public static String generateColumnReference(Path path, EntityDictionary dictionary) {
+        Path.PathElement last = path.lastElement().get();
+        Class<?> lastClass = last.getType();
+        String fieldName = last.getFieldName();
+
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
+
+        if (joinTo == null) {
+            return getPathAlias(path) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
+        } else {
+            return generateColumnReference(new Path(lastClass, dictionary, joinTo.path()), dictionary);
+        }
     }
 
     /**

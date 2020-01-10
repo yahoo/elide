@@ -9,11 +9,12 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-
 import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -31,6 +32,8 @@ public class Country {
     private String isoCode;
 
     private String name;
+
+    private Continent continent;
 
     @Id
     public String getId() {
@@ -56,5 +59,15 @@ public class Country {
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "continent_id")
+    public Continent getContinent() {
+        return continent;
+    }
+
+    public void setContinent(Continent continent) {
+        this.continent = continent;
     }
 }

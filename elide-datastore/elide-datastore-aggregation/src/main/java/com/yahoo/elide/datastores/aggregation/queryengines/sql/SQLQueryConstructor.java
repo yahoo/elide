@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.core.filter.FilterPredicate.appendAlias;
+import static com.yahoo.elide.core.filter.FilterPredicate.getTypeAlias;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
@@ -32,6 +35,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTem
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +75,7 @@ public class SQLQueryConstructor {
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
 
-        Set<Path.PathElement> joinPredicates = new LinkedHashSet<>();
+        Set<Path> joinPaths = new HashSet<>();
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
@@ -87,34 +91,32 @@ public class SQLQueryConstructor {
 
         if (!groupByDimensions.isEmpty()) {
             builder.groupByClause(constructGroupByWithReference(groupByDimensions, queriedTable));
-            joinPredicates.addAll(extractPathElements(groupByDimensions, queriedTable));
+
+            joinPaths.addAll(extractJoinPaths(groupByDimensions, queriedTable));
         }
 
         if (whereClause != null) {
-            joinPredicates.addAll(extractPathElements(whereClause));
-            builder.whereClause("WHERE " + translateFilterExpression(
-                    whereClause,
-                    this::generateColumnReference));
+            builder.whereClause("WHERE " + translateFilterExpression(whereClause, this::generatePredicateReference));
+
+            joinPaths.addAll(extractJoinPaths(whereClause));
         }
 
         if (havingClause != null) {
-            joinPredicates.addAll(extractPathElements(havingClause));
             builder.havingClause("HAVING " + translateFilterExpression(
                     havingClause,
                     (predicate) -> constructHavingClauseWithReference(predicate, queriedTable, template)));
+
+            joinPaths.addAll(extractJoinPaths(havingClause));
         }
 
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(tableCls, dictionary);
-            builder.orderByClause(extractOrderBy(tableCls, sortClauses));
-            joinPredicates.addAll(extractPathElements(sortClauses));
+            builder.orderByClause(extractOrderBy(sortClauses, template));
+
+            joinPaths.addAll(extractJoinPaths(sortClauses));
         }
 
-        String joinClause = joinPredicates.stream()
-                .map(this::extractJoin)
-                .collect(Collectors.joining(" "));
-
-        builder.joinClause(joinClause);
+        builder.joinClause(extractJoin(joinPaths));
 
         return builder.build();
     }
@@ -161,7 +163,7 @@ public class SQLQueryConstructor {
         if (metric != null) {
             return metric.getFunctionExpression();
         } else {
-            return generateColumnReference(predicate);
+            return generatePredicateReference(predicate);
         }
     }
 
@@ -203,42 +205,87 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Given one component of the path taken to reach a particular field, extracts any table
-     * joins that are required to perform the traversal to the field.
+     * Build full join clause for all join paths.
      *
-     * @param pathElement A field or relationship traversal from an entity
-     * @return A SQL JOIN expression
+     * @param joinPaths paths that require joins
+     * @return built join clause that contains all needed relationship dimension joins for this query.
      */
-    private String extractJoin(Path.PathElement pathElement) {
+    private String extractJoin(Set<Path> joinPaths) {
+        Set<String> joinClauses = new LinkedHashSet<>();
+
+        joinPaths.forEach(path -> addJoinClauses(path, joinClauses));
+
+        return String.join(" ", joinClauses);
+    }
+
+    /**
+     * Add a join clause to a set of join clauses.
+     *
+     * @param joinPath join path
+     * @param alreadyJoined A set of joins that have already been computed.
+     */
+    private void addJoinClauses(Path joinPath, Set<String> alreadyJoined) {
+        String parentAlias = getTypeAlias(joinPath.getPathElements().get(0).getType());
+
+        for (Path.PathElement pathElement : joinPath.getPathElements()) {
+            String fieldName = pathElement.getFieldName();
+            Class<?> parentClass = pathElement.getType();
+
+            // Nothing left to join.
+            if (! dictionary.isRelation(parentClass, fieldName)) {
+                return;
+            }
+
+            String joinFragment = extractJoinClause(
+                    parentClass,
+                    parentAlias,
+                    pathElement.getFieldType(),
+                    fieldName);
+
+            alreadyJoined.add(joinFragment);
+
+            parentAlias = appendAlias(parentAlias, fieldName);
+        }
+    }
+
+    /**
+     * Build a single dimension join clause for joining a relationship table to the parent table.
+     *
+     * @param parentClass parent class
+     * @param parentAlias parent table alias
+     * @param relationshipClass relationship class
+     * @param relationshipName relationship field name
+     * @return built join clause i.e. <code>LEFT JOIN table1 AS dimension1 ON table0.dim_id = dimension1.id</code>
+     */
+    private String extractJoinClause(Class<?> parentClass,
+                                     String parentAlias,
+                                     Class<?> relationshipClass,
+                                     String relationshipName) {
         //TODO - support composite join keys.
         //TODO - support joins where either side owns the relationship.
         //TODO - Support INNER and RIGHT joins.
         //TODO - Support toMany joins.
-        Class<?> entityClass = pathElement.getType();
-        String entityAlias = FilterPredicate.getTypeAlias(entityClass);
 
-        Class<?> relationshipClass = pathElement.getFieldType();
-        String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
-        String relationshipName = pathElement.getFieldName();
-        String relationshipColumnName = dictionary.getAnnotatedColumnName(entityClass, relationshipName);
+        String relationshipAlias = appendAlias(parentAlias, relationshipName);
+        String relationshipColumnName = dictionary.getAnnotatedColumnName(parentClass, relationshipName);
 
         // resolve the right hand side of JOIN
         String joinSource = constructTableOrSubselect(relationshipClass);
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(
-                entityClass,
+                parentClass,
                 JoinTo.class,
                 relationshipColumnName);
 
         String joinClause = joinTo == null
                 ? String.format("%s.%s = %s.%s",
-                entityAlias,
+                parentAlias,
                 relationshipColumnName,
                 relationshipAlias,
                 dictionary.getAnnotatedColumnName(
                         relationshipClass,
                         dictionary.getIdFieldName(relationshipClass)))
-                : extractJoinExpression(joinTo.joinClause(), entityAlias, relationshipAlias);
+                : extractJoinExpression(joinTo.joinClause(), parentAlias, relationshipAlias);
 
         return String.format("LEFT JOIN %s AS %s ON %s",
                 joinSource,
@@ -261,29 +308,36 @@ public class SQLQueryConstructor {
 
     /**
      * Given a list of columns to sort on, constructs an ORDER BY clause in SQL.
-     *
-     * @param entityClass The class to sort.
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A SQL expression
      */
-    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses) {
+    private String extractOrderBy(Map<Path, Sorting.SortOrder> sortClauses, SQLQueryTemplate template) {
         if (sortClauses.isEmpty()) {
             return "";
         }
 
         //TODO - Ensure that order by columns are also present in the group by.
+
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
-                    Path path = entry.getKey();
-                    path = expandJoinToPath(path);
+                    Path expandedPath = expandJoinToPath(entry.getKey());
                     Sorting.SortOrder order = entry.getValue();
 
-                    Path.PathElement last = path.lastElement().get();
+                    Path.PathElement last = expandedPath.lastElement().get();
 
-                    return getClassAlias(last.getType()) + "."
-                            + dictionary.getAnnotatedColumnName(entityClass, last.getFieldName())
-                            + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
-                }).collect(Collectors.joining(","));
+                    MetricFunctionInvocation metric = template.getMetrics().stream()
+                            // TODO: filter predicate should support alias
+                            .filter(invocation -> invocation.getAlias().equals(last.getFieldName()))
+                            .findFirst()
+                            .orElse(null);
+
+                    String orderByClause = metric == null
+                            ? generateColumnReference(expandedPath, dictionary)
+                            : metric.getFunctionExpression();
+
+                    return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
+                })
+                .collect(Collectors.joining(","));
     }
 
     /**
@@ -294,18 +348,18 @@ public class SQLQueryConstructor {
      * @return The expanded path.
      */
     private Path expandJoinToPath(Path path) {
-        List<Path.PathElement> pathElements = path.getPathElements();
-        Path.PathElement pathElement = pathElements.get(0);
+        Path.PathElement pathRoot = path.getPathElements().get(0);
 
-        Class<?> type = pathElement.getType();
-        String fieldName = pathElement.getFieldName();
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(type, JoinTo.class, fieldName);
+        Class<?> entityClass = pathRoot.getType();
+        String fieldName = pathRoot.getFieldName();
+
+        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(entityClass, JoinTo.class, fieldName);
 
         if (joinTo == null || joinTo.path().equals("")) {
             return path;
         }
 
-        return new Path(pathElement.getType(), dictionary, joinTo.path());
+        return new Path(entityClass, dictionary, joinTo.path());
     }
 
     /**
@@ -314,15 +368,13 @@ public class SQLQueryConstructor {
      * @param expression The filter expression
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path.PathElement> extractPathElements(FilterExpression expression) {
+    private Set<Path> extractJoinPaths(FilterExpression expression) {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
                 .map(FilterPredicate::getPath)
                 .map(this::expandJoinToPath)
                 .filter(path -> path.getPathElements().size() > 1)
-                .map(this::extractPathElements)
-                .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -332,11 +384,9 @@ public class SQLQueryConstructor {
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path.PathElement> extractPathElements(Map<Path, Sorting.SortOrder> sortClauses) {
+    private Set<Path> extractJoinPaths(Map<Path, Sorting.SortOrder> sortClauses) {
         return sortClauses.keySet().stream()
                 .map(this::expandJoinToPath)
-                .map(this::extractPathElements)
-                .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -348,25 +398,11 @@ public class SQLQueryConstructor {
      * @param queriedTable queried analytic view
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path.PathElement> extractPathElements(Set<ColumnProjection> groupByDimensions,
-                                                      SQLAnalyticView queriedTable) {
+    private Set<Path> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
+                                       SQLAnalyticView queriedTable) {
         return resolveSQLColumns(groupByDimensions, queriedTable).stream()
                 .filter((dim) -> dim.getJoinPath() != null)
                 .map(SQLColumn::getJoinPath)
-                .map(this::extractPathElements)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    /**
-     * Given a path , extracts any entity relationship traversals that require joins.
-     *
-     * @param path The path
-     * @return A set of path elements that capture a relationship traversal.
-     */
-    private Set<Path.PathElement> extractPathElements(Path path) {
-        return path.getPathElements().stream()
-                .filter((p) -> dictionary.isRelation(p.getType(), p.getFieldName()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -390,28 +426,8 @@ public class SQLQueryConstructor {
      * @param predicate The predicate to convert
      * @return A SQL fragment that references a database column
      */
-    private String generateColumnReference(FilterPredicate predicate) {
-        return generateColumnReference(predicate.getPath());
-    }
-
-    /**
-     * Converts a filter predicate path into a SQL WHERE/HAVING clause column reference.
-     *
-     * @param path The predicate path to convert
-     * @return A SQL fragment that references a database column
-     */
-    private String generateColumnReference(Path path) {
-        Path.PathElement last = path.lastElement().get();
-        Class<?> lastClass = last.getType();
-        String fieldName = last.getFieldName();
-
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
-
-        if (joinTo == null) {
-            return getClassAlias(lastClass) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
-        } else {
-            return generateColumnReference(new Path(lastClass, dictionary, joinTo.path()));
-        }
+    private String generatePredicateReference(FilterPredicate predicate) {
+        return generateColumnReference(predicate.getPath(), dictionary);
     }
 
     /**
@@ -467,8 +483,7 @@ public class SQLQueryConstructor {
                 return dictionary.getAnnotation(cls, Subselect.class).value();
             }
         } else {
-            javax.persistence.Table table =
-                    dictionary.getAnnotation(cls, javax.persistence.Table.class);
+            javax.persistence.Table table = dictionary.getAnnotation(cls, javax.persistence.Table.class);
 
             if (table != null) {
                 return resolveTableAnnotation(table);
