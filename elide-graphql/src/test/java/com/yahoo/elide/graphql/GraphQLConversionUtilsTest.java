@@ -9,8 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yahoo.elide.core.EntityDictionary;
-import graphql.schema.GraphQLScalarType;
+
 import org.junit.jupiter.api.Test;
+
+import graphql.schema.GraphQLScalarType;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;

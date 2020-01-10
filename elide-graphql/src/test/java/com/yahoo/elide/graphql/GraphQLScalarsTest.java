@@ -24,7 +24,6 @@ import graphql.language.StringValue;
 import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -77,7 +76,7 @@ public class GraphQLScalarsTest {
         OffsetDateTime offsetDateTime =
                 OffsetDateTime.of(1995, 11, 2,
                         16, 45, 4, 56,
-                        ZoneOffset.ofHoursMinutes(5,30));
+                        ZoneOffset.ofHoursMinutes(5, 30));
         String expected = "1995-11-02T16:45:04.000000056+05:30";
         OffsetDateTimeScalar offsetDateTimeScalar = new OffsetDateTimeScalar();
         Object actualDate = offsetDateTimeScalar.serialize(offsetDateTime);
@@ -89,7 +88,7 @@ public class GraphQLScalarsTest {
         OffsetDateTime expectedDate =
                 OffsetDateTime.of(1995, 11, 2,
                         16, 45, 4, 56,
-                        ZoneOffset.ofHoursMinutes(5,30));
+                        ZoneOffset.ofHoursMinutes(5, 30));
         String input = "1995-11-02T16:45:04.000000056+05:30";
         OffsetDateTimeScalar offsetDateTimeScalar = new OffsetDateTimeScalar();
         Object actualDate = offsetDateTimeScalar.parseLiteral(new StringValue(input));
