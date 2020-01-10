@@ -122,7 +122,7 @@ public class SqlMax extends SQLMetricFunction {
 ```
 ### Mapping To Physical Columns
 
-Metrics can be mapped to a phsyical column by using the JPA `Column` annotation.  If no such annotation is present, the metric name is used as the mapping.
+Metrics can be mapped to a physical column by using the JPA `Column` annotation.  If no such annotation is present, the metric name is used as the mapping.
 
 ## Attribute Dimensions
 
@@ -178,7 +178,7 @@ The `Meta` annotation can provide a name and description for any metric or dimen
 private long highScore;
 ```
 
-# Caveates
+# Caveats
 
 0. You can't group by a relationship attribute.
 1. You can't sort by a relationship attribute because you can't group by it.
