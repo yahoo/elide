@@ -1,0 +1,129 @@
+{
+  "data": {
+    "__type": {
+      "name": "_edges__playerStatsWithView",
+      "fields": [
+        {
+          "name": "node",
+          "type": {
+            "name": "_node__playerStatsWithView",
+            "fields": [
+              {
+                "name": "id",
+                "type": {
+                  "name": "DeferredID",
+                  "fields": null
+                }
+              },
+              {
+                "name": "countryIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "countryViewIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "countryViewRelationshipIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "countryViewViewIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "highScore",
+                "type": {
+                  "name": "Long",
+                  "fields": null
+                }
+              },
+              {
+                "name": "lowScore",
+                "type": {
+                  "name": "Long",
+                  "fields": null
+                }
+              },
+              {
+                "name": "overallRating",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "recordedDate",
+                "type": {
+                  "name": "Date",
+                  "fields": null
+                }
+              },
+              {
+                "name": "subCountryIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "country",
+                "type": {
+                  "name": "country",
+                  "fields": [
+                    {
+                      "name": "edges"
+                    },
+                    {
+                      "name": "pageInfo"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "player",
+                "type": {
+                  "name": "player",
+                  "fields": [
+                    {
+                      "name": "edges"
+                    },
+                    {
+                      "name": "pageInfo"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "subCountry",
+                "type": {
+                  "name": "subCountry",
+                  "fields": [
+                    {
+                      "name": "edges"
+                    },
+                    {
+                      "name": "pageInfo"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

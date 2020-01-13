@@ -131,7 +131,12 @@ public class ModelBuilder {
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
         connectionObjectRegistry = new HashMap<>();
-        excludedEntities = new HashSet<>();
+
+        // non-JPA entities can't be exposed as relationship as they don't have unique id field,
+        // but can still be queried as root classes.
+        excludedEntities = dictionary.getBindings().stream()
+                .filter(cls -> !dictionary.isJPAEntity(cls))
+                .collect(Collectors.toSet());
     }
 
     public void withExcludedEntities(Set<Class<?>> excludedEntities) {
