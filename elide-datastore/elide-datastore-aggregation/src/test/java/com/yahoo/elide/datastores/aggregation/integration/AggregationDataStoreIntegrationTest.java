@@ -28,12 +28,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ValidatableResponse;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
@@ -47,6 +50,34 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     @Override
     protected DataStoreTestHarness createHarness() {
         return new AggregationDataStoreTestHarness(Persistence.createEntityManagerFactory("aggregationStore"));
+    }
+
+    @Test
+    public void testGraphQLSchema() throws IOException {
+        String graphQLRequest = "{"
+                + "__type(name: \"_edges__playerStatsWithView\") {"
+                + "   name "
+                + "     fields {"
+                + "         name "
+                + "         type {"
+                + "             name"
+                + "             fields {"
+                + "                 name "
+                + "                 type {"
+                + "                     name "
+                + "                     fields {"
+                + "                         name"
+                + "                     }"
+                + "                 }"
+                + "             }"
+                + "         }"
+                + "     }"
+                + "}"
+                + "}";
+
+        String expected = loadGraphQLResponse("testGraphQLSchema.json");
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test
@@ -937,5 +968,11 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
             graphqlNode.set("variables", JSON_MAPPER.valueToTree(variables));
         }
         return graphqlNode;
+    }
+
+    public String loadGraphQLResponse(String fileName) throws IOException {
+        try (InputStream in = AggregationDataStoreIntegrationTest.class.getResourceAsStream("/graphql/responses/" + fileName)) {
+            return FileUtils.readFully(new InputStreamReader(in));
+        }
     }
 }
