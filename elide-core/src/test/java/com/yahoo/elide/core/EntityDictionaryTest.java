@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -19,9 +20,12 @@ import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.models.generics.Employee;
 import com.yahoo.elide.models.generics.Manager;
+import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
@@ -47,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -96,7 +101,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testCheckScan() {
 
         @SecurityCheck("User is Admin")
-        class Foo extends UserCheck {
+        class Bar extends UserCheck {
 
             @Override
             public boolean ok(com.yahoo.elide.security.User user) {
@@ -107,7 +112,34 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
         testDictionary.scanForSecurityChecks();
 
-        assertEquals("User is Admin", testDictionary.getCheckIdentifier(Foo.class));
+        assertEquals("User is Admin", testDictionary.getCheckIdentifier(Bar.class));
+    }
+
+    @Test
+    public void testCheckInjection() {
+
+        @SecurityCheck("Filter Expression Injection Test")
+        class Foo extends FilterExpressionCheck {
+
+            @Inject
+            Long testLong;
+
+            @Override
+            public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+                assertEquals(testLong, 123L);
+                return null;
+            }
+        }
+
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
+            @Override
+            public void inject(Object entity) {
+                ((Foo) entity).testLong = 123L;
+            }
+        });
+        testDictionary.scanForSecurityChecks();
+
+        assertEquals("Filter Expression Injection Test", testDictionary.getCheckIdentifier(Foo.class));
     }
 
     @Test

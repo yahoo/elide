@@ -53,14 +53,12 @@ import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
-import example.TestCheckMappings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -81,28 +79,11 @@ public class LifeCycleTest {
     private MockCallback onUpdatePostCommitCallback;
     private MockCallback onUpdatePostCommitAuthor;
 
-
     public class MockCallback<T> implements LifeCycleHook<T> {
         @Override
         public void execute(T object, com.yahoo.elide.security.RequestScope scope, Optional<ChangeSpec> changes) {
             //NOOP
         }
-    }
-
-    public class TestEntityDictionary extends EntityDictionary {
-        public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
-            super(checks);
-        }
-
-        @Override
-        public Class<?> lookupBoundClass(Class<?> objClass) {
-            // Special handling for mocked Book class which has Entity annotation
-            if (objClass.getName().contains("$MockitoMock$")) {
-                objClass = objClass.getSuperclass();
-            }
-            return super.lookupBoundClass(objClass);
-        }
-
     }
 
     LifeCycleTest() throws Exception {
@@ -111,7 +92,7 @@ public class LifeCycleTest {
         onUpdateImmediateCallback = mock(MockCallback.class);
         onUpdatePostCommitCallback = mock(MockCallback.class);
         onUpdatePostCommitAuthor = mock(MockCallback.class);
-        dictionary = new TestEntityDictionary(TestCheckMappings.MAPPINGS);
+        dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
@@ -637,7 +618,7 @@ public class LifeCycleTest {
             }
         }
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         dictionary.bindEntity(Book.class);
 
@@ -661,7 +642,7 @@ public class LifeCycleTest {
             }
         }
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         dictionary.bindEntity(Book.class);
 
@@ -715,7 +696,7 @@ public class LifeCycleTest {
             }
         }
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         dictionary.bindEntity(Book.class);
 
@@ -777,7 +758,7 @@ public class LifeCycleTest {
             }
         }
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         dictionary.bindEntity(Book.class);
 
@@ -839,7 +820,7 @@ public class LifeCycleTest {
             }
         }
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         dictionary.bindEntity(Book.class);
 
@@ -903,7 +884,7 @@ public class LifeCycleTest {
             }
         }
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         dictionary.bindEntity(Book.class);
 

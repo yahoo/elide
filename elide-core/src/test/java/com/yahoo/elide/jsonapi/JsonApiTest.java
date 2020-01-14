@@ -14,6 +14,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -27,7 +28,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
 import example.Child;
 import example.Parent;
-import example.TestCheckMappings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -50,7 +50,7 @@ public class JsonApiTest {
 
     @BeforeEach
     void init() {
-        dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+        dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(Child.class);
         dictionary.bindInitializer(Parent::doInit, Parent.class);

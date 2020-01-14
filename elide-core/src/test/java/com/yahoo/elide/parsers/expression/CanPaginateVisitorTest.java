@@ -15,6 +15,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.FilterExpressionCheck;
@@ -90,7 +91,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
 
         RequestScope scope = mock(RequestScope.class);
@@ -109,7 +110,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -127,7 +128,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -146,7 +147,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -166,7 +167,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -185,7 +186,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -204,7 +205,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -223,7 +224,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -242,7 +243,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -261,7 +262,7 @@ public class CanPaginateVisitorTest {
             private String title;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -283,7 +284,7 @@ public class CanPaginateVisitorTest {
             private Date publicationDate;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -306,7 +307,7 @@ public class CanPaginateVisitorTest {
             private Date publicationDate;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
@@ -331,7 +332,7 @@ public class CanPaginateVisitorTest {
             private boolean outOfPrint;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 

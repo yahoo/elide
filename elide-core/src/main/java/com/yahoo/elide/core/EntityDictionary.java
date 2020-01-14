@@ -36,6 +36,7 @@ import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
@@ -84,6 +85,8 @@ public class EntityDictionary {
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Class<?>, List<Class<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+
+    @Getter
     protected final Injector injector;
 
     public final static String REGULAR_ID_NAME = "id";

@@ -15,6 +15,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Role;
@@ -40,7 +41,7 @@ public class PermissionExpressionBuilderTest {
         checks.put("user has all access", Role.ALL.class);
         checks.put("user has no access", Role.NONE.class);
 
-        dictionary = new EntityDictionary(checks);
+        dictionary = TestDictionary.getTestDictionary(checks);
 
         ExpressionResultCache cache = new ExpressionResultCache();
         builder = new PermissionExpressionBuilder(cache, dictionary);
