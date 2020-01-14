@@ -16,6 +16,7 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -37,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +171,22 @@ public class SQLQueryEngine implements QueryEngine {
                             timeDimension);
                 })
                 .reduce(SQLQueryTemplate::merge)
-                .orElseThrow(() -> new InvalidPredicateException("Metric function not found"));
+                .orElse(new SQLQueryTemplate() {
+                    @Override
+                    public List<MetricFunctionInvocation> getMetrics() {
+                        return Collections.emptyList();
+                    }
+
+                    @Override
+                    public Set<ColumnProjection> getNonTimeDimensions() {
+                        return groupByDimensions;
+                    }
+
+                    @Override
+                    public TimeDimensionProjection getTimeDimension() {
+                        return timeDimension;
+                    }
+                });
 
         return new SQLQueryConstructor(metadataDictionary).resolveTemplate(
                 query,

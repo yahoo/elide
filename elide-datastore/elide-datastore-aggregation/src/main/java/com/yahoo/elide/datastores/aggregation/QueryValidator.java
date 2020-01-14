@@ -19,8 +19,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 
-import org.apache.commons.collections.CollectionUtils;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,16 +52,6 @@ public class QueryValidator {
     public void validate() {
         validateHavingClause(query.getHavingFilter());
         validateSorting();
-        validateMetricFunction();
-    }
-
-    /**
-     * Checks to make sure at least one metric is being aggregated on.
-     */
-    private void validateMetricFunction() {
-        if (CollectionUtils.isEmpty(metrics)) {
-            throw new InvalidOperationException("Must provide at least one metric in query");
-        }
     }
 
     /**
@@ -145,6 +133,12 @@ public class QueryValidator {
             throw new UnsupportedOperationException(
                     "Currently sorting on double nested fields is not supported");
         }
+
+        if (metrics.isEmpty() && pathElements.size() > 1) {
+            throw new UnsupportedOperationException(
+                    "Query with no metric can't sort on nested field.");
+        }
+
         Path.PathElement currentElement = pathElements.get(0);
         String currentField = currentElement.getFieldName();
         Class<?> currentClass = currentElement.getType();

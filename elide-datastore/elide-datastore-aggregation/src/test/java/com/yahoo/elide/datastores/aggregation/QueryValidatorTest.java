@@ -36,15 +36,19 @@ public class QueryValidatorTest extends SQLUnitTest {
 
     @Test
     public void testNoMetricQuery() {
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("country.name", Sorting.SortOrder.asc);
+
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .sorting(new Sorting(sortMap))
                 .build();
 
         QueryValidator validator = new QueryValidator(query, Collections.singleton("overallRating"), dictionary);
 
-        InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals("Invalid operation: 'Must provide at least one metric in query'", exception.getMessage());
+        UnsupportedOperationException exception = assertThrows(UnsupportedOperationException.class, validator::validate);
+        assertEquals("Query with no metric can't sort on nested field.", exception.getMessage());
     }
 
     @Test
