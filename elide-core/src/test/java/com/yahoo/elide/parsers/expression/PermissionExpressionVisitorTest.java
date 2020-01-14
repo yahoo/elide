@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
@@ -47,7 +48,7 @@ public class PermissionExpressionVisitorTest {
         checks.put("user has all access", Role.ALL.class);
         checks.put("user has no access", Role.NONE.class);
 
-        dictionary = new EntityDictionary(checks);
+        dictionary = TestDictionary.getTestDictionary(checks);
         dictionary.bindEntity(Model.class);
         dictionary.bindEntity(ComplexEntity.class);
     }

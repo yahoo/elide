@@ -916,7 +916,9 @@ public class LifeCycleTest {
         HashMap<String, Class<? extends Check>> checkMappings = new HashMap<>();
         checkMappings.put("Book operation check", Book.BookOperationCheck.class);
         checkMappings.put("Field path editor check", Editor.FieldPathFilterExpression.class);
-        store.populateEntityDictionary(new EntityDictionary(checkMappings));
+        EntityDictionary dictionary = TestDictionary.getTestDictionary(checkMappings);
+
+        store.populateEntityDictionary(dictionary);
         DataStoreTransaction tx = store.beginTransaction();
 
         RequestScope scope = new TestRequestScope(tx, new User(1), dictionary);
@@ -961,7 +963,7 @@ public class LifeCycleTest {
         HashMap<String, Class<? extends Check>> checkMappings = new HashMap<>();
         checkMappings.put("Book operation check", Book.BookOperationCheck.class);
         checkMappings.put("Field path editor check", Editor.FieldPathFilterExpression.class);
-        store.populateEntityDictionary(new EntityDictionary(checkMappings));
+        store.populateEntityDictionary(TestDictionary.getTestDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
         RequestScope scope = new TestRequestScope(tx, new User(1), dictionary);

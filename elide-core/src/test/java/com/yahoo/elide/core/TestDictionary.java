@@ -19,10 +19,12 @@ import example.TestCheckMappings;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 /**
  * Test Entity Dictionary.
  */
+@Singleton
 public class TestDictionary extends EntityDictionary {
 
     @Inject
