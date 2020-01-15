@@ -822,26 +822,8 @@ public class EntityDictionary {
      */
     public <T> void initializeEntity(T entity) {
         if (entity != null) {
-            @SuppressWarnings("unchecked")
-            Initializer<T> initializer = getEntityBinding(entity.getClass()).getInitializer();
-            if (initializer != null) {
-                initializer.initialize(entity);
-            } else {
-                injector.inject(entity);
-            }
+            injector.inject(entity);
         }
-    }
-
-    /**
-     * Bind a particular initializer to a class.
-     *
-     * @param <T>         the type parameter
-     * @param initializer Initializer to use for class
-     * @param cls         Class to bind initialization
-     */
-    public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
-        bindIfUnbound(cls);
-        getEntityBinding(cls).setInitializer(initializer);
     }
 
     /**

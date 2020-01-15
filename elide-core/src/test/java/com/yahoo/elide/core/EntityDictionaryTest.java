@@ -153,23 +153,6 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
-    public void testBindingInitializerPriorToBindingEntityClass() {
-        @Entity
-        @Include
-        class Foo {
-            @Id
-            private long id;
-
-            private int bar;
-        }
-
-        Initializer<Foo> initializer = mock(Initializer.class);
-        this.bindInitializer(initializer, Foo.class);
-
-        assertEquals(1, this.getAllFields(Foo.class).size());
-    }
-
-    @Test
     public void testBindingTriggerPriorToBindingEntityClass1() {
         @Entity
         @Include

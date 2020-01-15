@@ -35,7 +35,6 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -94,9 +93,6 @@ public class EntityBinding {
     private String idFieldName;
     @Getter
     private Class<?> idType;
-    @Getter
-    @Setter
-    private Initializer initializer;
     @Getter
     private AccessType accessType;
 
