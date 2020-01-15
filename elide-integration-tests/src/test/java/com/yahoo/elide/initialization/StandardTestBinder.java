@@ -42,11 +42,14 @@ public class StandardTestBinder extends AbstractBinder {
 
     @Override
     protected void configure() {
+        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
+
+        bind(dictionary).to(EntityDictionary.class);
+
         // Elide instance
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
-                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
                 RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 

@@ -30,7 +30,7 @@ import javax.inject.Inject;
 public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
 
     @Inject
-    EntityDictionary dictionary;
+    protected EntityDictionary dictionary;
 
     /**
      * Returns a FilterExpression from FilterExpressionCheck.
