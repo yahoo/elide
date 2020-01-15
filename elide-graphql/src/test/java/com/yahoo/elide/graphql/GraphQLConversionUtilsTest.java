@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.OffsetDateTimeSerde;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +23,7 @@ public class GraphQLConversionUtilsTest {
 
     @Test
     public void testGraphQLConversionUtilsClassToScalarType() {
+        CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
         GraphQLConversionUtils graphQLConversionUtils =
                 new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()));
         GraphQLScalarType type = graphQLConversionUtils.classToScalarType(OffsetDateTime.class);

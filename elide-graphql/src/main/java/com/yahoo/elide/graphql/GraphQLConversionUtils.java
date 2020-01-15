@@ -13,8 +13,10 @@ import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.core.EntityDictionary;
-
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConvertor;
+import com.yahoo.elide.utils.coerce.converters.Serde;
+
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
@@ -26,13 +28,8 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
-import io.github.classgraph.AnnotationInfo;
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ClassInfo;
-import io.github.classgraph.ScanResult;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
@@ -47,44 +44,9 @@ public class GraphQLConversionUtils {
     protected static final String MAP = "Map";
     protected static final String KEY = "key";
     protected static final String VALUE = "value";
+    protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
 
-    private final static Map<Class<?>, GraphQLScalarType> SCALAR_MAP = new HashMap<>();
-
-    static {
-        final String elideTypeAnnotation = ElideScalarType.class.getCanonicalName();
-        try (ScanResult scanResult =
-                     new ClassGraph()
-                             .enableAllInfo()
-                             .scan()) {
-            for (ClassInfo typeClassInfo : scanResult.getClassesWithAnnotation(elideTypeAnnotation)) {
-                if (typeClassInfo.implementsInterface(ElideCoercing.class.getCanonicalName())) {
-                    AnnotationInfo elideAnnotationInfo = typeClassInfo.getAnnotationInfo(elideTypeAnnotation);
-                    ElideCoercing<?, ?> coercing = (ElideCoercing<?, ?>) typeClassInfo.loadClass()
-                            .getConstructor()
-                            .newInstance();
-                    ElideScalarType annotation = (ElideScalarType) elideAnnotationInfo.loadClassAndInstantiate();
-                    if (annotation.usesSerdeOfType() != Void.class) {
-                        if (coercing.getSerde() != null) {
-                            CoerceUtil.register(annotation.usesSerdeOfType(), coercing.getSerde());
-                            log.info("Registering Serde of type : {}", coercing.getSerde().getClass());
-                        } else {
-                            log.warn("Serde should not be null if not already registered: {}", typeClassInfo.getName());
-                        }
-                    }
-                    log.info("Detected custom GraphQL scalar : {}", typeClassInfo.getName());
-                    SCALAR_MAP.put(annotation.type(), new GraphQLScalarType(annotation.name(),
-                            annotation.description(), coercing));
-                }
-            }
-        } catch (NoSuchMethodException
-                | IllegalAccessException
-                | InstantiationException
-                | InvocationTargetException e) {
-            log.error("Error while scanning custom GraphQL scalars:" + e.getLocalizedMessage(), e);
-            throw new UnableToAddScalarException("Error while scanning custom GraphQL scalars:"
-                    + e.getLocalizedMessage());
-        }
-    }
+    private final Map<Class<?>, GraphQLScalarType> scalarMap = new HashMap<>();
 
     protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
     protected EntityDictionary entityDictionary;
@@ -96,6 +58,20 @@ public class GraphQLConversionUtils {
 
     public GraphQLConversionUtils(EntityDictionary dictionary) {
         this.entityDictionary = dictionary;
+        registerCustomScalars();
+    }
+
+    private void registerCustomScalars() {
+        for (Class serdeType : CoerceUtil.getSerdes().keySet()) {
+            Serde serde = CoerceUtil.lookup(serdeType);
+            ElideTypeConvertor elideTypeConvertor = serde.getClass()
+                    .getAnnotation(ElideTypeConvertor.class);
+            if (elideTypeConvertor != null) {
+                SerdeCoercing serdeCoercing = new SerdeCoercing(ERROR_MESSAGE, serde);
+                scalarMap.put(elideTypeConvertor.type(), new GraphQLScalarType(elideTypeConvertor.name(),
+                        elideTypeConvertor.description(), serdeCoercing));
+            }
+        }
     }
 
     /**
@@ -122,8 +98,8 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLBigDecimal;
         } else if (Date.class.isAssignableFrom(clazz)) {
             return GraphQLScalars.GRAPHQL_DATE_TYPE;
-        } else if (SCALAR_MAP.containsKey(clazz)) {
-            return SCALAR_MAP.get(clazz);
+        } else if (scalarMap.containsKey(clazz)) {
+            return scalarMap.get(clazz);
         }
         return null;
     }

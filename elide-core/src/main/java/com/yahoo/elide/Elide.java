@@ -20,6 +20,7 @@ import com.yahoo.elide.core.exceptions.InvalidConstraintException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.exceptions.UnableToAddSerdeException;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
@@ -32,19 +33,33 @@ import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConvertor;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
+import io.github.classgraph.AnnotationInfo;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolationException;
@@ -77,6 +92,69 @@ public class Elide {
         elideSettings.getSerdes().forEach((targetType, serde) -> {
             CoerceUtil.register(targetType, serde);
         });
+
+        registerCustomSerde();
+        registerCustomSerdeInObjectMapper();
+    }
+
+    private void registerCustomSerde() {
+        final Class<? extends Annotation> elideTypeAnnotation = ElideTypeConvertor.class;
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().scan()) {
+            List<ClassInfo> classInfos = scanResult.getClassesWithAnnotation(elideTypeAnnotation.getCanonicalName());
+            for (ClassInfo classInfo : classInfos) {
+                if (classInfo.implementsInterface(Serde.class.getCanonicalName())) {
+                    AnnotationInfo elideAnnotationInfo =
+                            classInfo.getAnnotationInfo(elideTypeAnnotation.getCanonicalName());
+                    Serde serde = (Serde) classInfo.loadClass()
+                            .getDeclaredConstructor()
+                            .newInstance();
+                    ElideTypeConvertor annotation = (ElideTypeConvertor) elideAnnotationInfo.loadClassAndInstantiate();
+                    log.info("Registering serde for type : {}", annotation.type());
+                    CoerceUtil.register(annotation.type(), serde);
+                    if (annotation.subtype().length > 1) {
+                        log.info("Registering serde for subtype of : {}", annotation.type());
+                        for (Class<?> subtype : annotation.subtype()) {
+                            if (annotation.type().isAssignableFrom(subtype)) {
+                                log.info("Registering serde for type : {}, using serde of type: {}",
+                                        subtype, annotation.type());
+                                CoerceUtil.register(subtype, serde);
+                            } else {
+                                throw new IllegalArgumentException("Mention type " + subtype
+                                        + " not subtype of " + annotation.type());
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (InstantiationException | IllegalAccessException
+                | InvocationTargetException | NoSuchMethodException e) {
+            log.error("Error while registering custom Serde :" + e.getLocalizedMessage(), e);
+            throw new UnableToAddSerdeException("Error while registering custom Serde :"
+                    + e.getLocalizedMessage());
+        }
+    }
+
+    private void registerCustomSerdeInObjectMapper() {
+        ObjectMapper objectMapper = mapper.getObjectMapper();
+        for (Class serdeType : CoerceUtil.getSerdes().keySet()) {
+            Serde serde = CoerceUtil.lookup(serdeType);
+            ElideTypeConvertor elideTypeConvertor = serde.getClass()
+                    .getAnnotation(ElideTypeConvertor.class);
+            if (elideTypeConvertor != null) {   //Assume its a custom type
+                objectMapper.registerModule(new SimpleModule(elideTypeConvertor.name())
+                        .addSerializer(serdeType, new JsonSerializer<Object>() {
+                                    @Override
+                                    public void serialize(Object date,
+                                                          JsonGenerator jsonGenerator,
+                                                          SerializerProvider serializerProvider)
+                                            throws IOException, JsonProcessingException {
+                                        jsonGenerator.writeObject(serde.serialize(date));
+                                    }
+                                }
+                        )
+                );
+            }
+        }
     }
 
     /**
