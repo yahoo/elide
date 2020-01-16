@@ -16,6 +16,7 @@ import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.InlineCheck;
+import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
@@ -76,7 +77,7 @@ public class CheckExpression implements Expression {
             return result;
         }
 
-        if (mode == EvaluationMode.INLINE_CHECKS_ONLY && ! (check instanceof InlineCheck)) {
+        if (mode == EvaluationMode.INLINE_CHECKS_ONLY && ! (check instanceof OperationCheck)) {
             result = DEFERRED;
             return result;
         }
