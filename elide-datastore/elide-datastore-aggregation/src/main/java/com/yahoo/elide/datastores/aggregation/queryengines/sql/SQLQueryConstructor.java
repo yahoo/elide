@@ -90,7 +90,9 @@ public class SQLQueryConstructor {
         Set<ColumnProjection> groupByDimensions = template.getGroupByDimensions();
 
         if (!groupByDimensions.isEmpty()) {
-            builder.groupByClause(constructGroupByWithReference(groupByDimensions, queriedTable));
+            if (!clientQuery.getMetrics().isEmpty()) {
+                builder.groupByClause(constructGroupByWithReference(groupByDimensions, queriedTable));
+            }
 
             joinPaths.addAll(extractJoinPaths(groupByDimensions, queriedTable));
         }
@@ -199,6 +201,10 @@ public class SQLQueryConstructor {
                     return resolveSQLColumnReference(dimension, queriedTable) + " AS " + dimension.getAlias();
                 })
                 .collect(Collectors.toList());
+
+        if (metricProjections.isEmpty()) {
+            return "DISTINCT " + String.join(",", dimensionProjections);
+        }
 
         return Stream.concat(metricProjections.stream(), dimensionProjections.stream())
                 .collect(Collectors.joining(","));

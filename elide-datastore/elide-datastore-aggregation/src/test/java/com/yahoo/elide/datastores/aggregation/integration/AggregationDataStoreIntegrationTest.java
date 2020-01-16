@@ -117,6 +117,60 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    public void noMetricQueryTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStatsWithView",
+                                arguments(
+                                        argument("sort", "\"countryViewRelationshipIsoCode\"")
+                                ),
+                                selections(
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name"),
+                                                        field("isoCode")
+                                                )
+                                        ),
+                                        field("countryViewRelationshipIsoCode")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStatsWithView",
+                                selections(
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "Hong Kong"),
+                                                        field("isoCode", "HKG")
+                                                )
+                                        ),
+                                        field("countryViewRelationshipIsoCode", "HKG")
+                                ),
+                                selections(
+                                        field(
+                                                "country",
+                                                selections(
+                                                        field("name", "United States"),
+                                                        field("isoCode", "USA")
+                                                )
+                                        ),
+                                        field("countryViewRelationshipIsoCode", "USA")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void whereFilterTest() throws Exception {
         String graphQLRequest = document(
                 selection(
@@ -605,29 +659,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         ).toQuery();
 
         String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on highScore as it is not present in query'\"";
-
-        runQueryWithExpectedError(graphQLRequest, expected);
-    }
-
-    @Test
-    public void noMetricQueryTest() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "playerStats",
-                                selections(
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Must provide at least one metric in query'\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
