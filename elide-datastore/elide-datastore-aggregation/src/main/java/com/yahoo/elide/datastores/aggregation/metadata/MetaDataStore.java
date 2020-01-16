@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -10,6 +10,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.DataType;
@@ -63,9 +64,7 @@ public class MetaDataStore extends HashMapDataStore {
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).stream().forEach(cls -> {
-            dictionary.bindEntity(cls);
-        });
+        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).forEach(dictionary::bindEntity);
     }
 
     /**
@@ -168,7 +167,8 @@ public class MetaDataStore extends HashMapDataStore {
      * @return {@code true} if the field is a metric field
      */
     public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
-        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
+        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class)
+                || dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricFormula.class);
     }
 
     /**
@@ -179,5 +179,17 @@ public class MetaDataStore extends HashMapDataStore {
      */
     private static boolean isAnalyticView(Class<?> cls) {
         return cls.isAnnotationPresent(FromTable.class) || cls.isAnnotationPresent(FromSubquery.class);
+    }
+
+    /**
+     * Construct a column name as meta data
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @param dictionary entity dictionary to use
+     * @return <code>tableAlias.fieldName</code>
+     */
+    public static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
+        return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
     }
 }

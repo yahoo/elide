@@ -1,9 +1,11 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
+
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
@@ -49,7 +51,7 @@ public abstract class Column {
 
     protected Column(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         this.tableName = dictionary.getJsonAliasFor(tableClass);
-        this.id = tableName + "." + fieldName;
+        this.id = constructColumnName(tableClass, fieldName, dictionary);
         this.name = fieldName;
         this.columnTags = new HashSet<>();
 
