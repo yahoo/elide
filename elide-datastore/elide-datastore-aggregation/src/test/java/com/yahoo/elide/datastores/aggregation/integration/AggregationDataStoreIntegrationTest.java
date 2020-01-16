@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ValidatableResponse;
@@ -117,6 +116,48 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field("highScore", 2412),
                                         field("overallRating", "Great"),
                                         field("countryIsoCode", "USA")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void metricFormulaTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "videoGame",
+                                arguments(
+                                        argument("sort", "\"timeSpentPerSession\"")
+                                ),
+                                selections(
+                                        field("timeSpent"),
+                                        field("sessions"),
+                                        field("timeSpentPerSession"),
+                                        field("playerName")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "videoGame",
+                                selections(
+                                        field("timeSpent", 720),
+                                        field("sessions", 60),
+                                        field("timeSpentPerSession", 12.0),
+                                        field("playerName", "Jon Doe")
+                                ),
+                                selections(
+                                        field("timeSpent", 200),
+                                        field("sessions", 10),
+                                        field("timeSpentPerSession", 20.0),
+                                        field("playerName", "Jane Doe")
                                 )
                         )
                 )
@@ -570,41 +611,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on highScore as it is not present in query'\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
-    }
-
-    @Test
-    @Disabled
-    //FIXME Needs metric computation support for test case to be valid.
-    public void aggregationComputedMetricTest() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "videoGame",
-                                selections(
-                                        field("timeSpent"),
-                                        field("sessions"),
-                                        field("timeSpentPerSession"),
-                                        field("timeSpentPerGame")
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = document(
-                selections(
-                        field(
-                                "videoGame",
-                                selections(
-                                        field("timeSpent", 1400),
-                                        field("sessions", 70),
-                                        field("timeSpentPerSession", 20),
-                                        field("timeSpentPerGame", 14)
-                                )
-                        )
-                )
-        ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test

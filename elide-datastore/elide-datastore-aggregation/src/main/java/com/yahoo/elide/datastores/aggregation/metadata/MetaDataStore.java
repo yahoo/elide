@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -11,6 +11,7 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -155,7 +156,8 @@ public class MetaDataStore extends HashMapDataStore {
      * @return {@code true} if the field is a metric field
      */
     public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
-        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
+        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class)
+                || dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricFormula.class);
     }
 
     /**
@@ -168,5 +170,17 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
+    }
+
+    /**
+     * Construct a column name as meta data
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @param dictionary entity dictionary to use
+     * @return <code>tableAlias.fieldName</code>
+     */
+    public static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
+        return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
     }
 }

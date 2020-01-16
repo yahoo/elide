@@ -100,8 +100,10 @@ public class PlayerStats {
 
     private Date recordedDate;
 
+    @Setter
     private int playerLevel;
 
+    @Setter
     private String countryIsInUsa;
 
     @Id

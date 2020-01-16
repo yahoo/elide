@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -11,7 +11,6 @@ import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -147,7 +147,26 @@ public class SQLQueryEngine extends QueryEngine {
                     MetricFunction function = invocation.getFunction();
 
                     if (!(function instanceof SQLMetricFunction)) {
-                        throw new InvalidPredicateException("Non-SQL metric function on " + invocation.getAlias());
+                        // this is used for metric constructed from formulas
+                        return new SQLQueryTemplate() {
+                            @Override
+                            public List<MetricFunctionInvocation> getMetrics() {
+                                return Collections.singletonList(
+                                        function.invoke(
+                                                new HashSet<>(invocation.getArguments()),
+                                                invocation.getAlias()));
+                            }
+
+                            @Override
+                            public Set<ColumnProjection> getNonTimeDimensions() {
+                                return groupByDimensions;
+                            }
+
+                            @Override
+                            public TimeDimensionProjection getTimeDimension() {
+                                return timeDimension;
+                            }
+                        };
                     }
 
                     return ((SQLMetricFunction) function).resolve(
