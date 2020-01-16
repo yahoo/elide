@@ -8,7 +8,7 @@ package com.yahoo.elide.utils.coerce.converters;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
-@ElideTypeConvertor(type = OffsetDateTime.class, name = "OffsetDateTime")
+@ElideTypeConverter(type = OffsetDateTime.class, name = "OffsetDateTime")
 public class OffsetDateTimeSerde implements Serde<String, OffsetDateTime> {
 
     @Override

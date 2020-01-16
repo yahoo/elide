@@ -32,8 +32,9 @@ import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.ElideTypeConvertor;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -49,17 +50,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
-import io.github.classgraph.AnnotationInfo;
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ClassInfo;
-import io.github.classgraph.ScanResult;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolationException;
@@ -94,67 +90,58 @@ public class Elide {
         });
 
         registerCustomSerde();
-        registerCustomSerdeInObjectMapper();
     }
 
     private void registerCustomSerde() {
-        final Class<? extends Annotation> elideTypeAnnotation = ElideTypeConvertor.class;
-        try (ScanResult scanResult = new ClassGraph().enableAllInfo().scan()) {
-            List<ClassInfo> classInfos = scanResult.getClassesWithAnnotation(elideTypeAnnotation.getCanonicalName());
-            for (ClassInfo classInfo : classInfos) {
-                if (classInfo.implementsInterface(Serde.class.getCanonicalName())) {
-                    AnnotationInfo elideAnnotationInfo =
-                            classInfo.getAnnotationInfo(elideTypeAnnotation.getCanonicalName());
-                    Serde serde = (Serde) classInfo.loadClass()
-                            .getDeclaredConstructor()
-                            .newInstance();
-                    ElideTypeConvertor annotation = (ElideTypeConvertor) elideAnnotationInfo.loadClassAndInstantiate();
-                    log.info("Registering serde for type : {}", annotation.type());
-                    CoerceUtil.register(annotation.type(), serde);
-                    if (annotation.subtype().length > 1) {
-                        log.info("Registering serde for subtype of : {}", annotation.type());
-                        for (Class<?> subtype : annotation.subtype()) {
-                            if (annotation.type().isAssignableFrom(subtype)) {
-                                log.info("Registering serde for type : {}, using serde of type: {}",
-                                        subtype, annotation.type());
-                                CoerceUtil.register(subtype, serde);
-                            } else {
-                                throw new IllegalArgumentException("Mention type " + subtype
-                                        + " not subtype of " + annotation.type());
-                            }
-                        }
-                    }
-                }
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ElideTypeConverter.class);
+
+        for (Class<?> clazz : classes) {
+            if (!Serde.class.isAssignableFrom(clazz)) {
+                log.warn("Skipping Serde registration (not a Serde!): {}", clazz);
+                continue;
             }
-        } catch (InstantiationException | IllegalAccessException
-                | InvocationTargetException | NoSuchMethodException e) {
-            log.error("Error while registering custom Serde :" + e.getLocalizedMessage(), e);
-            throw new UnableToAddSerdeException("Error while registering custom Serde :"
-                    + e.getLocalizedMessage());
+            Serde serde;
+            try {
+                serde = (Serde) clazz
+                        .getDeclaredConstructor()
+                        .newInstance();
+            } catch (InstantiationException | IllegalAccessException
+                    | NoSuchMethodException | InvocationTargetException e) {
+                String errorMsg = String.format("Error while registering custom Serde: %s", e.getLocalizedMessage());
+                log.error(errorMsg);
+                throw new UnableToAddSerdeException(errorMsg);
+            }
+            ElideTypeConverter converter = clazz.getAnnotation(ElideTypeConverter.class);
+            Class baseType = converter.type();
+            registerCustomSerde(baseType, serde, converter.name());
+
+            for (Class type : converter.subTypes()) {
+                if (!baseType.isAssignableFrom(type)) {
+                    throw new IllegalArgumentException("Mentioned type " + type
+                            + " not subtype of " + baseType);
+                }
+                registerCustomSerde(type, serde, converter.name());
+            }
         }
     }
 
-    private void registerCustomSerdeInObjectMapper() {
+    private void registerCustomSerde(Class<?> type, Serde serde, String name) {
+        log.info("Registering serde for type : {}", type);
+        CoerceUtil.register(type, serde);
+        registerCustomSerdeInObjectMapper(type, serde, name);
+    }
+
+    private void registerCustomSerdeInObjectMapper(Class<?> type, Serde serde, String name) {
         ObjectMapper objectMapper = mapper.getObjectMapper();
-        for (Class serdeType : CoerceUtil.getSerdes().keySet()) {
-            Serde serde = CoerceUtil.lookup(serdeType);
-            ElideTypeConvertor elideTypeConvertor = serde.getClass()
-                    .getAnnotation(ElideTypeConvertor.class);
-            if (elideTypeConvertor != null) {   //Assume its a custom type
-                objectMapper.registerModule(new SimpleModule(elideTypeConvertor.name())
-                        .addSerializer(serdeType, new JsonSerializer<Object>() {
-                                    @Override
-                                    public void serialize(Object date,
-                                                          JsonGenerator jsonGenerator,
-                                                          SerializerProvider serializerProvider)
-                                            throws IOException, JsonProcessingException {
-                                        jsonGenerator.writeObject(serde.serialize(date));
-                                    }
-                                }
-                        )
-                );
-            }
-        }
+        objectMapper.registerModule(new SimpleModule(name)
+                .addSerializer(type, new JsonSerializer<Object>() {
+                    @Override
+                    public void serialize(Object obj, JsonGenerator jsonGenerator,
+                                          SerializerProvider serializerProvider)
+                            throws IOException, JsonProcessingException {
+                        jsonGenerator.writeObject(serde.serialize(obj));
+                    }
+                }));
     }
 
     /**

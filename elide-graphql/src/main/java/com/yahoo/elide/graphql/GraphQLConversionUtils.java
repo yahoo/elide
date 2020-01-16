@@ -14,7 +14,7 @@ import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.ElideTypeConvertor;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import graphql.Scalars;
@@ -64,12 +64,12 @@ public class GraphQLConversionUtils {
     private void registerCustomScalars() {
         for (Class serdeType : CoerceUtil.getSerdes().keySet()) {
             Serde serde = CoerceUtil.lookup(serdeType);
-            ElideTypeConvertor elideTypeConvertor = serde.getClass()
-                    .getAnnotation(ElideTypeConvertor.class);
-            if (elideTypeConvertor != null) {
+            ElideTypeConverter elideTypeConverter = serde.getClass()
+                    .getAnnotation(ElideTypeConverter.class);
+            if (elideTypeConverter != null) {
                 SerdeCoercing serdeCoercing = new SerdeCoercing(ERROR_MESSAGE, serde);
-                scalarMap.put(elideTypeConvertor.type(), new GraphQLScalarType(elideTypeConvertor.name(),
-                        elideTypeConvertor.description(), serdeCoercing));
+                scalarMap.put(elideTypeConverter.type(), new GraphQLScalarType(elideTypeConverter.name(),
+                        elideTypeConverter.description(), serdeCoercing));
             }
         }
     }

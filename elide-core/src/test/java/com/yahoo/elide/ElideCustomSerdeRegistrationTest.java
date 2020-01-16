@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.ElideTypeConvertor;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ class DummyTwo extends Dummy {
 class DummyThree extends Dummy {
 }
 
-@ElideTypeConvertor(type = Dummy.class, name = "Dummy", subtype = {DummyThree.class, DummyTwo.class})
+@ElideTypeConverter(type = Dummy.class, name = "Dummy", subTypes = {DummyThree.class, DummyTwo.class})
 class DummySerde implements Serde<String, Dummy> {
 
     @Override

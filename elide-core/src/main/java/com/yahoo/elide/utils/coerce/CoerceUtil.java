@@ -79,7 +79,7 @@ public class CoerceUtil {
     }
 
     public static Map<Class<?>, Serde<?, ?>> getSerdes() {
-        return SERDES;
+        return Collections.unmodifiableMap(SERDES);
     }
 
     /**

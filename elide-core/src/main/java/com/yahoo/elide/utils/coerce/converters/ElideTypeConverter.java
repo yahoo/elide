@@ -12,9 +12,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface ElideTypeConvertor {
+public @interface ElideTypeConverter {
     Class<?> type();
     String name();
     String description() default "Custom Elide type";
-    Class<?> [] subtype() default {};
+    Class<?> [] subTypes() default {};
 }
