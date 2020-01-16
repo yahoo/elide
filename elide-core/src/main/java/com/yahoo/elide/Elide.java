@@ -20,6 +20,7 @@ import com.yahoo.elide.core.exceptions.InvalidConstraintException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.exceptions.UnableToAddSerdeException;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
@@ -31,10 +32,18 @@ import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +54,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolationException;
@@ -77,6 +88,60 @@ public class Elide {
         elideSettings.getSerdes().forEach((targetType, serde) -> {
             CoerceUtil.register(targetType, serde);
         });
+
+        registerCustomSerde();
+    }
+
+    private void registerCustomSerde() {
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ElideTypeConverter.class);
+
+        for (Class<?> clazz : classes) {
+            if (!Serde.class.isAssignableFrom(clazz)) {
+                log.warn("Skipping Serde registration (not a Serde!): {}", clazz);
+                continue;
+            }
+            Serde serde;
+            try {
+                serde = (Serde) clazz
+                        .getDeclaredConstructor()
+                        .newInstance();
+            } catch (InstantiationException | IllegalAccessException
+                    | NoSuchMethodException | InvocationTargetException e) {
+                String errorMsg = String.format("Error while registering custom Serde: %s", e.getLocalizedMessage());
+                log.error(errorMsg);
+                throw new UnableToAddSerdeException(errorMsg);
+            }
+            ElideTypeConverter converter = clazz.getAnnotation(ElideTypeConverter.class);
+            Class baseType = converter.type();
+            registerCustomSerde(baseType, serde, converter.name());
+
+            for (Class type : converter.subTypes()) {
+                if (!baseType.isAssignableFrom(type)) {
+                    throw new IllegalArgumentException("Mentioned type " + type
+                            + " not subtype of " + baseType);
+                }
+                registerCustomSerde(type, serde, converter.name());
+            }
+        }
+    }
+
+    private void registerCustomSerde(Class<?> type, Serde serde, String name) {
+        log.info("Registering serde for type : {}", type);
+        CoerceUtil.register(type, serde);
+        registerCustomSerdeInObjectMapper(type, serde, name);
+    }
+
+    private void registerCustomSerdeInObjectMapper(Class<?> type, Serde serde, String name) {
+        ObjectMapper objectMapper = mapper.getObjectMapper();
+        objectMapper.registerModule(new SimpleModule(name)
+                .addSerializer(type, new JsonSerializer<Object>() {
+                    @Override
+                    public void serialize(Object obj, JsonGenerator jsonGenerator,
+                                          SerializerProvider serializerProvider)
+                            throws IOException, JsonProcessingException {
+                        jsonGenerator.writeObject(serde.serialize(obj));
+                    }
+                }));
     }
 
     /**

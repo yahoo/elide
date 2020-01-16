@@ -13,6 +13,9 @@ import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -41,6 +44,9 @@ public class GraphQLConversionUtils {
     protected static final String MAP = "Map";
     protected static final String KEY = "key";
     protected static final String VALUE = "value";
+    protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
+
+    private final Map<Class<?>, GraphQLScalarType> scalarMap = new HashMap<>();
 
     protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
     protected EntityDictionary entityDictionary;
@@ -52,6 +58,20 @@ public class GraphQLConversionUtils {
 
     public GraphQLConversionUtils(EntityDictionary dictionary) {
         this.entityDictionary = dictionary;
+        registerCustomScalars();
+    }
+
+    private void registerCustomScalars() {
+        for (Class serdeType : CoerceUtil.getSerdes().keySet()) {
+            Serde serde = CoerceUtil.lookup(serdeType);
+            ElideTypeConverter elideTypeConverter = serde.getClass()
+                    .getAnnotation(ElideTypeConverter.class);
+            if (elideTypeConverter != null) {
+                SerdeCoercing serdeCoercing = new SerdeCoercing(ERROR_MESSAGE, serde);
+                scalarMap.put(elideTypeConverter.type(), new GraphQLScalarType(elideTypeConverter.name(),
+                        elideTypeConverter.description(), serdeCoercing));
+            }
+        }
     }
 
     /**
@@ -74,12 +94,13 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLShort;
         } else if (clazz.equals(String.class)) {
             return Scalars.GraphQLString;
-        } else if (Date.class.isAssignableFrom(clazz)) {
-            return GraphQLScalars.GRAPHQL_DATE_TYPE;
         } else if (clazz.equals(BigDecimal.class)) {
             return Scalars.GraphQLBigDecimal;
+        } else if (Date.class.isAssignableFrom(clazz)) {
+            return GraphQLScalars.GRAPHQL_DATE_TYPE;
+        } else if (scalarMap.containsKey(clazz)) {
+            return scalarMap.get(clazz);
         }
-
         return null;
     }
 
