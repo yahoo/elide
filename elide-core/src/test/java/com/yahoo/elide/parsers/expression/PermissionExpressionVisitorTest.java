@@ -145,7 +145,7 @@ public class PermissionExpressionVisitorTest {
             if (check instanceof UserCheck) {
                 result = ((UserCheck) check).ok(null);
             } else {
-                result = check.ok(null, null, null);
+                result = ((OperationCheck) check).ok(null, null, null);
             }
 
             if (result) {

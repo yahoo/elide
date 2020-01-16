@@ -22,5 +22,5 @@ public abstract class UserCheck implements Check {
      * @param user User to check
      * @return True if user check passes, false otherwise
      */
-    abstract boolean ok(User user);
+    public abstract boolean ok(User user);
 }

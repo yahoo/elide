@@ -9,7 +9,6 @@ package com.yahoo.elide.security.checks.prefab;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
 import java.util.Optional;
@@ -42,7 +41,7 @@ public class Common {
      * but at the same time allows the removal of the child from the relationship with the existing parent
      * @param <T> the type of object that this check guards
      */
-    public static class FieldSetToNull<T> extends CommitCheck<T> {
+    public static class FieldSetToNull<T> extends OperationCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.map((c) -> { return c.getModified() == null; })

@@ -177,7 +177,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
         }
 
         if (check instanceof UserCheck) {
-            boolean userCheckResult = check.ok(requestScope.getUser());
+            boolean userCheckResult = ((UserCheck) check).ok(requestScope.getUser());
             return userCheckResult ? TRUE_USER_CHECK_EXPRESSION : FALSE_USER_CHECK_EXPRESSION;
         }
 

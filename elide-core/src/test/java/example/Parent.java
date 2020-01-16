@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
 import lombok.ToString;
@@ -100,33 +99,13 @@ public class Parent extends BaseId {
         this.specialAttribute = specialAttribute;
     }
 
-    static public class InitCheck extends CommitCheck<Parent> {
-        @Override
-        public String checkIdentifier() {
-            return "parentInitCheck";
-        }
-
+    static public class InitCheck extends OperationCheck<Parent> {
         @Override
         public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (parent.getChildren() != null && parent.getSpouses() != null) {
                 return true;
             }
             return false;
-        }
-    }
-
-    static public class InitCheckOp extends OperationCheck<Parent> {
-        @Override
-        public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (parent.getChildren() != null && parent.getSpouses() != null) {
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "parentInitCheckOp";
         }
     }
 
@@ -141,11 +120,6 @@ public class Parent extends BaseId {
                 }
             }
             return false;
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "specialValue";
         }
     }
 }

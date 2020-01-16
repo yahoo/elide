@@ -15,7 +15,6 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.checks.InlineCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
@@ -77,7 +76,7 @@ public class CheckExpression implements Expression {
             return result;
         }
 
-        if (mode == EvaluationMode.INLINE_CHECKS_ONLY && ! (check instanceof OperationCheck)) {
+        if (mode == EvaluationMode.INLINE_CHECKS_ONLY && (resource != null && resource.isNewlyCreated())) {
             result = DEFERRED;
             return result;
         }
@@ -113,7 +112,12 @@ public class CheckExpression implements Expression {
      */
     private ExpressionResult computeCheck() {
         Object entity = (resource == null) ? null : resource.getObject();
-        result = check.ok(entity, requestScope, changeSpec) ? PASS : FAIL;
+
+        if (check instanceof UserCheck) {
+            result = ((UserCheck) check).ok(requestScope.getUser()) ? PASS : FAIL;
+        } else {
+            result = ((OperationCheck) check).ok(entity, requestScope, changeSpec) ? PASS : FAIL;
+        }
         return result;
     }
 
