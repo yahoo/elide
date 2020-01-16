@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.Injector;
 import com.yahoo.elide.security.checks.Check;
 
 /**
@@ -23,7 +24,7 @@ public interface CheckInstantiator {
      */
     default Check getCheck(EntityDictionary dictionary, String checkName) {
         Class<? extends Check> checkCls = dictionary.getCheck(checkName);
-        return instantiateCheck(checkCls);
+        return instantiateCheck(checkCls, dictionary.getInjector());
     }
 
     /**
@@ -32,9 +33,11 @@ public interface CheckInstantiator {
      * @return the instance of the check
      * @throws IllegalArgumentException if the check class cannot be instantiated with a zero argument constructor
      */
-    default Check instantiateCheck(Class<? extends Check> checkCls) {
+    default Check instantiateCheck(Class<? extends Check> checkCls, Injector injector) {
         try {
-            return checkCls.newInstance();
+            Check check = checkCls.newInstance();
+            injector.inject(check);
+            return check;
         } catch (InstantiationException | IllegalAccessException | NullPointerException e) {
             String checkName = (checkCls != null) ? checkCls.getName() : "null";
             throw new IllegalArgumentException("Could not instantiate specified check '" + checkName + "'.", e);

@@ -20,6 +20,7 @@ import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.functions.LifeCycleHook;
+import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
@@ -36,6 +37,7 @@ import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
@@ -84,6 +86,8 @@ public class EntityDictionary {
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Class<?>, List<Class<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+
+    @Getter
     protected final Injector injector;
 
     public final static String REGULAR_ID_NAME = "id";
@@ -98,7 +102,24 @@ public class EntityDictionary {
      *               to their implementing classes
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
-        this(checks, null);
+        this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        initializeChecks();
+
+        //Default injector only injects Elide internals.
+        this.injector = new Injector() {
+            @Override
+            public void inject(Object entity) {
+                if (entity instanceof FilterExpressionCheck) {
+                    try {
+                        Field field = FilterExpressionCheck.class.getDeclaredField("dictionary");
+                        field.setAccessible(true);
+                        field.set(entity, EntityDictionary.this);
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+            }
+        };
     }
 
     /**
@@ -112,16 +133,19 @@ public class EntityDictionary {
      *                 initialize Elide models.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
-        checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        initializeChecks();
+        this.injector = injector;
+    }
 
+    private void initializeChecks() {
         addPrefabCheck("Prefab.Role.All", Role.ALL.class);
         addPrefabCheck("Prefab.Role.None", Role.NONE.class);
         addPrefabCheck("Prefab.Collections.AppendOnly", AppendOnly.class);
         addPrefabCheck("Prefab.Collections.RemoveOnly", RemoveOnly.class);
         addPrefabCheck("Prefab.Common.UpdateOnCreate", Common.UpdateOnCreate.class);
-
-        this.injector = injector;
     }
+
 
     private void addPrefabCheck(String alias, Class<? extends Check> checkClass) {
         if (checkNames.containsKey(alias) || checkNames.inverse().containsKey(checkClass)) {
@@ -798,26 +822,8 @@ public class EntityDictionary {
      */
     public <T> void initializeEntity(T entity) {
         if (entity != null) {
-            @SuppressWarnings("unchecked")
-            Initializer<T> initializer = getEntityBinding(entity.getClass()).getInitializer();
-            if (initializer != null) {
-                initializer.initialize(entity);
-            } else if (injector != null) {
-                injector.inject(entity);
-            }
+            injector.inject(entity);
         }
-    }
-
-    /**
-     * Bind a particular initializer to a class.
-     *
-     * @param <T>         the type parameter
-     * @param initializer Initializer to use for class
-     * @param cls         Class to bind initialization
-     */
-    public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
-        bindIfUnbound(cls);
-        getEntityBinding(cls).setInitializer(initializer);
     }
 
     /**

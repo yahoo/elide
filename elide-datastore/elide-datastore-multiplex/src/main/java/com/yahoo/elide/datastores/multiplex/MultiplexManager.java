@@ -60,7 +60,6 @@ public final class MultiplexManager implements DataStore {
                 this.dataStoreMap.put(cls, dataStore);
                 // bind to multiplex dictionary
                 dictionary.bindEntity(cls);
-                dictionary.bindInitializer(subordinateDictionary::initializeEntity, cls);
                 // copy attribute arguments
                 subordinateDictionary.getAttributes(cls).forEach(
                         attribute -> dictionary.addArgumentsToAttribute(
