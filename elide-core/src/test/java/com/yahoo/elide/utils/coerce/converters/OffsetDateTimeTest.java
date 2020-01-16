@@ -37,5 +37,4 @@ public class OffsetDateTimeTest {
         Object expected = offsetDateTimeScalar.deserialize(actual);
         assertEquals(expected, actualDate);
     }
-
 }
