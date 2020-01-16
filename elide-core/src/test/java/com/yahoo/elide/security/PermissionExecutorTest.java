@@ -328,73 +328,67 @@ public class PermissionExecutorTest {
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
-    /*
     @Test
     public void testSpecificFieldOveriddenOperationCheckSucceed() {
-        PersistentResource resource = newResource(CommitCheckEntity.class);
+        PersistentResource resource = newResource(CheckedEntity.class, true);
         RequestScope requestScope = resource.getRequestScope();
         // Should succeed in operation check despite the commit check failure
-        requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, null, UpdatePermission.class, "hello");
+        assertEquals(ExpressionResult.DEFERRED,
+                requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, null, UpdatePermission.class, "hello"));
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
     @Test
     public void testSpecificFieldCommitCheckFailByOveriddenField() {
-        PersistentResource resource = newResource(CommitCheckEntity.class);
+        PersistentResource resource = newResource(CheckedEntity.class, true);
         RequestScope requestScope = resource.getRequestScope();
-        // Should succeed in commit check despite the operation check failure
+        assertEquals(ExpressionResult.DEFERRED,
+                requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, new ChangeSpec(null, null, null, null), UpdatePermission.class, "hello"));
         assertThrows(
                 ForbiddenAccessException.class,
-                () -> requestScope.getPermissionExecutor().checkSpecificFieldPermissions(
-                        resource, new ChangeSpec(null, null, null, null), UpdatePermission.class, "hello"));
-        requestScope.getPermissionExecutor().executeCommitChecks();
+                () -> requestScope.getPermissionExecutor().executeCommitChecks());
     }
 
     @Test
-    public void testReadCheckExpressionAlwaysInline() {
+    public void testReadCheckExpressionForNewlyCreatedObject() {
         @Entity
         @Include
-        @ReadPermission(expression = "FailAtCommit")
+        @ReadPermission(expression = "FailOp")
         class Model { }
 
-        PersistentResource resource = newResource(new Model(), Model.class);
+        PersistentResource resource = newResource(new Model(), Model.class, true);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getDictionary().bindEntity(Model.class);
-        assertThrows(
-                ForbiddenAccessException.class,
-                () -> requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource));
-        // NOTE: This check should throw a ForbiddenAccess since commit-time checks should be converted
-        //       to inline checks. As a result, DO NOT call executeCommitChecks() in this test.
+        assertEquals(ExpressionResult.DEFERRED, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource));
+        assertThrows(ForbiddenAccessException.class, () -> requestScope.getPermissionExecutor().executeCommitChecks());
     }
 
     @Test
-    public void testDeleteCheckExpressionAlwaysInline() {
+    public void testDeleteCheckExpressionForNewlyCreatedObject() {
         @Entity
         @Include
-        @DeletePermission(expression = "FailAtCommit")
+        @DeletePermission(expression = "FailOp")
         class Model { }
 
-        PersistentResource resource = newResource(new Model(), Model.class);
+        PersistentResource resource = newResource(new Model(), Model.class, true);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getDictionary().bindEntity(Model.class);
-        assertThrows(
-                ForbiddenAccessException.class,
-                () -> requestScope.getPermissionExecutor().checkPermission(DeletePermission.class, resource));
-        // NOTE: This check should throw a ForbiddenAccess since commit-time checks should be converted
-        //       to inline checks. As a result, DO NOT call executeCommitChecks() in this test.
+        assertEquals(ExpressionResult.DEFERRED, requestScope.getPermissionExecutor().checkPermission(DeletePermission.class, resource));
+        assertThrows(ForbiddenAccessException.class, () -> requestScope.getPermissionExecutor().executeCommitChecks());
     }
 
     @Test
     public void testCache() {
-        PersistentResource resource = newResource(AnnotationOnlyRecord.class);
+        PersistentResource resource = newResource(AnnotationOnlyRecord.class, false);
         RequestScope requestScope = resource.getRequestScope();
-        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource);
-        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource);
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource));
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource));
     }
+
 
     @Test
     public void testNoCache() {
-        PersistentResource resource = newResource(AnnotationOnlyRecord.class);
+        PersistentResource resource = newResource(AnnotationOnlyRecord.class, false);
         RequestScope requestScope = resource.getRequestScope();
         ChangeSpec cspec = new ChangeSpec(null, null, null, null);
         assertThrows(
@@ -407,16 +401,15 @@ public class PermissionExecutorTest {
 
     @Test
     public void testUserCheckCache() {
-        PersistentResource resource = newResource(UserCheckCacheRecord.class);
+        PersistentResource resource = newResource(UserCheckCacheRecord.class, false);
         RequestScope requestScope = resource.getRequestScope();
         ChangeSpec cspec = new ChangeSpec(null, null, null, null);
         // This should cache for updates, reads, etc.
-        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
-        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
-        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec);
-        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec);
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec));
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec));
     }
-     */
 
     public <T> PersistentResource newResource(T obj, Class<T> cls, boolean markNew) {
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
@@ -452,7 +445,7 @@ public class PermissionExecutorTest {
     }
 
 
-    public static final class SampleOperationCheckCommitInverse extends OperationCheck<Object> {
+    public static final class SampleOperationCheckInverse extends OperationCheck<Object> {
         @Override
         public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return !changeSpec.isPresent();
@@ -503,12 +496,12 @@ public class PermissionExecutorTest {
 
     @Entity
     @Include
-    @UpdatePermission(expression = "sampleCommit")
-    public static final class CommitCheckEntity {
+    @UpdatePermission(expression = "sampleOperation")
+    public static final class CheckedEntity {
         @Id
         public Long id;
 
-        @UpdatePermission(expression = "sampleOperationCommitInverse")
+        @UpdatePermission(expression = "sampleOperationInverse")
         public String hello;
     }
 

@@ -77,10 +77,5 @@ public class User extends BaseId {
         public boolean ok(User user, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return (user.getRole() == 1);
         }
-
-        @Override
-        public String checkIdentifier() {
-            return "adminRoleCheck";
-        }
     }
 }

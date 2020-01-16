@@ -29,9 +29,9 @@ import javax.persistence.PrePersist;
 import javax.validation.constraints.NotNull;
 
 @CreatePermission(expression = "parentInitCheck OR allow all")
-@ReadPermission(expression = "parentInitCheckOp OR allow all")
+@ReadPermission(expression = "parentInitCheck OR allow all")
 @UpdatePermission(expression = "parentInitCheck OR allow all OR deny all")
-@DeletePermission(expression = "parentInitCheckOp OR allow all OR deny all")
+@DeletePermission(expression = "parentInitCheck OR allow all OR deny all")
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
 @Entity
 @ToString

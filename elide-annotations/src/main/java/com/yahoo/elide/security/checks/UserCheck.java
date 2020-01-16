@@ -5,11 +5,7 @@
  */
 package com.yahoo.elide.security.checks;
 
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.User;
-
-import java.util.Optional;
 
 /**
  * Custom security access that verifies whether a user belongs to a role.
