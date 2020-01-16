@@ -159,7 +159,6 @@ public class BridgeableStoreTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1/specialAction")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
