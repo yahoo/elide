@@ -233,7 +233,7 @@ public abstract class AbstractHQLQueryBuilder {
                 validSortingRules.entrySet().stream().forEachOrdered(entry -> {
                         Path path = entry.getKey();
 
-                        String prefix = (prefixWithAlias) ? Path.getTypeAlias(sortClass) + PERIOD : "";
+                        String prefix = (prefixWithAlias) ? getTypeAlias(sortClass) + PERIOD : "";
 
                         ordering.add(prefix + path.getFieldPath() + SPACE
                                 + (entry.getValue().equals(Sorting.SortOrder.desc) ? "desc" : "asc"));

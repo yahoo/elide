@@ -9,7 +9,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.SQLExpression;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.DimensionFormula;
 
 import org.hibernate.annotations.Formula;
 
@@ -68,8 +68,9 @@ public class Country {
         return continent;
     }
 
-    @SQLExpression("CASE WHEN %reference = 'United States' THEN true ELSE false END")
-    @Column(name = "name", insertable = false, updatable = false)
+    @DimensionFormula(
+            expression = "CASE WHEN {%1} = 'United States' THEN true ELSE false END",
+            references = {"name"})
     @Formula("CASE WHEN name = 'United States' THEN true ELSE false END")
     public boolean isInUsa() {
         return inUsa;

@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.filter.FilterPredicate.appendAlias;
+import static com.yahoo.elide.core.filter.FilterPredicate.getTypeAlias;
+
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
 import com.google.common.collect.ImmutableList;
@@ -25,7 +28,6 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 public class Path {
     private static final String PERIOD = ".";
-    private static final String UNDERSCORE = "_";
 
     @Getter private List<PathElement> pathElements;
     /**
@@ -95,7 +97,7 @@ public class Path {
         }
 
         PathElement previous = pathElements.get(pathElements.size() - 2);
-        return getTypeAlias(previous.getType()) + UNDERSCORE + previous.getFieldName();
+        return appendAlias(getTypeAlias(previous.getType()), previous.getFieldName());
     }
 
     @Override
@@ -104,14 +106,5 @@ public class Path {
                 : pathElements.stream()
                         .map(e -> '[' + EntityDictionary.getSimpleName(e.getType()) + ']' + PERIOD + e.getFieldName())
                 .collect(Collectors.joining("/"));
-    }
-
-    /**
-     * Convert a class name into a hibernate friendly name.
-     * @param type The type to alias
-     * @return type name alias that will likely not conflict with other types or with reserved keywords.
-     */
-    public static String getTypeAlias(Class<?> type) {
-        return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
     }
 }

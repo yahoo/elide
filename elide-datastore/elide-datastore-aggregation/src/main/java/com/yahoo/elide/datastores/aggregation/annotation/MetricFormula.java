@@ -15,8 +15,10 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates that a field is computed via a {@link #expression() custom metric formula expression}, such as Calcite SQL.
+ * Metric formula is resolved as a new aggregation function, so it won't convert the value to a different format before
+ * or after aggregation.
  * <p>
- * Example: {@literal @}MetricFormula(expression = '({%1} * {%2}) / 100').
+ * Example: {@literal @}MetricFormula(expression = '({%1} * {%2}) / 100', references = {'ref1', 'ref2'}).
  *
  * Rules:
  * 1. The references used to replace '{%1}' and '{%2}' should be provided in the reference list.
@@ -30,7 +32,7 @@ import java.lang.annotation.Target;
  * {@code expression} can also be composite. During {@link Metric} construction, it will substitute attribute names in
  * the provided expression with either:
  * <ul>
- *     <li> The column alias for that column in the query, or
+ *     <li> The column field name for that column in the query, or
  *     <li> Another {@link MetricFormula} expression - recursively expanding expressions until every referenced
  *          field is not computed.
  * </ul>
@@ -60,13 +62,17 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MetricFormula {
-
     /**
-     * The custom metric expression that represents this metric computation logic.
+     * The custom metric expression that represents this metric formula.
      *
      * @return metric formula
      */
     String expression();
 
-    String[] references();
+    /**
+     * References to use in the formula.
+     *
+     * @return references
+     */
+    String[] references() default {};
 }

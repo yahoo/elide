@@ -31,9 +31,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnaly
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 
+import com.google.common.collect.Streams;
 import org.hibernate.annotations.Subselect;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -347,7 +347,7 @@ public class SQLQueryConstructor {
                                 + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                     }
 
-                    return generateColumnReference(path, dictionary, new ArrayList<>())
+                    return generateColumnReference(path, dictionary)
                             + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
                 .collect(Collectors.joining(","));
@@ -414,8 +414,9 @@ public class SQLQueryConstructor {
     private Set<Path> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
                                        SQLAnalyticView queriedTable) {
         return resolveSQLColumns(groupByDimensions, queriedTable).stream()
-                .filter((dim) -> dim.getJoinPath() != null)
-                .map(SQLColumn::getJoinPath)
+                .map(SQLColumn::getJoinPaths)
+                .map(Collection::stream)
+                .reduce(Stream.empty(), (s1, s2) -> Streams.concat(s1, s2))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -440,7 +441,7 @@ public class SQLQueryConstructor {
      * @return A SQL fragment that references a database column
      */
     private String generatePredicateReference(FilterPredicate predicate) {
-        return generateColumnReference(predicate.getPath(), dictionary, new ArrayList<>());
+        return generateColumnReference(predicate.getPath(), dictionary);
     }
 
     /**

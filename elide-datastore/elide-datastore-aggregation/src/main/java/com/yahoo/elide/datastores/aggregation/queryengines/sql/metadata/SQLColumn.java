@@ -6,18 +6,19 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.SQLExpression;
 
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SQLColumn contains meta data about underlying physical table.
@@ -27,34 +28,20 @@ public class SQLColumn extends Column {
     private final String reference;
 
     @Getter
-    private final Path joinPath;
+    private final List<Path> joinPaths = new ArrayList<>();
 
     protected SQLColumn(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
 
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
-        SQLExpression sqlExpr = dictionary.getAttributeOrRelationAnnotation(
-                tableClass, SQLExpression.class, fieldName);
+        Path path = new Path(
+                Collections.singletonList(
+                        new Path.PathElement(
+                                tableClass,
+                                dictionary.getParameterizedType(tableClass, fieldName),
+                                fieldName)));
 
-        if (joinTo == null || joinTo.path().equals("")) {
-            String physicalReference = getClassAlias(tableClass)
-                    + "." + dictionary.getAnnotatedColumnName(tableClass, fieldName);
-
-            this.reference = sqlExpr == null || "".equals(sqlExpr.value())
-                    ? physicalReference
-                    : sqlExpr.value().replace("%reference", physicalReference);
-
-            this.joinPath = null;
-        } else {
-            Path path = new Path(tableClass, dictionary, joinTo.path());
-            List<String> expressions = new ArrayList<>();
-
-            if (sqlExpr != null && !"".equals(sqlExpr.value())) {
-                expressions.add(sqlExpr.value());
-            }
-
-            this.reference = generateColumnReference(path, dictionary, expressions);
-            this.joinPath = path;
-        }
+        Map<Path, String> resolvedReferences = new HashMap<>();
+        this.reference = generateColumnReference(path, new LinkedHashSet<>(), resolvedReferences, dictionary);
+        this.joinPaths.addAll(resolvedReferences.keySet());
     }
 }

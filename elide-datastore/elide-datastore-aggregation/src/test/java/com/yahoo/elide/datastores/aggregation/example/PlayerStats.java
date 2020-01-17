@@ -13,9 +13,9 @@ import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.SQLExpression;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMin;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
@@ -190,8 +190,9 @@ public class PlayerStats {
         return player2Name;
     }
 
-    @SQLExpression("CASE WHEN %reference = 'Good' THEN 1 ELSE 2 END")
-    @Column(name = "overallRating")
+    @DimensionFormula(
+            expression = "CASE WHEN {%1} = 'Good' THEN 1 ELSE 2 END",
+            references = {"overallRating"})
     public int getPlayerLevel() {
         return playerLevel;
     }
@@ -201,8 +202,9 @@ public class PlayerStats {
         return inUsa;
     }
 
-    @SQLExpression("CASE WHEN %reference THEN 'true' ELSE 'false' END")
-    @JoinTo(path = "country.inUsa")
+    @DimensionFormula(
+            expression = "CASE WHEN {%1} THEN 'true' ELSE 'false' END",
+            references = {"country.inUsa"})
     public String getCountryIsInUsa() {
         return countryIsInUsa;
     }
