@@ -18,9 +18,11 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.models.generics.Employee;
 import com.yahoo.elide.models.generics.Manager;
+import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
@@ -41,6 +43,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -86,6 +89,24 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("Prefab.Collections.AppendOnly", getCheckIdentifier(AppendOnly.class));
         assertEquals("Prefab.Collections.RemoveOnly", getCheckIdentifier(RemoveOnly.class));
         assertEquals("Prefab.Common.UpdateOnCreate", getCheckIdentifier(UpdateOnCreate.class));
+    }
+
+    @Test
+    public void testCheckScan() {
+
+        @SecurityCheck("User is Admin")
+        class Foo extends UserCheck {
+
+            @Override
+            public boolean ok(com.yahoo.elide.security.User user) {
+                return false;
+            }
+        }
+
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        testDictionary.scanForSecurityChecks();
+
+        assertEquals("User is Admin", testDictionary.getCheckIdentifier(Foo.class));
     }
 
     @Test

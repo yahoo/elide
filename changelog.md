@@ -1,5 +1,37 @@
 # Change Log
 
+## 4.5.9
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/c5de4be19d1a103abff08fe90abb5a60af39fc5a) Entity dictionary auto-scan for security checks and lifecycle hooks. (#1108) 
+   * [view commit](https://github.com/yahoo/elide/commit/d92fadc66e502ef279f11a3e3cdafdabdc2ecb7b) Added manual override in JpaDataStore to explicitly bind entities (#1114) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/b86539e654a7b092a3f479f74c0b3a11e64f0669) Migrate legacy getting started to elide standalone readme (#1106) 
+   * [view commit](https://github.com/yahoo/elide/commit/2b41c138d6a9388384628b872138cd2cb777fb68) Added license and link to central docs (#1107) 
+   * [view commit](https://github.com/yahoo/elide/commit/4b36a95ef897f6edbc4430a28de423982a9600c3) Update README.md 
+   * [view commit](https://github.com/yahoo/elide/commit/d36520b9afe1fde93caea93b1e5aee7fb432e4c9) Update README.md 
+   * [view commit](https://github.com/yahoo/elide/commit/02a43983fddfaa16ddd7b7d890694867c99ff4de) Bump slf4j-api from 1.7.28 to 1.7.30 (#1115) 
+   * [view commit](https://github.com/yahoo/elide/commit/415ffcef4981bbdc4632b693a2d7a49d340938aa) Bump mockito-core from 3.1.0 to 3.2.4 (#1111) 
+   * [view commit](https://github.com/yahoo/elide/commit/fc3c39fd5a27a4b7543f98f57e3f25069606a60d) Bump rxjava from 2.2.14 to 2.2.16 (#1110) 
+   * [view commit](https://github.com/yahoo/elide/commit/43c2e488c0c184e2db876fa807951c3ba139555c) Bump spring.boot.version from 2.2.1.RELEASE to 2.2.2.RELEASE (#1099) 
+   * [view commit](https://github.com/yahoo/elide/commit/d1366a53b03f27a2e1188c5ebc2a67f318b72c28) Bump metrics.version from 4.1.1 to 4.1.2 (#1104) 
+   * [view commit](https://github.com/yahoo/elide/commit/80cc3ea7a035d8b4d3965bb97442b2b2ee931fff) Bump hibernate-search-orm from 5.11.3.Final to 5.11.4.Final (#1102) 
+   * [view commit](https://github.com/yahoo/elide/commit/fc9de75ab137e37674b8da44cb4de7f4aac14834) Bump postgresql from 42.2.8 to 42.2.9 (#1100) 
+
+## 4.5.8
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/6e05ce93624855a5968eac4f989131e10d518e08) Elide can bind non JPA entities.  Class scanning logic is consolidated. (#1088) 
+   
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/872c43cdf64bce31acd45f54a30d2a1e855b01f2) Bump liquibase-core from 3.8.0 to 3.8.1 (#1082) 
+   * [view commit](https://github.com/yahoo/elide/commit/d3f73941bed705404c4d667072193edfb71338a1) Bump version.jetty from 9.4.22.v20191022 to 9.4.24.v20191120 (#1086) 
+   * [view commit](https://github.com/yahoo/elide/commit/08fd3f53373c41a386b38c5679fa19a427061a50) Bump jackson-module-jaxb-annotations from 2.10.0 to 2.10.1 (#1080) 
+   * [view commit](https://github.com/yahoo/elide/commit/c37a342b65513a69064c42fb80cc6b190bcfef7e) Upgraded dependencies to pass OWASP security scan (#1096) 
+   * [view commit](https://github.com/yahoo/elide/commit/1b9c8aa1acec370f8f1d5f112c4658acef1eddb7) Bump resteasy.version from 3.9.0.Final to 3.9.3.Final (#1091) 
+   * [view commit](https://github.com/yahoo/elide/commit/2d0f033bd1f10803c2b6152407ffdc3d2ac4bba2) Bump swagger-core from 1.5.24 to 1.6.0 (#1079) 
+   * [view commit](https://github.com/yahoo/elide/commit/482e344eabd052287a255bb8f8efddfb2b34e4e7) Bump wagon-ssh-external from 3.3.3 to 3.3.4 (#1078) 
+   * [view commit](https://github.com/yahoo/elide/commit/b4900d5dd42c27ff6b65f18070b0aca7650c9d61) Bump version.jackson from 2.10.0 to 2.10.1 (#1076) 
+
 ## 4.5.7
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/1625319a2755cc615716c322057156c45645b707) Added Elide Support For Spring Boot (#1070) 

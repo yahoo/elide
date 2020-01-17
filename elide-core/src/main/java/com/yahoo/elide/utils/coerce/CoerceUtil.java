@@ -78,6 +78,10 @@ public class CoerceUtil {
         return (Serde<S, T>) SERDES.getOrDefault(targetType, null);
     }
 
+    public static Map<Class<?>, Serde<?, ?>> getSerdes() {
+        return Collections.unmodifiableMap(SERDES);
+    }
+
     /**
      * Perform CoerceUtil setup.
      */

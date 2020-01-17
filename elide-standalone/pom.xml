@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-standalone</artifactId>
-    <version>4.5.8-SNAPSHOT</version>
+    <version>4.5.10-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Standalone</name>
     <description>Elide Standalone Application</description>
@@ -16,7 +16,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.5.8-SNAPSHOT</version>
+        <version>4.5.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -47,9 +47,8 @@
 
     <properties>
         <!-- Versions -->
-        <jetty.version>9.4.17.v20190418</jetty.version>
         <logback.version>1.2.3</logback.version>
-        <metrics.version>4.1.1</metrics.version>
+        <metrics.version>4.1.2</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -62,17 +61,17 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.5.8-SNAPSHOT</version>
+            <version>4.5.10-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.5.8-SNAPSHOT</version>
+            <version>4.5.10-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>4.5.8-SNAPSHOT</version>
+            <version>4.5.10-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -118,13 +117,11 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>${jetty.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -197,6 +194,14 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.5.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Elide Test Helpers -->
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-test-helpers</artifactId>
+            <version>4.5.10-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

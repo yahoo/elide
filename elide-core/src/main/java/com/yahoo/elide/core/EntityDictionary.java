@@ -1,5 +1,6 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2018, Yahoo Inc.
+ * Copyright 2018, the original author or authors.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -13,6 +14,7 @@ import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
+import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
@@ -23,6 +25,7 @@ import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common;
 import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.collect.BiMap;
@@ -831,15 +834,15 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        if (isClassBound(cls)) {
-            //Ignore duplicate bindings.
-            return;
-        }
-
         Class<?> declaredClass = lookupIncludeClass(cls);
 
         if (declaredClass == null) {
             log.trace("Missing include or excluded class {}", cls.getName());
+            return;
+        }
+
+        if (isClassBound(declaredClass)) {
+            //Ignore duplicate bindings.
             return;
         }
 
@@ -1183,6 +1186,27 @@ public class EntityDictionary {
 
     public boolean isAttribute(Class<?> entityClass, String attributeName) {
         return getEntityBinding(entityClass).attributes.contains(attributeName);
+    }
+
+    /**
+     * Scan for security checks and automatically bind them to the dictionary.
+     */
+    public void scanForSecurityChecks() {
+
+        // Logic is based on https://github.com/illyasviel/elide-spring-boot/blob/master
+        // /elide-spring-boot-autoconfigure/src/main/java/org/illyasviel/elide
+        // /spring/boot/autoconfigure/ElideAutoConfiguration.java
+
+        for (Class<?> cls : ClassScanner.getAnnotatedClasses(SecurityCheck.class)) {
+            if (Check.class.isAssignableFrom(cls)) {
+                SecurityCheck securityCheckMeta = cls.getAnnotation(SecurityCheck.class);
+                log.debug("Register Elide Check [{}] with expression [{}]",
+                        cls.getCanonicalName(), securityCheckMeta.value());
+                checkNames.put(securityCheckMeta.value(), cls.asSubclass(Check.class));
+            } else {
+                throw new IllegalStateException("Class annotated with SecurityCheck is not a Check");
+            }
+        }
     }
 
     /**

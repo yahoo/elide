@@ -6,15 +6,29 @@
 package com.yahoo.elide;
 
 /**
- * Used to inject all beans at time of construction.
+ * Abstraction around dependency injection.
  */
 @FunctionalInterface
 public interface Injector {
 
     /**
-     * Inject an entity bean.
+     * Inject an elide object.
      *
-     * @param entity Entity bean to inject
+     * @param entity object to inject
      */
     void inject(Object entity);
+
+    /**
+     * Instantiates a new instance of a class using the DI framework.
+     *
+     * @param cls The class to instantiate.
+     * @return An instance of the class.
+     */
+    default <T> T instantiate(Class<T> cls) {
+        try {
+            return cls.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }
