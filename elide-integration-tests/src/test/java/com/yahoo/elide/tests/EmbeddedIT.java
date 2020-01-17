@@ -90,7 +90,6 @@ public class EmbeddedIT extends IntegrationTest {
                 .get("/right/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .log().all()
                 .extract()
                 .body().asString();
 

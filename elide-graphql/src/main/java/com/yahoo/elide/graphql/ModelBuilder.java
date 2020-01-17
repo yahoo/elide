@@ -234,7 +234,7 @@ public class ModelBuilder {
             return queryObjectRegistry.get(entityClass);
         }
 
-        log.info("Building query object for {}", entityClass.getName());
+        log.debug("Building query object for {}", entityClass.getName());
 
         String entityName = dictionary.getJsonAliasFor(entityClass);
 
