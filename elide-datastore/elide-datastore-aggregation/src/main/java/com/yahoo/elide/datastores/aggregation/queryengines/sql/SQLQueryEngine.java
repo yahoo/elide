@@ -319,15 +319,14 @@ public class SQLQueryEngine implements QueryEngine {
 
         // detect whether there is loop
         if (toResolve.contains(path)) {
-            throw new IllegalArgumentException("Dimension formula reference loop found in class "
-                    + dictionary.getJsonAliasFor(tableClass) + ": "
-                    + toResolve.stream().map(Path::toString) + "->" + path.toString());
+            throw new IllegalArgumentException(referenceLoopMessage(tableClass, path, toResolve, dictionary));
         }
 
         if (MetaDataStore.isMetricField(dictionary, tableClass, fieldName)) {
             throw new IllegalArgumentException("Dimension formula reference to a metric field "
                     + dictionary.getJsonAliasFor(tableClass) + ": "
-                    + toResolve.stream().map(Path::toString) + "->" + path.toString());
+                    + toResolve.stream().map(Path::toString).collect(Collectors.joining("->"))
+                    + "->" + path.toString());
         }
 
         // mark path as not resolved
@@ -354,6 +353,10 @@ public class SQLQueryEngine implements QueryEngine {
                 // the extension fragment also need to be marked as not resolved as to prevent infinite appending like
                 // A.B.B.B...
                 if (!extended.equals(extension)) {
+                    if (toResolve.contains(extension)) {
+                        throw new IllegalArgumentException(
+                                referenceLoopMessage(tableClass, path, toResolve, dictionary));
+                    }
                     toResolve.add(extension);
                 }
 
@@ -379,6 +382,10 @@ public class SQLQueryEngine implements QueryEngine {
                     // the extension fragment also need to be marked as not resolved as to prevent infinite appending
                     // like A.B.B.B...
                     if (!extended.equals(extension)) {
+                        if (toResolve.contains(extension)) {
+                            throw new IllegalArgumentException(
+                                    referenceLoopMessage(tableClass, path, toResolve, dictionary));
+                        }
                         toResolve.add(extension);
                     }
                     generateColumnReference(extended, toResolve, resolved, dictionary);
@@ -394,6 +401,19 @@ public class SQLQueryEngine implements QueryEngine {
 
         toResolve.remove(path);
         return resolved.get(path);
+    }
+
+    /**
+     * Construct reference loop message.
+     */
+    private static String referenceLoopMessage(Class<?> tableClass,
+                                               Path path,
+                                               Set<Path> toResolve,
+                                               EntityDictionary dictionary) {
+        return "Dimension formula reference loop found in class "
+                + dictionary.getJsonAliasFor(tableClass) + ": "
+                + toResolve.stream().map(Path::toString).collect(Collectors.joining("->"))
+                + "->" + path.toString();
     }
 
     /**
