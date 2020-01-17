@@ -26,4 +26,4 @@
       DEPLOY_STEP="deploy"
     fi
     echo "(${TRAVIS_TAG}) (${TRAVIS_PULL_REQUEST})"
-    mvn -B clean verify "$DEPLOY_STEP" coveralls:report --settings travis/settings.xml
+    mvn -B clean verify $DEPLOY_STEP coveralls:report --settings travis/settings.xml
