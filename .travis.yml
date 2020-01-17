@@ -19,12 +19,11 @@
       - master
       - "/^[0-9]+\\.[0-9]+(\\.[0-9]+|-(alpha|beta)-[0-9]+)/"
 
-  before_install:
-    - curl -sL https://github.com/jpm4j/jpm4j.installers/raw/master/dist/biz.aQute.jpm.run.jar >jpm4j.jar
-    - java -jar jpm4j.jar -u init
-
   install: true
-  script: mvn -B -q clean verify coveralls:report
-  after_success:
-    - echo "(${TRAVIS_TAG}) (${TRAVIS_PULL_REQUEST})"
-    - test "${TRAVIS_TAG}" != "" && mvn -B deploy --settings travis/settings.xml
+  script: |
+    DEPLOY_STEP=""
+    if [ "${TRAVIS_TAG}" != "" ];
+      DEPLOY_STEP="deploy"
+    fi
+    echo "(${TRAVIS_TAG}) (${TRAVIS_PULL_REQUEST})"
+    mvn -B clean verify "$DEPLOY_STEP" coveralls:report --settings travis/settings.xml
