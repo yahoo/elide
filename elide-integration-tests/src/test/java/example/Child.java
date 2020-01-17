@@ -18,7 +18,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
 import java.util.Optional;
@@ -37,7 +36,7 @@ import javax.persistence.Transient;
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
 @SharePermission
-@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp AND initCheckFilter")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheck AND initCheckFilter")
 @Include(rootLevel = true, type = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -115,20 +114,7 @@ public class Child extends BaseId {
         throw new IllegalAccessError();
     }
 
-    /**
-     * Initialization validation check.
-     */
-    static public class InitCheck extends CommitCheck<Child> {
-        @Override
-        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (child.getParents() != null) {
-                return true;
-            }
-            return false;
-        }
-    }
-
-    static public class InitCheckOp extends OperationCheck<Child> {
+    static public class InitCheck extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (child.getParents() != null) {

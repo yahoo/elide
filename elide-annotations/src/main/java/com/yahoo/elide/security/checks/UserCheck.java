@@ -5,19 +5,18 @@
  */
 package com.yahoo.elide.security.checks;
 
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-
-import java.util.Optional;
+import com.yahoo.elide.security.User;
 
 /**
  * Custom security access that verifies whether a user belongs to a role.
  * Permissions are assigned as a set of checks that grant access to the permission.
  */
-public abstract class UserCheck extends InlineCheck<Object> {
-    /* NOTE: Operation checks and user checks are intended to be _distinct_ */
-    @Override
-    public final boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        return ok(requestScope.getUser());
-    }
+public abstract class UserCheck implements Check {
+    /**
+     * Method reserved for user checks.
+     *
+     * @param user User to check
+     * @return True if user check passes, false otherwise
+     */
+    public abstract boolean ok(User user);
 }
