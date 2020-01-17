@@ -60,7 +60,6 @@ public class ExampleTest extends IntegrationTest {
                                 )
                         ).toJSON())
                 )
-                .log().all()
                 .statusCode(HttpStatus.SC_OK);
     }
 
