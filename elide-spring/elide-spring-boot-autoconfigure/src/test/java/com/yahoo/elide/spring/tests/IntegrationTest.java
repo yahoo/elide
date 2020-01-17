@@ -25,5 +25,6 @@ public class IntegrationTest {
     @BeforeAll
     public void setUp() {
         RestAssured.port = port;
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 }

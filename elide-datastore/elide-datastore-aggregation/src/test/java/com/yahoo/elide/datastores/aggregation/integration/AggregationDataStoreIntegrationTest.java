@@ -914,11 +914,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(query)
-                .log().all()
                 .post("/graphQL")
-                .then()
-                .log()
-                .all();
+                .then();
 
         return res;
     }

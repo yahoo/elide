@@ -60,7 +60,6 @@ public class ExampleTest extends IntegrationTest {
                                 )
                         ).toJSON())
                 )
-                .log().all()
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -89,7 +88,6 @@ public class ExampleTest extends IntegrationTest {
         .when()
             .post("/graphql/api/v1")
             .then()
-                .log().all()
             .body(equalTo(GraphQLDSL.document(
                 selection(
                     field(

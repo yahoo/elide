@@ -55,7 +55,6 @@ public class ControllerTest extends IntegrationTest {
         when()
                 .get("/json/group")
                 .then()
-                .log().all()
                 .body(equalTo(
                         data(
                                 resource(
@@ -72,7 +71,6 @@ public class ControllerTest extends IntegrationTest {
                                 )
                         ).toJSON())
                 )
-                .log().all()
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -99,7 +97,6 @@ public class ControllerTest extends IntegrationTest {
         when()
                 .get("/json/group")
                 .then()
-                .log().all()
                 .body(equalTo(
                         data(
                                 resource(
@@ -116,7 +113,6 @@ public class ControllerTest extends IntegrationTest {
                                 )
                         ).toJSON())
                 )
-                .log().all()
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -275,7 +271,6 @@ public class ControllerTest extends IntegrationTest {
                         )
                         ).toQuery() + "\" }"
                 )
-                .log().all()
                 .when()
                 .post("/graphql")
                 .then()
