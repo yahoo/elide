@@ -13,6 +13,7 @@ import static org.mockito.Mockito.reset;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -22,7 +23,6 @@ import com.google.common.collect.Sets;
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
-import example.TestCheckMappings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-
 
 public class IncludedProcessorTest {
     private static final String INCLUDE = "include";
@@ -61,7 +60,7 @@ public class IncludedProcessorTest {
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
 
-        dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+        dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(FunWithPermissions.class);

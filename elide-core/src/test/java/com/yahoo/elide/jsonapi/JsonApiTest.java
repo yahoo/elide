@@ -7,13 +7,13 @@ package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -27,7 +27,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
 import example.Child;
 import example.Parent;
-import example.TestCheckMappings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -50,25 +49,10 @@ public class JsonApiTest {
 
     @BeforeEach
     void init() {
-        dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+        dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(Child.class);
-        dictionary.bindInitializer(Parent::doInit, Parent.class);
         mapper = new JsonApiMapper(dictionary);
-    }
-
-    @Test
-    public void checkInit() {
-        // Ensure that our object receives its init before serializing
-        Parent parent = new Parent();
-        parent.setId(123L);
-        parent.setChildren(Sets.newHashSet());
-        parent.setSpouses(Sets.newHashSet());
-        RequestScope userScope = new TestRequestScope(tx, user, dictionary);
-
-        new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource();
-
-        assertTrue(parent.init);
     }
 
     @Test

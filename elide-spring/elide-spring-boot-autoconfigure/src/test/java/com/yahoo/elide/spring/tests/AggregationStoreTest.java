@@ -38,7 +38,6 @@ public class AggregationStoreTest extends IntegrationTest {
         when()
                 .get("/json/stats?fields[stats]=measure")
                 .then()
-                .log().all()
                 .body(equalTo(
                         data(
                                 resource(
@@ -50,7 +49,6 @@ public class AggregationStoreTest extends IntegrationTest {
                                 )
                         ).toJSON())
                 )
-                .log().all()
                 .statusCode(HttpStatus.SC_OK);
     }
 }

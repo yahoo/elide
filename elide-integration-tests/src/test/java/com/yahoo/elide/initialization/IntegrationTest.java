@@ -102,6 +102,7 @@ public abstract class IntegrationTest {
         // setup RestAssured
         RestAssured.baseURI = "http://localhost/";
         RestAssured.basePath = "/";
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // port randomly picked in pom.xml
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));

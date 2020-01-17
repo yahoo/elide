@@ -531,7 +531,6 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testSubCollectionRelationships() throws Exception {
         given().when().get("/parent/1/children/1/relationships/parents").then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(
                         data(linkage(type("parent"), id("1"))).toJSON()));
@@ -2162,7 +2161,6 @@ public class ResourceIT extends IntegrationTest {
                 .body(req)
                 .patch("/parent")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
     }

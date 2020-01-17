@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.function.Predicate;
+import javax.inject.Inject;
 
 /**
  * Check for FilterExpression. This is a super class for user defined FilterExpression check. The subclass should
@@ -27,6 +28,9 @@ import java.util.function.Predicate;
  */
 @Slf4j
 public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
+
+    @Inject
+    protected EntityDictionary dictionary;
 
     /**
      * Returns a FilterExpression from FilterExpressionCheck.
@@ -53,7 +57,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     @Override
     public final boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        Class<?> entityClass = coreScope(requestScope).getDictionary().lookupBoundClass(object.getClass());
+        Class<?> entityClass = dictionary.lookupBoundClass(object.getClass());
         FilterExpression filterExpression = getFilterExpression(entityClass, requestScope);
         return filterExpression.accept(new FilterExpressionCheckEvaluationVisitor(object, this, requestScope));
     }
@@ -88,8 +92,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      * @param defaultPath  path to use if no FieldExpressionPath defined
      * @return Predicates
      */
-    protected static Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
-        EntityDictionary dictionary = coreScope(requestScope).getDictionary();
+    protected Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
         try {
             FilterExpressionPath fep = getFilterExpressionPath(type, method, dictionary);
             return new Path(type, dictionary, fep == null ? defaultPath : fep.value());
