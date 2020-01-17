@@ -166,6 +166,47 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
+    /**
+     * Test sql expression in where, sorting, group by and projection.
+     * @throws Exception exception
+     */
+    @Test
+    public void dimensionFormulaTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"playerLevel\""),
+                                        argument("filter", "\"playerLevel>\\\"0\\\"\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("playerLevel")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 1234),
+                                        field("playerLevel", 1)
+                                ),
+                                selections(
+                                        field("highScore", 2412),
+                                        field("playerLevel", 2)
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
     @Test
     public void noMetricQueryTest() throws Exception {
         String graphQLRequest = document(
