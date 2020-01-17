@@ -22,7 +22,7 @@
   install: true
   script: |
     DEPLOY_STEP=""
-    if [ "${TRAVIS_TAG}" != "" ];
+    if [ "${TRAVIS_TAG}" != "" ]; then
       DEPLOY_STEP="deploy"
     fi
     echo "(${TRAVIS_TAG}) (${TRAVIS_PULL_REQUEST})"
