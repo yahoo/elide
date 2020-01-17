@@ -5,12 +5,6 @@
  */
 package com.yahoo.elide.example;
 
-import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
-import com.yahoo.elide.core.HttpStatus;
-import org.junit.jupiter.api.Test;
-
-import javax.ws.rs.core.MediaType;
-
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
@@ -24,6 +18,13 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.equalTo;
+
+import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
+import com.yahoo.elide.core.HttpStatus;
+
+import org.junit.jupiter.api.Test;
+
+import javax.ws.rs.core.MediaType;
 
 /**
  * Example functional test.
@@ -88,7 +89,6 @@ public class ExampleTest extends IntegrationTest {
         .when()
             .post("/graphql/api/v1")
             .then()
-                .log().all()
             .body(equalTo(GraphQLDSL.document(
                 selection(
                     field(
