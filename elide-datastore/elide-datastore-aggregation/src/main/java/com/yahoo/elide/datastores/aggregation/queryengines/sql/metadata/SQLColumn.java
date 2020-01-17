@@ -7,11 +7,10 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 
-/**
- * Column with physical SQL information like reference and join to path.
- */
+import java.util.List;
+
 public interface SQLColumn {
     String getReference();
 
-    JoinPath getJoinPath();
+    List<JoinPath> getJoinPaths();
 }

@@ -9,7 +9,12 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.DimensionFormula;
+
+import org.hibernate.annotations.Formula;
+
 import lombok.Data;
+import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -34,6 +39,9 @@ public class Country {
     private String name;
 
     private Continent continent;
+
+    @Setter
+    private boolean inUsa;
 
     @Id
     public String getId() {
@@ -69,5 +77,13 @@ public class Country {
 
     public void setContinent(Continent continent) {
         this.continent = continent;
+    }
+
+    @DimensionFormula(
+            expression = "CASE WHEN {%1} = 'United States' THEN true ELSE false END",
+            references = {"name"})
+    @Formula("CASE WHEN name = 'United States' THEN true ELSE false END")
+    public boolean isInUsa() {
+        return inUsa;
     }
 }

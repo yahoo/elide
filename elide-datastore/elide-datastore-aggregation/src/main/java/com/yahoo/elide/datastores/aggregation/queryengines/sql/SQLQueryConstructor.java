@@ -35,6 +35,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.request.Sorting;
 
+import com.google.common.collect.Streams;
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
@@ -78,7 +79,7 @@ public class SQLQueryConstructor {
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
 
-        Set<Path> joinPaths = new HashSet<>();
+        Set<JoinPath> joinPaths = new HashSet<>();
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
@@ -206,7 +207,7 @@ public class SQLQueryConstructor {
      * @param joinPaths paths that require joins
      * @return built join clause that contains all needed relationship dimension joins for this query.
      */
-    private String extractJoin(Set<Path> joinPaths) {
+    private String extractJoin(Set<JoinPath> joinPaths) {
         Set<String> joinClauses = new LinkedHashSet<>();
 
         joinPaths.forEach(path -> addJoinClauses(path, joinClauses));
@@ -220,7 +221,7 @@ public class SQLQueryConstructor {
      * @param joinPath join path
      * @param alreadyJoined A set of joins that have already been computed.
      */
-    private void addJoinClauses(Path joinPath, Set<String> alreadyJoined) {
+    private void addJoinClauses(JoinPath joinPath, Set<String> alreadyJoined) {
         String parentAlias = getTypeAlias(joinPath.getPathElements().get(0).getType());
 
         for (Path.PathElement pathElement : joinPath.getPathElements()) {
@@ -317,7 +318,7 @@ public class SQLQueryConstructor {
 
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
-                    Path expandedPath = expandJoinToPath(entry.getKey());
+                    JoinPath expandedPath = expandJoinToPath(entry.getKey());
                     Sorting.SortOrder order = entry.getValue();
 
                     Path.PathElement last = expandedPath.lastElement().get();
@@ -344,7 +345,7 @@ public class SQLQueryConstructor {
      * @param path The path to expand.
      * @return The expanded path.
      */
-    private Path expandJoinToPath(Path path) {
+    private JoinPath expandJoinToPath(Path path) {
         Path.PathElement pathRoot = path.getPathElements().get(0);
 
         Class<?> entityClass = pathRoot.getType();
@@ -352,11 +353,10 @@ public class SQLQueryConstructor {
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(entityClass, JoinTo.class, fieldName);
 
-        if (joinTo == null || joinTo.path().equals("")) {
-            return path;
-        }
+        return joinTo == null || joinTo.path().equals("")
+                ? new JoinPath(path)
+                : new JoinPath(entityClass, dictionary, joinTo.path());
 
-        return new JoinPath(entityClass, dictionary, joinTo.path());
     }
 
     /**
@@ -365,7 +365,7 @@ public class SQLQueryConstructor {
      * @param expression The filter expression
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path> extractJoinPaths(FilterExpression expression) {
+    private Set<JoinPath> extractJoinPaths(FilterExpression expression) {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
@@ -381,7 +381,7 @@ public class SQLQueryConstructor {
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path> extractJoinPaths(Map<Path, Sorting.SortOrder> sortClauses) {
+    private Set<JoinPath> extractJoinPaths(Map<Path, Sorting.SortOrder> sortClauses) {
         return sortClauses.keySet().stream()
                 .map(this::expandJoinToPath)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -395,11 +395,12 @@ public class SQLQueryConstructor {
      * @param table queried table
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<Path> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
+    private Set<JoinPath> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
                                        SQLTable table) {
         return resolveSQLColumns(groupByDimensions, table).stream()
-                .filter((dim) -> dim.getJoinPath() != null)
-                .map(SQLColumn::getJoinPath)
+                .map(SQLColumn::getJoinPaths)
+                .map(Collection::stream)
+                .reduce(Stream.empty(), (s1, s2) -> Streams.concat(s1, s2))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -424,7 +425,7 @@ public class SQLQueryConstructor {
      * @return A SQL fragment that references a database column
      */
     private String generatePredicateReference(FilterPredicate predicate) {
-        return generateColumnReference(predicate.getPath(), dictionary);
+        return generateColumnReference(new JoinPath(predicate.getPath()), dictionary);
     }
 
     /**

@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -38,8 +39,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -256,18 +259,110 @@ public class SQLQueryEngine extends QueryEngine {
      * @param dictionary dictionary to expand joinTo path
      * @return A SQL fragment that references a database column
      */
-    public static String generateColumnReference(Path path, EntityDictionary dictionary) {
-        Path.PathElement last = path.lastElement().get();
-        Class<?> lastClass = last.getType();
+    public static String generateColumnReference(JoinPath path, EntityDictionary dictionary) {
+        return generateColumnReference(
+                path,
+                new LinkedHashSet<>(),
+                new HashMap<>(),
+                dictionary);
+    }
+
+    /**
+     * Converts a filter predicate path into a SQL column reference.
+     * All other code should use this method to generate sql column reference, no matter where the reference is used (
+     * select statement, group by clause, where clause, having clause or order by clause).
+     *
+     * @param joinPath the full join path to be resolved.
+     * @param toResolve join paths and join paths fragments that are not resolved yet.
+     * @param resolved join paths and join fragments that are already resolved
+     * @param dictionary dictionary instance
+     * @return A SQL fragment that references a database column
+     */
+    public static String generateColumnReference(JoinPath joinPath,
+                                                 LinkedHashSet<JoinPath> toResolve,
+                                                 Map<JoinPath, String> resolved,
+                                                 EntityDictionary dictionary) {
+        Path.PathElement last = joinPath.lastElement().get();
+        Class<?> tableClass = last.getType();
         String fieldName = last.getFieldName();
 
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
-
-        if (joinTo == null) {
-            return getPathAlias(path) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
-        } else {
-            return generateColumnReference(new JoinPath(lastClass, dictionary, joinTo.path()), dictionary);
+        // detect whether there is loop
+        if (toResolve.contains(joinPath)) {
+            throw new IllegalArgumentException("Dimension formula reference loop found in class "
+                    + dictionary.getJsonAliasFor(tableClass) + ": "
+                    + toResolve.stream().map(Path::toString) + "->" + joinPath.toString());
         }
+
+        if (MetaDataStore.isMetricField(dictionary, tableClass, fieldName)) {
+            throw new IllegalArgumentException("Dimension formula reference to a metric field "
+                    + dictionary.getJsonAliasFor(tableClass) + ": "
+                    + toResolve.stream().map(Path::toString) + "->" + joinPath.toString());
+        }
+
+        // mark path as not resolved
+        toResolve.add(joinPath);
+
+        DimensionFormula formula = dictionary.getAttributeOrRelationAnnotation(
+                tableClass, DimensionFormula.class, fieldName);
+
+        if (formula == null) {
+            JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
+
+            if (joinTo == null || joinTo.path().equals("")) {
+                // the initial reference is the physical column reference
+                String columnReference = getPathAlias(joinPath)
+                        + "." + dictionary.getAnnotatedColumnName(tableClass, last.getFieldName());
+
+                resolved.put(joinPath, columnReference);
+            } else {
+                JoinPath extension = new JoinPath(tableClass, dictionary, joinTo.path());
+
+                // append new path after original path
+                JoinPath extended = extendJoinPath(joinPath, extension);
+
+                // the extension fragment also need to be marked as not resolved as to prevent infinite appending like
+                // A.B.B.B...
+                if (!extended.equals(extension)) {
+                    toResolve.add(extension);
+                }
+
+                resolved.put(
+                        joinPath,
+                        generateColumnReference(
+                                extended,
+                                toResolve,
+                                resolved,
+                                dictionary));
+                toResolve.remove(extension);
+            }
+        } else {
+            String expression = formula.expression();
+            String[] references = formula.references();
+
+            for (int i = 0; i < references.length; i++) {
+                JoinPath extension = new JoinPath(tableClass, dictionary, references[i]);
+                // append new path after original path
+                JoinPath extended = extendJoinPath(joinPath, extension);
+
+                if (!resolved.containsKey(extended)) {
+                    // the extension fragment also need to be marked as not resolved as to prevent infinite appending
+                    // like A.B.B.B...
+                    if (!extended.equals(extension)) {
+                        toResolve.add(extension);
+                    }
+                    generateColumnReference(extended, toResolve, resolved, dictionary);
+                    toResolve.remove(extension);
+                }
+
+                final int index = i + 1;
+                expression = expression.replace("{%" + index + "}", resolved.get(extended));
+            }
+
+            resolved.put(joinPath, expression);
+        }
+
+        toResolve.remove(joinPath);
+        return resolved.get(joinPath);
     }
 
     /**
@@ -278,5 +373,21 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return getTypeAlias(entityClass);
+    }
+
+    /**
+     * Append an extension path to an original path, the last element of original path should be the same as the
+     * first element of extension path.
+     *
+     * @param path original path, e.g. <code>[A.B]/[B.C]</code>
+     * @param extension extension path, e.g. <code>[B.C]/[C.D]</code>
+     * @param <P> path extension
+     * @return extended path <code>[A.B]/[B.C]/[C.D]</code>
+     */
+    private static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
+        List<Path.PathElement> toExtend = new ArrayList<>(path.getPathElements());
+        toExtend.remove(toExtend.size() - 1);
+        toExtend.addAll(extension.getPathElements());
+        return new JoinPath(toExtend);
     }
 }

@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlSum;
 
@@ -31,10 +30,8 @@ public class VideoGame {
     @MetricAggregation(function = SqlSum.class)
     Long timeSpent;
 
-    @MetricComputation(expression = "timeSpent / sessions")
     private Float timeSpentPerSession;
 
-    @MetricComputation(expression = "timeSpentPerSession / 100")
     private Float timeSpentPerGame;
 
     public Long getId() {

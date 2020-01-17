@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
@@ -98,6 +99,10 @@ public class PlayerStats {
     private String player2Name;
 
     private Date recordedDate;
+
+    private int playerLevel;
+
+    private String countryIsInUsa;
 
     @Id
     public String getId() {
@@ -210,6 +215,13 @@ public class PlayerStats {
         this.player2Name = player2Name;
     }
 
+    @DimensionFormula(
+            expression = "CASE WHEN {%1} = 'Good' THEN 1 ELSE 2 END",
+            references = {"overallRating"})
+    public int getPlayerLevel() {
+        return playerLevel;
+    }
+
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      *
@@ -225,5 +237,12 @@ public class PlayerStats {
 
     public void setRecordedDate(final Date recordedDate) {
         this.recordedDate = recordedDate;
+    }
+
+    @DimensionFormula(
+            expression = "CASE WHEN {%1} THEN 'true' ELSE 'false' END",
+            references = {"country.inUsa"})
+    public String getCountryIsInUsa() {
+        return countryIsInUsa;
     }
 }

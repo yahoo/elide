@@ -227,7 +227,6 @@ public abstract class AbstractHQLQueryBuilder {
                 final List<String> ordering = new ArrayList<>();
                 // pass over the sorting rules
                 validSortingRules.forEach((path, order) -> {
-
                     String prefix = (prefixWithAlias) ? getTypeAlias(sortClass) + PERIOD : "";
 
                     ordering.add(prefix + path.getFieldPath() + SPACE
