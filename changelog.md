@@ -1,5 +1,21 @@
 # Change Log
 
+## 4.5.10
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/cd2a159d6958b11d0ee107370fca2dcc5b3175dc) Adds a registry based mechanism for registering Custom GraphQL scalars  (#1131) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/fa5da76eeb8ded88d72f015886c9e67159620067) Move repeated @Sql annotations to class level (#1119) 
+   * [view commit](https://github.com/yahoo/elide/commit/5c43ee875977bf16b7dba55f734f7146511adf2e) Fixing OWASP security warning for Tomcat dependency in Spring Web (#1132) 
+   * [view commit](https://github.com/yahoo/elide/commit/4181a10a779f5a6bcc9aa8e7bd248fcb5daddf5a) Bump liquibase-core from 3.8.1 to 3.8.5 (#1135) 
+   * [view commit](https://github.com/yahoo/elide/commit/13b4b11067e8903608de0971ab12097f30af72c0) Bump classgraph from 4.4.12 to 4.8.60 (#1134) 
+   * [view commit](https://github.com/yahoo/elide/commit/d71bf7d1720807c114ae23f3f9094e480d6bd925) Bump maven-source-plugin from 3.2.0 to 3.2.1 (#1125) 
+   * [view commit](https://github.com/yahoo/elide/commit/4772f58556c878af73b8f442741dc212fa5d9a89) Bump version.jetty from 9.4.24.v20191120 to 9.4.25.v20191220 (#1122) 
+   * [view commit](https://github.com/yahoo/elide/commit/3052faece86feab4718ef300dc684d1ece5e76a3) Bump jedis from 3.1.0 to 3.2.0 (#1121) 
+   * [view commit](https://github.com/yahoo/elide/commit/b2c99ac9ce46b51fb4b4c638f0370ea499c612a6) Bump version.log4j from 2.12.1 to 2.13.0 (#1120) 
+   * [view commit](https://github.com/yahoo/elide/commit/404945c46dc8938d8a83a097b2d57a01dca3b29f) Bump dependency-check-maven from 5.2.3 to 5.2.4 (#1081) 
+   * [view commit](https://github.com/yahoo/elide/commit/1eb3d57e5405a918da114a57bcb485566248efad) Fix travis log length (#1142) 
+
 ## 4.5.9
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/c5de4be19d1a103abff08fe90abb5a60af39fc5a) Entity dictionary auto-scan for security checks and lifecycle hooks. (#1108) 
