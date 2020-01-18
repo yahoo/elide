@@ -1,6 +1,6 @@
 # Change Log
 
-## 4.5.11
+## 4.5.12
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/cd2a159d6958b11d0ee107370fca2dcc5b3175dc) Adds a registry based mechanism for registering Custom GraphQL scalars  (#1131) 
 
