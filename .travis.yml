@@ -23,4 +23,4 @@
   script: mvn -B clean verify coveralls:report
   after_success:
     - echo "(${TRAVIS_TAG}) (${TRAVIS_PULL_REQUEST})"
-    - test "${TRAVIS_TAG}" != "" && mvn -B -DskipTests -Dmaven.test.skip=true deploy --settings travis/settings.xml
+    - test "${TRAVIS_TAG}" != "" && mvn -B -DskipTests deploy --settings travis/settings.xml
