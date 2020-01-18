@@ -144,9 +144,13 @@ public abstract class IntegrationTest {
     }
 
     protected JsonNode getAsNode(String url) throws JsonProcessingException {
+        return getAsNode(url, HttpStatus.SC_OK);
+    }
+
+    protected JsonNode getAsNode(String url, int httpStatus) throws JsonProcessingException {
         return mapper.readTree(get(url)
                 .then()
-                .statusCode(HttpStatus.SC_OK)
+                .statusCode(httpStatus)
                 .extract().body().asString());
     }
 
