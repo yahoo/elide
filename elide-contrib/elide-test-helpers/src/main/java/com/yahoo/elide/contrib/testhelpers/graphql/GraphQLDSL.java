@@ -488,22 +488,21 @@ public final class GraphQLDSL {
         if (value instanceof String) {
             value = quoted ? String.format("\"%s\"", value) : value;
             return new Argument(name, value);
-        } else {
-            // this is an object which needs to be Jackson-serialized
-            try {
-                return new Argument(
-                        name,
-                        BASE_MAPPER
-                                .configure(
-                                        // GraphQL argument name is unquoted; hence quoted field is disabled.
-                                        JsonGenerator.Feature.QUOTE_FIELD_NAMES,
-                                        false
-                                )
-                                .writeValueAsString(value)
-                );
-            } catch (JsonProcessingException exception) {
-                throw new IllegalStateException(String.format("Cannot serialize %s", value), exception);
-            }
+        }
+        // this is an object which needs to be Jackson-serialized
+        try {
+            return new Argument(
+                    name,
+                    BASE_MAPPER
+                            .configure(
+                                    // GraphQL argument name is unquoted; hence quoted field is disabled.
+                                    JsonGenerator.Feature.QUOTE_FIELD_NAMES,
+                                    false
+                            )
+                            .writeValueAsString(value)
+            );
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException(String.format("Cannot serialize %s", value), exception);
         }
     }
 

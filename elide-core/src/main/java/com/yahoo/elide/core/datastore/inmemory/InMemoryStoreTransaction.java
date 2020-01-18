@@ -363,9 +363,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
             if (order == Sorting.SortOrder.asc) {
                 return NULL_SAFE_COMPARE.compare(leftCompare, rightCompare);
-            } else {
-                return NULL_SAFE_COMPARE.compare(rightCompare, leftCompare);
             }
+            return NULL_SAFE_COMPARE.compare(rightCompare, leftCompare);
         };
     }
 
