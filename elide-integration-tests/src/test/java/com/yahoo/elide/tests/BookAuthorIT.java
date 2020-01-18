@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -17,7 +22,6 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,8 +34,6 @@ public class BookAuthorIT extends IntegrationTest {
     private static final String ATTRIBUTES = "attributes";
     private static final String RELATIONSHIPS = "relationships";
     private static final String INCLUDED = "included";
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final Resource HEMINGWAY = resource(
             type("author"),
@@ -179,13 +181,16 @@ public class BookAuthorIT extends IntegrationTest {
 
     @Test
     public void testSparseSingleDataFieldValue() throws Exception {
-        JsonNode responseBody = objectMapper.readTree(
+        JsonNode responseBody = mapper.readTree(
                 given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
                         .param("fields[book]", "title")
-                        .get("/book").asString());
+                        .get("/book")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
 
         assertTrue(responseBody.has("data"));
 
@@ -208,12 +213,15 @@ public class BookAuthorIT extends IntegrationTest {
 
     @Test
     public void testSparseTwoDataFieldValuesNoIncludes() throws Exception {
-        JsonNode responseBody = objectMapper.readTree(
+        JsonNode responseBody = mapper.readTree(
                 given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("fields[book]", "title,language")
-                        .get("/book").asString());
+                        .get("/book")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
 
         assertTrue(responseBody.has("data"));
 
@@ -232,12 +240,15 @@ public class BookAuthorIT extends IntegrationTest {
 
     @Test
     public void testSparseNoFilters() throws Exception {
-        JsonNode responseBody = objectMapper.readTree(
+        JsonNode responseBody = mapper.readTree(
                 given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
-                        .get("/book").asString());
+                        .get("/book")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
 
         assertTrue(responseBody.has("data"));
 
@@ -268,14 +279,17 @@ public class BookAuthorIT extends IntegrationTest {
 
     @Test
     public void testTwoSparseFieldFilters() throws Exception {
-        JsonNode responseBody = objectMapper.readTree(
+        JsonNode responseBody = mapper.readTree(
                 given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
                         .param("fields[book]", "title,genre,authors")
                         .param("fields[author]", "name")
-                        .get("/book").asString());
+                        .get("/book")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
 
         assertTrue(responseBody.has("data"));
 

@@ -6,18 +6,20 @@
 
 package com.yahoo.elide.tests;
 
-import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,6 @@ public class FilterIT extends IntegrationTest {
     private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION = "application/vnd.api+json; ext=jsonpatch";
 
     private final JsonParser jsonParser = new JsonParser();
-    private final ObjectMapper mapper = new ObjectMapper();
 
     private JsonNode books;
     private String asimovId;
@@ -98,8 +99,8 @@ public class FilterIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
-        books = mapper.readTree(get("/book").asString());
-        JsonNode authors = mapper.readTree(get("/author").asString());
+        books = getAsNode("/book");
+        JsonNode authors = getAsNode("/author");
 
         for (JsonNode author : authors.get("data")) {
             authorIds.add(author.get("id").asInt());
@@ -118,9 +119,9 @@ public class FilterIT extends IntegrationTest {
         assertNotNull(nullNedId);
         assertNotNull(thomasHarrisId);
 
-        asimovBooks = mapper.readTree(get(String.format("/author/%s/books", asimovId)).asString());
-        nullNedBooks = mapper.readTree(get(String.format("/author/%s/books", nullNedId)).asString());
-        thomasHarrisBooks = mapper.readTree(get(String.format("/author/%s/books", thomasHarrisId)).asString());
+        asimovBooks = getAsNode(String.format("/author/%s/books", asimovId));
+        nullNedBooks = getAsNode(String.format("/author/%s/books", nullNedId));
+        thomasHarrisBooks = getAsNode(String.format("/author/%s/books", thomasHarrisId));
     }
 
     @Test
@@ -237,20 +238,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(scienceFictionBookCount > 0);
 
         /* Test Default */
-        JsonNode scienceFictionBooks = mapper.readTree(
-                get("/book?filter[book.genre]=Science Fiction").asString());
+        JsonNode scienceFictionBooks = getAsNode("/book?filter[book.genre]=Science Fiction");
 
         assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size());
 
         /* Test RSQL Typed */
-        scienceFictionBooks = mapper.readTree(
-                get("/book?filter[book]=genre=='Science Fiction'").asString());
+        scienceFictionBooks = getAsNode("/book?filter[book]=genre=='Science Fiction'");
 
         assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size());
 
         /* Test RSQL Global */
-        scienceFictionBooks = mapper.readTree(
-                get("/book?filter=genre=='Science Fiction'").asString());
+        scienceFictionBooks = getAsNode("/book?filter=genre=='Science Fiction'");
 
         assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size());
     }
@@ -267,20 +265,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(literaryFictionBookCount > 0);
 
         /* Test Default */
-        JsonNode literaryFictionBooks = mapper.readTree(
-                get("/book?filter[book.genre][in]=Literary Fiction").asString());
+        JsonNode literaryFictionBooks = getAsNode("/book?filter[book.genre][in]=Literary Fiction");
 
         assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size());
 
         /* Test RSQL Typed */
-        literaryFictionBooks = mapper.readTree(
-                get("/book?filter[book]=genre=in='Literary Fiction'").asString());
+        literaryFictionBooks = getAsNode("/book?filter[book]=genre=in='Literary Fiction'");
 
         assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size());
 
         /* Test RSQL Global */
-        literaryFictionBooks = mapper.readTree(
-                get("/book?filter=genre=in='Literary Fiction'").asString());
+        literaryFictionBooks = getAsNode("/book?filter=genre=in='Literary Fiction'");
 
         assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size());
     }
@@ -298,20 +293,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(nonLiteraryFictionBookCount > 0);
 
         /* Test Default */
-        JsonNode nonLiteraryFictionBooks = mapper.readTree(
-                get("/book?filter[book.genre][not]=Literary Fiction").asString());
+        JsonNode nonLiteraryFictionBooks = getAsNode("/book?filter[book.genre][not]=Literary Fiction");
 
         assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size());
 
         /* Test RSQL typed */
-        nonLiteraryFictionBooks = mapper.readTree(
-                get("/book?filter[book]=genre!='Literary Fiction'").asString());
+        nonLiteraryFictionBooks = getAsNode("/book?filter[book]=genre!='Literary Fiction'");
 
         assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size());
 
         /* Test RSQL global */
-        nonLiteraryFictionBooks = mapper.readTree(
-                get("/book?filter=genre!='Literary Fiction'").asString());
+        nonLiteraryFictionBooks = getAsNode("/book?filter=genre!='Literary Fiction'");
 
         assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size());
     }
@@ -330,22 +322,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(nonFictionBookCount > 0);
 
         /* Test default */
-        JsonNode nonFictionBooks = mapper.readTree(
-                get("/book?filter[book.genre][not]=Literary Fiction,Science Fiction").asString());
+        JsonNode nonFictionBooks = getAsNode("/book?filter[book.genre][not]=Literary Fiction,Science Fiction");
 
         assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size());
 
         /* Test RSQL typed */
-        nonFictionBooks = mapper.readTree(
-                get("/book?filter[book]=genre=out=('Literary Fiction','Science Fiction')").asString()
-        );
+        nonFictionBooks = getAsNode("/book?filter[book]=genre=out=('Literary Fiction','Science Fiction')");
 
         assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size());
 
         /* Test RSQL global */
-        nonFictionBooks = mapper.readTree(
-                get("/book?filter=genre=out=('Literary Fiction','Science Fiction')").asString()
-        );
+        nonFictionBooks = getAsNode("/book?filter=genre=out=('Literary Fiction','Science Fiction')");
 
         assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size());
     }
@@ -363,20 +350,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(literaryAndScienceFictionBookCount > 0);
 
         /* Test Default */
-        JsonNode literaryAndScienceFictionBooks = mapper.readTree(
-                get("/book?filter[book.genre][in]=Literary Fiction,Science Fiction").asString());
+        JsonNode literaryAndScienceFictionBooks = getAsNode("/book?filter[book.genre][in]=Literary Fiction,Science Fiction");
 
         assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size());
 
         /* Test RSQL typed */
-        literaryAndScienceFictionBooks = mapper.readTree(
-                get("/book?filter[book]=genre=in=('Literary Fiction','Science Fiction')").asString());
+        literaryAndScienceFictionBooks = getAsNode("/book?filter[book]=genre=in=('Literary Fiction','Science Fiction')");
 
         assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size());
 
         /* Test RSQL global */
-        literaryAndScienceFictionBooks = mapper.readTree(
-                get("/book?filter=genre=in=('Literary Fiction','Science Fiction')").asString());
+        literaryAndScienceFictionBooks = getAsNode("/book?filter=genre=in=('Literary Fiction','Science Fiction')");
 
         assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size());
     }
@@ -393,20 +377,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(genreEndsWithFictionBookCount > 0);
 
         /* Test Default */
-        JsonNode genreEndsWithFictionBooks = mapper.readTree(
-                get("/book?filter[book.genre][postfix]=Fiction").asString());
+        JsonNode genreEndsWithFictionBooks = getAsNode("/book?filter[book.genre][postfix]=Fiction");
 
         assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size());
 
         /* Test RSQL Typed */
-        genreEndsWithFictionBooks = mapper.readTree(
-                get("/book?filter[book]=genre==*Fiction").asString());
+        genreEndsWithFictionBooks = getAsNode("/book?filter[book]=genre==*Fiction");
 
         assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size());
 
         /* Test RSQL Global */
-        genreEndsWithFictionBooks = mapper.readTree(
-                get("/book?filter=genre==*Fiction").asString());
+        genreEndsWithFictionBooks = getAsNode("/book?filter=genre==*Fiction");
 
         assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size());
     }
@@ -423,20 +404,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(titleStartsWithTheBookCount > 0);
 
         /* Test Default */
-        JsonNode titleStartsWithTheBooks = mapper.readTree(
-                get("/book?filter[book.title][prefix]=The").asString());
+        JsonNode titleStartsWithTheBooks = getAsNode("/book?filter[book.title][prefix]=The");
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
 
         /* Test RSQL Typed */
-        titleStartsWithTheBooks = mapper.readTree(
-                get("/book?filter[book]=title==The*").asString());
+        titleStartsWithTheBooks = getAsNode("/book?filter[book]=title==The*");
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
 
-        /* Test RSQL Global  */
-        titleStartsWithTheBooks = mapper.readTree(
-                get("/book?filter=title==The*").asString());
+        /* Test RSQL Global */
+        titleStartsWithTheBooks = getAsNode("/book?filter=title==The*");
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
     }
@@ -453,20 +431,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(titleStartsWithTheBookCount > 0);
 
         /* Test Default */
-        JsonNode titleStartsWithTheBooks = mapper.readTree(
-                get("/book?filter[book.title][prefix]=i'm").asString());
+        JsonNode titleStartsWithTheBooks = getAsNode("/book?filter[book.title][prefix]=i'm");
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
 
         /* Test RSQL Typed */
-        titleStartsWithTheBooks = mapper.readTree(
-                get("/book?filter[book]=title=='i\\'m*'").asString());
+        titleStartsWithTheBooks = getAsNode("/book?filter[book]=title=='i\\'m*'");
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
 
         /* Test RSQL Global */
-        titleStartsWithTheBooks = mapper.readTree(
-                get("/book?filter=title=='i\\'m*'").asString());
+        titleStartsWithTheBooks = getAsNode("/book?filter=title=='i\\'m*'");
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
     }
@@ -483,20 +458,17 @@ public class FilterIT extends IntegrationTest {
         assertTrue(titleContainsTheBookCount > 0);
 
         /* Test Default */
-        JsonNode titleContainsTheBooks = mapper.readTree(
-                get("/book?filter[book.title][infix]=the").asString());
+        JsonNode titleContainsTheBooks = getAsNode("/book?filter[book.title][infix]=the");
 
         assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size());
 
         /* Test RSQL Typed */
-        titleContainsTheBooks = mapper.readTree(
-                get("/book?filter[book]=title==*the*").asString());
+        titleContainsTheBooks = getAsNode("/book?filter[book]=title==*the*");
 
         assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size());
 
         /* Test RSQL Global */
-        titleContainsTheBooks = mapper.readTree(
-                get("/book?filter=title==*the*").asString());
+        titleContainsTheBooks = getAsNode("/book?filter=title==*the*");
 
         assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size());
     }
@@ -516,24 +488,21 @@ public class FilterIT extends IntegrationTest {
         assertTrue(authorIdsOfLiteraryFiction.size() > 0);
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/book?include=authors&filter[book.genre]=Literary Fiction").asString());
+        JsonNode result = getAsNode("/book?include=authors&filter[book.genre]=Literary Fiction");
 
         for (JsonNode author : result.get("included")) {
             assertTrue(authorIdsOfLiteraryFiction.contains(author.get("id").asText()));
         }
 
         /* Test RSQL Typed */
-        result = mapper.readTree(
-                get("/book?include=authors&filter[book]=genre=='Literary Fiction'").asString());
+        result = getAsNode("/book?include=authors&filter[book]=genre=='Literary Fiction'");
 
         for (JsonNode author : result.get("included")) {
             assertTrue(authorIdsOfLiteraryFiction.contains(author.get("id").asText()));
         }
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("/book?include=authors&filter=genre=='Literary Fiction'").asString());
+        result = getAsNode("/book?include=authors&filter=genre=='Literary Fiction'");
 
         for (JsonNode author : result.get("included")) {
             assertTrue(authorIdsOfLiteraryFiction.contains(author.get("id").asText()));
@@ -553,8 +522,7 @@ public class FilterIT extends IntegrationTest {
         assertTrue(bookIdsWithNullGenre.size() > 0);
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/book?filter[book.genre][isnull]").asString());
+        JsonNode result = getAsNode("/book?filter[book.genre][isnull]");
 
         assertEquals(result.get("data").size(), bookIdsWithNullGenre.size());
 
@@ -565,8 +533,7 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Typed */
         /* param = true */
-        result = mapper.readTree(
-                get("book?filter[book]=genre=isnull=true").asString());
+        result = getAsNode("book?filter[book]=genre=isnull=true");
 
         assertEquals(result.get("data").size(), bookIdsWithNullGenre.size());
 
@@ -576,8 +543,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* param = 1 */
-        result = mapper.readTree(
-                get("book?filter[book]=genre=isnull=1").asString());
+        result = getAsNode("book?filter[book]=genre=isnull=1");
 
         assertEquals(result.get("data").size(), bookIdsWithNullGenre.size());
 
@@ -588,8 +554,7 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Global */
         /* param = true */
-        result = mapper.readTree(
-                get("book?filter=genre=isnull=true").asString());
+        result = getAsNode("book?filter=genre=isnull=true");
 
         assertEquals(result.get("data").size(), bookIdsWithNullGenre.size());
 
@@ -599,8 +564,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* param = 1 */
-        result = mapper.readTree(
-                get("book?filter=genre=isnull=1").asString());
+        result = getAsNode("book?filter=genre=isnull=1");
 
         assertEquals(result.get("data").size(), bookIdsWithNullGenre.size());
 
@@ -623,8 +587,7 @@ public class FilterIT extends IntegrationTest {
         assertTrue(bookIdsWithNonNullGenre.size() > 0);
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/book?filter[book.genre][notnull]").asString());
+        JsonNode result = getAsNode("/book?filter[book.genre][notnull]");
 
         assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size());
 
@@ -635,8 +598,7 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Typed */
         /* param = false */
-        result = mapper.readTree(
-                get("book?filter[book]=genre=isnull=false").asString());
+        result = getAsNode("book?filter[book]=genre=isnull=false");
 
         assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size());
 
@@ -646,8 +608,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* param = 0 */
-        result = mapper.readTree(
-                get("book?filter[book]=genre=isnull=0").asString());
+        result = getAsNode("book?filter[book]=genre=isnull=0");
 
         assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size());
 
@@ -658,8 +619,7 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Global */
         /* param = false */
-        result = mapper.readTree(
-                get("book?filter=genre=isnull=false").asString());
+        result = getAsNode("book?filter=genre=isnull=false");
 
         assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size());
 
@@ -669,8 +629,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* param = 0 */
-        result = mapper.readTree(
-                get("book?filter=genre=isnull=0").asString());
+        result = getAsNode("book?filter=genre=isnull=0");
 
         assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size());
 
@@ -692,14 +651,12 @@ public class FilterIT extends IntegrationTest {
         assertTrue(asimovScienceFictionBookCount > 0);
 
         /* Test Default */
-        JsonNode asimovScienceFictionBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.genre]=Science Fiction", asimovId)).asString());
+        JsonNode asimovScienceFictionBooks = getAsNode(String.format("/author/%s/books?filter[book.genre]=Science Fiction", asimovId));
 
         assertEquals(asimovScienceFictionBookCount, asimovScienceFictionBooks.get("data").size());
 
         /* Test RSQL Typed */
-        asimovScienceFictionBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=genre=='Science Fiction'", asimovId)).asString());
+        asimovScienceFictionBooks = getAsNode(String.format("/author/%s/books?filter[book]=genre=='Science Fiction'", asimovId));
 
         assertEquals(asimovScienceFictionBookCount, asimovScienceFictionBooks.get("data").size());
     }
@@ -716,14 +673,12 @@ public class FilterIT extends IntegrationTest {
         assertTrue(asimovHistoryBookCount > 0);
 
         /* Test Default */
-        JsonNode asimovHistoryBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.genre]=History", asimovId)).asString());
+        JsonNode asimovHistoryBooks = getAsNode(String.format("/author/%s/books?filter[book.genre]=History", asimovId));
 
         assertEquals(asimovHistoryBookCount, asimovHistoryBooks.get("data").size());
 
         /* Test RSQL Typed */
-        asimovHistoryBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=genre==History", asimovId)).asString());
+        asimovHistoryBooks = getAsNode(String.format("/author/%s/books?filter[book]=genre==History", asimovId));
 
         assertEquals(asimovHistoryBookCount, asimovHistoryBooks.get("data").size());
     }
@@ -741,14 +696,12 @@ public class FilterIT extends IntegrationTest {
         assertTrue(nonHistoryBookCount > 0);
 
         /* Test Default */
-        JsonNode nonHistoryBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.genre][not]=History", asimovId)).asString());
+        JsonNode nonHistoryBooks = getAsNode(String.format("/author/%s/books?filter[book.genre][not]=History", asimovId));
 
         assertEquals(nonHistoryBookCount, nonHistoryBooks.get("data").size());
 
         /* Test RSQL Typed */
-        nonHistoryBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=genre!=History", asimovId)).asString());
+        nonHistoryBooks = getAsNode(String.format("/author/%s/books?filter[book]=genre!=History", asimovId));
 
         assertEquals(nonHistoryBookCount, nonHistoryBooks.get("data").size());
     }
@@ -765,14 +718,12 @@ public class FilterIT extends IntegrationTest {
         assertTrue(genreEndsWithFictionBookCount > 0);
 
         /* Test Default */
-        JsonNode genreEndsWithFictionBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.genre][postfix]=Fiction", asimovId)).asString());
+        JsonNode genreEndsWithFictionBooks = getAsNode(String.format("/author/%s/books?filter[book.genre][postfix]=Fiction", asimovId));
 
         assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size());
 
         /* Test RSQL Typed */
-        genreEndsWithFictionBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=genre==*Fiction", asimovId)).asString());
+        genreEndsWithFictionBooks = getAsNode(String.format("/author/%s/books?filter[book]=genre==*Fiction", asimovId));
 
         assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size());
     }
@@ -789,19 +740,16 @@ public class FilterIT extends IntegrationTest {
         assertTrue(editorEdBooks > 0);
 
         /* Test Default */
-        JsonNode editorNameEndsWithd = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.editorName][postfix]=D", nullNedId)).asString());
+        JsonNode editorNameEndsWithd = getAsNode(String.format("/author/%s/books?filter[book.editorName][postfix]=D", nullNedId));
 
         assertEquals(0, editorNameEndsWithd.get("data").size());
 
-        editorNameEndsWithd = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.editorName][postfixi]=D", nullNedId)).asString());
+        editorNameEndsWithd = getAsNode(String.format("/author/%s/books?filter[book.editorName][postfixi]=D", nullNedId));
 
         assertEquals(editorEdBooks, editorNameEndsWithd.get("data").size());
 
         /* Test RSQL Typed */
-        editorNameEndsWithd = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=editorName==*D", nullNedId)).asString());
+        editorNameEndsWithd = getAsNode(String.format("/author/%s/books?filter[book]=editorName==*D", nullNedId));
 
         assertEquals(editorEdBooks, editorNameEndsWithd.get("data").size());
     }
@@ -818,19 +766,16 @@ public class FilterIT extends IntegrationTest {
         assertTrue(editorEdBooks > 0);
 
         /* Test Default */
-        JsonNode editorNameStartsWithE = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.editorName][prefix]=e", nullNedId)).asString());
+        JsonNode editorNameStartsWithE = getAsNode(String.format("/author/%s/books?filter[book.editorName][prefix]=e", nullNedId));
 
         assertEquals(0, editorNameStartsWithE.get("data").size());
 
-        editorNameStartsWithE = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.editorName][prefixi]=e", nullNedId)).asString());
+        editorNameStartsWithE = getAsNode(String.format("/author/%s/books?filter[book.editorName][prefixi]=e", nullNedId));
 
         assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size());
 
         /* Test RSQL Typed */
-        editorNameStartsWithE = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=editorName==e*", nullNedId)).asString());
+        editorNameStartsWithE = getAsNode(String.format("/author/%s/books?filter[book]=editorName==e*", nullNedId));
 
         assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size());
     }
@@ -847,19 +792,16 @@ public class FilterIT extends IntegrationTest {
         assertTrue(editorEditBooks > 0);
 
         /* Test Default */
-        JsonNode editorNameContainsEd = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.editorName][infix]=eD", nullNedId)).asString());
+        JsonNode editorNameContainsEd = getAsNode(String.format("/author/%s/books?filter[book.editorName][infix]=eD", nullNedId));
 
         assertEquals(0, editorNameContainsEd.get("data").size());
 
-        editorNameContainsEd = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.editorName][infixi]=eD", nullNedId)).asString());
+        editorNameContainsEd = getAsNode(String.format("/author/%s/books?filter[book.editorName][infixi]=eD", nullNedId));
 
         assertEquals(editorEditBooks, editorNameContainsEd.get("data").size());
 
         /* Test RSQL Typed */
-        editorNameContainsEd = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=editorName==*eD*", nullNedId)).asString());
+        editorNameContainsEd = getAsNode(String.format("/author/%s/books?filter[book]=editorName==*eD*", nullNedId));
 
         assertEquals(editorEditBooks, editorNameContainsEd.get("data").size());
     }
@@ -876,14 +818,12 @@ public class FilterIT extends IntegrationTest {
         assertTrue(titleStartsWithTheBookCount > 0);
 
         /* Test Default */
-        JsonNode titleStartsWithTheBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.title][prefix]=The", asimovId)).asString());
+        JsonNode titleStartsWithTheBooks = getAsNode(String.format("/author/%s/books?filter[book.title][prefix]=The", asimovId));
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
 
         /* Test RSQL Typed */
-        titleStartsWithTheBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=title==The*", asimovId)).asString());
+        titleStartsWithTheBooks = getAsNode(String.format("/author/%s/books?filter[book]=title==The*", asimovId));
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
     }
@@ -900,14 +840,12 @@ public class FilterIT extends IntegrationTest {
         assertTrue(titleStartsWithTheBookCount > 0);
 
         /* Test Default */
-        JsonNode titleStartsWithTheBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.title][prefix]=I'm", thomasHarrisId)).asString());
+        JsonNode titleStartsWithTheBooks = getAsNode(String.format("/author/%s/books?filter[book.title][prefix]=I'm", thomasHarrisId));
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
 
         /* Test RSQL Typed */
-        titleStartsWithTheBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=title=='I\\'m*'", thomasHarrisId)).asString());
+        titleStartsWithTheBooks = getAsNode(String.format("/author/%s/books?filter[book]=title=='I\\'m*'", thomasHarrisId));
 
         assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size());
     }
@@ -924,14 +862,12 @@ public class FilterIT extends IntegrationTest {
         assertTrue(titleContainsTheBookCount > 0);
 
         /* Test Default */
-        JsonNode titleContainsTheBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.title][infix]=the", asimovId)).asString());
+        JsonNode titleContainsTheBooks = getAsNode(String.format("/author/%s/books?filter[book.title][infix]=the", asimovId));
 
         assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size());
 
         /* Test RSQL Typed */
-        titleContainsTheBooks = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=title==*the*", asimovId)).asString());
+        titleContainsTheBooks = getAsNode(String.format("/author/%s/books?filter[book]=title==*the*", asimovId));
 
         assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size());
     }
@@ -951,18 +887,14 @@ public class FilterIT extends IntegrationTest {
         assertTrue(authorIdsOfScienceFiction.size() > 0);
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get(String.format("/author/%s/books?include=authors&filter[book.genre]=Science Fiction", asimovId))
-                        .asString());
+        JsonNode result = getAsNode(String.format("/author/%s/books?include=authors&filter[book.genre]=Science Fiction", asimovId));
 
         for (JsonNode author : result.get("included")) {
             assertTrue(authorIdsOfScienceFiction.contains(author.get("id").asText()));
         }
 
         /* Test RSQL Typed */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?include=authors&filter[book]=genre=='Science Fiction'", asimovId))
-                        .asString());
+        result = getAsNode(String.format("/author/%s/books?include=authors&filter[book]=genre=='Science Fiction'", asimovId));
 
         for (JsonNode author : result.get("included")) {
             assertTrue(authorIdsOfScienceFiction.contains(author.get("id").asText()));
@@ -982,8 +914,7 @@ public class FilterIT extends IntegrationTest {
         assertTrue(bookIdsWithNullGenre.size() > 0);
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.genre][isnull]", nullNedId)).asString());
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.genre][isnull]", nullNedId));
 
         assertEquals(result.get("data").size(), bookIdsWithNullGenre.size());
 
@@ -994,8 +925,7 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Typed */
         /* param = true */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=genre=isnull=true", nullNedId)).asString());
+        result = getAsNode(String.format("/author/%s/books?filter[book]=genre=isnull=true", nullNedId));
 
         assertEquals(result.get("data").size(), bookIdsWithNullGenre.size());
 
@@ -1005,8 +935,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* param = 1 */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=genre=isnull=1", nullNedId)).asString());
+        result = getAsNode(String.format("/author/%s/books?filter[book]=genre=isnull=1", nullNedId));
 
         assertEquals(result.get("data").size(), bookIdsWithNullGenre.size());
 
@@ -1029,8 +958,7 @@ public class FilterIT extends IntegrationTest {
         assertTrue(bookIdsWithNonNullGenre.size() > 0);
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.genre][notnull]", nullNedId)).asString());
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.genre][notnull]", nullNedId));
 
         assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size());
 
@@ -1041,9 +969,7 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Typed */
         /* param = false */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=genre=isnull=false", nullNedId)).asString()
-        );
+        result = getAsNode(String.format("/author/%s/books?filter[book]=genre=isnull=false", nullNedId));
 
         assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size());
 
@@ -1053,8 +979,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* param = 0 */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=genre=isnull=0", nullNedId)).asString());
+        result = getAsNode(String.format("/author/%s/books?filter[book]=genre=isnull=0", nullNedId));
 
         assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size());
 
@@ -1078,8 +1003,7 @@ public class FilterIT extends IntegrationTest {
         assertTrue(bookIdsWithNonNullGenre.size() > 0);
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/book?filter[book.publishDate][gt]=1").asString());
+        JsonNode result = getAsNode("/book?filter[book.publishDate][gt]=1");
 
         assertEquals(result.get("data").size(), 1);
 
@@ -1089,8 +1013,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL Typed */
-        result = mapper.readTree(
-                get("/book?filter[book]=publishDate>1").asString());
+        result = getAsNode("/book?filter[book]=publishDate>1");
 
         assertEquals(result.get("data").size(), 1);
 
@@ -1105,10 +1028,7 @@ public class FilterIT extends IntegrationTest {
         long publishDate;
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.publishDate][gt]=1454638927411", orsonCardId))
-                        .asString()
-        );
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.publishDate][gt]=1454638927411", orsonCardId));
 
         assertTrue(result.get("data").size() > 0);
 
@@ -1118,8 +1038,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL Typed */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=publishDate>1454638927411", orsonCardId)).asString());
+        result = getAsNode(String.format("/author/%s/books?filter[book]=publishDate>1454638927411", orsonCardId));
 
         assertTrue(result.get("data").size() > 0);
 
@@ -1134,10 +1053,7 @@ public class FilterIT extends IntegrationTest {
         long publishDate;
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.publishDate][le]=1454638927412", orsonCardId))
-                        .asString()
-        );
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.publishDate][le]=1454638927412", orsonCardId));
 
         assertEquals(result.get("data").size(), 1);
 
@@ -1147,8 +1063,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL Typed */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=publishDate<=1454638927412", orsonCardId)).asString());
+        result = getAsNode(String.format("/author/%s/books?filter[book]=publishDate<=1454638927412", orsonCardId));
 
         assertEquals(result.get("data").size(), 1);
 
@@ -1163,8 +1078,7 @@ public class FilterIT extends IntegrationTest {
         long publishDate;
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("book?filter[book.publishDate][le]=1454638927412").asString());
+        JsonNode result = getAsNode("book?filter[book.publishDate][le]=1454638927412");
 
         assertTrue(result.get("data").size() > 0);
 
@@ -1174,8 +1088,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL Typed */
-        result = mapper.readTree(
-                get("book?filter[book]=publishDate<=1454638927412").asString());
+        result = getAsNode("book?filter[book]=publishDate<=1454638927412");
 
         assertTrue(result.get("data").size() > 0);
 
@@ -1185,8 +1098,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("book?filter=publishDate<=1454638927412").asString());
+        result = getAsNode("book?filter=publishDate<=1454638927412");
 
         assertTrue(result.get("data").size() > 0);
 
@@ -1201,8 +1113,7 @@ public class FilterIT extends IntegrationTest {
         long publishDate;
 
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/book?filter[book.publishDate][lt]=1454638927411").asString());
+        JsonNode result = getAsNode("/book?filter[book.publishDate][lt]=1454638927411");
 
         assertTrue(result.get("data").size() > 0);
 
@@ -1212,8 +1123,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* RSQL Typed */
-        result = mapper.readTree(
-                get("/book?filter[book]=publishDate<1454638927411").asString());
+        result = getAsNode("/book?filter[book]=publishDate<1454638927411");
 
         assertTrue(result.get("data").size() > 0);
 
@@ -1223,8 +1133,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* RSQL Global */
-        result = mapper.readTree(
-                get("/book?filter=publishDate<1454638927411").asString());
+        result = getAsNode("/book?filter=publishDate<1454638927411");
 
         assertTrue(result.get("data").size() > 0);
 
@@ -1239,9 +1148,7 @@ public class FilterIT extends IntegrationTest {
      */
     @Test
     void testIssue508() throws IOException {
-        JsonNode result = mapper.readTree(
-                get("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default Publisher')&page[totals]")
-                        .asString());
+        JsonNode result = getAsNode("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default Publisher')&page[totals]");
 
         assertEquals(2, result.get("data").size());
 
@@ -1249,16 +1156,14 @@ public class FilterIT extends IntegrationTest {
         assertNotNull(pageNode);
         assertEquals(pageNode.get("totalRecords").asInt(), 2);
 
-        result = mapper.readTree(
-                get("book?filter=(authors.name=='Thomas Harris')&page[totals]").asString());
+        result = getAsNode("book?filter=(authors.name=='Thomas Harris')&page[totals]");
         assertEquals(1, result.get("data").size());
 
         pageNode = result.get("meta").get("page");
         assertNotNull(pageNode);
         assertEquals(pageNode.get("totalRecords").asInt(), 1);
 
-        result = mapper.readTree(
-                get("book?filter=(publisher.name=='Default Publisher')&page[totals]").asString());
+        result = getAsNode("book?filter=(publisher.name=='Default Publisher')&page[totals]");
         assertEquals(1, result.get("data").size());
 
         pageNode = result.get("meta").get("page");
@@ -1269,16 +1174,14 @@ public class FilterIT extends IntegrationTest {
     @Test
     void testGetBadRelationshipNameWithNestedFieldFilter() throws IOException {
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("book?filter[book.author12.name]=Null Ned").asString());
+        JsonNode result = getAsNode("book?filter[book.author12.name]=Null Ned");
 
         assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Unknown field in filter: author12\n"
                         + "Invalid query parameter: filter[book.author12.name]");
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("book?filter=author12.name=='Null Ned'").asString());
+        result = getAsNode("book?filter=author12.name=='Null Ned'");
 
         assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Invalid filter format: filter\n"
@@ -1290,8 +1193,7 @@ public class FilterIT extends IntegrationTest {
     @Test
     void testGetBooksFilteredByAuthors() throws IOException {
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("book?filter[book.authors.name]=Null Ned").asString());
+        JsonNode result = getAsNode("book?filter[book.authors.name]=Null Ned");
 
         assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
 
@@ -1301,8 +1203,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("book?filter=authors.name=='Null Ned'").asString());
+        result = getAsNode("book?filter=authors.name=='Null Ned'");
 
         assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
 
@@ -1316,8 +1217,7 @@ public class FilterIT extends IntegrationTest {
     void testGetBooksFilteredByAuthorsId() throws IOException {
         String nullNedIdStr = String.valueOf(nullNedId);
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("book?filter[book.authors.id]=" + nullNedIdStr).asString());
+        JsonNode result = getAsNode("book?filter[book.authors.id]=" + nullNedIdStr);
 
         assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
 
@@ -1327,8 +1227,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("book?filter=authors.id==" + nullNedIdStr).asString());
+        result = getAsNode("book?filter=authors.id==" + nullNedIdStr);
 
         assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
 
@@ -1341,28 +1240,28 @@ public class FilterIT extends IntegrationTest {
     @Test
     void testGetBooksFilteredByAuthorAndTitle() throws IOException {
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("book?filter[book.authors.name]=Null Ned&filter[book.title]=Life with Null Ned").asString());
+        JsonNode result = getAsNode("book?filter[book.authors.name]=Null Ned&filter[book.title]=Life with Null Ned");
 
         assertEquals(result.get("data").size(), 1);
         assertEquals(result.get("data").get(0).get("attributes").get("title").asText(), "Life with Null Ned");
-        assertEquals(result.get("data").get(0).get("relationships").get("authors").get("data").get(0).get("id").asText(), nullNedId);
+        assertEquals(
+                result.get("data").get(0).get("relationships").get("authors").get("data").get(0).get("id").asText(),
+                nullNedId);
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("book?filter=authors.name=='Null Ned';title=='Life with Null Ned'").asString());
+        result = getAsNode("book?filter=authors.name=='Null Ned';title=='Life with Null Ned'");
 
         assertEquals(result.get("data").size(), 1);
         assertEquals(result.get("data").get(0).get("attributes").get("title").asText(), "Life with Null Ned");
-        assertEquals(result.get("data").get(0).get("relationships").get("authors").get("data").get(0).get("id").asText(), nullNedId);
+        assertEquals(
+                result.get("data").get(0).get("relationships").get("authors").get("data").get(0).get("id").asText(),
+                nullNedId);
     }
 
     @Test
     void testFilterAuthorsByBookChapterTitle() throws IOException {
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/author?sort=-name&filter[author.books.chapters.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!")
-                        .asString());
+        JsonNode result = getAsNode("/author?sort=-name&filter[author.books.chapters.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!");
 
         assertEquals(result.get("data").size(), 2);
 
@@ -1372,9 +1271,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("/author?filter=books.chapters.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')")
-                        .asString());
+        result = getAsNode("/author?filter=books.chapters.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')");
 
         assertEquals(result.get("data").size(), 2);
 
@@ -1387,9 +1284,7 @@ public class FilterIT extends IntegrationTest {
     @Test
     void testFilterAuthorBookByPublisher() throws IOException {
         /* Test default */
-        JsonNode result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.publisher.name]=Default publisher", hemingwayId))
-                        .asString());
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.publisher.name]=Default publisher", hemingwayId));
         JsonNode data = result.get("data");
         assertEquals(data.size(), 1);
 
@@ -1399,9 +1294,7 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* Test RSQL */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=publisher.name=='Default publisher'", hemingwayId))
-                        .asString());
+        result = getAsNode(String.format("/author/%s/books?filter[book]=publisher.name=='Default publisher'", hemingwayId));
 
         data = result.get("data");
         assertEquals(data.size(), 1);
@@ -1456,36 +1349,24 @@ public class FilterIT extends IntegrationTest {
     @Test
     void testFailFilterAuthorBookByChapter() throws IOException {
         /* Test default */
-        JsonNode result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.chapters.title]=doesn't matter", hemingwayId))
-                        .asString()
-        );
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.chapters.title]=doesn't matter", hemingwayId));
         assertNotNull(result.get("errors"));
 
         /* Test RSQL */
-        result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book]=chapters.title=='Borked'", hemingwayId))
-                        .asString()
-        );
+        result = getAsNode(String.format("/author/%s/books?filter[book]=chapters.title=='Borked'", hemingwayId));
         assertNotNull(result.get("errors"));
     }
 
     @Test
     void testGetBadRelationshipRoot() throws IOException {
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/author?filter[idontexist.books.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!")
-                        .asString()
-        );
+        JsonNode result = getAsNode("/author?filter[idontexist.books.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!");
         assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Unknown entity in filter: idontexist\n"
-                       + "Invalid query parameter: filter[idontexist.books.title][in]");
+                        + "Invalid query parameter: filter[idontexist.books.title][in]");
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("/author?filter=idontexist.books.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')")
-                        .asString()
-        );
+        result = getAsNode("/author?filter=idontexist.books.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')");
         assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Invalid filter format: filter\n"
                         + "No such association idontexist for type author\n"
@@ -1496,19 +1377,13 @@ public class FilterIT extends IntegrationTest {
     @Test
     void testGetBadRelationshipIntermediate() throws IOException {
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/author?filter[author.idontexist.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!")
-                        .asString()
-        );
+        JsonNode result = getAsNode("/author?filter[author.idontexist.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!");
         assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Unknown field in filter: idontexist\n"
                         + "Invalid query parameter: filter[author.idontexist.title][in]");
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("/author?filter=idontexist.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')")
-                        .asString()
-        );
+        result = getAsNode("/author?filter=idontexist.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')");
         assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Invalid filter format: filter\n"
                         + "No such association idontexist for type author\n"
@@ -1519,19 +1394,13 @@ public class FilterIT extends IntegrationTest {
     @Test
     void testGetBadRelationshipLeaf() throws IOException {
         /* Test Default */
-        JsonNode result = mapper.readTree(
-                get("/author?filter[author.books.idontexist][in]=Viva la Roma!,Mamma mia I wantz some pizza!")
-                        .asString()
-        );
+        JsonNode result = getAsNode("/author?filter[author.books.idontexist][in]=Viva la Roma!,Mamma mia I wantz some pizza!");
         assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Unknown field in filter: idontexist\n"
                         + "Invalid query parameter: filter[author.books.idontexist][in]");
 
         /* Test RSQL Global */
-        result = mapper.readTree(
-                get("/author?filter=books.idontexist=in=('Viva la Roma!','Mamma mia I wantz some pizza!')")
-                        .asString()
-        );
+        result = getAsNode("/author?filter=books.idontexist=in=('Viva la Roma!','Mamma mia I wantz some pizza!')");
         assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Invalid filter format: filter\n"
                         + "No such association idontexist for type book\n"
@@ -1544,9 +1413,7 @@ public class FilterIT extends IntegrationTest {
      */
     @Test
     void testFilterWithSort() throws IOException {
-        JsonNode result = mapper.readTree(
-                get(String.format("/author/%s/books?filter[book.title][notnull]=true&sort=title", asimovId))
-                        .asString());
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.title][notnull]=true&sort=title", asimovId));
         JsonNode data = result.get("data");
         assertEquals(data.size(), 2);
     }
