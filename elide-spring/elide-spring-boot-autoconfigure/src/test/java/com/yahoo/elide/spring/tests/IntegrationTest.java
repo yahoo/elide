@@ -5,11 +5,12 @@
  */
 package com.yahoo.elide.spring.tests;
 
-import com.jayway.restassured.RestAssured;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+
+import io.restassured.RestAssured;
 
 /**
  * Base class for running a set of functional Elide tests.  This class
