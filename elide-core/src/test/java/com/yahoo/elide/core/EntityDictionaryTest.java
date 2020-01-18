@@ -514,6 +514,15 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubclassBinding.class));
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubsubclassBinding.class));
+
+        assertEquals("subclassBinding", this.getEntityFor(SubclassBinding.class));
+        assertEquals("superclassBinding", this.getEntityFor(SuperclassBinding.class));
+
+        assertEquals(SubclassBinding.class, this.getEntityClass("subclassBinding"));
+        assertEquals(SuperclassBinding.class, this.getEntityClass("superclassBinding"));
+
+        assertEquals("subclassBinding", this.getJsonAliasFor(SubclassBinding.class));
+        assertEquals("superclassBinding", this.getJsonAliasFor(SuperclassBinding.class));
     }
 
     @Test

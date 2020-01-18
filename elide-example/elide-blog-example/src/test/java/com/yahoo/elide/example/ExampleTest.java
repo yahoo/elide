@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.core.MediaType;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.when;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
