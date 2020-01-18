@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -32,7 +31,7 @@ import javax.persistence.OneToOne;
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
 @SharePermission
-@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheck")
 @Include(rootLevel = true, type = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -114,33 +113,13 @@ public class Child {
         this.noReadAccess = noReadAccess;
     }
 
-    static public class InitCheck extends CommitCheck<Child> {
+    static public class InitCheck extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (child.getParents() != null) {
                 return true;
             }
             return false;
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "initCheck";
-        }
-    }
-
-    static public class InitCheckOp extends OperationCheck<Child> {
-        @Override
-        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (child.getParents() != null) {
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "initCheckOp";
         }
     }
 }

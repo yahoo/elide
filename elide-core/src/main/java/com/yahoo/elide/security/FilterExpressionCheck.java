@@ -12,8 +12,8 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.parsers.expression.FilterExpressionCheckEvaluationVisitor;
-import com.yahoo.elide.security.checks.InlineCheck;
 
+import com.yahoo.elide.security.checks.OperationCheck;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
@@ -27,7 +27,7 @@ import javax.inject.Inject;
  * @param <T> Type of class
  */
 @Slf4j
-public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
+public abstract class FilterExpressionCheck<T> extends OperationCheck<T> {
 
     @Inject
     protected EntityDictionary dictionary;
@@ -40,12 +40,6 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      * @return FilterExpression for FilterExpressionCheck.
      */
     public abstract FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope);
-
-    /* NOTE: Filter Expression checks and user checks are intended to be _distinct_ */
-    @Override
-    public final boolean ok(User user) {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * The filter expression is evaluated in memory if it cannot be pushed to the data store by elide for any reason.
