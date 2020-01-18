@@ -19,11 +19,6 @@ public class UserIdChecks {
             Integer id = (Integer) user.getOpaqueUser();
             return id.equals(1);
         }
-
-        @Override
-        public String checkIdentifier() {
-            return "UserOne";
-        }
     }
 
     public static class UserTwoCheck extends UserCheck {
@@ -31,11 +26,6 @@ public class UserIdChecks {
         public boolean ok(User user) {
             Integer id = (Integer) user.getOpaqueUser();
             return id.equals(2);
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "UserTwo";
         }
     }
 
@@ -45,11 +35,6 @@ public class UserIdChecks {
             Integer id = (Integer) user.getOpaqueUser();
             return id.equals(3);
         }
-
-        @Override
-        public String checkIdentifier() {
-            return "UserThree";
-        }
     }
 
     public static class UserFourCheck extends UserCheck {
@@ -57,11 +42,6 @@ public class UserIdChecks {
         public boolean ok(User user) {
             Integer id = (Integer) user.getOpaqueUser();
             return id.equals(4);
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "UserFour";
         }
     }
 }
