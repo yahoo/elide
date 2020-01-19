@@ -80,9 +80,10 @@
         <version.antlr4>4.7.2</version.antlr4>
         <version.logback>1.2.3</version.logback>
         <version.jetty>9.4.25.v20191220</version.jetty>
-        <version.restassured>2.9.0</version.restassured>
+        <version.restassured>4.1.2</version.restassured>
         <version.jackson>2.10.1</version.jackson>
         <version.jersey>2.29.1</version.jersey>
+        <version.junit>5.5.2</version.junit>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <version.mysql>8.0.18</version.mysql>
         <hibernate5.version>5.4.2.Final</hibernate5.version>
@@ -200,14 +201,14 @@
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
-                <version>5.5.2</version>
+                <version>${version.junit}</version>
                 <scope>test</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
-                <version>5.5.2</version>
+                <version>${version.junit}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -240,7 +241,7 @@
                 <version>${version.jackson}</version>
             </dependency>
             <dependency>
-                <groupId>com.jayway.restassured</groupId>
+                <groupId>io.rest-assured</groupId>
                 <artifactId>rest-assured</artifactId>
                 <version>${version.restassured}</version>
                 <scope>test</scope>

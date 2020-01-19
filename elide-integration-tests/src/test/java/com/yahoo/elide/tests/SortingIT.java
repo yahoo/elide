@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -13,7 +12,7 @@ import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SortingIT extends IntegrationTest {
-    private final ObjectMapper mapper = new ObjectMapper();
     private final JsonParser jsonParser = new JsonParser();
 
     @BeforeEach
@@ -57,8 +55,7 @@ public class SortingIT extends IntegrationTest {
 
     @Test
     public void testSortingRootCollectionByRelationshipProperty() throws IOException {
-        JsonNode result = mapper.readTree(
-                get("/book?sort=-publisher.name").asString());
+        JsonNode result = getAsNode("/book?sort=-publisher.name");
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -70,8 +67,7 @@ public class SortingIT extends IntegrationTest {
         String secondBookName = books.get(1).get("attributes").get("title").asText();
         assertEquals("The Old Man and the Sea", secondBookName);
 
-        result = mapper.readTree(
-                get("/book?sort=publisher.name").asString());
+        result = getAsNode("/book?sort=publisher.name");
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -85,8 +81,7 @@ public class SortingIT extends IntegrationTest {
 
     @Test
     public void testSortingSubcollectionByRelationshipProperty() throws IOException {
-        JsonNode result = mapper.readTree(
-                get("/author/1/books?sort=-publisher.name").asString());
+        JsonNode result = getAsNode("/author/1/books?sort=-publisher.name");
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -97,8 +92,7 @@ public class SortingIT extends IntegrationTest {
         String secondBookName = books.get(1).get("attributes").get("title").asText();
         assertEquals("The Old Man and the Sea", secondBookName);
 
-        result = mapper.readTree(
-                get("/author/1/books?sort=publisher.name").asString());
+        result = getAsNode("/author/1/books?sort=publisher.name");
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -112,8 +106,7 @@ public class SortingIT extends IntegrationTest {
 
     @Test
     public void testSortingRootCollectionByRelationshipPropertyWithJoinFilter() throws IOException {
-        JsonNode result = mapper.readTree(
-                get("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name").asString());
+        JsonNode result = getAsNode("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name");
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -124,8 +117,7 @@ public class SortingIT extends IntegrationTest {
         String secondBookName = books.get(1).get("attributes").get("title").asText();
         assertEquals("The Old Man and the Sea", secondBookName);
 
-        result = mapper.readTree(
-                get("/book?filter[book.authors.name][infixi]=Hemingway&sort=publisher.name").asString());
+        result = getAsNode("/book?filter[book.authors.name][infixi]=Hemingway&sort=publisher.name");
         //We expect 2 results because the Hibernate does an inner join between book & publisher
         assertEquals(2, result.get("data").size());
 
@@ -139,8 +131,7 @@ public class SortingIT extends IntegrationTest {
 
     @Test
     public void testSortingByRelationshipId() throws IOException {
-        JsonNode result = mapper.readTree(
-                get("/book?sort=-publisher.id").asString());
+        JsonNode result = getAsNode("/book?sort=-publisher.id");
 
         //We expect 8 results because publisher_id is a foreign key inside the book table.
         assertEquals(8, result.get("data").size());
@@ -152,8 +143,7 @@ public class SortingIT extends IntegrationTest {
         String secondBookName = books.get(1).get("attributes").get("title").asText();
         assertEquals("The Old Man and the Sea", secondBookName);
 
-        result = mapper.readTree(
-                get("/book?sort=publisher.id").asString());
+        result = getAsNode("/book?sort=publisher.id");
         assertEquals(8, result.get("data").size());
 
         books = result.get("data");
@@ -177,8 +167,7 @@ public class SortingIT extends IntegrationTest {
                 "The Old Man and the Sea"
         );
 
-        JsonNode result = mapper.readTree(
-                get("/book?sort=-id").asString());
+        JsonNode result = getAsNode("/book?sort=-id");
         assertEquals(8, result.get("data").size());
 
         JsonNode books = result.get("data");

@@ -112,7 +112,7 @@ public class QueryRunner {
                     .map(executeRequest)
                     .map(response -> {
                         try {
-                            return mapper.readTree((String) response.getBody());
+                            return mapper.readTree(response.getBody());
                         } catch (IOException e) {
                             log.debug("Caught an IO exception while trying to read response body");
                             return JsonNodeFactory.instance.objectNode();

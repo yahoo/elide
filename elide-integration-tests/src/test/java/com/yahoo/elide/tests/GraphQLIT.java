@@ -23,7 +23,6 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -71,8 +70,6 @@ public class GraphQLIT extends IntegrationTest {
         @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
         private String name;
     }
-
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @BeforeEach
     public void createBookAndAuthor() throws IOException {
@@ -570,8 +567,8 @@ public class GraphQLIT extends IntegrationTest {
     }
 
     private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
-        JsonNode expectedNode = JSON_MAPPER.readTree(expected);
+        JsonNode responseNode = mapper.readTree(response.extract().body().asString());
+        JsonNode expectedNode = mapper.readTree(expected);
         assertEquals(expectedNode, responseNode);
     }
 
@@ -594,11 +591,11 @@ public class GraphQLIT extends IntegrationTest {
         for (JsonNode node : nodes) {
             arrayNode.add(node);
         }
-        return JSON_MAPPER.writeValueAsString(arrayNode);
+        return mapper.writeValueAsString(arrayNode);
     }
 
     private String toJsonQuery(String query, Map<String, Object> variables) throws IOException {
-        return JSON_MAPPER.writeValueAsString(toJsonNode(query, variables));
+        return mapper.writeValueAsString(toJsonNode(query, variables));
     }
 
     private JsonNode toJsonNode(String query) {
@@ -609,7 +606,7 @@ public class GraphQLIT extends IntegrationTest {
         ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
         graphqlNode.put("query", query);
         if (variables != null) {
-            graphqlNode.set("variables", JSON_MAPPER.valueToTree(variables));
+            graphqlNode.set("variables", mapper.valueToTree(variables));
         }
         return graphqlNode;
     }

@@ -652,9 +652,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         if (relation instanceof Collection) {
             return ((Collection) relation).stream().anyMatch((obj -> toAddId.equals(dictionary.getId(obj))));
-        } else {
-            return toAddId.equals(dictionary.getId(relation));
         }
+        return toAddId.equals(dictionary.getId(relation));
     }
 
     /**

@@ -40,11 +40,9 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
         this.beanPackages = beanPackages;
 
         for (Package beanPackage : beanPackages) {
-            ClassScanner.getAnnotatedClasses(beanPackage, Include.class).stream().forEach(modelClass -> {
-                if (modelClass.getName().startsWith(beanPackage.getName())) {
-                    dataStore.put(modelClass, Collections.synchronizedMap(new LinkedHashMap<>()));
-                }
-            });
+            ClassScanner.getAnnotatedClasses(beanPackage, Include.class).stream()
+                .filter(modelClass -> modelClass.getName().startsWith(beanPackage.getName()))
+                .forEach(modelClass -> dataStore.put(modelClass, Collections.synchronizedMap(new LinkedHashMap<>())));
         }
     }
 

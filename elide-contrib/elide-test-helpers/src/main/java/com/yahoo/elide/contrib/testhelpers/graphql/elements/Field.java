@@ -92,10 +92,9 @@ public class Field extends Selection {
                             ? "{\"edges\":[]}"
                             : getSelectionSet().toString()
             );
-        } else {
-            // object response field
-            return String.format("\"%s\":%s", getName(), ((SelectionSet) getSelectionSet()).toResponse());
         }
+        // object response field
+        return String.format("\"%s\":%s", getName(), ((SelectionSet) getSelectionSet()).toResponse());
     }
 
     private String argument() {
