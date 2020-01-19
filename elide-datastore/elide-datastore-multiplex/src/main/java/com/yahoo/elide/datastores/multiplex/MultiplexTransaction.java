@@ -230,8 +230,8 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass) {
-        return getTransaction(entityClass).supportsPagination(entityClass);
+    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
+        return getTransaction(entityClass).supportsPagination(entityClass, expression);
     }
 
     private Serializable extractId(FilterExpression filterExpression,

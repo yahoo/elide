@@ -176,7 +176,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass) {
+    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return false;
     }
 

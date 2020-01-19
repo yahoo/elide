@@ -258,8 +258,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         Optional<Sorting> inMemorySort = sortSplit.getRight();
 
         Pair<Optional<Pagination>, Optional<Pagination>> paginationSplit = splitPagination(entityClass,
-                pagination, inMemoryFilter.isPresent(), inMemorySort.isPresent());
-
+                filterExpression.orElse(null), pagination, inMemoryFilter.isPresent(), inMemorySort.isPresent());
 
         Optional<Pagination> dataStorePagination = paginationSplit.getLeft();
         Optional<Pagination> inMemoryPagination = paginationSplit.getRight();
@@ -458,11 +457,12 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      */
     private Pair<Optional<Pagination>, Optional<Pagination>> splitPagination(
             Class<?> entityClass,
+            FilterExpression expression,
             Optional<Pagination> pagination,
             boolean filteredInMemory,
             boolean sortedInMemory
     ) {
-        if (!tx.supportsPagination(entityClass)
+        if (!tx.supportsPagination(entityClass, expression)
                 || filteredInMemory
                 || sortedInMemory) {
             return Pair.of(Optional.empty(), pagination);

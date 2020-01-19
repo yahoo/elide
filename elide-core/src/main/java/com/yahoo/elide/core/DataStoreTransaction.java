@@ -268,9 +268,10 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Whether or not the transaction can paginate the provided class.
      * @param entityClass The entity class that is being paged.
+     * @param expression The filter expression
      * @return true if pagination is possible
      */
-    default boolean supportsPagination(Class<?> entityClass) {
+    default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
     }
 }

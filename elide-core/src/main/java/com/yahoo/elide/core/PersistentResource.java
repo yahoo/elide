@@ -12,7 +12,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
-import com.yahoo.elide.audit.LogMessage;
+import com.yahoo.elide.audit.LogMessageImpl;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
@@ -1768,7 +1768,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         for (Audit annotation : annotations) {
             if (annotation.action().length == 1 && annotation.action()[0] == Audit.Action.UPDATE) {
-                LogMessage message = new LogMessage(annotation, this, Optional.of(changeSpec));
+                LogMessageImpl message = new LogMessageImpl(annotation, this, Optional.of(changeSpec));
                 getRequestScope().getAuditLogger().log(message);
             } else {
                 throw new InvalidSyntaxException("Only Audit.Action.UPDATE is allowed on fields.");
@@ -1791,7 +1791,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (Audit annotation : annotations) {
             for (Audit.Action auditAction : annotation.action()) {
                 if (auditAction == action) { // compare object reference
-                    LogMessage message = new LogMessage(annotation, this, Optional.ofNullable(changeSpec));
+                    LogMessageImpl message = new LogMessageImpl(annotation, this, Optional.ofNullable(changeSpec));
                     getRequestScope().getAuditLogger().log(message);
                 }
             }

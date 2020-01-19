@@ -379,7 +379,7 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -410,7 +410,7 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(false);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(false);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -448,7 +448,7 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -489,7 +489,7 @@ public class InMemoryStoreTransactionTest {
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
         when(wrappedTransaction.supportsSorting(eq(Book.class),
                 any())).thenReturn(false);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 

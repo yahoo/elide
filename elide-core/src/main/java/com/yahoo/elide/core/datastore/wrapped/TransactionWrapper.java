@@ -91,8 +91,8 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass) {
-        return tx.supportsPagination(entityClass);
+    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
+        return tx.supportsPagination(entityClass, expression);
     }
 
     @Override
