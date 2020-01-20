@@ -22,11 +22,11 @@ import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.porting.QueryWrapper;
 import com.yahoo.elide.datastores.hibernate3.porting.SessionWrapper;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.User;
 
 import org.hibernate.FlushMode;

@@ -10,10 +10,10 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.sort.Sorting;
 
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

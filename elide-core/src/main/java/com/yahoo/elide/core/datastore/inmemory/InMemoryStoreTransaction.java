@@ -7,7 +7,6 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -16,10 +15,10 @@ import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.User;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -296,10 +295,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             return loadedRecords;
         }
 
-        EntityDictionary dictionary = scope.getDictionary();
-
         Map<Path, Sorting.SortOrder> sortRules = sorting
-                .map((s) -> s.getValidSortingRules(entityClass, dictionary))
+                .map((s) -> s.getSortingPaths())
                 .orElse(new HashMap<>());
 
         // No sorting required for this type & no pagination.

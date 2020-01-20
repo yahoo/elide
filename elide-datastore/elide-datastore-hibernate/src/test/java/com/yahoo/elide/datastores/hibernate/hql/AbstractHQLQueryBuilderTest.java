@@ -24,8 +24,9 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 
+import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -118,7 +119,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         sorting.put(TITLE, Sorting.SortOrder.asc);
         sorting.put(GENRE, Sorting.SortOrder.desc);
 
-        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS);
+        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)), Book.class, NO_ALIAS);
 
         String expected = " order by title asc,genre desc";
         assertEquals(expected, actual);
@@ -130,7 +131,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         sorting.put(TITLE, Sorting.SortOrder.asc);
         sorting.put(GENRE, Sorting.SortOrder.desc);
 
-        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, USE_ALIAS);
+        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)), Book.class, USE_ALIAS);
 
         String expected = " order by example_Book.title asc,example_Book.genre desc";
         assertEquals(expected, actual);
@@ -141,7 +142,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(PUBLISHER + PERIOD + NAME, Sorting.SortOrder.asc);
 
-        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS);
+        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)), Book.class, NO_ALIAS);
 
         String expected = " order by publisher.name asc";
         assertEquals(expected, actual);
@@ -152,7 +153,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(AUTHORS + PERIOD + NAME, Sorting.SortOrder.asc);
 
-        Assertions.assertThrows(InvalidValueException.class, () -> getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS));
+        Assertions.assertThrows(InvalidValueException.class, () -> getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)), Book.class, NO_ALIAS));
     }
 
     @Test

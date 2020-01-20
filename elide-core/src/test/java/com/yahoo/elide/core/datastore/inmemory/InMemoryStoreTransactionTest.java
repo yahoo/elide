@@ -27,9 +27,10 @@ import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -259,7 +260,7 @@ public class InMemoryStoreTransactionTest {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
 
-        Sorting sorting = new Sorting(sortOrder);
+        Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -293,7 +294,7 @@ public class InMemoryStoreTransactionTest {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
 
-        Sorting sorting = new Sorting(sortOrder);
+        Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -333,7 +334,7 @@ public class InMemoryStoreTransactionTest {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
 
-        Sorting sorting = new Sorting(sortOrder);
+        Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -475,7 +476,7 @@ public class InMemoryStoreTransactionTest {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
 
-        Sorting sorting = new Sorting(sortOrder);
+        Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)

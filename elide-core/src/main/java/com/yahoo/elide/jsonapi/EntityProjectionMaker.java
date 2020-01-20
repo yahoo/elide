@@ -11,12 +11,14 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
@@ -136,11 +138,16 @@ public class EntityProjectionMaker
             Class<?> entityClass = getEntityClass(parentClass, entityName);
             FilterExpression filter = scope.getExpressionForRelation(parentClass, entityName).orElse(null);
 
+            Sorting sorting = SortingImpl.getDefaultEmptyInstance();
+            if (scope.getQueryParams().isPresent()) {
+                sorting = SortingImpl.parseQueryParams(scope.getQueryParams().get(), entityClass, dictionary);
+            }
+
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
                         .filterExpression(filter)
-                        .sorting(scope.getSorting())
+                        .sorting(sorting)
                         .pagination(scope.getPagination())
                         .type(entityClass)
                         .build()
@@ -261,11 +268,16 @@ public class EntityProjectionMaker
                 filter = scope.getExpressionForRelation(parentClass, collectionNameText).orElse(null);
             }
 
+            Sorting sorting = SortingImpl.getDefaultEmptyInstance();
+            if (scope.getQueryParams().isPresent()) {
+                sorting = SortingImpl.parseQueryParams(scope.getQueryParams().get(), entityClass, dictionary);
+            }
+
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
                     .projection(EntityProjection.builder()
                         .filterExpression(filter)
-                        .sorting(scope.getSorting())
+                        .sorting(sorting)
                         .pagination(scope.getPagination())
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .attributes(getSparseAttributes(entityClass))

@@ -15,9 +15,10 @@ import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.core.filter.InInsensitivePredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Sorting;
 import example.Address;
 import example.Author;
 import example.Book;
@@ -670,7 +671,7 @@ public class EntityProjectionMakerTest {
         queryParams.add("filter[publisher]", "name=='Foo'");
         queryParams.add("sort", "name");
         String path = "/book/1/relationships/publisher";
-        Sorting sorting = Sorting.parseSortRule("name");
+        Sorting sorting = SortingImpl.parseSortRule("name", Publisher.class, dictionary);
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
         Pagination defaultPagination = scope.getPagination();

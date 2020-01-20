@@ -23,9 +23,10 @@ import com.yahoo.elide.core.datastore.inmemory.InMemoryStoreTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.search.models.Item;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 
@@ -271,13 +272,14 @@ public class DataStoreLoadTest {
         Map<String, Sorting.SortOrder> sortRules = new HashMap();
         sortRules.put("name", Sorting.SortOrder.asc);
         sortRules.put("modifiedDate", Sorting.SortOrder.desc);
-        Sorting sorting = new Sorting(sortRules);
+        Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
                 .filterExpression(filter)
+                .sorting(sorting)
                 .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(4L, 5L, 2L));
@@ -292,7 +294,7 @@ public class DataStoreLoadTest {
         Map<String, Sorting.SortOrder> sortRules = new HashMap();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
-        Sorting sorting = new Sorting(sortRules);
+        Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
@@ -314,7 +316,7 @@ public class DataStoreLoadTest {
         Map<String, Sorting.SortOrder> sortRules = new HashMap();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
-        Sorting sorting = new Sorting(sortRules);
+        Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
         Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
 
@@ -340,7 +342,7 @@ public class DataStoreLoadTest {
         Map<String, Sorting.SortOrder> sortRules = new HashMap();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
-        Sorting sorting = new Sorting(sortRules);
+        Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
         Pagination pagination = Pagination.fromOffsetAndLimit(1, 1, true);
 

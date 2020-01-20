@@ -8,7 +8,6 @@ package com.yahoo.elide.request;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;

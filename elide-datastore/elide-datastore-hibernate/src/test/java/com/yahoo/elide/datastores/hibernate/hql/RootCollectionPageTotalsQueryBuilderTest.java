@@ -16,7 +16,7 @@ import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.Sorting;
 
 import example.Author;
 import example.Book;

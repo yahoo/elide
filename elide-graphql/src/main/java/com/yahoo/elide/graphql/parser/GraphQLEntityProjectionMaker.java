@@ -25,13 +25,14 @@ import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.EntityProjection.EntityProjectionBuilder;
 import com.yahoo.elide.request.Relationship;
 
+import com.yahoo.elide.request.Sorting;
 import graphql.language.Argument;
 import graphql.language.Document;
 import graphql.language.Field;
@@ -439,17 +440,15 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addSorting(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String sortRule = (String) variableResolver.resolveValue(argument.getValue());
-        Sorting sorting = Sorting.parseSortRule(sortRule);
 
-        // validate sorting rule
         try {
-            sorting.getValidSortingRules(projectionBuilder.getType(), entityDictionary);
+            Sorting sorting = SortingImpl.parseSortRule(sortRule, projectionBuilder.getType(), entityDictionary);
+            projectionBuilder.sorting(sorting);
         } catch (InvalidValueException e) {
             throw new BadRequestException("Invalid sorting clause " + sortRule
                     + " for type " + entityDictionary.getJsonAliasFor(projectionBuilder.getType()));
         }
 
-        projectionBuilder.sorting(sorting);
     }
 
     /**

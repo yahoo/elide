@@ -9,13 +9,14 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
+import com.yahoo.elide.request.Sorting;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -110,7 +111,7 @@ public class SubselectTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountry")))
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -233,7 +234,7 @@ public class SubselectTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountry")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)

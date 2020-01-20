@@ -17,7 +17,6 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -32,6 +31,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnaly
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 
+import com.yahoo.elide.request.Sorting;
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
@@ -112,7 +112,7 @@ public class SQLQueryConstructor {
         }
 
         if (sorting != null) {
-            Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(tableCls, dictionary);
+            Map<Path, Sorting.SortOrder> sortClauses = sorting.getSortingPaths();
             builder.orderByClause(extractOrderBy(sortClauses, template));
 
             joinPaths.addAll(extractJoinPaths(sortClauses));
