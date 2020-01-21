@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -10,23 +10,20 @@ import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.request.Pagination;
 
-import com.google.common.collect.ImmutableMap;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Encapsulates the pagination strategy.
+ * Holds state associated with pagination.
  */
-
 @ToString
 @EqualsAndHashCode
 public class PaginationImpl implements Pagination {
@@ -63,135 +60,114 @@ public class PaginationImpl implements Pagination {
         PAGE_KEYS.put(PAGE_TOTALS_KEY, PaginationKey.totals);
     }
 
-    private long pageTotals = 0;
+    @Getter
+    @Setter
+    private Long pageTotals = 0L;
 
     private static final String PAGE_KEYS_CSV = PAGE_KEYS.keySet().stream().collect(Collectors.joining(", "));
 
-    // For holding the page query parameters until they can be evaluated
-    private Map<PaginationKey, Integer> pageData;
+    @Getter
+    private Integer offset;
 
     @Getter
-    private int offset;
+    private Integer limit;
 
-    @Getter
-    private int limit;
+    private Boolean generateTotals;
 
-    private boolean generateTotals;
+    private Boolean pageByPages;
 
-    private final int defaultMaxPageSize;
-    private final int defaultPageSize;
+    private Boolean isDefault;
 
-    private PaginationImpl(Map<PaginationKey, Integer> pageData, int defaultMaxPageSize, int defaultPageSize) {
-        this.pageData = pageData;
-        this.defaultMaxPageSize = defaultMaxPageSize;
-        this.defaultPageSize = defaultPageSize;
+    private Class<?> entityClass;
+
+    /**
+     * Constructor.
+     * @param entityClass The type of collection we are paginating.
+     * @param clientOffset The client requested offset or null if not provided.
+     * @param clientLimit The client requested limit or null if not provided.
+     * @param systemDefaultLimit The system default limit (in terms of records).
+     * @param systemMaxLimit The system max limit (in terms of records).
+     * @param generateTotals Whether to return the total number of records.
+     * @param pageByPages Whether to page by pages or records.
+     */
+    public PaginationImpl(Class<?> entityClass,
+                           Integer clientOffset,
+                           Integer clientLimit,
+                           int systemDefaultLimit,
+                           int systemMaxLimit,
+                           Boolean generateTotals,
+                           Boolean pageByPages) {
+
+        this.pageByPages = pageByPages;
+        this.entityClass = entityClass;
+        this.isDefault = (clientOffset == null && clientLimit == null && generateTotals == null);
+
+        Paginate paginate = entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
+
+        this.limit = clientLimit != null
+                ? clientLimit
+                : (paginate != null ? paginate.defaultLimit() : systemDefaultLimit);
+
+        int maxLimit = paginate != null ? paginate.maxLimit() : systemMaxLimit;
+
+        String pageSizeLabel = pageByPages ? "size" : "limit";
+
+        if (limit > maxLimit) {
+            throw new InvalidValueException("Pagination "
+                    + pageSizeLabel + " must be less than or equal to " + maxLimit);
+        }
+        if (limit < 1) {
+            throw new InvalidValueException("Pagination "
+                    + pageSizeLabel + " must contain a positive, non-zero value.");
+        }
+
+
+        this.generateTotals = generateTotals != null && generateTotals && (paginate == null || paginate.countable());
+
+        if (pageByPages) {
+            int pageNumber = clientOffset != null ? clientOffset : 1;
+            if (pageNumber < 1) {
+                throw new InvalidValueException("Pagination number must be a positive, non-zero value.");
+            }
+            this.offset = (pageNumber - 1) * limit;
+        } else {
+            this.offset = clientOffset != null ? clientOffset : 0;
+
+            if (offset < 0) {
+                throw new InvalidValueException("Pagination offset must contain a positive value.");
+            }
+        }
     }
 
+    /**
+     * Whether or not the client requested to return page totals.
+     * @return true if page totals should be returned.
+     */
     @Override
-    public boolean returnPageTotals() {
+    public Boolean returnPageTotals() {
         return generateTotals;
     }
 
     /**
-     * Set limit.
-     *
-     * @param perPage page size.
+     * Whether or not the client requested pagination or the system defaults are in effect.
+     * @return True if the system defaults are in effect.
      */
-    public void setLimit(Integer perPage) {
-        this.limit = perPage;
-        pageData.put(PaginationKey.limit, perPage);
-    }
-
-    public void setOffset(Integer offset) {
-        this.offset = offset;
-        pageData.put(PaginationKey.offset, offset);
-    }
-
-    /**
-     * TODO - Refactor Pagination.
-     * IMPORTANT - This method should only be used for testing until Pagination is refactored.  The
-     * member field values of this class change depending on evaluation later from the Pagination annotation.
-     * The existing implementation is too complex because logic resides in the wrong places.
-     *
-     * @param limit The page size
-     * @param offset The page offset
-     * @param generatePageTotals Whether or not to return page totals
-     * @return A new pagination object.
-     */
-    public static PaginationImpl fromOffsetAndLimit(int limit, int offset, boolean generatePageTotals) {
-
-        ImmutableMap.Builder<PaginationKey, Integer> pageData = ImmutableMap.<PaginationKey, Integer>builder()
-                .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
-                .put(PAGE_KEYS.get(PAGE_LIMIT_KEY), limit);
-
-        if (generatePageTotals) {
-            pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
-        }
-
-        PaginationImpl result = new PaginationImpl(pageData.build(), MAX_PAGE_LIMIT, DEFAULT_PAGE_LIMIT);
-        result.offset = offset;
-        result.limit = limit;
-        result.generateTotals = generatePageTotals;
-        return result;
-    }
-
-    /**
-     * Given an offset and first parameter from GraphQL, generate page and pageSize values.
-     *
-     * @param firstOpt Provided first string
-     * @param offsetOpt Provided offset string
-     * @param generatePageTotals True if page totals should be generated, false otherwise
-     * @param elideSettings Elide settings object containing default pagination values
-     * @return The new Pagination object.
-     */
-    public static Optional<PaginationImpl> fromOffsetAndFirst(Optional<String> firstOpt,
-                                                              Optional<String> offsetOpt,
-                                                              boolean generatePageTotals,
-                                                              ElideSettings elideSettings) {
-        return firstOpt.map(firstString -> {
-            int offset;
-            int first;
-
-            try {
-                offset = offsetOpt.map(Integer::parseInt).orElse(0);
-                first = Integer.parseInt(firstString);
-            } catch (NumberFormatException e) {
-                throw new InvalidValueException("Offset and first must be numeric values.");
-            }
-
-            if (offset < 0) {
-                throw new InvalidValueException("Offset values must be non-negative.");
-            } else if (first < 1) {
-                throw new InvalidValueException("Limit values must be positive.");
-            }
-
-            ImmutableMap.Builder<PaginationKey, Integer> pageData = ImmutableMap.<PaginationKey, Integer>builder()
-                    .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
-                    .put(PAGE_KEYS.get(PAGE_LIMIT_KEY), first);
-            if (generatePageTotals) {
-                pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
-            }
-
-            return Optional.of(getPagination(pageData.build(), elideSettings));
-        }).orElseGet(() -> {
-            if (generatePageTotals) {
-                PaginationImpl pagination = getDefaultPagination(elideSettings);
-                pagination.pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
-                return Optional.of(pagination);
-            }
-            return Optional.empty();
-        });
+    @Override
+    public Boolean isDefaultInstance() {
+        return isDefault;
     }
 
     /**
      * Given json-api paging params, generate page and pageSize values from query params.
      *
-     * @param queryParams The page queryParams (ImmuatableMultiValueMap).
+     * @param entityClass The collection type.
+     * @param queryParams The page queryParams.
      * @param elideSettings Elide settings containing pagination default limits
      * @return The new Pagination object.
      * @throws InvalidValueException invalid query parameter
      */
-    public static PaginationImpl parseQueryParams(final MultivaluedMap<String, String> queryParams,
+    public static PaginationImpl parseQueryParams(Class<?> entityClass,
+                                                  final MultivaluedMap<String, String> queryParams,
                                                   ElideSettings elideSettings)
             throws InvalidValueException {
         final Map<PaginationKey, Integer> pageData = new HashMap<>();
@@ -218,160 +194,77 @@ public class PaginationImpl implements Pagination {
                                 + PAGE_KEYS_CSV);
                     }
                 });
-        return getPagination(pageData, elideSettings);
+        return getPagination(entityClass, pageData, elideSettings);
     }
 
-    /**
-     * Sets the total number of records for the paginated query.
-     * @param total the total number of records found
-     */
-    @Override
-    public void setPageTotals(long total) {
-        this.pageTotals = total;
-    }
-
-    /**
-     * Fetches the total number of records of the paginated query.
-     * @return page totals
-     */
-    @Override
-    public long getPageTotals() {
-        return pageTotals;
-    }
 
     /**
      * Construct a pagination object from page data and elide settings.
      *
+     * @param entityClass The collection type.
      * @param pageData Map containing pagination information
      * @param elideSettings Settings containing pagination defaults
      * @return Pagination object
      */
-    private static PaginationImpl getPagination(Map<PaginationKey, Integer> pageData, ElideSettings elideSettings) {
-        // Decidedly default settings until evaluate is called (a call to evaluate from the datastore will update this):
-        PaginationImpl result = new PaginationImpl(pageData,
-                elideSettings.getDefaultMaxPageSize(), elideSettings.getDefaultPageSize());
-        result.offset = 0;
-        result.limit = elideSettings.getDefaultPageSize();
-        return result;
-    }
-
-    /**
-     * Evaluates the pagination variables for default limits.
-     *
-     * @param defaultLimit the default page size
-     * @param maxLimit a hard upper limit on page size
-     * @return the calculated {@link PaginationImpl}
-     */
-    private PaginationImpl evaluate(int defaultLimit, int maxLimit) {
+    private static PaginationImpl getPagination(Class<?> entityClass, Map<PaginationKey, Integer> pageData,
+                                                ElideSettings elideSettings) {
         if (hasInvalidCombination(pageData)) {
             throw new InvalidValueException("Invalid usage of pagination parameters.");
         }
+
+        boolean pageByPages = false;
+        Integer offset = pageData.getOrDefault(PaginationKey.offset, null);
+        Integer limit = pageData.getOrDefault(PaginationKey.limit, null);
+
         if (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number)) {
-            pageByPages(defaultLimit, maxLimit);
-        } else if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
-            pageByOffset(defaultLimit, maxLimit);
-        } else {
-            limit = defaultLimit;
-            offset = 0;
+            pageByPages = true;
+            offset = pageData.getOrDefault(PaginationKey.number, null);
+            limit = pageData.getOrDefault(PaginationKey.size, null);
         }
 
-        generateTotals = pageData.containsKey(PaginationKey.totals);
-
-        return this;
+        return new PaginationImpl(entityClass,
+                offset,
+                limit,
+                elideSettings.getDefaultPageSize(),
+                elideSettings.getDefaultMaxPageSize(),
+                pageData.containsKey(PaginationKey.totals) ? true : null,
+                pageByPages);
     }
 
-    private boolean hasInvalidCombination(Map<PaginationKey, Integer> pageData) {
+    private static boolean hasInvalidCombination(Map<PaginationKey, Integer> pageData) {
         return (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number))
                 && (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset));
     }
 
-    private void pageByOffset(int defaultLimit, int maxLimit) {
-        limit = pageData.containsKey(PaginationKey.limit) ? pageData.get(PaginationKey.limit) : defaultLimit;
-        if (limit > maxLimit) {
-            throw new InvalidValueException("page[limit] value must be less than or equal to " + maxLimit);
-        }
-        if (limit < 0) {
-            throw new InvalidValueException("page[limit] value must contain a positive value");
-        }
-
-        offset = pageData.containsKey(PaginationKey.offset) ? pageData.get(PaginationKey.offset) : 0;
-        if (offset < 0) {
-            throw new InvalidValueException("page[offset] must contain a positive values.");
-        }
-    }
-
-    private void pageByPages(int defaultLimit, int maxLimit) {
-        limit = pageData.containsKey(PaginationKey.size) ? pageData.get(PaginationKey.size) : defaultLimit;
-        if (limit > maxLimit) {
-            throw new InvalidValueException("page[size] value must be less than or equal to " + maxLimit);
-        }
-        if (limit < 0) {
-            throw new InvalidValueException("page[size] must contain a positive value.");
-        }
-
-        int pageNumber = pageData.containsKey(PaginationKey.number) ? pageData.get(PaginationKey.number) : 1;
-        if (pageNumber < 1) {
-            throw new InvalidValueException("page[number] must contain a positive value.");
-        }
-
-        offset = (pageNumber - 1) * limit;
-    }
-
-    /**
-     * Evaluates the pagination variables. Uses the Paginate annotation if it has been set for the entity to be
-     * queried.
-     *
-     * @param entityClass Entity class to paginate
-     * @return the calculated {@link PaginationImpl}
-     */
-    public PaginationImpl evaluate(final Class entityClass) {
-        Paginate paginate =
-                entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
-
-        int defaultLimit = paginate != null ? paginate.defaultLimit() : defaultPageSize;
-        int maxLimit = paginate != null ? paginate.maxLimit() : defaultMaxPageSize;
-
-        evaluate(defaultLimit, maxLimit);
-
-        generateTotals = generateTotals && (paginate == null || paginate.countable());
-
-        return this;
-    }
-
-    /**
-     * Know if this is the default instance.
-     * @return The default pagination values.
-     */
-    @Override
-    public boolean isDefaultInstance() {
-        return pageData.isEmpty();
-    }
-
-    /**
-     * Alias for isDefault.
-     * @return true if there are no pagination rules
-     */
-    public boolean isEmpty() {
-        return isDefaultInstance();
-    }
 
     /**
      * Default Instance.
      * @param elideSettings general Elide settings
      * @return The default instance.
      */
-    public static PaginationImpl getDefaultPagination(ElideSettings elideSettings) {
-        PaginationImpl defaultPagination = new PaginationImpl(new HashMap<>(),
-                elideSettings.getDefaultMaxPageSize(), elideSettings.getDefaultPageSize());
-        defaultPagination.offset = DEFAULT_OFFSET;
-        defaultPagination.limit = DEFAULT_PAGE_LIMIT;
-        return defaultPagination;
+    public static PaginationImpl getDefaultPagination(Class<?> entityClass, ElideSettings elideSettings) {
+        return new PaginationImpl(
+                entityClass,
+                null,
+                null,
+                elideSettings.getDefaultPageSize(),
+                elideSettings.getDefaultMaxPageSize(),
+                null,
+                false);
     }
 
-    public static PaginationImpl getDefaultPagination() {
-        PaginationImpl defaultPagination = new PaginationImpl(new HashMap<>(), MAX_PAGE_LIMIT, DEFAULT_PAGE_LIMIT);
-        defaultPagination.offset = DEFAULT_OFFSET;
-        defaultPagination.limit = DEFAULT_PAGE_LIMIT;
-        return defaultPagination;
+    /**
+     * Default Instance.
+     * @return The default instance.
+     */
+    public static PaginationImpl getDefaultPagination(Class<?> entityClass) {
+        return new PaginationImpl(
+                entityClass,
+                null,
+                null,
+                DEFAULT_OFFSET,
+                DEFAULT_PAGE_LIMIT,
+                null,
+                false);
     }
 }
