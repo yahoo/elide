@@ -378,7 +378,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addPagination(Argument argument, EntityProjectionBuilder projectionBuilder) {
         Pagination pagination = projectionBuilder.getPagination() == null
-                ? PaginationImpl.getDefaultPagination(elideSettings)
+                ? PaginationImpl.getDefaultPagination(projectionBuilder.getType(), elideSettings)
                 : projectionBuilder.getPagination();
 
         Object argumentValue = variableResolver.resolveValue(argument.getValue());
@@ -386,10 +386,23 @@ public class GraphQLEntityProjectionMaker {
                 ? ((BigInteger) argumentValue).intValue()
                 : Integer.parseInt((String) argumentValue);
         if (ModelBuilder.ARGUMENT_FIRST.equals(argument.getName())) {
-            pagination = PaginationImpl.fromOffsetAndLimit(value,
-                    pagination.getOffset(), pagination.returnPageTotals());
+            pagination = new PaginationImpl(
+                    projectionBuilder.getType(),
+                    pagination.getOffset(),
+                    value,
+                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultPageSize(),
+                    pagination.returnPageTotals(),
+                    false);
         } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
-            pagination = PaginationImpl.fromOffsetAndLimit(pagination.getLimit(), value, pagination.returnPageTotals());
+            pagination = new PaginationImpl(
+                    projectionBuilder.getType(),
+                    value,
+                    pagination.getLimit(),
+                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultPageSize(),
+                    pagination.returnPageTotals(),
+                    false);
         }
 
         projectionBuilder.pagination(pagination);
@@ -403,23 +416,28 @@ public class GraphQLEntityProjectionMaker {
      * @param projectionBuilder projection that is being built
      */
     private void addPageTotal(EntityProjectionBuilder projectionBuilder) {
+        PaginationImpl pagination;
         if (projectionBuilder.getPagination() == null) {
-            Optional<PaginationImpl> pagination = PaginationImpl.fromOffsetAndFirst(
-                    Optional.empty(),
-                    Optional.empty(),
+            pagination = new PaginationImpl(
+                    projectionBuilder.getType(),
+                    null,
+                    null,
+                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultMaxPageSize(),
                     true,
-                    elideSettings
-            );
-            pagination.ifPresent(projectionBuilder::pagination);
+                    false);
+
         } else {
-            Optional<PaginationImpl> pagination = PaginationImpl.fromOffsetAndFirst(
-                    Optional.of(String.valueOf(projectionBuilder.getPagination().getLimit())),
-                    Optional.of(String.valueOf(projectionBuilder.getPagination().getOffset())),
+            pagination = new PaginationImpl(
+                    projectionBuilder.getType(),
+                    projectionBuilder.getPagination().getOffset(),
+                    projectionBuilder.getPagination().getLimit(),
+                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultMaxPageSize(),
                     true,
-                    elideSettings
-            );
-            pagination.ifPresent(projectionBuilder::pagination);
+                    false);
         }
+        projectionBuilder.pagination(pagination);
     }
 
     /**

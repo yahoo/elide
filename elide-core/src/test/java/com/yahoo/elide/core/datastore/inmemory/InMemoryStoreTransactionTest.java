@@ -369,7 +369,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testPaginationPushDown() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -400,7 +400,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testDataStoreRequiresInMemoryPagination() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -437,7 +437,7 @@ public class InMemoryStoreTransactionTest {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -471,7 +471,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testSortingRequiresInMemoryPagination() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
 
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);

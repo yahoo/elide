@@ -342,9 +342,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .copyOf()
                 .filterExpression(filterExpression)
                 .sorting(sorting)
-                .pagination(Optional.ofNullable(pagination)
-                        .map(PaginationImpl.class::cast)
-                        .map(p -> p.evaluate(loadClass)).orElse(null))
+                .pagination(pagination)
                 .build();
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
@@ -1053,10 +1051,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidAttributeException(relationName, this.getType());
         }
 
-        Optional<Pagination> computedPagination = Optional.ofNullable(pagination)
-                .map(PaginationImpl.class::cast)
-                .map(p -> p.evaluate(relationClass));
-
         //Invoke filterExpressionCheck and then merge with filterExpression.
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
         Optional<FilterExpression> computedFilters = Optional.ofNullable(filterExpression);
@@ -1073,7 +1067,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .projection(relationship.getProjection().copyOf()
                         .filterExpression(computedFilters.orElse(null))
                         .sorting(sorting)
-                        .pagination(computedPagination.orElse(null))
+                        .pagination(pagination)
                         .build()
                 ).build();
 

@@ -14,35 +14,35 @@ public interface Pagination {
      * Get the page offset.
      * @return record offset.
      */
-    int getOffset();
+    Integer getOffset();
 
     /**
      * Get the page limit.
      * @return record limit.
      */
-    int getLimit();
+    Integer getLimit();
 
     /**
      * Whether or not to fetch the collection size or not.
      * @return true if the client wants the total size of the collection.
      */
-    boolean returnPageTotals();
+    Boolean returnPageTotals();
 
     /**
      * Get the total size of the collection
      * @return total record count.
      */
-    long getPageTotals();
+    Long getPageTotals();
 
     /**
      * Set the total size of the collection.
      * @param pageTotals the total size.
      */
-    void setPageTotals(long pageTotals);
+    void setPageTotals(Long pageTotals);
 
     /**
      * Is this the default instance (not present).
      * @return true if pagination wasn't requested.  False otherwise.
      */
-    public boolean isDefaultInstance();
+    public Boolean isDefaultInstance();
 }

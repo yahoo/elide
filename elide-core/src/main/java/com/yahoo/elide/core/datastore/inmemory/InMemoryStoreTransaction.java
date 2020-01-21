@@ -330,7 +330,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         }
 
         if (pagination.returnPageTotals()) {
-            pagination.setPageTotals(records.size());
+            pagination.setPageTotals((long) records.size());
         }
         return records.subList(offset, endIdx);
     }

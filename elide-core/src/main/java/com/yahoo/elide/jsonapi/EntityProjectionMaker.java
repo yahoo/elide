@@ -141,10 +141,11 @@ public class EntityProjectionMaker
             FilterExpression filter = scope.getExpressionForRelation(parentClass, entityName).orElse(null);
 
             Sorting sorting = SortingImpl.getDefaultEmptyInstance();
-            Pagination pagination = PaginationImpl.getDefaultPagination(scope.getElideSettings());
+            Pagination pagination = PaginationImpl.getDefaultPagination(entityClass, scope.getElideSettings());
             if (scope.getQueryParams().isPresent()) {
                 sorting = SortingImpl.parseQueryParams(scope.getQueryParams().get(), entityClass, dictionary);
-                pagination = PaginationImpl.parseQueryParams(scope.getQueryParams().get(), scope.getElideSettings());
+                pagination = PaginationImpl.parseQueryParams(entityClass,
+                        scope.getQueryParams().get(), scope.getElideSettings());
             }
 
             return NamedEntityProjection.builder()
@@ -273,10 +274,11 @@ public class EntityProjectionMaker
             }
 
             Sorting sorting = SortingImpl.getDefaultEmptyInstance();
-            Pagination pagination = PaginationImpl.getDefaultPagination(scope.getElideSettings());
+            Pagination pagination = PaginationImpl.getDefaultPagination(entityClass, scope.getElideSettings());
             if (scope.getQueryParams().isPresent()) {
                 sorting = SortingImpl.parseQueryParams(scope.getQueryParams().get(), entityClass, dictionary);
-                pagination = PaginationImpl.parseQueryParams(scope.getQueryParams().get(), scope.getElideSettings());
+                pagination = PaginationImpl.parseQueryParams(entityClass,
+                        scope.getQueryParams().get(), scope.getElideSettings());
             }
 
             return NamedEntityProjection.builder()

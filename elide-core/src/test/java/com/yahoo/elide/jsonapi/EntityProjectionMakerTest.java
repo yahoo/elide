@@ -18,7 +18,6 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import example.Address;
 import example.Author;
@@ -38,7 +37,6 @@ import javax.ws.rs.core.MultivaluedMap;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EntityProjectionMakerTest {
     private EntityDictionary dictionary;
-    private static final Pagination DEFAULT_PAGINATION = PaginationImpl.getDefaultPagination();
 
     @BeforeAll
     public void init() {
@@ -73,7 +71,7 @@ public class EntityProjectionMakerTest {
                 .relationship("editor", EntityProjection.builder()
                         .type(Editor.class)
                         .build())
-                .pagination(DEFAULT_PAGINATION)
+                .pagination(PaginationImpl.getDefaultPagination(Book.class))
                 .build();
 
         EntityProjection actual = maker.parsePath(path);
@@ -98,7 +96,7 @@ public class EntityProjectionMakerTest {
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
                         .build())
-                .pagination(DEFAULT_PAGINATION)
+                .pagination(PaginationImpl.getDefaultPagination(Book.class))
                 .build();
 
         EntityProjection actual = maker.parsePath(path);
@@ -160,7 +158,7 @@ public class EntityProjectionMakerTest {
                                 .relationship("editor", EntityProjection.builder()
                                         .type(Editor.class)
                                         .build())
-                                .pagination(DEFAULT_PAGINATION)
+                                .pagination(PaginationImpl.getDefaultPagination(Publisher.class))
                                 .build())
                         .build())
                 .build();
@@ -215,7 +213,7 @@ public class EntityProjectionMakerTest {
                 .type(Author.class)
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
-                        .pagination(DEFAULT_PAGINATION)
+                        .pagination(PaginationImpl.getDefaultPagination(Book.class))
                         .build())
                 .build();
 
@@ -238,7 +236,7 @@ public class EntityProjectionMakerTest {
                 .type(Book.class)
                 .relationship("publisher", EntityProjection.builder()
                         .type(Publisher.class)
-                        .pagination(DEFAULT_PAGINATION)
+                        .pagination(PaginationImpl.getDefaultPagination(Publisher.class))
                         .build())
                 .relationship("authors", EntityProjection.builder()
                         .attribute(Attribute.builder().name("name").type(String.class).build())
@@ -290,7 +288,7 @@ public class EntityProjectionMakerTest {
                 .relationship("editor", EntityProjection.builder()
                         .type(Editor.class)
                         .build())
-                .pagination(DEFAULT_PAGINATION)
+                .pagination(PaginationImpl.getDefaultPagination(Book.class))
                 .build();
 
         EntityProjection actual = maker.parsePath(path);
@@ -382,7 +380,7 @@ public class EntityProjectionMakerTest {
                                 .type(Author.class)
                                 .build())
                         .build())
-                .pagination(DEFAULT_PAGINATION)
+                .pagination(PaginationImpl.getDefaultPagination(Author.class))
                 .build();
 
         EntityProjection actual = maker.parsePath(path);
@@ -526,7 +524,7 @@ public class EntityProjectionMakerTest {
                                 .relationship("editor", EntityProjection.builder()
                                         .type(Editor.class)
                                         .build())
-                                .pagination(DEFAULT_PAGINATION)
+                                .pagination(PaginationImpl.getDefaultPagination(Publisher.class))
                                 .build())
                         .build())
                 .build();
@@ -603,7 +601,7 @@ public class EntityProjectionMakerTest {
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
                         .build())
-                .pagination(DEFAULT_PAGINATION)
+                .pagination(PaginationImpl.getDefaultPagination(Book.class))
                 .build();
 
         EntityProjection actual = maker.parsePath(path);
@@ -639,7 +637,7 @@ public class EntityProjectionMakerTest {
                                 .relationship("editor", EntityProjection.builder()
                                         .type(Editor.class)
                                         .build())
-                                .pagination(DEFAULT_PAGINATION)
+                                .pagination(PaginationImpl.getDefaultPagination(Publisher.class))
                                 .build())
                         .build())
                 .build();
@@ -669,7 +667,7 @@ public class EntityProjectionMakerTest {
                         .type(Publisher.class)
                         .filterExpression(new InInsensitivePredicate(new Path(Publisher.class, dictionary, "name"), "Foo"))
                         .sorting(sorting)
-                        .pagination(DEFAULT_PAGINATION)
+                        .pagination(PaginationImpl.getDefaultPagination(Publisher.class))
                         .build())
                 .relationship("authors", EntityProjection.builder()
                         .attribute(Attribute.builder().name("name").type(String.class).build())
@@ -720,7 +718,7 @@ public class EntityProjectionMakerTest {
                 .relationship("editor", EntityProjection.builder()
                         .type(Editor.class)
                         .build())
-                .pagination(DEFAULT_PAGINATION)
+                .pagination(PaginationImpl.getDefaultPagination(Book.class))
                 .build();
 
         EntityProjection actual = maker.parsePath(path);
