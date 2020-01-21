@@ -334,7 +334,7 @@ public class DataStoreLoadTest {
                 .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(2L));
-        assertEquals(pagination.getPageTotals(), 3);
+        assertEquals(pagination.returnPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -364,7 +364,7 @@ public class DataStoreLoadTest {
                 .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(5L));
-        assertEquals(pagination.getPageTotals(), 3);
+        assertEquals(pagination.returnPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 

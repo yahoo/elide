@@ -18,6 +18,7 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import example.Address;
 import example.Author;
@@ -37,6 +38,7 @@ import javax.ws.rs.core.MultivaluedMap;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EntityProjectionMakerTest {
     private EntityDictionary dictionary;
+    private static final Pagination DEFAULT_PAGINATION = PaginationImpl.getDefaultPagination();
 
     @BeforeAll
     public void init() {
