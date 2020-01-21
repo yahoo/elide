@@ -15,7 +15,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.request.Sorting;
 
 import example.Author;
@@ -78,7 +78,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
 
     @Test
     public void testRootFetchWithPagination() {
-        Pagination pagination = mock(Pagination.class);
+        PaginationImpl pagination = mock(PaginationImpl.class);
 
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
                 Book.class, dictionary, new TestSessionWrapper());

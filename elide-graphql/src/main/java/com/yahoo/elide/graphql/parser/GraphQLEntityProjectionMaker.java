@@ -24,12 +24,13 @@ import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.EntityProjection.EntityProjectionBuilder;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 
 import com.yahoo.elide.request.Sorting;
@@ -377,7 +378,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addPagination(Argument argument, EntityProjectionBuilder projectionBuilder) {
         Pagination pagination = projectionBuilder.getPagination() == null
-                ? Pagination.getDefaultPagination(elideSettings)
+                ? PaginationImpl.getDefaultPagination(elideSettings)
                 : projectionBuilder.getPagination();
 
         Object argumentValue = variableResolver.resolveValue(argument.getValue());
@@ -385,9 +386,10 @@ public class GraphQLEntityProjectionMaker {
                 ? ((BigInteger) argumentValue).intValue()
                 : Integer.parseInt((String) argumentValue);
         if (ModelBuilder.ARGUMENT_FIRST.equals(argument.getName())) {
-            pagination.setLimit(value);
+            pagination = PaginationImpl.fromOffsetAndLimit(value,
+                    pagination.getOffset(), pagination.returnPageTotals());
         } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
-            pagination.setOffset(value);
+            pagination = PaginationImpl.fromOffsetAndLimit(pagination.getLimit(), value, pagination.returnPageTotals());
         }
 
         projectionBuilder.pagination(pagination);
@@ -402,7 +404,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addPageTotal(EntityProjectionBuilder projectionBuilder) {
         if (projectionBuilder.getPagination() == null) {
-            Optional<Pagination> pagination = Pagination.fromOffsetAndFirst(
+            Optional<PaginationImpl> pagination = PaginationImpl.fromOffsetAndFirst(
                     Optional.empty(),
                     Optional.empty(),
                     true,
@@ -410,7 +412,7 @@ public class GraphQLEntityProjectionMaker {
             );
             pagination.ifPresent(projectionBuilder::pagination);
         } else {
-            Optional<Pagination> pagination = Pagination.fromOffsetAndFirst(
+            Optional<PaginationImpl> pagination = PaginationImpl.fromOffsetAndFirst(
                     Optional.of(String.valueOf(projectionBuilder.getPagination().getLimit())),
                     Optional.of(String.valueOf(projectionBuilder.getPagination().getOffset())),
                     true,

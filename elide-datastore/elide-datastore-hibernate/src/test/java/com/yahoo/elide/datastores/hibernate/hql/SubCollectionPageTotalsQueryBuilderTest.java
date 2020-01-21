@@ -16,7 +16,7 @@ import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 
 import com.yahoo.elide.request.Sorting;
 import example.Author;
@@ -99,7 +99,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
     @Test
     public void testSubCollectionPageTotalsWithPagination() {
         AbstractHQLQueryBuilder.Relationship relationship = mock(AbstractHQLQueryBuilder.Relationship.class);
-        Pagination pagination = mock(Pagination.class);
+        PaginationImpl pagination = mock(PaginationImpl.class);
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());

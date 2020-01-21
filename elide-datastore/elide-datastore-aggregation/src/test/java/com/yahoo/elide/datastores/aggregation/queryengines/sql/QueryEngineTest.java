@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
@@ -237,7 +237,7 @@ public class QueryEngineTest extends SQLUnitTest {
      */
     @Test
     public void testPagination() {
-        Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
+        PaginationImpl pagination = PaginationImpl.fromOffsetAndLimit(1, 0, true);
 
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
@@ -259,7 +259,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(results.size(), 1, "Number of records returned does not match");
         assertEquals(results.get(0), stats1, "Returned record does not match");
-        assertEquals(pagination.getPageTotals(), 3, "Page totals does not match");
+        assertEquals(pagination.returnPageTotals(), 3, "Page totals does not match");
     }
 
     /**

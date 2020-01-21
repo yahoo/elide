@@ -20,11 +20,11 @@ import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.User;
@@ -189,7 +189,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         FilterExpression filterExpression = projection.getFilterExpression();
         Sorting sorting = projection.getSorting();
 
-        if (pagination != null && pagination.isGenerateTotals()) {
+        if (pagination != null && pagination.returnPageTotals()) {
             pagination.setPageTotals(getTotalRecords(entityClass,
                     Optional.ofNullable(filterExpression), scope.getDictionary()));
         }
@@ -239,7 +239,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                         entity,
                         filteredVal);
 
-                if (pagination != null && pagination.isGenerateTotals()) {
+                if (pagination != null && pagination.returnPageTotals()) {
                     pagination.setPageTotals(getTotalRecords(relationship,
                             Optional.ofNullable(filterExpression), scope.getDictionary()));
                 }

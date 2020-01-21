@@ -22,7 +22,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryStoreTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.search.models.Item;
 import com.yahoo.elide.request.EntityProjection;
@@ -318,7 +318,7 @@ public class DataStoreLoadTest {
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
-        Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
+        PaginationImpl pagination = PaginationImpl.fromOffsetAndLimit(1, 0, true);
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
@@ -330,7 +330,7 @@ public class DataStoreLoadTest {
                 .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(2L));
-        assertEquals(pagination.getPageTotals(), 3);
+        assertEquals(pagination.returnPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -344,7 +344,7 @@ public class DataStoreLoadTest {
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
-        Pagination pagination = Pagination.fromOffsetAndLimit(1, 1, true);
+        PaginationImpl pagination = PaginationImpl.fromOffsetAndLimit(1, 1, true);
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
@@ -356,7 +356,7 @@ public class DataStoreLoadTest {
                 .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(5L));
-        assertEquals(pagination.getPageTotals(), 3);
+        assertEquals(pagination.returnPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 

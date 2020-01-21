@@ -8,9 +8,11 @@ package com.yahoo.elide.core.pagination;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.request.Pagination;
 
 import com.google.common.collect.ImmutableMap;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -26,7 +28,8 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 
 @ToString
-public class Pagination {
+@EqualsAndHashCode
+public class PaginationImpl implements Pagination {
     /**
      * Denotes the internal field names for paging.
      */
@@ -73,16 +76,20 @@ public class Pagination {
     @Getter
     private int limit;
 
-    @Getter
     private boolean generateTotals;
 
     private final int defaultMaxPageSize;
     private final int defaultPageSize;
 
-    private Pagination(Map<PaginationKey, Integer> pageData, int defaultMaxPageSize, int defaultPageSize) {
+    private PaginationImpl(Map<PaginationKey, Integer> pageData, int defaultMaxPageSize, int defaultPageSize) {
         this.pageData = pageData;
         this.defaultMaxPageSize = defaultMaxPageSize;
         this.defaultPageSize = defaultPageSize;
+    }
+
+    @Override
+    public boolean returnPageTotals() {
+        return generateTotals;
     }
 
     /**
@@ -111,7 +118,7 @@ public class Pagination {
      * @param generatePageTotals Whether or not to return page totals
      * @return A new pagination object.
      */
-    public static Pagination fromOffsetAndLimit(int limit, int offset, boolean generatePageTotals) {
+    public static PaginationImpl fromOffsetAndLimit(int limit, int offset, boolean generatePageTotals) {
 
         ImmutableMap.Builder<PaginationKey, Integer> pageData = ImmutableMap.<PaginationKey, Integer>builder()
                 .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
@@ -121,7 +128,7 @@ public class Pagination {
             pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
         }
 
-        Pagination result = new Pagination(pageData.build(), MAX_PAGE_LIMIT, DEFAULT_PAGE_LIMIT);
+        PaginationImpl result = new PaginationImpl(pageData.build(), MAX_PAGE_LIMIT, DEFAULT_PAGE_LIMIT);
         result.offset = offset;
         result.limit = limit;
         result.generateTotals = generatePageTotals;
@@ -137,10 +144,10 @@ public class Pagination {
      * @param elideSettings Elide settings object containing default pagination values
      * @return The new Pagination object.
      */
-    public static Optional<Pagination> fromOffsetAndFirst(Optional<String> firstOpt,
-                                                          Optional<String> offsetOpt,
-                                                          boolean generatePageTotals,
-                                                          ElideSettings elideSettings) {
+    public static Optional<PaginationImpl> fromOffsetAndFirst(Optional<String> firstOpt,
+                                                              Optional<String> offsetOpt,
+                                                              boolean generatePageTotals,
+                                                              ElideSettings elideSettings) {
         return firstOpt.map(firstString -> {
             int offset;
             int first;
@@ -168,7 +175,7 @@ public class Pagination {
             return Optional.of(getPagination(pageData.build(), elideSettings));
         }).orElseGet(() -> {
             if (generatePageTotals) {
-                Pagination pagination = getDefaultPagination(elideSettings);
+                PaginationImpl pagination = getDefaultPagination(elideSettings);
                 pagination.pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
                 return Optional.of(pagination);
             }
@@ -184,8 +191,8 @@ public class Pagination {
      * @return The new Pagination object.
      * @throws InvalidValueException invalid query parameter
      */
-    public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams,
-                                              ElideSettings elideSettings)
+    public static PaginationImpl parseQueryParams(final MultivaluedMap<String, String> queryParams,
+                                                  ElideSettings elideSettings)
             throws InvalidValueException {
         final Map<PaginationKey, Integer> pageData = new HashMap<>();
         queryParams.entrySet()
@@ -218,6 +225,7 @@ public class Pagination {
      * Sets the total number of records for the paginated query.
      * @param total the total number of records found
      */
+    @Override
     public void setPageTotals(long total) {
         this.pageTotals = total;
     }
@@ -226,6 +234,7 @@ public class Pagination {
      * Fetches the total number of records of the paginated query.
      * @return page totals
      */
+    @Override
     public long getPageTotals() {
         return pageTotals;
     }
@@ -237,9 +246,9 @@ public class Pagination {
      * @param elideSettings Settings containing pagination defaults
      * @return Pagination object
      */
-    private static Pagination getPagination(Map<PaginationKey, Integer> pageData, ElideSettings elideSettings) {
+    private static PaginationImpl getPagination(Map<PaginationKey, Integer> pageData, ElideSettings elideSettings) {
         // Decidedly default settings until evaluate is called (a call to evaluate from the datastore will update this):
-        Pagination result = new Pagination(pageData,
+        PaginationImpl result = new PaginationImpl(pageData,
                 elideSettings.getDefaultMaxPageSize(), elideSettings.getDefaultPageSize());
         result.offset = 0;
         result.limit = elideSettings.getDefaultPageSize();
@@ -251,9 +260,9 @@ public class Pagination {
      *
      * @param defaultLimit the default page size
      * @param maxLimit a hard upper limit on page size
-     * @return the calculated {@link Pagination}
+     * @return the calculated {@link PaginationImpl}
      */
-    private Pagination evaluate(int defaultLimit, int maxLimit) {
+    private PaginationImpl evaluate(int defaultLimit, int maxLimit) {
         if (hasInvalidCombination(pageData)) {
             throw new InvalidValueException("Invalid usage of pagination parameters.");
         }
@@ -313,9 +322,9 @@ public class Pagination {
      * queried.
      *
      * @param entityClass Entity class to paginate
-     * @return the calculated {@link Pagination}
+     * @return the calculated {@link PaginationImpl}
      */
-    public Pagination evaluate(final Class entityClass) {
+    public PaginationImpl evaluate(final Class entityClass) {
         Paginate paginate =
                 entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
 
@@ -333,6 +342,7 @@ public class Pagination {
      * Know if this is the default instance.
      * @return The default pagination values.
      */
+    @Override
     public boolean isDefaultInstance() {
         return pageData.isEmpty();
     }
@@ -350,9 +360,16 @@ public class Pagination {
      * @param elideSettings general Elide settings
      * @return The default instance.
      */
-    public static Pagination getDefaultPagination(ElideSettings elideSettings) {
-        Pagination defaultPagination = new Pagination(new HashMap<>(),
+    public static PaginationImpl getDefaultPagination(ElideSettings elideSettings) {
+        PaginationImpl defaultPagination = new PaginationImpl(new HashMap<>(),
                 elideSettings.getDefaultMaxPageSize(), elideSettings.getDefaultPageSize());
+        defaultPagination.offset = DEFAULT_OFFSET;
+        defaultPagination.limit = DEFAULT_PAGE_LIMIT;
+        return defaultPagination;
+    }
+
+    public static PaginationImpl getDefaultPagination() {
+        PaginationImpl defaultPagination = new PaginationImpl(new HashMap<>(), MAX_PAGE_LIMIT, DEFAULT_PAGE_LIMIT);
         defaultPagination.offset = DEFAULT_OFFSET;
         defaultPagination.limit = DEFAULT_PAGE_LIMIT;
         return defaultPagination;

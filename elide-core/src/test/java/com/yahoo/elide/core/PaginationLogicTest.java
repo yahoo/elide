@@ -14,7 +14,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +35,7 @@ public class PaginationLogicTest {
         queryParams.add("page[size]", "10");
         queryParams.add("page[number]", "2");
 
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         pageData = pageData.evaluate(PaginationLogicTest.class);
         // page based strategy uses human readable paging - non-zero index
         // page 2 becomes (1)*10 so 10 since we shift to zero based index
@@ -49,7 +49,7 @@ public class PaginationLogicTest {
         queryParams.add("page[size]", "10");
         queryParams.add("page[number]", "-2");
 
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         assertThrows(InvalidValueException.class, () -> pageData.evaluate(PaginationLogicTest.class));
     }
 
@@ -58,7 +58,7 @@ public class PaginationLogicTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[size]", "-10");
         queryParams.add("page[number]", "2");
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         assertThrows(InvalidValueException.class, () -> pageData.evaluate(PaginationLogicTest.class));
     }
 
@@ -68,7 +68,7 @@ public class PaginationLogicTest {
         queryParams.add("page[limit]", "10");
         queryParams.add("page[offset]", "2");
 
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         pageData = pageData.evaluate(PaginationLogicTest.class);
         // offset is direct correlation to start field in query
         assertEquals(2, pageData.getOffset());
@@ -78,14 +78,14 @@ public class PaginationLogicTest {
     @Test
     public void shouldUseDefaultsWhenMissingCurrentPageAndPageSize() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
-        assertEquals(Pagination.DEFAULT_OFFSET, pageData.getOffset());
-        assertEquals(Pagination.DEFAULT_PAGE_LIMIT, pageData.getLimit());
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
+        assertEquals(PaginationImpl.DEFAULT_OFFSET, pageData.getOffset());
+        assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getLimit());
     }
 
     @Test
     public void checkValidOffsetAndFirstRequest() {
-        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("10"), Optional.of("1"), true, elideSettings).get();
+        PaginationImpl pageData = PaginationImpl.fromOffsetAndFirst(Optional.of("10"), Optional.of("1"), true, elideSettings).get();
 
         // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
         // This is because the particular root entity determines the pagination limits
@@ -94,13 +94,13 @@ public class PaginationLogicTest {
 
         assertEquals(1, pageData.evaluate(PaginationLogicTest.class).getOffset());
         assertEquals(10, pageData.evaluate(PaginationLogicTest.class).getLimit());
-        assertTrue(pageData.evaluate(PaginationLogicTest.class).isGenerateTotals());
+        assertTrue(pageData.evaluate(PaginationLogicTest.class).returnPageTotals());
     }
 
     @Test
     public void checkErroneousPageLimit() {
-        Pagination pageData =
-                Pagination.fromOffsetAndFirst(Optional.of("100000"), Optional.of("1"), false, elideSettings).get();
+        PaginationImpl pageData =
+                PaginationImpl.fromOffsetAndFirst(Optional.of("100000"), Optional.of("1"), false, elideSettings).get();
 
         // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
         // This is because the particular root entity determines the pagination limits
@@ -118,35 +118,35 @@ public class PaginationLogicTest {
     public void checkBadOffset() {
         assertThrows(
                 InvalidValueException.class,
-                () -> Pagination.fromOffsetAndFirst(Optional.of("-1"), Optional.of("1000"), false, elideSettings));
+                () -> PaginationImpl.fromOffsetAndFirst(Optional.of("-1"), Optional.of("1000"), false, elideSettings));
     }
 
     @Test
     public void checkBadOffsetString() {
         assertThrows(
                 InvalidValueException.class,
-                () -> Pagination.fromOffsetAndFirst(Optional.of("NaN"), Optional.of("1000"), false, elideSettings));
+                () -> PaginationImpl.fromOffsetAndFirst(Optional.of("NaN"), Optional.of("1000"), false, elideSettings));
     }
 
     @Test
     public void checkBadLimit() {
         assertThrows(
                 InvalidValueException.class,
-                () -> Pagination.fromOffsetAndFirst(Optional.of("0"), Optional.of("1"), false, elideSettings));
+                () -> PaginationImpl.fromOffsetAndFirst(Optional.of("0"), Optional.of("1"), false, elideSettings));
     }
 
     @Test
     public void checkBadLimitString() {
         assertThrows(
                 InvalidValueException.class,
-                () -> Pagination.fromOffsetAndFirst(Optional.of("1"), Optional.of("NaN"), false, elideSettings));
+                () -> PaginationImpl.fromOffsetAndFirst(Optional.of("1"), Optional.of("NaN"), false, elideSettings));
     }
 
     @Test
     public void neverExceedMaxPageSize() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[size]", "25000");
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         assertThrows(InvalidValueException.class, () -> pageData.evaluate(PaginationLogicTest.class));
     }
 
@@ -155,7 +155,7 @@ public class PaginationLogicTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[size]", "10");
         queryParams.add("page[offset]", "100");
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         assertThrows(InvalidValueException.class, () -> pageData.evaluate(PaginationLogicTest.class));
     }
 
@@ -163,40 +163,40 @@ public class PaginationLogicTest {
     public void pageBasedPaginationWithDefaultSize() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[number]", "2");
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         pageData = pageData.evaluate(PaginationLogicTest.class);
-        assertEquals(Pagination.DEFAULT_PAGE_LIMIT, pageData.getLimit());
-        assertEquals(Pagination.DEFAULT_PAGE_LIMIT, pageData.getOffset());
+        assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getLimit());
+        assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getOffset());
     }
 
     @Test
     public void shouldThrowExceptionForNonIntPageParamValues() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[size]", "2.5");
-        assertThrows(InvalidValueException.class, () -> Pagination.parseQueryParams(queryParams, elideSettings));
+        assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(queryParams, elideSettings));
     }
 
     @Test
     public void shouldThrowExceptionForInvalidPageParams() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[random]", "1");
-        assertThrows(InvalidValueException.class, () -> Pagination.parseQueryParams(queryParams, elideSettings));
+        assertThrows(InvalidValueException.class, () -> PaginationImpl.parseQueryParams(queryParams, elideSettings));
     }
 
     @Test
     public void shouldSetGenerateTotals() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[totals]", null);
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         pageData = pageData.evaluate(PaginationLogicTest.class);
-        assertTrue(pageData.isGenerateTotals());
+        assertTrue(pageData.returnPageTotals());
     }
 
     @Test
     public void shouldNotSetGenerateTotals() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
-        assertFalse(pageData.isGenerateTotals());
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
+        assertFalse(pageData.returnPageTotals());
     }
 
 
@@ -204,11 +204,11 @@ public class PaginationLogicTest {
     public void shouldUseDefaultsWhenNoParams() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
 
-        Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams, elideSettings);
         assertEquals(0, pageData.getOffset());
-        assertEquals(Pagination.DEFAULT_PAGE_LIMIT, pageData.getLimit());
+        assertEquals(PaginationImpl.DEFAULT_PAGE_LIMIT, pageData.getLimit());
 
-        pageData = Pagination.parseQueryParams(queryParams,
+        pageData = PaginationImpl.parseQueryParams(queryParams,
                 new ElideSettingsBuilder(null)
                     .withDefaultPageSize(10)
                     .withDefaultMaxPageSize(10)
@@ -223,7 +223,7 @@ public class PaginationLogicTest {
         class PaginationOverrideTest { }
 
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        Pagination pageData = Pagination.parseQueryParams(queryParams,
+        PaginationImpl pageData = PaginationImpl.parseQueryParams(queryParams,
                 new ElideSettingsBuilder(null)
                     .withDefaultPageSize(0)
                     .withDefaultMaxPageSize(0)
@@ -231,7 +231,7 @@ public class PaginationLogicTest {
         assertEquals(0, pageData.getOffset());
         assertEquals(0, pageData.getLimit());
 
-        Pagination result = pageData.evaluate(PaginationOverrideTest.class);
+        PaginationImpl result = pageData.evaluate(PaginationOverrideTest.class);
         assertEquals(0, pageData.getOffset());
         assertEquals(10, result.getLimit());
     }

@@ -21,9 +21,9 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.request.EntityProjection;
 
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
@@ -256,7 +256,7 @@ public class SearchDataTransaction extends TransactionWrapper {
                     .setProjection(ProjectionConstants.THIS)
                     .getResultList();
 
-            if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
+            if (pagination.isPresent() && pagination.get().returnPageTotals()) {
                 pagination.get().setPageTotals(fullTextQuery.getResultSize());
             }
 

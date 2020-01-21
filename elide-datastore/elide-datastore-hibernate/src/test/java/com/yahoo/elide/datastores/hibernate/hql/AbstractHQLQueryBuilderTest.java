@@ -23,9 +23,10 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
@@ -179,7 +180,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
         Optional<Pagination> previousPagination = pagination;
 
-        Pagination paginationMock = mock(Pagination.class);
+        PaginationImpl paginationMock = mock(PaginationImpl.class);
         when(paginationMock.getLimit()).thenReturn(10);
         when(paginationMock.getOffset()).thenReturn(50);
 

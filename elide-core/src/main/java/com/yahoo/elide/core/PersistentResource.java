@@ -23,7 +23,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -33,6 +33,7 @@ import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.permissions.ExpressionResult;
@@ -341,7 +342,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .copyOf()
                 .filterExpression(filterExpression)
                 .sorting(sorting)
-                .pagination(Optional.ofNullable(pagination).map(p -> p.evaluate(loadClass)).orElse(null))
+                .pagination(Optional.ofNullable(pagination)
+                        .map(PaginationImpl.class::cast)
+                        .map(p -> p.evaluate(loadClass)).orElse(null))
                 .build();
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
@@ -1051,6 +1054,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Optional<Pagination> computedPagination = Optional.ofNullable(pagination)
+                .map(PaginationImpl.class::cast)
                 .map(p -> p.evaluate(relationClass));
 
         //Invoke filterExpressionCheck and then merge with filterExpression.

@@ -14,9 +14,9 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.User;
@@ -329,7 +329,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             endIdx = records.size();
         }
 
-        if (pagination.isGenerateTotals()) {
+        if (pagination.returnPageTotals()) {
             pagination.setPageTotals(records.size());
         }
         return records.subList(offset, endIdx);
