@@ -267,7 +267,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(results.size(), 1, "Number of records returned does not match");
         assertEquals(results.get(0), stats1, "Returned record does not match");
-        assertEquals(pagination.returnPageTotals(), 3, "Page totals does not match");
+        assertEquals(pagination.getPageTotals(), 3, "Page totals does not match");
     }
 
     /**

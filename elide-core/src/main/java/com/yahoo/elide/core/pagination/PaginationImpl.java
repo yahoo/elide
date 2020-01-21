@@ -112,7 +112,7 @@ public class PaginationImpl implements Pagination {
 
         String pageSizeLabel = pageByPages ? "size" : "limit";
 
-        if (limit > maxLimit) {
+        if (limit > maxLimit && !isDefault) {
             throw new InvalidValueException("Pagination "
                     + pageSizeLabel + " must be less than or equal to " + maxLimit);
         }
@@ -262,8 +262,8 @@ public class PaginationImpl implements Pagination {
                 entityClass,
                 null,
                 null,
-                DEFAULT_OFFSET,
                 DEFAULT_PAGE_LIMIT,
+                MAX_PAGE_LIMIT,
                 null,
                 false);
     }
