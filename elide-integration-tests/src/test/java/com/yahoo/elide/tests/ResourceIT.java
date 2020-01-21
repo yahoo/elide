@@ -2665,7 +2665,7 @@ public class ResourceIT extends IntegrationTest {
         dictionary.bindEntity(Book.class);
         when(scope.getDictionary()).thenReturn(dictionary);
         PaginationImpl pagination = mock(PaginationImpl.class);
-        when(pagination.isGenerateTotals()).thenReturn(true);
+        when(pagination.returnPageTotals()).thenReturn(true);
         tx.loadObjects(EntityProjection.builder()
                 .type(Book.class)
 
@@ -2674,7 +2674,7 @@ public class ResourceIT extends IntegrationTest {
                 .build(), scope);
         tx.commit(scope);
         tx.close();
-        verify(pagination).setPageTotals(noOfRecords);
+        verify(pagination).setPageTotals((long) noOfRecords);
     }
 
     @Test

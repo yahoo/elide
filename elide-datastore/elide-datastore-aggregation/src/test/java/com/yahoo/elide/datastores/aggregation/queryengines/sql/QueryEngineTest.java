@@ -237,7 +237,15 @@ public class QueryEngineTest extends SQLUnitTest {
      */
     @Test
     public void testPagination() {
-        PaginationImpl pagination = PaginationImpl.fromOffsetAndLimit(1, 0, true);
+        PaginationImpl pagination = new PaginationImpl(
+                PlayerStats.class,
+                0,
+                1,
+                PaginationImpl.DEFAULT_PAGE_LIMIT,
+                PaginationImpl.MAX_PAGE_LIMIT,
+                true,
+                false
+        );
 
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
@@ -259,7 +267,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(results.size(), 1, "Number of records returned does not match");
         assertEquals(results.get(0), stats1, "Returned record does not match");
-        assertEquals(pagination.returnPageTotals(), 3, "Page totals does not match");
+        assertEquals(pagination.getPageTotals(), 3, "Page totals does not match");
     }
 
     /**

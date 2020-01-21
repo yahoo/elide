@@ -318,7 +318,11 @@ public class DataStoreLoadTest {
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
-        PaginationImpl pagination = PaginationImpl.fromOffsetAndLimit(1, 0, true);
+        PaginationImpl pagination = new PaginationImpl(Item.class, 0, 1,
+                PaginationImpl.DEFAULT_PAGE_LIMIT,
+                PaginationImpl.MAX_PAGE_LIMIT,
+                true,
+                false);
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
@@ -330,7 +334,7 @@ public class DataStoreLoadTest {
                 .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(2L));
-        assertEquals(pagination.returnPageTotals(), 3);
+        assertEquals(pagination.getPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -344,7 +348,11 @@ public class DataStoreLoadTest {
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
-        PaginationImpl pagination = PaginationImpl.fromOffsetAndLimit(1, 1, true);
+        PaginationImpl pagination = new PaginationImpl(Item.class, 1, 1,
+                PaginationImpl.DEFAULT_PAGE_LIMIT,
+                PaginationImpl.MAX_PAGE_LIMIT,
+                true,
+                false);
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
@@ -356,7 +364,7 @@ public class DataStoreLoadTest {
                 .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(5L));
-        assertEquals(pagination.returnPageTotals(), 3);
+        assertEquals(pagination.getPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 

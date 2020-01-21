@@ -257,7 +257,7 @@ public class SearchDataTransaction extends TransactionWrapper {
                     .getResultList();
 
             if (pagination.isPresent() && pagination.get().returnPageTotals()) {
-                pagination.get().setPageTotals(fullTextQuery.getResultSize());
+                pagination.get().setPageTotals((long) fullTextQuery.getResultSize());
             }
 
             if (results.isEmpty()) {

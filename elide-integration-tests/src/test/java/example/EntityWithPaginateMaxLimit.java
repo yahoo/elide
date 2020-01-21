@@ -15,7 +15,7 @@ import javax.persistence.Entity;
 
 @Entity
 @Include(rootLevel = true)
-@Paginate(maxLimit = 10)
+@Paginate(maxLimit = 10, defaultLimit = 10)
 public class EntityWithPaginateMaxLimit extends BaseId {
     @Getter
     @Setter
