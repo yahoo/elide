@@ -78,7 +78,7 @@ public class SearchDataTransaction extends TransactionWrapper {
 
         boolean canSearch = (canSearch(projection.getType(), projection.getFilterExpression()) != NONE);
 
-        if (mustSort(Optional.ofNullable(projection.getSorting()), projection.getType())) {
+        if (mustSort(Optional.ofNullable(projection.getSorting()))) {
             canSearch = canSearch && canSort(projection.getSorting(), projection.getType());
         }
 
@@ -94,10 +94,9 @@ public class SearchDataTransaction extends TransactionWrapper {
     /**
      * Indicates whether sorting has been requested for this entity.
      * @param sorting An optional elide sorting clause.
-     * @param entityClass The entity to sort.
      * @return True if the entity must be sorted. False otherwise.
      */
-    private boolean mustSort(Optional<Sorting> sorting, Class<?> entityClass) {
+    private boolean mustSort(Optional<Sorting> sorting) {
         return sorting.isPresent() && !sorting.get().getSortingPaths().isEmpty();
     }
 
@@ -243,7 +242,7 @@ public class SearchDataTransaction extends TransactionWrapper {
 
             FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);
 
-            if (mustSort(sorting, entityClass)) {
+            if (mustSort(sorting)) {
                 fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityClass));
             }
 

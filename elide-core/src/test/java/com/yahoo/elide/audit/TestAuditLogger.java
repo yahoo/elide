@@ -12,6 +12,7 @@ import java.util.List;
 public class TestAuditLogger extends AuditLogger {
     @Override
     public void commit() throws IOException {
+        //NOOP
     }
 
     public List<LogMessage> getMessages() {

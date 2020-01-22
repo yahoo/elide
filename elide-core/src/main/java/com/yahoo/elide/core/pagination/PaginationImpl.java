@@ -74,10 +74,9 @@ public class PaginationImpl implements Pagination {
 
     private Boolean generateTotals;
 
-    private Boolean pageByPages;
-
     private Boolean isDefault;
 
+    @Getter
     private Class<?> entityClass;
 
     /**
@@ -98,7 +97,6 @@ public class PaginationImpl implements Pagination {
                            Boolean generateTotals,
                            Boolean pageByPages) {
 
-        this.pageByPages = pageByPages;
         this.entityClass = entityClass;
         this.isDefault = (clientOffset == null && clientLimit == null && generateTotals == null);
 
@@ -120,7 +118,6 @@ public class PaginationImpl implements Pagination {
             throw new InvalidValueException("Pagination "
                     + pageSizeLabel + " must contain a positive, non-zero value.");
         }
-
 
         this.generateTotals = generateTotals != null && generateTotals && (paginate == null || paginate.countable());
 

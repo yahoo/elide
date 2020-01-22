@@ -32,7 +32,6 @@ public class QueryValidator {
     private Set<String> allFields;
     private EntityDictionary dictionary;
     private AnalyticView queriedTable;
-    private Class<?> queriedClass;
     private List<MetricFunctionInvocation> metrics;
     private Set<ColumnProjection> dimensionProjections;
 
@@ -41,7 +40,6 @@ public class QueryValidator {
         this.allFields = allFields;
         this.dictionary = dictionary;
         this.queriedTable = query.getAnalyticView();
-        this.queriedClass = queriedTable.getCls();
         this.metrics = query.getMetrics();
         this.dimensionProjections = query.getDimensions();
     }

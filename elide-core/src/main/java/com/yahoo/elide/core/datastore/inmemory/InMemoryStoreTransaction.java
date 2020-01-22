@@ -277,7 +277,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
         return sortAndPaginateLoadedData(
                     loadedRecords,
-                    entityClass,
                     inMemorySort,
                     inMemoryPagination,
                     scope);
@@ -285,7 +284,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
 
     private Iterable<Object> sortAndPaginateLoadedData(Iterable<Object> loadedRecords,
-                                                         Class<?> entityClass,
                                                          Optional<Sorting> sorting,
                                                          Optional<Pagination> pagination,
                                                          RequestScope scope) {
