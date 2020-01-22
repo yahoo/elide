@@ -7,8 +7,8 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.generated.parsers.ExpressionLexer;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
@@ -43,7 +43,7 @@ public class EntityPermissions implements CheckInstantiator {
             ReadPermission.class,
             CreatePermission.class,
             DeletePermission.class,
-            SharePermission.class,
+            NonTransferable.class,
             UpdatePermission.class
     );
 
@@ -79,7 +79,7 @@ public class EntityPermissions implements CheckInstantiator {
             final Map<String, ParseTree> fieldPermissions = new HashMap<>();
             fieldOrMethodList.stream()
                     .forEach(member -> bindMemberPermissions(fieldPermissions, member, annotationClass));
-            if (annotationClass != SharePermission.class) {
+            if (annotationClass != NonTransferable.class) {
                 ParseTree classPermission = bindClassPermissions(cls, annotationClass);
                 if (classPermission != null || !fieldPermissions.isEmpty()) {
                     bindings.put(annotationClass, new AnnotationBinding(classPermission, fieldPermissions));

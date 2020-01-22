@@ -14,8 +14,8 @@ import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
@@ -830,9 +830,10 @@ public class EntityDictionary {
      * @param entityClass the entity type to check for the shareable permissions
      * @return true if entityClass is shareable.  False otherwise.
      */
-    public boolean isShareable(Class<?> entityClass) {
-        return getAnnotation(entityClass, SharePermission.class) != null
-                && getAnnotation(entityClass, SharePermission.class).sharable();
+    public boolean isTransferable(Class<?> entityClass) {
+        NonTransferable nonTransferable = getAnnotation(entityClass, NonTransferable.class);
+
+        return (nonTransferable == null || nonTransferable.enabled() == false);
     }
 
     /**

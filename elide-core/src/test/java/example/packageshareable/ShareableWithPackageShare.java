@@ -6,6 +6,7 @@
 package example.packageshareable;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -19,6 +20,7 @@ import javax.persistence.ManyToOne;
  */
 @Entity
 @Include(rootLevel = true)
+@NonTransferable(enabled = false)
 public class ShareableWithPackageShare {
     private long id;
     private ContainerWithPackageShare container;

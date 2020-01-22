@@ -28,7 +28,6 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.LogMessage;
@@ -69,7 +68,7 @@ import example.Right;
 import example.Shape;
 import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
-import example.packageshareable.UnshareableWithEntityUnshare;
+import example.packageshareable.Untransferable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -1885,7 +1884,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionErrorOnUpdateSingularRelationship() {
+    public void testTransferPermissionErrorOnUpdateSingularRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -1914,17 +1913,17 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionErrorOnUpdateRelationshipPackageLevel() {
+    public void testTransferPermissionErrorOnUpdateRelationshipPackageLevel() {
         ContainerWithPackageShare containerWithPackageShare = new ContainerWithPackageShare();
 
-        UnshareableWithEntityUnshare unshareableWithEntityUnshare = new UnshareableWithEntityUnshare();
-        unshareableWithEntityUnshare.setContainerWithPackageShare(containerWithPackageShare);
+        Untransferable untransferable = new Untransferable();
+        untransferable.setContainerWithPackageShare(containerWithPackageShare);
 
         List<Resource> unShareableList = new ArrayList<>();
-        unShareableList.add(new ResourceIdentifier("unshareableWithEntityUnshare", "1").castToResource());
+        unShareableList.add(new ResourceIdentifier("untransferable", "1").castToResource());
         Relationship unShareales = new Relationship(null, new Data<>(unShareableList));
 
-        when(tx.loadObject(any(), eq(1L), any())).thenReturn(unshareableWithEntityUnshare);
+        when(tx.loadObject(any(), eq(1L), any())).thenReturn(untransferable);
 
         RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
 
@@ -1933,11 +1932,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertThrows(
                 ForbiddenAccessException.class,
                 () -> containerResource.updateRelation(
-                        "unshareableWithEntityUnshares", unShareales.toPersistentResources(goodScope)));
+                        "untransferables", unShareales.toPersistentResources(goodScope)));
     }
 
     @Test
-    public void testSharePermissionSuccessOnUpdateManyRelationshipPackageLevel() {
+    public void testTransferPermissionSuccessOnUpdateManyRelationshipPackageLevel() {
         ContainerWithPackageShare containerWithPackageShare = new ContainerWithPackageShare();
 
         ShareableWithPackageShare shareableWithPackageShare = new ShareableWithPackageShare();
@@ -1960,7 +1959,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionErrorOnUpdateManyRelationship() {
+    public void testTransferPermissionErrorOnUpdateManyRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -1987,7 +1986,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionSuccessOnUpdateManyRelationship() {
+    public void testTransferPermissionSuccessOnUpdateManyRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -2019,7 +2018,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionSuccessOnUpdateSingularRelationship() {
+    public void testTransferPermissionSuccessOnUpdateSingularRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -2047,7 +2046,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionSuccessOnClearSingularRelationship() {
+    public void testTransferPermissionSuccessOnClearSingularRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -2298,7 +2297,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @ReadPermission(expression = "allow all")
     @UpdatePermission(expression = "allow all")
     @DeletePermission(expression = "allow all")
-    @SharePermission
     public static final class ChangeSpecChild {
         @Id
         public long id;

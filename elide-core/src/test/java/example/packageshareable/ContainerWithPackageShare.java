@@ -6,6 +6,7 @@
 package example.packageshareable;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import java.util.Collection;
 
@@ -17,13 +18,14 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 /**
- * Container for ShareableWithPackageShare and UnshareableWithEntityUnshare.
+ * Container for ShareableWithPackageShare and Untransferable.
  */
 @Entity
 @Include(rootLevel = true)
+@NonTransferable(enabled = false)
 public class ContainerWithPackageShare {
     private long id;
-    private Collection<UnshareableWithEntityUnshare> unshareableWithEntityUnshares;
+    private Collection<Untransferable> untransferables;
     private Collection<ShareableWithPackageShare> shareableWithPackageShares;
 
     @Id
@@ -37,12 +39,12 @@ public class ContainerWithPackageShare {
     }
 
     @OneToMany(fetch = FetchType.LAZY)
-    public Collection<UnshareableWithEntityUnshare> getUnshareableWithEntityUnshares() {
-        return unshareableWithEntityUnshares;
+    public Collection<Untransferable> getUntransferables() {
+        return untransferables;
     }
 
-    public void setUnshareableWithEntityUnshares(Collection<UnshareableWithEntityUnshare> unshareables) {
-        this.unshareableWithEntityUnshares = unshareables;
+    public void setUntransferables(Collection<Untransferable> unshareables) {
+        this.untransferables = unshareables;
     }
 
     @OneToMany(fetch = FetchType.LAZY)

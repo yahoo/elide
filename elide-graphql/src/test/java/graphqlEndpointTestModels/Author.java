@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import graphqlEndpointTestModels.security.UserChecks;
@@ -34,12 +33,11 @@ import javax.persistence.Transient;
 @ReadPermission(expression = Author.PERMISSION)
 @UpdatePermission(expression = Author.PERMISSION)
 @DeletePermission(expression = Author.PERMISSION)
-@SharePermission
 public class Author {
     Long id;
     String name;
     Set<Book> books = new HashSet<>();
-    DisallowShare noShare;
+    DisallowTransfer noShare;
     Map<String, String> bookTitlesAndAwards = new HashMap<>();
 
     public static final String PERMISSION = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2;
@@ -82,11 +80,11 @@ public class Author {
     }
 
     @OneToOne
-    public DisallowShare getNoShare() {
+    public DisallowTransfer getNoShare() {
         return noShare;
     }
 
-    public void setNoShare(DisallowShare noShare) {
+    public void setNoShare(DisallowTransfer noShare) {
         this.noShare = noShare;
     }
 

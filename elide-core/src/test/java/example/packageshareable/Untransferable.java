@@ -6,7 +6,7 @@
 package example.packageshareable;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -19,9 +19,8 @@ import javax.persistence.ManyToOne;
  * Entity level Unshareable bean.
  */
 @Entity
-@SharePermission(sharable = false)
 @Include(rootLevel = true)
-public class UnshareableWithEntityUnshare {
+public class Untransferable {
     private long id;
     private ContainerWithPackageShare container;
 

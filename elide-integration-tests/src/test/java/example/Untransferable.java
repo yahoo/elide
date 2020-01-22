@@ -6,6 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -16,9 +17,10 @@ import javax.persistence.Table;
  * DisallowShare bean.
  */
 @Entity
-@Table(name = "unshareable")
-@Include(rootLevel = true, type = "unshareable")
-public class Unshareable extends BaseId {
+@Table(name = "untransferable")
+@Include(rootLevel = true, type = "untransferable")
+@NonTransferable
+public class Untransferable extends BaseId {
     private Container container;
 
     @ManyToOne(fetch = FetchType.LAZY)
