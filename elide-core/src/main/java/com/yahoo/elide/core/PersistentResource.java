@@ -42,7 +42,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -68,7 +67,6 @@ import java.util.stream.Collectors;
  *
  * @param <T> type of resource
  */
-@Slf4j
 public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     protected T obj;
     private final String type;
@@ -215,7 +213,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource<T>(
+        PersistentResource<T> resource = new PersistentResource<>(
                 loadClass.cast(obj), null, requestScope.getUUIDFor(obj), requestScope);
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
@@ -1029,9 +1027,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(
-                    new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
+                    new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
         } else {
-            resources.add(new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
+            resources.add(new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
         }
 
         return resources;
