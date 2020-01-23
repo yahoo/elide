@@ -403,7 +403,7 @@ public class PermissionExecutorTest {
 
     @Test
     public void testUserCheckCache() {
-        PersistentResource resource = newResource(UserCheckCacheRecord.class);
+        PersistentResource<UserCheckCacheRecord> resource = newResource(UserCheckCacheRecord.class);
         RequestScope requestScope = resource.getRequestScope();
         ChangeSpec cspec = new ChangeSpec(null, null, null, null);
         // This should cache for updates, reads, etc.
@@ -413,19 +413,19 @@ public class PermissionExecutorTest {
         requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec);
     }
 
-    public <T> PersistentResource newResource(T obj, Class<T> cls) {
+    public <T> PersistentResource<T> newResource(T obj, Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 
-    public PersistentResource newResource(Class cls) {
+    public <T> PersistentResource<T> newResource(Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
         try {
-            Object obj = cls.newInstance();
+            T obj = cls.newInstance();
             return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
         } catch (InstantiationException | IllegalAccessException e) {
             return null;

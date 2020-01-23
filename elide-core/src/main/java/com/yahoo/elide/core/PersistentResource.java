@@ -42,7 +42,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -68,7 +67,6 @@ import java.util.stream.Collectors;
  *
  * @param <T> type of resource
  */
-@Slf4j
 public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     protected T obj;
     private final String type;
@@ -215,7 +213,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource<T>(
+        PersistentResource<T> resource = new PersistentResource<>(
                 loadClass.cast(obj), null, requestScope.getUUIDFor(obj), requestScope);
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
@@ -876,7 +874,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Filter expression for given ids and type.
      */
     private static FilterExpression buildIdFilterExpression(List<String> ids,
-                                                            Class entityType,
+                                                            Class<?> entityType,
                                                             EntityDictionary dictionary,
                                                             RequestScope scope) {
         Class<?> idType = dictionary.getIdType(entityType);
@@ -1028,10 +1026,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Iterable filteredVal = (Iterable) val;
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
-            resources = new SingleElementSet(
-                    new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
+            resources = new SingleElementSet<>(
+                    new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
         } else {
-            resources.add(new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
+            resources.add(new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
         }
 
         return resources;

@@ -247,7 +247,7 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>com.jayway.restassured</groupId>
+                <groupId>io.rest-assured</groupId>
                 <artifactId>json-schema-validator</artifactId>
                 <version>${version.restassured}</version>
                 <scope>test</scope>
@@ -399,11 +399,11 @@
                         <version>1.11.2</version>
                     </dependency>
 
-                   <dependency>
+                    <dependency>
                         <groupId>org.apache.maven.scm</groupId>
                         <artifactId>maven-scm-api</artifactId>
                         <version>1.11.2</version>
-                   </dependency>
+                    </dependency>
                 </dependencies>
                 <configuration>
                     <tagNameFormat>@{project.version}</tagNameFormat>
