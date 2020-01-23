@@ -2135,7 +2135,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testRelationChangeSpecType() {
-        try {
             BiFunction<ChangeSpec, BiFunction<ChangeSpecChild, ChangeSpecChild, Boolean>, Boolean> relCheck = (spec, checkFn) -> {
                 if (!(spec.getModified() instanceof ChangeSpecChild) && spec.getModified() != null) {
                     return false;
@@ -2166,9 +2165,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
             model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(2).equals(original) && modified == null);
             assertTrue(model.updateRelation("child", null));
-        } catch (ForbiddenAccessException e) {
-            e.printStackTrace();
-        }
     }
 
     @Test

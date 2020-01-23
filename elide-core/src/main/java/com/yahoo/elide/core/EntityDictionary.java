@@ -999,7 +999,7 @@ public class EntityDictionary {
                 try {
                     idField = getEntityBinding(cls).getIdField();
                 } catch (NullPointerException e) {
-                    System.out.println("Class: " + cls.getSimpleName() + " ID Field: " + idField);
+                    log.warn("Class: {} ID Field: {}", cls.getSimpleName(), idField);
                 }
             }
             if (idField instanceof Field) {
