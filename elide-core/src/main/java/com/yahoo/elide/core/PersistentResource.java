@@ -874,7 +874,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Filter expression for given ids and type.
      */
     private static FilterExpression buildIdFilterExpression(List<String> ids,
-                                                            Class entityType,
+                                                            Class<?> entityType,
                                                             EntityDictionary dictionary,
                                                             RequestScope scope) {
         Class<?> idType = dictionary.getIdType(entityType);
@@ -1026,7 +1026,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Iterable filteredVal = (Iterable) val;
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
-            resources = new SingleElementSet(
+            resources = new SingleElementSet<>(
                     new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
         } else {
             resources.add(new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));

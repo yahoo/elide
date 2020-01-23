@@ -9,7 +9,6 @@ import com.yahoo.elide.functions.LifeCycleHook;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import java.util.Optional;
 /**
  * RX Java Observer which invokes a lifecycle hook function.
  */
-@Slf4j
 public class LifecycleHookInvoker implements Observer<CRUDEvent> {
 
     private EntityDictionary dictionary;

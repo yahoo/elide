@@ -13,8 +13,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,7 +26,6 @@ import javax.persistence.GeneratedValue;
 /**
  * HashMapDataStore transaction handler.
  */
-@Slf4j
 public class HashMapStoreTransaction implements DataStoreTransaction {
     private final Map<Class<?>, Map<String, Object>> dataStore;
     private final List<Operation> operations;
