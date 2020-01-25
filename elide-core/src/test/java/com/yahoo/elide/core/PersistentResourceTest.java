@@ -37,7 +37,10 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -49,6 +52,7 @@ import com.yahoo.elide.security.checks.OperationCheck;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import example.Author;
 import example.Child;
 import example.Color;
 import example.ComputedBean;
@@ -75,6 +79,7 @@ import org.mockito.Answers;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -2165,6 +2170,42 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
             model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(2).equals(original) && modified == null);
             assertTrue(model.updateRelation("child", null));
+    }
+
+    @Test
+    public void testPatchRequestScope() {
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        PatchRequestScope parentScope =
+                new PatchRequestScope(null, tx, new User(1), elideSettings);
+        PatchRequestScope scope = new PatchRequestScope(
+                parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
+
+        Parent parent = newParent(7);
+
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", scope);
+        parentResource.updateAttribute("firstName", "foobar");
+
+        verify(tx, times(1)).setAttribute(parent, "firstName", "foobar", scope);
+    }
+
+    @Test
+    public void testFilterExpressionByType() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[author.name][infix]",
+                "Hemingway"
+        );
+
+        RequestScope scope = new RequestScope("/", null, mock(DataStoreTransaction.class),
+                new User(1), queryParams, elideSettings);
+        Optional<FilterExpression> filter = scope.getLoadFilterExpression(Author.class);
+        FilterPredicate predicate = (FilterPredicate) filter.get();
+        assertEquals("name", predicate.getField());
+        assertEquals("name", predicate.getFieldPath());
+        assertEquals(Operator.INFIX, predicate.getOperator());
+        assertEquals(Arrays.asList("Hemingway"), predicate.getValues());
+        assertEquals("[Author].name", predicate.getPath().toString());
     }
 
     @Test

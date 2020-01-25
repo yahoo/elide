@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
@@ -147,6 +148,11 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindInitializer(initializer, Foo.class);
 
         assertEquals(1, getAllFields(Foo.class).size());
+
+        Foo foo = new Foo();
+        initializeEntity(foo);
+
+        verify(initializer).initialize(foo);
     }
 
     @Test
