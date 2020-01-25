@@ -313,7 +313,7 @@ public class Elide {
         } catch (ConstraintViolationException e) {
             log.debug("Constraint violation exception caught", e);
             String message = "Constraint violation";
-            if (!e.getConstraintViolations().isEmpty()) {
+            if (e.getConstraintViolations() != null && !e.getConstraintViolations().isEmpty()) {
                 // Return error for the first constraint violation
                 message = e.getConstraintViolations().iterator().next().getMessage();
             }
