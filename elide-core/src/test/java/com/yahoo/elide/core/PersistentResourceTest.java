@@ -50,6 +50,8 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -115,6 +117,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         badUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
                 new User(-1), null, elideSettings);
         reset(goodUserScope.getTransaction());
+        assertFalse(goodUserScope.isUseFilterExpressions());
     }
 
     @Test
@@ -1665,6 +1668,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals(parent, created.getObject(),
                 "The create function should return the requested parent object"
         );
+        assertTrue(goodScope.isNewResource(parent));
     }
 
     @Test()
@@ -2199,6 +2203,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         RequestScope scope = new RequestScope("/", null, mock(DataStoreTransaction.class),
                 new User(1), queryParams, elideSettings);
+
         Optional<FilterExpression> filter = scope.getLoadFilterExpression(Author.class);
         FilterPredicate predicate = (FilterPredicate) filter.get();
         assertEquals("name", predicate.getField());
@@ -2206,6 +2211,20 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals(Operator.INFIX, predicate.getOperator());
         assertEquals(Arrays.asList("Hemingway"), predicate.getValues());
         assertEquals("[Author].name", predicate.getPath().toString());
+    }
+
+    @Test
+    public void testSparseFields() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add("fields[author]", "name");
+
+        RequestScope scope = new RequestScope("/", null, mock(DataStoreTransaction.class),
+                new User(1), queryParams, elideSettings);
+        Map<String, Set<String>> expected = ImmutableMap.of("author", ImmutableSet.of("name"));
+        System.err.println(scope.getPagination());
+        assertEquals(10, scope.getPagination().getLimit());
+        assertEquals(0, scope.getPagination().getPageTotals());
     }
 
     @Test

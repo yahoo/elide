@@ -50,6 +50,7 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import example.Author;
@@ -236,6 +237,40 @@ public class LifeCycleTest {
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         ElideResponse response = elide.get("/book/1", headers, null);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - read pre-commit for the book
+         *  - read post-commit for the book
+         */
+        verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
+        verify(tx).accessUser(any());
+        verify(tx).preCommit();
+        verify(tx).flush(any());
+        verify(tx).commit(any());
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElideGetRelationship() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+        Author author = mock(Author.class);
+        when(book.getId()).thenReturn(1L);
+        when(author.getId()).thenReturn(2L);
+        when(book.getAuthors()).thenReturn(ImmutableSet.of(author));
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        when(store.beginReadTransaction()).thenCallRealMethod();
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        ElideResponse response = elide.get("/book/1/relationships/authors", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         /*
