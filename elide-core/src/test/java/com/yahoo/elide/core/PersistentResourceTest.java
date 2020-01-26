@@ -2222,7 +2222,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope scope = new RequestScope("/", null, mock(DataStoreTransaction.class),
                 new User(1), queryParams, elideSettings);
         Map<String, Set<String>> expected = ImmutableMap.of("author", ImmutableSet.of("name"));
-        System.err.println(scope.getPagination());
+        assertEquals(expected, scope.getSparseFields());
         assertEquals(10, scope.getPagination().getLimit());
         assertEquals(0, scope.getPagination().getPageTotals());
     }
