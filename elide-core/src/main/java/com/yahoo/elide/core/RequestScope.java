@@ -272,7 +272,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     public Optional<FilterExpression> getLoadFilterExpression(Class<?> loadClass) {
         Optional<FilterExpression> permissionFilter;
         permissionFilter = getPermissionExecutor().getReadPermissionFilter(loadClass);
-        Optional<FilterExpression> globalFilterExpressionOptional = null;
+        Optional<FilterExpression> globalFilterExpressionOptional;
         if (globalFilterExpression == null) {
             String typeName = dictionary.getJsonAliasFor(loadClass);
             globalFilterExpressionOptional =  getFilterExpressionByType(typeName);
