@@ -5,6 +5,12 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.swagger.model.Resource;
 import com.yahoo.elide.contrib.swagger.models.Author;
@@ -17,7 +23,6 @@ import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.Maps;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -69,35 +74,35 @@ public class SwaggerBuilderTest {
 
     @Test
     public void testPathGeneration() throws Exception {
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}"));
+        assertTrue(swagger.getPaths().containsKey("/publisher"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}"));
 
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/books"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/books"));
 
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/exclusiveAuthors"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/books"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/books/{bookId}"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/relationships/books"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/exclusiveAuthors"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/books"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/books/{bookId}"));
+        assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/relationships/books"));
 
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}"));
+        assertTrue(swagger.getPaths().containsKey("/book"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}"));
 
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/authors"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/publisher"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/publisher/{publisherId}"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/relationships/publisher"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/authors"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/publisher"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/publisher/{publisherId}"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/relationships/publisher"));
 
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
-        Assertions.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/publisher"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
+        assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/publisher"));
 
-        Assertions.assertEquals(22, swagger.getPaths().size());
+        assertEquals(22, swagger.getPaths().size());
     }
 
     @Test
@@ -106,27 +111,27 @@ public class SwaggerBuilderTest {
         swagger.getPaths().forEach((url, path) -> {
 
             /* All paths should have a GET */
-            Assertions.assertNotNull(path.getGet());
+            assertNotNull(path.getGet());
 
             if (url.contains("relationship")) { //Relationship URL
 
                 /* The relationship is a one to one (so there is no DELETE op */
                 if ("/book/{bookId}/relationships/publisher".equals(url)) {
-                    Assertions.assertNull(path.getDelete());
-                    Assertions.assertNull(path.getPost());
+                    assertNull(path.getDelete());
+                    assertNull(path.getPost());
                 } else {
-                    Assertions.assertNotNull(path.getDelete());
-                    Assertions.assertNotNull(path.getPost());
+                    assertNotNull(path.getDelete());
+                    assertNotNull(path.getPost());
                 }
-                Assertions.assertNotNull(path.getPatch());
+                assertNotNull(path.getPatch());
             } else if (url.endsWith("Id}")) { //Instance URL
-                Assertions.assertNotNull(path.getDelete());
-                Assertions.assertNotNull(path.getPatch());
-                Assertions.assertNull(path.getPost());
+                assertNotNull(path.getDelete());
+                assertNotNull(path.getPatch());
+                assertNull(path.getPost());
             } else { //Collection URL
-                Assertions.assertNull(path.getDelete());
-                Assertions.assertNull(path.getPatch());
-                Assertions.assertNotNull(path.getPost());
+                assertNull(path.getDelete());
+                assertNull(path.getPatch());
+                assertNotNull(path.getPost());
             }
         });
     }
@@ -134,7 +139,7 @@ public class SwaggerBuilderTest {
     @Test
     public void testPathParams() throws Exception {
         Path path = swagger.getPaths().get("/book/{bookId}/authors/{authorId}");
-        Assertions.assertEquals(2,
+        assertEquals(2,
                 path.getParameters().stream()
                 .filter((param) -> param.getIn().equals("path"))
                 .count());
@@ -144,19 +149,19 @@ public class SwaggerBuilderTest {
                 .findFirst()
                 .get();
 
-        Assertions.assertEquals("path", bookId.getIn());
-        Assertions.assertEquals(true, bookId.getRequired());
+        assertEquals("path", bookId.getIn());
+        assertEquals(true, bookId.getRequired());
 
         Parameter authorId = path.getParameters().stream()
                 .filter((param) -> param.getName().equals("authorId"))
                 .findFirst()
                 .get();
 
-        Assertions.assertEquals("path", authorId.getIn());
-        Assertions.assertEquals(true, authorId.getRequired());
+        assertEquals("path", authorId.getIn());
+        assertEquals(true, authorId.getRequired());
 
         path = swagger.getPaths().get("/book/{bookId}/authors");
-        Assertions.assertEquals(1,
+        assertEquals(1,
                 path.getParameters().stream()
                 .filter((param) -> param.getIn().equals("path"))
                 .count());
@@ -166,11 +171,11 @@ public class SwaggerBuilderTest {
                 .findFirst()
                 .get();
 
-        Assertions.assertEquals("path", bookId.getIn());
-        Assertions.assertEquals(true, bookId.getRequired());
+        assertEquals("path", bookId.getIn());
+        assertEquals(true, bookId.getRequired());
 
         path = swagger.getPaths().get("/book/{bookId}/relationships/authors");
-        Assertions.assertEquals(1,
+        assertEquals(1,
                 path.getParameters().stream()
                 .filter((param) -> param.getIn().equals("path"))
                 .count());
@@ -180,8 +185,8 @@ public class SwaggerBuilderTest {
                 .findFirst()
                 .get();
 
-        Assertions.assertEquals("path", bookId.getIn());
-        Assertions.assertEquals(true, bookId.getRequired());
+        assertEquals("path", bookId.getIn());
+        assertEquals(true, bookId.getRequired());
     }
 
     @Test
@@ -198,7 +203,7 @@ public class SwaggerBuilderTest {
                     .findFirst()
                     .get();
 
-            Assertions.assertNotNull(bodyParam);
+            assertNotNull(bodyParam);
             verifyDatum(bodyParam.getSchema(), "book");
         }
 
@@ -214,7 +219,7 @@ public class SwaggerBuilderTest {
                     .filter((param) -> param.getIn().equals("body"))
                     .findFirst();
 
-            Assertions.assertFalse(bodyParam.isPresent());
+            assertFalse(bodyParam.isPresent());
         }
 
         /* These take a 'data' of relationships */
@@ -229,7 +234,7 @@ public class SwaggerBuilderTest {
                     .filter((param) -> param.getIn().equals("body"))
                     .findFirst()
                     .get();
-            Assertions.assertNotNull(bodyParam);
+            assertNotNull(bodyParam);
             verifyDataRelationship(bodyParam.getSchema(), "author");
         }
     }
@@ -246,10 +251,10 @@ public class SwaggerBuilderTest {
         verifyDatum(response.getSchema(), "book", true);
 
         response = swagger.getPaths().get("/book/{bookId}").getPatch().getResponses().get("204");
-        Assertions.assertNull(response.getSchema());
+        assertNull(response.getSchema());
 
         response = swagger.getPaths().get("/book/{bookId}").getDelete().getResponses().get("204");
-        Assertions.assertNull(response.getSchema());
+        assertNull(response.getSchema());
 
         response = swagger.getPaths().get("/book/{bookId}/relationships/authors").getGet().getResponses().get("200");
         verifyDataRelationship(response.getSchema(), "author");
@@ -258,10 +263,10 @@ public class SwaggerBuilderTest {
         verifyDataRelationship(response.getSchema(), "author");
 
         response = swagger.getPaths().get("/book/{bookId}/relationships/authors").getPatch().getResponses().get("204");
-        Assertions.assertNull(response.getSchema());
+        assertNull(response.getSchema());
 
         response = swagger.getPaths().get("/book/{bookId}/relationships/authors").getDelete().getResponses().get("204");
-        Assertions.assertNull(response.getSchema());
+        assertNull(response.getSchema());
     }
 
     @Test
@@ -270,31 +275,31 @@ public class SwaggerBuilderTest {
         swagger.getPaths().forEach((url, path) -> {
 
             Operation getOperation = path.getGet();
-            Assertions.assertTrue(getOperation.getResponses().containsKey("200"));
+            assertTrue(getOperation.getResponses().containsKey("200"));
 
             if (url.contains("relationship")) { //Relationship URL
 
                 if (path.getDelete() != null) {
                     Operation deleteOperation = path.getDelete();
-                    Assertions.assertTrue(deleteOperation.getResponses().containsKey("204"));
+                    assertTrue(deleteOperation.getResponses().containsKey("204"));
                 }
 
                 if (path.getPost() != null) {
                     Operation postOperation = path.getPost();
-                    Assertions.assertTrue(postOperation.getResponses().containsKey("201"));
+                    assertTrue(postOperation.getResponses().containsKey("201"));
                 }
 
                 Operation patchOperation = path.getPatch();
-                Assertions.assertTrue(patchOperation.getResponses().containsKey("204"));
+                assertTrue(patchOperation.getResponses().containsKey("204"));
             } else if (url.endsWith("Id}")) { //Instance URL
                 Operation deleteOperation = path.getDelete();
-                Assertions.assertTrue(deleteOperation.getResponses().containsKey("204"));
+                assertTrue(deleteOperation.getResponses().containsKey("204"));
 
                 Operation patchOperation = path.getPatch();
-                Assertions.assertTrue(patchOperation.getResponses().containsKey("204"));
+                assertTrue(patchOperation.getResponses().containsKey("204"));
             } else { //Collection URL
                 Operation postOperation = path.getPost();
-                Assertions.assertTrue(postOperation.getResponses().containsKey("201"));
+                assertTrue(postOperation.getResponses().containsKey("201"));
             }
         });
     }
@@ -310,21 +315,21 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         long filterParams = paramNames.stream().filter((name) -> name.startsWith("filter")).count();
-        Assertions.assertEquals(24, filterParams);
+        assertEquals(24, filterParams);
 
-        Assertions.assertTrue(paramNames.contains("filter"));
-        Assertions.assertTrue(paramNames.contains("filter[book]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][in]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][not]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][prefix]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][infix]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][postfix]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][isnull]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][notnull]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][lt]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][gt]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][le]"));
-        Assertions.assertTrue(paramNames.contains("filter[book.title][ge]"));
+        assertTrue(paramNames.contains("filter"));
+        assertTrue(paramNames.contains("filter[book]"));
+        assertTrue(paramNames.contains("filter[book.title][in]"));
+        assertTrue(paramNames.contains("filter[book.title][not]"));
+        assertTrue(paramNames.contains("filter[book.title][prefix]"));
+        assertTrue(paramNames.contains("filter[book.title][infix]"));
+        assertTrue(paramNames.contains("filter[book.title][postfix]"));
+        assertTrue(paramNames.contains("filter[book.title][isnull]"));
+        assertTrue(paramNames.contains("filter[book.title][notnull]"));
+        assertTrue(paramNames.contains("filter[book.title][lt]"));
+        assertTrue(paramNames.contains("filter[book.title][gt]"));
+        assertTrue(paramNames.contains("filter[book.title][le]"));
+        assertTrue(paramNames.contains("filter[book.title][ge]"));
 
 
         /* Test relationships filters */
@@ -334,20 +339,20 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         filterParams = paramNames.stream().filter((name) -> name.startsWith("filter")).count();
-        Assertions.assertEquals(23, filterParams);
+        assertEquals(23, filterParams);
 
-        Assertions.assertTrue(paramNames.contains("filter[author]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][in]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][not]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][prefix]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][infix]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][postfix]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][isnull]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][notnull]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][lt]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][gt]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][le]"));
-        Assertions.assertTrue(paramNames.contains("filter[author.name][ge]"));
+        assertTrue(paramNames.contains("filter[author]"));
+        assertTrue(paramNames.contains("filter[author.name][in]"));
+        assertTrue(paramNames.contains("filter[author.name][not]"));
+        assertTrue(paramNames.contains("filter[author.name][prefix]"));
+        assertTrue(paramNames.contains("filter[author.name][infix]"));
+        assertTrue(paramNames.contains("filter[author.name][postfix]"));
+        assertTrue(paramNames.contains("filter[author.name][isnull]"));
+        assertTrue(paramNames.contains("filter[author.name][notnull]"));
+        assertTrue(paramNames.contains("filter[author.name][lt]"));
+        assertTrue(paramNames.contains("filter[author.name][gt]"));
+        assertTrue(paramNames.contains("filter[author.name][le]"));
+        assertTrue(paramNames.contains("filter[author.name][ge]"));
     }
 
     @Test
@@ -360,13 +365,13 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         long pageParams = paramNames.stream().filter((name) -> name.startsWith("page")).count();
-        Assertions.assertEquals(5, pageParams);
+        assertEquals(5, pageParams);
 
-        Assertions.assertTrue(paramNames.contains("page[number]"));
-        Assertions.assertTrue(paramNames.contains("page[size]"));
-        Assertions.assertTrue(paramNames.contains("page[offset]"));
-        Assertions.assertTrue(paramNames.contains("page[limit]"));
-        Assertions.assertTrue(paramNames.contains("page[totals]"));
+        assertTrue(paramNames.contains("page[number]"));
+        assertTrue(paramNames.contains("page[size]"));
+        assertTrue(paramNames.contains("page[offset]"));
+        assertTrue(paramNames.contains("page[limit]"));
+        assertTrue(paramNames.contains("page[totals]"));
 
         /* Tests relationship collection */
         params = swagger.getPaths().get("/book/{bookId}/relationships/authors").getGet().getParameters();
@@ -376,13 +381,13 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         pageParams = paramNames.stream().filter((name) -> name.startsWith("page")).count();
-        Assertions.assertEquals(5, pageParams);
+        assertEquals(5, pageParams);
 
-        Assertions.assertTrue(paramNames.contains("page[number]"));
-        Assertions.assertTrue(paramNames.contains("page[size]"));
-        Assertions.assertTrue(paramNames.contains("page[offset]"));
-        Assertions.assertTrue(paramNames.contains("page[limit]"));
-        Assertions.assertTrue(paramNames.contains("page[totals]"));
+        assertTrue(paramNames.contains("page[number]"));
+        assertTrue(paramNames.contains("page[size]"));
+        assertTrue(paramNames.contains("page[offset]"));
+        assertTrue(paramNames.contains("page[limit]"));
+        assertTrue(paramNames.contains("page[totals]"));
     }
 
     @Test
@@ -394,19 +399,19 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         long sortParams = paramNames.stream().filter((name) -> name.startsWith("sort")).count();
-        Assertions.assertEquals(1, sortParams);
-        Assertions.assertTrue(paramNames.contains("sort"));
+        assertEquals(1, sortParams);
+        assertTrue(paramNames.contains("sort"));
 
         QueryParameter sortParam = (QueryParameter) params.stream()
                 .filter((param) -> param.getName().equals("sort"))
                 .findFirst()
                 .get();
 
-        Assertions.assertEquals("query", sortParam.getIn());
+        assertEquals("query", sortParam.getIn());
 
         List<String> sortValues = Arrays.asList("id", "-id", "title", "-title");
-        Assertions.assertTrue(((StringProperty) sortParam.getItems()).getEnum().containsAll(sortValues));
-        Assertions.assertEquals("csv", sortParam.getCollectionFormat());
+        assertTrue(((StringProperty) sortParam.getItems()).getEnum().containsAll(sortValues));
+        assertEquals("csv", sortParam.getCollectionFormat());
     }
 
     @Test
@@ -418,19 +423,19 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         long includeParams = paramNames.stream().filter((name) -> name.startsWith("include")).count();
-        Assertions.assertEquals(1, includeParams);
-        Assertions.assertTrue(paramNames.contains("include"));
+        assertEquals(1, includeParams);
+        assertTrue(paramNames.contains("include"));
 
         QueryParameter includeParam = (QueryParameter) params.stream()
                 .filter((param) -> param.getName().equals("include"))
                 .findFirst()
                 .get();
 
-        Assertions.assertEquals("query", includeParam.getIn());
+        assertEquals("query", includeParam.getIn());
 
         List<String> includeValues = Arrays.asList("authors", "publisher");
-        Assertions.assertTrue(((StringProperty) includeParam.getItems()).getEnum().containsAll(includeValues));
-        Assertions.assertEquals("csv", includeParam.getCollectionFormat());
+        assertTrue(((StringProperty) includeParam.getItems()).getEnum().containsAll(includeValues));
+        assertEquals("csv", includeParam.getCollectionFormat());
     }
 
     @Test
@@ -442,59 +447,59 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         long fieldParams = paramNames.stream().filter((name) -> name.startsWith("fields")).count();
-        Assertions.assertEquals(1, fieldParams);
-        Assertions.assertTrue(paramNames.contains("fields[book]"));
+        assertEquals(1, fieldParams);
+        assertTrue(paramNames.contains("fields[book]"));
 
         QueryParameter fieldParam = (QueryParameter) params.stream()
                 .filter((param) -> param.getName().equals("fields[book]"))
                 .findFirst()
                 .get();
 
-        Assertions.assertEquals("query", fieldParam.getIn());
+        assertEquals("query", fieldParam.getIn());
 
         List<String> filterValues = Arrays.asList("title", "authors", "publisher");
-        Assertions.assertTrue(((StringProperty) fieldParam.getItems()).getEnum().containsAll(filterValues));
-        Assertions.assertEquals("csv", fieldParam.getCollectionFormat());
+        assertTrue(((StringProperty) fieldParam.getItems()).getEnum().containsAll(filterValues));
+        assertEquals("csv", fieldParam.getCollectionFormat());
     }
 
     @Test
     public void testDefinitionGeneration() throws Exception {
         Map<String, Model> definitions = swagger.getDefinitions();
 
-        Assertions.assertEquals(4, definitions.size());
-        Assertions.assertTrue(definitions.containsKey("book"));
-        Assertions.assertTrue(definitions.containsKey("author"));
-        Assertions.assertTrue(definitions.containsKey("publisher"));
-        Assertions.assertTrue(definitions.containsKey("Address"));
+        assertEquals(4, definitions.size());
+        assertTrue(definitions.containsKey("book"));
+        assertTrue(definitions.containsKey("author"));
+        assertTrue(definitions.containsKey("publisher"));
+        assertTrue(definitions.containsKey("Address"));
 
         Model bookModel = definitions.get("book");
-        Assertions.assertTrue(bookModel instanceof Resource);
+        assertTrue(bookModel instanceof Resource);
 
         ObjectProperty attributeProps = (ObjectProperty) bookModel.getProperties().get("attributes");
-        Assertions.assertTrue(attributeProps.getProperties().containsKey("title"));
+        assertTrue(attributeProps.getProperties().containsKey("title"));
 
         ObjectProperty relationProps = (ObjectProperty) bookModel.getProperties().get("relationships");
-        Assertions.assertTrue(relationProps.getProperties().containsKey("publisher"));
-        Assertions.assertTrue(relationProps.getProperties().containsKey("authors"));
+        assertTrue(relationProps.getProperties().containsKey("publisher"));
+        assertTrue(relationProps.getProperties().containsKey("authors"));
     }
 
     @Test
     public void testTagGeneration() throws Exception {
 
         /* Check for the global tag definitions */
-        Assertions.assertEquals(3, swagger.getTags().size());
+        assertEquals(3, swagger.getTags().size());
 
         Tag bookTag = swagger.getTags().stream()
                 .filter((tag) -> tag.getName().equals("book"))
                 .findFirst().get();
 
-        Assertions.assertNotNull(bookTag);
+        assertNotNull(bookTag);
 
         Tag publisherTag = swagger.getTags().stream()
                 .filter((tag) -> tag.getName().equals("publisher"))
                 .findFirst().get();
 
-        Assertions.assertNotNull(publisherTag);
+        assertNotNull(publisherTag);
 
         /* For each operation, ensure its tagged with the root collection name */
         swagger.getPaths().forEach((url, path) -> {
@@ -560,7 +565,7 @@ public class SwaggerBuilderTest {
             responses.forEach(
                     (code, response) -> {
                         String key = String.valueOf(code);
-                        Assertions.assertEquals(response, op.getResponses().get(key));
+                        assertEquals(response, op.getResponses().get(key));
                     }
             );
         }
@@ -589,10 +594,10 @@ public class SwaggerBuilderTest {
                 .findFirst()
                 .get();
 
-        Assertions.assertEquals("query", sortParam.getIn());
+        assertEquals("query", sortParam.getIn());
 
         List<String> sortValues = Arrays.asList("id", "-id");
-        Assertions.assertEquals(sortValues, ((StringProperty) sortParam.getItems()).getEnum());
+        assertEquals(sortValues, ((StringProperty) sortParam.getItems()).getEnum());
     }
 
 
@@ -602,12 +607,12 @@ public class SwaggerBuilderTest {
      * @param refTypeName The model name
      */
     private void verifyData(Property property, String refTypeName) {
-        Assertions.assertTrue((property instanceof Data));
+        assertTrue((property instanceof Data));
 
         ArrayProperty data = (ArrayProperty) ((Data) property).getProperties().get("data");
 
         RefProperty ref = (RefProperty) data.getItems();
-        Assertions.assertEquals("#/definitions/" + refTypeName, ref.get$ref());
+        assertEquals("#/definitions/" + refTypeName, ref.get$ref());
     }
 
     /**
@@ -616,12 +621,12 @@ public class SwaggerBuilderTest {
      * @param refTypeName The model name to check
      */
     private void verifyData(Model model, String refTypeName) {
-        Assertions.assertTrue((model instanceof com.yahoo.elide.contrib.swagger.model.Data));
+        assertTrue((model instanceof com.yahoo.elide.contrib.swagger.model.Data));
 
         ArrayProperty data = (ArrayProperty) model.getProperties().get("model");
 
         RefProperty ref = (RefProperty) data.getItems();
-        Assertions.assertEquals("#/definitions/" + refTypeName, ref.get$ref());
+        assertEquals("#/definitions/" + refTypeName, ref.get$ref());
     }
 
     /**
@@ -631,14 +636,14 @@ public class SwaggerBuilderTest {
      * @param included Whether or not the datum should have an 'included' section.
      */
     private void verifyDatum(Property property, String refTypeName, boolean included) {
-        Assertions.assertTrue((property instanceof Datum));
+        assertTrue((property instanceof Datum));
 
         RefProperty ref = (RefProperty) ((Datum) property).getProperties().get("data");
 
-        Assertions.assertEquals("#/definitions/" + refTypeName, ref.get$ref());
+        assertEquals("#/definitions/" + refTypeName, ref.get$ref());
 
         if (included) {
-            Assertions.assertNotNull(((Datum) property).getProperties().get("included"));
+            assertNotNull(((Datum) property).getProperties().get("included"));
         }
     }
 
@@ -648,11 +653,11 @@ public class SwaggerBuilderTest {
      * @param refTypeName The model name to check
      */
     private void verifyDatum(Model model, String refTypeName) {
-        Assertions.assertTrue((model instanceof com.yahoo.elide.contrib.swagger.model.Datum));
+        assertTrue((model instanceof com.yahoo.elide.contrib.swagger.model.Datum));
 
         RefProperty ref = (RefProperty) model.getProperties().get("data");
 
-        Assertions.assertEquals("#/definitions/" + refTypeName, ref.get$ref());
+        assertEquals("#/definitions/" + refTypeName, ref.get$ref());
     }
 
     /**
@@ -662,13 +667,13 @@ public class SwaggerBuilderTest {
      * @param refTypeName The type field to match against
      */
     private void verifyDataRelationship(Property property, String refTypeName) {
-        Assertions.assertTrue((property instanceof Data));
+        assertTrue((property instanceof Data));
 
         ArrayProperty data = (ArrayProperty) ((Data) property).getProperties().get("data");
 
         Relationship relation = (Relationship) data.getItems();
         StringProperty type = (StringProperty) relation.getProperties().get("type");
-        Assertions.assertTrue(type.getEnum().contains(refTypeName));
+        assertTrue(type.getEnum().contains(refTypeName));
     }
 
      /**
@@ -678,12 +683,12 @@ public class SwaggerBuilderTest {
      * @param refTypeName The type field to match against
      */
     private void verifyDataRelationship(Model model, String refTypeName) {
-        Assertions.assertTrue((model instanceof com.yahoo.elide.contrib.swagger.model.Data));
+        assertTrue((model instanceof com.yahoo.elide.contrib.swagger.model.Data));
 
         ArrayProperty data = (ArrayProperty) model.getProperties().get("data");
 
         Relationship relation = (Relationship) data.getItems();
         StringProperty type = (StringProperty) relation.getProperties().get("type");
-        Assertions.assertTrue(type.getEnum().contains(refTypeName));
+        assertTrue(type.getEnum().contains(refTypeName));
     }
 }

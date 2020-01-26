@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate.hql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -32,7 +33,6 @@ import example.Chapter;
 import example.Left;
 import example.Publisher;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -152,7 +152,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(AUTHORS + PERIOD + NAME, Sorting.SortOrder.asc);
 
-        Assertions.assertThrows(InvalidValueException.class, () -> getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS));
+        assertThrows(InvalidValueException.class, () -> getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS));
     }
 
     @Test
