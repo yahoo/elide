@@ -84,12 +84,11 @@ public class JsonApiDocument {
 
     @Override
     public int hashCode() {
+        Collection<Resource> resources = data == null ? null : data.get();
         return new HashCodeBuilder(37, 79)
-            .append(data)
-            .append(meta)
-            .append(includedRecs)
+            .append(resources == null ? 0 : resources.stream().mapToInt(Object::hashCode).sum())
             .append(links)
-            .append(included)
+            .append(included == null ? 0 : included.stream().mapToInt(Object::hashCode).sum())
             .build();
     }
 
@@ -99,15 +98,16 @@ public class JsonApiDocument {
             return false;
         }
         JsonApiDocument other = (JsonApiDocument) obj;
-        Collection<Resource> resources = data.get();
-        if ((resources == null || other.getData().get() == null) && resources != other.getData().get()) {
+        Collection<Resource> resources = data == null ? null : data.get();
+        Collection<Resource> otherResources = other.data == null ? null : other.data.get();
+
+        if (resources == null ^ otherResources == null) {
             return false;
         }
-        if (resources != null) {
-            if (resources.size() != other.getData().get().size()
-                || !resources.stream().allMatch(other.getData().get()::contains)) {
-                return false;
-            }
+        if (resources != null
+                && (resources.size() != otherResources.size()
+                        || !resources.stream().allMatch(other.getData().get()::contains))) {
+            return false;
         }
         // TODO: Verify links and meta?
         if (other.getIncluded() == null) {
