@@ -58,28 +58,24 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
     public void testCreateNewObject() {
         Object actual = createNewObject(String.class);
         assertEquals("", actual);
-        verify(scope, never()).getDictionary();
     }
 
     @Test
     public void testSupportsSorting() {
         boolean actual = supportsSorting(null, null);
         assertTrue(actual);
-        verify(scope, never()).getDictionary();
     }
 
     @Test
     public void testSupportsPagination() {
         boolean actual = supportsPagination(null);
         assertTrue(actual);
-        verify(scope, never()).getDictionary();
     }
 
     @Test
     public void testSupportsFiltering() {
         DataStoreTransaction.FeatureSupport actual = supportsFiltering(null, null);
         assertEquals(DataStoreTransaction.FeatureSupport.FULL, actual);
-        verify(scope, never()).getDictionary();
     }
 
     @Test
