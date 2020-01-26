@@ -86,9 +86,9 @@ public class JsonApiDocument {
     public int hashCode() {
         Collection<Resource> resources = data == null ? null : data.get();
         return new HashCodeBuilder(37, 79)
-            .append(resources == null ? null : resources.stream().mapToInt(Object::hashCode).sum())
+            .append(resources == null ? 0 : resources.stream().mapToInt(Object::hashCode).sum())
             .append(links)
-            .append(included == null ? null : included.stream().mapToInt(Object::hashCode).sum())
+            .append(included == null ? 0 : included.stream().mapToInt(Object::hashCode).sum())
             .build();
     }
 

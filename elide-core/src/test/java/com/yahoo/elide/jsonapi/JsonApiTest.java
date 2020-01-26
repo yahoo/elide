@@ -209,7 +209,7 @@ public class JsonApiTest {
         Data<Resource> empty = new Data<>((Resource) null);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
-        jsonApiDocument.setData(null);
+        jsonApiDocument.setData(empty);
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(expected, doc);
@@ -349,6 +349,9 @@ public class JsonApiTest {
             doc2 = mapper.readJsonApiDocument(json);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+        if (doc2.getData() == null) {
+            doc2.setData(doc1.getData());
         }
         assertEquals(doc1.hashCode(), doc2.hashCode());
         assertEquals(doc1, doc2);
