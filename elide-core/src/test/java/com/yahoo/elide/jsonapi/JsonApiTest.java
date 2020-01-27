@@ -89,7 +89,10 @@ public class JsonApiTest {
 
         String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":null},\"relationships\":{\"children\":{\"data\":[]},\"spouses\":{\"data\":[]}}}}";
 
+        Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
     }
@@ -110,7 +113,10 @@ public class JsonApiTest {
 
         String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}}";
 
+        Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
     }
@@ -134,7 +140,10 @@ public class JsonApiTest {
 
         String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}},\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
 
+        Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
     }
@@ -157,7 +166,10 @@ public class JsonApiTest {
 
         String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}]}";
 
+        Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
     }
@@ -183,7 +195,10 @@ public class JsonApiTest {
 
         String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}],\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
 
+        Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
     }
@@ -197,7 +212,10 @@ public class JsonApiTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(empty);
 
+        Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
     }
@@ -211,7 +229,10 @@ public class JsonApiTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(empty);
 
+        Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertEquals(data, jsonApiDocument.getData());
+
         assertEquals(expected, doc);
         checkEquality(jsonApiDocument);
     }
@@ -349,9 +370,6 @@ public class JsonApiTest {
             doc2 = mapper.readJsonApiDocument(json);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        }
-        if (doc2.getData() == null) {
-            doc2.setData(doc1.getData());
         }
         assertEquals(doc1.hashCode(), doc2.hashCode());
         assertEquals(doc1, doc2);
