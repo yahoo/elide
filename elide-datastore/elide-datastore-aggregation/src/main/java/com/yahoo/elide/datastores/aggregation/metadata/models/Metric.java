@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
@@ -60,8 +58,7 @@ public class Metric extends Column {
                     fieldName);
 
             if (formula != null) {
-                this.metricFunction = resolveFormula(
-                        tableClass, fieldName, new LinkedHashSet<>(), new HashMap<>(), meta, dictionary);
+                this.metricFunction = resolveFormula(tableClass, fieldName, meta, dictionary);
             } else {
                 throw new IllegalArgumentException("Trying to construct metric field "
                         + getId() + " without @MetricAggregation and @MetricFormula.");
@@ -104,9 +101,25 @@ public class Metric extends Column {
 
     /**
      * Resolve aggregation function form {@link MetricFormula} annotation.
+     *
+     * @param tableClass table class
+     * @param fieldName metric field name
+     * @param meta meta annotation on the field
+     * @param dictionary dictionary with entity information
+     * @return resolved metric function instance
+     */
+    private static MetricFunction resolveFormula(Class<?> tableClass,
+                                                 String fieldName,
+                                                 Meta meta,
+                                                 EntityDictionary dictionary) {
+        return resolveFormula(tableClass, fieldName, new LinkedHashSet<>(), new HashMap<>(), meta, dictionary);
+    }
+
+    /**
+     * Resolve aggregation function form {@link MetricFormula} annotation.
      * This require traverse through the formula to resolve all references to other metric field.
      *
-     * @param tableClass talbe class
+     * @param tableClass table class
      * @param fieldName metric field name
      * @param toResolve references that are not resolved yet, to detect cycle-reference
      * @param resolved references that are already resolved

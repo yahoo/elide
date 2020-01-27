@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
@@ -85,5 +83,17 @@ public abstract class Column {
             }
         }
         return dataType;
+    }
+
+    /**
+     * Construct a column name as meta data
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @param dictionary entity dictionary to use
+     * @return <code>tableAlias.fieldName</code>
+     */
+    public static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
+        return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
     }
 }

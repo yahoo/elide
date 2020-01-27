@@ -180,16 +180,4 @@ public class MetaDataStore extends HashMapDataStore {
     private static boolean isAnalyticView(Class<?> cls) {
         return cls.isAnnotationPresent(FromTable.class) || cls.isAnnotationPresent(FromSubquery.class);
     }
-
-    /**
-     * Construct a column name as meta data
-     *
-     * @param tableClass table class
-     * @param fieldName field name
-     * @param dictionary entity dictionary to use
-     * @return <code>tableAlias.fieldName</code>
-     */
-    public static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
-    }
 }

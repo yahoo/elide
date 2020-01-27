@@ -162,34 +162,33 @@ public class SQLQueryEngine implements QueryEngine {
                 .map(invocation -> {
                     MetricFunction function = invocation.getFunction();
 
-                    if (!(function instanceof SQLMetricFunction)) {
-                        // this is used for metric constructed from formulas
-                        return new SQLQueryTemplate() {
-                            @Override
-                            public List<MetricFunctionInvocation> getMetrics() {
-                                return Collections.singletonList(
-                                        function.invoke(
-                                                new HashSet<>(invocation.getArguments()),
-                                                invocation.getAlias()));
-                            }
-
-                            @Override
-                            public Set<ColumnProjection> getNonTimeDimensions() {
-                                return groupByDimensions;
-                            }
-
-                            @Override
-                            public TimeDimensionProjection getTimeDimension() {
-                                return timeDimension;
-                            }
-                        };
+                    if (function instanceof SQLMetricFunction) {
+                        return ((SQLMetricFunction) function).resolve(
+                                invocation.getArgumentMap(),
+                                invocation.getAlias(),
+                                groupByDimensions,
+                                timeDimension);
                     }
 
-                    return ((SQLMetricFunction) function).resolve(
-                            invocation.getArgumentMap(),
-                            invocation.getAlias(),
-                            groupByDimensions,
-                            timeDimension);
+                    return new SQLQueryTemplate() {
+                        @Override
+                        public List<MetricFunctionInvocation> getMetrics() {
+                            return Collections.singletonList(
+                                    function.invoke(
+                                            new HashSet<>(invocation.getArguments()),
+                                            invocation.getAlias()));
+                        }
+
+                        @Override
+                        public Set<ColumnProjection> getNonTimeDimensions() {
+                            return groupByDimensions;
+                        }
+
+                        @Override
+                        public TimeDimensionProjection getTimeDimension() {
+                            return timeDimension;
+                        }
+                    };
                 })
                 .reduce(SQLQueryTemplate::merge)
                 .orElse(new SQLQueryTemplate() {
