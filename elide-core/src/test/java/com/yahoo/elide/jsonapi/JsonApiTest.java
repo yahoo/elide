@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -91,7 +90,6 @@ public class JsonApiTest {
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(expected, doc);
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -112,7 +110,6 @@ public class JsonApiTest {
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(expected, doc);
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -136,7 +133,6 @@ public class JsonApiTest {
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(expected, doc);
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -159,7 +155,6 @@ public class JsonApiTest {
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(expected, doc);
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -185,7 +180,6 @@ public class JsonApiTest {
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(expected, doc);
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -199,7 +193,6 @@ public class JsonApiTest {
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(expected, doc);
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -213,7 +206,6 @@ public class JsonApiTest {
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
         assertEquals(expected, doc);
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -232,7 +224,6 @@ public class JsonApiTest {
         assertEquals("bob", attributes.get("firstName"));
         assertEquals("child", relations.get("children").getData().getSingleValue().getType());
         assertEquals("2", relations.get("children").getData().getSingleValue().getId());
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -253,7 +244,6 @@ public class JsonApiTest {
         assertEquals(attributes.get("firstName"), "bob");
         assertEquals(relations.get("children").getData().getSingleValue().getType(), "child");
         assertEquals(relations.get("children").getData().getSingleValue().getId(), "2");
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -277,7 +267,6 @@ public class JsonApiTest {
         assertEquals("child", includedChild.getType());
         assertEquals("2", includedChild.getId());
         assertEquals("123", parent.getId());
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -296,7 +285,6 @@ public class JsonApiTest {
         assertEquals("bob", attributes.get("firstName"));
         assertEquals("2", data.getRelationships().get("children").getData().getSingleValue().getId());
         assertNull(included);
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -318,7 +306,6 @@ public class JsonApiTest {
         assertEquals("child", includedChild.getType());
         assertEquals("2", includedChild.getId());
         assertEquals("123", parent.getId());
-        checkEquality(jsonApiDocument);
     }
 
     @Test
@@ -339,21 +326,5 @@ public class JsonApiTest {
         assertEquals(attributes.get("firstName"), "bob");
         assertEquals(data.getRelationships().get("children").getData().getSingleValue().getId(), "2");
         assertNull(included);
-        checkEquality(jsonApiDocument);
-    }
-
-    private void checkEquality(JsonApiDocument doc1) {
-        JsonApiDocument doc2;
-        try {
-            String json = mapper.writeJsonApiDocument(doc1);
-            doc2 = mapper.readJsonApiDocument(json);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        if (doc2.getData() == null) {
-            doc2.setData(doc1.getData());
-        }
-        assertEquals(doc1.hashCode(), doc2.hashCode());
-        assertEquals(doc1, doc2);
     }
 }
