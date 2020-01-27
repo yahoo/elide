@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,7 @@ public class Relationship {
             } else {
                 this.idData = new Data<>(
                         data.get().stream()
+                            .map(Objects::requireNonNull)
                             .map(Resource::toResourceIdentifier)
                             .collect(Collectors.toList())
                 );
@@ -74,10 +76,9 @@ public class Relationship {
         if (resources != null) {
             for (Resource resource : resources) {
                 try {
-                    if (data.isToOne() && resource == null) {
+                    if (resource == null) {
                         continue;
                     }
-                    // TODO: what if resource==null here?
                     res.add(resource.toPersistentResource(requestScope));
                 } catch (ForbiddenAccessException e) {
                     //skip resource
