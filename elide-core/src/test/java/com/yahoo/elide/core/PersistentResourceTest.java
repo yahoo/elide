@@ -22,15 +22,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.LogMessage;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -42,18 +35,17 @@ import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.OperationCheck;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import example.Author;
 import example.Child;
 import example.Color;
@@ -75,11 +67,10 @@ import example.Shape;
 import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
 
 import java.util.ArrayList;
@@ -95,10 +86,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -454,14 +442,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             // Do nothing
         }
 
-        try {
-            getValue(fun, "badRelation", getRequestScope());
-            fail("Getting a bad relation should throw an InvalidAttributeException.");
-        } catch (InvalidAttributeException e) {
-            return;
-        }
-
-        fail("Getting a bad relation should throw an InvalidAttributeException.");
+        assertThrows(
+                InvalidAttributeException.class,
+                () -> setValue("badRelation", "badValue"),
+                "Getting a bad relation should throw an InvalidAttributeException.");
     }
 
     @Test
@@ -480,12 +464,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertTrue(fun.getRelation1().contains(testChild), "setValue should set the correct relation.");
         assertEquals(fun.getRelation1().size(), 1, "setValue should set the relation with the correct number of elements");
 
-        try {
-            setValue("badRelation", "badValue");
-        } catch (InvalidAttributeException e) {
-            return;
-        }
-        fail("Setting a bad relation should throw an InvalidAttributeException.");
+        assertThrows(
+                InvalidAttributeException.class,
+                () -> setValue("badRelation", "badValue"),
+                "Getting a bad relation should throw an InvalidAttributeException.");
     }
 
     @Test
@@ -2089,7 +2071,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Function<String, BiFunction<ChangeSpec, BiFunction<Collection, Collection, Boolean>, Boolean>> collectionCheck =
                 (fieldName) -> (spec, condFn) -> {
                     if (!fieldName.equals(spec.getFieldName())) {
-                        throw new IllegalStateException("Wrong field name: '" + spec.getFieldName() + "'. Expected: '" + fieldName + "'");
+                        fail("Should not reach here");
+                        throw new IllegalStateException();
                     }
                     return condFn.apply((Collection) spec.getOriginal(), (Collection) spec.getModified());
                 };
@@ -2152,9 +2135,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testAttrChangeSpecType() {
         BiFunction<ChangeSpec, BiFunction<String, String, Boolean>, Boolean> attrCheck = (spec, checkFn) -> {
             if (!(spec.getModified() instanceof String) && spec.getModified() != null) {
+                fail("Should not reach here");
                 return false;
             }
             if (!"testAttr".equals(spec.getFieldName())) {
+                fail("Should not reach here");
                 return false;
             }
             return checkFn.apply((String) spec.getOriginal(), (String) spec.getModified());
@@ -2174,9 +2159,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testRelationChangeSpecType() {
             BiFunction<ChangeSpec, BiFunction<ChangeSpecChild, ChangeSpecChild, Boolean>, Boolean> relCheck = (spec, checkFn) -> {
                 if (!(spec.getModified() instanceof ChangeSpecChild) && spec.getModified() != null) {
+                    fail("Should not reach here");
                     return false;
                 }
                 if (!"child".equals(spec.getFieldName())) {
+                    fail("Should not reach here");
                     return false;
                 }
                 return checkFn.apply((ChangeSpecChild) spec.getOriginal(), (ChangeSpecChild) spec.getModified());
@@ -2282,121 +2269,5 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertNotEquals(resourceWithDifferentId.hashCode(), resourceWithId.hashCode());
         assertNotEquals(resourceWithDifferentId, resourceWithId);
         assertNotEquals(resourceWithId, resourceWithDifferentId);
-    }
-
-    private <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
-        return bootstrapPersistentResource(obj, mock(DataStoreTransaction.class));
-    }
-
-    private <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
-        User goodUser = new User(1);
-        RequestScope requestScope = buildRequestScope(tx, goodUser);
-        return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
-    }
-
-    private RequestScope getUserScope(User user, AuditLogger auditLogger) {
-        return new RequestScope(null, new JsonApiDocument(), null, user, null,
-                new ElideSettingsBuilder(null)
-                    .withEntityDictionary(dictionary)
-                    .withAuditLogger(auditLogger)
-                    .build());
-    }
-
-    // Testing constructor, setId and non-null empty sets
-    private static Parent newParent(int id) {
-        Parent parent = new Parent();
-        parent.setId(id);
-        parent.setChildren(new HashSet<>());
-        parent.setSpouses(new HashSet<>());
-        return parent;
-    }
-
-    private Parent newParent(int id, Child child) {
-        Parent parent = new Parent();
-        parent.setId(id);
-        parent.setChildren(Sets.newHashSet(child));
-        parent.setSpouses(new HashSet<>());
-        return parent;
-    }
-
-    /* ChangeSpec-specific test elements */
-    @Entity
-    @Include
-    @CreatePermission(expression = "allow all")
-    @ReadPermission(expression = "allow all")
-    @UpdatePermission(expression = "deny all")
-    @DeletePermission(expression = "allow all")
-    public static final class ChangeSpecModel {
-        @Id
-        public long id;
-
-        @ReadPermission(expression = "deny all")
-        @UpdatePermission(expression = "deny all")
-        public Function<ChangeSpec, Boolean> checkFunction;
-
-        @UpdatePermission(expression = "changeSpecNonCollection")
-        public String testAttr;
-
-        @UpdatePermission(expression = "changeSpecCollection")
-        public List<String> testColl;
-
-        @OneToOne
-        @UpdatePermission(expression = "changeSpecNonCollection")
-        public ChangeSpecChild child;
-
-        @ManyToMany
-        @UpdatePermission(expression = "changeSpecCollection")
-        public List<Child> otherKids;
-
-        public ChangeSpecModel(final Function<ChangeSpec, Boolean> checkFunction) {
-            this.checkFunction = checkFunction;
-        }
-    }
-
-    @Entity
-    @Include
-    @EqualsAndHashCode
-    @AllArgsConstructor
-    @CreatePermission(expression = "allow all")
-    @ReadPermission(expression = "allow all")
-    @UpdatePermission(expression = "allow all")
-    @DeletePermission(expression = "allow all")
-    @SharePermission
-    public static final class ChangeSpecChild {
-        @Id
-        public long id;
-    }
-
-    public static final class ChangeSpecCollection extends OperationCheck<Object> {
-
-        @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
-                ChangeSpec spec = changeSpec.get();
-                if (!(spec.getModified() instanceof Collection)) {
-                    return false;
-                }
-                return ((ChangeSpecModel) object).checkFunction.apply(spec);
-            }
-            throw new IllegalStateException("Something is terribly wrong :(");
-        }
-    }
-
-    public static final class ChangeSpecNonCollection extends OperationCheck<Object> {
-
-        @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
-                return ((ChangeSpecModel) object).checkFunction.apply(changeSpec.get());
-            }
-            throw new IllegalStateException("Something is terribly wrong :(");
-        }
-    }
-
-    public static Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
-        Optional<FilterExpression> filterExpression =
-                resource.getRequestScope().getExpressionForRelation(resource, relation);
-
-        return resource.getRelationCheckedFiltered(relation, filterExpression, Optional.empty(), Optional.empty());
     }
 }
