@@ -46,9 +46,6 @@ public class JsonApiDocument {
     }
 
     public Data<Resource> getData() {
-        if (data == null) {
-            return null;
-        }
         return data;
     }
 

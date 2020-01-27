@@ -238,6 +238,21 @@ public class JsonApiTest {
     }
 
     @Test
+    public void writeNullObject() throws JsonProcessingException {
+        String expected = "{\"data\":null}";
+
+        JsonApiDocument jsonApiDocument = new JsonApiDocument();
+        jsonApiDocument.setData(null);
+
+        assertNull(jsonApiDocument.getData());
+        String doc = mapper.writeJsonApiDocument(jsonApiDocument);
+        assertNull(jsonApiDocument.getData());
+
+        assertEquals(expected, doc);
+        checkEquality(jsonApiDocument);
+    }
+
+    @Test
     public void readSingle() throws IOException {
         String doc = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":{\"type\":\"child\",\"id\":\"2\"}}}}}";
 
