@@ -9,7 +9,20 @@ import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.checks.OperationCheck;
+
+import com.google.common.collect.Sets;
 
 import example.Author;
 import example.Book;
@@ -34,9 +47,23 @@ import example.UpdateAndCreate;
 import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
+
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.ws.rs.core.MultivaluedMap;
 
 public class PersistenceResourceTestSetup extends PersistentResource {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
@@ -108,5 +135,129 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         Child child = newChild(id);
         child.setName(name);
         return child;
+    }
+
+    protected RequestScope buildRequestScope(DataStoreTransaction tx, User user) {
+        return buildRequestScope(null, tx, user, null);
+    }
+
+    protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, MultivaluedMap<String, String> queryParams) {
+        return new RequestScope(path, null, tx, user, queryParams, elideSettings);
+    }
+
+    protected <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
+        return bootstrapPersistentResource(obj, mock(DataStoreTransaction.class));
+    }
+
+    protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
+        User goodUser = new User(1);
+        RequestScope requestScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
+    }
+
+    protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
+        return new RequestScope(null, new JsonApiDocument(), null, user, null,
+                new ElideSettingsBuilder(null)
+                    .withEntityDictionary(dictionary)
+                    .withAuditLogger(auditLogger)
+                    .build());
+    }
+
+    // Testing constructor, setId and non-null empty sets
+    protected static Parent newParent(int id) {
+        Parent parent = new Parent();
+        parent.setId(id);
+        parent.setChildren(new HashSet<>());
+        parent.setSpouses(new HashSet<>());
+        return parent;
+    }
+
+    protected Parent newParent(int id, Child child) {
+        Parent parent = new Parent();
+        parent.setId(id);
+        parent.setChildren(Sets.newHashSet(child));
+        parent.setSpouses(new HashSet<>());
+        return parent;
+    }
+
+    /* ChangeSpec-specific test elements */
+    @Entity
+    @Include
+    @CreatePermission(expression = "allow all")
+    @ReadPermission(expression = "allow all")
+    @UpdatePermission(expression = "deny all")
+    @DeletePermission(expression = "allow all")
+    public static final class ChangeSpecModel {
+        @Id
+        public long id;
+
+        @ReadPermission(expression = "deny all")
+        @UpdatePermission(expression = "deny all")
+        public Function<ChangeSpec, Boolean> checkFunction;
+
+        @UpdatePermission(expression = "changeSpecNonCollection")
+        public String testAttr;
+
+        @UpdatePermission(expression = "changeSpecCollection")
+        public List<String> testColl;
+
+        @OneToOne
+        @UpdatePermission(expression = "changeSpecNonCollection")
+        public ChangeSpecChild child;
+
+        @ManyToMany
+        @UpdatePermission(expression = "changeSpecCollection")
+        public List<Child> otherKids;
+
+        public ChangeSpecModel(final Function<ChangeSpec, Boolean> checkFunction) {
+            this.checkFunction = checkFunction;
+        }
+    }
+
+    @Entity
+    @Include
+    @EqualsAndHashCode
+    @AllArgsConstructor
+    @CreatePermission(expression = "allow all")
+    @ReadPermission(expression = "allow all")
+    @UpdatePermission(expression = "allow all")
+    @DeletePermission(expression = "allow all")
+    @SharePermission
+    public static final class ChangeSpecChild {
+        @Id
+        public long id;
+    }
+
+    public static final class ChangeSpecCollection extends OperationCheck<Object> {
+
+        @Override
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
+                ChangeSpec spec = changeSpec.get();
+                if (!(spec.getModified() instanceof Collection)) {
+                    return false;
+                }
+                return ((ChangeSpecModel) object).checkFunction.apply(spec);
+            }
+            throw new IllegalStateException("Something is terribly wrong :(");
+        }
+    }
+
+    public static final class ChangeSpecNonCollection extends OperationCheck<Object> {
+
+        @Override
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
+                return ((ChangeSpecModel) object).checkFunction.apply(changeSpec.get());
+            }
+            throw new IllegalStateException("Something is terribly wrong :(");
+        }
+    }
+
+    public static Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
+        Optional<FilterExpression> filterExpression =
+                resource.getRequestScope().getExpressionForRelation(resource, relation);
+
+        return resource.getRelationCheckedFiltered(relation, filterExpression, Optional.empty(), Optional.empty());
     }
 }

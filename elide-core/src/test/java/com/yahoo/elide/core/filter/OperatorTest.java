@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -198,19 +199,14 @@ public class OperatorTest {
         author = new Author();
         author.setId(1L);
         author.setName("AuthorForTest");
-        try {
-            Operator.IN.contextualize("id", Collections.singletonList("a"), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidValueException e) {
-            assertTrue(true);
-        }
 
-        try {
-            Operator.NOT.contextualize("id", Collections.singletonList("a"), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidValueException e) {
-            assertTrue(true);
-        }
+        assertThrows(
+                InvalidValueException.class,
+                () -> Operator.IN.contextualize("id", Collections.singletonList("a"), requestScope).test(author));
+
+        assertThrows(
+                InvalidValueException.class,
+                () -> Operator.NOT.contextualize("id", Collections.singletonList("a"), requestScope).test(author));
     }
 
     @Test
@@ -220,74 +216,35 @@ public class OperatorTest {
         author.setId(1L);
         author.setName("AuthorForTest");
 
-        try {
-            Operator.PREFIX.contextualize("name", Arrays.asList("Author", "Author"), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.INFIX.contextualize("name", Arrays.asList("For", "For"), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.POSTFIX.contextualize("name", Arrays.asList("Test", "Test"), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.PREFIX.contextualize("name", Collections.emptyList(), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.INFIX.contextualize("name", Collections.emptyList(), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.POSTFIX.contextualize("name", Collections.emptyList(), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.LT.contextualize("id", Collections.emptyList(), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.LE.contextualize("id", Collections.emptyList(), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.GT.contextualize("id", Collections.emptyList(), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
-
-        try {
-            Operator.GE.contextualize("id", Collections.emptyList(), requestScope).test(author);
-            assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            assertTrue(true);
-        }
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.PREFIX.contextualize("name", Arrays.asList("Author", "Author"), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.INFIX.contextualize("name", Arrays.asList("For", "For"), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.POSTFIX.contextualize("name", Arrays.asList("Test", "Test"), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.PREFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.INFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.POSTFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.LT.contextualize("id", Collections.emptyList(), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.LE.contextualize("id", Collections.emptyList(), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.GT.contextualize("id", Collections.emptyList(), requestScope).test(author));
+        assertThrows(
+                InvalidPredicateException.class,
+                () -> Operator.GE.contextualize("id", Collections.emptyList(), requestScope).test(author));
     }
 }
