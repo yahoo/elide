@@ -371,10 +371,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 getRelationUncheckedUnfiltered(fieldName));
         boolean isUpdated;
         if (type.isToMany()) {
+            List<Object> modifiedResources = (resourceIdentifiers == null || resourceIdentifiers.isEmpty())
+                    ? Collections.emptyList()
+                    : resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList());
             checkFieldAwareDeferPermissions(
                     UpdatePermission.class,
                     fieldName,
-                    resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList()),
+                    modifiedResources,
                     resources.stream().map(PersistentResource::getObject).collect(Collectors.toList())
             );
             isUpdated = updateToManyRelation(fieldName, resourceIdentifiers, resources);
@@ -599,14 +602,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, modified, original);
 
         if (relation instanceof Collection) {
-            if (!((Collection) relation).contains(removeResource.getObject())) {
+            if (removeResource == null || !((Collection) relation).contains(removeResource.getObject())) {
 
                 //Nothing to do
                 return;
             }
             delFromCollection((Collection) relation, fieldName, removeResource, false);
         } else {
-            if (relation == null || !relation.equals(removeResource.getObject())) {
+            if (relation == null || removeResource == null || !relation.equals(removeResource.getObject())) {
                 //Nothing to do
                 return;
             }
@@ -1486,8 +1489,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 transaction.updateToOneRelation(transaction, inverseEntity, inverseField, null, requestScope);
             } else {
                 //hook for updateToManyRelation
-                assert (inverseRelation == null || inverseRelation instanceof Collection)
-                        : inverseField + " not a collection";
+                assert (inverseRelation instanceof Collection) : inverseField + " not a collection";
                 transaction.updateToManyRelation(transaction, inverseEntity, inverseField,
                         new LinkedHashSet<>(), Sets.newHashSet(obj), requestScope);
             }
