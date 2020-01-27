@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * JSON API Document.
@@ -96,15 +97,10 @@ public class JsonApiDocument {
             return false;
         }
         JsonApiDocument other = (JsonApiDocument) obj;
-        Collection<Resource> resources = data == null ? Collections.emptySet() : data.get();
-        Collection<Resource> otherResources = other.data == null ? Collections.emptySet() : other.data.get();
+        Collection<Resource> resources = Optional.ofNullable(data).map(Data::get).orElse(Collections.emptySet());
+        Collection<Resource> otherResources = Optional.ofNullable(other.data).map(Data::get).orElse(Collections.emptySet());
 
-        if (resources == null ^ otherResources == null) {
-            return false;
-        }
-        if (resources != null
-                && (resources.size() != otherResources.size()
-                        || !resources.stream().allMatch(otherResources::contains))) {
+        if (resources.size() != otherResources.size() || !resources.stream().allMatch(otherResources::contains)) {
             return false;
         }
         // TODO: Verify links and meta?
