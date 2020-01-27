@@ -115,7 +115,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         goodUserScope = buildRequestScope(mock(DataStoreTransaction.class), new User(1));
         badUserScope = buildRequestScope(mock(DataStoreTransaction.class), new User(-1));
         reset(goodUserScope.getTransaction());
-        assertFalse(goodUserScope.isUseFilterExpressions());
     }
 
     @Test
@@ -2180,6 +2179,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 new PatchRequestScope(null, tx, new User(1), elideSettings);
         PatchRequestScope scope = new PatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
+        // verify wrap works
+        assertEquals(parentScope.isUseFilterExpressions(), scope.isUseFilterExpressions());
+        assertEquals(parentScope.getSorting(), scope.getSorting());
+        assertEquals(parentScope.getUpdateStatusCode(), scope.getUpdateStatusCode());
+        assertEquals(parentScope.getObjectEntityCache(), scope.getObjectEntityCache());
 
         Parent parent = newParent(7);
 
