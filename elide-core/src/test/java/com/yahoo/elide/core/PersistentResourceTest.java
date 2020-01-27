@@ -435,12 +435,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals("test2", computedTest2);
         assertEquals("test3", computedTest3);
 
-        try {
-            getValue(computedBean, "NonComputedWithScope", getRequestScope());
-            fail("Getting a bad relation should throw an InvalidAttributeException.");
-        } catch (InvalidAttributeException e) {
-            // Do nothing
-        }
+        assertThrows(
+                InvalidAttributeException.class,
+                () -> getValue(computedBean, "NonComputedWithScope", getRequestScope()),
+                "Getting a bad relation should throw an InvalidAttributeException.");
 
         assertThrows(
                 InvalidAttributeException.class,
