@@ -14,6 +14,7 @@ import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -95,15 +96,15 @@ public class JsonApiDocument {
             return false;
         }
         JsonApiDocument other = (JsonApiDocument) obj;
-        Collection<Resource> resources = data == null ? null : data.get();
-        Collection<Resource> otherResources = other.data == null ? null : other.data.get();
+        Collection<Resource> resources = data == null ? Collections.emptySet() : data.get();
+        Collection<Resource> otherResources = other.data == null ? Collections.emptySet() : other.data.get();
 
         if (resources == null ^ otherResources == null) {
             return false;
         }
         if (resources != null
                 && (resources.size() != otherResources.size()
-                        || !resources.stream().allMatch(other.getData().get()::contains))) {
+                        || !resources.stream().allMatch(otherResources::contains))) {
             return false;
         }
         // TODO: Verify links and meta?

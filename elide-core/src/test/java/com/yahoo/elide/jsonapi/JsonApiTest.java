@@ -26,10 +26,13 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import example.Child;
 import example.Parent;
 import example.TestCheckMappings;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -378,6 +381,46 @@ public class JsonApiTest {
         checkEquality(jsonApiDocument);
     }
 
+    @Test
+    public void compareNullAndEmpty() throws JsonProcessingException {
+        Data<Resource> empty = new Data<>((Resource) null);
+
+        JsonApiDocument jsonApiEmpty = new JsonApiDocument();
+        jsonApiEmpty.setData(empty);
+
+        JsonApiDocument jsonApiNull = new JsonApiDocument();
+        jsonApiNull.setData(null);
+
+        assertEquals(jsonApiEmpty, jsonApiNull);
+        assertEquals(jsonApiEmpty.hashCode(), jsonApiNull.hashCode());
+    }
+
+    @Test
+    public void compareOrder() throws JsonProcessingException {
+        Parent parent1 = new Parent();
+        parent1.setId(123L);
+        Parent parent2 = new Parent();
+        parent2.setId(456L);
+
+        PersistentResource<Parent> pRec1 = new PersistentResource<>(parent1, null, userScope.getUUIDFor(parent1), userScope);
+        PersistentResource<Parent> pRec2 = new PersistentResource<>(parent2, null, userScope.getUUIDFor(parent2), userScope);
+
+        JsonApiDocument jsonApiDocument1 = new JsonApiDocument();
+        jsonApiDocument1.setData(new Data<>(Lists.newArrayList(pRec1.toResource(), pRec2.toResource())));
+
+        JsonApiDocument jsonApiDocument2 = new JsonApiDocument();
+        jsonApiDocument2.setData(new Data<>(Lists.newArrayList(pRec2.toResource(), pRec1.toResource())));
+
+        assertEquals(jsonApiDocument1, jsonApiDocument2);
+        assertEquals(jsonApiDocument1.hashCode(), jsonApiDocument2.hashCode());
+
+        jsonApiDocument1.getData().sort((a, b) -> Integer.compare(a.hashCode(), b.hashCode()));
+        jsonApiDocument2.getData().sort((a, b) -> Integer.compare(b.hashCode(), a.hashCode()));
+
+        assertEquals(jsonApiDocument1, jsonApiDocument2);
+        assertEquals(jsonApiDocument1.hashCode(), jsonApiDocument2.hashCode());
+    }
+
     private void checkEquality(JsonApiDocument doc1) {
         JsonApiDocument doc2;
         try {
@@ -386,7 +429,7 @@ public class JsonApiTest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        assertEquals(doc1.hashCode(), doc2.hashCode());
         assertEquals(doc1, doc2);
+        assertEquals(doc1.hashCode(), doc2.hashCode());
     }
 }
