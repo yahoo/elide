@@ -61,10 +61,6 @@ import example.TestCheckMappings;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -139,9 +135,6 @@ public class LifeCycleTest {
         dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, onUpdateImmediateCallback, true);
         dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, onUpdatePostCommitCallback, true);
         dictionary.bindTrigger(Author.class, OnUpdatePostCommit.class, onUpdatePostCommitAuthor, true);
-        // enable trace
-        Logger rootLogger = (Logger) LoggerFactory.getILoggerFactory().getLogger(Logger.ROOT_LOGGER_NAME);
-        rootLogger.setLevel(Level.TRACE);
     }
 
     @BeforeEach
