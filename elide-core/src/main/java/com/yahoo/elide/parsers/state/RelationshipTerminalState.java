@@ -117,6 +117,9 @@ public class RelationshipTerminalState extends BaseState {
         }
 
         if (relationshipType.isToMany()) {
+            if (data == null) {
+                return false;
+            }
             Collection<Resource> resources = data.get();
             if (resources == null) {
                 return false;

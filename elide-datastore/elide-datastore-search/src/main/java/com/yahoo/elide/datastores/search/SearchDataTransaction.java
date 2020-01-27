@@ -163,6 +163,9 @@ public class SearchDataTransaction extends TransactionWrapper {
                 context = context.desc();
             }
         }
+        if (context == null) {
+            throw new IllegalStateException("Invalid Sort rules");
+        }
 
         return context.createSort();
     }

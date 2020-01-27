@@ -718,6 +718,38 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
          */
     }
 
+    /**
+     * Verify that Relationship toMany cannot contain null resources, but toOne can.
+     * @throws Exception
+     */
+    @Test
+    public void testRelationshipMissingData() throws Exception {
+        User goodUser = new User(1);
+        @SuppressWarnings("resource")
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+
+        // null resource in toMany relationship is not valid
+        List<Resource> idList = new ArrayList<>();
+        idList.add(new ResourceIdentifier("child", "3").castToResource());
+        idList.add(new ResourceIdentifier("child", "6").castToResource());
+        idList.add(null);
+        assertThrows(
+                NullPointerException.class,
+                () -> new Relationship(Collections.emptyMap(), new Data<>(idList)));
+
+        // However null toOne relationship is valid
+        Relationship toOneRelationship = new Relationship(Collections.emptyMap(), new Data<>((Resource) null));
+        assertEquals(Collections.emptySet(), toOneRelationship.getData().get());
+        assertNull(toOneRelationship.toPersistentResources(goodScope));
+
+        // no Data
+        Relationship nullRelationship = new Relationship(Collections.emptyMap(), null);
+        assertNull(nullRelationship.getData());
+        assertNull(nullRelationship.toPersistentResources(goodScope));
+    }
+
     @Test
     public void testGetAttributeSuccess() {
         FunWithPermissions fun = new FunWithPermissions();

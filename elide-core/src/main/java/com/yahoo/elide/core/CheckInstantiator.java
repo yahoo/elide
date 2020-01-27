@@ -8,6 +8,8 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.security.checks.Check;
 
+import java.util.Objects;
+
 /**
  * Get new instances of a check from a check identifier in an expression.
  */
@@ -34,7 +36,7 @@ public interface CheckInstantiator {
      */
     default Check instantiateCheck(Class<? extends Check> checkCls) {
         try {
-            return checkCls.newInstance();
+            return Objects.requireNonNull(checkCls).newInstance();
         } catch (InstantiationException | IllegalAccessException | NullPointerException e) {
             String checkName = (checkCls != null) ? checkCls.getName() : "null";
             throw new IllegalArgumentException("Could not instantiate specified check '" + checkName + "'.", e);
