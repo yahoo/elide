@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.security.User;
 
 import example.Author;
 import example.Book;
@@ -37,6 +38,8 @@ import example.packageshareable.UnshareableWithEntityUnshare;
 import nocreate.NoCreateEntity;
 
 import java.util.HashSet;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 public class PersistenceResourceTestSetup extends PersistentResource {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
@@ -108,5 +111,13 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         Child child = newChild(id);
         child.setName(name);
         return child;
+    }
+
+    protected RequestScope buildRequestScope(DataStoreTransaction tx, User user) {
+        return buildRequestScope(null, tx, user, null);
+    }
+
+    protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, MultivaluedMap<String, String> queryParams) {
+        return new RequestScope(path, null, tx, user, queryParams, elideSettings);
     }
 }
