@@ -11,18 +11,17 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasKey;
 
+import com.google.common.collect.Maps;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.models.Post;
-
-import com.google.common.collect.Maps;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,8 +38,6 @@ import java.util.Properties;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneTest {
     private ElideStandalone elide;
-
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     @BeforeAll
     public void init() throws Exception {

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
@@ -32,8 +33,8 @@ class GenerateIT extends IntegrationTest {
         );
 
         given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .body(datum(resource))
             .post("/generate")
             .then()

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,28 +28,28 @@ public class SortingIT extends IntegrationTest {
     public void setup() {
 
         given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher1.json"))
                 .patch("/");
 
 
         given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher2.json"))
                 .patch("/");
 
         given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher3.json"))
                 .patch("/");
 
 
         given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body(jsonParser.getJson("/SortingIT/addAuthorBookPublisher4.json"))
                 .patch("/");
     }

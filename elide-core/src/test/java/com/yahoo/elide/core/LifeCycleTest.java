@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -294,7 +295,7 @@ public class LifeCycleTest {
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
-        String contentType = "application/vnd.api+json";
+        String contentType = JSONAPI_CONTENT_TYPE;
         ElideResponse response = elide.patch(contentType, contentType, "/book/1", bookBody, null);
         assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
 
@@ -337,7 +338,7 @@ public class LifeCycleTest {
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
-        String contentType = "application/vnd.api+json";
+        String contentType = JSONAPI_CONTENT_TYPE;
         ElideResponse response = elide.patch(contentType, contentType, "/book/1", bookBody, null);
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
         assertEquals(

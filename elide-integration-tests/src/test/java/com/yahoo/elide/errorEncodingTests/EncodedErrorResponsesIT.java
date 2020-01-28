@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.errorEncodingTests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
@@ -27,9 +29,6 @@ import org.junit.jupiter.api.Test;
 public class EncodedErrorResponsesIT extends IntegrationTest {
 
     private static final String GRAPHQL_CONTENT_TYPE = "application/json";
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-    private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
-            "application/vnd.api+json; ext=jsonpatch";
     private final JsonParser jsonParser = new JsonParser();
 
     public EncodedErrorResponsesIT() {

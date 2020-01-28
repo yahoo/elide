@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.auditTests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
@@ -33,8 +34,6 @@ import org.junit.jupiter.api.Test;
  */
 public class AuditIT extends IntegrationTest {
     private final InMemoryLogger logger = AuditIntegrationTestApplicationResourceConfig.LOGGER;
-
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     public AuditIT() {
         super(AuditIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());

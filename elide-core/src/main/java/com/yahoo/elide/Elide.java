@@ -67,6 +67,9 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 @Slf4j
 public class Elide {
+    public static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
+    public static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
+            "application/vnd.api+json; ext=jsonpatch";
 
     @Getter private final ElideSettings elideSettings;
     @Getter private final AuditLogger auditLogger;

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.assignedIdLongTests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
@@ -21,7 +22,6 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 public class AssignedIdLongIT extends IntegrationTest {
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     @Test
     public void testResponseCodeOnUpdate() {
