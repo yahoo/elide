@@ -6,14 +6,19 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -27,7 +32,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
     @Test
     public void getEscapedItem() {
         given()
-            .contentType("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
             .when()
             .get("/item?filter[item]=name==*-Luc*")
             .then()
@@ -39,7 +44,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
     public void testObjectIndexing() {
        /* Add a new item */
        given()
-           .contentType("application/vnd.api+json")
+           .contentType(JSONAPI_CONTENT_TYPE)
            .body(
                    data(
                        resource(
@@ -58,7 +63,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* This query hits the index */
         given()
-            .contentType("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
             .when()
             .get("/item?filter[item]=name==*DrU*")
             .then()
@@ -67,7 +72,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* This query hits the DB */
         given()
-            .contentType("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
             .when()
             .get("/item")
             .then()
@@ -76,7 +81,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* Delete the newly added item */
         given()
-            .contentType("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
             .when()
             .delete("/item/1000")
             .then()
@@ -84,7 +89,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* This query hits the index */
         given()
-            .contentType("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
             .when()
             .get("/item?filter[item]=name==*DrU*")
             .then()
@@ -93,7 +98,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
         /* This query hits the DB */
         given()
-            .contentType("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
             .when()
             .get("/item")
             .then()

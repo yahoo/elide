@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
@@ -30,8 +31,6 @@ import java.util.Locale;
 import java.util.Set;
 
 public class FilterIT extends IntegrationTest {
-
-    private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION = "application/vnd.api+json; ext=jsonpatch";
 
     private final JsonParser jsonParser = new JsonParser();
 

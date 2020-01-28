@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
@@ -52,8 +54,8 @@ class ShareableIT extends IntegrationTest {
     public void testUnshareableForbiddenAccess() {
         // Create container
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -67,8 +69,8 @@ class ShareableIT extends IntegrationTest {
 
         // Create unshareable
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -82,8 +84,8 @@ class ShareableIT extends IntegrationTest {
 
         // Fail to add unshareable to container's unshareables (unshareable is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -98,8 +100,8 @@ class ShareableIT extends IntegrationTest {
 
         // Fail to replace container's unshareables collection (unshareable is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -114,8 +116,8 @@ class ShareableIT extends IntegrationTest {
 
         // Fail to update unshareable's container (container is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -130,8 +132,8 @@ class ShareableIT extends IntegrationTest {
 
         // Fail to set unshareable's container (container is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -149,8 +151,8 @@ class ShareableIT extends IntegrationTest {
     public void testShareableForbiddenAccess() {
         // Create container
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -165,8 +167,8 @@ class ShareableIT extends IntegrationTest {
 
         // Create shareable
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -181,8 +183,8 @@ class ShareableIT extends IntegrationTest {
 
         // Fail to update shareable's container (container is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -197,8 +199,8 @@ class ShareableIT extends IntegrationTest {
 
         // Fail to set shareable's container (container is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -216,8 +218,8 @@ class ShareableIT extends IntegrationTest {
     public void testShareablePost() {
         // Create container
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -232,8 +234,8 @@ class ShareableIT extends IntegrationTest {
 
         // Create shareable
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -248,8 +250,8 @@ class ShareableIT extends IntegrationTest {
 
         // Add shareable to container's shareables
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
@@ -263,8 +265,8 @@ class ShareableIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/container/1")
                 .then().statusCode(HttpStatus.SC_OK)
                 .body(equalTo(datum(
@@ -285,8 +287,8 @@ class ShareableIT extends IntegrationTest {
     public void testShareablePatch() {
         // Create container
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(datum(
                         resource(
                                 type("container"),
@@ -298,8 +300,8 @@ class ShareableIT extends IntegrationTest {
 
         // Create shareable
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(datum(
                         resource(
                                 type("shareable"),
@@ -311,8 +313,8 @@ class ShareableIT extends IntegrationTest {
 
         // Add shareable to container's shareables
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(datum(
                         resource(
                                 type("shareable"),
@@ -324,8 +326,8 @@ class ShareableIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/container/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -346,8 +348,8 @@ class ShareableIT extends IntegrationTest {
     @Test
     public void testCreateContainerAndUnshareables() throws Exception {
         Response response = given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body("    [\n"
                         + "      {\n"
                         + "        \"op\": \"add\",\n"
@@ -408,8 +410,8 @@ class ShareableIT extends IntegrationTest {
     @Test
     public void testCreateContainerAndShareables() throws Exception {
         Response patchResponse = given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body("    [\n"
                         + "      {\n"
                         + "        \"op\": \"add\",\n"
@@ -470,8 +472,8 @@ class ShareableIT extends IntegrationTest {
     @Test
     public void addUnsharedRelationship() {
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(

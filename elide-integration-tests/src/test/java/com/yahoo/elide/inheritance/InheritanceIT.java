@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.inheritance;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
@@ -27,8 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class InheritanceIT extends IntegrationTest {
-
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     @Test
     public void testEmployeeHierarchy() {
@@ -74,7 +73,7 @@ public class InheritanceIT extends IntegrationTest {
                 );
 
         given()
-                .contentType("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
                 .when()
                 .get("/manager/1")
                 .then()

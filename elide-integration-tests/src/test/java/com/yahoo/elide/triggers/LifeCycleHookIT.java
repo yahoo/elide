@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.triggers;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
@@ -25,12 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class LifeCycleHookIT extends IntegrationTest {
-
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     @BeforeEach
     public void resetMocks() {

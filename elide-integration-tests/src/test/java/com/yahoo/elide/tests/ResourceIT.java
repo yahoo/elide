@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
@@ -84,9 +86,6 @@ import javax.ws.rs.core.Response.Status;
  * The type Config resource test.
  */
 public class ResourceIT extends IntegrationTest {
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-    private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
-            "application/vnd.api+json; ext=jsonpatch";
     private final JsonParser jsonParser = new JsonParser();
 
     private static final Resource PARENT1 = resource(

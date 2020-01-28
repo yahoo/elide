@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -97,7 +98,7 @@ public class BridgeableStoreTest extends IntegrationTest {
     @Test
     public void testFetchBridgeableStoreToMany() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1?include=redisActions")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -111,14 +112,14 @@ public class BridgeableStoreTest extends IntegrationTest {
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectToMany() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
         given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/2/redisActions/3")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -132,7 +133,7 @@ public class BridgeableStoreTest extends IntegrationTest {
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectFromBadSourceToMany() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/3")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -142,7 +143,7 @@ public class BridgeableStoreTest extends IntegrationTest {
     @Test
     public void testFetchBridgeableStoreToOne() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1?include=specialAction")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -156,14 +157,14 @@ public class BridgeableStoreTest extends IntegrationTest {
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectToOne() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/specialAction")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
         given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/2/specialAction")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -177,7 +178,7 @@ public class BridgeableStoreTest extends IntegrationTest {
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectFromBadSourceToOne() {
         given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/3")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)

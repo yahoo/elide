@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
@@ -29,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import io.restassured.response.Response;
 
 public class AnyPolymorphismIT extends IntegrationTest {
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     private static final Resource TRACTOR_PROPERTY = resource(
             type("property"),

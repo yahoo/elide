@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
@@ -62,8 +64,8 @@ class PaginateIT extends IntegrationTest {
     private void createPaginationEntities() {
         BiConsumer<String, Integer> createEntities = (type, numberOfEntities) -> {
             IntStream.range(0, numberOfEntities).forEach(value -> given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                     datum(
                         resource(
@@ -102,8 +104,8 @@ class PaginateIT extends IntegrationTest {
         String tempPubId = "12345678-1234-1234-1234-1234567890ae";
 
         given()
-            .contentType("application/vnd.api+json; ext=jsonpatch")
-            .accept("application/vnd.api+json; ext=jsonpatch")
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .body(
                 patchSet(
                     patchOperation(add, "/author", resource(
@@ -157,8 +159,8 @@ class PaginateIT extends IntegrationTest {
             .statusCode(OK_200);
 
         given()
-            .contentType("application/vnd.api+json; ext=jsonpatch")
-            .accept("application/vnd.api+json; ext=jsonpatch")
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .body(
                 patchSet(
                     patchOperation(add, "/author", resource(
@@ -201,8 +203,8 @@ class PaginateIT extends IntegrationTest {
             .statusCode(OK_200);
 
         given()
-            .contentType("application/vnd.api+json; ext=jsonpatch")
-            .accept("application/vnd.api+json; ext=jsonpatch")
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .body(
                 patchSet(
                     patchOperation(add, "/author", resource(
@@ -243,8 +245,8 @@ class PaginateIT extends IntegrationTest {
             .statusCode(OK_200);
 
         given()
-            .contentType("application/vnd.api+json; ext=jsonpatch")
-            .accept("application/vnd.api+json; ext=jsonpatch")
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .body(
                 patchSet(
                     patchOperation(add, "/author", resource(
@@ -299,8 +301,8 @@ class PaginateIT extends IntegrationTest {
         String tempSpouseId = "12345678-1234-1234-1234-1234567890af";
 
         given()
-            .contentType("application/vnd.api+json; ext=jsonpatch")
-            .accept("application/vnd.api+json; ext=jsonpatch")
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .body(
                 patchSet(
                     patchOperation(add, "/parent", resource(

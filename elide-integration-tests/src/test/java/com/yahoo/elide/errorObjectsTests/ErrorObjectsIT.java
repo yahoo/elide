@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.errorObjectsTests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
@@ -28,8 +29,6 @@ import javax.ws.rs.core.MediaType;
 
 public class ErrorObjectsIT extends IntegrationTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     public ErrorObjectsIT() {
         super(ErrorObjectsIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
