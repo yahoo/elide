@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class LogMessageTest {
+public class LogMessageImplTest {
     private static transient PersistentResource<Child> childRecord;
     private static transient PersistentResource<Child> friendRecord;
 

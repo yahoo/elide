@@ -32,10 +32,6 @@ public class PaginationImpl implements Pagination {
      */
     public enum PaginationKey { offset, number, size, limit, totals }
 
-    public static final int DEFAULT_OFFSET = 0;
-    public static final int DEFAULT_PAGE_LIMIT = 500;
-    public static final int MAX_PAGE_LIMIT = 10000;
-
     // For specifying which page of records is to be returned in the response
     public static final String PAGE_NUMBER_KEY = "page[number]";
 

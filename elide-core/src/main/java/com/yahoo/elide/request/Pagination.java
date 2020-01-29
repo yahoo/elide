@@ -10,6 +10,22 @@ package com.yahoo.elide.request;
  * Represents a client request to paginate a collection.
  */
 public interface Pagination {
+
+    /**
+     * Default offset (in records) it client does not provide one.
+     */
+    public static final int DEFAULT_OFFSET = 0;
+
+    /**
+     * Default page limit (in records) it client does not provide one.
+     */
+    public static final int DEFAULT_PAGE_LIMIT = 500;
+
+    /**
+     * Maximum allowable page limit (in records).
+     */
+    public static final int MAX_PAGE_LIMIT = 10000;
+
     /**
      * Get the page offset.
      * @return record offset.
