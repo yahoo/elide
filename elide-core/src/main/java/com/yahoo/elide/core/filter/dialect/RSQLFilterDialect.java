@@ -381,7 +381,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         /**
          * Returns Predicate for '=isempty=' case depending on its arguments.
          * <p>
-         * NOTE: Filter Expression builder specially for '=isnull=' case.
+         * NOTE: Filter Expression builder specially for '=isempty=' case.
          *
          * @return
          */
@@ -394,7 +394,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 }
                 return new NotEmptyPredicate(path);
             } catch (InvalidValueException ignored) {
-                throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
+                throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg));
             }
         }
     }
