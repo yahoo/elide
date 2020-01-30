@@ -13,7 +13,9 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.IsEmptyPredicate;
 import com.yahoo.elide.core.filter.IsNullPredicate;
+import com.yahoo.elide.core.filter.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -55,6 +57,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
+    private static final ComparisonOperator ISEMPTY_OP = new ComparisonOperator("=isempty=", false);
 
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
@@ -84,6 +87,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private static Set<ComparisonOperator> getDefaultOperatorsWithIsnull() {
         Set<ComparisonOperator> operators = RSQLOperators.defaultOperators();
         operators.add(ISNULL_OP);
+        operators.add(ISEMPTY_OP);
         return operators;
     }
 
@@ -293,6 +297,11 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return buildIsNullOperator(path, arguments);
             }
 
+            //handles '=isempty=' op before coerce arguments
+            if (op.equals(ISEMPTY_OP)) {
+                return buildIsEmptyOperator(path, arguments);
+            }
+
             Class<?> relationshipType = path.lastElement()
                     .map(Path.PathElement::getFieldType)
                     .orElseThrow(() -> new IllegalStateException("Path must not be empty"));
@@ -364,6 +373,26 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     return new IsNullPredicate(path);
                 }
                 return new NotNullPredicate(path);
+            } catch (InvalidValueException ignored) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
+            }
+        }
+
+        /**
+         * Returns Predicate for '=isempty=' case depending on its arguments.
+         * <p>
+         * NOTE: Filter Expression builder specially for '=isnull=' case.
+         *
+         * @return
+         */
+        private FilterExpression buildIsEmptyOperator(Path path, List<String> arguments) {
+            String arg = arguments.get(0);
+            try {
+                boolean wantsEmpty = CoerceUtil.coerce(arg, boolean.class);
+                if (wantsEmpty) {
+                    return new IsEmptyPredicate(path);
+                }
+                return new NotEmptyPredicate(path);
             } catch (InvalidValueException ignored) {
                 throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
             }

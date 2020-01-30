@@ -12,10 +12,12 @@ import static com.yahoo.elide.core.filter.Operator.IN;
 import static com.yahoo.elide.core.filter.Operator.INFIX;
 import static com.yahoo.elide.core.filter.Operator.INFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.IN_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.ISEMPTY;
 import static com.yahoo.elide.core.filter.Operator.ISNULL;
 import static com.yahoo.elide.core.filter.Operator.LE;
 import static com.yahoo.elide.core.filter.Operator.LT;
 import static com.yahoo.elide.core.filter.Operator.NOT;
+import static com.yahoo.elide.core.filter.Operator.NOTEMPTY;
 import static com.yahoo.elide.core.filter.Operator.NOTNULL;
 import static com.yahoo.elide.core.filter.Operator.NOT_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.POSTFIX;
@@ -159,6 +161,15 @@ public class FilterTranslator implements FilterOperation<String> {
         operatorGenerators.put(FALSE, (columnAlias, params) -> {
             return "(1 = 0)";
         });
+
+        operatorGenerators.put(ISEMPTY, (columnAlias, params) -> {
+            return String.format("%s IS EMPTY", columnAlias);
+        });
+
+        operatorGenerators.put(NOTEMPTY, (columnAlias, params) -> {
+            return String.format("%s IS NOT EMPTY", columnAlias);
+        });
+
     }
 
     /**

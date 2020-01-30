@@ -16,6 +16,8 @@ import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.security.checks.Check;
 import example.Author;
+import example.Book;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -114,6 +116,37 @@ public class OperatorTest {
         assertTrue(fn.test(author));
         fn = Operator.NOTNULL.contextualize("name", null, requestScope);
         assertFalse(fn.test(author));
+    }
+
+    @Test
+    public void isemptyAndNotemptyTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        author.setName("AuthorForTest");
+        author.getBooks().add(new Book());
+
+        fn = Operator.ISEMPTY.contextualize("name", null, requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.ISEMPTY.contextualize("books", null, requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.NOTEMPTY.contextualize("name", null, requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.NOTEMPTY.contextualize("books", null, requestScope);
+        assertTrue(fn.test(author));
+
+
+        //name is null and books are null
+        author.setBooks(null);
+        author.setName(null);
+        fn = Operator.ISEMPTY.contextualize("name", null, requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.ISEMPTY.contextualize("books", null, requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.NOTEMPTY.contextualize("name", null, requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.NOTEMPTY.contextualize("books", null, requestScope);
+        assertFalse(fn.test(author));
+
     }
 
     @Test
