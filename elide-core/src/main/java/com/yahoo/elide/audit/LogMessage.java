@@ -25,7 +25,8 @@ public interface LogMessage {
     public String getMessage();
 
     /**
-     * Gets operation code.
+     * Gets operation code.  The operation code is assigned by the developer to uniquely identify
+     * the type of change that is being audited.  Operation code definitions are outside the scope of Elide.
      *
      * @return the operation code
      */

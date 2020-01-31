@@ -140,13 +140,9 @@ public class EntityProjectionMaker
             Class<?> entityClass = getEntityClass(parentClass, entityName);
             FilterExpression filter = scope.getExpressionForRelation(parentClass, entityName).orElse(null);
 
-            Sorting sorting = SortingImpl.getDefaultEmptyInstance();
-            Pagination pagination = PaginationImpl.getDefaultPagination(entityClass, scope.getElideSettings());
-            if (scope.getQueryParams().isPresent()) {
-                sorting = SortingImpl.parseQueryParams(scope.getQueryParams().get(), entityClass, dictionary);
-                pagination = PaginationImpl.parseQueryParams(entityClass,
-                        scope.getQueryParams().get(), scope.getElideSettings());
-            }
+            Sorting sorting = SortingImpl.parseQueryParams(scope.getQueryParams(), entityClass, dictionary);
+            Pagination pagination = PaginationImpl.parseQueryParams(entityClass,
+                    scope.getQueryParams(), scope.getElideSettings());
 
             return NamedEntityProjection.builder()
                     .name(entityName)
@@ -273,13 +269,9 @@ public class EntityProjectionMaker
                 filter = scope.getExpressionForRelation(parentClass, collectionNameText).orElse(null);
             }
 
-            Sorting sorting = SortingImpl.getDefaultEmptyInstance();
-            Pagination pagination = PaginationImpl.getDefaultPagination(entityClass, scope.getElideSettings());
-            if (scope.getQueryParams().isPresent()) {
-                sorting = SortingImpl.parseQueryParams(scope.getQueryParams().get(), entityClass, dictionary);
-                pagination = PaginationImpl.parseQueryParams(entityClass,
-                        scope.getQueryParams().get(), scope.getElideSettings());
-            }
+            Sorting sorting = SortingImpl.parseQueryParams(scope.getQueryParams(), entityClass, dictionary);
+            Pagination pagination = PaginationImpl.parseQueryParams(entityClass,
+                    scope.getQueryParams(), scope.getElideSettings());
 
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
