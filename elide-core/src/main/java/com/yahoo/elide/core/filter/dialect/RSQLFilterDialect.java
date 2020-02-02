@@ -288,6 +288,12 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             List<String> arguments = node.getArguments();
             Path path = buildPath(entityType, relationship);
 
+            //handles '=isempty=' op before coerce arguments
+            // ToMany Association is allowed if the operation in Is Empty
+            if (op.equals(ISEMPTY_OP)) {
+                return buildIsEmptyOperator(path, arguments);
+            }
+
             if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
                 throw new RSQLParseException(String.format("Invalid association %s", relationship));
             }
@@ -295,11 +301,6 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             //handles '=isnull=' op before coerce arguments
             if (op.equals(ISNULL_OP)) {
                 return buildIsNullOperator(path, arguments);
-            }
-
-            //handles '=isempty=' op before coerce arguments
-            if (op.equals(ISEMPTY_OP)) {
-                return buildIsEmptyOperator(path, arguments);
             }
 
             Class<?> relationshipType = path.lastElement()

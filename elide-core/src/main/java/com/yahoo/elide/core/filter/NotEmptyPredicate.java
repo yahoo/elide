@@ -10,7 +10,7 @@ import com.yahoo.elide.core.Path;
 import java.util.Collections;
 
 /**
- * Not Empty Predicate Class
+ * Not Empty Predicate Class.
  */
 public class NotEmptyPredicate extends FilterPredicate {
 

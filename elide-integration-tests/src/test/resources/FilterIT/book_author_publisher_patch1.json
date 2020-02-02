@@ -33,7 +33,8 @@
       "attributes": {
         "title": "The Old Man and the Sea",
         "genre": "Literary Fiction",
-        "language": "English"
+        "language": "English",
+        "awards": ["National Book Award", "Booker Prize"]
       },
       "relationships": {
         "publisher": {

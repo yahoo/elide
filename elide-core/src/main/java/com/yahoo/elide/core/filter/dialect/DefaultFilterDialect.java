@@ -14,6 +14,8 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import com.google.common.collect.ImmutableList;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +31,10 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDialect {
     private final EntityDictionary dictionary;
+    private final ImmutableList<Operator> toManyAllowedOperators = ImmutableList.of(
+            Operator.ISEMPTY,
+            Operator.NOTEMPTY
+    );
 
     public DefaultFilterDialect(EntityDictionary dictionary) {
         this.dictionary = dictionary;
@@ -128,7 +134,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         List<FilterPredicate> filterPredicates = extractPredicates(filterParams);
 
         for (FilterPredicate filterPredicate : filterPredicates) {
-            if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
+            if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())
+                    && !toManyAllowedOperators.contains(filterPredicate.getOperator())) {
                 throw new ParseException("Invalid toMany join: " + filterPredicate);
             }
 

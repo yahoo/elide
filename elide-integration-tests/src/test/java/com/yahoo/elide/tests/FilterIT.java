@@ -1434,6 +1434,195 @@ public class FilterIT extends IntegrationTest {
         assertEquals(data.size(), 2);
     }
 
+
+    @Test
+    void testIsEmptyRelationshipOnRoot() throws IOException {
+        //Book has ToMany relationship with chapter
+        Set<JsonNode> bookIdsWithEmptyChapters = new HashSet<>();
+        JsonNode result;
+
+        for (JsonNode book : books.get("data")) {
+            if (book.get("relationships").get("chapters").get("data").isEmpty()) {
+                bookIdsWithEmptyChapters.add(book.get("id"));
+            }
+        }
+
+        assertTrue(bookIdsWithEmptyChapters.size() > 0);
+
+        /* Test Default */
+        result = getAsNode("/book?filter[book.chapters][isempty]");
+
+        assertEquals(bookIdsWithEmptyChapters.size(), result.get("data").size());
+
+
+        for (JsonNode book : result.get("data")) {
+            assertTrue(book.get("relationships").get("chapters").get("data").isEmpty());
+            assertTrue(bookIdsWithEmptyChapters.contains(book.get("id")));
+        }
+
+        /* Test RSQL Typed */
+        /* param = true */
+        result = getAsNode("/book?filter[book]=chapters=isempty=true");
+
+        assertEquals(result.get("data").size(), bookIdsWithEmptyChapters.size());
+
+        for (JsonNode book : result.get("data")) {
+            assertTrue(book.get("relationships").get("chapters").get("data").isEmpty());
+            assertTrue(bookIdsWithEmptyChapters.contains(book.get("id")));
+        }
+
+        /* param = 1 */
+        result = getAsNode(String.format("/book?filter[book]=chapters=isempty=1"));
+
+        assertEquals(result.get("data").size(), bookIdsWithEmptyChapters.size());
+
+        for (JsonNode book : result.get("data")) {
+            assertTrue(book.get("relationships").get("chapters").get("data").isEmpty());
+            assertTrue(bookIdsWithEmptyChapters.contains(book.get("id")));
+        }
+
+    }
+
+    @Test
+    void testNotEmptyRelationshipOnNonRoot() throws IOException {
+        //Book has ToMany relationship with chapter
+        Set<JsonNode> bookIdsWithNonEmptyChapters = new HashSet<>();
+        JsonNode result;
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("relationships").get("chapters").get("data").isEmpty()) {
+                bookIdsWithNonEmptyChapters.add(book.get("id"));
+            }
+        }
+
+        assertTrue(bookIdsWithNonEmptyChapters.size() > 0);
+
+        /* Test Default */
+        result = getAsNode(String.format("/author/%s/books?filter[book.chapters][notempty]", nullNedId));
+
+        assertEquals(bookIdsWithNonEmptyChapters.size(), result.get("data").size());
+
+
+        for (JsonNode book : result.get("data")) {
+            assertFalse(book.get("relationships").get("chapters").get("data").isEmpty());
+            assertTrue(bookIdsWithNonEmptyChapters.contains(book.get("id")));
+        }
+
+        /* Test RSQL Typed */
+        /* param = false */
+        result = getAsNode(String.format("/author/%s/books?filter[book]=chapters=isempty=false", nullNedId));
+
+        assertEquals(result.get("data").size(), bookIdsWithNonEmptyChapters.size());
+
+        for (JsonNode book : result.get("data")) {
+            assertFalse(book.get("relationships").get("chapters").get("data").isEmpty());
+            assertTrue(bookIdsWithNonEmptyChapters.contains(book.get("id")));
+        }
+
+        /* param = 0 */
+        result = getAsNode(String.format("/author/%s/books?filter[book]=chapters=isempty=0", nullNedId));
+
+        assertEquals(result.get("data").size(), bookIdsWithNonEmptyChapters.size());
+
+        for (JsonNode book : result.get("data")) {
+            assertFalse(book.get("relationships").get("chapters").get("data").isEmpty());
+            assertTrue(bookIdsWithNonEmptyChapters.contains(book.get("id")));
+        }
+
+    }
+
+    @Test
+    void testNotEmptyAttributeOnRoot() throws IOException {
+        Set<JsonNode> bookIdsWithNonEmptyAwards = new HashSet<>();
+        JsonNode result;
+
+        for (JsonNode book : books.get("data")) {
+            if (!book.get("attributes").get("awards").isEmpty()) {
+                bookIdsWithNonEmptyAwards.add(book.get("id"));
+            }
+        }
+
+        assertTrue(bookIdsWithNonEmptyAwards.size() > 0);
+
+        /* Test Default */
+        result = getAsNode("/book?filter[book.awards][notempty]");
+
+        assertEquals(bookIdsWithNonEmptyAwards.size(), result.get("data").size());
+
+
+        for (JsonNode book : result.get("data")) {
+            assertFalse(book.get("attributes").get("awards").isEmpty());
+            assertTrue(bookIdsWithNonEmptyAwards.contains(book.get("id")));
+        }
+
+        /* Test RSQL Typed */
+        /* param = true */
+        result = getAsNode("/book?filter[book]=awards=isempty=false");
+
+        assertEquals(result.get("data").size(), bookIdsWithNonEmptyAwards.size());
+
+        for (JsonNode book : result.get("data")) {
+            assertFalse(book.get("attributes").get("awards").isEmpty());
+            assertTrue(bookIdsWithNonEmptyAwards.contains(book.get("id")));
+        }
+
+        /* param = 1 */
+        result = getAsNode(String.format("/book?filter[book]=awards=isempty=0"));
+
+        assertEquals(result.get("data").size(), bookIdsWithNonEmptyAwards.size());
+
+        for (JsonNode book : result.get("data")) {
+            assertFalse(book.get("attributes").get("awards").isEmpty());
+            assertTrue(bookIdsWithNonEmptyAwards.contains(book.get("id")));
+        }
+
+    }
+
+    @Test
+    void testIsEmptyAttributesOnNonRoot() throws IOException {
+        Set<JsonNode> bookIdsWithEmptyAwards = new HashSet<>();
+        JsonNode result;
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (book.get("attributes").get("awards").isEmpty()) {
+                bookIdsWithEmptyAwards.add(book.get("id"));
+            }
+        }
+
+        assertTrue(bookIdsWithEmptyAwards.size() > 0);
+
+        /* Test Default */
+        result = getAsNode(String.format("/author/%s/books?filter[book.awards][isempty]", nullNedId));
+
+        assertEquals(bookIdsWithEmptyAwards.size(), result.get("data").size());
+
+
+        for (JsonNode book : result.get("data")) {
+            assertTrue(book.get("attributes").get("awards").isEmpty());
+            assertTrue(bookIdsWithEmptyAwards.contains(book.get("id")));
+        }
+
+        /* Test RSQL Typed */
+        /* param = false */
+        result = getAsNode(String.format("/author/%s/books?filter[book]=awards=isempty=true", nullNedId));
+
+        assertEquals(result.get("data").size(), bookIdsWithEmptyAwards.size());
+
+        for (JsonNode book : result.get("data")) {
+            assertTrue(book.get("attributes").get("awards").isEmpty());
+            assertTrue(bookIdsWithEmptyAwards.contains(book.get("id")));
+        }
+
+        /* param = 0 */
+        result = getAsNode(String.format("/author/%s/books?filter[book]=awards=isempty=1", nullNedId));
+
+        assertEquals(result.get("data").size(), bookIdsWithEmptyAwards.size());
+
+        for (JsonNode book : result.get("data")) {
+            assertTrue(book.get("attributes").get("awards").isEmpty());
+            assertTrue(bookIdsWithEmptyAwards.contains(book.get("id")));
+        }
+
+    }
+
     @AfterAll
     void cleanUp() {
         for (int id : authorIds) {

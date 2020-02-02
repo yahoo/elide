@@ -15,6 +15,9 @@ import com.yahoo.elide.annotation.SharePermission;
 
 import org.hibernate.annotations.Formula;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -50,6 +53,9 @@ public class Book extends BaseId {
     private Collection<Chapter> chapters = new ArrayList<>();
     private String editorName;
     private Publisher publisher;
+
+    @Getter @Setter
+    private Collection<String> awards = new ArrayList<>();
 
     public String getTitle() {
         return title;

@@ -336,6 +336,7 @@ public enum Operator {
 
     private static <T> Predicate<T> isEmpty(String field, RequestScope requestScope) {
         return (T entity) -> {
+
             Object val = getFieldValue(entity, field, requestScope);
             if (val == null) { return true; }
             if (val instanceof String) {
