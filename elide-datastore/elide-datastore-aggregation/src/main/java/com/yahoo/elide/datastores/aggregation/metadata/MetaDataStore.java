@@ -33,8 +33,7 @@ import java.util.stream.Collectors;
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
 public class MetaDataStore extends HashMapDataStore {
-    public static final Package META_DATA_PACKAGE =
-            Package.getPackage("com.yahoo.elide.datastores.aggregation.metadata.models");
+    public static final Package META_DATA_PACKAGE = Table.class.getPackage();
 
     private static final Class[] METADATA_STORE_ANNOTATIONS = {
             FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class};
