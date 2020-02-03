@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class LogMessageTest {
+public class LogMessageImplTest {
     private static transient PersistentResource<Child> childRecord;
     private static transient PersistentResource<Child> friendRecord;
 
@@ -73,7 +73,7 @@ public class LogMessageTest {
     @Test
     public void verifyOpaqueUserExpressions() {
         final String[] expressions = { "${opaqueUser.name}", "${opaqueUser.name}" };
-        final LogMessage message = new LogMessage("{0} {1}", childRecord, expressions, 1, Optional.empty());
+        final LogMessageImpl message = new LogMessageImpl("{0} {1}", childRecord, expressions, 1, Optional.empty());
         assertEquals("aaron aaron", message.getMessage(), "JEXL substitution evaluates correctly.");
         assertEquals(Optional.empty(), message.getChangeSpec());
     }
@@ -81,7 +81,7 @@ public class LogMessageTest {
     @Test
     public void verifyObjectExpressions() {
         final String[] expressions = { "${child.id}", "${parent.getId()}" };
-        final LogMessage message = new LogMessage("{0} {1}", childRecord, expressions, 1, Optional.empty());
+        final LogMessageImpl message = new LogMessageImpl("{0} {1}", childRecord, expressions, 1, Optional.empty());
         assertEquals("5 7", message.getMessage(), "JEXL substitution evaluates correctly.");
         assertEquals(Optional.empty(), message.getChangeSpec());
     }
@@ -90,8 +90,8 @@ public class LogMessageTest {
     public void verifyListExpressions() {
         final String[] expressions = { "${child[0].id}", "${child[1].id}", "${parent.getId()}" };
         final String[] expressionForDefault = { "${child.id}" };
-        final LogMessage message = new LogMessage("{0} {1} {2}", friendRecord, expressions, 1, Optional.empty());
-        final LogMessage defaultMessage = new LogMessage("{0}", friendRecord, expressionForDefault, 1, Optional.empty());
+        final LogMessageImpl message = new LogMessageImpl("{0} {1} {2}", friendRecord, expressions, 1, Optional.empty());
+        final LogMessageImpl defaultMessage = new LogMessageImpl("{0}", friendRecord, expressionForDefault, 1, Optional.empty());
         assertEquals("5 9 7", message.getMessage(), "JEXL substitution evaluates correctly.");
         assertEquals("9", defaultMessage.getMessage(), "JEXL substitution evaluates correctly.");
         assertEquals(Optional.empty(), message.getChangeSpec());
@@ -103,7 +103,7 @@ public class LogMessageTest {
         final String[] expressions = { "${child.id}, ${%%%}" };
         assertThrows(
                 InvalidSyntaxException.class,
-                () -> new LogMessage("{0} {1}", childRecord, expressions, 1, Optional.empty()).getMessage());
+                () -> new LogMessageImpl("{0} {1}", childRecord, expressions, 1, Optional.empty()).getMessage());
     }
 
     @Test
@@ -111,7 +111,7 @@ public class LogMessageTest {
         final String[] expressions = { "${child.id}" };
         assertThrows(
                 InvalidSyntaxException.class,
-                () -> new LogMessage("{}", childRecord, expressions, 1, Optional.empty()).getMessage());
+                () -> new LogMessageImpl("{}", childRecord, expressions, 1, Optional.empty()).getMessage());
     }
 
     public static class TestLoggerException extends RuntimeException {
@@ -141,7 +141,7 @@ public class LogMessageTest {
 
     public void threadSafeLogger() throws IOException, InterruptedException {
         TestLoggerException testException = new TestLoggerException();
-        LogMessage failMessage = new LogMessage("test", 0) {
+        LogMessageImpl failMessage = new LogMessageImpl("test", 0) {
             @Override
             public String getMessage() {
                 throw testException;
@@ -150,7 +150,7 @@ public class LogMessageTest {
         try {
             testAuditLogger.log(failMessage);
             Thread.sleep(Math.floorMod(ThreadLocalRandom.current().nextInt(), 100));
-            testAuditLogger.commit(null);
+            testAuditLogger.commit();
             fail("Exception expected");
         } catch (TestLoggerException e) {
             assertSame(e, testException);
@@ -158,7 +158,7 @@ public class LogMessageTest {
 
         // should not cause another exception
         try {
-            testAuditLogger.commit(null);
+            testAuditLogger.commit();
         } catch (TestLoggerException e) {
             fail("Exception not cleared from previous logger commit");
         }

@@ -11,12 +11,16 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
@@ -25,7 +29,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -136,12 +140,16 @@ public class EntityProjectionMaker
             Class<?> entityClass = getEntityClass(parentClass, entityName);
             FilterExpression filter = scope.getExpressionForRelation(parentClass, entityName).orElse(null);
 
+            Sorting sorting = SortingImpl.parseQueryParams(scope.getQueryParams(), entityClass, dictionary);
+            Pagination pagination = PaginationImpl.parseQueryParams(entityClass,
+                    scope.getQueryParams(), scope.getElideSettings());
+
             return NamedEntityProjection.builder()
                     .name(entityName)
                     .projection(EntityProjection.builder()
                         .filterExpression(filter)
-                        .sorting(scope.getSorting())
-                        .pagination(scope.getPagination())
+                        .sorting(sorting)
+                        .pagination(pagination)
                         .type(entityClass)
                         .build()
                     ).build();
@@ -261,12 +269,16 @@ public class EntityProjectionMaker
                 filter = scope.getExpressionForRelation(parentClass, collectionNameText).orElse(null);
             }
 
+            Sorting sorting = SortingImpl.parseQueryParams(scope.getQueryParams(), entityClass, dictionary);
+            Pagination pagination = PaginationImpl.parseQueryParams(entityClass,
+                    scope.getQueryParams(), scope.getElideSettings());
+
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
                     .projection(EntityProjection.builder()
                         .filterExpression(filter)
-                        .sorting(scope.getSorting())
-                        .pagination(scope.getPagination())
+                        .sorting(sorting)
+                        .pagination(pagination)
                         .relationships(toRelationshipSet(getRequiredRelationships(entityClass)))
                         .attributes(getSparseAttributes(entityClass))
                         .type(entityClass)
@@ -309,7 +321,7 @@ public class EntityProjectionMaker
     }
 
     private Set<Attribute> getSparseAttributes(Class<?> entityClass) {
-        Set<String> allAttributes = new HashSet<>(dictionary.getAttributes(entityClass));
+        Set<String> allAttributes = new LinkedHashSet<>(dictionary.getAttributes(entityClass));
 
         Set<String> sparseFieldsForEntity = sparseFields.get(dictionary.getJsonAliasFor(entityClass));
         if (sparseFieldsForEntity == null || sparseFieldsForEntity.isEmpty()) {
@@ -325,7 +337,7 @@ public class EntityProjectionMaker
     }
 
     private Map<String, EntityProjection> getSparseRelationships(Class<?> entityClass) {
-        Set<String> allRelationships = new HashSet<>(dictionary.getRelationships(entityClass));
+        Set<String> allRelationships = new LinkedHashSet<>(dictionary.getRelationships(entityClass));
         Set<String> sparseFieldsForEntity = sparseFields.get(dictionary.getJsonAliasFor(entityClass));
 
         if (sparseFieldsForEntity == null || sparseFieldsForEntity.isEmpty()) {
@@ -368,7 +380,7 @@ public class EntityProjectionMaker
                     .collect(Collectors.toSet());
         }
 
-        return new HashSet<>();
+        return new LinkedHashSet<>();
     }
 
     private Set<Relationship> toRelationshipSet(Map<String, EntityProjection> relationships) {

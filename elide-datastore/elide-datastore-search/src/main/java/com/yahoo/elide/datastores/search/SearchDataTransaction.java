@@ -21,10 +21,10 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.EntityProjection;
 
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.hibernate.search.annotations.Field;
@@ -78,7 +78,7 @@ public class SearchDataTransaction extends TransactionWrapper {
 
         boolean canSearch = (canSearch(projection.getType(), projection.getFilterExpression()) != NONE);
 
-        if (mustSort(Optional.ofNullable(projection.getSorting()), projection.getType())) {
+        if (mustSort(Optional.ofNullable(projection.getSorting()))) {
             canSearch = canSearch && canSort(projection.getSorting(), projection.getType());
         }
 
@@ -94,11 +94,10 @@ public class SearchDataTransaction extends TransactionWrapper {
     /**
      * Indicates whether sorting has been requested for this entity.
      * @param sorting An optional elide sorting clause.
-     * @param entityClass The entity to sort.
      * @return True if the entity must be sorted. False otherwise.
      */
-    private boolean mustSort(Optional<Sorting> sorting, Class<?> entityClass) {
-        return sorting.isPresent() && !sorting.get().getValidSortingRules(entityClass, dictionary).isEmpty();
+    private boolean mustSort(Optional<Sorting> sorting) {
+        return sorting.isPresent() && !sorting.get().getSortingPaths().isEmpty();
     }
 
     /**
@@ -110,7 +109,7 @@ public class SearchDataTransaction extends TransactionWrapper {
     private boolean canSort(Sorting sorting, Class<?> entityClass) {
 
         for (Map.Entry<Path, Sorting.SortOrder> entry
-                : sorting.getValidSortingRules(entityClass, dictionary).entrySet()) {
+                : sorting.getSortingPaths().entrySet()) {
 
             Path path = entry.getKey();
 
@@ -140,7 +139,7 @@ public class SearchDataTransaction extends TransactionWrapper {
 
         SortFieldContext context = null;
         for (Map.Entry<Path, Sorting.SortOrder> entry
-                : sorting.getValidSortingRules(entityClass, dictionary).entrySet()) {
+                : sorting.getSortingPaths().entrySet()) {
 
             String fieldName = entry.getKey().lastElement().get().getFieldName();
 
@@ -246,7 +245,7 @@ public class SearchDataTransaction extends TransactionWrapper {
 
             FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);
 
-            if (mustSort(sorting, entityClass)) {
+            if (mustSort(sorting)) {
                 fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityClass));
             }
 
@@ -259,8 +258,8 @@ public class SearchDataTransaction extends TransactionWrapper {
                     .setProjection(ProjectionConstants.THIS)
                     .getResultList();
 
-            if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
-                pagination.get().setPageTotals(fullTextQuery.getResultSize());
+            if (pagination.isPresent() && pagination.get().returnPageTotals()) {
+                pagination.get().setPageTotals((long) fullTextQuery.getResultSize());
             }
 
             if (results.isEmpty()) {

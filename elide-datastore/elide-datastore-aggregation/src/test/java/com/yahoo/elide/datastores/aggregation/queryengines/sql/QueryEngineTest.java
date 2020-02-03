@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
@@ -201,7 +202,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -236,7 +237,15 @@ public class QueryEngineTest extends SQLUnitTest {
      */
     @Test
     public void testPagination() {
-        Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
+        PaginationImpl pagination = new PaginationImpl(
+                PlayerStats.class,
+                0,
+                1,
+                PaginationImpl.DEFAULT_PAGE_LIMIT,
+                PaginationImpl.MAX_PAGE_LIMIT,
+                true,
+                false
+        );
 
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
@@ -343,7 +352,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStatsView.class, false))
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300",
                         PlayerStatsView.class, false))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStatsView.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -372,7 +381,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -416,7 +425,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -525,7 +534,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -616,7 +625,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .analyticView(playerStatsTable)
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -647,7 +656,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("playerName")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("player2Name")))
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)

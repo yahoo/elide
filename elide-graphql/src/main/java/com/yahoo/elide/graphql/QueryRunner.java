@@ -202,7 +202,7 @@ public class QueryRunner {
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();
-            elide.getAuditLogger().commit(requestScope);
+            elide.getAuditLogger().commit();
             tx.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
 
