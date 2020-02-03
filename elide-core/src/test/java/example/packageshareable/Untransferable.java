@@ -6,7 +6,6 @@
 package example.packageshareable;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;

@@ -17,6 +17,7 @@ import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -164,11 +165,16 @@ public class PaginationImpl implements Pagination {
      * @throws InvalidValueException invalid query parameter
      */
     public static PaginationImpl parseQueryParams(Class<?> entityClass,
-                                                  final MultivaluedMap<String, String> queryParams,
+                                                  final Optional<MultivaluedMap<String, String>> queryParams,
                                                   ElideSettings elideSettings)
             throws InvalidValueException {
+
+        if (! queryParams.isPresent()) {
+            return getDefaultPagination(entityClass, elideSettings);
+        }
+
         final Map<PaginationKey, Integer> pageData = new HashMap<>();
-        queryParams.entrySet()
+        queryParams.get().entrySet()
                 .forEach(paramEntry -> {
                     final String queryParamKey = paramEntry.getKey();
                     if (PAGE_KEYS.containsKey(queryParamKey)) {
