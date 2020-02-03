@@ -158,10 +158,10 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.supportsPagination(any())).thenReturn(true);
-        boolean actual = wrapper.supportsPagination(null);
+        when(wrapped.supportsPagination(any(), any())).thenReturn(true);
+        boolean actual = wrapper.supportsPagination(null, null);
 
-        verify(wrapped, times(1)).supportsPagination(any());
+        verify(wrapped, times(1)).supportsPagination(any(), any());
         assertTrue(actual);
     }
 

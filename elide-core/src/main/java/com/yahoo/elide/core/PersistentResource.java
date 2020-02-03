@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
+import com.yahoo.elide.audit.LogMessageImpl;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
@@ -23,8 +24,6 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -34,6 +33,8 @@ import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -341,7 +342,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .copyOf()
                 .filterExpression(filterExpression)
                 .sorting(sorting)
-                .pagination(Optional.ofNullable(pagination).map(p -> p.evaluate(loadClass)).orElse(null))
+                .pagination(pagination)
                 .build();
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
@@ -1050,9 +1051,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidAttributeException(relationName, this.getType());
         }
 
-        Optional<Pagination> computedPagination = Optional.ofNullable(pagination)
-                .map(p -> p.evaluate(relationClass));
-
         //Invoke filterExpressionCheck and then merge with filterExpression.
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
         Optional<FilterExpression> computedFilters = Optional.ofNullable(filterExpression);
@@ -1069,7 +1067,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .projection(relationship.getProjection().copyOf()
                         .filterExpression(computedFilters.orElse(null))
                         .sorting(sorting)
-                        .pagination(computedPagination.orElse(null))
+                        .pagination(pagination)
                         .build()
                 ).build();
 
@@ -1768,7 +1766,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         for (Audit annotation : annotations) {
             if (annotation.action().length == 1 && annotation.action()[0] == Audit.Action.UPDATE) {
-                LogMessage message = new LogMessage(annotation, this, Optional.of(changeSpec));
+                LogMessage message = new LogMessageImpl(annotation, this, Optional.of(changeSpec));
                 getRequestScope().getAuditLogger().log(message);
             } else {
                 throw new InvalidSyntaxException("Only Audit.Action.UPDATE is allowed on fields.");
@@ -1791,7 +1789,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (Audit annotation : annotations) {
             for (Audit.Action auditAction : annotation.action()) {
                 if (auditAction == action) { // compare object reference
-                    LogMessage message = new LogMessage(annotation, this, Optional.ofNullable(changeSpec));
+                    LogMessage message = new LogMessageImpl(annotation, this, Optional.ofNullable(changeSpec));
                     getRequestScope().getAuditLogger().log(message);
                 }
             }

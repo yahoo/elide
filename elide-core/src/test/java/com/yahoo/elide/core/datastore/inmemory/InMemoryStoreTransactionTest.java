@@ -26,10 +26,11 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -259,7 +260,7 @@ public class InMemoryStoreTransactionTest {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
 
-        Sorting sorting = new Sorting(sortOrder);
+        Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -293,7 +294,7 @@ public class InMemoryStoreTransactionTest {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
 
-        Sorting sorting = new Sorting(sortOrder);
+        Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -333,7 +334,7 @@ public class InMemoryStoreTransactionTest {
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
 
-        Sorting sorting = new Sorting(sortOrder);
+        Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -368,7 +369,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testPaginationPushDown() {
-        Pagination pagination = Pagination.getDefaultPagination(elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -379,7 +380,7 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -399,7 +400,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testDataStoreRequiresInMemoryPagination() {
-        Pagination pagination = Pagination.getDefaultPagination(elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -410,7 +411,7 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(false);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(false);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -436,7 +437,7 @@ public class InMemoryStoreTransactionTest {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
-        Pagination pagination = Pagination.getDefaultPagination(elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -448,7 +449,7 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
@@ -470,12 +471,12 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testSortingRequiresInMemoryPagination() {
-        Pagination pagination = Pagination.getDefaultPagination(elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
 
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
 
-        Sorting sorting = new Sorting(sortOrder);
+        Sorting sorting = new SortingImpl(sortOrder, Book.class, dictionary);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -489,7 +490,7 @@ public class InMemoryStoreTransactionTest {
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
         when(wrappedTransaction.supportsSorting(eq(Book.class),
                 any())).thenReturn(false);
-        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+        when(wrappedTransaction.supportsPagination(eq(Book.class), any())).thenReturn(true);
 
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 

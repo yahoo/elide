@@ -590,7 +590,7 @@ class PaginateIT extends IntegrationTest {
             .get(url)
         .then()
             .body("errors", hasSize(1),
-                "errors[0]", containsString("page[limit] value must be less than or equal to 10"))
+                "errors[0]", containsString("InvalidValueException: Invalid value: Pagination limit must be less than or equal to 10"))
             .statusCode(BAD_REQUEST_400);
     }
 

@@ -15,11 +15,11 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
@@ -230,8 +230,8 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass) {
-        return getTransaction(entityClass).supportsPagination(entityClass);
+    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
+        return getTransaction(entityClass).supportsPagination(entityClass, expression);
     }
 
     private Serializable extractId(FilterExpression filterExpression,

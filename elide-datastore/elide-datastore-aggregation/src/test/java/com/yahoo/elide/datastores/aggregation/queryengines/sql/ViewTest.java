@@ -11,13 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 
+import com.yahoo.elide.request.Sorting;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +46,7 @@ public class ViewTest extends SQLUnitTest {
                 .analyticView(playerStatsWithViewSchema)
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryView")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
         assertThrows(InvalidPredicateException.class, () -> engine.executeQuery(query));
@@ -60,7 +61,7 @@ public class ViewTest extends SQLUnitTest {
                 .analyticView(playerStatsWithViewSchema)
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryViewIsoCode")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -94,7 +95,7 @@ public class ViewTest extends SQLUnitTest {
                 .analyticView(playerStatsWithViewSchema)
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -129,7 +130,7 @@ public class ViewTest extends SQLUnitTest {
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -164,7 +165,7 @@ public class ViewTest extends SQLUnitTest {
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -199,7 +200,7 @@ public class ViewTest extends SQLUnitTest {
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -234,7 +235,7 @@ public class ViewTest extends SQLUnitTest {
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)

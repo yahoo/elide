@@ -13,8 +13,9 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 
+import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -70,7 +71,7 @@ public class RootCollectionFetchQueryBuilderTest {
         sorting.put(TITLE, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .build();
 
         String expected = "SELECT example_Book FROM example.Book AS example_Book order by example_Book.title asc";
@@ -143,7 +144,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .withPossibleFilterExpression(Optional.of(idPredicate))
                 .build();
 

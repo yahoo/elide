@@ -8,10 +8,10 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
@@ -268,9 +268,10 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Whether or not the transaction can paginate the provided class.
      * @param entityClass The entity class that is being paged.
+     * @param expression The filter expression
      * @return true if pagination is possible
      */
-    default boolean supportsPagination(Class<?> entityClass) {
+    default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
     }
 }

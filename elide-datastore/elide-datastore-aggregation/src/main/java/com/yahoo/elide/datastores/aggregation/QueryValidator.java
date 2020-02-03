@@ -13,11 +13,11 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.request.Sorting;
 
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,6 @@ public class QueryValidator {
     private Set<String> allFields;
     private EntityDictionary dictionary;
     private AnalyticView queriedTable;
-    private Class<?> queriedClass;
     private List<MetricFunctionInvocation> metrics;
     private Set<ColumnProjection> dimensionProjections;
 
@@ -41,7 +40,6 @@ public class QueryValidator {
         this.allFields = allFields;
         this.dictionary = dictionary;
         this.queriedTable = query.getAnalyticView();
-        this.queriedClass = queriedTable.getCls();
         this.metrics = query.getMetrics();
         this.dimensionProjections = query.getDimensions();
     }
@@ -116,7 +114,7 @@ public class QueryValidator {
         if (sorting == null) {
             return;
         }
-        Map<Path, Sorting.SortOrder> sortClauses = sorting.getValidSortingRules(queriedClass, dictionary);
+        Map<Path, Sorting.SortOrder> sortClauses = sorting.getSortingPaths();
         sortClauses.keySet().forEach((path) -> validateSortingPath(path, allFields));
     }
 

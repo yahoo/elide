@@ -566,7 +566,7 @@ public class GraphQLEndpointTest {
         endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
 
         Mockito.verify(audit, Mockito.times(1)).log(Mockito.any());
-        Mockito.verify(audit, Mockito.times(1)).commit(Mockito.any());
+        Mockito.verify(audit, Mockito.times(1)).commit();
         Mockito.verify(audit, Mockito.times(1)).clear();
     }
 
