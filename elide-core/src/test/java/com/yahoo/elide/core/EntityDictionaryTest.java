@@ -33,7 +33,6 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
-import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import com.google.common.collect.ImmutableList;
@@ -107,7 +106,6 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("Prefab.Role.None", getCheckIdentifier(Role.NONE.class));
         assertEquals("Prefab.Collections.AppendOnly", getCheckIdentifier(AppendOnly.class));
         assertEquals("Prefab.Collections.RemoveOnly", getCheckIdentifier(RemoveOnly.class));
-        assertEquals("Prefab.Common.UpdateOnCreate", getCheckIdentifier(UpdateOnCreate.class));
     }
 
     @Test

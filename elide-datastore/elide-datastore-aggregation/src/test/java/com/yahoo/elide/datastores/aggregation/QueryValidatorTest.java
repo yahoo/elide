@@ -11,13 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 
+import com.yahoo.elide.request.Sorting;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         Query query = Query.builder()
                 .analyticView(playerStatsTable)
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         QueryValidator validator = new QueryValidator(query, Collections.singleton("overallRating"), dictionary);
@@ -61,7 +62,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("id")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         Set<String> allFields = new HashSet<>(Arrays.asList("id", "overallRating", "lowScore"));
@@ -80,7 +81,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         Set<String> allFields = new HashSet<>(Arrays.asList("overallRating", "lowScore"));
@@ -99,7 +100,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         Set<String> allFields = new HashSet<>(Arrays.asList("overallRating", "lowScore"));
@@ -118,7 +119,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .analyticView(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
-                .sorting(new Sorting(sortMap))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         Set<String> allFields = new HashSet<>(Arrays.asList("country", "lowScore"));

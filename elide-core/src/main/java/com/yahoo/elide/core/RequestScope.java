@@ -25,8 +25,6 @@ import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
@@ -66,8 +64,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
-    @Getter private final Pagination pagination;
-    @Getter private final Sorting sorting;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
@@ -180,12 +176,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             }
 
             this.sparseFields = parseSparseFields(queryParams);
-            this.sorting = Sorting.parseQueryParams(queryParams);
-            this.pagination = Pagination.parseQueryParams(queryParams, this.getElideSettings());
         } else {
             this.sparseFields = Collections.emptyMap();
-            this.sorting = Sorting.getDefaultEmptyInstance();
-            this.pagination = Pagination.getDefaultPagination(this.getElideSettings());
         }
     }
 
@@ -206,8 +198,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
-        this.sorting = Sorting.getDefaultEmptyInstance();
-        this.pagination = Pagination.getDefaultPagination(outerRequestScope.getElideSettings());
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();

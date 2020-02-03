@@ -24,7 +24,6 @@ import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
-import com.yahoo.elide.security.checks.prefab.Common;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -143,7 +142,6 @@ public class EntityDictionary {
         addPrefabCheck("Prefab.Role.None", Role.NONE.class);
         addPrefabCheck("Prefab.Collections.AppendOnly", AppendOnly.class);
         addPrefabCheck("Prefab.Collections.RemoveOnly", RemoveOnly.class);
-        addPrefabCheck("Prefab.Common.UpdateOnCreate", Common.UpdateOnCreate.class);
     }
 
 

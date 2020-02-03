@@ -6,11 +6,11 @@
 package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.KeyWord;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
+import com.yahoo.elide.request.Pagination;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

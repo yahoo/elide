@@ -45,7 +45,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InfixPredicate;
 import com.yahoo.elide.core.filter.PostfixPredicate;
 import com.yahoo.elide.core.filter.PrefixPredicate;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
@@ -2674,8 +2674,8 @@ public class ResourceIT extends IntegrationTest {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         when(scope.getDictionary()).thenReturn(dictionary);
-        Pagination pagination = mock(Pagination.class);
-        when(pagination.isGenerateTotals()).thenReturn(true);
+        PaginationImpl pagination = mock(PaginationImpl.class);
+        when(pagination.returnPageTotals()).thenReturn(true);
         tx.loadObjects(EntityProjection.builder()
                 .type(Book.class)
 
@@ -2684,7 +2684,7 @@ public class ResourceIT extends IntegrationTest {
                 .build(), scope);
         tx.commit(scope);
         tx.close();
-        verify(pagination).setPageTotals(noOfRecords);
+        verify(pagination).setPageTotals((long) noOfRecords);
     }
 
     @Test

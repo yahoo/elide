@@ -16,8 +16,8 @@ import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.sort.Sorting;
 
+import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Publisher;

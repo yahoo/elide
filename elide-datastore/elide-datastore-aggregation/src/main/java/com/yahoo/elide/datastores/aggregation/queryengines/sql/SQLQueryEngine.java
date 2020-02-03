@@ -13,7 +13,6 @@ import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
@@ -29,6 +28,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColum
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import org.hibernate.jpa.QueryHints;
@@ -104,7 +104,7 @@ public class SQLQueryEngine implements QueryEngine {
                 jpaQuery.setFirstResult(pagination.getOffset());
                 jpaQuery.setMaxResults(pagination.getLimit());
 
-                if (pagination.isGenerateTotals()) {
+                if (pagination.returnPageTotals()) {
 
                     SQLQuery paginationSQL = toPageTotalSQL(sql);
                     javax.persistence.Query pageTotalQuery =

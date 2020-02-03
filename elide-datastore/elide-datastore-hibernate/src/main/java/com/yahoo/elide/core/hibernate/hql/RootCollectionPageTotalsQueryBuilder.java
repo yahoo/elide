@@ -11,8 +11,8 @@ import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 
 import java.util.Collection;
 import java.util.HashSet;

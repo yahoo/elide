@@ -16,9 +16,9 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -226,9 +226,7 @@ public abstract class AbstractHQLQueryBuilder {
     protected String getSortClause(final Optional<Sorting> sorting, Class<?> sortClass, boolean prefixWithAlias) {
         String sortingRules = "";
         if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
-            final Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
-                    sortClass, dictionary
-            );
+            final Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getSortingPaths();
             if (!validSortingRules.isEmpty()) {
                 final List<String> ordering = new ArrayList<>();
                 // pass over the sorting rules

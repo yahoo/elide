@@ -18,15 +18,15 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.multiplex.BridgeableStoreTest;
 import com.yahoo.elide.datastores.multiplex.BridgeableTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexTransaction;
 import com.yahoo.elide.example.beans.HibernateUser;
 import com.yahoo.elide.example.hbase.beans.RedisActions;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.security.User;
 
 import lombok.AllArgsConstructor;
@@ -162,7 +162,12 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx, Object parent, String relationName, Optional<FilterExpression> filterExpressionOptional, Optional<Sorting> sorting, Optional<Pagination> pagination, RequestScope scope) {
+        public Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx,
+                                                      Object parent,
+                                                      String relationName,
+                                                      Optional<FilterExpression> filterExpressionOptional,
+                                                      Optional<Sorting> sorting,
+                                                      Optional<Pagination> pagination, RequestScope scope) {
             if (parent.getClass().equals(HibernateUser.class) && "redisActions".equals(relationName)) {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);

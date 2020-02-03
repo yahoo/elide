@@ -21,7 +21,9 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 
+import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -76,7 +78,7 @@ public class RootCollectionFetchQueryBuilderTest {
         sorting.put(TITLE, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .build();
 
         String expected = "SELECT example_Book FROM example.Book AS example_Book  "
@@ -187,18 +189,13 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .withPossibleFilterExpression(Optional.of(idPredicate))
                 .build();
 
         String expected =
-<<<<<<< HEAD
                 "SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher"
                 + "  WHERE example_Book.id IN (:id_XXX)  order by example_Book.title asc";
-=======
-                "SELECT example_Book FROM example.Book AS example_Book "
-                + "WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
->>>>>>> 91591898... Create AggregationDataStore module (#845)
 
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");

@@ -24,14 +24,16 @@ import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.EntityProjection.EntityProjectionBuilder;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 
+import com.yahoo.elide.request.Sorting;
 import graphql.language.Argument;
 import graphql.language.Document;
 import graphql.language.Field;
@@ -48,7 +50,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
@@ -376,7 +377,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addPagination(Argument argument, EntityProjectionBuilder projectionBuilder) {
         Pagination pagination = projectionBuilder.getPagination() == null
-                ? Pagination.getDefaultPagination(elideSettings)
+                ? PaginationImpl.getDefaultPagination(projectionBuilder.getType(), elideSettings)
                 : projectionBuilder.getPagination();
 
         Object argumentValue = variableResolver.resolveValue(argument.getValue());
@@ -384,9 +385,23 @@ public class GraphQLEntityProjectionMaker {
                 ? ((BigInteger) argumentValue).intValue()
                 : Integer.parseInt((String) argumentValue);
         if (ModelBuilder.ARGUMENT_FIRST.equals(argument.getName())) {
-            pagination.setLimit(value);
+            pagination = new PaginationImpl(
+                    projectionBuilder.getType(),
+                    pagination.getOffset(),
+                    value,
+                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultPageSize(),
+                    pagination.returnPageTotals(),
+                    false);
         } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
-            pagination.setOffset(value);
+            pagination = new PaginationImpl(
+                    projectionBuilder.getType(),
+                    value,
+                    pagination.getLimit(),
+                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultPageSize(),
+                    pagination.returnPageTotals(),
+                    false);
         }
 
         projectionBuilder.pagination(pagination);
@@ -400,23 +415,28 @@ public class GraphQLEntityProjectionMaker {
      * @param projectionBuilder projection that is being built
      */
     private void addPageTotal(EntityProjectionBuilder projectionBuilder) {
+        PaginationImpl pagination;
         if (projectionBuilder.getPagination() == null) {
-            Optional<Pagination> pagination = Pagination.fromOffsetAndFirst(
-                    Optional.empty(),
-                    Optional.empty(),
+            pagination = new PaginationImpl(
+                    projectionBuilder.getType(),
+                    null,
+                    null,
+                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultMaxPageSize(),
                     true,
-                    elideSettings
-            );
-            pagination.ifPresent(projectionBuilder::pagination);
+                    false);
+
         } else {
-            Optional<Pagination> pagination = Pagination.fromOffsetAndFirst(
-                    Optional.of(String.valueOf(projectionBuilder.getPagination().getLimit())),
-                    Optional.of(String.valueOf(projectionBuilder.getPagination().getOffset())),
+            pagination = new PaginationImpl(
+                    projectionBuilder.getType(),
+                    projectionBuilder.getPagination().getOffset(),
+                    projectionBuilder.getPagination().getLimit(),
+                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultMaxPageSize(),
                     true,
-                    elideSettings
-            );
-            pagination.ifPresent(projectionBuilder::pagination);
+                    false);
         }
+        projectionBuilder.pagination(pagination);
     }
 
     /**
@@ -439,17 +459,15 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addSorting(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String sortRule = (String) variableResolver.resolveValue(argument.getValue());
-        Sorting sorting = Sorting.parseSortRule(sortRule);
 
-        // validate sorting rule
         try {
-            sorting.getValidSortingRules(projectionBuilder.getType(), entityDictionary);
+            Sorting sorting = SortingImpl.parseSortRule(sortRule, projectionBuilder.getType(), entityDictionary);
+            projectionBuilder.sorting(sorting);
         } catch (InvalidValueException e) {
             throw new BadRequestException("Invalid sorting clause " + sortRule
                     + " for type " + entityDictionary.getJsonAliasFor(projectionBuilder.getType()));
         }
 
-        projectionBuilder.sorting(sorting);
     }
 
     /**

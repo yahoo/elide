@@ -14,7 +14,6 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -24,6 +23,7 @@ import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -78,16 +78,20 @@ public class CollectionTerminalState extends BaseState {
         DocumentProcessor includedProcessor = new IncludedProcessor();
         includedProcessor.execute(jsonApiDocument, collection, queryParams);
 
+        Pagination pagination = parentProjection.getPagination();
+        if (parent.isPresent()) {
+            pagination = parentProjection.getRelationship(relationName.get()).get().getProjection().getPagination();
+        }
+
         // Add pagination meta data
-        Pagination pagination = requestScope.getPagination();
-        if (!pagination.isEmpty()) {
+        if (!pagination.isDefaultInstance()) {
 
             Map<String, Number> pageMetaData = new HashMap<>();
             pageMetaData.put("number", (pagination.getOffset() / pagination.getLimit()) + 1);
             pageMetaData.put("limit", pagination.getLimit());
 
             // Get total records if it has been requested and add to the page meta data
-            if (pagination.isGenerateTotals()) {
+            if (pagination.returnPageTotals()) {
                 Long totalRecords = pagination.getPageTotals();
                 pageMetaData.put("totalPages", totalRecords / pagination.getLimit()
                         + ((totalRecords % pagination.getLimit()) > 0 ? 1 : 0));
