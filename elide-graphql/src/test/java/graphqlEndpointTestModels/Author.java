@@ -34,11 +34,11 @@ import javax.persistence.Transient;
 @UpdatePermission(expression = Author.PERMISSION)
 @DeletePermission(expression = Author.PERMISSION)
 public class Author {
-    Long id;
-    String name;
-    Set<Book> books = new HashSet<>();
-    DisallowTransfer noShare;
-    Map<String, String> bookTitlesAndAwards = new HashMap<>();
+    private Long id;
+    private String name;
+    private Set<Book> books = new HashSet<>();
+    private DisallowTransfer noShare;
+    private Map<String, String> bookTitlesAndAwards = new HashMap<>();
 
     public static final String PERMISSION = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2;
 
