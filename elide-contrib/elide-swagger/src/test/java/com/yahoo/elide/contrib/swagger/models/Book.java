@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Set;
@@ -28,6 +29,9 @@ import javax.validation.constraints.NotNull;
 public class Book {
     @OneToMany
     @Max(10)
+    @UpdatePermission(expression = "Principal is author")
+    @ApiModelProperty(value = "Writers", required = false, readOnly = true,
+        example = "[\"author1\", \"author2\", \"author3\"]")
     public Set<Author> getAuthors() {
         return null;
     }
