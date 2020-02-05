@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -1531,6 +1532,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("emptyOnAttributeCollection")
     void testNotEmptyAttributeOnRoot() throws IOException {
         Set<JsonNode> bookIdsWithNonEmptyAwards = new HashSet<>();
         JsonNode result;
@@ -1578,6 +1580,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("emptyOnAttributeCollection")
     void testIsEmptyAttributesOnNonRoot() throws IOException {
         Set<JsonNode> bookIdsWithEmptyAwards = new HashSet<>();
         JsonNode result;
