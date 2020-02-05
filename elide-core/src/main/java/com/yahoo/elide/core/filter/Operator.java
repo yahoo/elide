@@ -339,9 +339,6 @@ public enum Operator {
 
             Object val = getFieldValue(entity, field, requestScope);
             if (val == null) { return true; }
-            if (val instanceof String) {
-                return ((String) val).isEmpty();
-            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).isEmpty();
             }
