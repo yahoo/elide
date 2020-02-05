@@ -7,8 +7,18 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+
+import com.google.common.base.Functions;
+
+import lombok.Getter;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
@@ -51,7 +61,35 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
  * <p>
  * This is a {@link java.util.function functional interface} whose functional method is {@link #executeQuery(Query)}.
  */
-public interface QueryEngine {
+public abstract class QueryEngine {
+    @Getter
+    private final MetaDataStore metaDataStore;
+
+    @Getter
+    private final EntityDictionary metadataDictionary;
+
+    @Getter
+    private final Map<Class<?>, Table> tables;
+
+    public QueryEngine(MetaDataStore metaDataStore) {
+        this.metaDataStore = metaDataStore;
+        this.metadataDictionary = metaDataStore.getDictionary();
+        populateMetaData(metaDataStore);
+        this.tables = metaDataStore.getMetaData(AnalyticView.class).stream()
+                .collect(Collectors.toMap(Table::getCls, Functions.identity()));
+    }
+
+    protected abstract Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary);
+
+    protected abstract AnalyticView constructAnalyticView(Class<?> entityClass, EntityDictionary metaDataDictionary);
+
+    private void populateMetaData(MetaDataStore metaDataStore) {
+        metaDataStore.getModelsToBind().stream()
+                .map(model -> MetaDataStore.isAnalyticView(model)
+                        ? constructAnalyticView(model, metadataDictionary)
+                        : constructTable(model, metadataDictionary))
+                .forEach(metaDataStore::addTable);
+    }
 
     /**
      * Executes the specified {@link Query} against a specific persistent storage, which understand the provided
@@ -61,12 +99,14 @@ public interface QueryEngine {
      *
      * @return query results
      */
-    Iterable<Object> executeQuery(Query query);
+    public abstract Iterable<Object> executeQuery(Query query);
 
     /**
      * Returns the schema for a given entity class.
      * @param entityClass The class to map to a schema.
      * @return The schema that represents the provided entity.
      */
-    Table getTable(Class<?> entityClass);
+    public Table getTable(Class<?> entityClass) {
+        return tables.get(entityClass);
+    }
 }

@@ -33,7 +33,6 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import org.hibernate.jpa.QueryHints;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -41,9 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -53,31 +50,22 @@ import javax.persistence.EntityTransaction;
  * QueryEngine for SQL backed stores.
  */
 @Slf4j
-public class SQLQueryEngine implements QueryEngine {
+public class SQLQueryEngine extends QueryEngine {
+    private final EntityManagerFactory entityManagerFactory;
 
-    private final EntityManagerFactory emf;
-    private final EntityDictionary metadataDictionary;
-
-    @Getter
-    private Map<Class<?>, Table> tables;
-
-    public SQLQueryEngine(EntityManagerFactory emf, MetaDataStore metaDataStore) {
-        this.emf = emf;
-        this.metadataDictionary = metaDataStore.getDictionary();
-
-        Set<Table> tables = metaDataStore.getMetaData(Table.class);
-        tables.addAll(metaDataStore.getMetaData(AnalyticView.class));
-
-        this.tables = tables.stream()
-                .map(table -> table instanceof AnalyticView
-                        ? new SQLAnalyticView(table.getCls(), metadataDictionary)
-                        : new SQLTable(table.getCls(), metadataDictionary))
-                .collect(Collectors.toMap(Table::getCls, Function.identity()));
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
+        super(metaDataStore);
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     @Override
-    public Table getTable(Class<?> entityClass) {
-        return tables.get(entityClass);
+    protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
+        return new SQLTable(entityClass, metaDataDictionary);
+    }
+
+    @Override
+    protected AnalyticView constructAnalyticView(Class<?> entityClass, EntityDictionary metaDataDictionary) {
+        return new SQLAnalyticView(entityClass, metaDataDictionary);
     }
 
     @Override
@@ -85,7 +73,7 @@ public class SQLQueryEngine implements QueryEngine {
         EntityManager entityManager = null;
         EntityTransaction transaction = null;
         try {
-            entityManager = emf.createEntityManager();
+            entityManager = entityManagerFactory.createEntityManager();
 
             // manually begin the transaction
             transaction = entityManager.getTransaction();
@@ -132,7 +120,7 @@ public class SQLQueryEngine implements QueryEngine {
                     () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
                     "Running Query: " + sql).get();
 
-            return new SQLEntityHydrator(results, query, metadataDictionary, entityManager).hydrate();
+            return new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate();
         } finally {
             if (transaction != null && transaction.isActive()) {
                 transaction.commit();
@@ -188,7 +176,7 @@ public class SQLQueryEngine implements QueryEngine {
                     }
                 });
 
-        return new SQLQueryConstructor(metadataDictionary).resolveTemplate(
+        return new SQLQueryConstructor(getMetadataDictionary()).resolveTemplate(
                 query,
                 queryTemplate,
                 query.getSorting(),

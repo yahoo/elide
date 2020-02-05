@@ -9,7 +9,6 @@ import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -17,28 +16,23 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.utils.ClassScanner;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
 public class AggregationDataStore implements DataStore {
-
-    private final QueryEngineFactory queryEngineFactory;
-
-    private final MetaDataStore metaDataStore;
-
     private QueryEngine queryEngine;
 
     /**
      * These are the classes the Aggregation Store manages.
      */
-    private static final Class[] AGGREGATION_STORE_CLASSES = {
-            FromTable.class, FromSubquery.class };
+    private static final List<Class<? extends Annotation>> AGGREGATION_STORE_CLASSES =
+            Arrays.asList(FromTable.class, FromSubquery.class);
 
-    public AggregationDataStore(QueryEngineFactory queryEngineFactory,
-                                MetaDataStore metaDataStore) {
-        this.queryEngineFactory = queryEngineFactory;
-        this.metaDataStore = metaDataStore;
+    public AggregationDataStore(QueryEngine queryEngine) {
+        this.queryEngine = queryEngine;
     }
 
     /**
@@ -52,10 +46,8 @@ public class AggregationDataStore implements DataStore {
             ClassScanner.getAnnotatedClasses(cls).forEach(dictionary::bindEntity);
         }
 
-        queryEngine = queryEngineFactory.buildQueryEngine(metaDataStore);
-
         /* Add 'grain' argument to each TimeDimensionColumn */
-        for (AnalyticView table : metaDataStore.getMetaData(AnalyticView.class)) {
+        for (AnalyticView table : queryEngine.getMetaDataStore().getMetaData(AnalyticView.class)) {
             for (TimeDimension timeDim : table.getColumns(TimeDimension.class)) {
                 dictionary.addArgumentToAttribute(
                         table.getCls(),

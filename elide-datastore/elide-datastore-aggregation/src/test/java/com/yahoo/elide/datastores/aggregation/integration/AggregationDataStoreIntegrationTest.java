@@ -21,7 +21,6 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,15 +43,11 @@ import javax.ws.rs.core.MediaType;
  * Integration tests for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
-    SQLQueryEngineFactory queryEngineFactory;
-
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
-        queryEngineFactory = new SQLQueryEngineFactory(emf);
-        return new AggregationDataStoreTestHarness(queryEngineFactory);
+        return new AggregationDataStoreTestHarness(Persistence.createEntityManagerFactory("aggregationStore"));
     }
 
     @Test

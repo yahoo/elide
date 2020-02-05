@@ -66,7 +66,7 @@ public abstract class SQLUnitTest {
 
         metaDataStore.populateEntityDictionary(dictionary);
 
-        engine = new SQLQueryEngine(emf, metaDataStore);
+        engine = new SQLQueryEngine(metaDataStore, emf);
 
         ASIA.setName("Asia");
         ASIA.setId("1");

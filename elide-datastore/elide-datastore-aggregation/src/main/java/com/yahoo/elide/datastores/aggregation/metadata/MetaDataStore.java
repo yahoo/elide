@@ -10,7 +10,6 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.DataType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
@@ -25,7 +24,12 @@ import com.yahoo.elide.utils.ClassScanner;
 
 import org.hibernate.annotations.Subselect;
 
+import lombok.Getter;
+
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,36 +40,28 @@ public class MetaDataStore extends HashMapDataStore {
     public static final Package META_DATA_PACKAGE =
             Package.getPackage("com.yahoo.elide.datastores.aggregation.metadata.models");
 
-    private static final Class[] METADATA_STORE_ANNOTATIONS = {
-            FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class};
+    private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
+            Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
+
+    @Getter
+    private final Set<Class<?>> modelsToBind;
 
     public MetaDataStore() {
         super(META_DATA_PACKAGE);
 
         this.dictionary = new EntityDictionary(new HashMap<>());
 
+        // bind meta data models to dictionary
         ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(cls -> dictionary.bindEntity(cls));
 
-        Set<Class<?>> modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
-
-        // bind data models in the package
-        modelsToBind.forEach(modelClass -> {
-                dictionary.bindEntity(modelClass);
-        });
-
-        // resolve meta data from the bound models
-        modelsToBind.forEach(modelClass -> {
-            addTable(isAnalyticView(modelClass)
-                ? new AnalyticView(modelClass, dictionary)
-                : new Table(modelClass, dictionary));
-        });
+        // bind external data models in the package
+        this.modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
+        modelsToBind.forEach(modelClass -> dictionary.bindEntity(modelClass));
     }
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).stream().forEach(cls -> {
-            dictionary.bindEntity(cls);
-        });
+        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).forEach(dictionary::bindEntity);
     }
 
     /**
@@ -73,7 +69,7 @@ public class MetaDataStore extends HashMapDataStore {
      *
      * @param table table metadata
      */
-    private void addTable(Table table) {
+    public void addTable(Table table) {
         addMetaData(table);
         table.getColumns().forEach(this::addColumn);
     }
@@ -177,7 +173,7 @@ public class MetaDataStore extends HashMapDataStore {
      * @param cls entity class
      * @return True if {@link FromTable} or {@link FromSubquery} is presented.
      */
-    private static boolean isAnalyticView(Class<?> cls) {
+    public static boolean isAnalyticView(Class<?> cls) {
         return cls.isAnnotationPresent(FromTable.class) || cls.isAnnotationPresent(FromSubquery.class);
     }
 }
