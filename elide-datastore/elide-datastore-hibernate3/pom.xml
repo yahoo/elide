@@ -186,16 +186,12 @@
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <failIfNoTests>true</failIfNoTests>
+                    <excludedGroups>${excludeTags}</excludedGroups>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <properties>
-                        <excludeTags>${excludeTags}</excludeTags>
-                    </properties>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
