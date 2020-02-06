@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package example.packageshareable;
+package example.nontransferable;
 
 import com.yahoo.elide.annotation.Include;
 

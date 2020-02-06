@@ -30,9 +30,9 @@ import example.Parent;
 import example.Publisher;
 import example.Right;
 import example.UpdateAndCreate;
-import example.packageshareable.ContainerWithPackageShare;
-import example.packageshareable.ShareableWithPackageShare;
-import example.packageshareable.Untransferable;
+import example.nontransferable.ContainerWithPackageShare;
+import example.nontransferable.ShareableWithPackageShare;
+import example.nontransferable.Untransferable;
 import nocreate.NoCreateEntity;
 
 import java.util.HashSet;
