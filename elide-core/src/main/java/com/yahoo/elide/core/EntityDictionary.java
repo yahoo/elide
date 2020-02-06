@@ -833,7 +833,7 @@ public class EntityDictionary {
     public boolean isTransferable(Class<?> entityClass) {
         NonTransferable nonTransferable = getAnnotation(entityClass, NonTransferable.class);
 
-        return (nonTransferable == null || ! nonTransferable.enabled());
+        return (nonTransferable == null || !nonTransferable.enabled());
     }
 
     /**
