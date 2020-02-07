@@ -6,7 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -14,16 +14,16 @@ import javax.persistence.OneToOne;
 
 @Entity
 @Include(rootLevel = true, type = "noShareBid")
-@SharePermission(sharable = false)
-public class NoShareBiDirectional extends BaseId {
-    private NoShareBiDirectional other;
+@NonTransferable
+public class NoTransferBiDirectional extends BaseId {
+    private NoTransferBiDirectional other;
 
     @OneToOne(fetch = FetchType.LAZY)
-    public NoShareBiDirectional getOther() {
+    public NoTransferBiDirectional getOther() {
         return other;
     }
 
-    public void setOther(NoShareBiDirectional other) {
+    public void setOther(NoTransferBiDirectional other) {
         this.other = other;
     }
 }

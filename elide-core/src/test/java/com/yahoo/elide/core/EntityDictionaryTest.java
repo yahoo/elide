@@ -424,12 +424,12 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testIsSharableTrue() throws Exception {
-        assertTrue(isShareable(Right.class));
+        assertTrue(isTransferable(Right.class));
     }
 
     @Test
     public void testIsSharableFalse() throws Exception {
-        assertFalse(isShareable(Left.class));
+        assertFalse(isTransferable(Left.class));
     }
 
     @Test
