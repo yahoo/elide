@@ -11,7 +11,6 @@ import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 
 import org.hibernate.annotations.Formula;
 
@@ -34,7 +33,6 @@ import javax.persistence.Transient;
  * Model for books.
  */
 @Entity
-@SharePermission
 @Table(name = "book")
 @Include(rootLevel = true)
 @Paginate

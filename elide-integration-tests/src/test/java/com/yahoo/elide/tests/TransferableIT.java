@@ -36,9 +36,10 @@ import io.restassured.response.Response;
 import java.util.HashMap;
 
 /**
- * @Shareable annotation integration tests
+ * @NonTransferable annotation integration tests
  */
-class ShareableIT extends IntegrationTest {
+class TransferableIT extends IntegrationTest {
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -51,7 +52,7 @@ class ShareableIT extends IntegrationTest {
     }
 
     @Test
-    public void testUnshareableForbiddenAccess() {
+    public void testNonTransferableForbiddenAccess() {
         // Create container
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -67,54 +68,54 @@ class ShareableIT extends IntegrationTest {
                 .post("/container")
                 .then().statusCode(HttpStatus.SC_CREATED);
 
-        // Create unshareable
+        // Create untransferable
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
-                                        type("unshareable"),
+                                        type("untransferable"),
                                         id(null)
                                 )
                         )
                 )
-                .post("/unshareable")
+                .post("/untransferable")
                 .then().statusCode(HttpStatus.SC_CREATED);
 
-        // Fail to add unshareable to container's unshareables (unshareable is not shareable)
+        // Fail to add untransferable to container's untransferables (untransferable is not transferable)
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
-                                        type("unshareable"),
+                                        type("untransferable"),
                                         id("1")
                                 )
                         )
                 )
-                .patch("/container/1/relationships/unshareables")
+                .patch("/container/1/relationships/untransferables")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
 
-        // Fail to replace container's unshareables collection (unshareable is not shareable)
+        // Fail to replace container's untransferables collection (untransferable is not transferable)
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
-                                        type("unshareable"),
+                                        type("untransferable"),
                                         id("1")
                                 )
                         )
                 )
-                .post("/container/1/relationships/unshareables")
+                .post("/container/1/relationships/untransferables")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
 
-        // Fail to update unshareable's container (container is not shareable)
+        // Fail to update untransferables's container (container is not transferable)
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -126,11 +127,11 @@ class ShareableIT extends IntegrationTest {
                                 )
                         )
                 )
-                .patch("/unshareable/1/relationships/container")
+                .patch("/untransferable/1/relationships/container")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
 
-        // Fail to set unshareable's container (container is not shareable)
+        // Fail to set untransferable's container (container is not transferable)
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -142,13 +143,13 @@ class ShareableIT extends IntegrationTest {
                                 )
                         )
                 )
-                .post("/unshareable/1/relationships/container")
+                .post("/untransferable/1/relationships/container")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     @Test
-    public void testShareableForbiddenAccess() {
+    public void testTransferableForbiddenAccess() {
         // Create container
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -165,23 +166,23 @@ class ShareableIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        // Create shareable
+        // Create transferable
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
-                                        type("shareable"),
+                                        type("transferable"),
                                         id(null)
                                 )
                         )
                 )
-                .post("/shareable")
+                .post("/transferable")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        // Fail to update shareable's container (container is not shareable)
+        // Fail to update transferable's container (container is not transferable)
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -193,11 +194,11 @@ class ShareableIT extends IntegrationTest {
                                 )
                         )
                 )
-                .patch("/shareable/1/relationships/container")
+                .patch("/transferable/1/relationships/container")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
 
-        // Fail to set shareable's container (container is not shareable)
+        // Fail to set transferable's container (container is not transferable)
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -209,13 +210,13 @@ class ShareableIT extends IntegrationTest {
                                 )
                         )
                 )
-                .post("/shareable/1/relationships/container")
+                .post("/transferable/1/relationships/container")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     @Test
-    public void testShareablePost() {
+    public void testTransferablePost() {
         // Create container
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -232,35 +233,35 @@ class ShareableIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        // Create shareable
+        // Create transferable
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
-                                        type("shareable"),
+                                        type("transferable"),
                                         id(null)
                                 )
                         )
                 )
-                .post("/shareable")
+                .post("/transferable")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        // Add shareable to container's shareables
+        // Add transferable to container's transferables
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
                         datum(
                                 resource(
-                                        type("shareable"),
+                                        type("transferable"),
                                         id("1")
                                 )
                         )
                 )
-                .post("/container/1/relationships/shareables")
+                .post("/container/1/relationships/transferables")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
@@ -274,17 +275,17 @@ class ShareableIT extends IntegrationTest {
                                 type("container"),
                                 id("1"),
                                 relationships(
-                                        relation("shareables",
-                                                linkage(type("shareable"), id("1"))
+                                        relation("transferables",
+                                                linkage(type("transferable"), id("1"))
                                         ),
-                                        relation("unshareables")
+                                        relation("untransferables")
                                 )
                         )).toJSON())
                 );
     }
 
     @Test
-    public void testShareablePatch() {
+    public void testTransferablePatch() {
         // Create container
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -298,30 +299,30 @@ class ShareableIT extends IntegrationTest {
                 .post("/container")
                 .then().statusCode(HttpStatus.SC_CREATED);
 
-        // Create shareable
+        // Create transferable
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(datum(
                         resource(
-                                type("shareable"),
+                                type("transferable"),
                                 id(null)
                         )
                 ))
-                .post("/shareable")
+                .post("/transferable")
                 .then().statusCode(HttpStatus.SC_CREATED);
 
-        // Add shareable to container's shareables
+        // Add transferable to container's transferables
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(datum(
                         resource(
-                                type("shareable"),
+                                type("transferable"),
                                 id("1")
                         )
                 ))
-                .patch("/container/1/relationships/shareables")
+                .patch("/container/1/relationships/transferables")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
@@ -336,17 +337,17 @@ class ShareableIT extends IntegrationTest {
                                 type("container"),
                                 id("1"),
                                 relationships(
-                                        relation("shareables",
-                                                linkage(type("shareable"), id("1"))
+                                        relation("transferables",
+                                                linkage(type("transferable"), id("1"))
                                         ),
-                                        relation("unshareables")
+                                        relation("untransferables")
                                 )
                         )).toJSON())
                 );
     }
 
     @Test
-    public void testCreateContainerAndUnshareables() throws Exception {
+    public void testCreateContainerAndNonTransferable() throws Exception {
         Response response = given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
@@ -358,14 +359,14 @@ class ShareableIT extends IntegrationTest {
                         + "          \"id\": \"12345678-1234-1234-1234-1234567890ab\",\n"
                         + "          \"type\": \"container\",\n"
                         + "          \"relationships\": {\n"
-                        + "            \"unshareables\": {\n"
+                        + "            \"untransferables\": {\n"
                         + "              \"data\": [\n"
                         + "                {\n"
-                        + "                  \"type\": \"unshareable\",\n"
+                        + "                  \"type\": \"untransferable\",\n"
                         + "                  \"id\": \"12345678-1234-1234-1234-1234567890ac\"\n"
                         + "                },\n"
                         + "                {\n"
-                        + "                  \"type\": \"unshareable\",\n"
+                        + "                  \"type\": \"untransferable\",\n"
                         + "                  \"id\": \"12345678-1234-1234-1234-1234567890ad\"\n"
                         + "                }\n"
                         + "              ]\n"
@@ -375,17 +376,17 @@ class ShareableIT extends IntegrationTest {
                         + "      },\n"
                         + "      {\n"
                         + "        \"op\": \"add\",\n"
-                        + "        \"path\": \"/unshareable\",\n"
+                        + "        \"path\": \"/untransferable\",\n"
                         + "        \"value\": {\n"
-                        + "          \"type\": \"unshareable\",\n"
+                        + "          \"type\": \"untransferable\",\n"
                         + "          \"id\": \"12345678-1234-1234-1234-1234567890ac\"\n"
                         + "        }\n"
                         + "      },\n"
                         + "      {\n"
                         + "        \"op\": \"add\",\n"
-                        + "        \"path\": \"/unshareable\",\n"
+                        + "        \"path\": \"/untransferable\",\n"
                         + "        \"value\": {\n"
-                        + "          \"type\": \"unshareable\",\n"
+                        + "          \"type\": \"untransferable\",\n"
                         + "          \"id\": \"12345678-1234-1234-1234-1234567890ad\"\n"
                         + "        }\n"
                         + "      }\n"
@@ -397,18 +398,18 @@ class ShareableIT extends IntegrationTest {
 
         ArrayNode patchJson = (ArrayNode) mapper.readTree(response.asString());
 
-        // Should have 3 results, 1st is container, 2nd and 3rd are unshareables
+        // Should have 3 results, 1st is container, 2nd and 3rd are untransferables
         assertEquals(3, patchJson.size());
         assertEquals("container", patchJson.get(0).get("data").get("type").asText());
-        assertEquals("unshareable", patchJson.get(1).get("data").get("type").asText());
-        assertEquals("unshareable", patchJson.get(2).get("data").get("type").asText());
+        assertEquals("untransferable", patchJson.get(1).get("data").get("type").asText());
+        assertEquals("untransferable", patchJson.get(2).get("data").get("type").asText());
 
-        // Container should have 2 unshareables
-        assertEquals(2, patchJson.get(0).get("data").get("relationships").get("unshareables").get("data").size());
+        // Container should have 2 untransferables
+        assertEquals(2, patchJson.get(0).get("data").get("relationships").get("untransferables").get("data").size());
     }
 
     @Test
-    public void testCreateContainerAndShareables() throws Exception {
+    public void testCreateContainerAndTransferables() throws Exception {
         Response patchResponse = given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
@@ -420,14 +421,14 @@ class ShareableIT extends IntegrationTest {
                         + "          \"id\": \"12345678-1234-1234-1234-1234567890ab\",\n"
                         + "          \"type\": \"container\",\n"
                         + "          \"relationships\": {\n"
-                        + "            \"shareables\": {\n"
+                        + "            \"transferables\": {\n"
                         + "              \"data\": [\n"
                         + "                {\n"
-                        + "                  \"type\": \"shareable\",\n"
+                        + "                  \"type\": \"transferable\",\n"
                         + "                  \"id\": \"12345678-1234-1234-1234-1234567890ac\"\n"
                         + "                },\n"
                         + "                {\n"
-                        + "                  \"type\": \"shareable\",\n"
+                        + "                  \"type\": \"transferable\",\n"
                         + "                  \"id\": \"12345678-1234-1234-1234-1234567890ad\"\n"
                         + "                }\n"
                         + "              ]\n"
@@ -437,17 +438,17 @@ class ShareableIT extends IntegrationTest {
                         + "      },\n"
                         + "      {\n"
                         + "        \"op\": \"add\",\n"
-                        + "        \"path\": \"/shareable\",\n"
+                        + "        \"path\": \"/transferable\",\n"
                         + "        \"value\": {\n"
-                        + "          \"type\": \"shareable\",\n"
+                        + "          \"type\": \"transferable\",\n"
                         + "          \"id\": \"12345678-1234-1234-1234-1234567890ac\"\n"
                         + "        }\n"
                         + "      },\n"
                         + "      {\n"
                         + "        \"op\": \"add\",\n"
-                        + "        \"path\": \"/shareable\",\n"
+                        + "        \"path\": \"/transferable\",\n"
                         + "        \"value\": {\n"
-                        + "          \"type\": \"shareable\",\n"
+                        + "          \"type\": \"transferable\",\n"
                         + "          \"id\": \"12345678-1234-1234-1234-1234567890ad\"\n"
                         + "        }\n"
                         + "      }\n"
@@ -459,18 +460,18 @@ class ShareableIT extends IntegrationTest {
 
         ArrayNode patchJson = (ArrayNode) mapper.readTree(patchResponse.asString());
 
-        // Should have 3 results, 1st is container, 2nd and 3rd are shareables
+        // Should have 3 results, 1st is container, 2nd and 3rd are transferables
         assertEquals(3, patchJson.size());
         assertEquals("container", patchJson.get(0).get("data").get("type").asText());
-        assertEquals("shareable", patchJson.get(1).get("data").get("type").asText());
-        assertEquals("shareable", patchJson.get(2).get("data").get("type").asText());
+        assertEquals("transferable", patchJson.get(1).get("data").get("type").asText());
+        assertEquals("transferable", patchJson.get(2).get("data").get("type").asText());
 
-        // Container should have 2 shareables
-        assertEquals(2, patchJson.get(0).get("data").get("relationships").get("shareables").get("data").size());
+        // Container should have 2 transferables
+        assertEquals(2, patchJson.get(0).get("data").get("relationships").get("transferables").get("data").size());
     }
 
     @Test
-    public void addUnsharedRelationship() {
+    public void addNonTransferableRelationship() {
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)

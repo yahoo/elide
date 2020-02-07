@@ -8,8 +8,8 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
@@ -139,7 +139,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         //hashcode and equals are only based on the ID/UUID & type.
         assignId(newResource, id);
 
-        // Keep track of new resources for non shareable resources
+        // Keep track of new resources for non-transferable resources
         requestScope.getNewPersistentResources().add(newResource);
         checkPermission(CreatePermission.class, newResource);
 
@@ -477,7 +477,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         added = Sets.difference(updated, deleted);
 
-        checkSharePermission(added);
+        checkTransferablePermission(added);
 
         Collection collection = (Collection) this.getValueUnchecked(fieldName);
 
@@ -539,11 +539,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             if (newValue == null) {
                 return false;
             }
-            checkSharePermission(resourceIdentifiers);
+            checkTransferablePermission(resourceIdentifiers);
         } else if (oldResource.getObject().equals(newValue)) {
             return false;
         } else {
-            checkSharePermission(resourceIdentifiers);
+            checkTransferablePermission(resourceIdentifiers);
             if (hasInverseRelation(fieldName)) {
                 deleteInverseRelation(fieldName, oldResource.getObject());
                 oldResource.markDirty();
@@ -713,7 +713,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (!newRelation.isNewlyCreated() && relationshipAlreadyExists(fieldName, newRelation)) {
             return;
         }
-        checkSharePermission(Collections.singleton(newRelation));
+        checkTransferablePermission(Collections.singleton(newRelation));
         Object relation = this.getValueUnchecked(fieldName);
 
         if (relation instanceof Collection) {
@@ -737,7 +737,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param resourceIdentifiers The persistent resources that are being added
      */
-    protected void checkSharePermission(Set<PersistentResource> resourceIdentifiers) {
+    protected void checkTransferablePermission(Set<PersistentResource> resourceIdentifiers) {
         if (resourceIdentifiers == null) {
             return;
         }
@@ -747,7 +747,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (PersistentResource persistentResource : resourceIdentifiers) {
             if (!newResources.contains(persistentResource)
                     && !lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
-                checkPermission(SharePermission.class, persistentResource);
+                checkPermission(NonTransferable.class, persistentResource);
             }
         }
     }

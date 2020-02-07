@@ -24,6 +24,8 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.LogMessage;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -66,25 +68,21 @@ import example.NoUpdateEntity;
 import example.Parent;
 import example.Right;
 import example.Shape;
-import example.packageshareable.ContainerWithPackageShare;
-import example.packageshareable.ShareableWithPackageShare;
-import example.packageshareable.UnshareableWithEntityUnshare;
-<<<<<<< HEAD
+import example.nontransferable.ContainerWithPackageShare;
+import example.nontransferable.ShareableWithPackageShare;
+import example.nontransferable.Untransferable;
+import nocreate.NoCreateEntity;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
-import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
-
-=======
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
-import nocreate.NoCreateEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,16 +111,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     private final User badUser = new User(-1);
     private DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-<<<<<<< HEAD
-    public PersistentResourceTest() {
-        goodUserScope = buildRequestScope(mock(DataStoreTransaction.class), new User(1));
-        badUserScope = buildRequestScope(mock(DataStoreTransaction.class), new User(-1));
-        reset(goodUserScope.getTransaction());
-=======
     @BeforeEach
     public void beforeTest() {
         reset(tx);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
     }
 
     @Test
@@ -130,15 +121,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
 
-<<<<<<< HEAD
-        User goodUser = new User(1);
-
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         funResource.addRelation("relation3", childResource);
@@ -187,12 +170,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         when(tx.getRelation(any(), eq(fun), any(), any())).thenReturn(child1);
 
-<<<<<<< HEAD
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         funResource.clearRelation("relation3");
 
@@ -205,16 +183,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent = new Parent();
         Child child = newChild(1);
 
-<<<<<<< HEAD
-        User goodUser = new User(1);
-
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         parentResource.addRelation("children", childResource);
@@ -594,11 +563,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setId(2);
         right.setId(3);
 
-<<<<<<< HEAD
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
 
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "2", goodScope);
 
@@ -666,11 +631,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
      */
     public void testSuccessfulManyToManyRelationshipUpdate() throws Exception {
         Parent parent = new Parent();
-<<<<<<< HEAD
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
 
         Child child1 = newChild(1);
         Child child2 = newChild(2);
@@ -867,13 +828,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("filter[child.name]", "paul john");
-<<<<<<< HEAD
         RequestScope goodScope = buildRequestScope("/child", tx, goodUser, queryParams);
-=======
-
-        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
-
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
@@ -1044,13 +999,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     void testDeleteResourceSuccess() {
         Parent parent = newParent(1);
 
-<<<<<<< HEAD
-        User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
@@ -1068,13 +1017,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         invoice.setItems(Sets.newHashSet(item));
         item.setInvoice(invoice);
 
-<<<<<<< HEAD
-        User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
 
         PersistentResource<Invoice> invoiceResource = new PersistentResource<>(invoice, null, "1", goodScope);
 
@@ -1119,15 +1062,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         NoDeleteEntity nodelete = new NoDeleteEntity();
         nodelete.setId(1);
 
-<<<<<<< HEAD
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        User goodUser = new User(1);
-
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
-
         PersistentResource<NoDeleteEntity> nodeleteResource = new PersistentResource<>(nodelete, null, "1", goodScope);
 
         assertThrows(ForbiddenAccessException.class, nodeleteResource::deleteResource);
@@ -1142,15 +1077,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Child child = newChild(1);
 
-<<<<<<< HEAD
-        User goodUser = new User(1);
-
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         funResource.addRelation("relation1", childResource);
@@ -1169,14 +1097,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Child child = newChild(1);
 
-<<<<<<< HEAD
-        User badUser = new User(-1);
-
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope badScope = buildRequestScope(tx, badUser);
-=======
-        RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", badScope);
         assertThrows(ForbiddenAccessException.class, () -> funResource.addRelation("relation1", childResource));
@@ -1189,14 +1110,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(2);
         noUpdate.setChildren(Sets.newHashSet());
 
-<<<<<<< HEAD
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        User goodUser = new User(1);
-
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
         PersistentResource<NoUpdateEntity> noUpdateResource = new PersistentResource<>(noUpdate, null, "1", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "2", goodScope);
         assertThrows(ForbiddenAccessException.class, () -> noUpdateResource.addRelation("children", childResource));
@@ -1208,14 +1122,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Child child = newChild(1);
 
-<<<<<<< HEAD
-        User goodUser = new User(1);
-
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         assertThrows(InvalidAttributeException.class, () -> funResource.addRelation("invalid", childResource));
@@ -1229,13 +1136,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent3 = newParent(3, child);
         child.setParents(Sets.newHashSet(parent1, parent2, parent3));
 
-<<<<<<< HEAD
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        User goodUser = new User(1);
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         PersistentResource<Object> removeResource = new PersistentResource<>(parent1, null, "1", goodScope);
         childResource.removeRelation("parents", removeResource);
@@ -1258,13 +1159,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(1);
         fun.setRelation3(child);
 
-<<<<<<< HEAD
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        User goodUser = new User(1);
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-=======
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
         PersistentResource<Object> removeResource = new PersistentResource<>(child, null, "1", goodScope);
@@ -2148,7 +2043,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionErrorOnUpdateSingularRelationship() {
+    public void testTransferPermissionErrorOnUpdateSingularRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -2181,17 +2076,17 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionErrorOnUpdateRelationshipPackageLevel() {
+    public void testTransferPermissionErrorOnUpdateRelationshipPackageLevel() {
         ContainerWithPackageShare containerWithPackageShare = new ContainerWithPackageShare();
 
-        UnshareableWithEntityUnshare unshareableWithEntityUnshare = new UnshareableWithEntityUnshare();
-        unshareableWithEntityUnshare.setContainerWithPackageShare(containerWithPackageShare);
+        Untransferable untransferable = new Untransferable();
+        untransferable.setContainerWithPackageShare(containerWithPackageShare);
 
         List<Resource> unShareableList = new ArrayList<>();
-        unShareableList.add(new ResourceIdentifier("unshareableWithEntityUnshare", "1").castToResource());
+        unShareableList.add(new ResourceIdentifier("untransferable", "1").castToResource());
         Relationship unShareales = new Relationship(null, new Data<>(unShareableList));
 
-        when(tx.loadObject(any(), eq(1L), any())).thenReturn(unshareableWithEntityUnshare);
+        when(tx.loadObject(any(), eq(1L), any())).thenReturn(untransferable);
 
         RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary);
 
@@ -2204,11 +2099,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertThrows(
                 ForbiddenAccessException.class,
                 () -> containerResource.updateRelation(
-                        "unshareableWithEntityUnshares", unShareales.toPersistentResources(goodScope)));
+                        "untransferables", unShareales.toPersistentResources(goodScope)));
     }
 
     @Test
-    public void testSharePermissionSuccessOnUpdateManyRelationshipPackageLevel() {
+    public void testTransferPermissionSuccessOnUpdateManyRelationshipPackageLevel() {
         ContainerWithPackageShare containerWithPackageShare = new ContainerWithPackageShare();
 
         ShareableWithPackageShare shareableWithPackageShare = new ShareableWithPackageShare();
@@ -2235,7 +2130,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionErrorOnUpdateManyRelationship() {
+    public void testTransferPermissionErrorOnUpdateManyRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -2266,7 +2161,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionSuccessOnUpdateManyRelationship() {
+    public void testTransferPermissionSuccessOnUpdateManyRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -2302,7 +2197,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionSuccessOnUpdateSingularRelationship() {
+    public void testTransferPermissionSuccessOnUpdateSingularRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -2334,7 +2229,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testSharePermissionSuccessOnClearSingularRelationship() {
+    public void testTransferPermissionSuccessOnClearSingularRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
@@ -2567,8 +2462,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertNotEquals(resourceWithDifferentId, resourceWithId);
         assertNotEquals(resourceWithId, resourceWithDifferentId);
     }
-<<<<<<< HEAD
-=======
 
     private <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
         return bootstrapPersistentResource(obj, mock(DataStoreTransaction.class));
@@ -2646,7 +2539,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @ReadPermission(expression = "allow all")
     @UpdatePermission(expression = "allow all")
     @DeletePermission(expression = "allow all")
-    @SharePermission
     public static final class ChangeSpecChild {
         @Id
         public long id;
@@ -2689,5 +2581,4 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                         .build())
                 .build();
     }
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
 }

@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -36,7 +35,6 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "author")
 @Include(rootLevel = true)
-@SharePermission
 @Paginate
 @Audit(action = Audit.Action.CREATE,
         operation = 10,

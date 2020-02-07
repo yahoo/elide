@@ -8,7 +8,6 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import lombok.Getter;
@@ -29,7 +28,6 @@ import javax.persistence.OneToOne;
 @Include(rootLevel = true)
 @CreatePermission(expression = "Principal is user one OR Principal is user two")
 @UpdatePermission(expression = "Principal is user two")
-@SharePermission
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

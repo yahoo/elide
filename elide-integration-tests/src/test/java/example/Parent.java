@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
@@ -35,7 +34,6 @@ import javax.validation.constraints.NotNull;
 @ReadPermission(expression = "parentInitCheck OR allow all")
 @UpdatePermission(expression = "parentInitCheck OR allow all OR deny all")
 @DeletePermission(expression = "parentInitCheck OR allow all OR deny all")
-@SharePermission
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
 @Paginate(maxLimit = 100000)
 // Hibernate

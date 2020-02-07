@@ -6,6 +6,7 @@
 package graphqlEndpointTestModels;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,7 +15,8 @@ import javax.persistence.Id;
 
 @Include
 @Entity
-public class DisallowShare {
+@NonTransferable
+public class DisallowTransfer {
     Long id;
 
     public void setId(Long id) {

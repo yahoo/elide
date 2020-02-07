@@ -8,8 +8,8 @@ package com.yahoo.elide.security.permissions;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
@@ -37,7 +37,7 @@ public class PermissionCondition {
                     .put(UpdatePermission.class, "UPDATE")
                     .put(DeletePermission.class, "DELETE")
                     .put(CreatePermission.class, "CREATE")
-                    .put(SharePermission.class, "SHARE")
+                    .put(NonTransferable.class, "NO TRANSFER")
                     .build();
 
     /**
