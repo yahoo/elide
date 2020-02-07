@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -17,10 +16,9 @@ import javax.persistence.Table;
  * A shareable bean.
  */
 @Entity
-@SharePermission
-@Table(name = "shareable")
-@Include(rootLevel = true, type = "shareable")
-public class Shareable extends BaseId {
+@Table(name = "transferable")
+@Include(rootLevel = true, type = "transferable")
+public class Transferable extends BaseId {
     private Container container;
 
     @ManyToOne(fetch = FetchType.LAZY)

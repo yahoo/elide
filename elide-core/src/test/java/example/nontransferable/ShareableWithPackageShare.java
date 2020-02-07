@@ -3,9 +3,10 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package example.packageshareable;
+package example.nontransferable;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -19,6 +20,7 @@ import javax.persistence.ManyToOne;
  */
 @Entity
 @Include(rootLevel = true)
+@NonTransferable(enabled = false)
 public class ShareableWithPackageShare {
     private long id;
     private ContainerWithPackageShare container;

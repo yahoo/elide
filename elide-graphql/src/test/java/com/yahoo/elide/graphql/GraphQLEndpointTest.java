@@ -46,7 +46,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import graphqlEndpointTestModels.Author;
 import graphqlEndpointTestModels.Book;
-import graphqlEndpointTestModels.DisallowShare;
+import graphqlEndpointTestModels.DisallowTransfer;
 import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;
 
@@ -137,7 +137,7 @@ public class GraphQLEndpointTest {
         Book book1 = new Book();
         Author author1 = new Author();
         Author author2 = new Author();
-        DisallowShare noShare = new DisallowShare();
+        DisallowTransfer noShare = new DisallowTransfer();
 
         book1.setId(1L);
         book1.setTitle("My first book");
@@ -400,7 +400,7 @@ public class GraphQLEndpointTest {
 
     @Test
     void testNonShareable() throws IOException, JSONException {
-        DisallowShare noShare = new DisallowShare();
+        DisallowTransfer noShare = new DisallowTransfer();
         noShare.setId(1L);
 
         Author author = new Author();

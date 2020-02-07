@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
@@ -30,7 +29,6 @@ import javax.persistence.OneToOne;
 
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
-@SharePermission
 @ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheck")
 @Include(rootLevel = true, type = "child")
 @Audit(action = Audit.Action.DELETE,

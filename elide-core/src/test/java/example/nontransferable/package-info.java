@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-@SharePermission
-package example.packageshareable;
+@NonTransferable
+package example.nontransferable;
 
-import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.NonTransferable;

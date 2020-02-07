@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +20,6 @@ import javax.persistence.Id;
 
 @Entity
 @Include(rootLevel = true, type = "chapter")
-@SharePermission
 /**
  * This class tests using JPA Field based access.
  */
