@@ -383,7 +383,7 @@ public class JsonApiPatch {
         }
 
         // Find ext=jsonpatch
-        return Arrays.asList(header.split(";")).stream()
+        return Arrays.stream(header.split(";"))
             .map(key -> key.split("="))
             .filter(value -> value.length == 2)
             .anyMatch(value -> value[0].trim().equals("ext") && value[1].trim().equals("jsonpatch"));
