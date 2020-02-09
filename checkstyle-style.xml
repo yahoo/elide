@@ -192,6 +192,7 @@
       <property name="checkFormat" value="$1"/>
     </module>
   </module>
+  <module name="SuppressWithPlainTextCommentFilter"/>
   <module name="LineLength">
     <metadata name="net.sf.eclipsecs.core.comment" value="Line length of 120 characters except for import lines."/>
     <property name="severity" value="error"/>

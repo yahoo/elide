@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.apache.commons.collections4.MapUtils;
+
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -53,7 +55,7 @@ public class Relationship {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Map<String, String> getLinks() {
-        return links == null || links.isEmpty() ? null : links;
+        return MapUtils.isEmpty(links) ? null : links;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

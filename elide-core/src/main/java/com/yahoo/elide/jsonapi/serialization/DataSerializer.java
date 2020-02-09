@@ -12,6 +12,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,7 +28,7 @@ public class DataSerializer extends JsonSerializer<Data<Resource>> {
         throws IOException {
         Collection<Resource> list = data.get();
         if (data.isToOne()) {
-            if (list == null || list.isEmpty()) {
+            if (CollectionUtils.isEmpty(list)) {
                 jsonGenerator.writeObject(null);
                 return;
             }

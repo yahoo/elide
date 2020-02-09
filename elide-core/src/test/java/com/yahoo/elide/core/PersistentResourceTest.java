@@ -68,6 +68,7 @@ import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 
@@ -2102,7 +2103,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         /* ToMany relationships */
         // Learn about the other kids
-        model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> (original == null || original.isEmpty()) && modified.size() == 1 && modified.contains(new ChangeSpecChild(1)));
+        model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> CollectionUtils.isEmpty(original) && modified.size() == 1 && modified.contains(new ChangeSpecChild(1)));
 
         ChangeSpecChild child1 = new ChangeSpecChild(1);
         assertTrue(model.updateRelation("otherKids", Sets.newHashSet(bootstrapPersistentResource(child1))));
