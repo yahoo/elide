@@ -17,7 +17,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -86,7 +86,7 @@ public class NoopTransactionTest {
     @Test
     public void testLoadObjects() throws Exception {
         Iterable<NoopBean> iterable = (Iterable) tx.loadObjects(NoopBean.class, Optional.empty(), Optional.empty(), Optional.empty(), requestScope);
-        NoopBean bean = iterable.iterator().next();
+        NoopBean bean = IterableUtils.first(iterable);
         assertEquals((Long) 1L, bean.getId());
     }
 

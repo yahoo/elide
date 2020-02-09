@@ -40,6 +40,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import lombok.NonNull;
@@ -383,10 +384,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             );
             isUpdated = updateToManyRelation(fieldName, resourceIdentifiers, resources);
         } else { // To One Relationship
-            PersistentResource resource = (resources.isEmpty()) ? null : resources.iterator().next();
+            PersistentResource resource = firstOrNullIfEmpty(resources);
             Object original = (resource == null) ? null : resource.getObject();
-            PersistentResource modifiedResource =
-                    CollectionUtils.isEmpty(resourceIdentifiers) ? null : resourceIdentifiers.iterator().next();
+            PersistentResource modifiedResource = firstOrNullIfEmpty(resourceIdentifiers);
             Object modified = (modifiedResource == null) ? null : modifiedResource.getObject();
             checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, modified, original);
             isUpdated = updateToOneRelation(fieldName, resourceIdentifiers, resources);
@@ -484,11 +484,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Object newValue = null;
         PersistentResource newResource = null;
         if (CollectionUtils.isNotEmpty(resourceIdentifiers)) {
-            newResource = resourceIdentifiers.iterator().next();
+            newResource = IterableUtils.first(resourceIdentifiers);
             newValue = newResource.getObject();
         }
 
-        PersistentResource oldResource = !mine.isEmpty() ? mine.iterator().next() : null;
+        PersistentResource oldResource = firstOrNullIfEmpty(mine);
 
         if (oldResource == null) {
             if (newValue == null) {
@@ -546,7 +546,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 });
 
         if (type.isToOne()) {
-            PersistentResource oldValue = mine.iterator().next();
+            PersistentResource oldValue = IterableUtils.first(mine);
             if (oldValue != null && oldValue.getObject() != null) {
                 this.nullValue(relationName, oldValue);
                 oldValue.markDirty();
@@ -1260,7 +1260,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Data<Resource> data;
             RelationshipType relationshipType = getRelationshipType(field);
             if (relationshipType.isToOne()) {
-                data = resources.isEmpty() ? new Data<>((Resource) null) : new Data<>(resources.iterator().next());
+                data = new Data<>(firstOrNullIfEmpty(resources));
             } else {
                 data = new Data<>(resources);
             }
@@ -1751,5 +1751,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 );
             }
         }
+    }
+
+    private static <T> T firstOrNullIfEmpty(final Collection<T> coll) {
+        return CollectionUtils.isEmpty(coll) ? null : IterableUtils.first(coll);
     }
 }

@@ -69,6 +69,7 @@ import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 
@@ -836,7 +837,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Set<PersistentResource> results = getRelation(parentResource, "children");
 
         assertEquals(1, results.size());
-        assertEquals("paul john", ((Child) results.iterator().next().getObject()).getName());
+        assertEquals("paul john", ((Child) IterableUtils.first(results).getObject()).getName());
     }
 
     @Test

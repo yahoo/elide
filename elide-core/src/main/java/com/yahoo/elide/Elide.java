@@ -47,6 +47,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
@@ -319,7 +320,7 @@ public class Elide {
             String message = "Constraint violation";
             if (CollectionUtils.isNotEmpty(e.getConstraintViolations())) {
                 // Return error for the first constraint violation
-                message = e.getConstraintViolations().iterator().next().getMessage();
+                message = IterableUtils.first(e.getConstraintViolations()).getMessage();
             }
             return buildErrorResponse(new InvalidConstraintException(message), isVerbose);
 

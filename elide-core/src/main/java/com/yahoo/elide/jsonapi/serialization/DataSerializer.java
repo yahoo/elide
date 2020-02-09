@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -32,7 +33,7 @@ public class DataSerializer extends JsonSerializer<Data<Resource>> {
                 jsonGenerator.writeObject(null);
                 return;
             }
-            jsonGenerator.writeObject(list.iterator().next());
+            jsonGenerator.writeObject(IterableUtils.first(list));
             return;
         }
         jsonGenerator.writeObject((list == null) ? Collections.emptyList() : list);
