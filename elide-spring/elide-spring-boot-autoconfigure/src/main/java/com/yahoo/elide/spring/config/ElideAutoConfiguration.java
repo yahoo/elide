@@ -33,7 +33,6 @@ import io.swagger.models.Swagger;
 import java.util.HashMap;
 import java.util.TimeZone;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 /**
  * Auto Configuration For Elide Services.  Override any of the beans (by defining your own) to change
@@ -136,11 +135,5 @@ public class ElideAutoConfiguration {
         Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
 
         return swagger;
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public EntityManagerFactory buildEntityManagerFactory() {
-        return Persistence.createEntityManagerFactory();
     }
 }
