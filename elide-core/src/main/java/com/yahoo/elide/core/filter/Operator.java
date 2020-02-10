@@ -338,7 +338,7 @@ public enum Operator {
         return (T entity) -> {
 
             Object val = getFieldValue(entity, field, requestScope);
-            if (val == null) { return true; }
+            if (val == null) { return false; }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).isEmpty();
             }

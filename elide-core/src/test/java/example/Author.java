@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -76,4 +77,8 @@ public class Author {
 
     @Getter @Setter
     private Address homeAddress;
+
+    @ElementCollection
+    @Getter @Setter
+    private Collection<String> awards;
 }

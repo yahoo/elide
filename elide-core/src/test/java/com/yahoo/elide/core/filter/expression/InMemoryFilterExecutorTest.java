@@ -38,6 +38,7 @@ import example.Book;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +59,7 @@ public class InMemoryFilterExecutorTest {
     private PathElement authorIdElement = new PathElement(Author.class, Long.class, "id");
     private PathElement authorNameElement = new PathElement(Author.class, String.class, "name");
     private PathElement authorBooksElement = new PathElement(Author.class, Book.class, "books");
+    private PathElement authorAwardsElement = new PathElement(Author.class, String.class, "awards");
     private List<Object> listNine = Collections.singletonList("9");
     private List<Object> listTen = Collections.singletonList("10");
     private List<Object> listEleven = Collections.singletonList("11");
@@ -182,22 +184,22 @@ public class InMemoryFilterExecutorTest {
         assertFalse(fn.test(author));
     }
 
-    //TODO: isEmptyAndNotEmpty
     @Test
     public void isemptyAndNotemptyPredicateTest() throws Exception {
         author = new Author();
         author.setId(1L);
         // When name is empty and books are empty
         author.setBooks(new HashSet<>());
+        author.setAwards(new HashSet<>());
 
-        expression = new IsEmptyPredicate(authorNameElement);
+        expression = new IsEmptyPredicate(authorAwardsElement);
         fn = expression.accept(visitor);
         assertTrue(fn.test(author));
         expression = new IsEmptyPredicate(authorBooksElement);
         fn = expression.accept(visitor);
         assertTrue(fn.test(author));
 
-        expression = new NotEmptyPredicate(authorNameElement);
+        expression = new NotEmptyPredicate(authorAwardsElement);
         fn = expression.accept(visitor);
         assertFalse(fn.test(author));
         expression = new NotEmptyPredicate(authorBooksElement);
@@ -206,17 +208,17 @@ public class InMemoryFilterExecutorTest {
 
 
         // When name and books are not empty
-        author.setName("AuthorForTest");
+        author.setAwards(Arrays.asList("Bookery prize"));
         author.getBooks().add(new Book());
 
-        expression = new IsEmptyPredicate(authorNameElement);
+        expression = new IsEmptyPredicate(authorAwardsElement);
         fn = expression.accept(visitor);
         assertFalse(fn.test(author));
         expression = new IsEmptyPredicate(authorBooksElement);
         fn = expression.accept(visitor);
         assertFalse(fn.test(author));
 
-        expression = new NotEmptyPredicate(authorNameElement);
+        expression = new NotEmptyPredicate(authorAwardsElement);
         fn = expression.accept(visitor);
         assertTrue(fn.test(author));
         expression = new NotEmptyPredicate(authorBooksElement);

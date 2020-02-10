@@ -122,14 +122,14 @@ public class OperatorTest {
     public void isemptyAndNotemptyTest() throws Exception {
         author = new Author();
         author.setId(1L);
-        author.setName("AuthorForTest");
+        author.setAwards(Arrays.asList("Booker Prize", "National Book Awards"));
         author.getBooks().add(new Book());
 
-        fn = Operator.ISEMPTY.contextualize("name", null, requestScope);
+        fn = Operator.ISEMPTY.contextualize("awards", null, requestScope);
         assertFalse(fn.test(author));
         fn = Operator.ISEMPTY.contextualize("books", null, requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.NOTEMPTY.contextualize("name", null, requestScope);
+        fn = Operator.NOTEMPTY.contextualize("awards", null, requestScope);
         assertTrue(fn.test(author));
         fn = Operator.NOTEMPTY.contextualize("books", null, requestScope);
         assertTrue(fn.test(author));
@@ -137,15 +137,15 @@ public class OperatorTest {
 
         //name is null and books are null
         author.setBooks(null);
-        author.setName(null);
-        fn = Operator.ISEMPTY.contextualize("name", null, requestScope);
+        author.setAwards(Arrays.asList());
+        fn = Operator.ISEMPTY.contextualize("awards", null, requestScope);
         assertTrue(fn.test(author));
         fn = Operator.ISEMPTY.contextualize("books", null, requestScope);
-        assertTrue(fn.test(author));
-        fn = Operator.NOTEMPTY.contextualize("name", null, requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.NOTEMPTY.contextualize("awards", null, requestScope);
         assertFalse(fn.test(author));
         fn = Operator.NOTEMPTY.contextualize("books", null, requestScope);
-        assertFalse(fn.test(author));
+        assertTrue(fn.test(author));
 
     }
 
