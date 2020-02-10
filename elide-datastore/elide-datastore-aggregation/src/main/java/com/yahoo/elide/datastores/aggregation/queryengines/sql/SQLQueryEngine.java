@@ -236,12 +236,12 @@ public class SQLQueryEngine extends QueryEngine {
      * Extract dimension projects in a query to sql dimensions.
      *
      * @param query requested query
-     * @param queriedTable queried analytic view
+     * @param table queried table
      * @return sql dimensions in this query
      */
-    private List<SQLColumn> extractSQLDimensions(Query query, SQLTable queriedTable) {
+    private List<SQLColumn> extractSQLDimensions(Query query, SQLTable table) {
         return query.getDimensions().stream()
-                .map(projection -> queriedTable.getColumn(projection.getColumn().getName()))
+                .map(projection -> table.getSQLColumn(projection.getColumn().getName()))
                 .collect(Collectors.toList());
     }
 

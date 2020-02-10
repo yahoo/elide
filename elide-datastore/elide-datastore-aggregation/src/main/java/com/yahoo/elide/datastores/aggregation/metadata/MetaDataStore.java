@@ -165,14 +165,4 @@ public class MetaDataStore extends HashMapDataStore {
     public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
         return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
     }
-
-    /**
-     * Returns whether an entity class is analytic view.
-     *
-     * @param cls entity class
-     * @return True if {@link FromTable} or {@link FromSubquery} is presented.
-     */
-    public static boolean isAnalyticView(Class<?> cls) {
-        return cls.isAnnotationPresent(FromTable.class) || cls.isAnnotationPresent(FromSubquery.class);
-    }
 }

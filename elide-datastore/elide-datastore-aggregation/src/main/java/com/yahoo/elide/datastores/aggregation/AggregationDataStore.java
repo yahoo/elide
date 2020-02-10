@@ -42,7 +42,7 @@ public class AggregationDataStore implements DataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         for (Class<? extends Annotation> cls : AGGREGATION_STORE_CLASSES) {
-            // bind non-jpa entities, including analyticViews and views
+            // bind non-jpa entity tables
             ClassScanner.getAnnotatedClasses(cls).forEach(dictionary::bindEntity);
         }
 
