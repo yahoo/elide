@@ -27,11 +27,11 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
-
 import com.yahoo.elide.request.Sorting;
+
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
@@ -69,8 +69,8 @@ public class SQLQueryConstructor {
                                     Sorting sorting,
                                     FilterExpression whereClause,
                                     FilterExpression havingClause) {
-        SQLAnalyticView queriedTable = (SQLAnalyticView) clientQuery.getAnalyticView();
-        Class<?> tableCls = clientQuery.getAnalyticView().getCls();
+        SQLTable queriedTable = (SQLTable) clientQuery.getTable();
+        Class<?> tableCls = clientQuery.getTable().getCls();
         String tableAlias = getClassAlias(tableCls);
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
@@ -131,7 +131,7 @@ public class SQLQueryConstructor {
      * @return <code>GROUP BY tb1.col1, tb2.col2, ...</code>
      */
     private String constructGroupByWithReference(Set<ColumnProjection> groupByDimensions,
-                                                 SQLAnalyticView queriedTable) {
+                                                 SQLTable queriedTable) {
         return "GROUP BY " + groupByDimensions.stream()
                 .map(dimension -> resolveSQLColumnReference(dimension, queriedTable))
                 .collect(Collectors.joining(", "));
@@ -177,7 +177,7 @@ public class SQLQueryConstructor {
      * @param queriedTable queried analytic view
      * @return <code>SELECT function(metric1) AS alias1, tb1.dimension1 AS alias2</code>
      */
-    private String constructProjectionWithReference(SQLQueryTemplate template, SQLAnalyticView queriedTable) {
+    private String constructProjectionWithReference(SQLQueryTemplate template, SQLTable queriedTable) {
         // TODO: project metric field using table column reference
         List<String> metricProjections = template.getMetrics().stream()
                 .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
@@ -398,14 +398,14 @@ public class SQLQueryConstructor {
 
     /**
      * Given the set of group by dimensions, extract any entity relationship traversals that require joins.
-     * This method takes in a {@link SQLAnalyticView} because the sql join path meta data is stored in it.
+     * This method takes in a {@link SQLTable} because the sql join path meta data is stored in it.
      *
      * @param groupByDimensions The list of dimensions we are grouping on.
      * @param queriedTable queried analytic view
      * @return A set of path elements that capture a relationship traversal.
      */
     private Set<Path> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
-                                       SQLAnalyticView queriedTable) {
+                                       SQLTable queriedTable) {
         return resolveSQLColumns(groupByDimensions, queriedTable).stream()
                 .filter((dim) -> dim.getJoinPath() != null)
                 .map(SQLColumn::getJoinPath)
@@ -443,7 +443,7 @@ public class SQLQueryConstructor {
      * @param queriedTable sql analytic view
      * @return projected columns
      */
-    private Set<SQLColumn> resolveSQLColumns(Set<ColumnProjection> columnProjections, SQLAnalyticView queriedTable) {
+    private Set<SQLColumn> resolveSQLColumns(Set<ColumnProjection> columnProjections, SQLTable queriedTable) {
         return columnProjections.stream()
                 .map(colProjection -> queriedTable.getColumn(colProjection.getColumn().getName()))
                 .collect(Collectors.toSet());
@@ -457,7 +457,7 @@ public class SQLQueryConstructor {
      * @param queriedTable sql analytic view
      * @return projected columns
      */
-    private String resolveSQLColumnReference(ColumnProjection columnProjection, SQLAnalyticView queriedTable) {
+    private String resolveSQLColumnReference(ColumnProjection columnProjection, SQLTable queriedTable) {
         SQLColumn sqlColumn = queriedTable.getColumn(columnProjection.getColumn().getName());
 
         if (columnProjection instanceof TimeDimensionProjection) {

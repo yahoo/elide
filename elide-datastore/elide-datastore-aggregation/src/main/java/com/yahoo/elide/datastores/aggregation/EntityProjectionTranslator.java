@@ -11,7 +11,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
  * Helper for Aggregation Data Store which does the work associated with extracting {@link Query}.
  */
 public class EntityProjectionTranslator {
-    private AnalyticView queriedTable;
+    private Table queriedTable;
 
     private EntityProjection entityProjection;
     private Set<ColumnProjection> dimensionProjections;
@@ -48,11 +47,7 @@ public class EntityProjectionTranslator {
     private EntityDictionary dictionary;
 
     public EntityProjectionTranslator(Table table, EntityProjection entityProjection, EntityDictionary dictionary) {
-        if (!(table instanceof AnalyticView)) {
-            throw new InvalidOperationException("Queried table is not analyticView: " + table.getName());
-        }
-
-        this.queriedTable = (AnalyticView) table;
+        this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
         dimensionProjections = resolveNonTimeDimensions();
@@ -67,7 +62,7 @@ public class EntityProjectionTranslator {
      */
     public Query getQuery() {
         Query query = Query.builder()
-                .analyticView(queriedTable)
+                .table(queriedTable)
                 .metrics(metrics)
                 .groupByDimensions(dimensionProjections)
                 .timeDimensions(timeDimensions)

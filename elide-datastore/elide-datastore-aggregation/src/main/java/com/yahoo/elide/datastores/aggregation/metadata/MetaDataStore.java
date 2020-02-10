@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
 public class MetaDataStore extends HashMapDataStore {
-    public static final Package META_DATA_PACKAGE =
+    private static final Package META_DATA_PACKAGE =
             Package.getPackage("com.yahoo.elide.datastores.aggregation.metadata.models");
 
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
@@ -52,11 +52,11 @@ public class MetaDataStore extends HashMapDataStore {
         this.dictionary = new EntityDictionary(new HashMap<>());
 
         // bind meta data models to dictionary
-        ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(cls -> dictionary.bindEntity(cls));
+        ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(dictionary::bindEntity);
 
         // bind external data models in the package
         this.modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
-        modelsToBind.forEach(modelClass -> dictionary.bindEntity(modelClass));
+        modelsToBind.forEach(dictionary::bindEntity);
     }
 
     @Override

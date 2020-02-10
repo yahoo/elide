@@ -9,7 +9,7 @@ import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
@@ -47,7 +47,7 @@ public class AggregationDataStore implements DataStore {
         }
 
         /* Add 'grain' argument to each TimeDimensionColumn */
-        for (AnalyticView table : queryEngine.getMetaDataStore().getMetaData(AnalyticView.class)) {
+        for (Table table : queryEngine.getMetaDataStore().getMetaData(Table.class)) {
             for (TimeDimension timeDim : table.getColumns(TimeDimension.class)) {
                 dictionary.addArgumentToAttribute(
                         table.getCls(),

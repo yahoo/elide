@@ -35,7 +35,6 @@ import io.restassured.response.ValidatableResponse;
 
 import java.io.IOException;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
 
@@ -801,7 +800,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/analyticView/playerStats")
+                .get("/table/playerStats")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("LARGE"))

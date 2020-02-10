@@ -9,7 +9,6 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 
@@ -75,19 +74,15 @@ public abstract class QueryEngine {
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getDictionary();
         populateMetaData(metaDataStore);
-        this.tables = metaDataStore.getMetaData(AnalyticView.class).stream()
+        this.tables = metaDataStore.getMetaData(Table.class).stream()
                 .collect(Collectors.toMap(Table::getCls, Functions.identity()));
     }
 
     protected abstract Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary);
 
-    protected abstract AnalyticView constructAnalyticView(Class<?> entityClass, EntityDictionary metaDataDictionary);
-
     private void populateMetaData(MetaDataStore metaDataStore) {
         metaDataStore.getModelsToBind().stream()
-                .map(model -> MetaDataStore.isAnalyticView(model)
-                        ? constructAnalyticView(model, metadataDictionary)
-                        : constructTable(model, metadataDictionary))
+                .map(model -> constructTable(model, metadataDictionary))
                 .forEach(metaDataStore::addTable);
     }
 

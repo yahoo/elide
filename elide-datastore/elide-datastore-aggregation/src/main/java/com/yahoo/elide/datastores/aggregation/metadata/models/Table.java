@@ -48,6 +48,14 @@ public class Table {
     @ToString.Exclude
     private Set<Column> columns;
 
+    @OneToMany
+    @ToString.Exclude
+    private Set<Metric> metrics;
+
+    @OneToMany
+    @ToString.Exclude
+    private Set<Dimension> dimensions;
+
     public Table(Class<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBindings().contains(cls)) {
             throw new IllegalArgumentException(
@@ -58,6 +66,14 @@ public class Table {
         this.name = dictionary.getJsonAliasFor(cls);
 
         this.columns = resolveColumns(cls, dictionary);
+        this.metrics = this.columns.stream()
+                .filter(col -> col instanceof Metric)
+                .map(Metric.class::cast)
+                .collect(Collectors.toSet());
+        this.dimensions = this.columns.stream()
+                .filter(col -> !(col instanceof Metric))
+                .map(Dimension.class::cast)
+                .collect(Collectors.toSet());
 
         Meta meta = cls.getAnnotation(Meta.class);
         if (meta != null) {

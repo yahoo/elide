@@ -16,14 +16,12 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
@@ -61,11 +59,6 @@ public class SQLQueryEngine extends QueryEngine {
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
         return new SQLTable(entityClass, metaDataDictionary);
-    }
-
-    @Override
-    protected AnalyticView constructAnalyticView(Class<?> entityClass, EntityDictionary metaDataDictionary) {
-        return new SQLAnalyticView(entityClass, metaDataDictionary);
     }
 
     @Override
@@ -223,7 +216,7 @@ public class SQLQueryEngine extends QueryEngine {
     private SQLQuery toPageTotalSQL(SQLQuery sql) {
         // TODO: refactor this method
         String groupByDimensions =
-                extractSQLDimensions(sql.getClientQuery(), (SQLAnalyticView) sql.getClientQuery().getAnalyticView())
+                extractSQLDimensions(sql.getClientQuery(), (SQLTable) sql.getClientQuery().getTable())
                         .stream()
                         .map(SQLColumn::getReference)
                         .collect(Collectors.joining(", "));
@@ -246,7 +239,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @param queriedTable queried analytic view
      * @return sql dimensions in this query
      */
-    private List<SQLColumn> extractSQLDimensions(Query query, SQLAnalyticView queriedTable) {
+    private List<SQLColumn> extractSQLDimensions(Query query, SQLTable queriedTable) {
         return query.getDimensions().stream()
                 .map(projection -> queriedTable.getColumn(projection.getColumn().getName()))
                 .collect(Collectors.toList());
