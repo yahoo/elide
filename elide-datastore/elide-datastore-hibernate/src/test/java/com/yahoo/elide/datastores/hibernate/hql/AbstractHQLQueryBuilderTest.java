@@ -25,7 +25,6 @@ import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
-
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import example.Author;

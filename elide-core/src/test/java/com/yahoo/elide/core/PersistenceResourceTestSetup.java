@@ -30,9 +30,9 @@ import example.Parent;
 import example.Publisher;
 import example.Right;
 import example.UpdateAndCreate;
-import example.packageshareable.ContainerWithPackageShare;
-import example.packageshareable.ShareableWithPackageShare;
-import example.packageshareable.UnshareableWithEntityUnshare;
+import example.nontransferable.ContainerWithPackageShare;
+import example.nontransferable.ShareableWithPackageShare;
+import example.nontransferable.Untransferable;
 import nocreate.NoCreateEntity;
 
 import java.util.HashSet;
@@ -70,7 +70,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         dictionary.bindEntity(ComputedBean.class);
         dictionary.bindEntity(ContainerWithPackageShare.class);
         dictionary.bindEntity(ShareableWithPackageShare.class);
-        dictionary.bindEntity(UnshareableWithEntityUnshare.class);
+        dictionary.bindEntity(Untransferable.class);
         return dictionary;
     }
 

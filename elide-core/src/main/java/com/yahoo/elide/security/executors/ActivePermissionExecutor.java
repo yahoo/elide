@@ -11,8 +11,8 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
@@ -98,7 +98,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     /**
-     * Check permission on class. Checking on SharePermission falls to check ReadPermission.
+     * Check permission on class. Checking on Transferable falls to check ReadPermission.
      *
      * @param annotationClass annotation class
      * @param resource resource
@@ -114,8 +114,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                    PersistentResource resource,
                                                                    ChangeSpec changeSpec) {
         Supplier<Expression> expressionSupplier = () -> {
-            if (SharePermission.class == annotationClass) {
-                if (requestScope.getDictionary().isShareable(resource.getResourceClass())) {
+            if (NonTransferable.class == annotationClass) {
+                if (requestScope.getDictionary().isTransferable(resource.getResourceClass())) {
                     return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
                 }
                 return PermissionExpressionBuilder.FAIL_EXPRESSION;

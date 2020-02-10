@@ -19,7 +19,6 @@ import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.RequestScope;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -50,7 +49,6 @@ import javax.persistence.Table;
  * runtime error at places such as {@code entityClass.newInstance();}</b>
  */
 @Entity
-@SharePermission
 @Table(name = "book")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.CREATE,

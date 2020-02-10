@@ -6,6 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -15,6 +16,7 @@ import javax.persistence.Table;
 // Hibernate
 @Entity
 @Table(name = "noshare")
+@NonTransferable
 public class NoShareEntity {
     private long id;
 

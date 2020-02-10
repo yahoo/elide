@@ -3,10 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package example.packageshareable;
+package example.nontransferable;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -19,9 +18,8 @@ import javax.persistence.ManyToOne;
  * Entity level Unshareable bean.
  */
 @Entity
-@SharePermission(sharable = false)
 @Include(rootLevel = true)
-public class UnshareableWithEntityUnshare {
+public class Untransferable {
     private long id;
     private ContainerWithPackageShare container;
 

@@ -7,7 +7,6 @@
 package com.yahoo.elide.request;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

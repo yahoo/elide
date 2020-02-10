@@ -6,6 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 
 import java.util.Collection;
 
@@ -19,25 +20,26 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "container")
 @Include(rootLevel = true, type = "container")
+@NonTransferable
 public class Container extends BaseId {
-    private Collection<Unshareable> unshareables;
-    private Collection<Shareable> shareables;
+    private Collection<Untransferable> untransferables;
+    private Collection<Transferable> transferables;
 
     @OneToMany(mappedBy = "container")
-    public Collection<Unshareable> getUnshareables() {
-        return unshareables;
+    public Collection<Untransferable> getUntransferables() {
+        return untransferables;
     }
 
-    public void setUnshareables(Collection<Unshareable> unshareables) {
-        this.unshareables = unshareables;
+    public void setUntransferables(Collection<Untransferable> untransferables) {
+        this.untransferables = untransferables;
     }
 
     @OneToMany(mappedBy = "container")
-    public Collection<Shareable> getShareables() {
-        return shareables;
+    public Collection<Transferable> getTransferables() {
+        return transferables;
     }
 
-    public void setShareables(Collection<Shareable> shareables) {
-        this.shareables = shareables;
+    public void setTransferables(Collection<Transferable> transferables) {
+        this.transferables = transferables;
     }
 }

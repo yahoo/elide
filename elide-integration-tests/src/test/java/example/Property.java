@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.ToOne;
 
 import org.hibernate.annotations.Any;
@@ -21,7 +20,6 @@ import javax.persistence.JoinColumn;
 
 @Entity
 @Include(rootLevel = true, type = "property")
-@SharePermission
 public class Property extends BaseId {
     @Setter private Device myStuff;
 
