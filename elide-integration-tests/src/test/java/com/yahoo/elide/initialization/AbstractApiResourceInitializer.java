@@ -7,6 +7,7 @@ package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -55,7 +56,7 @@ public abstract class AbstractApiResourceInitializer {
         // port randomly picked in pom.xml
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         RestAssured.port =
-                Integer.parseInt(restassuredPort != null && !restassuredPort.isEmpty() ? restassuredPort : "9999");
+                Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
 
         // embedded jetty server
         server = new Server(RestAssured.port);

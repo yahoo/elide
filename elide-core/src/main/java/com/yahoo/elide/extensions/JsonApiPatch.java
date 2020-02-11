@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -383,7 +384,7 @@ public class JsonApiPatch {
         }
 
         // Find ext=jsonpatch
-        return Arrays.asList(header.split(";")).stream()
+        return Arrays.stream(header.split(";"))
             .map(key -> key.split("="))
             .filter(value -> value.length == 2)
             .anyMatch(value -> value[0].trim().equals("ext") && value[1].trim().equals("jsonpatch"));
@@ -393,6 +394,6 @@ public class JsonApiPatch {
         if (resources == null || resources.size() != 1) {
             throw new InvalidEntityBodyException("Expected single resource.");
         }
-        return resources.iterator().next();
+        return IterableUtils.first(resources);
     }
 }

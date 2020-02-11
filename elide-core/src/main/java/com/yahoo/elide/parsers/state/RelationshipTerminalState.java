@@ -21,6 +21,7 @@ import com.yahoo.elide.jsonapi.models.Resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -165,7 +166,7 @@ public class RelationshipTerminalState extends BaseState {
         }
 
         Collection<Resource> resources = data.get();
-        if (resources == null || resources.isEmpty()) {
+        if (CollectionUtils.isEmpty(resources)) {
             // As per: http://jsonapi.org/format/#crud-updating-relationship-responses-403
             throw new ForbiddenAccessException("Unknown update");
         }

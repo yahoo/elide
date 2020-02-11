@@ -25,6 +25,8 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.collect.ImmutableMap;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
 import cz.jirutka.rsql.parser.ast.AndNode;
@@ -94,7 +96,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
-        MultivaluedMap.Entry<String, List<String>> entry = filterParams.entrySet().iterator().next();
+        MultivaluedMap.Entry<String, List<String>> entry = CollectionUtils.get(filterParams, 0);
         String queryParamName = entry.getKey();
 
         if (!"filter".equals(queryParamName)) {

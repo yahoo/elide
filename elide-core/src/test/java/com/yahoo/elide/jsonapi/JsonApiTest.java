@@ -33,6 +33,7 @@ import example.Child;
 import example.Parent;
 import example.TestCheckMappings;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -305,7 +306,7 @@ public class JsonApiTest {
         Resource data = dataObj.getSingleValue();
         Map<String, Object> attributes = data.getAttributes();
         List<Resource> included = jsonApiDocument.getIncluded();
-        Resource includedChild = included.iterator().next();
+        Resource includedChild = IterableUtils.first(included);
         ResourceIdentifier parent = includedChild.getRelationships()
                 .get("parents")
                 .getResourceIdentifierData().getSingleValue();
@@ -348,7 +349,7 @@ public class JsonApiTest {
         Resource data = list.get().iterator().next();
         Map<String, Object> attributes = data.getAttributes();
         List<Resource> included = jsonApiDocument.getIncluded();
-        Resource includedChild = included.iterator().next();
+        Resource includedChild = IterableUtils.first(included);
         ResourceIdentifier parent = includedChild.getRelationships().get("parents").getResourceIdentifierData().getSingleValue();
 
         assertEquals("parent", data.getType());

@@ -23,6 +23,8 @@ import com.yahoo.elide.graphql.containers.ConnectionContainer;
 
 import com.google.common.collect.Sets;
 
+import org.apache.commons.collections4.IterableUtils;
+
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -403,7 +405,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                         Optional.empty(),
                         Optional.empty(),
                         false).getPersistentResources();
-                upsertedResource = loadedResource.iterator().next();
+                upsertedResource = IterableUtils.first(loadedResource);
 
             //The ID doesn't exist yet.  Let's create the object.
             } catch (InvalidObjectIdentifierException | InvalidValueException e) {
@@ -433,7 +435,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             Optional.empty(),
             Optional.empty(),
             false).getPersistentResources();
-        updatedResource = loadedResource.iterator().next();
+        updatedResource = IterableUtils.first(loadedResource);
 
         return updateAttributes(updatedResource, entity, attributes);
     }
