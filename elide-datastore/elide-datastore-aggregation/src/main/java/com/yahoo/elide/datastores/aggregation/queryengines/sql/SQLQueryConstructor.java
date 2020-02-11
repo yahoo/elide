@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.core.filter.FilterPredicate.appendAlias;
 import static com.yahoo.elide.core.filter.FilterPredicate.getTypeAlias;
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
@@ -17,6 +18,8 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -186,20 +189,7 @@ public class SQLQueryConstructor {
         Class<?> tableClass = dictionary.getEntityClass(table.getName());
 
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
-                .map(dimension -> {
-                    String fieldName = dimension.getColumn().getName();
-
-                    // relation to Non-JPA Entities object can't be projected
-                    if (dictionary.isRelation(tableClass, fieldName)) {
-                        Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);
-                        if (!dictionary.isJPAEntity(relationshipClass)) {
-                            throw new InvalidPredicateException(
-                                    "Can't query on non-JPA relationship field: " + dimension.getColumn().getName());
-                        }
-                    }
-
-                    return resolveSQLColumnReference(dimension, table) + " AS " + dimension.getAlias();
-                })
+                .map(dimension -> resolveSQLColumnReference(dimension, table) + " AS " + dimension.getAlias())
                 .collect(Collectors.toList());
 
         if (metricProjections.isEmpty()) {
@@ -238,7 +228,7 @@ public class SQLQueryConstructor {
             Class<?> parentClass = pathElement.getType();
 
             // Nothing left to join.
-            if (! dictionary.isRelation(parentClass, fieldName)) {
+            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(parentClass, fieldName, dictionary)) {
                 return;
             }
 
@@ -255,47 +245,48 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Build a single dimension join clause for joining a relationship table to the parent table.
+     * Build a single dimension join clause for joining a relationship/join table to the parent table.
      *
-     * @param parentClass parent class
-     * @param parentAlias parent table alias
-     * @param relationshipClass relationship class
-     * @param relationshipName relationship field name
+     * @param fromClass parent class
+     * @param fromAlias parent table alias
+     * @param joinClass relationship/join class
+     * @param joinField relationship/join field name
      * @return built join clause i.e. <code>LEFT JOIN table1 AS dimension1 ON table0.dim_id = dimension1.id</code>
      */
-    private String extractJoinClause(Class<?> parentClass,
-                                     String parentAlias,
-                                     Class<?> relationshipClass,
-                                     String relationshipName) {
+    private String extractJoinClause(Class<?> fromClass,
+                                     String fromAlias,
+                                     Class<?> joinClass,
+                                     String joinField) {
         //TODO - support composite join keys.
         //TODO - support joins where either side owns the relationship.
         //TODO - Support INNER and RIGHT joins.
         //TODO - Support toMany joins.
 
-        String relationshipAlias = appendAlias(parentAlias, relationshipName);
-        String relationshipColumnName = dictionary.getAnnotatedColumnName(parentClass, relationshipName);
+        String joinAlias = appendAlias(fromAlias, joinField);
+        String joinColumnName = dictionary.getAnnotatedColumnName(fromClass, joinField);
 
         // resolve the right hand side of JOIN
-        String joinSource = constructTableOrSubselect(relationshipClass);
+        String joinSource = constructTableOrSubselect(joinClass);
 
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(
-                parentClass,
-                JoinTo.class,
-                relationshipColumnName);
+        Join join = dictionary.getAttributeOrRelationAnnotation(
+                fromClass,
+                Join.class,
+                joinField);
 
-        String joinClause = joinTo == null
-                ? String.format("%s.%s = %s.%s",
-                parentAlias,
-                relationshipColumnName,
-                relationshipAlias,
-                dictionary.getAnnotatedColumnName(
-                        relationshipClass,
-                        dictionary.getIdFieldName(relationshipClass)))
-                : extractJoinExpression(joinTo.joinClause(), parentAlias, relationshipAlias);
+        String joinClause = join == null
+                ? String.format(
+                        "%s.%s = %s.%s",
+                        fromAlias,
+                        joinColumnName,
+                        joinAlias,
+                        dictionary.getAnnotatedColumnName(
+                                joinClass,
+                                dictionary.getIdFieldName(joinClass)))
+                : extractJoinExpression(join.value(), fromAlias, joinAlias);
 
         return String.format("LEFT JOIN %s AS %s ON %s",
                 joinSource,
-                relationshipAlias,
+                joinAlias,
                 joinClause);
     }
 
@@ -365,7 +356,7 @@ public class SQLQueryConstructor {
             return path;
         }
 
-        return new Path(entityClass, dictionary, joinTo.path());
+        return new JoinPath(entityClass, dictionary, joinTo.path());
     }
 
     /**

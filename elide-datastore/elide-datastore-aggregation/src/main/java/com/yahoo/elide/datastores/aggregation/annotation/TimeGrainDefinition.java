@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 /**
  * A time grain that a time based dimension can be converted to.

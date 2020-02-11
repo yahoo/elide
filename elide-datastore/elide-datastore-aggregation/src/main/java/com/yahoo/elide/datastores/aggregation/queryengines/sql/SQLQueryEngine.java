@@ -14,6 +14,7 @@ import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
@@ -264,7 +265,7 @@ public class SQLQueryEngine extends QueryEngine {
         if (joinTo == null) {
             return getPathAlias(path) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
         } else {
-            return generateColumnReference(new Path(lastClass, dictionary, joinTo.path()), dictionary);
+            return generateColumnReference(new JoinPath(lastClass, dictionary, joinTo.path()), dictionary);
         }
     }
 
