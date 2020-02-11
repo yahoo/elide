@@ -1144,22 +1144,6 @@ public class EntityDictionary {
         return (entityBindings.getOrDefault(objClass, EMPTY_BINDING) != EMPTY_BINDING);
     }
 
-
-    /**
-     * Check whether a class is a JPA entity
-     *
-     * @param objClass class
-     * @return True if it is a JPA entity
-     */
-    public final boolean isJPAEntity(Class<?> objClass) {
-        try {
-            lookupEntityClass(objClass);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
-
     /**
      * Retrieve the accessible object for a field from a target object.
      *

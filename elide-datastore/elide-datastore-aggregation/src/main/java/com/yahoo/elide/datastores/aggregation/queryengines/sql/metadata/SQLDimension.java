@@ -9,7 +9,7 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEn
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
+import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
@@ -23,7 +23,7 @@ public class SQLDimension extends Dimension implements SQLColumn {
     private final String reference;
 
     @Getter
-    private final Path joinPath;
+    private final JoinPath joinPath;
 
     public SQLDimension(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         super(tableClass, fieldName, dictionary);
@@ -34,7 +34,7 @@ public class SQLDimension extends Dimension implements SQLColumn {
             this.reference = getClassAlias(tableClass) + "." + dictionary.getAnnotatedColumnName(tableClass, fieldName);
             this.joinPath = null;
         } else {
-            Path path = new Path(tableClass, dictionary, joinTo.path());
+            JoinPath path = new JoinPath(tableClass, dictionary, joinTo.path());
             this.reference = generateColumnReference(path, dictionary);
             this.joinPath = path;
         }
