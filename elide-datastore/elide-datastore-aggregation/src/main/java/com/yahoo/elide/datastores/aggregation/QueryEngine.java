@@ -70,6 +70,12 @@ public abstract class QueryEngine {
     @Getter
     private final Map<String, Table> tables;
 
+    /**
+     * QueryEngine is constructed with a metadata store and is responsible for constructing all Tables and Entities
+     * metadata in this metadata store.
+     *
+     * @param metaDataStore a metadata store
+     */
     public QueryEngine(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getDictionary();
@@ -78,8 +84,20 @@ public abstract class QueryEngine {
                 .collect(Collectors.toMap(Table::getName, Functions.identity()));
     }
 
+    /**
+     * Construct Table metadata for an entity.
+     *
+     * @param entityClass entity class
+     * @param metaDataDictionary metadata dictionary
+     * @return constructed Table
+     */
     protected abstract Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary);
 
+    /**
+     * Query is responsible for constructing all Tables and Entities metadata in this metadata store.
+     *
+     * @param metaDataStore metadata store to populate
+     */
     private void populateMetaData(MetaDataStore metaDataStore) {
         metaDataStore.getModelsToBind().stream()
                 .map(model -> constructTable(model, metadataDictionary))
