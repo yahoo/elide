@@ -12,6 +12,7 @@ import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.Hidden;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.NonTransferable;
@@ -32,7 +33,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,7 +62,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -466,7 +465,9 @@ public class EntityDictionary {
      * @return List of attribute names for entity
      */
     public List<String> getAttributes(Class<?> entityClass) {
-        return getEntityBinding(entityClass).attributes;
+        return getEntityBinding(entityClass).attributes.stream()
+                .filter(attr -> getAttributeOrRelationAnnotation(entityClass, Hidden.class, attr) == null)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -1138,6 +1139,21 @@ public class EntityDictionary {
      */
     private boolean isClassBound(Class<?> objClass) {
         return (entityBindings.getOrDefault(objClass, EMPTY_BINDING) != EMPTY_BINDING);
+    }
+
+    /**
+     * Check whether a class is a JPA entity
+     *
+     * @param objClass class
+     * @return True if it is a JPA entity
+     */
+    public final boolean isJPAEntity(Class<?> objClass) {
+        try {
+            lookupEntityClass(objClass);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     /**
