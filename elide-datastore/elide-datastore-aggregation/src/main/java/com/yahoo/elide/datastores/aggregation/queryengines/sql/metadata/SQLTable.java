@@ -5,18 +5,11 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
-
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * SQL extension of {@link Table} which also contains sql column meta data.
@@ -24,28 +17,27 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class SQLTable extends Table {
-    private Map<String, SQLColumn> sqlColumns;
-
     public SQLTable(Class<?> cls, EntityDictionary dictionary) {
         super(cls, dictionary);
-        this.sqlColumns = resolveSQLDimensions(cls, dictionary);
     }
 
-    /**
-     * Resolve all sql columns of a table.
-     *
-     * @param cls table class
-     * @param dictionary dictionary contains the table class
-     * @return all resolved sql column metadata
-     */
-    public static Map<String, SQLColumn> resolveSQLDimensions(Class<?> cls, EntityDictionary dictionary) {
-        return dictionary.getAllFields(cls).stream()
-                .filter(field -> Column.getDataType(cls, field, dictionary) != null)
-                .filter(field -> !isMetricField(dictionary, cls, field))
-                .collect(Collectors.toMap(Function.identity(), field -> new SQLColumn(cls, field, dictionary)));
+    public final SQLColumn getSQLColumn(String fieldName) {
+        SQLDimension dimension = getColumn(SQLDimension.class, fieldName);
+        return dimension == null ? getColumn(SQLTimeDimension.class, fieldName) : dimension;
     }
 
-    public SQLColumn getColumn(String fieldName) {
-        return sqlColumns.get(fieldName);
+    @Override
+    protected SQLMetric constructMetric(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+        return new SQLMetric(cls, fieldName, dictionary);
+    }
+
+    @Override
+    protected SQLTimeDimension constructTimeDimension(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+        return new SQLTimeDimension(cls, fieldName, dictionary);
+    }
+
+    @Override
+    protected SQLDimension constructDimension(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+        return new SQLDimension(cls, fieldName, dictionary);
     }
 }

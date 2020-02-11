@@ -14,7 +14,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.request.Sorting;
@@ -31,7 +31,7 @@ public class QueryValidator {
     private Query query;
     private Set<String> allFields;
     private EntityDictionary dictionary;
-    private AnalyticView queriedTable;
+    private Table queriedTable;
     private List<MetricFunctionInvocation> metrics;
     private Set<ColumnProjection> dimensionProjections;
 
@@ -39,7 +39,7 @@ public class QueryValidator {
         this.query = query;
         this.allFields = allFields;
         this.dictionary = dictionary;
-        this.queriedTable = query.getAnalyticView();
+        this.queriedTable = query.getTable();
         this.metrics = query.getMetrics();
         this.dimensionProjections = query.getDimensions();
     }
@@ -71,12 +71,14 @@ public class QueryValidator {
             Class<?> cls = last.getType();
             String fieldName = last.getFieldName();
 
-            if (cls != queriedTable.getCls()) {
+            Class<?> tableClass = dictionary.getEntityClass(queriedTable.getName());
+
+            if (cls != tableClass) {
                 throw new InvalidOperationException(
                         String.format(
                                 "Can't filter on relationship field %s in HAVING clause when querying table %s.",
                                 path.toString(),
-                                queriedTable.getCls().getSimpleName()));
+                                tableClass.getSimpleName()));
             }
 
             if (queriedTable.isMetric(fieldName)) {

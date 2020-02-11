@@ -21,7 +21,6 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,7 +35,6 @@ import io.restassured.response.ValidatableResponse;
 
 import java.io.IOException;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
 
@@ -44,15 +42,11 @@ import javax.ws.rs.core.MediaType;
  * Integration tests for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
-    SQLQueryEngineFactory queryEngineFactory;
-
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
-        queryEngineFactory = new SQLQueryEngineFactory(emf);
-        return new AggregationDataStoreTestHarness(queryEngineFactory);
+        return new AggregationDataStoreTestHarness(Persistence.createEntityManagerFactory("aggregationStore"));
     }
 
     @Test
@@ -806,7 +800,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/analyticView/playerStats")
+                .get("/table/playerStats")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("LARGE"))

@@ -10,7 +10,9 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,7 +53,7 @@ public class ClassScanner {
      * @param annotations  One or more annotation to search for
      * @return The classes
      */
-    static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ...annotations) {
+    static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations) {
         Set<Class<?>> result = new HashSet<>();
         try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
             for (Class<? extends Annotation> annotation : annotations) {
@@ -61,6 +63,11 @@ public class ClassScanner {
             }
         }
         return result;
+    }
+
+    @SafeVarargs
+    static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ...annotations) {
+        return getAnnotatedClasses(Arrays.asList(annotations));
     }
 
     /**

@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
@@ -17,11 +18,12 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 /**
  * Super class of all logical or physical tables.
@@ -30,9 +32,6 @@ import javax.persistence.Transient;
 @Data
 @ToString
 public class Table {
-    @Transient
-    private Class<?> cls;
-
     @Id
     private String name;
 
@@ -48,16 +47,37 @@ public class Table {
     @ToString.Exclude
     private Set<Column> columns;
 
+    @OneToMany
+    @ToString.Exclude
+    private Set<Metric> metrics;
+
+    @OneToMany
+    @ToString.Exclude
+    private Set<Dimension> dimensions;
+
+    @Exclude
+    @ToString.Exclude
+    private final Map<String, Column> columnMap;
+
     public Table(Class<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBindings().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
         }
 
-        this.cls = cls;
         this.name = dictionary.getJsonAliasFor(cls);
 
-        this.columns = resolveColumns(cls, dictionary);
+        this.columns = constructColumns(cls, dictionary);
+        this.columnMap = this.columns.stream().collect(Collectors.toMap(Column::getName, Function.identity()));
+
+        this.metrics = this.columns.stream()
+                .filter(col -> col instanceof Metric)
+                .map(Metric.class::cast)
+                .collect(Collectors.toSet());
+        this.dimensions = this.columns.stream()
+                .filter(col -> !(col instanceof Metric))
+                .map(Dimension.class::cast)
+                .collect(Collectors.toSet());
 
         Meta meta = cls.getAnnotation(Meta.class);
         if (meta != null) {
@@ -72,32 +92,68 @@ public class Table {
     }
 
     /**
-     * Add all columns of this table.
+     * Construct all columns of this table.
      *
      * @param cls table class
      * @param dictionary dictionary contains the table class
      * @return all resolved column metadata
      */
-    private static Set<Column> resolveColumns(Class<?> cls, EntityDictionary dictionary) {
-        Set<Column> fields =  dictionary.getAllFields(cls).stream()
+    private Set<Column> constructColumns(Class<?> cls, EntityDictionary dictionary) {
+        Set<Column> columns =  dictionary.getAllFields(cls).stream()
                 .filter((field) -> Column.getDataType(cls, field, dictionary) != null)
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
-                        return new Metric(cls, field, dictionary);
+                        return constructMetric(cls, field, dictionary);
                     } else if (dictionary.attributeOrRelationAnnotationExists(cls, field, Temporal.class)) {
-                        return new TimeDimension(cls, field, dictionary);
+                        return constructTimeDimension(cls, field, dictionary);
                     } else {
-                        return new Dimension(cls, field, dictionary);
+                        return constructDimension(cls, field, dictionary);
                     }
                 })
                 .collect(Collectors.toSet());
 
         // add id field if exists
         if (dictionary.getIdFieldName(cls) != null) {
-            fields.add(new Dimension(cls, dictionary.getIdFieldName(cls), dictionary));
+            columns.add(constructDimension(cls, dictionary.getIdFieldName(cls), dictionary));
         }
 
-        return fields;
+        return columns;
+    }
+
+    /**
+     * Construct a Metric instance.
+     *
+     * @param cls table class
+     * @param fieldName field name
+     * @param dictionary dictionary contains the table class
+     * @return Metric metadata instance
+     */
+    protected Metric constructMetric(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+        return new Metric(cls, fieldName, dictionary);
+    }
+
+    /**
+     * Construct a Dimension instance.
+     *
+     * @param cls table class
+     * @param fieldName field name
+     * @param dictionary dictionary contains the table class
+     * @return Dimension metadata instance
+     */
+    protected TimeDimension constructTimeDimension(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+        return new TimeDimension(cls, fieldName, dictionary);
+    }
+
+    /**
+     * Construct a TimeDimension instance.
+     *
+     * @param cls table class
+     * @param fieldName field name
+     * @param dictionary dictionary contains the table class
+     * @return TimeDimension metadata instance
+     */
+    protected Dimension constructDimension(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+        return new Dimension(cls, fieldName, dictionary);
     }
 
     /**
@@ -122,12 +178,9 @@ public class Table {
      * @param <T> metadata class
      * @return column as requested type if found
      */
-    private <T extends Column> T getColumn(Class<T> cls, String fieldName) {
-        return columns.stream()
-                .filter(col -> cls.isAssignableFrom(col.getClass()) && (col.getName().equals(fieldName)))
-                .map(cls::cast)
-                .findFirst()
-                .orElse(null);
+    protected final <T extends Column> T getColumn(Class<T> cls, String fieldName) {
+        Column column = columnMap.get(fieldName);
+        return column != null && cls.isAssignableFrom(column.getClass()) ? cls.cast(column) : null;
     }
 
     public Metric getMetric(String fieldName) {

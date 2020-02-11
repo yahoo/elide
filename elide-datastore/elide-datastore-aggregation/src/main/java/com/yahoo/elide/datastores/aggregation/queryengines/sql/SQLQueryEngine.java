@@ -16,14 +16,12 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
@@ -33,7 +31,6 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import org.hibernate.jpa.QueryHints;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -41,9 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -53,31 +48,17 @@ import javax.persistence.EntityTransaction;
  * QueryEngine for SQL backed stores.
  */
 @Slf4j
-public class SQLQueryEngine implements QueryEngine {
+public class SQLQueryEngine extends QueryEngine {
+    private final EntityManagerFactory entityManagerFactory;
 
-    private final EntityManagerFactory emf;
-    private final EntityDictionary metadataDictionary;
-
-    @Getter
-    private Map<Class<?>, Table> tables;
-
-    public SQLQueryEngine(EntityManagerFactory emf, MetaDataStore metaDataStore) {
-        this.emf = emf;
-        this.metadataDictionary = metaDataStore.getDictionary();
-
-        Set<Table> tables = metaDataStore.getMetaData(Table.class);
-        tables.addAll(metaDataStore.getMetaData(AnalyticView.class));
-
-        this.tables = tables.stream()
-                .map(table -> table instanceof AnalyticView
-                        ? new SQLAnalyticView(table.getCls(), metadataDictionary)
-                        : new SQLTable(table.getCls(), metadataDictionary))
-                .collect(Collectors.toMap(Table::getCls, Function.identity()));
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
+        super(metaDataStore);
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     @Override
-    public Table getTable(Class<?> entityClass) {
-        return tables.get(entityClass);
+    protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
+        return new SQLTable(entityClass, metaDataDictionary);
     }
 
     @Override
@@ -85,7 +66,7 @@ public class SQLQueryEngine implements QueryEngine {
         EntityManager entityManager = null;
         EntityTransaction transaction = null;
         try {
-            entityManager = emf.createEntityManager();
+            entityManager = entityManagerFactory.createEntityManager();
 
             // manually begin the transaction
             transaction = entityManager.getTransaction();
@@ -132,7 +113,7 @@ public class SQLQueryEngine implements QueryEngine {
                     () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
                     "Running Query: " + sql).get();
 
-            return new SQLEntityHydrator(results, query, metadataDictionary, entityManager).hydrate();
+            return new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate();
         } finally {
             if (transaction != null && transaction.isActive()) {
                 transaction.commit();
@@ -188,7 +169,7 @@ public class SQLQueryEngine implements QueryEngine {
                     }
                 });
 
-        return new SQLQueryConstructor(metadataDictionary).resolveTemplate(
+        return new SQLQueryConstructor(getMetadataDictionary()).resolveTemplate(
                 query,
                 queryTemplate,
                 query.getSorting(),
@@ -235,7 +216,7 @@ public class SQLQueryEngine implements QueryEngine {
     private SQLQuery toPageTotalSQL(SQLQuery sql) {
         // TODO: refactor this method
         String groupByDimensions =
-                extractSQLDimensions(sql.getClientQuery(), (SQLAnalyticView) sql.getClientQuery().getAnalyticView())
+                extractSQLDimensions(sql.getClientQuery(), (SQLTable) sql.getClientQuery().getTable())
                         .stream()
                         .map(SQLColumn::getReference)
                         .collect(Collectors.joining(", "));
@@ -255,12 +236,12 @@ public class SQLQueryEngine implements QueryEngine {
      * Extract dimension projects in a query to sql dimensions.
      *
      * @param query requested query
-     * @param queriedTable queried analytic view
+     * @param table queried table
      * @return sql dimensions in this query
      */
-    private List<SQLColumn> extractSQLDimensions(Query query, SQLAnalyticView queriedTable) {
+    private List<SQLColumn> extractSQLDimensions(Query query, SQLTable table) {
         return query.getDimensions().stream()
-                .map(projection -> queriedTable.getColumn(projection.getColumn().getName()))
+                .map(projection -> table.getSQLColumn(projection.getColumn().getName()))
                 .collect(Collectors.toList());
     }
 
