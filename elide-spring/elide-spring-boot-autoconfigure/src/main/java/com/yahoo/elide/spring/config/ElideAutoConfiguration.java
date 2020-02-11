@@ -96,25 +96,35 @@ public class ElideAutoConfiguration {
     }
 
     /**
+     * Create a QueryEngine instance for aggregation data store to use.
+     * @param entityManagerFactory The JPA factory which creates entity managers.
+     * @return An instance of a QueryEngine
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public QueryEngine buildQueryEngine(EntityManagerFactory entityManagerFactory) {
+        MetaDataStore metaDataStore = new MetaDataStore();
+
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
+    }
+
+    /**
      * Creates the DataStore Elide.  Override to use a different store.
      * @param entityManagerFactory The JPA factory which creates entity managers.
+     * @param queryEngine QueryEngine instance for aggregation data store
      * @return An instance of a JPA DataStore.
      */
     @Bean
     @ConditionalOnMissingBean
-    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory) throws ClassNotFoundException {
-        MetaDataStore metaDataStore = new MetaDataStore();
-
-        QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory);
-
-        AggregationDataStore aggregationDataStore = new AggregationDataStore(sqlQueryEngine);
+    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngine queryEngine) {
+        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngine);
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                     (em -> { return new NonJtaTransaction(em); }));
 
         // meta data store needs to be put at first to populate meta data models
-        return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
+        return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
     }
 
     /**

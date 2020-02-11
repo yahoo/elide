@@ -70,7 +70,7 @@ public class SQLQueryConstructor {
                                     FilterExpression whereClause,
                                     FilterExpression havingClause) {
         SQLTable table = (SQLTable) clientQuery.getTable();
-        Class<?> tableCls = clientQuery.getTable().getCls();
+        Class<?> tableCls = dictionary.getEntityClass(clientQuery.getTable().getName());
         String tableAlias = getClassAlias(tableCls);
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
@@ -152,7 +152,7 @@ public class SQLQueryConstructor {
         Class<?> lastClass = last.getType();
         String fieldName = last.getFieldName();
 
-        if (!lastClass.equals(table.getCls())) {
+        if (!lastClass.equals(dictionary.getEntityClass(table.getName()))) {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 
@@ -183,7 +183,7 @@ public class SQLQueryConstructor {
                 .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
-        Class<?> tableClass = table.getCls();
+        Class<?> tableClass = dictionary.getEntityClass(table.getName());
 
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
                 .map(dimension -> {

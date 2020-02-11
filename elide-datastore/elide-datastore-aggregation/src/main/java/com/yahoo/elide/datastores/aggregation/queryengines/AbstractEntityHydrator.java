@@ -151,7 +151,7 @@ public abstract class AbstractEntityHydrator {
      * @return A hydrated entity object.
      */
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
-        Class<?> entityClass = query.getTable().getCls();
+        Class<?> entityClass = entityDictionary.getEntityClass(query.getTable().getName());
 
         //Construct the object.
         Object entityInstance;
@@ -194,7 +194,7 @@ public abstract class AbstractEntityHydrator {
             String joinField = entry.getKey();
             List<Object> joinFieldIds = entry.getValue();
             Class<?> relationshipType = getEntityDictionary().getParameterizedType(
-                    getQuery().getTable().getCls(),
+                    entityDictionary.getEntityClass(getQuery().getTable().getName()),
                     joinField);
 
             getStitchList().populateLookup(relationshipType, getRelationshipValues(relationshipType, joinFieldIds));

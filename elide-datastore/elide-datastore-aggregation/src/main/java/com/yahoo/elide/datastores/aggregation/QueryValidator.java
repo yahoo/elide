@@ -71,12 +71,14 @@ public class QueryValidator {
             Class<?> cls = last.getType();
             String fieldName = last.getFieldName();
 
-            if (cls != queriedTable.getCls()) {
+            Class<?> tableClass = dictionary.getEntityClass(queriedTable.getName());
+
+            if (cls != tableClass) {
                 throw new InvalidOperationException(
                         String.format(
                                 "Can't filter on relationship field %s in HAVING clause when querying table %s.",
                                 path.toString(),
-                                queriedTable.getCls().getSimpleName()));
+                                tableClass.getSimpleName()));
             }
 
             if (queriedTable.isMetric(fieldName)) {

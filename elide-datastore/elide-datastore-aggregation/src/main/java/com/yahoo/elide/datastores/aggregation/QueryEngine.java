@@ -68,14 +68,14 @@ public abstract class QueryEngine {
     private final EntityDictionary metadataDictionary;
 
     @Getter
-    private final Map<Class<?>, Table> tables;
+    private final Map<String, Table> tables;
 
     public QueryEngine(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getDictionary();
         populateMetaData(metaDataStore);
         this.tables = metaDataStore.getMetaData(Table.class).stream()
-                .collect(Collectors.toMap(Table::getCls, Functions.identity()));
+                .collect(Collectors.toMap(Table::getName, Functions.identity()));
     }
 
     protected abstract Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary);
@@ -98,10 +98,10 @@ public abstract class QueryEngine {
 
     /**
      * Returns the schema for a given entity class.
-     * @param entityClass The class to map to a schema.
+     * @param classAlias json type alias for that class
      * @return The schema that represents the provided entity.
      */
-    public Table getTable(Class<?> entityClass) {
-        return tables.get(entityClass);
+    public Table getTable(String classAlias) {
+        return tables.get(classAlias);
     }
 }

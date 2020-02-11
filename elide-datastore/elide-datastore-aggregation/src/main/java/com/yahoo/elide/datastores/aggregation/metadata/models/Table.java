@@ -24,7 +24,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 /**
  * Super class of all logical or physical tables.
@@ -33,9 +32,6 @@ import javax.persistence.Transient;
 @Data
 @ToString
 public class Table {
-    @Transient
-    private Class<?> cls;
-
     @Id
     private String name;
 
@@ -69,7 +65,6 @@ public class Table {
                     String.format("Table class {%s} is not defined in dictionary.", cls));
         }
 
-        this.cls = cls;
         this.name = dictionary.getJsonAliasFor(cls);
 
         this.columns = constructColumns(cls, dictionary);
