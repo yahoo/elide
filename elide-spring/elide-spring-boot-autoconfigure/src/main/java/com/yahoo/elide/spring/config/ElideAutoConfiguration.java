@@ -14,9 +14,9 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.QueryEngineFactory;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
@@ -52,7 +52,8 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Elide initializeElide(EntityDictionary dictionary,
-                          DataStore dataStore, ElideConfigProperties settings) {
+                                 DataStore dataStore,
+                                 ElideConfigProperties settings) {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
@@ -95,25 +96,35 @@ public class ElideAutoConfiguration {
     }
 
     /**
+     * Create a QueryEngine instance for aggregation data store to use.
+     * @param entityManagerFactory The JPA factory which creates entity managers.
+     * @return An instance of a QueryEngine
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public QueryEngine buildQueryEngine(EntityManagerFactory entityManagerFactory) {
+        MetaDataStore metaDataStore = new MetaDataStore();
+
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
+    }
+
+    /**
      * Creates the DataStore Elide.  Override to use a different store.
      * @param entityManagerFactory The JPA factory which creates entity managers.
+     * @param queryEngine QueryEngine instance for aggregation data store
      * @return An instance of a JPA DataStore.
      */
     @Bean
     @ConditionalOnMissingBean
-    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
-                                    QueryEngineFactory queryEngineFactory,
-                                    ElideConfigProperties settings) throws ClassNotFoundException {
-        MetaDataStore metaDataStore = new MetaDataStore();
-
-        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
+    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngine queryEngine) {
+        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngine);
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                     (em -> { return new NonJtaTransaction(em); }));
 
         // meta data store needs to be put at first to populate meta data models
-        return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
+        return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
     }
 
     /**
@@ -134,16 +145,5 @@ public class ElideAutoConfiguration {
         Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
 
         return swagger;
-    }
-
-    /**
-     * Configure the QueryEngineFactory that the Aggregation Data Store uses.
-     * @param entityManagerFactory Needed by the SQLQueryEngine
-     * @return a SQLQueryEngineFactory
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public QueryEngineFactory buildQueryEngineFactory(EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngineFactory(entityManagerFactory);
     }
 }

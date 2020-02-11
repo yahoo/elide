@@ -41,7 +41,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         sortMap.put("country.name", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
@@ -58,7 +58,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         sortMap.put("id", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("id")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
@@ -78,7 +78,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         sortMap.put("country.name", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
@@ -97,7 +97,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         sortMap.put("highScore", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
@@ -116,7 +116,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         sortMap.put("country.continent.name", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
@@ -139,7 +139,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         FilterExpression havingFilter = constraints.getHavingExpression();
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
@@ -163,7 +163,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         FilterExpression havingFilter = constraints.getHavingExpression();
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
@@ -188,7 +188,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         FilterExpression havingFilter = constraints.getHavingExpression();
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)

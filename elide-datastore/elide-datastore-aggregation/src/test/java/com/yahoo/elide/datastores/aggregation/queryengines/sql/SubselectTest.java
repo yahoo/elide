@@ -52,7 +52,7 @@ public class SubselectTest extends SQLUnitTest {
     @Test
     public void testFilterJoin() throws Exception {
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
@@ -104,7 +104,7 @@ public class SubselectTest extends SQLUnitTest {
         sortMap.put("subCountry.name", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
@@ -163,7 +163,7 @@ public class SubselectTest extends SQLUnitTest {
     @Test
     public void testJoinToGroupBy() throws Exception {
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .build();
@@ -194,7 +194,7 @@ public class SubselectTest extends SQLUnitTest {
     @Test
     public void testJoinToFilter() throws Exception {
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .whereFilter(filterParser.parseFilterExpression("subCountryIsoCode==USA",
@@ -230,7 +230,7 @@ public class SubselectTest extends SQLUnitTest {
         sortMap.put("subCountryIsoCode", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .analyticView(playerStatsTable)
+                .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountry")))
