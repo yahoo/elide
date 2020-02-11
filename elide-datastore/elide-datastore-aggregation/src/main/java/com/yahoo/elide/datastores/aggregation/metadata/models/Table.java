@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
+import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getDataType;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -14,7 +15,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TableTag;
 
 import lombok.Data;
@@ -105,8 +105,7 @@ public class Table {
      */
     private Set<Column> constructColumns(Class<?> cls, EntityDictionary dictionary) {
         Set<Column> columns =  dictionary.getAllFields(cls).stream()
-                .filter(field -> !MetaDataStore.isTableJoin(cls, field, dictionary))
-                .filter(field -> Column.getDataType(cls, field, dictionary) != null)
+                .filter(field -> getDataType(cls, field, dictionary) != null)
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
                         return constructMetric(cls, field, dictionary);

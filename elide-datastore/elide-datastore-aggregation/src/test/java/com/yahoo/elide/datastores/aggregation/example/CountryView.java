@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.example;
 
+import com.yahoo.elide.annotation.Hidden;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
@@ -32,6 +33,7 @@ public class CountryView {
 
     private CountryViewNested nestedView;
 
+    @Hidden
     @Join("%from.id = %join.id")
     public CountryViewNested getNestedView() {
         return nestedView;
