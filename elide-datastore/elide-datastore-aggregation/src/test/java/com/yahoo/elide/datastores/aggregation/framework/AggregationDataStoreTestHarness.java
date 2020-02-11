@@ -8,31 +8,35 @@ package com.yahoo.elide.datastores.aggregation.framework;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
-public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
-    private SQLQueryEngineFactory queryEngineFactory;
+import javax.persistence.EntityManagerFactory;
 
-    public AggregationDataStoreTestHarness(SQLQueryEngineFactory queryEngineFactory) {
-        this.queryEngineFactory = queryEngineFactory;
+public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
+    private EntityManagerFactory entityManagerFactory;
+
+    public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory) {
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     @Override
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
 
-        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
+        QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory);
+
+        AggregationDataStore aggregationDataStore = new AggregationDataStore(sqlQueryEngine);
 
         DataStore jpaStore = new JpaDataStore(
-                () -> queryEngineFactory.getEmf().createEntityManager(),
+                () -> entityManagerFactory.createEntityManager(),
                 NonJtaTransaction::new
         );
 
-        // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);
     }
 

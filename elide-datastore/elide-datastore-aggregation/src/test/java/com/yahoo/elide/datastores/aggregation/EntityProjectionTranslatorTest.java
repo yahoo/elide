@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
@@ -71,7 +70,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
 
         Query query = translator.getQuery();
 
-        assertEquals(playerStatsTable, query.getAnalyticView());
+        assertEquals(playerStatsTable, query.getTable());
         assertEquals(1, query.getMetrics().size());
         assertEquals("lowScore", query.getMetrics().get(0).getAlias());
         assertEquals(2, query.getGroupByDimensions().size());
@@ -104,19 +103,6 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
         FilterExpression havingFilter = constraints.getHavingExpression();
         assertEquals(whereFilter, query.getWhereFilter());
         assertEquals(havingFilter, query.getHavingFilter());
-    }
-
-    @Test
-    public void testInvalidQueriedTable() {
-        EntityProjection projection = EntityProjection.builder()
-                .type(Country.class)
-                .build();
-
-        assertThrows(InvalidOperationException.class, () -> new EntityProjectionTranslator(
-                new Table(Country.class, dictionary),
-                projection,
-                dictionary
-        ));
     }
 
     @Test

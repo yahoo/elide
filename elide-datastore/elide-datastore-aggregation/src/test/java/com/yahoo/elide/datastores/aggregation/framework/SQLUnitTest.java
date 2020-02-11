@@ -19,14 +19,14 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.AnalyticView;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLAnalyticView;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import java.util.Collections;
@@ -36,7 +36,7 @@ import javax.persistence.Persistence;
 
 public abstract class SQLUnitTest {
     protected static EntityManagerFactory emf;
-    protected static AnalyticView playerStatsTable;
+    protected static Table playerStatsTable;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
     protected static MetaDataStore metaDataStore = new MetaDataStore();
@@ -62,11 +62,11 @@ public abstract class SQLUnitTest {
         dictionary.bindEntity(Continent.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
-        playerStatsTable = new SQLAnalyticView(PlayerStats.class, dictionary);
+        playerStatsTable = new SQLTable(PlayerStats.class, dictionary);
 
         metaDataStore.populateEntityDictionary(dictionary);
 
-        engine = new SQLQueryEngine(emf, metaDataStore);
+        engine = new SQLQueryEngine(metaDataStore, emf);
 
         ASIA.setName("Asia");
         ASIA.setId("1");

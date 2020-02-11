@@ -12,7 +12,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Regular field in tables, can be grouped by if the table is an AnalyticView.
+ * Regular field in tables, can be grouped by.
  */
 @EqualsAndHashCode(callSuper = true)
 @Include(type = "dimension")
