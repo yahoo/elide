@@ -134,11 +134,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         List<FilterPredicate> filterPredicates = extractPredicates(filterParams);
 
         for (FilterPredicate filterPredicate : filterPredicates) {
-            if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())
-                    && !toManyAllowedOperators.contains(filterPredicate.getOperator())) {
-                throw new ParseException("Invalid toMany join: " + filterPredicate);
-            }
-
+            validateFilterPredicate(filterPredicate);
             String entityType = dictionary.getJsonAliasFor(filterPredicate.getEntityType());
             FilterExpression filterExpression = expressionMap.get(entityType);
             if (filterExpression != null) {
@@ -198,5 +194,26 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         }
 
         return new Path(path);
+    }
+
+    private void validateFilterPredicate(FilterPredicate filterPredicate) throws ParseException {
+        switch (filterPredicate.getOperator()) {
+            case ISEMPTY:
+            case NOTEMPTY:
+                emptyOperatorConditions(filterPredicate);
+                break;
+            default:
+                if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
+                    throw new ParseException("Invalid toMany join: " + filterPredicate);
+                }
+        }
+    }
+
+    private void emptyOperatorConditions(FilterPredicate filterPredicate) throws ParseException {
+        if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, filterPredicate.getPath())) {
+            throw new ParseException(
+                    "Invalid toMany join. toMany association has to be the target collection."
+                    + filterPredicate);
+        }
     }
 }

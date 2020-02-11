@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -366,5 +367,18 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         assertEquals("book.title NOTEMPTY []", expression.toString());
+    }
+
+    @Test
+    public void testEmptyOperatorException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "authors.name=isempty=0"
+        );
+
+        assertThrows(ParseException.class,
+                () -> dialect.parseGlobalExpression("/book", queryParams));
     }
 }

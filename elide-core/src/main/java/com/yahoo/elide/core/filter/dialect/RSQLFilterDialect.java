@@ -291,6 +291,11 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             //handles '=isempty=' op before coerce arguments
             // ToMany Association is allowed if the operation in Is Empty
             if (op.equals(ISEMPTY_OP)) {
+                if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, path)) {
+                    throw new RSQLParseException(
+                            String.format("Invalid association %s. toMany association has to be the target collection.",
+                                    relationship));
+                }
                 return buildIsEmptyOperator(path, arguments);
             }
 

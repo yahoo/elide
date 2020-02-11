@@ -124,4 +124,17 @@ public class DefaultFilterDialectTest {
 
         assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/author", queryParams));
     }
+
+    @Test
+    public void testEmptyOperatorException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[book.authors.name][isempty]",
+                ""
+        );
+
+        assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams));
+    }
 }
