@@ -11,6 +11,7 @@ import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
 
+import com.yahoo.elide.annotation.Hidden;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 
