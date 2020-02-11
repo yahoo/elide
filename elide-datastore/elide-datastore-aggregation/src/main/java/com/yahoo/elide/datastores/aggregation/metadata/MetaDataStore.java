@@ -9,6 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.DataType;
@@ -164,5 +165,9 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
         return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
+    }
+
+    public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+        return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
     }
 }

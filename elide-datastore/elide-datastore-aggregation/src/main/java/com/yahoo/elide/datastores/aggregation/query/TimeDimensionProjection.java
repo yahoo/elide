@@ -7,9 +7,9 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import java.util.TimeZone;
 

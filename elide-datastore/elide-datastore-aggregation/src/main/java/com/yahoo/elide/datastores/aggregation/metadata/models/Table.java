@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TableTag;
 
 import lombok.Data;
 import lombok.ToString;
@@ -54,6 +55,9 @@ public class Table {
     @OneToMany
     @ToString.Exclude
     private Set<Dimension> dimensions;
+
+    @ToString.Exclude
+    private Set<TableTag> tableTags;
 
     @Exclude
     @ToString.Exclude
