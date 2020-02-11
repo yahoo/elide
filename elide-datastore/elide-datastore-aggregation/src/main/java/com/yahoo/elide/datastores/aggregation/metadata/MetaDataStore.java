@@ -167,6 +167,14 @@ public class MetaDataStore extends HashMapDataStore {
         return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
     }
 
+    /**
+     * Returns whether a field in a table/entity is actually a JOIN to other table/entity.
+     *
+     * @param cls table/entity class
+     * @param fieldName field name
+     * @param dictionary metadata dictionary
+     * @return True if this field is a table join
+     */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
     }
