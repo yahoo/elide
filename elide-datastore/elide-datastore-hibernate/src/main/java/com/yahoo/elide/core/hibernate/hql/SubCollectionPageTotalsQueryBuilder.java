@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
+import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -80,8 +83,8 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
         String relationshipName = relationship.getRelationshipName();
 
         //Relationship alias is Author_books
-        String parentAlias = FilterPredicate.getTypeAlias(parentType);
-        String relationshipAlias = parentAlias + UNDERSCORE + relationshipName;
+        String parentAlias = getTypeAlias(parentType);
+        String relationshipAlias = appendAlias(parentAlias, relationshipName);
 
         if (filterExpression.isPresent()) {
             // Copy and scope the filter expression for the join clause

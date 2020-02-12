@@ -9,6 +9,7 @@ import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -17,6 +18,7 @@ import com.yahoo.elide.utils.ClassScanner;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,9 +43,10 @@ public class AggregationDataStore implements DataStore {
      */
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        for (Class<? extends Annotation> cls : AGGREGATION_STORE_CLASSES) {
+        for (Class<? extends Annotation> annotation : AGGREGATION_STORE_CLASSES) {
             // bind non-jpa entity tables
-            ClassScanner.getAnnotatedClasses(cls).forEach(dictionary::bindEntity);
+            ClassScanner.getAnnotatedClasses(annotation)
+                    .forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
         }
 
         /* Add 'grain' argument to each TimeDimensionColumn */

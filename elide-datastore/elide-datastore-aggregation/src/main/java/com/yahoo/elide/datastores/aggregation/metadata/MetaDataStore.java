@@ -29,6 +29,7 @@ import lombok.Getter;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -56,12 +57,13 @@ public class MetaDataStore extends HashMapDataStore {
 
         // bind external data models in the package
         this.modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
-        modelsToBind.forEach(dictionary::bindEntity);
+        modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).forEach(dictionary::bindEntity);
+        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName())
+                .forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 
     /**

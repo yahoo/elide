@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import static com.yahoo.elide.core.filter.FilterPredicate.appendAlias;
-import static com.yahoo.elide.core.filter.FilterPredicate.getTypeAlias;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
+import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
