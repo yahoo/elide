@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.example;
 
-import com.yahoo.elide.annotation.Hidden;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
@@ -201,7 +200,6 @@ public class PlayerStatsWithView {
         this.subCountryIsoCode = isoCode;
     }
 
-    @Hidden
     @Join("%from.country_id = %join.id")
     public CountryView getCountryView() {
         return countryView;

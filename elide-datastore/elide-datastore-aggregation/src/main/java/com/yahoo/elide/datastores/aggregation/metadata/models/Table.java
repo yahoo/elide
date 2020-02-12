@@ -15,11 +15,11 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.TableTag;
 
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -58,19 +58,20 @@ public class Table {
     private Set<Dimension> dimensions;
 
     @ToString.Exclude
-    private Set<TableTag> tableTags;
+    private Set<String> tableTags;
 
     @Exclude
     @ToString.Exclude
     private final Map<String, Column> columnMap;
 
     public Table(Class<?> cls, EntityDictionary dictionary) {
-        if (!dictionary.getBindings().contains(cls)) {
+        if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
         }
 
         this.name = dictionary.getJsonAliasFor(cls);
+        this.tableTags = new HashSet<>();
 
         this.columns = constructColumns(cls, dictionary);
         this.columnMap = this.columns.stream().collect(Collectors.toMap(Column::getName, Function.identity()));

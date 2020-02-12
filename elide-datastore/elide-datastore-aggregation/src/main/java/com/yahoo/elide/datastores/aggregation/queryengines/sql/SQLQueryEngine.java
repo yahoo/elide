@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import static com.yahoo.elide.core.filter.FilterPredicate.getPathAlias;
+import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -276,6 +277,6 @@ public class SQLQueryEngine extends QueryEngine {
      * @return alias
      */
     public static String getClassAlias(Class<?> entityClass) {
-        return FilterPredicate.getTypeAlias(entityClass);
+        return getTypeAlias(entityClass);
     }
 }

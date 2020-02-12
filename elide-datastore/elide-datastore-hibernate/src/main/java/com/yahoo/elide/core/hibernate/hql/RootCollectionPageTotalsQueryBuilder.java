@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
@@ -55,7 +57,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
     @Override
     public Query build() {
         String entityName = entityClass.getCanonicalName();
-        String entityAlias = FilterPredicate.getTypeAlias(entityClass);
+        String entityAlias = getTypeAlias(entityClass);
 
         Collection<FilterPredicate> predicates;
 

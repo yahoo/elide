@@ -97,8 +97,8 @@ public class EntityBinding {
     private AccessType accessType;
 
     public final EntityPermissions entityPermissions;
-    public final List<String> attributes;
-    public final List<String> relationships;
+    public final List<String> apiAttributes;
+    public final List<String> apiRelationships;
     public final List<Class<?>> inheritedTypes;
     public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
     public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
@@ -124,8 +124,8 @@ public class EntityBinding {
     private EntityBinding() {
         jsonApiType = null;
         entityName = null;
-        attributes = new ArrayList<>();
-        relationships = new ArrayList<>();
+        apiAttributes = new ArrayList<>();
+        apiRelationships = new ArrayList<>();
         inheritedTypes = new ArrayList<>();
         idField = null;
         idType = null;
@@ -134,7 +134,35 @@ public class EntityBinding {
         idGenerated = false;
     }
 
-    public EntityBinding(EntityDictionary dictionary, Class<?> cls, String type, String name) {
+    /**
+     * Constructor
+     *
+     * @param dictionary Dictionary to use
+     * @param cls Entity class
+     * @param type Declared Elide type name
+     * @param name Declared Entity name
+     */
+    public EntityBinding(EntityDictionary dictionary,
+                         Class<?> cls,
+                         String type,
+                         String name) {
+        this(dictionary, cls, type, name, new HashSet<>());
+    }
+
+    /**
+     * Constructor
+     *
+     * @param dictionary Dictionary to use
+     * @param cls Entity class
+     * @param type Declared Elide type name
+     * @param name Declared Entity name
+     * @param hiddenAnnotations Annotations for hiding a field in API
+     */
+    public EntityBinding(EntityDictionary dictionary,
+                         Class<?> cls,
+                         String type,
+                         String name,
+                         Set<Class<? extends Annotation>> hiddenAnnotations) {
         entityClass = cls;
         jsonApiType = type;
         entityName = name;
@@ -181,10 +209,10 @@ public class EntityBinding {
             fieldOrMethodList.addAll(getInstanceMembers(cls.getMethods()));
         }
 
-        bindEntityFields(cls, type, fieldOrMethodList);
+        bindEntityFields(cls, type, fieldOrMethodList, hiddenAnnotations);
 
-        attributes = dequeToList(attributesDeque);
-        relationships = dequeToList(relationshipsDeque);
+        apiAttributes = dequeToList(attributesDeque);
+        apiRelationships = dequeToList(relationshipsDeque);
         entityPermissions = new EntityPermissions(dictionary, cls, fieldOrMethodList);
     }
 
@@ -235,8 +263,11 @@ public class EntityBinding {
      * @param cls               Class type to bind fields
      * @param type              JSON API type identifier
      * @param fieldOrMethodList List of fields and methods on entity
+     * @param hiddenAnnotations Annotations for hiding a field in API
      */
-    private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
+    private void bindEntityFields(Class<?> cls, String type,
+                                  Collection<AccessibleObject> fieldOrMethodList,
+                                  Set<Class<? extends Annotation>> hiddenAnnotations) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
             bindTriggerIfPresent(OnCreatePreSecurity.class, fieldOrMethod);
             bindTriggerIfPresent(OnDeletePreSecurity.class, fieldOrMethod);
@@ -269,7 +300,9 @@ public class EntityBinding {
                         && Modifier.isStatic(((Field) fieldOrMethod).getModifiers())) {
                     continue; // Field must have Column annotation?
                 }
-                bindAttrOrRelation(fieldOrMethod);
+                bindAttrOrRelation(
+                        fieldOrMethod,
+                        hiddenAnnotations.stream().anyMatch(fieldOrMethod::isAnnotationPresent));
             }
         }
     }
@@ -320,8 +353,9 @@ public class EntityBinding {
      * Bind an attribute or relationship.
      *
      * @param fieldOrMethod Field or method to bind
+     * @param isHidden Whether this field is hidden from API
      */
-    private void bindAttrOrRelation(AccessibleObject fieldOrMethod) {
+    private void bindAttrOrRelation(AccessibleObject fieldOrMethod, boolean isHidden) {
         boolean isRelation = RELATIONSHIP_TYPES.stream().anyMatch(fieldOrMethod::isAnnotationPresent);
 
         String fieldName = getFieldName(fieldOrMethod);
@@ -338,13 +372,21 @@ public class EntityBinding {
         }
 
         if (isRelation) {
-            bindRelation(fieldOrMethod, fieldName, fieldType);
+            bindRelation(fieldOrMethod, fieldName, fieldType, isHidden);
         } else {
-            bindAttr(fieldOrMethod, fieldName, fieldType);
+            bindAttr(fieldOrMethod, fieldName, fieldType, isHidden);
         }
     }
 
-    private void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
+    /**
+     * Bind a relationship to current class
+     *
+     * @param fieldOrMethod Field or method to bind
+     * @param fieldName Field name
+     * @param fieldType Field type
+     * @param isHidden Whether this field is hidden from API
+     */
+    private void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType, boolean isHidden) {
         boolean manyToMany = fieldOrMethod.isAnnotationPresent(ManyToMany.class);
         boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
         boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
@@ -386,13 +428,25 @@ public class EntityBinding {
         relationshipToInverse.put(fieldName, mappedBy);
         relationshipToCascadeTypes.put(fieldName, cascadeTypes);
 
-        relationshipsDeque.push(fieldName);
+        if (!isHidden) {
+            relationshipsDeque.push(fieldName);
+        }
         fieldsToValues.put(fieldName, fieldOrMethod);
         fieldsToTypes.put(fieldName, fieldType);
     }
 
-    private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
-        attributesDeque.push(fieldName);
+    /**
+     * Bind an attribute to current class
+     *
+     * @param fieldOrMethod Field or method to bind
+     * @param fieldName Field name
+     * @param fieldType Field type
+     * @param isHidden Whether this field is hidden from API
+     */
+    private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType, boolean isHidden) {
+        if (!isHidden) {
+            attributesDeque.push(fieldName);
+        }
         fieldsToValues.put(fieldName, fieldOrMethod);
         fieldsToTypes.put(fieldName, fieldType);
     }
