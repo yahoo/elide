@@ -11,7 +11,6 @@ import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
 
-import com.yahoo.elide.annotation.Hidden;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 
@@ -132,12 +131,7 @@ public class ModelBuilder {
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
         connectionObjectRegistry = new HashMap<>();
-
-        // non-JPA entities can't be exposed as relationship as they don't have unique id field,
-        // but can still be queried as root classes.
-        excludedEntities = dictionary.getBindings().stream()
-                .filter(cls -> !dictionary.isJPAEntity(cls))
-                .collect(Collectors.toSet());
+        excludedEntities = new HashSet<>();
     }
 
     public void withExcludedEntities(Set<Class<?>> excludedEntities) {
@@ -149,7 +143,7 @@ public class ModelBuilder {
      * @return The built schema.
      */
     public GraphQLSchema build() {
-        Set<Class<?>> allClasses = dictionary.getBindings();
+        Set<Class<?>> allClasses = dictionary.getBoundClasses();
 
         if (allClasses.isEmpty()) {
             throw new IllegalArgumentException("None of the provided classes are exported by Elide");

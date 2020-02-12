@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
-import static com.yahoo.elide.core.filter.FilterPredicate.appendAlias;
-import static com.yahoo.elide.core.filter.FilterPredicate.getTypeAlias;
+import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -18,6 +18,7 @@ import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -41,7 +42,6 @@ public abstract class AbstractHQLQueryBuilder {
     protected Optional<Pagination> pagination;
     protected Optional<FilterExpression> filterExpression;
     protected static final String SPACE = " ";
-    protected static final String UNDERSCORE = "_";
     protected static final String PERIOD = ".";
     protected static final String COMMA = ",";
     protected static final String FROM = " FROM ";
@@ -229,15 +229,13 @@ public abstract class AbstractHQLQueryBuilder {
             if (!validSortingRules.isEmpty()) {
                 final List<String> ordering = new ArrayList<>();
                 // pass over the sorting rules
-                validSortingRules.entrySet().stream().forEachOrdered(entry -> {
-                        Path path = entry.getKey();
+                validSortingRules.forEach((path, order) -> {
 
-                        String prefix = (prefixWithAlias) ? Path.getTypeAlias(sortClass) + PERIOD : "";
+                    String prefix = (prefixWithAlias) ? getTypeAlias(sortClass) + PERIOD : "";
 
-                        ordering.add(prefix + path.getFieldPath() + SPACE
-                                + (entry.getValue().equals(Sorting.SortOrder.desc) ? "desc" : "asc"));
-                    }
-                );
+                    ordering.add(prefix + path.getFieldPath() + SPACE
+                            + (order.equals(Sorting.SortOrder.desc) ? "desc" : "asc"));
+                });
                 sortingRules = " order by " + StringUtils.join(ordering, COMMA);
             }
         }

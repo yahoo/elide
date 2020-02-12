@@ -12,7 +12,6 @@ import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.Hidden;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.NonTransferable;
@@ -442,12 +441,21 @@ public class EntityDictionary {
     }
 
     /**
+     * Get all bound classes.
+     *
+     * @return the bound classes
+     */
+    public Set<Class<?>> getBoundClasses() {
+        return entityBindings.keySet();
+    }
+
+    /**
      * Get all bindings.
      *
      * @return the bindings
      */
-    public Set<Class<?>> getBindings() {
-        return entityBindings.keySet();
+    public Set<EntityBinding> getBindings() {
+        return new HashSet<>(entityBindings.values());
     }
 
     /**
@@ -465,9 +473,7 @@ public class EntityDictionary {
      * @return List of attribute names for entity
      */
     public List<String> getAttributes(Class<?> entityClass) {
-        return getEntityBinding(entityClass).attributes.stream()
-                .filter(attr -> getAttributeOrRelationAnnotation(entityClass, Hidden.class, attr) == null)
-                .collect(Collectors.toList());
+        return getEntityBinding(entityClass).apiAttributes;
     }
 
     /**
@@ -487,7 +493,7 @@ public class EntityDictionary {
      * @return List of relationship names for entity
      */
     public List<String> getRelationships(Class<?> entityClass) {
-        return getEntityBinding(entityClass).relationships;
+        return getEntityBinding(entityClass).apiRelationships;
     }
 
     /**
@@ -508,7 +514,7 @@ public class EntityDictionary {
      */
     public List<String> getElideBoundRelationships(Class<?> entityClass) {
         return getRelationships(entityClass).stream()
-                .filter(relationName -> getBindings().contains(getParameterizedType(entityClass, relationName)))
+                .filter(relationName -> getBoundClasses().contains(getParameterizedType(entityClass, relationName)))
                 .collect(Collectors.toList());
     }
 
@@ -827,6 +833,16 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
+        bindEntity(cls, new HashSet<>());
+    }
+
+    /**
+     * Add given Entity bean to dictionary.
+     *
+     * @param cls Entity bean class
+     * @param hiddenAnnotations Annotations for hiding a field in API
+     */
+    public void bindEntity(Class<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
         Class<?> declaredClass = lookupIncludeClass(cls);
 
         if (declaredClass == null) {
@@ -857,7 +873,29 @@ public class EntityDictionary {
         }
 
         bindJsonApiToEntity.put(type, declaredClass);
-        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass, type, name));
+        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass, type, name, hiddenAnnotations));
+        if (include.rootLevel()) {
+            bindEntityRoots.add(declaredClass);
+        }
+    }
+
+    /**
+     * Add an EntityBinding instance to dictionary.
+     *
+     * @param entityBinding EntityBinding instance
+     */
+    public void bindEntity(EntityBinding entityBinding) {
+        Class<?> declaredClass = entityBinding.entityClass;
+
+        if (isClassBound(declaredClass)) {
+            //Ignore duplicate bindings.
+            return;
+        }
+
+        Include include = (Include) getFirstAnnotation(declaredClass, Collections.singletonList(Include.class));
+
+        bindJsonApiToEntity.put(entityBinding.jsonApiType, declaredClass);
+        entityBindings.put(declaredClass, entityBinding);
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -1207,11 +1245,11 @@ public class EntityDictionary {
     }
 
     public boolean isRelation(Class<?> entityClass, String relationName) {
-        return getEntityBinding(entityClass).relationships.contains(relationName);
+        return getEntityBinding(entityClass).apiRelationships.contains(relationName);
     }
 
     public boolean isAttribute(Class<?> entityClass, String attributeName) {
-        return getEntityBinding(entityClass).attributes.contains(attributeName);
+        return getEntityBinding(entityClass).apiAttributes.contains(attributeName);
     }
 
     /**

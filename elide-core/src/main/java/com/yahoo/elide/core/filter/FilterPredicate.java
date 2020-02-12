@@ -104,47 +104,6 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return new FilterPredicate(new Path(pathElements), operator, values);
     }
 
-    /**
-     * Generate alias for representing a relationship path which dose not include the last field name.
-     * The path would start with the class alias of the first element, and then each field would append "_fieldName" to
-     * the result.
-     * The last field would not be included as that's not a part of the relationship path.
-     *
-     * @param path path that represents a relationship chain
-     * @return relationship path alias, i.e. <code>foo.bar.baz</code> would be <code>foo_bar</code>
-     */
-    public static String getPathAlias(Path path) {
-        List<Path.PathElement> elements = path.getPathElements();
-        String alias = getTypeAlias(elements.get(0).getType());
-
-        for (int i = 0; i < elements.size() - 1; i++) {
-            alias = appendAlias(alias, elements.get(i).getFieldName());
-        }
-
-        return alias;
-    }
-
-    /**
-     * Append a new field to a parent alias to get new alias.
-     *
-     * @param parentAlias parent path alias
-     * @param fieldName field name
-     * @return alias for the field
-     */
-    public static String appendAlias(String parentAlias, String fieldName) {
-        return parentAlias + "_" + fieldName;
-    }
-
-    /**
-     * Build an HQL friendly alias for a class.
-     *
-     * @param type The type to alias
-     * @return type name alias that will likely not conflict with other types or with reserved keywords.
-     */
-    public static String getTypeAlias(Class<?> type) {
-        return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
-    }
-
     public Class getEntityType() {
         List<PathElement> elements = path.getPathElements();
         PathElement first = elements.get(0);
@@ -180,8 +139,8 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
         for (PathElement element : elements) {
             formattedPath.append(PERIOD).append(element.getFieldName());
-
         }
+
         return formattedPath.append(' ').append(operator).append(' ').append(values).toString();
     }
 
