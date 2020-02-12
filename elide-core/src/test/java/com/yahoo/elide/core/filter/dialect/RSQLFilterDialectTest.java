@@ -379,6 +379,6 @@ public class RSQLFilterDialectTest {
         );
 
         assertThrows(ParseException.class,
-                () -> dialect.parseGlobalExpression("/book", queryParams));
+                () -> dialect.parseTypedExpression("/book", queryParams));
     }
 }

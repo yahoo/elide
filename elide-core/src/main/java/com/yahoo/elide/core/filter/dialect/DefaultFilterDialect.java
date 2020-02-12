@@ -196,6 +196,12 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         return new Path(path);
     }
 
+    /**
+     * Check if the relation type in filter predicate is allowed for an operator.
+     * Defaults behavior is to prevent filter on toMany relationship.
+     * @param filterPredicate
+     * @throws ParseException
+     */
     private void validateFilterPredicate(FilterPredicate filterPredicate) throws ParseException {
         switch (filterPredicate.getOperator()) {
             case ISEMPTY:
@@ -209,6 +215,12 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         }
     }
 
+    /**
+     * Check if the predicate has toMany relationship that is not target relationship
+     * on which the empty check is performed.
+     * @param filterPredicate
+     * @throws ParseException
+     */
     private void emptyOperatorConditions(FilterPredicate filterPredicate) throws ParseException {
         if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, filterPredicate.getPath())) {
             throw new ParseException(

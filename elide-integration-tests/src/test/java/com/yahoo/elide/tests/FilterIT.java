@@ -1473,7 +1473,8 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* param = 1 */
-        result = getAsNode(String.format("/book?filter[book]=chapters=isempty=1"));
+        // Global Expression
+        result = getAsNode(String.format("/book?filter=chapters=isempty=1"));
 
         assertEquals(result.get("data").size(), bookIdsWithEmptyChapters.size());
 
@@ -1558,6 +1559,7 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Typed */
         /* param = true */
+        //Typed Expression
         result = getAsNode("/book?filter[book]=awards=isempty=false");
 
         assertEquals(result.get("data").size(), bookIdsWithNonEmptyAwards.size());
@@ -1568,7 +1570,8 @@ public class FilterIT extends IntegrationTest {
         }
 
         /* param = 1 */
-        result = getAsNode(String.format("/book?filter[book]=awards=isempty=0"));
+        //Global Expression
+        result = getAsNode(String.format("/book?filter=awards=isempty=0"));
 
         assertEquals(result.get("data").size(), bookIdsWithNonEmptyAwards.size());
 
@@ -1623,6 +1626,31 @@ public class FilterIT extends IntegrationTest {
             assertTrue(book.get("attributes").get("awards").isEmpty());
             assertTrue(bookIdsWithEmptyAwards.contains(book.get("id")));
         }
+
+    }
+
+    @Test
+    void testExceptionOnEmptyOperator() throws IOException {
+        JsonNode result;
+        // Typed Expression
+        result = getAsNode(String.format("/author/%s/books?filter[book.authors.name][notempty]", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid predicate: book.authors.name NOTEMPTY []\n"
+                        + "Invalid query parameter: filter[book.authors.name][notempty]\n"
+                        + "Invalid toMany join. toMany association has to be the target collection.book.authors.name NOTEMPTY []\n"
+                        + "Invalid query parameter: filter[book.authors.name][notempty]",
+                result.get("errors").get(0).asText()
+        );
+
+        //RSQL
+        result = getAsNode(String.format("/author/%s/books?filter[book]=authors.name=isempty=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid association authors.name. toMany association has to be the target collection.",
+                result.get("errors").get(0).asText()
+        );
 
     }
 
