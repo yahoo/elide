@@ -11,6 +11,7 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEn
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
 import lombok.Getter;
@@ -25,8 +26,9 @@ public class SQLDimension extends Dimension implements SQLColumn {
     @Getter
     private final JoinPath joinPath;
 
-    public SQLDimension(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        super(tableClass, fieldName, dictionary);
+    public SQLDimension(Table table, String fieldName, EntityDictionary dictionary) {
+        super(table, fieldName, dictionary);
+        Class<?> tableClass = dictionary.getEntityClass(table.getId());
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
 

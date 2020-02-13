@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
@@ -23,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,16 +40,6 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
             .attribute(Attribute.builder()
                     .type(String.class)
                     .name("overallRating")
-                    .build())
-            .relationship(Relationship.builder()
-                    .name("country")
-                    .projection(EntityProjection.builder()
-                            .type(Country.class)
-                            .attribute(Attribute.builder()
-                                    .type(String.class)
-                                    .name("name")
-                                    .build())
-                            .build())
                     .build())
             .build();
 
@@ -73,11 +61,10 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
         assertEquals(playerStatsTable, query.getTable());
         assertEquals(1, query.getMetrics().size());
         assertEquals("lowScore", query.getMetrics().get(0).getAlias());
-        assertEquals(2, query.getGroupByDimensions().size());
+        assertEquals(1, query.getGroupByDimensions().size());
 
         List<ColumnProjection> dimensions = new ArrayList<>(query.getGroupByDimensions());
         assertEquals("overallRating", dimensions.get(0).getColumn().getName());
-        assertEquals("country", dimensions.get(1).getColumn().getName());
     }
 
     @Test

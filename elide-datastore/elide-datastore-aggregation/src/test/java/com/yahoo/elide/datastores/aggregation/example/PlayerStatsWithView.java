@@ -27,8 +27,6 @@ import lombok.ToString;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -77,9 +75,6 @@ public class PlayerStatsWithView {
 
     @Setter
     private String countryViewViewIsoCode;
-
-    @Setter
-    private String countryViewRelationshipIsoCode;
 
     /**
      * A dimension field joined to this table.
@@ -136,8 +131,7 @@ public class PlayerStatsWithView {
         this.overallRating = overallRating;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "country_id")
+    @Join("%from.country_id = %join.id")
     public Country getCountry() {
         return country;
     }
@@ -146,8 +140,7 @@ public class PlayerStatsWithView {
         this.country = country;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "sub_country_id")
+    @Join("%from.sub_country_id = %join.id")
     public SubCountry getSubCountry() {
         return subCountry;
     }
@@ -156,8 +149,7 @@ public class PlayerStatsWithView {
         this.subCountry = subCountry;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "player_id")
+    @Join("%from.player_id = %join.id")
     public Player getPlayer() {
         return player;
     }
@@ -213,10 +205,5 @@ public class PlayerStatsWithView {
     @JoinTo(path = "countryView.nestedView.isoCode")
     public String getCountryViewViewIsoCode() {
         return countryViewViewIsoCode;
-    }
-
-    @JoinTo(path = "countryView.nestedRelationship.isoCode")
-    public String getCountryViewRelationshipIsoCode() {
-        return countryViewRelationshipIsoCode;
     }
 }

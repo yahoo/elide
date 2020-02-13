@@ -10,6 +10,7 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEn
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
@@ -25,8 +26,9 @@ public class SQLTimeDimension extends TimeDimension implements SQLColumn {
     @Getter
     private final JoinPath joinPath;
 
-    public SQLTimeDimension(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        super(tableClass, fieldName, dictionary);
+    public SQLTimeDimension(Table table, String fieldName, EntityDictionary dictionary) {
+        super(table, fieldName, dictionary);
+        Class<?> tableClass = dictionary.getEntityClass(table.getId());
 
         JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
 

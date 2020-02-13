@@ -6,14 +6,14 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
+
 import lombok.Data;
 
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -40,7 +40,6 @@ public class PlayerStatsView {
      */
     private String countryName;
 
-    @OneToOne
-    @JoinColumn(name = "player_id")
+    @Join("%from.player_id = %join.id")
     private Player player;
 }
