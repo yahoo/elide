@@ -28,16 +28,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ValidatableResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
 
@@ -972,7 +973,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     public String loadGraphQLResponse(String fileName) throws IOException {
         try (InputStream in = AggregationDataStoreIntegrationTest.class.getResourceAsStream("/graphql/responses/" + fileName)) {
-            return FileUtils.readFully(new InputStreamReader(in));
+            return new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
         }
     }
 }
