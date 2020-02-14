@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
-import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

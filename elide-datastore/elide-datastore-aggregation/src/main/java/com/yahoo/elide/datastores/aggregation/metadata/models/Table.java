@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
+import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getDataType;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -18,6 +19,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -55,17 +57,21 @@ public class Table {
     @ToString.Exclude
     private Set<Dimension> dimensions;
 
+    @ToString.Exclude
+    private Set<String> tableTags;
+
     @Exclude
     @ToString.Exclude
     private final Map<String, Column> columnMap;
 
     public Table(Class<?> cls, EntityDictionary dictionary) {
-        if (!dictionary.getBindings().contains(cls)) {
+        if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
         }
 
         this.name = dictionary.getJsonAliasFor(cls);
+        this.tableTags = new HashSet<>();
 
         this.columns = constructColumns(cls, dictionary);
         this.columnMap = this.columns.stream().collect(Collectors.toMap(Column::getName, Function.identity()));
@@ -100,7 +106,7 @@ public class Table {
      */
     private Set<Column> constructColumns(Class<?> cls, EntityDictionary dictionary) {
         Set<Column> columns =  dictionary.getAllFields(cls).stream()
-                .filter((field) -> Column.getDataType(cls, field, dictionary) != null)
+                .filter(field -> getDataType(cls, field, dictionary) != null)
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
                         return constructMetric(cls, field, dictionary);

@@ -9,6 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.DataType;
@@ -28,6 +29,7 @@ import lombok.Getter;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -55,12 +57,13 @@ public class MetaDataStore extends HashMapDataStore {
 
         // bind external data models in the package
         this.modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
-        modelsToBind.forEach(dictionary::bindEntity);
+        modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).forEach(dictionary::bindEntity);
+        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName())
+                .forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 
     /**
@@ -164,5 +167,17 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
         return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
+    }
+
+    /**
+     * Returns whether a field in a table/entity is actually a JOIN to other table/entity.
+     *
+     * @param cls table/entity class
+     * @param fieldName field name
+     * @param dictionary metadata dictionary
+     * @return True if this field is a table join
+     */
+    public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+        return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
     }
 }

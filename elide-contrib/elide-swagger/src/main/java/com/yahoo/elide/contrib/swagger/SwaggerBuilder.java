@@ -677,9 +677,9 @@ public class SwaggerBuilder {
         converters.addConverter(new JsonApiModelResolver(dictionary));
 
         if (allClasses.isEmpty()) {
-            allClasses = dictionary.getBindings();
+            allClasses = dictionary.getBoundClasses();
         } else {
-            allClasses = Sets.intersection(dictionary.getBindings(), allClasses);
+            allClasses = Sets.intersection(dictionary.getBoundClasses(), allClasses);
             if (allClasses.isEmpty()) {
                 throw new IllegalArgumentException("None of the provided classes are exported by Elide");
             }

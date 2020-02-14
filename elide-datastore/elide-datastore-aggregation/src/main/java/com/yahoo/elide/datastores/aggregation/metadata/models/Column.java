@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.Tag;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;
@@ -45,7 +44,7 @@ public abstract class Column {
     private DataType dataType;
 
     @ToString.Exclude
-    private Set<Tag> columnTags;
+    private Set<String> columnTags;
 
     protected Column(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         this.tableName = dictionary.getJsonAliasFor(tableClass);

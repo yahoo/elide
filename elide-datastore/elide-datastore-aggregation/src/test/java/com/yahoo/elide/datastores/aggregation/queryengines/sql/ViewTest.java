@@ -8,9 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
@@ -35,21 +33,6 @@ public class ViewTest extends SQLUnitTest {
     public static void init() {
         SQLUnitTest.init();
         playerStatsWithViewSchema = new SQLTable(PlayerStatsWithView.class, dictionary);
-    }
-
-    @Test
-    public void testViewRelationFailure() {
-        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
-
-        Query query = Query.builder()
-                .table(playerStatsWithViewSchema)
-                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryView")))
-                .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
-                .build();
-
-        assertThrows(InvalidPredicateException.class, () -> engine.executeQuery(query));
     }
 
     @Test
@@ -158,7 +141,7 @@ public class ViewTest extends SQLUnitTest {
     @Test
     public void testSortingViewAttribute() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("countryView.isoCode", Sorting.SortOrder.desc);
+        sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
                 .table(playerStatsWithViewSchema)
@@ -193,7 +176,7 @@ public class ViewTest extends SQLUnitTest {
     @Test
     public void testSortingNestedViewAttribute() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("countryView.nestedView.isoCode", Sorting.SortOrder.desc);
+        sortMap.put("countryViewRelationshipIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
                 .table(playerStatsWithViewSchema)
@@ -228,7 +211,7 @@ public class ViewTest extends SQLUnitTest {
     @Test
     public void testSortingNestedRelationshipAttribute() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("countryView.nestedRelationship.isoCode", Sorting.SortOrder.desc);
+        sortMap.put("countryViewRelationshipIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
                 .table(playerStatsWithViewSchema)

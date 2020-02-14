@@ -57,7 +57,7 @@ public class SearchDataStore implements DataStore {
 
             FullTextEntityManager em = Search.getFullTextEntityManager(entityManagerFactory.createEntityManager());
             try {
-                for (Class<?> entityClass : entityDictionary.getBindings()) {
+                for (Class<?> entityClass : entityDictionary.getBoundClasses()) {
                     if (entityDictionary.getAnnotation(entityClass, Indexed.class) != null) {
                         em.createIndexer(entityClass).startAndWait();
                     }
