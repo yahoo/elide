@@ -83,17 +83,13 @@ public class JsonApiModelResolver extends ModelResolver {
         for (String relationshipName : relationshipNames) {
 
             Class<?> relationshipType = dictionary.getParameterizedType(clazz, relationshipName);
-            Relationship relationship;
-            try {
-                relationship = new Relationship(dictionary.getJsonAliasFor(relationshipType));
 
-            /* Skip the relationship if it is not bound in the dictionary */
-            } catch (IllegalArgumentException e) {
-                continue;
+            Relationship relationship = processRelationship(clazz, relationshipName, relationshipType);
+
+            if (relationship != null) {
+                entitySchema.addRelationship(relationshipName, relationship);
             }
-            relationship.setDescription(getFieldPermissions(clazz, relationshipName));
 
-            entitySchema.addRelationship(relationshipName, relationship);
         }
 
         entitySchema.name(typeAlias);
@@ -114,6 +110,27 @@ public class JsonApiModelResolver extends ModelResolver {
         attribute.setRequired(getFieldRequired(clazz, attributeName));
 
         return attribute;
+    }
+
+    private Relationship processRelationship(Class<?> clazz, String relationshipName, Class<?> relationshipClazz) {
+        Relationship relationship = null;
+        try {
+            relationship = new Relationship(dictionary.getJsonAliasFor(relationshipClazz));
+
+        /* Skip the relationship if it is not bound in the dictionary */
+        } catch (IllegalArgumentException e) {
+            return relationship;
+        }
+
+        String description = getFieldDescription(clazz, relationshipName);
+        String permissions = getFieldPermissions(clazz, relationshipName);
+
+        relationship.setDescription(StringUtils.defaultIfEmpty(joinNonEmpty("\n", description, permissions), null));
+        relationship.setExample((Object) StringUtils.defaultIfEmpty(getFieldExample(clazz, relationshipName), null));
+        relationship.setReadOnly(getFieldReadOnly(clazz, relationshipName));
+        relationship.setRequired(getFieldRequired(clazz, relationshipName));
+
+        return relationship;
     }
 
     private ApiModelProperty getApiModelProperty(Class<?> clazz, String fieldName) {

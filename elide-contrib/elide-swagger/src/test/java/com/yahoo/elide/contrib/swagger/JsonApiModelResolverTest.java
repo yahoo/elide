@@ -6,6 +6,7 @@
 package com.yahoo.elide.contrib.swagger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -120,6 +121,14 @@ public class JsonApiModelResolverTest {
     }
 
     @Test
+    public void testExampleRelationship() {
+        ObjectProperty attributes = getObjectProperty(KEY_BOOK, "relationships");
+
+        Object authorsExample = attributes.getProperties().get("authors").getExample();
+        assertEquals("[\"author1\", \"author2\", \"author3\"]", authorsExample);
+    }
+
+    @Test
     public void testNoExampleWithoutAnnotation() {
         ObjectProperty attributes = getObjectProperty(KEY_AUTHOR, "attributes");
 
@@ -145,6 +154,15 @@ public class JsonApiModelResolverTest {
     }
 
     @Test
+    public void testConcatenatedDescriptionAndPermissionsRelationship() {
+        ObjectProperty attributes = getObjectProperty(KEY_BOOK, "relationships");
+
+        String authorsDescription = attributes.getProperties().get("authors").getDescription();
+        assertEquals("Writers\nRead Permissions : (Principal is author OR Principal is publisher)"
+                + "\nUpdate Permissions : (Principal is author)", authorsDescription);
+    }
+
+    @Test
     public void testRequired() {
         ObjectProperty attributes = getObjectProperty(KEY_BOOK, "attributes");
 
@@ -158,6 +176,22 @@ public class JsonApiModelResolverTest {
 
         Boolean titleReadOnly = attributes.getProperties().get("year").getReadOnly();
         assertTrue(titleReadOnly);
+    }
+
+    @Test
+    public void testRequiredRelationship() {
+        ObjectProperty attributes = getObjectProperty(KEY_BOOK, "relationships");
+
+        Boolean authorsRequired = attributes.getProperties().get("authors").getRequired();
+        assertFalse(authorsRequired);
+    }
+
+    @Test
+    public void testReadOnlyRelationship() {
+        ObjectProperty attributes = getObjectProperty(KEY_BOOK, "relationships");
+
+        Boolean authorsReadOnly = attributes.getProperties().get("authors").getReadOnly();
+        assertTrue(authorsReadOnly);
     }
 
     private Resource getModel(String entityKey) {

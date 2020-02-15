@@ -19,7 +19,7 @@ import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
 
 import com.google.common.collect.ImmutableSet;
-
+import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +65,7 @@ public class HashMapDataStoreTest {
             Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
-            FirstBean bean = (FirstBean) beans.iterator().next();
+            FirstBean bean = (FirstBean) IterableUtils.first(beans);
             assertTrue(!"0".equals(bean.id) && "Test".equals(bean.name));
         }
     }

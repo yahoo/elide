@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -83,7 +84,7 @@ public abstract class IntegrationTest {
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
 
-            if (dataStoreSupplierName != null && !dataStoreSupplierName.isEmpty()) {
+            if (StringUtils.isNotEmpty(dataStoreSupplierName)) {
                 return Class.forName(dataStoreSupplierName).asSubclass(DataStoreTestHarness.class).newInstance();
             }
             return new InMemoryDataStoreHarness();
@@ -117,7 +118,7 @@ public abstract class IntegrationTest {
         // port randomly picked in pom.xml
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         RestAssured.port =
-                Integer.parseInt(restassuredPort != null && !restassuredPort.isEmpty() ? restassuredPort : "9999");
+                Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
 
         // embedded jetty server
         Server server = new Server(RestAssured.port);

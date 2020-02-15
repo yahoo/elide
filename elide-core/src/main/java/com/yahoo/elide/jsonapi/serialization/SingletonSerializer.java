@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
+import org.apache.commons.collections4.IterableUtils;
+
 import java.io.IOException;
 import java.util.AbstractCollection;
 
@@ -20,6 +22,6 @@ public class SingletonSerializer extends JsonSerializer<AbstractCollection> {
     @Override
     public void serialize(AbstractCollection data, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
         throws IOException {
-        jsonGenerator.writeObject(data.iterator().next());
+        jsonGenerator.writeObject(IterableUtils.first(data));
     }
 }
