@@ -30,7 +30,8 @@
         "title": "Enders Game",
         "genre": "Science Fiction",
         "language": "English",
-        "publishDate": 1454638927412
+        "publishDate": 1454638927412,
+        "awards": ["Pulitzer Prize"]
       }
     }
   }

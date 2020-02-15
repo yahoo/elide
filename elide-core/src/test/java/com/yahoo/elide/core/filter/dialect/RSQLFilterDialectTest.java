@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -308,5 +309,76 @@ public class RSQLFilterDialectTest {
         assertEquals(expression.toString(),
                 "primitiveId.primitiveId INFIX_CASE_INSENSITIVE [1]"
         );
+    }
+
+    //TODO: add test for =isempty= case
+
+    @Test
+    public void testIsemptyOperatorBool() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "title=isempty=true"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        assertEquals("book.title ISEMPTY []", expression.toString());
+    }
+
+    @Test
+    public void testIsemptyOperatorInt() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "authors=isempty=1"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        assertEquals("book.authors ISEMPTY []", expression.toString());
+    }
+
+    @Test
+    public void testNotemptyOperatorBool() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "authors=isempty=false"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        assertEquals("book.authors NOTEMPTY []", expression.toString());
+    }
+
+    @Test
+    public void testNotemptyOperatorInt() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "title=isempty=0"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        assertEquals("book.title NOTEMPTY []", expression.toString());
+    }
+
+    @Test
+    public void testEmptyOperatorException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "authors.name=isempty=0"
+        );
+
+        assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams));
     }
 }

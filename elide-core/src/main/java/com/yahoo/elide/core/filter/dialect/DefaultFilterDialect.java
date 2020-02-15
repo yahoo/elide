@@ -29,7 +29,6 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDialect {
     private final EntityDictionary dictionary;
-
     public DefaultFilterDialect(EntityDictionary dictionary) {
         this.dictionary = dictionary;
     }
@@ -128,10 +127,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         List<FilterPredicate> filterPredicates = extractPredicates(filterParams);
 
         for (FilterPredicate filterPredicate : filterPredicates) {
-            if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
-                throw new ParseException("Invalid toMany join: " + filterPredicate);
-            }
-
+            validateFilterPredicate(filterPredicate);
             String entityType = dictionary.getJsonAliasFor(filterPredicate.getEntityType());
             FilterExpression filterExpression = expressionMap.get(entityType);
             if (filterExpression != null) {
@@ -191,5 +187,38 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         }
 
         return new Path(path);
+    }
+
+    /**
+     * Check if the relation type in filter predicate is allowed for an operator.
+     * Defaults behavior is to prevent filter on toMany relationship.
+     * @param filterPredicate
+     * @throws ParseException
+     */
+    private void validateFilterPredicate(FilterPredicate filterPredicate) throws ParseException {
+        switch (filterPredicate.getOperator()) {
+            case ISEMPTY:
+            case NOTEMPTY:
+                emptyOperatorConditions(filterPredicate);
+                break;
+            default:
+                if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
+                    throw new ParseException("Invalid toMany join: " + filterPredicate);
+                }
+        }
+    }
+
+    /**
+     * Check if the predicate has toMany relationship that is not target relationship
+     * on which the empty check is performed.
+     * @param filterPredicate
+     * @throws ParseException
+     */
+    private void emptyOperatorConditions(FilterPredicate filterPredicate) throws ParseException {
+        if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, filterPredicate.getPath())) {
+            throw new ParseException(
+                    "Invalid toMany join. toMany association has to be the target collection."
+                    + filterPredicate);
+        }
     }
 }
