@@ -37,6 +37,11 @@ public class FilterTranslatorTest {
 
     @Test
     public void testHQLQueryVisitor() throws Exception {
+        List<Path.PathElement> p0Path = Arrays.asList(
+                new Path.PathElement(Book.class, Author.class, "authors")
+        );
+        FilterPredicate p0 = new NotEmptyPredicate(new Path(p0Path));
+
         List<Path.PathElement> p1Path = Arrays.asList(
                 new Path.PathElement(Book.class, Author.class, "authors"),
                 new Path.PathElement(Author.class, String.class, "name")
@@ -54,8 +59,9 @@ public class FilterTranslatorTest {
         FilterPredicate p3 = new InPredicate(new Path(p3Path), "scifi");
 
         OrFilterExpression or = new OrFilterExpression(p2, p3);
-        AndFilterExpression and = new AndFilterExpression(or, p1);
-        NotFilterExpression not = new NotFilterExpression(and);
+        AndFilterExpression and1 = new AndFilterExpression(p0, p1);
+        AndFilterExpression and2 = new AndFilterExpression(or, and1);
+        NotFilterExpression not = new NotFilterExpression(and2);
 
         FilterTranslator filterOp = new FilterTranslator();
         String query = filterOp.apply(not, false);
@@ -67,7 +73,7 @@ public class FilterTranslatorTest {
         String p3Params = p3.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
         String expected = "WHERE NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
-                + "AND authors.name IN (" + p1Params + ")))";
+                + "AND (authors IS NOT EMPTY AND authors.name IN (" + p1Params + "))))";
         assertEquals(expected, query);
     }
 

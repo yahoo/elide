@@ -20,6 +20,7 @@ import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -72,7 +73,7 @@ public class MultiplexManagerTest {
             Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
-            FirstBean bean = (FirstBean) beans.iterator().next();
+            FirstBean bean = (FirstBean) IterableUtils.first(beans);
             assertTrue(bean.id != null && "Test".equals(bean.name));
         }
     }

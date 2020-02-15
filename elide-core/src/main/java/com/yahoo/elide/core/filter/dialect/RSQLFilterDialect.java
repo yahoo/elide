@@ -13,7 +13,9 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.IsEmptyPredicate;
 import com.yahoo.elide.core.filter.IsNullPredicate;
+import com.yahoo.elide.core.filter.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -24,6 +26,8 @@ import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.collect.ImmutableMap;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
@@ -55,6 +59,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
+    private static final ComparisonOperator ISEMPTY_OP = new ComparisonOperator("=isempty=", false);
 
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
@@ -84,6 +89,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private static Set<ComparisonOperator> getDefaultOperatorsWithIsnull() {
         Set<ComparisonOperator> operators = RSQLOperators.defaultOperators();
         operators.add(ISNULL_OP);
+        operators.add(ISEMPTY_OP);
         return operators;
     }
 
@@ -94,7 +100,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
-        MultivaluedMap.Entry<String, List<String>> entry = filterParams.entrySet().iterator().next();
+        MultivaluedMap.Entry<String, List<String>> entry = CollectionUtils.get(filterParams, 0);
         String queryParamName = entry.getKey();
 
         if (!"filter".equals(queryParamName)) {
@@ -284,6 +290,18 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             List<String> arguments = node.getArguments();
             Path path = buildPath(entityType, relationship);
 
+            //handles '=isempty=' op before coerce arguments
+            // ToMany Association is allowed if the operation in Is Empty
+            if (op.equals(ISEMPTY_OP)) {
+                if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, path)
+                        && !allowNestedToManyAssociations) {
+                    throw new RSQLParseException(
+                            String.format("Invalid association %s. toMany association has to be the target collection.",
+                                    relationship));
+                }
+                return buildIsEmptyOperator(path, arguments);
+            }
+
             if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
                 throw new RSQLParseException(String.format("Invalid association %s", relationship));
             }
@@ -366,6 +384,26 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return new NotNullPredicate(path);
             } catch (InvalidValueException ignored) {
                 throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
+            }
+        }
+
+        /**
+         * Returns Predicate for '=isempty=' case depending on its arguments.
+         * <p>
+         * NOTE: Filter Expression builder specially for '=isempty=' case.
+         *
+         * @return
+         */
+        private FilterExpression buildIsEmptyOperator(Path path, List<String> arguments) {
+            String arg = arguments.get(0);
+            try {
+                boolean wantsEmpty = CoerceUtil.coerce(arg, boolean.class);
+                if (wantsEmpty) {
+                    return new IsEmptyPredicate(path);
+                }
+                return new NotEmptyPredicate(path);
+            } catch (InvalidValueException ignored) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg));
             }
         }
     }

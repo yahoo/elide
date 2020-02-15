@@ -37,6 +37,10 @@
         <url>https://github.com/yahoo/elide.git</url>
         <tag>HEAD</tag>
     </scm>
+    <properties>
+        <excludeTags>emptyOnAttributeCollection</excludeTags>
+    </properties>
+
 
     <dependencies>
         <!-- Elide (including integration tests) -->
@@ -243,6 +247,7 @@
                     <reuseForks>true</reuseForks>
                     <trimStackTrace>false</trimStackTrace>
                     <failIfNoTests>true</failIfNoTests>
+                    <excludedGroups>${excludeTags}</excludedGroups>
                 </configuration>
             </plugin>
             <plugin>

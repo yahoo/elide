@@ -33,7 +33,8 @@
       "attributes": {
         "title": "Foundation",
         "genre": "Science Fiction",
-        "language": "English"
+        "language": "English",
+        "awards": ["BookBrowse Awards"]
       }
     }
   },
@@ -46,7 +47,8 @@
       "attributes": {
         "title": "The Roman Republic",
         "genre": "History",
-        "language": "English"
+        "language": "English",
+        "awards": []
       }
     }
   },

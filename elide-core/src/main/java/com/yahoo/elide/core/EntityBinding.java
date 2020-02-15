@@ -28,7 +28,7 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.functions.LifeCycleHook;
 
 import com.google.common.base.Throwables;
-
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -78,7 +78,7 @@ import javax.persistence.Transient;
  */
 public class EntityBinding {
 
-    private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
+    private static final List<Method> OBJ_METHODS = ImmutableList.copyOf(Object.class.getMethods());
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);

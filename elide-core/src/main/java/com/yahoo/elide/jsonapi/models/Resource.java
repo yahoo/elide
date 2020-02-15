@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import lombok.ToString;
@@ -71,13 +72,13 @@ public class Resource {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Map<String, Relationship> getRelationships() {
-        return relationships == null || relationships.isEmpty() ? null : relationships;
+        return MapUtils.isEmpty(relationships) ? null : relationships;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonSerialize(keyUsing = KeySerializer.class)
     public Map<String, Object> getAttributes() {
-        return attributes == null || attributes.isEmpty() ? null : attributes;
+        return MapUtils.isEmpty(attributes) ? null : attributes;
     }
 
     public void setId(String id) {

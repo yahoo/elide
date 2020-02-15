@@ -14,8 +14,10 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -150,6 +152,20 @@ public enum Operator {
             return isFalse();
         }
     },
+
+    ISEMPTY("isempty", false) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return isEmpty(field, requestScope);
+        }
+    },
+
+    NOTEMPTY("notempty", false) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return (entity) -> !isEmpty(field, requestScope).test(entity);
+        }
+    }
     ;
 
     public static final Function<String, String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
@@ -171,6 +187,8 @@ public enum Operator {
         FALSE.negated = TRUE;
         ISNULL.negated = NOTNULL;
         NOTNULL.negated = ISNULL;
+        ISEMPTY.negated = NOTEMPTY;
+        NOTEMPTY.negated = ISEMPTY;
     }
 
     /**
@@ -314,6 +332,22 @@ public enum Operator {
 
     private static <T> Predicate<T> isFalse() {
         return (T entity) -> false;
+    }
+
+    private static <T> Predicate<T> isEmpty(String field, RequestScope requestScope) {
+        return (T entity) -> {
+
+            Object val = getFieldValue(entity, field, requestScope);
+            if (val == null) { return false; }
+            if (val instanceof Collection<?>) {
+                return ((Collection<?>) val).isEmpty();
+            }
+            if (val instanceof Map<?, ?>) {
+                return ((Map<?, ?>) val).isEmpty();
+            }
+
+            return false;
+        };
     }
 
     /**

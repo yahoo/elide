@@ -40,6 +40,7 @@
 
     <properties>
         <dataStoreHarness>com.yahoo.elide.datastores.hibernate3.HibernateDataStoreHarness</dataStoreHarness>
+        <excludeTags>emptyOnAttributeCollection</excludeTags>
     </properties>
 
     <dependencies>
@@ -185,6 +186,7 @@
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <failIfNoTests>true</failIfNoTests>
+                    <excludedGroups>${excludeTags}</excludedGroups>
                 </configuration>
             </plugin>
             <plugin>
