@@ -1,5 +1,39 @@
 # Change Log
 
+## 4.5.13
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/236ed8f9af121a2ebc32dcb9f40c47062c742f6e) Added IsEmpty operation for filter predicate (#1176) 
+   
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f7e29a00b1b000acf5eaa3ae07b2094a52aa3c0b) Refactor tests (#1145) 
+   * [view commit](https://github.com/yahoo/elide/commit/601265ebabe4230230a176313c0204780c4f29c1) Hibernate Entity Manager DataStore Harness (#1156) 
+   * [view commit](https://github.com/yahoo/elide/commit/777287ef45e36020afafc4229dcee199c55263d7) Update test dependency on example models (#1155) 
+   * [view commit](https://github.com/yahoo/elide/commit/021a0498bc588b1c3204f14d9f692f3afd4b1c97) Bump spring.boot.version from 2.2.2.RELEASE to 2.2.4.RELEASE (#1158) 
+   * [view commit](https://github.com/yahoo/elide/commit/00b46fe99d7a733f1202db4d83ac76323dbdf92f) Bump version.antlr4 from 4.7.2 to 4.8-1 (#1153) 
+   * [view commit](https://github.com/yahoo/elide/commit/15a6bd4bcc42ffb615e5378b50a198c9d25e7739) Bump version.jackson from 2.10.1 to 2.10.2 (#1148) 
+   * [view commit](https://github.com/yahoo/elide/commit/acee35cf44598b64ef77dacb0ec0a561b71917fc) Revert "Bump version.jackson from 2.10.1 to 2.10.2 (#1148)" (#1159) 
+   * [view commit](https://github.com/yahoo/elide/commit/d23bb54b05358a09545bd42be53b75b445ce1cb1) Bump jersey-container-servlet-core from 2.29.1 to 2.30 (#1152) 
+   * [view commit](https://github.com/yahoo/elide/commit/6622d45a387147c66171c7f3d53707f4655deea1) Bump version.jetty from 9.4.25.v20191220 to 9.4.26.v20200117 (#1147) 
+   * [view commit](https://github.com/yahoo/elide/commit/180b0ac78ce73b28d99046808c9db1d587833bd6) Bump mysql-connector-java from 8.0.18 to 8.0.19 (#1151) 
+   * [view commit](https://github.com/yahoo/elide/commit/b440ed2b9c2372f3121fa0b3b0c2084dbdd27b20) Bump dependency-check-maven from 5.2.4 to 5.3.0 (#1161) 
+   * [view commit](https://github.com/yahoo/elide/commit/bcacaf347315e066c72a6da0ba97754962876a65) JsonApiDocument hashCode and equals were inconsistent (#1163) 
+   * [view commit](https://github.com/yahoo/elide/commit/d6e2093e4144da3b821c700228e5276b13c56ffe) null access suggestions (#1172) 
+   * [view commit](https://github.com/yahoo/elide/commit/04b1fce458fc40438080442a372e4d77a75de5dc) Core tests (#1162) 
+   * [view commit](https://github.com/yahoo/elide/commit/c726f1d6558025e94a8f691f1b1cf66a34494515) Send INFO to Console, TRACE to trace.log (#1173) 
+   * [view commit](https://github.com/yahoo/elide/commit/90df07ded2fe011fd47e11504acd93395c2f4d6e) Consolidate JSON API Content Type constant (#1174) 
+   * [view commit](https://github.com/yahoo/elide/commit/c82214d8ab0316e7b9c19056ca9025bb0f955fbf) Removed Groovy as Dependency (#1175) 
+   * [view commit](https://github.com/yahoo/elide/commit/290adb51d74a943fc05399c0d814186e68623a07) Honor ApiModelProperty annotations for relationships (#1180) 
+   * [view commit](https://github.com/yahoo/elide/commit/349434ee81d31b7221503a7e71433062b7c644fe) bump checkstyle to 8.29 (#1181) 
+   * [view commit](https://github.com/yahoo/elide/commit/ff88afb94f5a94ea0f800c740b07ce960d5943da) Use isEmpty utilitity (#1182) 
+   * [view commit](https://github.com/yahoo/elide/commit/ebddf047a1e10a48a7df798a8000d43a8bfe9b69) Bump lombok from 1.18.10 to 1.18.12 (#1184) 
+   * [view commit](https://github.com/yahoo/elide/commit/1ffbf4fa02ce59bf4c0ba8e458eeb94936108e97) Bump log4j-over-slf4j from 1.7.29 to 1.7.30 (#1177) 
+   * [view commit](https://github.com/yahoo/elide/commit/062c78af07ee4550ac31e9532524a6f7e5daa5bf) Bump version.restassured from 4.1.2 to 4.2.0 (#1169) 
+   * [view commit](https://github.com/yahoo/elide/commit/82bec83a2461501f47121833c397327a148bf33c) Bump version.junit from 5.5.2 to 5.6.0 (#1168) 
+   * [view commit](https://github.com/yahoo/elide/commit/9006bdbbc49c8fe95b4d5819c3e088e12bf5e7a5) Bump rxjava from 2.2.16 to 2.2.17 (#1166) 
+   * [view commit](https://github.com/yahoo/elide/commit/9d3bad32544d4278b711ff812d80342f0b2c8df7) Bump version.jersey from 2.29.1 to 2.30 (#1170) 
+   * [view commit](https://github.com/yahoo/elide/commit/76d8b60d7af862c7657bbdc1ec3077bf09d65916) Bump jackson-module-jaxb-annotations from 2.10.1 to 2.10.2 (#1150) 
+   * [view commit](https://github.com/yahoo/elide/commit/6f47ded351c3d6beeb3a480157dc7436409769e0) Bump version.jackson from 2.10.1 to 2.10.2 (#1165) 
+
 ## 4.5.12
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/cd2a159d6958b11d0ee107370fca2dcc5b3175dc) Adds a registry based mechanism for registering Custom GraphQL scalars  (#1131) 
