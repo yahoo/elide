@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isMetricField;
-import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getDataType;
+import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getValueType;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -35,9 +35,9 @@ import javax.persistence.OneToMany;
 @ToString
 public class Table {
     @Id
-    private String name;
+    private String id;
 
-    private String longName;
+    private String name;
 
     private String description;
 
@@ -70,7 +70,7 @@ public class Table {
                     String.format("Table class {%s} is not defined in dictionary.", cls));
         }
 
-        this.name = dictionary.getJsonAliasFor(cls);
+        this.id = dictionary.getJsonAliasFor(cls);
         this.tableTags = new HashSet<>();
 
         this.columns = constructColumns(cls, dictionary);
@@ -87,7 +87,7 @@ public class Table {
 
         Meta meta = cls.getAnnotation(Meta.class);
         if (meta != null) {
-            this.longName = meta.longName();
+            this.name = meta.longName();
             this.description = meta.description();
         }
 
@@ -106,21 +106,21 @@ public class Table {
      */
     private Set<Column> constructColumns(Class<?> cls, EntityDictionary dictionary) {
         Set<Column> columns =  dictionary.getAllFields(cls).stream()
-                .filter(field -> getDataType(cls, field, dictionary) != null)
+                .filter(field -> getValueType(cls, field, dictionary) != null)
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
-                        return constructMetric(cls, field, dictionary);
+                        return constructMetric(field, dictionary);
                     } else if (dictionary.attributeOrRelationAnnotationExists(cls, field, Temporal.class)) {
-                        return constructTimeDimension(cls, field, dictionary);
+                        return constructTimeDimension(field, dictionary);
                     } else {
-                        return constructDimension(cls, field, dictionary);
+                        return constructDimension(field, dictionary);
                     }
                 })
                 .collect(Collectors.toSet());
 
         // add id field if exists
         if (dictionary.getIdFieldName(cls) != null) {
-            columns.add(constructDimension(cls, dictionary.getIdFieldName(cls), dictionary));
+            columns.add(constructDimension(dictionary.getIdFieldName(cls), dictionary));
         }
 
         return columns;
@@ -129,37 +129,34 @@ public class Table {
     /**
      * Construct a Metric instance.
      *
-     * @param cls table class
      * @param fieldName field name
      * @param dictionary dictionary contains the table class
      * @return Metric metadata instance
      */
-    protected Metric constructMetric(Class<?> cls, String fieldName, EntityDictionary dictionary) {
-        return new Metric(cls, fieldName, dictionary);
+    protected Metric constructMetric(String fieldName, EntityDictionary dictionary) {
+        return new Metric(this, fieldName, dictionary);
     }
 
     /**
      * Construct a Dimension instance.
      *
-     * @param cls table class
      * @param fieldName field name
      * @param dictionary dictionary contains the table class
      * @return Dimension metadata instance
      */
-    protected TimeDimension constructTimeDimension(Class<?> cls, String fieldName, EntityDictionary dictionary) {
-        return new TimeDimension(cls, fieldName, dictionary);
+    protected TimeDimension constructTimeDimension(String fieldName, EntityDictionary dictionary) {
+        return new TimeDimension(this, fieldName, dictionary);
     }
 
     /**
      * Construct a TimeDimension instance.
      *
-     * @param cls table class
      * @param fieldName field name
      * @param dictionary dictionary contains the table class
      * @return TimeDimension metadata instance
      */
-    protected Dimension constructDimension(Class<?> cls, String fieldName, EntityDictionary dictionary) {
-        return new Dimension(cls, fieldName, dictionary);
+    protected Dimension constructDimension(String fieldName, EntityDictionary dictionary) {
+        return new Dimension(this, fieldName, dictionary);
     }
 
     /**

@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -28,14 +29,18 @@ import javax.persistence.ManyToMany;
 @Data
 public class TimeDimension extends Dimension {
     @ManyToMany
+    @ToString.Exclude
     Set<TimeDimensionGrain> supportedGrains;
 
     private TimeZone timezone;
 
-    public TimeDimension(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        super(tableClass, fieldName, dictionary);
+    public TimeDimension(Table table, String fieldName, EntityDictionary dictionary) {
+        super(table, fieldName, dictionary);
 
-        Temporal temporal = dictionary.getAttributeOrRelationAnnotation(tableClass, Temporal.class, fieldName);
+        Temporal temporal = dictionary.getAttributeOrRelationAnnotation(
+                dictionary.getEntityClass(table.getId()),
+                Temporal.class,
+                fieldName);
 
         this.supportedGrains = Arrays.stream(temporal.grains())
                 .map(grain -> new TimeDimensionGrain(getId(), grain))

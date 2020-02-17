@@ -71,7 +71,7 @@ public class QueryValidator {
             Class<?> cls = last.getType();
             String fieldName = last.getFieldName();
 
-            Class<?> tableClass = dictionary.getEntityClass(queriedTable.getName());
+            Class<?> tableClass = dictionary.getEntityClass(queriedTable.getId());
 
             if (cls != tableClass) {
                 throw new InvalidOperationException(
@@ -127,17 +127,6 @@ public class QueryValidator {
      */
     private void validateSortingPath(Path path, Set<String> allFields) {
         List<Path.PathElement> pathElements = path.getPathElements();
-
-        // TODO: add support for double nested sorting
-        if (pathElements.size() > 2) {
-            throw new UnsupportedOperationException(
-                    "Currently sorting on double nested fields is not supported");
-        }
-
-        if (metrics.isEmpty() && pathElements.size() > 1) {
-            throw new UnsupportedOperationException(
-                    "Query with no metric can't sort on nested field.");
-        }
 
         Path.PathElement currentElement = pathElements.get(0);
         String currentField = currentElement.getFieldName();

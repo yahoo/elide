@@ -87,15 +87,13 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 selection(
                         field(
                                 "playerStats",
+                                arguments(
+                                        argument("sort", "\"highScore\"")
+                                ),
                                 selections(
                                         field("highScore"),
                                         field("overallRating"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
+                                        field("countryIsoCode")
                                 )
                         )
                 )
@@ -106,34 +104,19 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 selections(
+                                        field("highScore", 1000),
+                                        field("overallRating", "Good"),
+                                        field("countryIsoCode", "HKG")
+                                ),
+                                selections(
                                         field("highScore", 1234),
                                         field("overallRating", "Good"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States")
-                                                )
-                                        )
+                                        field("countryIsoCode", "USA")
                                 ),
                                 selections(
                                         field("highScore", 2412),
                                         field("overallRating", "Great"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States")
-                                                )
-                                        )
-                                ),
-                                selections(
-                                        field("highScore", 1000),
-                                        field("overallRating", "Good"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Hong Kong")
-                                                )
-                                        )
+                                        field("countryIsoCode", "USA")
                                 )
                         )
                 )
@@ -149,17 +132,10 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStatsWithView",
                                 arguments(
-                                        argument("sort", "\"countryViewRelationshipIsoCode\"")
+                                        argument("sort", "\"countryViewViewIsoCode\"")
                                 ),
                                 selections(
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name"),
-                                                        field("isoCode")
-                                                )
-                                        ),
-                                        field("countryViewRelationshipIsoCode")
+                                        field("countryViewViewIsoCode")
                                 )
                         )
                 )
@@ -170,24 +146,10 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStatsWithView",
                                 selections(
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Hong Kong"),
-                                                        field("isoCode", "HKG")
-                                                )
-                                        ),
-                                        field("countryViewRelationshipIsoCode", "HKG")
+                                        field("countryViewViewIsoCode", "HKG")
                                 ),
                                 selections(
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States"),
-                                                        field("isoCode", "USA")
-                                                )
-                                        ),
-                                        field("countryViewRelationshipIsoCode", "USA")
+                                        field("countryViewViewIsoCode", "USA")
                                 )
                         )
                 )
@@ -240,12 +202,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore"),
                                         field("overallRating"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
+                                        field("playerName")
                                 )
                         )
                 )
@@ -258,12 +215,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore", 35),
                                         field("overallRating", "Good"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Jon Doe")
-                                                )
-                                        )
+                                        field("playerName", "Jon Doe")
                                 )
                         )
                 )
@@ -283,17 +235,13 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("filter", "\"overallRating==\\\"Good\\\",lowScore<\\\"45\\\"\"")
+                                        argument("filter", "\"overallRating==\\\"Good\\\",lowScore<\\\"45\\\"\""),
+                                        argument("sort", "\"lowScore\"")
                                 ),
                                 selections(
                                         field("lowScore"),
                                         field("overallRating"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
+                                        field("playerName")
                                 )
                         )
                 )
@@ -306,22 +254,12 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore", 35),
                                         field("overallRating", "Good"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Jon Doe")
-                                                )
-                                        )
+                                        field("playerName", "Jon Doe")
                                 ),
                                 selections(
                                         field("lowScore", 72),
                                         field("overallRating", "Good"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Han")
-                                                )
-                                        )
+                                        field("playerName", "Han")
                                 )
                         )
                 )
@@ -347,12 +285,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore"),
                                         field("countryIsoCode"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
+                                        field("playerName")
                                 )
                         )
                 )
@@ -365,22 +298,12 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore", 35),
                                         field("countryIsoCode", "USA"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Jon Doe")
-                                                )
-                                        )
+                                        field("playerName", "Jon Doe")
                                 ),
                                 selections(
                                         field("lowScore", 241),
                                         field("countryIsoCode", "USA"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Jane Doe")
-                                                )
-                                        )
+                                        field("playerName", "Jane Doe")
                                 )
                         )
                 )
@@ -515,12 +438,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 ),
                                 selections(
                                         field("highScore"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
+                                        field("countryIsoCode")
                                 )
                         )
                 )
@@ -532,21 +450,11 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats",
                                 selections(
                                         field("highScore", 2412),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States")
-                                                )
-                                        )
+                                        field("countryIsoCode", "USA")
                                 ),
                                 selections(
                                         field("highScore", 1000),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Hong Kong")
-                                                )
-                                        )
+                                        field("countryIsoCode", "HKG")
                                 )
                         )
                 )
@@ -562,17 +470,12 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("sort", "\"overallRating,player.name\"")
+                                        argument("sort", "\"overallRating,playerName\"")
                                 ),
                                 selections(
                                         field("lowScore"),
                                         field("overallRating"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
+                                        field("playerName")
                                 )
                         )
                 )
@@ -585,32 +488,17 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 selections(
                                         field("lowScore", 72),
                                         field("overallRating", "Good"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Han")
-                                                )
-                                        )
+                                        field("playerName", "Han")
                                 ),
                                 selections(
                                         field("lowScore", 35),
                                         field("overallRating", "Good"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Jon Doe")
-                                                )
-                                        )
+                                        field("playerName", "Jon Doe")
                                 ),
                                 selections(
                                         field("lowScore", 241),
                                         field("overallRating", "Great"),
-                                        field(
-                                                "player",
-                                                selections(
-                                                        field("name", "Jane Doe")
-                                                )
-                                        )
+                                        field("playerName", "Jane Doe")
                                 )
                         )
                 )
@@ -648,7 +536,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("sort", "\"-country.name,lowScore\"")
+                                        argument("sort", "\"-countryIsoCode,lowScore\"")
                                 ),
                                 selections(
                                         field("lowScore")
@@ -657,7 +545,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on country as it is not present in query'\"";
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on countryIsoCode as it is not present in query'\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -673,51 +561,13 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 ),
                                 selections(
                                         field("lowScore"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        )
+                                        field("countryIsoCode")
                                 )
                         )
                 )
         ).toQuery();
 
         String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on highScore as it is not present in query'\"";
-
-        runQueryWithExpectedError(graphQLRequest, expected);
-    }
-
-    @Test
-    public void sortingMultipleLevelNesting() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "playerStats",
-                                arguments(
-                                        argument("sort", "\"country.continent.name\"")
-                                ),
-                                selections(
-                                        field("lowScore"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name"),
-                                                        field(
-                                                                "continent",
-                                                                selections(
-                                                                        field("name")
-                                                                )
-                                                        )
-                                                )
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = "\"Exception while fetching data (/playerStats) : Currently sorting on double nested fields is not supported\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -763,14 +613,11 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 selection(
                         field(
                                 "playerStatsWithView",
+                                arguments(
+                                        argument("sort", "\"highScore\"")
+                                ),
                                 selections(
                                         field("highScore"),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name")
-                                                )
-                                        ),
                                         field("countryViewIsoCode")
                                 )
                         )
@@ -783,22 +630,10 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStatsWithView",
                                 selections(
                                         field("highScore", 1000),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "Hong Kong")
-                                                )
-                                        ),
                                         field("countryViewIsoCode", "HKG")
                                 ),
                                 selections(
                                         field("highScore", 2412),
-                                        field(
-                                                "country",
-                                                selections(
-                                                        field("name", "United States")
-                                                )
-                                        ),
                                         field("countryViewIsoCode", "USA")
                                 )
                         )
@@ -817,7 +652,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.id", hasItems("0", "1", "2"))
                 .body("data.attributes.highScore", hasItems(1000, 1234, 2412))
-                .body("data.relationships.country.data.id", hasItems("840", "344"));
+                .body("data.attributes.countryIsoCode", hasItems("USA", "HKG"));
     }
 
     @Test
@@ -840,23 +675,22 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         "data.relationships.dimensions.data.id",
                         hasItems(
                                 "playerStats.id",
-                                "playerStats.player",
-                                "playerStats.country",
-                                "playerStats.subCountry",
-                                "playerStats.recordedDate",
-                                "playerStats.overallRating",
+                                "playerStats.playerName",
+                                "playerStats.player2Name",
                                 "playerStats.countryIsoCode",
-                                "playerStats.subCountryIsoCode"))
+                                "playerStats.subCountryIsoCode",
+                                "playerStats.recordedDate",
+                                "playerStats.overallRating"))
                 .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"));
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/dimension/playerStats.player")
+                .get("/dimension/playerStats.playerName")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("player"))
-                .body("data.attributes.tableName", equalTo("playerStats"))
-                .body("data.relationships.dataType.data.id", equalTo("player"));
+                .body("data.attributes.name", equalTo("playerName"))
+                .body("data.attributes.valueType",  equalTo("TEXT"))
+                .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
                 .accept("application/vnd.api+json")
@@ -864,8 +698,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
-                .body("data.attributes.tableName", equalTo("playerStats"))
-                .body("data.relationships.dataType.data.id", equalTo("p_bigint"))
+                .body("data.attributes.valueType",  equalTo("INTEGER"))
+                .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
                 .body("included.attributes.description", hasItem("sql min function"))
@@ -878,8 +712,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
-                .body("data.attributes.tableName", equalTo("playerStats"))
-                .body("data.relationships.dataType.data.id", equalTo("date"))
+                .body("data.attributes.valueType",  equalTo("TIME"))
+                .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body(
                         "data.relationships.supportedGrains.data.id",
                         hasItems("playerStats.recordedDate.day", "playerStats.recordedDate.month"))

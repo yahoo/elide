@@ -31,8 +31,9 @@ public class Metric extends Column {
     @ToString.Exclude
     private MetricFunction metricFunction;
 
-    public Metric(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        super(tableClass, fieldName, dictionary);
+    public Metric(Table table, String fieldName, EntityDictionary dictionary) {
+        super(table, fieldName, dictionary);
+        Class<?> tableClass = dictionary.getEntityClass(table.getId());
 
         MetricAggregation metric = dictionary.getAttributeOrRelationAnnotation(
                 tableClass,

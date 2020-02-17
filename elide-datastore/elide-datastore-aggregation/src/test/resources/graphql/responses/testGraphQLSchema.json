@@ -30,13 +30,6 @@
                 }
               },
               {
-                "name": "countryViewRelationshipIsoCode",
-                "type": {
-                  "name": "String",
-                  "fields": null
-                }
-              },
-              {
                 "name": "countryViewViewIsoCode",
                 "type": {
                   "name": "String",
@@ -76,48 +69,6 @@
                 "type": {
                   "name": "String",
                   "fields": null
-                }
-              },
-              {
-                "name": "country",
-                "type": {
-                  "name": "country",
-                  "fields": [
-                    {
-                      "name": "edges"
-                    },
-                    {
-                      "name": "pageInfo"
-                    }
-                  ]
-                }
-              },
-              {
-                "name": "player",
-                "type": {
-                  "name": "player",
-                  "fields": [
-                    {
-                      "name": "edges"
-                    },
-                    {
-                      "name": "pageInfo"
-                    }
-                  ]
-                }
-              },
-              {
-                "name": "subCountry",
-                "type": {
-                  "name": "subCountry",
-                  "fields": [
-                    {
-                      "name": "edges"
-                    },
-                    {
-                      "name": "pageInfo"
-                    }
-                  ]
                 }
               }
             ]

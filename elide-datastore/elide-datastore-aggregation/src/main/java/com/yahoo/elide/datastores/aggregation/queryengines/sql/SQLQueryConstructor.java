@@ -73,7 +73,7 @@ public class SQLQueryConstructor {
                                     FilterExpression whereClause,
                                     FilterExpression havingClause) {
         SQLTable table = (SQLTable) clientQuery.getTable();
-        Class<?> tableCls = dictionary.getEntityClass(clientQuery.getTable().getName());
+        Class<?> tableCls = dictionary.getEntityClass(clientQuery.getTable().getId());
         String tableAlias = getClassAlias(tableCls);
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(clientQuery);
@@ -84,7 +84,7 @@ public class SQLQueryConstructor {
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
                 : tableCls.isAnnotationPresent(FromTable.class)
                 ? tableCls.getAnnotation(FromTable.class).name()
-                : table.getName();
+                : table.getId();
 
         builder.fromClause(String.format("%s AS %s", tableStatement, tableAlias));
 
@@ -155,7 +155,7 @@ public class SQLQueryConstructor {
         Class<?> lastClass = last.getType();
         String fieldName = last.getFieldName();
 
-        if (!lastClass.equals(dictionary.getEntityClass(table.getName()))) {
+        if (!lastClass.equals(dictionary.getEntityClass(table.getId()))) {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 
@@ -186,7 +186,7 @@ public class SQLQueryConstructor {
                 .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
-        Class<?> tableClass = dictionary.getEntityClass(table.getName());
+        Class<?> tableClass = dictionary.getEntityClass(table.getId());
 
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
                 .map(dimension -> resolveSQLColumnReference(dimension, table) + " AS " + dimension.getAlias())
