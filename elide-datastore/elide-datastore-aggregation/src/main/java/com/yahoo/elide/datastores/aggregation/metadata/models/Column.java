@@ -6,19 +6,19 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
@@ -34,21 +34,25 @@ public abstract class Column {
 
     private String longName;
 
-    private String tableName;
-
     private String description;
 
     private String category;
 
-    @ManyToOne
-    private DataType dataType;
+    @ToOne
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Table table;
+
+    private ValueType valueType;
 
     @ToString.Exclude
     private Set<String> columnTags;
 
-    protected Column(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        this.tableName = dictionary.getJsonAliasFor(tableClass);
-        this.id = tableName + "." + fieldName;
+    protected Column(Table table, String fieldName, EntityDictionary dictionary) {
+        this.table = table;
+        Class<?> tableClass = dictionary.getEntityClass(table.getId());
+
+        this.id = table.getId() + "." + fieldName;
         this.name = fieldName;
         this.columnTags = new HashSet<>();
 
@@ -58,29 +62,25 @@ public abstract class Column {
             this.description = meta.description();
         }
 
-        dataType = getDataType(tableClass, fieldName, dictionary);
-        if (dataType == null) {
+        valueType = getValueType(tableClass, fieldName, dictionary);
+        if (valueType == null) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
     }
 
-    public static DataType getDataType(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        String tableName = dictionary.getJsonAliasFor(tableClass);
-        DataType dataType;
+    public static ValueType getValueType(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         if (dictionary.isRelation(tableClass, fieldName)) {
-            Class<?> relationshipClass = dictionary.getParameterizedType(tableClass, fieldName);
-            dataType = new RelationshipType(dictionary.getJsonAliasFor(relationshipClass));
+            return ValueType.RELATIONSHIP;
         } else {
             Class<?> fieldClass = dictionary.getType(tableClass, fieldName);
 
             if (fieldName.equals(dictionary.getIdFieldName(tableClass))) {
-                dataType = new DataType(tableName + "." + fieldName, ValueType.ID);
+                return ValueType.ID;
             } else if (Date.class.isAssignableFrom(fieldClass)) {
-                dataType = new DataType(fieldClass.getSimpleName().toLowerCase(Locale.ENGLISH), ValueType.DATE);
+                return ValueType.TIME;
             } else {
-                dataType = DataType.getScalarType(fieldClass);
+                return ValueType.getScalarType(fieldClass);
             }
         }
-        return dataType;
     }
 }

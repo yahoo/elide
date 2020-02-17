@@ -36,23 +36,6 @@ public class QueryValidatorTest extends SQLUnitTest {
     }
 
     @Test
-    public void testNoMetricQuery() {
-        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("country.name", Sorting.SortOrder.asc);
-
-        Query query = Query.builder()
-                .table(playerStatsTable)
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
-                .build();
-
-        QueryValidator validator = new QueryValidator(query, Collections.singleton("overallRating"), dictionary);
-
-        UnsupportedOperationException exception = assertThrows(UnsupportedOperationException.class, validator::validate);
-        assertEquals("Query with no metric can't sort on nested field.", exception.getMessage());
-    }
-
-    @Test
     public void testSortingOnId() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("id", Sorting.SortOrder.asc);
@@ -75,7 +58,7 @@ public class QueryValidatorTest extends SQLUnitTest {
     @Test
     public void testSortingOnNotQueriedDimension() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("country.name", Sorting.SortOrder.asc);
+        sortMap.put("countryIsoCode", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
                 .table(playerStatsTable)
@@ -88,7 +71,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         QueryValidator validator = new QueryValidator(query, allFields, dictionary);
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals("Invalid operation: 'Can't sort on country as it is not present in query'", exception.getMessage());
+        assertEquals("Invalid operation: 'Can't sort on countryIsoCode as it is not present in query'", exception.getMessage());
     }
 
     @Test
@@ -108,25 +91,6 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
         assertEquals("Invalid operation: 'Can't sort on highScore as it is not present in query'", exception.getMessage());
-    }
-
-    @Test
-    public void testSortingOnNestedDimensionField() {
-        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("country.continent.name", Sorting.SortOrder.asc);
-
-        Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
-                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
-                .build();
-
-        Set<String> allFields = new HashSet<>(Arrays.asList("country", "lowScore"));
-        QueryValidator validator = new QueryValidator(query, allFields, dictionary);
-
-        UnsupportedOperationException exception = assertThrows(UnsupportedOperationException.class, validator::validate);
-        assertEquals("Currently sorting on double nested fields is not supported", exception.getMessage());
     }
 
     @Test

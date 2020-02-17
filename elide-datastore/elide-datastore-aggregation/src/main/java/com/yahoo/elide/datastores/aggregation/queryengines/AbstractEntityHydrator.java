@@ -7,9 +7,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.RelationshipType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 
@@ -151,7 +151,7 @@ public abstract class AbstractEntityHydrator {
      * @return A hydrated entity object.
      */
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
-        Class<?> entityClass = entityDictionary.getEntityClass(query.getTable().getName());
+        Class<?> entityClass = entityDictionary.getEntityClass(query.getTable().getId());
 
         //Construct the object.
         Object entityInstance;
@@ -164,7 +164,7 @@ public abstract class AbstractEntityHydrator {
         result.forEach((fieldName, value) -> {
             Dimension dim = query.getTable().getDimension(fieldName);
 
-            if (dim != null && dim.getDataType() instanceof RelationshipType) {
+            if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
                 getStitchList().todo(entityInstance, fieldName, value); // We don't hydrate relationships here.
             } else {
                 getEntityDictionary().setValue(entityInstance, fieldName, value);
@@ -194,7 +194,7 @@ public abstract class AbstractEntityHydrator {
             String joinField = entry.getKey();
             List<Object> joinFieldIds = entry.getValue();
             Class<?> relationshipType = getEntityDictionary().getParameterizedType(
-                    entityDictionary.getEntityClass(getQuery().getTable().getName()),
+                    entityDictionary.getEntityClass(getQuery().getTable().getId()),
                     joinField);
 
             getStitchList().populateLookup(relationshipType, getRelationshipValues(relationshipType, joinFieldIds));

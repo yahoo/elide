@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.DataType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
@@ -83,7 +82,6 @@ public class MetaDataStore extends HashMapDataStore {
      */
     private void addColumn(Column column) {
         addMetaData(column);
-        addDataType(column.getDataType());
 
         if (column instanceof TimeDimension) {
             ((TimeDimension) column).getSupportedGrains().forEach(this::addTimeDimensionGrain);
@@ -100,15 +98,6 @@ public class MetaDataStore extends HashMapDataStore {
     private void addMetricFunction(MetricFunction metricFunction) {
         addMetaData(metricFunction);
         metricFunction.getArguments().forEach(this::addFunctionArgument);
-    }
-
-    /**
-     * Add a datatype metadata object.
-     *
-     * @param dataType datatype metadata
-     */
-    private void addDataType(DataType dataType) {
-        addMetaData(dataType);
     }
 
     /**

@@ -112,7 +112,7 @@ public class ViewTest extends SQLUnitTest {
                 .table(playerStatsWithViewSchema)
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(
-                        toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
+                        toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -122,12 +122,12 @@ public class ViewTest extends SQLUnitTest {
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
         usa0.setLowScore(35);
-        usa0.setCountryViewRelationshipIsoCode("USA");
+        usa0.setCountryViewViewIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
         hk1.setId("1");
         hk1.setLowScore(72);
-        hk1.setCountryViewRelationshipIsoCode("HKG");
+        hk1.setCountryViewViewIsoCode("HKG");
 
         assertEquals(2, results.size());
         assertEquals(usa0, results.get(0));
@@ -147,7 +147,7 @@ public class ViewTest extends SQLUnitTest {
                 .table(playerStatsWithViewSchema)
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(
-                        toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
+                        toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -157,12 +157,12 @@ public class ViewTest extends SQLUnitTest {
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
         usa0.setLowScore(35);
-        usa0.setCountryViewRelationshipIsoCode("USA");
+        usa0.setCountryViewViewIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
         hk1.setId("1");
         hk1.setLowScore(72);
-        hk1.setCountryViewRelationshipIsoCode("HKG");
+        hk1.setCountryViewViewIsoCode("HKG");
 
         assertEquals(2, results.size());
         assertEquals(usa0, results.get(0));
@@ -176,13 +176,13 @@ public class ViewTest extends SQLUnitTest {
     @Test
     public void testSortingNestedViewAttribute() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("countryViewRelationshipIsoCode", Sorting.SortOrder.desc);
+        sortMap.put("countryViewViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
                 .table(playerStatsWithViewSchema)
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(
-                        toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
+                        toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -192,12 +192,12 @@ public class ViewTest extends SQLUnitTest {
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
         usa0.setLowScore(35);
-        usa0.setCountryViewRelationshipIsoCode("USA");
+        usa0.setCountryViewViewIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
         hk1.setId("1");
         hk1.setLowScore(72);
-        hk1.setCountryViewRelationshipIsoCode("HKG");
+        hk1.setCountryViewViewIsoCode("HKG");
 
         assertEquals(2, results.size());
         assertEquals(usa0, results.get(0));
@@ -211,13 +211,13 @@ public class ViewTest extends SQLUnitTest {
     @Test
     public void testSortingNestedRelationshipAttribute() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("countryViewRelationshipIsoCode", Sorting.SortOrder.desc);
+        sortMap.put("countryViewViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
                 .table(playerStatsWithViewSchema)
                 .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
                 .groupByDimension(
-                        toProjection(playerStatsWithViewSchema.getDimension("countryViewRelationshipIsoCode")))
+                        toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -227,12 +227,12 @@ public class ViewTest extends SQLUnitTest {
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
         usa0.setLowScore(35);
-        usa0.setCountryViewRelationshipIsoCode("USA");
+        usa0.setCountryViewViewIsoCode("USA");
 
         PlayerStatsWithView hk1 = new PlayerStatsWithView();
         hk1.setId("1");
         hk1.setLowScore(72);
-        hk1.setCountryViewRelationshipIsoCode("HKG");
+        hk1.setCountryViewViewIsoCode("HKG");
 
         assertEquals(2, results.size());
         assertEquals(usa0, results.get(0));

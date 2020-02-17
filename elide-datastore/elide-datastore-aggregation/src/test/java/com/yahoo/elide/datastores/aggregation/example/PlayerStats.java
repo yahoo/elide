@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
@@ -26,8 +27,6 @@ import lombok.ToString;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 /**
  * A root level entity for testing AggregationDataStore.
  */
@@ -138,51 +137,13 @@ public class PlayerStats {
         this.overallRating = overallRating;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "country_id")
+    @Join("%from.country_id = %join.id")
     public Country getCountry() {
         return country;
     }
 
     public void setCountry(final Country country) {
         this.country = country;
-    }
-
-    @ManyToOne
-    @JoinColumn(name = "sub_country_id")
-    public SubCountry getSubCountry() {
-        return subCountry;
-    }
-
-    public void setSubCountry(final SubCountry subCountry) {
-        this.subCountry = subCountry;
-    }
-
-    @ManyToOne
-    @JoinColumn(name = "player_id")
-    public Player getPlayer() {
-        return player;
-    }
-
-    public void setPlayer(final Player player) {
-        this.player = player;
-    }
-
-    /**
-     * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
-     *
-     * @return the date of the player session.
-     */
-    @Temporal(grains = {
-            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DAY_FORMAT),
-            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
-    }, timeZone = "UTC")
-    public Date getRecordedDate() {
-        return recordedDate;
-    }
-
-    public void setRecordedDate(final Date recordedDate) {
-        this.recordedDate = recordedDate;
     }
 
     @JoinTo(path = "country.isoCode")
@@ -194,6 +155,14 @@ public class PlayerStats {
         this.countryIsoCode = isoCode;
     }
 
+    @Join("%from.sub_country_id = %join.id")
+    public SubCountry getSubCountry() {
+        return subCountry;
+    }
+
+    public void setSubCountry(final SubCountry subCountry) {
+        this.subCountry = subCountry;
+    }
 
     @JoinTo(path = "subCountry.isoCode")
     @Column(updatable = false, insertable = false) // subselect field should be read-only
@@ -205,8 +174,16 @@ public class PlayerStats {
         this.subCountryIsoCode = isoCode;
     }
 
-    @JoinColumn(name = "player2_id")
-    @ManyToOne
+    @Join("%from.player_id = %join.id")
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(final Player player) {
+        this.player = player;
+    }
+
+    @Join("%from.player2_id = %join.id")
     public Player getPlayer2() {
         return player2;
     }
@@ -231,5 +208,22 @@ public class PlayerStats {
 
     public void setPlayer2Name(String player2Name) {
         this.player2Name = player2Name;
+    }
+
+    /**
+     * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
+     *
+     * @return the date of the player session.
+     */
+    @Temporal(grains = {
+            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DAY_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
+    }, timeZone = "UTC")
+    public Date getRecordedDate() {
+        return recordedDate;
+    }
+
+    public void setRecordedDate(final Date recordedDate) {
+        this.recordedDate = recordedDate;
     }
 }

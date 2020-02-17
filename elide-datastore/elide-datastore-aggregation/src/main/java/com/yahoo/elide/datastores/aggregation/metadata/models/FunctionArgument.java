@@ -6,12 +6,12 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;
 import lombok.ToString;
 
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 /**
  * Arguments that can be provided into a metric function.
@@ -27,13 +27,15 @@ public class FunctionArgument {
 
     private String description;
 
-    @ManyToOne
-    private DataType dataType;
+    private ValueType type;
+
+    private String subType;
 
     public FunctionArgument(String functionName, FunctionArgument argument) {
         this.id = functionName + "." + argument.getName();
         this.name = argument.getName();
         this.description = argument.getDescription();
-        this.dataType = argument.getDataType();
+        this.type = argument.getType();
+        this.subType = argument.getSubType();
     }
 }

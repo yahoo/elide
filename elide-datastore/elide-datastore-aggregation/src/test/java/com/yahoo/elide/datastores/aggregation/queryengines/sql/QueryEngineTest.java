@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -20,6 +19,7 @@ import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Sorting;
 
@@ -84,6 +84,60 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     /**
+     * Test loading records using {@link FromSubquery}
+     */
+    @Test
+    public void testFromSubQuery() {
+        Query query = Query.builder()
+                .table(playerStatsViewTable)
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStatsView stats2 = new PlayerStatsView();
+        stats2.setId("0");
+        stats2.setHighScore(2412);
+
+        assertEquals(1, results.size());
+        assertEquals(stats2, results.get(0));
+    }
+
+    /**
+     * Test group by, having, dimension, metric at the same time.
+     *
+     * @throws Exception exception
+     */
+    @Test
+    public void testAllArgumentQuery() throws Exception {
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("countryName", Sorting.SortOrder.asc);
+
+        Query query = Query.builder()
+                .table(playerStatsViewTable)
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .groupByDimension(toProjection(playerStatsViewTable.getDimension("countryName")))
+                .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
+                        PlayerStatsView.class, false))
+                .havingFilter(filterParser.parseFilterExpression("highScore > 300",
+                        PlayerStatsView.class, false))
+                .sorting(new SortingImpl(sortMap, PlayerStatsView.class, dictionary))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStatsView stats2 = new PlayerStatsView();
+        stats2.setId("0");
+        stats2.setHighScore(2412);
+        stats2.setCountryName("United States");
+
+        assertEquals(1, results.size());
+        assertEquals(stats2, results.get(0));
+    }
+
+    /**
      * Test group by a degenerate dimension with a filter applied.
      *
      * @throws Exception exception
@@ -113,47 +167,16 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     /**
-     * Test filtering on a dimension attribute.
-     *
-     * @throws Exception exception
-     */
-    @Test
-    public void testFilterJoin() throws Exception {
-        Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
-                .whereFilter(filterParser.parseFilterExpression("country.name=='United States'",
-                        PlayerStats.class, false))
-                .build();
-
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
-                .collect(Collectors.toList());
-
-        PlayerStats usa0 = new PlayerStats();
-        usa0.setId("0");
-        usa0.setLowScore(35);
-        usa0.setCountry(USA);
-
-        assertEquals(1, results.size());
-        assertEquals(usa0, results.get(0));
-
-        // test relationship hydration
-        PlayerStats actualStats1 = (PlayerStats) results.get(0);
-        assertNotNull(actualStats1.getCountry());
-    }
-
-    /**
      * Test filtering on an attribute that's not present in the query.
      *
      * @throws Exception exception
      */
     @Test
-    public void testSubqueryFilterJoin() throws Exception {
+    public void testNotProjectedFilter() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .whereFilter(filterParser.parseFilterExpression("player.name=='Jane Doe'",
+                .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         PlayerStatsView.class, false))
                 .build();
 
@@ -168,25 +191,34 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats2, results.get(0));
     }
 
-    /**
-     * Test a view which filters on "stats.overallRating = 'Great'".
-     */
     @Test
-    public void testSubqueryLoad() {
+    public void testSortAggregatedMetric() {
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("lowScore", Sorting.SortOrder.desc);
+
         Query query = Query.builder()
-                .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .table(playerStatsTable)
+                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
-        PlayerStatsView stats2 = new PlayerStatsView();
-        stats2.setId("0");
-        stats2.setHighScore(2412);
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(241);
+        stats0.setOverallRating("Great");
 
-        assertEquals(1, results.size());
-        assertEquals(stats2, results.get(0));
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setLowScore(35);
+        stats1.setOverallRating("Good");
+
+        assertEquals(2, results.size());
+        assertEquals(stats0, results.get(0));
+        assertEquals(stats1, results.get(1));
     }
 
     /**
@@ -195,7 +227,7 @@ public class QueryEngineTest extends SQLUnitTest {
     @Test
     public void testSortJoin() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("player.name", Sorting.SortOrder.asc);
+        sortMap.put("playerName", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
                 .table(playerStatsTable)
@@ -335,46 +367,13 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     /**
-     * Test group by, having, dimension, metric at the same time.
-     *
-     * @throws Exception exception
-     */
-    @Test
-    public void testEdgeCasesQuery() throws Exception {
-        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("player.name", Sorting.SortOrder.asc);
-
-        Query query = Query.builder()
-                .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .groupByDimension(toProjection(playerStatsViewTable.getDimension("countryName")))
-                .whereFilter(filterParser.parseFilterExpression("player.name=='Jane Doe'",
-                        PlayerStatsView.class, false))
-                .havingFilter(filterParser.parseFilterExpression("highScore > 300",
-                        PlayerStatsView.class, false))
-                .sorting(new SortingImpl(sortMap, PlayerStatsView.class, dictionary))
-                .build();
-
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
-                .collect(Collectors.toList());
-
-        PlayerStatsView stats2 = new PlayerStatsView();
-        stats2.setId("0");
-        stats2.setHighScore(2412);
-        stats2.setCountryName("United States");
-
-        assertEquals(1, results.size());
-        assertEquals(stats2, results.get(0));
-    }
-
-    /**
      * Test sorting by two different columns-one metric and one dimension.
      */
     @Test
     public void testSortByMultipleColumns() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("lowScore", Sorting.SortOrder.desc);
-        sortMap.put("player.name", Sorting.SortOrder.asc);
+        sortMap.put("playerName", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
                 .table(playerStatsTable)
@@ -409,54 +408,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
         assertEquals(stats2, results.get(2));
-    }
-
-    /**
-     * Test hydrating multiple relationship values. Make sure the objects are constructed correctly.
-     */
-    @Test
-    public void testRelationshipHydration() {
-        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("country.name", Sorting.SortOrder.desc);
-        sortMap.put("overallRating", Sorting.SortOrder.desc);
-
-        Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
-                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
-                .build();
-
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
-                .collect(Collectors.toList());
-
-        PlayerStats usa0 = new PlayerStats();
-        usa0.setId("0");
-        usa0.setLowScore(241);
-        usa0.setOverallRating("Great");
-        usa0.setCountry(USA);
-
-        PlayerStats usa1 = new PlayerStats();
-        usa1.setId("1");
-        usa1.setLowScore(35);
-        usa1.setOverallRating("Good");
-        usa1.setCountry(USA);
-
-        PlayerStats hk2 = new PlayerStats();
-        hk2.setId("2");
-        hk2.setLowScore(72);
-        hk2.setOverallRating("Good");
-        hk2.setCountry(HONG_KONG);
-
-        assertEquals(3, results.size());
-        assertEquals(usa0, results.get(0));
-        assertEquals(usa1, results.get(1));
-        assertEquals(hk2, results.get(2));
-
-        // test join
-        PlayerStats actualStats1 = (PlayerStats) results.get(0);
-        assertNotNull(actualStats1.getCountry());
     }
 
     /**
@@ -528,12 +479,13 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testJoinToSort() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryIsoCode", Sorting.SortOrder.asc);
+        sortMap.put("highScore", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("country")))
+                .groupByDimension(toProjection(playerStatsTable.getDimension("countryIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -543,19 +495,19 @@ public class QueryEngineTest extends SQLUnitTest {
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
         stats1.setOverallRating("Good");
-        stats1.setCountry(HONG_KONG);
+        stats1.setCountryIsoCode("HKG");
         stats1.setHighScore(1000);
 
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("1");
         stats2.setOverallRating("Good");
-        stats2.setCountry(USA);
+        stats2.setCountryIsoCode("USA");
         stats2.setHighScore(1234);
 
         PlayerStats stats3 = new PlayerStats();
         stats3.setId("2");
         stats3.setOverallRating("Great");
-        stats3.setCountry(USA);
+        stats3.setCountryIsoCode("USA");
         stats3.setHighScore(2412);
 
         assertEquals(3, results.size());
@@ -614,36 +566,6 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(1, results.size());
         assertEquals(stats0, results.get(0));
-    }
-
-    @Test
-    public void testSortAggregatedMetric() {
-        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-        sortMap.put("lowScore", Sorting.SortOrder.desc);
-
-        Query query = Query.builder()
-                .table(playerStatsTable)
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
-                .build();
-
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
-                .collect(Collectors.toList());
-
-        PlayerStats stats0 = new PlayerStats();
-        stats0.setId("0");
-        stats0.setLowScore(241);
-        stats0.setOverallRating("Great");
-
-        PlayerStats stats1 = new PlayerStats();
-        stats1.setId("1");
-        stats1.setLowScore(35);
-        stats1.setOverallRating("Good");
-
-        assertEquals(2, results.size());
-        assertEquals(stats0, results.get(0));
-        assertEquals(stats1, results.get(1));
     }
 
     @Test

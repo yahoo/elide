@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -67,7 +68,6 @@ public abstract class QueryEngine {
     @Getter
     private final EntityDictionary metadataDictionary;
 
-    @Getter
     private final Map<String, Table> tables;
 
     /**
@@ -81,7 +81,7 @@ public abstract class QueryEngine {
         this.metadataDictionary = metaDataStore.getDictionary();
         populateMetaData(metaDataStore);
         this.tables = metaDataStore.getMetaData(Table.class).stream()
-                .collect(Collectors.toMap(Table::getName, Functions.identity()));
+                .collect(Collectors.toMap(Table::getId, Functions.identity()));
     }
 
     /**
@@ -99,6 +99,15 @@ public abstract class QueryEngine {
      * @param metaDataStore metadata store to populate
      */
     private void populateMetaData(MetaDataStore metaDataStore) {
+        metaDataStore.getModelsToBind()
+                .forEach(model -> {
+                    if (!metadataDictionary.isJPAEntity(model)
+                            && !metadataDictionary.getRelationships(model).isEmpty()) {
+                        throw new InvalidPredicateException(
+                                "Non-JPA entities " + model.getSimpleName() + " is not allowed to have relationship.");
+                    }
+        });
+
         metaDataStore.getModelsToBind().stream()
                 .map(model -> constructTable(model, metadataDictionary))
                 .forEach(metaDataStore::addTable);

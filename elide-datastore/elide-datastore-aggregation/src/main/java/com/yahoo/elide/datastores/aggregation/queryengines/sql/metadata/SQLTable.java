@@ -8,14 +8,12 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * SQL extension of {@link Table} which also contains sql column meta data.
  */
 @EqualsAndHashCode(callSuper = true)
-@Data
 public class SQLTable extends Table {
     public SQLTable(Class<?> cls, EntityDictionary dictionary) {
         super(cls, dictionary);
@@ -27,17 +25,17 @@ public class SQLTable extends Table {
     }
 
     @Override
-    protected SQLMetric constructMetric(Class<?> cls, String fieldName, EntityDictionary dictionary) {
-        return new SQLMetric(cls, fieldName, dictionary);
+    protected SQLMetric constructMetric(String fieldName, EntityDictionary dictionary) {
+        return new SQLMetric(this, fieldName, dictionary);
     }
 
     @Override
-    protected SQLTimeDimension constructTimeDimension(Class<?> cls, String fieldName, EntityDictionary dictionary) {
-        return new SQLTimeDimension(cls, fieldName, dictionary);
+    protected SQLTimeDimension constructTimeDimension(String fieldName, EntityDictionary dictionary) {
+        return new SQLTimeDimension(this, fieldName, dictionary);
     }
 
     @Override
-    protected SQLDimension constructDimension(Class<?> cls, String fieldName, EntityDictionary dictionary) {
-        return new SQLDimension(cls, fieldName, dictionary);
+    protected SQLDimension constructDimension(String fieldName, EntityDictionary dictionary) {
+        return new SQLDimension(this, fieldName, dictionary);
     }
 }

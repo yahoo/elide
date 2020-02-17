@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
 @Include(type = "dimension")
 @Data
 public class Dimension extends Column {
-    public Dimension(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        super(tableClass, fieldName, dictionary);
+    public Dimension(Table table, String fieldName, EntityDictionary dictionary) {
+        super(table, fieldName, dictionary);
     }
 }
