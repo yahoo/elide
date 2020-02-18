@@ -392,6 +392,8 @@ public class JsonApiTest {
         Parent parent2 = new Parent();
         parent2.setId(456L);
 
+        RequestScope userScope = new TestRequestScope(tx, user, dictionary);
+
         PersistentResource<Parent> pRec1 = new PersistentResource<>(parent1, null, userScope.getUUIDFor(parent1), userScope);
         PersistentResource<Parent> pRec2 = new PersistentResource<>(parent2, null, userScope.getUUIDFor(parent2), userScope);
 

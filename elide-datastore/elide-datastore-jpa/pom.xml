@@ -75,11 +75,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-<<<<<<< HEAD
-            <version>4.5.14-SNAPSHOT</version>
-=======
             <version>5.0.0-pr6-SNAPSHOT</version>
->>>>>>> ef111d6e... Create AggregationDataStore module (#845)
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

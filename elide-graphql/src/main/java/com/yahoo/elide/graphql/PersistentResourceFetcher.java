@@ -19,8 +19,6 @@ import com.yahoo.elide.request.Relationship;
 
 import com.google.common.collect.Sets;
 
-import org.apache.commons.collections4.IterableUtils;
-
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;

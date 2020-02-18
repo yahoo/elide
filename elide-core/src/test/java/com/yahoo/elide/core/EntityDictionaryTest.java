@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
@@ -28,7 +27,6 @@ import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.models.generics.Employee;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.security.FilterExpressionCheck;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
@@ -135,7 +133,8 @@ public class EntityDictionaryTest extends EntityDictionary {
             Long testLong;
 
             @Override
-            public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+            public FilterExpression getFilterExpression(Class entityClass,
+                                                        com.yahoo.elide.security.RequestScope requestScope) {
                 assertEquals(testLong, 123L);
                 return null;
             }
@@ -160,28 +159,6 @@ public class EntityDictionaryTest extends EntityDictionary {
             annotation = getAttributeOrRelationAnnotation(FunWithPermissions.class, ReadPermission.class, field);
             assertTrue(annotation instanceof ReadPermission, "Every field should return a ReadPermission annotation");
         }
-    }
-
-    @Test
-    public void testBindingInitializerPriorToBindingEntityClass() {
-        @Entity
-        @Include
-        class Foo {
-            @Id
-            private long id;
-
-            private int bar;
-        }
-
-        Initializer<Foo> initializer = mock(Initializer.class);
-        bindInitializer(initializer, Foo.class);
-
-        assertEquals(1, getAllFields(Foo.class).size());
-
-        Foo foo = new Foo();
-        initializeEntity(foo);
-
-        verify(initializer).initialize(foo);
     }
 
     @Test
@@ -563,13 +540,13 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubclassBinding.class));
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubsubclassBinding.class));
 
-        assertEquals("subclassBinding", getEntityFor(SubclassBinding.class));
+        assertEquals("superclassBinding", getEntityFor(SubclassBinding.class));
         assertEquals("superclassBinding", getEntityFor(SuperclassBinding.class));
 
-        assertEquals(SubclassBinding.class, getEntityClass("subclassBinding"));
+        assertNull(getEntityClass("subclassBinding"));
         assertEquals(SuperclassBinding.class, getEntityClass("superclassBinding"));
 
-        assertEquals("subclassBinding", getJsonAliasFor(SubclassBinding.class));
+        assertEquals("superclassBinding", getJsonAliasFor(SubclassBinding.class));
         assertEquals("superclassBinding", getJsonAliasFor(SuperclassBinding.class));
     }
 

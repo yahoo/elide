@@ -64,7 +64,7 @@ public class RelationshipTerminalState extends BaseState {
         Map<String, Relationship> relationships = record.toResource(parentProjection).getRelationships();
         Relationship relationship = null;
         if (relationships != null) {
-            Relationship relationship = relationships.get(relationshipName);
+            relationship = relationships.get(relationshipName);
 
             // Handle valid relationship
 
