@@ -42,7 +42,7 @@ public class ClassScannerTest {
     @Test
     public void testGetAnyAnnotatedClasses() {
         Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ReadPermission.class, UpdatePermission.class);
-        assertEquals(36, classes.size());
+        assertEquals(37, classes.size());
         for (Class<?> cls : classes) {
             assertTrue(cls.isAnnotationPresent(ReadPermission.class)
                     || cls.isAnnotationPresent(UpdatePermission.class));

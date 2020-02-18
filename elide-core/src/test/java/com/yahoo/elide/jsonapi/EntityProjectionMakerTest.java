@@ -7,6 +7,7 @@
 package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -18,7 +19,10 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
+
+import com.google.common.collect.Sets;
 import example.Address;
 import example.Author;
 import example.Book;
@@ -76,7 +80,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -101,7 +105,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -132,7 +136,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -165,7 +169,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -197,7 +201,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -219,7 +223,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -242,6 +246,7 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                        .attribute(Attribute.builder().name("awards").type(String.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
                                 .build())
@@ -254,7 +259,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -278,6 +283,7 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                        .attribute(Attribute.builder().name("awards").type(String.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
                                 .build())
@@ -293,7 +299,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -317,6 +323,7 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                        .attribute(Attribute.builder().name("awards").type(String.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
                                 .build())
@@ -331,7 +338,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -350,6 +357,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
+                .attribute(Attribute.builder().name("awards").type(String.class).build())
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
                         .attribute(Attribute.builder().name("title").type(String.class).build())
@@ -385,7 +393,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -404,6 +412,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                .attribute(Attribute.builder().name("awards").type(String.class).build())
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
                         .attribute(Attribute.builder().name("title").type(String.class).build())
@@ -438,7 +447,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -484,7 +493,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -531,7 +540,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -553,6 +562,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                .attribute(Attribute.builder().name("awards").type(String.class).build())
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
                         .attribute(Attribute.builder().name("title").type(String.class).build())
@@ -569,7 +579,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -606,7 +616,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -644,7 +654,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -673,6 +683,7 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                        .attribute(Attribute.builder().name("awards").type(String.class).build())
                         .filterExpression(new InInsensitivePredicate(new Path(Author.class, dictionary, "name"), "Foo"))
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
@@ -686,7 +697,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
     }
 
     @Test
@@ -723,6 +734,27 @@ public class EntityProjectionMakerTest {
 
         EntityProjection actual = maker.parsePath(path);
 
-        assertEquals(expected, actual);
+        projectionEquals(expected, actual);
+    }
+
+    private void projectionEquals(EntityProjection projection1, EntityProjection projection2) {
+        assertEquals(projection1.getType(), projection2.getType());
+        assertEquals(projection1.getSorting(), projection2.getSorting());
+        assertEquals(projection1.getFilterExpression(), projection2.getFilterExpression());
+        assertEquals(projection1.getPagination(), projection2.getPagination());
+
+        //Ignore order
+        assertEquals(Sets.newHashSet(projection1.getAttributes()), Sets.newHashSet(projection2.getAttributes()));
+
+        assertEquals(projection1.getRelationships().size(), projection2.getRelationships().size());
+
+        projection1.getRelationships().stream().forEach((relationship -> {
+            assertNotNull(projection2.getRelationship(relationship.getName()).orElse(null));
+            Relationship relationship2 = projection2.getRelationship(relationship.getName()).get();
+
+            assertEquals(relationship.getAlias(), relationship2.getAlias());
+            projectionEquals(relationship.getProjection(), relationship2.getProjection());
+        }));
+
     }
 }

@@ -209,7 +209,7 @@ public class LifeCycleTest {
 
         when(store.beginReadTransaction()).thenCallRealMethod();
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(book);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         ElideResponse response = elide.get("/book/1", headers, null);
@@ -315,7 +315,7 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(1L);
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(book);
         doThrow(ConstraintViolationException.class).when(tx).flush(any());
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
@@ -957,7 +957,6 @@ public class LifeCycleTest {
         Book book = new Book();
         when(tx.createNewObject(Book.class)).thenReturn(book);
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource bookResource = PersistentResource.createObject(null, Book.class, scope, Optional.of("123"));
         PersistentResource bookResource = PersistentResource.createObject(Book.class, scope, Optional.of("123"));
         bookResource.updateAttribute("title", "Foo");
 

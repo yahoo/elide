@@ -13,11 +13,10 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
@@ -46,10 +45,11 @@ import example.UpdateAndCreate;
 import example.nontransferable.ContainerWithPackageShare;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.Untransferable;
-import nocreate.NoCreateEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+
+import nocreate.NoCreateEntity;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -222,7 +222,6 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     @ReadPermission(expression = "allow all")
     @UpdatePermission(expression = "allow all")
     @DeletePermission(expression = "allow all")
-    @SharePermission
     public static final class ChangeSpecChild {
         @Id
         public long id;
@@ -254,10 +253,17 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         }
     }
 
-    public static Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
-        Optional<FilterExpression> filterExpression =
-                resource.getRequestScope().getExpressionForRelation(resource, relation);
+    public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
+        return resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
+    }
 
-        return resource.getRelationCheckedFiltered(relation, filterExpression, Optional.empty(), Optional.empty());
+    public com.yahoo.elide.request.Relationship getRelationship(Class<?> type, String name) {
+        return com.yahoo.elide.request.Relationship.builder()
+                .name(name)
+                .alias(name)
+                .projection(EntityProjection.builder()
+                        .type(type)
+                        .build())
+                .build();
     }
 }

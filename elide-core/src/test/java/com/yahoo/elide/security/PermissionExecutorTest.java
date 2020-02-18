@@ -460,7 +460,7 @@ public class PermissionExecutorTest {
 
     public <T> PersistentResource<T> newResource(Class<T> cls, boolean markNew) {
         try {
-            T obj = cls.newInstance();
+            Object obj = cls.newInstance();
             return newResource(obj, cls, markNew);
         } catch (InstantiationException | IllegalAccessException e) {
             return null;
