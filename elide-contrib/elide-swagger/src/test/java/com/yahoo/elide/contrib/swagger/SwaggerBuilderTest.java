@@ -33,7 +33,6 @@ import io.swagger.models.Operation;
 import io.swagger.models.Path;
 import io.swagger.models.Response;
 import io.swagger.models.Swagger;
-import io.swagger.models.Tag;
 import io.swagger.models.parameters.BodyParameter;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.QueryParameter;
@@ -489,42 +488,39 @@ public class SwaggerBuilderTest {
         /* Check for the global tag definitions */
         assertEquals(3, swagger.getTags().size());
 
-        Tag bookTag = swagger.getTags().stream()
-                .filter((tag) -> tag.getName().equals("book"))
-                .findFirst().get();
-
-        assertNotNull(bookTag);
-
-        Tag publisherTag = swagger.getTags().stream()
-                .filter((tag) -> tag.getName().equals("publisher"))
-                .findFirst().get();
-
-        assertNotNull(publisherTag);
+        String bookTag = "book";
+        String publisherTag = "publisher";
 
         /* For each operation, ensure its tagged with the root collection name */
         swagger.getPaths().forEach((url, path) -> {
             if (url.endsWith("relationships/books")) {
-                path.getGet().getTags().contains(bookTag);
-                path.getPost().getTags().contains(bookTag);
-                path.getDelete().getTags().contains(bookTag);
-                path.getPatch().getTags().contains(bookTag);
+                assertTrue(
+                    path.getGet().getTags().contains(bookTag) &&
+                    path.getPost().getTags().contains(bookTag) &&
+                    path.getDelete().getTags().contains(bookTag) &&
+                    path.getPatch().getTags().contains(bookTag));
             } else if (url.endsWith("/books")) {
-                path.getGet().getTags().contains(bookTag);
-                path.getPost().getTags().contains(bookTag);
+                assertTrue(
+                    path.getGet().getTags().contains(bookTag) &&
+                    path.getPost().getTags().contains(bookTag));
             } else if (url.endsWith("{bookId}")) {
-                path.getGet().getTags().contains(bookTag);
-                path.getPatch().getTags().contains(bookTag);
-                path.getDelete().getTags().contains(bookTag);
+                assertTrue(
+                    path.getGet().getTags().contains(bookTag) &&
+                    path.getPatch().getTags().contains(bookTag) &&
+                    path.getDelete().getTags().contains(bookTag));
             } else if (url.endsWith("relationships/publisher")) {
-                path.getGet().getTags().contains(publisherTag);
-                path.getPatch().getTags().contains(publisherTag);
+                assertTrue(
+                    path.getGet().getTags().contains(publisherTag) &&
+                    path.getPatch().getTags().contains(publisherTag));
             } else if (url.endsWith("/publisher")) {
-                path.getGet().getTags().contains(publisherTag);
-                path.getPost().getTags().contains(publisherTag);
+                assertTrue(
+                    path.getGet().getTags().contains(publisherTag) &&
+                    path.getPost().getTags().contains(publisherTag));
             } else if (url.endsWith("{publisherId}")) {
-                path.getGet().getTags().contains(publisherTag);
-                path.getPatch().getTags().contains(publisherTag);
-                path.getDelete().getTags().contains(publisherTag);
+                assertTrue(
+                    path.getGet().getTags().contains(publisherTag) &&
+                    path.getPatch().getTags().contains(publisherTag) &&
+                    path.getDelete().getTags().contains(publisherTag));
             }
         });
     }
