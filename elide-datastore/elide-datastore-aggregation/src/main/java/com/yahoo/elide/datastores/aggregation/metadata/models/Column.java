@@ -11,6 +11,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
+import javafx.util.Pair;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -44,6 +45,11 @@ public abstract class Column {
     private Table table;
 
     private ValueType valueType;
+
+    @ToOne
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Column sourceColumn;
 
     @ToString.Exclude
     private Set<String> columnTags;
@@ -82,5 +88,9 @@ public abstract class Column {
                 return ValueType.getScalarType(fieldClass);
             }
         }
+    }
+
+    public Pair<String, String> getSourceTableAndColumn() {
+        return new Pair<>(table.getId(), getName());
     }
 }

@@ -24,6 +24,7 @@ import com.yahoo.elide.utils.ClassScanner;
 
 import org.hibernate.annotations.Subselect;
 
+import javafx.util.Pair;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
@@ -168,5 +169,16 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
+    }
+
+    public void resolveSourceColumn() {
+        getMetaData(Table.class).forEach(table -> table.getColumns().forEach(column -> {
+            Pair<String, String> sourceTableAndColumn = column.getSourceTableAndColumn();
+            Table sourceTable = (Table) dataStore.get(Table.class).get(sourceTableAndColumn.getKey());
+            Column sourceColumn = column instanceof Metric
+                    ? sourceTable.getMetric(sourceTableAndColumn.getValue())
+                    : sourceTable.getDimension(sourceTableAndColumn.getValue());
+            column.setSourceColumn(sourceColumn);
+        }));
     }
 }
