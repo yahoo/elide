@@ -9,12 +9,12 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEn
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
-import javafx.util.Pair;
 import lombok.Getter;
 
 /**
@@ -49,7 +49,7 @@ public class SQLTimeDimension extends TimeDimension implements SQLColumn {
     }
 
     @Override
-    public Pair<String, String> getSourceTableAndColumn() {
-        return getSourceTableAndColumn(metadataDictionary);
+    public Path getSourcePath(EntityDictionary metadataDictionary) {
+        return joinPath == null ? super.getSourcePath(metadataDictionary) : joinPath;
     }
 }

@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -24,7 +25,6 @@ import com.yahoo.elide.utils.ClassScanner;
 
 import org.hibernate.annotations.Subselect;
 
-import javafx.util.Pair;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
@@ -171,14 +171,23 @@ public class MetaDataStore extends HashMapDataStore {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
     }
 
+    /**
+     * Resolve source columns for all Columns in all Tables.
+     */
     public void resolveSourceColumn() {
-        getMetaData(Table.class).forEach(table -> table.getColumns().forEach(column -> {
-            Pair<String, String> sourceTableAndColumn = column.getSourceTableAndColumn();
-            Table sourceTable = (Table) dataStore.get(Table.class).get(sourceTableAndColumn.getKey());
-            Column sourceColumn = column instanceof Metric
-                    ? sourceTable.getMetric(sourceTableAndColumn.getValue())
-                    : sourceTable.getDimension(sourceTableAndColumn.getValue());
-            column.setSourceColumn(sourceColumn);
-        }));
+        getMetaData(Table.class).forEach(table ->
+                table.getColumns().forEach(column -> {
+                    Path sourcePath = column.getSourcePath(dictionary);
+                    Path.PathElement source = sourcePath.lastElement().get();
+
+                    Table sourceTable = (Table) dataStore.get(Table.class)
+                            .get(dictionary.getJsonAliasFor(source.getType()));
+
+                    Column sourceColumn = column instanceof Metric
+                            ? sourceTable.getMetric(source.getFieldName())
+                            : sourceTable.getDimension(source.getFieldName());
+                    column.setSourceColumn(sourceColumn);
+                })
+        );
     }
 }

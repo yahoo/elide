@@ -8,14 +8,15 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
-import javafx.util.Pair;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -90,7 +91,16 @@ public abstract class Column {
         }
     }
 
-    public Pair<String, String> getSourceTableAndColumn() {
-        return new Pair<>(table.getId(), getName());
+    /**
+     * Return a Path that navigate to the source of this column.
+     *
+     * @param metadataDictionary metadata dictionary
+     * @return Path to source column
+     */
+    public Path getSourcePath(EntityDictionary metadataDictionary) {
+        Class<?> tableCls = metadataDictionary.getEntityClass(table.getId());
+        Class<?> columnCls = metadataDictionary.getParameterizedType(tableCls, getName());
+
+        return new Path(Collections.singletonList(new Path.PathElement(tableCls, columnCls, getName())));
     }
 }
