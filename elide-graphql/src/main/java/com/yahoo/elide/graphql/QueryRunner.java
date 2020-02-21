@@ -72,8 +72,7 @@ public class QueryRunner {
         this.api = new GraphQL(builder.build());
 
         // TODO - add serializers to allow for custom handling of ExecutionResult and GraphQLError objects
-        GraphQLErrorSerializer errorSerializer =
-                new GraphQLErrorSerializer(elide.getElideSettings().isEncodeErrorResponses());
+        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
         SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
         module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
         module.addSerializer(GraphQLError.class, errorSerializer);
@@ -240,13 +239,13 @@ public class QueryRunner {
                 }
 
                 @Override
-                public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
-                    return e.getErrorResponse(encodeResponse);
+                public Pair<Integer, JsonNode> getErrorResponse() {
+                    return e.getErrorResponse();
                 }
 
                 @Override
-                public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
-                    return e.getVerboseErrorResponse(encodeResponse);
+                public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+                    return e.getVerboseErrorResponse();
                 }
 
                 @Override
@@ -270,20 +269,17 @@ public class QueryRunner {
     private ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
         JsonNode errorNode;
-        boolean encodeErrorResponses = elide.getElideSettings().isEncodeErrorResponses();
-        if (!(error instanceof CustomErrorException) && elide.getElideSettings().isReturnErrorObjects()) {
+        if (!(error instanceof CustomErrorException)) {
             // get the error message and optionally encode it
             String errorMessage = isVerbose ? error.getVerboseMessage() : error.toString();
-            if (encodeErrorResponses) {
-                errorMessage = Encode.forHtml(errorMessage);
-            }
+            errorMessage = Encode.forHtml(errorMessage);
             ErrorObjects errors = ErrorObjects.builder().addError()
                     .with("message", errorMessage).build();
             errorNode = mapper.convertValue(errors, JsonNode.class);
         } else {
             errorNode = isVerbose
-                    ? error.getVerboseErrorResponse(encodeErrorResponses).getRight()
-                    : error.getErrorResponse(encodeErrorResponses).getRight();
+                    ? error.getVerboseErrorResponse().getRight()
+                    : error.getErrorResponse().getRight();
         }
         String errorBody;
         try {

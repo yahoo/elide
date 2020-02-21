@@ -16,28 +16,10 @@ import java.util.function.Supplier;
 public class HttpStatusExceptionTest {
 
     @Test
-    public void testGetResponse() {
-        // result should not be encoded
-        String expected = "{\"errors\":[\": test<script>encoding\"]}";
-        HttpStatusException exception =  new HttpStatusException(500, "test<script>encoding") { };
-        Pair<Integer, JsonNode> res = exception.getErrorResponse();
-        assertEquals(expected, res.getRight().toString());
-    }
-
-    @Test
-    public void testGetVerboseResponse() {
-        // result should not be encoded
-        String expected = "{\"errors\":[\": test<script>encoding\"]}";
-        HttpStatusException exception =  new HttpStatusException(500, "test<script>encoding") { };
-        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
-        assertEquals(expected, res.getRight().toString());
-    }
-
-    @Test
     public void testGetEncodedResponse() {
         String expected = "{\"errors\":[\": test&lt;script&gt;encoding\"]}";
         HttpStatusException exception =  new HttpStatusException(500, "test<script>encoding") { };
-        Pair<Integer, JsonNode> res = exception.getErrorResponse(true);
+        Pair<Integer, JsonNode> res = exception.getErrorResponse();
         assertEquals(expected, res.getRight().toString());
     }
 
@@ -45,7 +27,7 @@ public class HttpStatusExceptionTest {
     public void testGetEncodedVerboseResponse() {
         String expected = "{\"errors\":[\": test&lt;script&gt;encoding\"]}";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding") { };
-        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse(true);
+        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
         assertEquals(expected, res.getRight().toString());
     }
 
@@ -55,7 +37,7 @@ public class HttpStatusExceptionTest {
         Supplier<String> supplier = () -> "a more verbose <script> encoding test";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding",
                 new RuntimeException("runtime exception"), supplier) { };
-        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse(true);
+        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
         assertEquals(expected, res.getRight().toString());
     }
 
@@ -65,7 +47,7 @@ public class HttpStatusExceptionTest {
         Supplier<String> supplier = () -> "a more verbose <script> encoding test";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding",
                 new RuntimeException("runtime exception"), supplier) { };
-        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse(true);
+        Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
         assertEquals(expected, res.getRight().toString());
     }
 }

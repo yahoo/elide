@@ -49,7 +49,6 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.google.common.collect.Sets;
@@ -2490,7 +2489,7 @@ public class ResourceIT extends IntegrationTest {
 
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
                 .withAuditLogger(new TestAuditLogger())
-                .withPermissionExecutor(BypassPermissionExecutor.class)
+                .withVerboseErrors()
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .build());
         ElideResponse response =
