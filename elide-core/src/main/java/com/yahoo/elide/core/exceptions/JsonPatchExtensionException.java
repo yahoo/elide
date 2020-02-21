@@ -27,7 +27,7 @@ public class JsonPatchExtensionException extends HttpStatusException {
     }
 
     /**
-     * @deprecated use {@link #getErrorResponse(boolean encodeResponse)}
+     * @deprecated use {@link #getErrorResponse()}
      */
     @Deprecated
     public Pair<Integer, JsonNode> getResponse() {
@@ -36,29 +36,11 @@ public class JsonPatchExtensionException extends HttpStatusException {
 
     @Override
     public Pair<Integer, JsonNode> getErrorResponse() {
-        return getErrorResponse(false);
-    }
-
-    @Override
-    public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
-        if (!encodeResponse) {
-            return response;
-        }
-
         return encodeResponse();
     }
 
     @Override
     public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-        return getVerboseErrorResponse(false);
-    }
-
-    @Override
-    public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
-        if (!encodeResponse) {
-            return response;
-        }
-
         return encodeResponse();
     }
 

@@ -2221,7 +2221,6 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PatchRequestScope scope = new PatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works
-        assertEquals(parentScope.isUseFilterExpressions(), scope.isUseFilterExpressions());
         assertEquals(parentScope.getUpdateStatusCode(), scope.getUpdateStatusCode());
         assertEquals(parentScope.getObjectEntityCache(), scope.getObjectEntityCache());
 
