@@ -347,19 +347,16 @@ public class Elide {
             log.error("Internal Server Error", error);
         }
 
-        boolean encodeErrorResponse = elideSettings.isEncodeErrorResponses();
-        if (!(error instanceof CustomErrorException) && elideSettings.isReturnErrorObjects()) {
+        if (!(error instanceof CustomErrorException)) {
             String errorDetail = isVerbose ? error.getVerboseMessage() : error.toString();
-            if (encodeErrorResponse) {
-                errorDetail = Encode.forHtml(errorDetail);
-            }
+            errorDetail = Encode.forHtml(errorDetail);
             ErrorObjects errors = ErrorObjects.builder().addError().withDetail(errorDetail).build();
             JsonNode responseBody = mapper.getObjectMapper().convertValue(errors, JsonNode.class);
             return buildResponse(Pair.of(error.getStatus(), responseBody));
         }
 
-        return buildResponse(isVerbose ? error.getVerboseErrorResponse(encodeErrorResponse)
-                : error.getErrorResponse(encodeErrorResponse));
+        return buildResponse(isVerbose ? error.getVerboseErrorResponse()
+                : error.getErrorResponse());
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

@@ -1137,7 +1137,6 @@ public class LifeCycleTest {
         return new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withAuditLogger(auditLogger)
-                .withReturnErrorObjects(true)
                 .build();
     }
 

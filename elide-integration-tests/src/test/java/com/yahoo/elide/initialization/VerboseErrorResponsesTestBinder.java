@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Yahoo Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -22,16 +22,19 @@ import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Arrays;
 
 /**
- * Typical-use test binder for integration test resource configs.
+ * Binder for integration tests related to verbose error responses.
  */
-public class ErrorObjectsTestBinder extends AbstractBinder {
+@Slf4j
+public class VerboseErrorResponsesTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
     private final ServiceLocator injector;
 
-    public ErrorObjectsTestBinder(final AuditLogger auditLogger, ServiceLocator injector) {
+    public VerboseErrorResponsesTestBinder(final AuditLogger auditLogger, ServiceLocator injector) {
         this.auditLogger = auditLogger;
         this.injector = injector;
     }
@@ -59,7 +62,7 @@ public class ErrorObjectsTestBinder extends AbstractBinder {
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
-                        .withReturnErrorObjects(true)
+                        .withVerboseErrors()
                         .build());
             }
 

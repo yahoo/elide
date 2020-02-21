@@ -54,20 +54,11 @@ public abstract class HttpStatusException extends RuntimeException {
 
     /**
      * Get a response detailing the error that occurred.
+     * Optionally, encode the error message to be safe for HTML.
      * @return Pair containing status code and a JsonNode containing error details
      */
     public Pair<Integer, JsonNode> getErrorResponse() {
-        return getErrorResponse(false);
-    }
-
-    /**
-     * Get a response detailing the error that occurred.
-     * Optionally, encode the error message to be safe for HTML.
-     * @param encodeResponse true if the message should be encoded for html
-     * @return Pair containing status code and a JsonNode containing error details
-     */
-    public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
-        String message = encodeResponse ? Encode.forHtml(toString()) : toString();
+        String message = Encode.forHtml(toString());
         Map<String, List<String>> errors = Collections.singletonMap(
                 "errors", Collections.singletonList(message)
         );
@@ -76,20 +67,11 @@ public abstract class HttpStatusException extends RuntimeException {
 
     /**
      * Get a verbose response detailing the error that occurred.
+     * Optionally, encode the error message to be safe for HTML.
      * @return Pair containing status code and a JsonNode containing error details
      */
     public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-        return getVerboseErrorResponse(false);
-    }
-
-    /**
-     * Get a verbose response detailing the error that occurred.
-     * Optionally, encode the error message to be safe for HTML.
-     * @param encodeResponse true if the message should be encoded for html
-     * @return Pair containing status code and a JsonNode containing error details
-     */
-    public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
-        String message = encodeResponse ? Encode.forHtml(getVerboseMessage()) : getVerboseMessage();
+        String message = Encode.forHtml(getVerboseMessage());
         Map<String, List<String>> errors = Collections.singletonMap(
                 "errors", Collections.singletonList(message)
         );
