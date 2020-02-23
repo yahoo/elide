@@ -4,8 +4,8 @@
             "detail":"Subsequent operation failed."
         },
         {
-            "detail":"Unknown attribute 'badAttr' in 'parent'",
-            "status":404
+            "detail":"Unknown attribute badAttr in parent",
+            "status":"404"
         }
     ]
 }

@@ -176,7 +176,7 @@ public class LifeCycleTest {
         ElideResponse response = elide.post("/book", bookBody, null);
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getResponseCode());
         assertEquals(
-                "{\"errors\":[{\"detail\":\"InternalServerErrorException: Unexpected exception caught\"}]}",
+                "{\"errors\":[{\"detail\":\"Unexpected exception caught\"}]}",
                 response.getBody());
 
         /*

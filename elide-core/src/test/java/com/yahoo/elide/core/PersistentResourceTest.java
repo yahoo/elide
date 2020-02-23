@@ -606,7 +606,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 InvalidObjectIdentifierException.class,
                 () -> leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope)));
 
-        assertEquals("Unknown identifier 'null' for right", thrown.getMessage());
+        assertEquals("Unknown identifier null for right", thrown.getMessage());
     }
 
     @Test
