@@ -6,11 +6,11 @@
 package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.ErrorObjects;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.yahoo.elide.core.ErrorObjects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
@@ -80,7 +80,7 @@ public abstract class HttpStatusException extends RuntimeException {
 
     public String getVerboseMessage() {
         return verboseMessageSupplier.map(Supplier::get)
-                .orElse(toString());
+                .orElse(getMessage());
     }
 
     public int getStatus() {

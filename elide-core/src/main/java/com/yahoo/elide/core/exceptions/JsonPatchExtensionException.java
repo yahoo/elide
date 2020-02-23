@@ -5,14 +5,12 @@
  */
 package com.yahoo.elide.core.exceptions;
 
+import com.yahoo.elide.core.ErrorObjects;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 
-import com.yahoo.elide.core.ErrorObjects;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
