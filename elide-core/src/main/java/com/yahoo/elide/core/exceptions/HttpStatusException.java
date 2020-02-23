@@ -10,15 +10,13 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.yahoo.elide.core.ErrorObjects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -54,32 +52,29 @@ public abstract class HttpStatusException extends RuntimeException {
 
     /**
      * Get a response detailing the error that occurred.
-     * Optionally, encode the error message to be safe for HTML.
+     * Encode the error message to be safe for HTML.
      * @return Pair containing status code and a JsonNode containing error details
      */
     public Pair<Integer, JsonNode> getErrorResponse() {
-        String message = Encode.forHtml(toString());
-        Map<String, List<String>> errors = Collections.singletonMap(
-                "errors", Collections.singletonList(message)
-        );
-        return buildResponse(errors);
+        return buildResponse(getMessage());
     }
 
     /**
      * Get a verbose response detailing the error that occurred.
-     * Optionally, encode the error message to be safe for HTML.
+     * Encode the error message to be safe for HTML.
      * @return Pair containing status code and a JsonNode containing error details
      */
     public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-        String message = Encode.forHtml(getVerboseMessage());
-        Map<String, List<String>> errors = Collections.singletonMap(
-                "errors", Collections.singletonList(message)
-        );
-        return buildResponse(errors);
+        return buildResponse(getVerboseMessage());
     }
 
-    private Pair<Integer, JsonNode> buildResponse(Map<String, List<String>> errors) {
+    private Pair<Integer, JsonNode> buildResponse(String message) {
+        String errorDetail = message;
+        errorDetail = Encode.forHtml(errorDetail);
+
+        ErrorObjects errors = ErrorObjects.builder().addError().withDetail(errorDetail).build();
         JsonNode responseBody = OBJECT_MAPPER.convertValue(errors, JsonNode.class);
+
         return Pair.of(getStatus(), responseBody);
     }
 

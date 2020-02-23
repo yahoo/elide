@@ -1,5 +1,7 @@
 {
   "errors": [
-    "ForbiddenAccessException"
+    {
+      "detail" : "null"
+    }
   ]
 }
