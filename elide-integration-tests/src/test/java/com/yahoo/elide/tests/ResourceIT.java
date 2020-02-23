@@ -2470,35 +2470,6 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
-    public void elideBypassSecurity() {
-        Resource child = resource(
-                type("child"),
-                id("1"),
-                attributes(
-                        attr("computedFailTest", "computed"),
-                        attr("name", null)
-                ),
-                relationships(
-                        relation("friends"),
-                        relation("noReadAccess", TO_ONE),
-                        relation("parents",
-                                linkage(type("parent"), id("1"))
-                        )
-                )
-        );
-
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withAuditLogger(new TestAuditLogger())
-                .withVerboseErrors()
-                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build());
-        ElideResponse response =
-                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
-        assertEquals(datum(child).toJSON(), response.getBody());
-    }
-
-    @Test
     public void elideSecurityEnabled() {
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))

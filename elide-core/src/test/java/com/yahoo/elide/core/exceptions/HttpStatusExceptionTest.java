@@ -17,7 +17,7 @@ public class HttpStatusExceptionTest {
 
     @Test
     public void testGetEncodedResponse() {
-        String expected = "{\"errors\":[\": test&lt;script&gt;encoding\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"test&lt;script&gt;encoding\"}]}";
         HttpStatusException exception =  new HttpStatusException(500, "test<script>encoding") { };
         Pair<Integer, JsonNode> res = exception.getErrorResponse();
         assertEquals(expected, res.getRight().toString());
@@ -25,7 +25,7 @@ public class HttpStatusExceptionTest {
 
     @Test
     public void testGetEncodedVerboseResponse() {
-        String expected = "{\"errors\":[\": test&lt;script&gt;encoding\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"test&lt;script&gt;encoding\"}]}";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding") { };
         Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
         assertEquals(expected, res.getRight().toString());
@@ -33,7 +33,7 @@ public class HttpStatusExceptionTest {
 
     @Test
     public void testGetEncodedVerboseResponseWithSupplier() {
-        String expected = "{\"errors\":[\"a more verbose &lt;script&gt; encoding test\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"a more verbose &lt;script&gt; encoding test\"}]}";
         Supplier<String> supplier = () -> "a more verbose <script> encoding test";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding",
                 new RuntimeException("runtime exception"), supplier) { };
@@ -43,7 +43,7 @@ public class HttpStatusExceptionTest {
 
     @Test
     public void testGetVerboseResponseWithSupplier() {
-        String expected = "{\"errors\":[\"a more verbose &lt;script&gt; encoding test\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"a more verbose &lt;script&gt; encoding test\"}]}";
         Supplier<String> supplier = () -> "a more verbose <script> encoding test";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding",
                 new RuntimeException("runtime exception"), supplier) { };
