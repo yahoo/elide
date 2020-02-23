@@ -552,7 +552,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failRootCollection() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection unknown\"}]}";
 
         given().when().get("/unknown").then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -561,7 +561,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failRootCollectionId() {
-        String expected = "{\"errors\":[\"InvalidObjectIdentifierException: Unknown identifier '6789' for parent\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown identifier 6789 for parent\"}]}";
 
         given().when().get("/parent/6789").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -569,7 +569,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failChild() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection unknown\"}]}";
 
         given().when().get("/parent/1/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -577,7 +577,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failFieldRequest() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'id'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection id\"}]}";
 
         given().when().get("/parent/1/id").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -585,7 +585,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void parseFailure() {
-        String expected = "{\"errors\":[\"InvalidURLException: token recognition error at: '|'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"token recognition error at: &#39;|&#39;\"}]}";
 
         given().when().get("company/1|apps/2/links/foo").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -1140,7 +1140,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void createParentList() {
         String request = jsonParser.getJson("/ResourceIT/createParentList.req.json");
-        String expected = "{\"errors\":[\"InvalidEntityBodyException: Bad Request Body";
+        String expected = "{\"errors\":[{\"detail\":\"Bad Request Body";
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -2201,7 +2201,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/specialread")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo("{\"errors\":[{\"detail\":null,\"status\":403}]}"));
+                .body(equalTo("{\"errors\":[{\"detail\":\"null\",\"status\":\"403\"}]}"));
     }
 
     @Test
@@ -2248,7 +2248,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN)
-                .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
+                .body(equalTo("{\"errors\":[{\"detail\":\"null\"}]}"));
     }
 
     @Test
