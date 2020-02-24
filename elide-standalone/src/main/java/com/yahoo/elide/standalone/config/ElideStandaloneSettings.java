@@ -85,7 +85,6 @@ public interface ElideStandaloneSettings {
         dictionary.scanForSecurityChecks();
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withUseFilterExpressions(true)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
