@@ -1,1 +1,7 @@
-{"errors":["InvalidCollectionException: Unknown collection &#39;unknown&#39;"]}
+{
+  "errors":[
+    {
+      "detail" : "Unknown collection unknown"
+    }
+  ]
+}

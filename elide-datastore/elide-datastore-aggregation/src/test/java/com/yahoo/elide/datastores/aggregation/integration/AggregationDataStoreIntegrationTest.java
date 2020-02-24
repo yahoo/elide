@@ -333,7 +333,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         ).toQuery();
 
         String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "'Dimension field countryIsoCode must be grouped before filtering in having clause.'\"";
+                + "Dimension field countryIsoCode must be grouped before filtering in having clause.\"";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
@@ -359,7 +359,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         ).toQuery();
 
         String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "'Metric field highScore must be aggregated before filtering in having clause.'\"";
+                + "Metric field highScore must be aggregated before filtering in having clause.\"";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
@@ -385,8 +385,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         ).toQuery();
 
         String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "'Can't filter on relationship field [PlayerStats].country/[Country].isoCode in HAVING clause "
-                + "when querying table PlayerStats.'\"";
+                + "Can not filter on relationship field [PlayerStats].country/[Country].isoCode in HAVING clause "
+                + "when querying table PlayerStats.\"";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
@@ -524,7 +524,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Sorting on id field is not permitted'\"";
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: Sorting on id field is not permitted\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -545,7 +545,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on countryIsoCode as it is not present in query'\"";
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: Can not sort on countryIsoCode as it is not present in query\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -567,7 +567,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: 'Can't sort on highScore as it is not present in query'\"";
+        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: Can not sort on highScore as it is not present in query\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
