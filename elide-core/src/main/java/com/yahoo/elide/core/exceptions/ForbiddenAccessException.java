@@ -42,7 +42,7 @@ public class ForbiddenAccessException extends HttpStatusException {
                              getVerboseMessage(), getEvaluationMode(), getExpression());
     }
 
-    public static String getMessage(Class<? extends Annotation> permission) {
+    private static String getMessage(Class<? extends Annotation> permission) {
         return EntityDictionary.getSimpleName(permission) + " Denied";
     }
 }
