@@ -52,7 +52,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         QueryValidator validator = new QueryValidator(query, allFields, dictionary);
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals("Invalid operation: 'Sorting on id field is not permitted'", exception.getMessage());
+        assertEquals("Invalid operation: Sorting on id field is not permitted", exception.getMessage());
     }
 
     @Test
@@ -71,7 +71,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         QueryValidator validator = new QueryValidator(query, allFields, dictionary);
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals("Invalid operation: 'Can't sort on countryIsoCode as it is not present in query'", exception.getMessage());
+        assertEquals("Invalid operation: Can not sort on countryIsoCode as it is not present in query", exception.getMessage());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class QueryValidatorTest extends SQLUnitTest {
         QueryValidator validator = new QueryValidator(query, allFields, dictionary);
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals("Invalid operation: 'Can't sort on highScore as it is not present in query'", exception.getMessage());
+        assertEquals("Invalid operation: Can not sort on highScore as it is not present in query", exception.getMessage());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
         assertEquals(
-                "Invalid operation: 'Dimension field countryIsoCode must be grouped before filtering in having clause.'",
+                "Invalid operation: Dimension field countryIsoCode must be grouped before filtering in having clause.",
                 exception.getMessage());
     }
 
@@ -138,7 +138,7 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
         assertEquals(
-                "Invalid operation: 'Metric field lowScore must be aggregated before filtering in having clause.'",
+                "Invalid operation: Metric field lowScore must be aggregated before filtering in having clause.",
                 exception.getMessage());
     }
 
@@ -163,7 +163,7 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
         assertEquals(
-                "Invalid operation: 'Can't filter on relationship field [PlayerStats].country/[Country].isoCode in HAVING clause when querying table PlayerStats.'",
+                "Invalid operation: Can not filter on relationship field [PlayerStats].country/[Country].isoCode in HAVING clause when querying table PlayerStats.",
                 exception.getMessage());
     }
 }

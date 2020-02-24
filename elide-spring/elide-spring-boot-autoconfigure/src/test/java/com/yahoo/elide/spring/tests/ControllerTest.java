@@ -311,7 +311,7 @@ public class ControllerTest extends IntegrationTest {
                 .when()
                 .post("/graphql")
                 .then()
-                .body("errors", contains("ForbiddenAccessException"))
+                .body("errors.message", contains("ForbiddenAccessException"))
                 .statusCode(200);
     }
 }

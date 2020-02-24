@@ -29,7 +29,7 @@ public class EncodedErrorObjectsIT extends IntegrationTest {
     @Test
     public void invalidAttributeException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/InvalidAttributeException.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/InvalidAttributeException.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidAttributeException.json");
         given()
             .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)

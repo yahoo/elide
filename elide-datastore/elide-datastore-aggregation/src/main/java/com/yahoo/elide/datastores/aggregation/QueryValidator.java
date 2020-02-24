@@ -76,7 +76,7 @@ public class QueryValidator {
             if (cls != tableClass) {
                 throw new InvalidOperationException(
                         String.format(
-                                "Can't filter on relationship field %s in HAVING clause when querying table %s.",
+                                "Can not filter on relationship field %s in HAVING clause when querying table %s.",
                                 path.toString(),
                                 tableClass.getSimpleName()));
             }
@@ -134,7 +134,7 @@ public class QueryValidator {
 
         // TODO: support sorting using alias
         if (allFields.stream().noneMatch(field -> field.equals(currentField))) {
-            throw new InvalidOperationException("Can't sort on " + currentField + " as it is not present in query");
+            throw new InvalidOperationException("Can not sort on " + currentField + " as it is not present in query");
         }
         if (dictionary.getIdFieldName(currentClass).equals(currentField)
                 || currentField.equals(EntityDictionary.REGULAR_ID_NAME)) {
