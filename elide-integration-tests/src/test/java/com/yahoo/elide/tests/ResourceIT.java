@@ -2201,7 +2201,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/specialread")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo("{\"errors\":[{\"detail\":\"null\",\"status\":\"403\"}]}"));
+                .body(equalTo("[{\"errors\":[{\"detail\":\"null\",\"status\":\"403\"}]}]"));
     }
 
     @Test
