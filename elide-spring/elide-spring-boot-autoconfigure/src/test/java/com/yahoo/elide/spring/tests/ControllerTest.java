@@ -274,7 +274,7 @@ public class ControllerTest extends IntegrationTest {
                 .when()
                 .post("/graphql")
                 .then()
-                .body("errors.message", contains("ForbiddenAccessException"))
+                .body("errors.message", contains("CreatePermission Denied"))
                 .statusCode(200);
     }
 }

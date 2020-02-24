@@ -232,7 +232,7 @@ public class QueryRunner {
             } else {
                 log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             }
-            return buildErrorResponse(new HttpStatusException(200, "") {
+            return buildErrorResponse(new HttpStatusException(200, e.getMessage()) {
                 @Override
                 public int getStatus() {
                     return 200;
@@ -271,7 +271,7 @@ public class QueryRunner {
         JsonNode errorNode;
         if (!(error instanceof CustomErrorException)) {
             // get the error message and optionally encode it
-            String errorMessage = isVerbose ? error.getVerboseMessage() : error.toString();
+            String errorMessage = isVerbose ? error.getVerboseMessage() : error.getMessage();
             errorMessage = Encode.forHtml(errorMessage);
             ErrorObjects errors = ErrorObjects.builder().addError()
                     .with("message", errorMessage).build();
