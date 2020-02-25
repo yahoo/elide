@@ -39,7 +39,7 @@ public abstract class SQLUnitTest {
     protected static Table playerStatsTable;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
-    protected static MetaDataStore metaDataStore = new MetaDataStore();
+    protected static MetaDataStore metaDataStore;
 
     protected static final Country HONG_KONG = new Country();
     protected static final Country USA = new Country();
@@ -49,6 +49,8 @@ public abstract class SQLUnitTest {
     protected static QueryEngine engine;
 
     public static void init() {
+        metaDataStore = new MetaDataStore();
+
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStatsWithView.class);
