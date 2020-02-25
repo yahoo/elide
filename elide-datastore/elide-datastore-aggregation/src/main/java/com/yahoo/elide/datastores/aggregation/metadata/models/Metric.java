@@ -12,7 +12,10 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
+
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,6 +24,7 @@ import lombok.ToString;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.ManyToOne;
@@ -116,12 +120,12 @@ public class Metric extends Column {
      * @param dictionary dictionary with entity information
      * @return resolved metric function instance
      */
-    private static MetricFunction resolveFormula(Table table,
-                                                 String fieldName,
-                                                 LinkedHashSet<String> toResolve,
-                                                 Map<String, MetricFunction> resolved,
-                                                 Meta meta,
-                                                 EntityDictionary dictionary) {
+    private MetricFunction resolveFormula(Table table,
+                                          String fieldName,
+                                          LinkedHashSet<String> toResolve,
+                                          Map<String, MetricFunction> resolved,
+                                          Meta meta,
+                                          EntityDictionary dictionary) {
         Class<?> tableClass = dictionary.getEntityClass(table.getId());
 
         if (toResolve.contains(fieldName)) {
@@ -141,14 +145,12 @@ public class Metric extends Column {
         } else {
             toResolve.add(fieldName);
 
-            String expression = formula.expression();
-            String[] references = formula.references();
+            String expression = formula.value();
+            List<String> references = MetaDataStore.resolveFormulaReferences(expression);
             Set<FunctionArgument> arguments = new HashSet<>();
+            MutableInt index = new MutableInt();
 
-            // if the metric is formula, resolve all references it uses
-            for (int i = 0; i < references.length; i++) {
-                String ref = references[i];
-
+            references.forEach(ref -> {
                 if (!resolved.containsKey(ref)) {
                     resolveFormula(table, ref, toResolve, resolved, null, dictionary);
                 }
@@ -158,31 +160,36 @@ public class Metric extends Column {
                 if (referenceFunction.getExpression() == null || referenceFunction.getExpression().equals("")) {
                     throw new IllegalArgumentException(
                             "Metric formula contains metric function that doesn't have expression "
-                            + dictionary.getJsonAliasFor(tableClass) + ": "
-                            + String.join("->", toResolve) + "->" + ref);
+                                    + dictionary.getJsonAliasFor(tableClass) + ": "
+                                    + String.join("->", toResolve) + "->" + ref);
                 }
-
-                // replace reference with expression
-                final int index = i + 1;
-                expression = expression.replace("{%" + index + "}", referenceFunction.getExpression());
 
                 // pass metric argument into arguments of current function
                 // TODO: add argument name mapping so that arguments can be injected correctly
                 referenceFunction.getArguments()
                         .forEach(arg -> arguments.add(
                                 new FunctionArgument(
-                                        String.format("%s_%d_%s", ref, index, arg.getId()),
+                                        String.format("%s_%s_%s_%d_%s",
+                                                table.getId(),
+                                                fieldName,
+                                                ref,
+                                                index.getAndIncrement(),
+                                                arg.getId()),
                                         arg.getName(),
                                         arg.getDescription(),
                                         arg.getType(),
                                         arg.getSubType())));
+            });
+
+            for (String reference : references) {
+                expression = expression.replace("{{" + reference + "}}", resolved.get(reference).getExpression());
             }
 
             toResolve.remove(fieldName);
             // add new function into resolved map
             resolved.put(
                     fieldName,
-                    new MetricFunction(
+                    constructMetricFunction(
                             constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
                             meta == null ? null : meta.longName(),
                             meta == null ? null : meta.description(),

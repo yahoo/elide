@@ -28,11 +28,14 @@ import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +43,7 @@ import java.util.stream.Collectors;
  */
 public class MetaDataStore extends HashMapDataStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
+    private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
@@ -182,5 +186,22 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
+    }
+
+    /**
+     * Use regex to get all references from a formula expression.
+     *
+     * @param formula formula expression
+     * @return references appear in the formula.
+     */
+    public static List<String> resolveFormulaReferences(String formula) {
+        Matcher matcher = REFERENCE_PARENTHESES.matcher(formula);
+        List<String> references = new ArrayList<>();
+
+        while (matcher.find()) {
+            references.add(matcher.group(1));
+        }
+
+        return references;
     }
 }

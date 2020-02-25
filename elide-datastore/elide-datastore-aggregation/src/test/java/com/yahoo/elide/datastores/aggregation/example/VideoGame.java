@@ -61,12 +61,12 @@ public class VideoGame {
         return timeSpent;
     }
 
-    @MetricFormula(expression = "{%1} / (CASE WHEN {%2} = 0 THEN 1 ELSE {%2} END)", references = {"timeSpent", "sessions"})
+    @MetricFormula("{{timeSpent}} / (CASE WHEN {{sessions}} = 0 THEN 1 ELSE {{sessions}} END)")
     public Float getTimeSpentPerSession() {
         return timeSpentPerSession;
     }
 
-    @MetricFormula(expression = "{%1} / 100", references = {"timeSpentPerSession"})
+    @MetricFormula("{{timeSpentPerSession}} / 100")
     public Float getTimeSpentPerGame() {
         return timeSpentPerGame;
     }

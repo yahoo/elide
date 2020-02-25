@@ -30,9 +30,7 @@ public class DimensionReference {
     @Setter
     private int playerLevel;
 
-    @MetricFormula(
-            expression = "{%1}",
-            references = {"playerLevel"})
+    @MetricFormula("{{playerLevel}}")
     public long getHighScore() {
         return highScore;
     }

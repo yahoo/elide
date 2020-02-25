@@ -24,9 +24,7 @@ public class Loop {
     @Setter
     private long highScore;
 
-    @MetricFormula(
-            expression = "{%1}",
-            references = {"highScore"})
+    @MetricFormula("{{highScore}}")
     public long getHighScore() {
         return highScore;
     }

@@ -14,7 +14,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a field is computed via a {@link #expression() custom metric formula expression}, such as Calcite SQL.
+ * Indicates that a field is computed via a {@link #value() custom metric formula expression}, such as Calcite SQL.
 <<<<<<< HEAD
  * Metric formula is resolved as a new aggregation function, so it won't convert the value to a different format before
  * or after aggregation.
@@ -76,12 +76,5 @@ public @interface MetricFormula {
      *
      * @return metric formula
      */
-    String expression();
-
-    /**
-     * References to use in the formula.
-     *
-     * @return references
-     */
-    String[] references() default {};
+    String value();
 }
