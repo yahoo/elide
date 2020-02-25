@@ -15,15 +15,11 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates that a field is computed via a {@link #value() custom metric formula expression}, such as Calcite SQL.
-<<<<<<< HEAD
  * Metric formula is resolved as a new aggregation function, so it won't convert the value to a different format before
  * or after aggregation.
  * <p>
- * Example: {@literal @}MetricFormula(expression = '({%1} * {%2}) / 100', references = {'ref1', 'ref2'}).
-=======
+ * Example: {@literal @}MetricFormula("({{field1}} * {{field2}}) / 100").
  * <p>
- * Example: {@literal @}MetricFormula(expression = '({%1} * {%2}) / 100').
->>>>>>> 1c90b956e... Metric formula
  *
  * Rules:
  * 1. The references used to replace '{%1}' and '{%2}' should be provided in the reference list.
@@ -37,11 +33,7 @@ import java.lang.annotation.Target;
  * {@code expression} can also be composite. During {@link Metric} construction, it will substitute attribute names in
  * the provided expression with either:
  * <ul>
-<<<<<<< HEAD
  *     <li> The column field name for that column in the query, or
-=======
- *     <li> The column alias for that column in the query, or
->>>>>>> 1c90b956e... Metric formula
  *     <li> Another {@link MetricFormula} expression - recursively expanding expressions until every referenced
  *          field is not computed.
  * </ul>
@@ -56,10 +48,10 @@ import java.lang.annotation.Target;
  *     {@literal @}MetricAggregation(sum.class)
  *     Long timeSpent
  *
- *     {@literal @}MetricComputation(expression = "{%1} / {%2}", references = {"timeSpent", "sessions"})
+ *     {@literal @}MetricComputation("{{timeSpent}} / {{sessions}}")
  *     Float timeSpentPerSession
  *
- *     {@literal @}MetricComputation(expression = "{%1} / 100", references = {"timeSpentPerSession"})
+ *     {@literal @}MetricComputation("{{timeSpentPerSession}} / 100")
  *     Float timeSpentPerGame
  * }
  * }
