@@ -15,6 +15,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 
 import lombok.extern.slf4j.Slf4j;
@@ -78,4 +79,13 @@ public class AsyncQuery implements PrincipalOwned {
         this.status = status;
     }
 
+    @Inject
+    @Transient
+    AsyncExecutorService asyncExecutorService;
+
+    @OnCreatePostCommit
+    public void executeQueryFromExecutor(RequestScope scope) {
+        log.info("AsyncExecutorService executor object: {}", asyncExecutorService);
+        asyncExecutorService.executeQuery(query, queryType, scope, id);
+    }
 }
