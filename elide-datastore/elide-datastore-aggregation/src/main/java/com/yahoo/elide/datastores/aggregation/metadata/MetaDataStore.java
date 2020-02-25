@@ -178,7 +178,6 @@ public class MetaDataStore extends HashMapDataStore {
     }
 
     /**
-<<<<<<< HEAD
      * Construct a column name as meta data
      *
      * @param tableClass table class
