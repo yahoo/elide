@@ -48,10 +48,10 @@ import java.lang.annotation.Target;
  *     {@literal @}MetricAggregation(sum.class)
  *     Long timeSpent
  *
- *     {@literal @}MetricComputation("{{timeSpent}} / {{sessions}}")
+ *     {@literal @}MetricFormula("{{timeSpent}} / {{sessions}}")
  *     Float timeSpentPerSession
  *
- *     {@literal @}MetricComputation("{{timeSpentPerSession}} / 100")
+ *     {@literal @}MetricFormula("{{timeSpentPerSession}} / 100")
  *     Float timeSpentPerGame
  * }
  * }

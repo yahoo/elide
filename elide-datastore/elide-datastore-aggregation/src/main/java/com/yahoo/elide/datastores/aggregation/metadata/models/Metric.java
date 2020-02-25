@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -151,6 +152,13 @@ public class Metric extends Column {
             MutableInt index = new MutableInt();
 
             references.forEach(ref -> {
+                // if the field is a physical column that is not present in the data model
+                if (dictionary.getParameterizedType(tableClass, ref) == null) {
+                    resolved.put(
+                            ref,
+                            constructMetricFunction("physicalReference", null, null, ref, Collections.emptySet()));
+                }
+
                 if (!resolved.containsKey(ref)) {
                     resolveFormula(table, ref, toResolve, resolved, null, dictionary);
                 }
