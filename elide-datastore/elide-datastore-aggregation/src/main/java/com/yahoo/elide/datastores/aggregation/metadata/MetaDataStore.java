@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -168,5 +169,25 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
+    }
+
+    /**
+     * Resolve source columns for all Columns in all Tables.
+     */
+    public void resolveSourceColumn() {
+        getMetaData(Table.class).forEach(table ->
+                table.getColumns().forEach(column -> {
+                    Path sourcePath = column.getSourcePath(dictionary);
+                    Path.PathElement source = sourcePath.lastElement().get();
+
+                    Table sourceTable = (Table) dataStore.get(Table.class)
+                            .get(dictionary.getJsonAliasFor(source.getType()));
+
+                    Column sourceColumn = column instanceof Metric
+                            ? sourceTable.getMetric(source.getFieldName())
+                            : sourceTable.getDimension(source.getFieldName());
+                    column.setSourceColumn(sourceColumn);
+                })
+        );
     }
 }

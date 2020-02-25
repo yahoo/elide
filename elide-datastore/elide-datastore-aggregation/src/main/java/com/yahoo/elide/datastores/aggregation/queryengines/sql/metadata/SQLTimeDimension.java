@@ -9,6 +9,7 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEn
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -26,6 +27,9 @@ public class SQLTimeDimension extends TimeDimension implements SQLColumn {
     @Getter
     private final JoinPath joinPath;
 
+    @Getter
+    private EntityDictionary metadataDictionary;
+
     public SQLTimeDimension(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
         Class<?> tableClass = dictionary.getEntityClass(table.getId());
@@ -40,5 +44,12 @@ public class SQLTimeDimension extends TimeDimension implements SQLColumn {
             this.reference = generateColumnReference(path, dictionary);
             this.joinPath = path;
         }
+
+        this.metadataDictionary = dictionary;
+    }
+
+    @Override
+    public Path getSourcePath(EntityDictionary metadataDictionary) {
+        return joinPath == null ? super.getSourcePath(metadataDictionary) : joinPath;
     }
 }
