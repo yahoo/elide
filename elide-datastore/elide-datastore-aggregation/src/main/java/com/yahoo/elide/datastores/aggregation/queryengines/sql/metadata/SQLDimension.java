@@ -47,4 +47,9 @@ public class SQLDimension extends Dimension implements SQLColumn {
         this.reference = generateColumnReference(path, new LinkedHashSet<>(), resolvedReferences, dictionary);
         this.joinPaths.addAll(resolvedReferences.keySet());
     }
+
+    @Override
+    public Path getSourcePath(EntityDictionary metadataDictionary) {
+        return joinPaths.isEmpty() ? super.getSourcePath(metadataDictionary) : joinPaths.get(0);
+    }
 }

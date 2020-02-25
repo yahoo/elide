@@ -737,6 +737,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
+                .body("data.relationships.sourceColumn.data.id", equalTo("player.name"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
@@ -746,6 +747,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
                 .body("data.attributes.valueType",  equalTo("INTEGER"))
+                .body("data.relationships.sourceColumn.data.id", equalTo("playerStats.lowScore"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
@@ -760,6 +762,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
                 .body("data.attributes.valueType",  equalTo("TIME"))
+                .body("data.relationships.sourceColumn.data.id", equalTo("playerStats.recordedDate"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body(
                         "data.relationships.supportedGrains.data.id",
