@@ -30,8 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AsyncQueryCleanerThread implements Runnable {
 
-    int maxRunTime;
-    Elide elide;
+    private int maxRunTime;
+    private Elide elide;
 
     AsyncQueryCleanerThread(int maxRunTime, Elide elide) {
         log.debug("New Async Query Cleaner thread created");

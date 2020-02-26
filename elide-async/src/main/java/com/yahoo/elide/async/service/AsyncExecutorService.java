@@ -20,7 +20,6 @@ import javax.inject.Singleton;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +40,6 @@ public class AsyncExecutorService {
 	private QueryRunner runner;
 	private ExecutorService executor;
 	private ExecutorService interruptor;
-	private ScheduledExecutorService cleaner;
 	private int maxRunTime;
 
 	@Inject
@@ -53,7 +51,7 @@ public class AsyncExecutorService {
 		interruptor = AsyncQueryInterruptor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
 
 		// Setting up query cleaner that marks long running query as TIMEDOUT.
-		cleaner = AsyncQueryCleaner.getInstance().getExecutorService();
+		ScheduledExecutorService cleaner = AsyncQueryCleaner.getInstance().getExecutorService();
 		AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(maxRunTime, elide);
 
 		// Since there will be multiple hosts running the elide service,
