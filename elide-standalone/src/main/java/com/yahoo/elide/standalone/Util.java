@@ -23,7 +23,8 @@ import javax.persistence.spi.PersistenceUnitInfo;
  */
 public class Util {
 
-    public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, Properties options) {
+    public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, String asyncModelPackageName, 
+            Properties options) {
 
         // Configure default options for example service
         if (options.isEmpty()) {
@@ -52,11 +53,29 @@ public class Util {
         }
 
         PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
-                getAllEntities(modelPackageName), options);
+                combineModelEntities(modelPackageName, asyncModelPackageName), options);
 
         return new EntityManagerFactoryBuilderImpl(
                 new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>())
                 .build();
+    }
+
+    /**
+     * Combine the model entities with Async model.
+     *
+     * @param modelPackageName Package name
+     * @param asyncModelPackageName Async model package Name
+     * @return All entities combined from both package.
+     */
+    public static List<String> combineModelEntities(String modelPackageName, String asyncModelPackageName) {
+
+        List<String> modelEntities = getAllEntities(modelPackageName);
+
+        if (asyncModelPackageName != null) {
+            modelEntities.addAll(getAllEntities(asyncModelPackageName));
+        }
+
+        return modelEntities;
     }
 
     /**
