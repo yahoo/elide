@@ -26,16 +26,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AsyncQueryInterruptThread implements Runnable {
 
-    private RequestScope scope;
     private Elide elide;
     private Future<?> task;
     private UUID id;
     private Date submittedOn;
     private int interruptTime;
 
-    public AsyncQueryInterruptThread(RequestScope scope, Elide elide, Future<?> task, UUID id, Date submittedOn, int interruptTime){
+    public AsyncQueryInterruptThread(Elide elide, Future<?> task, UUID id, Date submittedOn, int interruptTime){
         log.debug("New Async Query Interrupt thread created");
-        this.scope = scope;
         this.elide = elide;
         this.task = task;
         this.id = id;
@@ -79,6 +77,9 @@ public class AsyncQueryInterruptThread implements Runnable {
     protected void updateAsyncQueryStatus(QueryStatus status, UUID asyncQueryId) {
         log.debug("Updating AsyncQuery status to {}", status);
         DataStoreTransaction tx = elide.getDataStore().beginTransaction();
+
+        // Creating new RequestScope for Datastore transaction
+        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
 
         try {
             EntityProjection asyncQueryCollection = EntityProjection.builder()

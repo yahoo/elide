@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.service;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
@@ -64,8 +65,8 @@ public class AsyncExecutorService {
 		cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelay, Math.max(DEFAULT_CLEANUP_DELAY, maxRunTime * 2), TimeUnit.MINUTES);
 	}
 
-	public void executeQuery(String query, QueryType queryType, RequestScope scope, UUID id) {
-		AsyncQueryThread queryWorker = new AsyncQueryThread(query, queryType, scope, elide, runner, id);
+	public void executeQuery(String query, QueryType queryType, Principal user, UUID id) {
+		AsyncQueryThread queryWorker = new AsyncQueryThread(query, queryType, user, elide, runner, id);
 		// Change async query in Datastore to queued
 		try {
 			queryWorker.updateAsyncQueryStatus(QueryStatus.QUEUED, id);
@@ -73,7 +74,7 @@ public class AsyncExecutorService {
 			log.error("IOException: {}", e.getMessage());
 		}
 
-		AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(scope, elide, executor.submit(queryWorker), id, new Date(), maxRunTime);
+		AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide, executor.submit(queryWorker), id, new Date(), maxRunTime);
 		interruptor.execute(queryInterruptWorker);
 	}
 }
