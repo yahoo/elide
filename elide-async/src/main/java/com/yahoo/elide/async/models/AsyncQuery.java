@@ -36,23 +36,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AsyncQuery implements PrincipalOwned {
     @Id
-    UUID id; //Can be generated or provided.
+    private UUID id; //Can be generated or provided.
 
     //Extracted from the Principal object
-    String principalName;
+    private String principalName;
 
-    String query;  //JSON-API PATH or GraphQL payload.
+    private String query;  //JSON-API PATH or GraphQL payload.
 
-    QueryType queryType; //GRAPHQL, JSONAPI
+    private QueryType queryType; //GRAPHQL, JSONAPI
 
     @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
-    QueryStatus status;
+    private QueryStatus status;
 
     @OneToOne
-    AsyncQueryResult result;
+    private AsyncQueryResult result;
 
-    Date createdOn;
-    Date updatedOn;
+    private Date createdOn;
+
+    private Date updatedOn;
 
     @Override
 	public String getPrincipalName() {
@@ -87,7 +88,7 @@ public class AsyncQuery implements PrincipalOwned {
 
     @Inject
     @Transient
-    AsyncExecutorService asyncExecutorService;
+    private AsyncExecutorService asyncExecutorService;
 
     @OnCreatePostCommit
     public void executeQueryFromExecutor(RequestScope scope) {

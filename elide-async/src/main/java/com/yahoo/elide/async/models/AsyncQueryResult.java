@@ -30,19 +30,20 @@ import com.yahoo.elide.annotation.UpdatePermission;
 @CreatePermission(expression = "Prefab.Role.None")
 public class AsyncQueryResult implements PrincipalOwned {
     @Id
-    UUID id; //Matches UUID in query.
+    private UUID id; //Matches UUID in query.
 
-    Integer contentLength;
+    private Integer contentLength;
 
-    String responseBody; //success or errors
+    private String responseBody; //success or errors
 
-    Integer status; // HTTP Status
+    private Integer status; // HTTP Status
 
-    Date createdOn;
-    Date updatedOn;
+    private Date createdOn;
+
+    private Date updatedOn;
 
     @OneToOne
-    AsyncQuery query;
+    private AsyncQuery query;
 
     @Exclude
     public String getPrincipalName() {
