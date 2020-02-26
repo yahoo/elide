@@ -26,9 +26,7 @@ public class Loop {
     @Setter
     private int playerLevel;
 
-    @DimensionFormula(
-            expression = "CASE WHEN {%1} = 'Good' THEN 1 ELSE 2 END",
-            references = {"playerLevel"})
+    @DimensionFormula("CASE WHEN {{playerLevel}} = 'Good' THEN 1 ELSE 2 END")
     public int getPlayerLevel() {
         return playerLevel;
     }

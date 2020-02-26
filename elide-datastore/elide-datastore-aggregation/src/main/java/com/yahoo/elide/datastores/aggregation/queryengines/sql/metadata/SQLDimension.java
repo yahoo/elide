@@ -17,7 +17,7 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,13 +43,14 @@ public class SQLDimension extends Dimension implements SQLColumn {
                                 dictionary.getParameterizedType(tableClass, fieldName),
                                 fieldName)));
 
-        Map<JoinPath, String> resolvedReferences = new HashMap<>();
+        Map<JoinPath, String> resolvedReferences = new LinkedHashMap<>();
         this.reference = generateColumnReference(path, new LinkedHashSet<>(), resolvedReferences, dictionary);
         this.joinPaths.addAll(resolvedReferences.keySet());
     }
 
     @Override
     public Path getSourcePath(EntityDictionary metadataDictionary) {
+        // As we are using DFS for resolving reference, the first resolved reference would be the deepest source
         return joinPaths.isEmpty() ? super.getSourcePath(metadataDictionary) : joinPaths.get(0);
     }
 }

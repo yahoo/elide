@@ -22,13 +22,10 @@ import java.lang.annotation.Target;
  * <p>
  *
  * Rules:
- * 1. The references used to replace '{%1}' and '{%2}' should be provided in the reference list.
- * 2. The provided references should only be other metric field defined in the same class.
- * 3. The reference list is 1-indexed.
- * 4. Each reference can be reused in the formula.
- * 5. Reference to same metric field can be referred repeatedly using different indexes '{%#}'.
- * 6. Avoid cycle-reference.
- * 7. Can't apply formula to metric functions that don't have single literal expression, such as YearOverYear.
+ * 1. The provided references should only be other logical metric field defined in the same class or a physical column
+ *    in current physical table.
+ * 2. Avoid cycle-reference.
+ * 3. Can't apply formula to metric functions that don't have single literal expression, such as YearOverYear.
  * <p>
  * {@code expression} can also be composite. During {@link Metric} construction, it will substitute attribute names in
  * the provided expression with either:

@@ -37,9 +37,7 @@ public class MetricReference {
         return highScore;
     }
 
-    @DimensionFormula(
-            expression = "CASE WHEN {%1} = 'Good' THEN 1 ELSE 2 END",
-            references = {"highScore"})
+    @DimensionFormula("CASE WHEN {{highScore}} = 'Good' THEN 1 ELSE 2 END")
     public int getPlayerLevel() {
         return playerLevel;
     }

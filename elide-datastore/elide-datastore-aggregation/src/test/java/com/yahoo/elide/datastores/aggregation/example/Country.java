@@ -79,9 +79,7 @@ public class Country {
         this.continent = continent;
     }
 
-    @DimensionFormula(
-            expression = "CASE WHEN {%1} = 'United States' THEN true ELSE false END",
-            references = {"name"})
+    @DimensionFormula("CASE WHEN {{name}} = 'United States' THEN true ELSE false END")
     @Formula("CASE WHEN name = 'United States' THEN true ELSE false END")
     public boolean isInUsa() {
         return inUsa;

@@ -207,6 +207,16 @@ public class MetaDataStore extends HashMapDataStore {
     }
 
     /**
+     * Convert a resolved formula reference back to a reference presented in formula format.
+     *
+     * @param reference referenced field
+     * @return formula reference, <code>{{reference}}</code>
+     */
+    public static String toFormulaReference(String reference) {
+        return "{{" + reference + "}}";
+    }
+
+    /**
      * Resolve source columns for all Columns in all Tables.
      */
     public void resolveSourceColumn() {

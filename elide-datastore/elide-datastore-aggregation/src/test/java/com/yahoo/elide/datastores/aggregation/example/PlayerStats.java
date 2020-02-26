@@ -217,9 +217,7 @@ public class PlayerStats {
         this.player2Name = player2Name;
     }
 
-    @DimensionFormula(
-            expression = "CASE WHEN {%1} = 'Good' THEN 1 ELSE 2 END",
-            references = {"overallRating"})
+    @DimensionFormula("CASE WHEN {{overallRating}} = 'Good' THEN 1 ELSE 2 END")
     public int getPlayerLevel() {
         return playerLevel;
     }
@@ -241,9 +239,7 @@ public class PlayerStats {
         this.recordedDate = recordedDate;
     }
 
-    @DimensionFormula(
-            expression = "CASE WHEN {%1} THEN 'true' ELSE 'false' END",
-            references = {"country.inUsa"})
+    @DimensionFormula("CASE WHEN {{country.inUsa}} THEN 'true' ELSE 'false' END")
     public String getCountryIsInUsa() {
         return countryIsInUsa;
     }

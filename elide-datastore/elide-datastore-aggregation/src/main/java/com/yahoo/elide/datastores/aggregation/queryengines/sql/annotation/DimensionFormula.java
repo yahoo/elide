@@ -15,25 +15,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a field is computed via a {@link #expression() custom dimensino formula expression}, such as Calcite
+ * Indicates that a field is computed via a {@link #value()} custom dimension formula expression}, such as Calcite
  * SQL. This is similar to {@link MetricFormula}, except that dimension formula would be applied before aggregation.
  * <p>
- * Example: {@literal @}MetricFormula(expression = "IF({%1} >= 0, 'positive', 'negative')", references = {'ref1'}).
+ * Example: {@literal @}MetricFormula("IF({{reference}} >= 0, 'positive', 'negative')").
  *
  * Rules:
- * 1. The references used to replace '{%1}' and '{%2}' should be provided in the reference list.
- * 2. The provided references should only be other dimension field defined in the same class or join to a field defined
- *    in a dimension table.
- * 3. The reference list is 1-indexed.
- * 4. Each reference can be reused in the formula.
- * 5. Reference to same dimension field can be referred repeatedly using different indexes '{%#}'.
- * 6. Avoid cycle-reference.
- * 7. Sql expression can be carried when used with @JoinTo, the outer layer expression would be applied after the
+ * 1. The provided references should can be other dimension field defined in the same class, physical column in current
+ *    physical table or a dot separated join path represent a logical dimension field defined in another table.
+ * 2. Avoid cycle-reference.
+ * 3. Sql expression can be carried when used with @JoinTo, the outer layer expression would be applied after the
  *    initial joined to sql expression.
- * 8. When a reference provided in the references list can't be found in the current table model, it would be treated
- *    as the physical column name. This also means, if a physical column name conflicts with a field name defined in the
- *    data model, the physical column name would be resolved as the field name and the generated expression can be
- *    wrong.
  * <p>
  *
  * {@code expression} can also be composite. During {@link SQLColumn} construction, it will substitute attribute names
@@ -48,9 +40,7 @@ import java.lang.annotation.Target;
  * <pre>
  * {@code
  * public class FactTable {
- *     @DimensionFormula(
- *             expression = "CASE WHEN {%1} = 'Good' THEN 1 ELSE 2 END",
- *             references = {"overallRating"})
+ *     @DimensionFormula( "CASE WHEN {{overallRating}} = 'Good' THEN 1 ELSE 2 END")
  *     public int getPlayerLevel() {
  *         return playerLevel;
  *     }
@@ -60,9 +50,7 @@ import java.lang.annotation.Target;
  *         return inUsa;
  *     }
  *
- *     @DimensionFormula(
- *             expression = "CASE WHEN {%1} THEN 'true' ELSE 'false' END",
- *             references = {"country.inUsa"})
+ *     @DimensionFormula( "CASE WHEN {{country.inUsa}} THEN 'true' ELSE 'false' END")
  *     public String getCountryIsInUsa() {
  *         return countryIsInUsa;
  *     }
@@ -77,16 +65,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DimensionFormula {
     /**
-     * The custom metric expression that represents this dimension formula.
+     * The custom metric expression that represents this dimension formula logic.
      *
-     * @return metric formula
+     * @return dimension formula
      */
-    String expression();
-
-    /**
-     * References to use in the formula.
-     *
-     * @return references
-     */
-    String[] references() default {};
+    String value();
 }

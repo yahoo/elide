@@ -6,13 +6,14 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.resolveFormulaReferences;
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.toFormulaReference;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -147,7 +148,7 @@ public class Metric extends Column {
             toResolve.add(fieldName);
 
             String expression = formula.value();
-            List<String> references = MetaDataStore.resolveFormulaReferences(expression);
+            List<String> references = resolveFormulaReferences(expression);
             Set<FunctionArgument> arguments = new HashSet<>();
             MutableInt index = new MutableInt();
 
@@ -189,8 +190,8 @@ public class Metric extends Column {
                                         arg.getSubType())));
             });
 
-            for (String reference : references) {
-                expression = expression.replace("{{" + reference + "}}", resolved.get(reference).getExpression());
+            for (String ref : references) {
+                expression = expression.replace(toFormulaReference(ref), resolved.get(ref).getExpression());
             }
 
             toResolve.remove(fieldName);

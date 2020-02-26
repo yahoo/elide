@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.resolveFormulaReferences;
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.toFormulaReference;
 import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
@@ -328,8 +330,9 @@ public class SQLQueryEngine extends QueryEngine {
 
             if (joinTo == null || joinTo.path().equals("")) {
                 // the initial reference is the physical column reference
-                String columnReference = getPathAlias(joinPath)
-                        + "." + dictionary.getAnnotatedColumnName(tableClass, last.getFieldName());
+                String columnReference = getFieldAlias(
+                        joinPath,
+                        dictionary.getAnnotatedColumnName(tableClass, last.getFieldName()));
 
                 resolved.put(joinPath, columnReference);
             } else {
@@ -358,30 +361,45 @@ public class SQLQueryEngine extends QueryEngine {
                 toResolve.remove(extension);
             }
         } else {
-            String expression = formula.expression();
-            String[] references = formula.references();
+            String expression = formula.value();
 
-            for (int i = 0; i < references.length; i++) {
-                JoinPath extension = new JoinPath(tableClass, dictionary, references[i]);
-                // append new path after original path
-                JoinPath extended = extendJoinPath(joinPath, extension);
+            // dimension references are deduplicated
+            List<String> references =
+                    resolveFormulaReferences(expression).stream().distinct().collect(Collectors.toList());
 
-                if (!resolved.containsKey(extended)) {
-                    // the extension fragment also need to be marked as not resolved as to prevent infinite appending
-                    // like A.B.B.B...
-                    if (!extended.equals(extension)) {
-                        if (toResolve.contains(extension)) {
-                            throw new IllegalArgumentException(
-                                    referenceLoopMessage(tableClass, joinPath, toResolve, dictionary));
+            // store resolved reference sql statements
+            Map<String, String> resolvedReferences = new HashMap<>();
+
+            references.forEach(ref -> {
+                if (ref.indexOf('.') == -1 && dictionary.getParameterizedType(tableClass, ref) == null) {
+                    // if the reference is a physical column in current table, combine the alias of path and physical
+                    // column name
+                    resolvedReferences.put(ref, getFieldAlias(joinPath, ref));
+                } else {
+                    JoinPath extension = new JoinPath(tableClass, dictionary, ref);
+                    // append new path after original path
+                    JoinPath extended = extendJoinPath(joinPath, extension);
+
+                    if (!resolved.containsKey(extended)) {
+                        // the extension fragment also need to be marked as not resolved as to prevent infinite
+                        // appending, e.g. A.B.B.B...
+                        if (!extended.equals(extension)) {
+                            if (toResolve.contains(extension)) {
+                                throw new IllegalArgumentException(
+                                        referenceLoopMessage(tableClass, joinPath, toResolve, dictionary));
+                            }
+                            toResolve.add(extension);
                         }
-                        toResolve.add(extension);
+                        generateColumnReference(extended, toResolve, resolved, dictionary);
+                        toResolve.remove(extension);
                     }
-                    generateColumnReference(extended, toResolve, resolved, dictionary);
-                    toResolve.remove(extension);
-                }
 
-                final int index = i + 1;
-                expression = expression.replace("{%" + index + "}", resolved.get(extended));
+                    resolvedReferences.put(ref, resolved.get(extended));
+                }
+            });
+
+            for (String ref : references) {
+                expression = expression.replace(toFormulaReference(ref), resolvedReferences.get(ref));
             }
 
             resolved.put(joinPath, expression);
@@ -428,5 +446,16 @@ public class SQLQueryEngine extends QueryEngine {
         toExtend.remove(toExtend.size() - 1);
         toExtend.addAll(extension.getPathElements());
         return new JoinPath(toExtend);
+    }
+
+    /**
+     * Get alias for the final field of a path.
+     *
+     * @param path path to the field
+     * @param fieldName physical field name
+     * @return combined alias
+     */
+    private static String getFieldAlias(Path path, String fieldName) {
+        return getPathAlias(path) + "." + fieldName;
     }
 }

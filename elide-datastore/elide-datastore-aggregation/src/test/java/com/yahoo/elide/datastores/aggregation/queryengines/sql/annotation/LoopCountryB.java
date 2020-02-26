@@ -44,9 +44,7 @@ public class LoopCountryB {
         return countryA;
     }
 
-    @DimensionFormula(
-            expression = "CASE WHEN {%1} = 'United States' THEN true ELSE false END",
-            references = {"countryA.inUsa"})
+    @DimensionFormula("CASE WHEN {{countryA.inUsa}} = 'United States' THEN true ELSE false END")
     @Formula("CASE WHEN name = 'United States' THEN true ELSE false END")
     public boolean isInUsa() {
         return inUsa;
