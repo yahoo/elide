@@ -79,4 +79,40 @@ public class AsyncQueryResult implements PrincipalOwned {
     public void setId(UUID id) {
         this.id = id;
     }
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getUpdatedOn() {
+		return updatedOn;
+	}
+
+	public void setUpdatedOn(Date updatedOn) {
+		this.updatedOn = updatedOn;
+	}
+
+	public UUID getId() {
+		return id;
+	}
+
+	public Integer getContentLength() {
+		return contentLength;
+	}
+
+	public String getResponseBody() {
+		return responseBody;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public AsyncQuery getQuery() {
+		return query;
+	}
 }

@@ -55,6 +55,10 @@ public class AsyncQuery implements PrincipalOwned {
 
     private Date updatedOn;
 
+    @Inject
+    @Transient
+    private AsyncExecutorService asyncExecutorService;
+
     @Override
 	public String getPrincipalName() {
 		return principalName;
@@ -67,11 +71,15 @@ public class AsyncQuery implements PrincipalOwned {
 
     @PreUpdate
     public void preUpdate() {
-        updatedOn = new Date();
+        this.updatedOn = new Date();
     }
 
     public void setResult(AsyncQueryResult result) {
         this.result = result;
+    }
+
+    public Date getUpdatedOn() {
+        return this.updatedOn;
     }
 
     public Date getCreatedOn() {
@@ -85,10 +93,6 @@ public class AsyncQuery implements PrincipalOwned {
     public void setQueryStatus(QueryStatus status) {
         this.status = status;
     }
-
-    @Inject
-    @Transient
-    private AsyncExecutorService asyncExecutorService;
 
     @OnCreatePostCommit
     public void executeQueryFromExecutor(RequestScope scope) {
