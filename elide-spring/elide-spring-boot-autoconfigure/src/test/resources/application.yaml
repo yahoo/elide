@@ -13,6 +13,8 @@ elide:
     path: /doc
     enabled: true
     version: "1.0"
+  async:
+    enabled: true
 
 spring:
   jpa:
