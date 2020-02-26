@@ -39,16 +39,16 @@ public class AsyncQueryThread implements Runnable {
 
 	private String query;
 	private QueryType queryType;
-	private RequestScope scope;
+	private Principal user;
 	private Elide elide;
 	private QueryRunner runner;
 	private UUID id;
 
-    public AsyncQueryThread(String query, QueryType queryType, RequestScope scope, Elide elide, QueryRunner runner, UUID id){
+    public AsyncQueryThread(String query, QueryType queryType, Principal user, Elide elide, QueryRunner runner, UUID id){
         log.debug("New Async Query thread created");
         this.query = query;
         this.queryType = queryType;
-        this.scope = scope;
+        this.user = user;
         this.elide = elide;
         this.runner = runner;
         this.id = id;
@@ -72,18 +72,16 @@ public class AsyncQueryThread implements Runnable {
             ElideResponse response = null;
             log.debug("query: {}", query);
             log.debug("queryType: {}", queryType);
-            Principal principal = ((Principal) scope.getUser().getOpaqueUser());
-            log.debug("Principal name: {}", principal.getName());
             AsyncQuery asyncQuery;
             AsyncQueryResult asyncQueryResult;
             if (queryType.equals(QueryType.JSONAPI_V1_0)) {
                 MultivaluedMap<String, String> queryParams = getQueryParams(query);
-                response = elide.get(getPath(query), queryParams, scope.getUser().getOpaqueUser());
+                response = elide.get(getPath(query), queryParams, user);
                 log.debug("JSONAPI_V1_0 getResponseCode: {}", response.getResponseCode());
                 log.debug("JSONAPI_V1_0 getBody: {}", response.getBody());
             }
             else if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
-                response = runner.run(query, principal);
+                response = runner.run(query, user);
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}", response.getResponseCode());
                 log.debug("GRAPHQL_V1_0 getBody: {}", response.getBody());
             }
@@ -153,6 +151,10 @@ public class AsyncQueryThread implements Runnable {
     protected AsyncQuery updateAsyncQueryStatus(QueryStatus status, UUID asyncQueryId) throws IOException {
         log.debug("Updating AsyncQuery status to {}", status);
         DataStoreTransaction tx = elide.getDataStore().beginTransaction();
+
+        // Creating new RequestScope for Datastore transaction
+        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
+
         EntityProjection asyncQueryCollection = EntityProjection.builder()
             .type(AsyncQuery.class)
             .build();
@@ -174,6 +176,10 @@ public class AsyncQueryThread implements Runnable {
     protected void updateAsyncQueryStatus(AsyncQueryResult asyncQueryResult, UUID asyncQueryId) throws IOException {
         log.debug("Updating AsyncQueryResult to {}", asyncQueryResult);
         DataStoreTransaction tx = elide.getDataStore().beginTransaction();
+
+        // Creating new RequestScope for Datastore transaction
+        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
+
         EntityProjection asyncQueryCollection = EntityProjection.builder()
             .type(AsyncQuery.class)
             .build();
@@ -197,6 +203,10 @@ public class AsyncQueryThread implements Runnable {
     protected AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId) throws IOException {
 		log.debug("Adding AsyncQueryResult entry");
         DataStoreTransaction tx = elide.getDataStore().beginTransaction();
+
+        // Creating new RequestScope for Datastore transaction
+        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
+
         AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
         asyncQueryResult.setStatus(status);
         asyncQueryResult.setResponseBody(responseBody);
