@@ -63,6 +63,7 @@ public class ElideResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
+
                 bind(Util.combineModelEntities(settings.getModelPackageName(), settings.enableAsync())).to(Set.class)
                         .named("elideAllModels");
             }
