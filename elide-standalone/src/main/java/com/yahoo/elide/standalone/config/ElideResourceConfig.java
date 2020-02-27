@@ -92,7 +92,7 @@ public class ElideResourceConfig extends ResourceConfig {
                 // Binding async service
                 if(settings.enableAsync()) {
                 	AsyncExecutorService asyncExecService = new AsyncExecutorService(elide, settings.getAsyncThreadSize(), 
-                            settings.getMaxRunTime(), settings.getNumberOfHosts());
+                            settings.getMaxRunTimeMinutes(), settings.getNumberOfHosts());
                     bind(asyncExecService).to(AsyncExecutorService.class);
                 }
             }

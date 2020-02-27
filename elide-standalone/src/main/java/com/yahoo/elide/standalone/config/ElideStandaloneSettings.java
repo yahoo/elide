@@ -220,7 +220,7 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: 60
      */
-    default Integer getMaxRunTime() {
+    default Integer getMaxRunTimeMinutes() {
         return 60;
     }
 
