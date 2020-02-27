@@ -7,7 +7,6 @@ package com.yahoo.elide.standalone.config;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.async.models.AsyncQuery;
 
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.audit.AuditLogger;
@@ -63,7 +62,7 @@ public interface ElideStandaloneSettings {
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
         EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
-                getAsyncModelPackageName(), getDatabaseProperties());
+                enableAsync(), getDatabaseProperties());
         DataStore dataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
@@ -119,21 +118,6 @@ public interface ElideStandaloneSettings {
      */
     default String getModelPackageName() {
         return "com.yourcompany.elide.models";
-    }
-    
-    /**
-     * Package name containing the Async models to support the Async query feature. This package will be 
-     * recursively scanned for @Entity's and registered with Elide.
-     *
-     * NOTE: This will scan for all entities in that package and bind this data to a set named "elideAllModels".
-     *       If providing a custom ElideSettings object, you can inject this data into your class by using:
-     *
-     *       <strong>@Inject @Named("elideAllModels") Set&lt;Class&gt; entities;</strong>
-     *
-     * @return
-     */
-    default String getAsyncModelPackageName() {
-        return (enableAsync() ? AsyncQuery.class.getPackage().getName() : null);
     }
 
     /**
