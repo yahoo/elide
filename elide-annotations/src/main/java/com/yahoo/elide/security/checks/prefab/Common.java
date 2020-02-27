@@ -7,7 +7,6 @@
 package com.yahoo.elide.security.checks.prefab;
 
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
 

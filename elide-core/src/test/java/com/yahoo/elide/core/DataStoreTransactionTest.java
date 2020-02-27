@@ -17,7 +17,6 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
-import com.yahoo.elide.security.User;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,12 +40,6 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
         when(scope.getDictionary()).thenReturn(dictionary);
         when(dictionary.getIdType(String.class)).thenReturn((Class) Long.class);
         when(dictionary.getValue(ENTITY, NAME, scope)).thenReturn(3L);
-    }
-
-    @Test
-    public void testAccessUser() {
-        User actualUser = accessUser(2L);
-        assertEquals(2L, actualUser.getOpaqueUser());
     }
 
     @Test

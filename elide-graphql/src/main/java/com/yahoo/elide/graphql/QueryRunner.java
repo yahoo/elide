@@ -85,7 +85,7 @@ public class QueryRunner {
      * @param user The user who issued the query.
      * @return The response.
      */
-    public ElideResponse run(String graphQLDocument, Object user) {
+    public ElideResponse run(String graphQLDocument, User user) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -138,11 +138,10 @@ public class QueryRunner {
         return executeRequest.apply(topLevel);
     }
 
-    private ElideResponse executeGraphQLRequest(ObjectMapper mapper, Object principal,
+    private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-            final User user = new User(principal);
 
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
@@ -161,7 +160,7 @@ public class QueryRunner {
             GraphQLProjectionInfo projectionInfo =
                     new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables).make(query);
             GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope(tx, user, elide.getElideSettings(), projectionInfo);
+                    new GraphQLRequestScope(tx, principal, elide.getElideSettings(), projectionInfo);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 

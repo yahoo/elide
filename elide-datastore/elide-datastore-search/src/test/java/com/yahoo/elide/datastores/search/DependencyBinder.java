@@ -16,8 +16,6 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
-import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -72,9 +70,6 @@ public class DependencyBinder extends ResourceConfig {
                         .build());
 
                 bind(elide).to(Elide.class).named("elide");
-                bind(JsonApiEndpoint.DEFAULT_GET_USER)
-                        .to(DefaultOpaqueUserFunction.class)
-                        .named("elideUserExtractionFunction");
             }
         });
     }

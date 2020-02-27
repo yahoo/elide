@@ -10,8 +10,7 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
-
-import java.util.function.Function;
+import com.yahoo.elide.security.User;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,16 +37,11 @@ import javax.ws.rs.core.UriInfo;
 @Path("/")
 public class JsonApiEndpoint {
     protected final Elide elide;
-    protected final Function<SecurityContext, Object> getUser;
-
-    public static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
 
     @Inject
     public JsonApiEndpoint(
-            @Named("elide") Elide elide,
-            @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
+            @Named("elide") Elide elide) {
         this.elide = elide;
-        this.getUser = getUser == null ? DEFAULT_GET_USER : getUser;
     }
 
     /**
@@ -65,7 +59,8 @@ public class JsonApiEndpoint {
         @PathParam("path") String path,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        return build(elide.post(path, jsonapiDocument, getUser.apply(securityContext)));
+        User user = new SecurityContextUser(securityContext);
+        return build(elide.post(path, jsonapiDocument, user));
     }
 
     /**
@@ -83,7 +78,8 @@ public class JsonApiEndpoint {
         @Context UriInfo uriInfo,
         @Context SecurityContext securityContext) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.get(path, queryParams, getUser.apply(securityContext)));
+        User user = new SecurityContextUser(securityContext);
+        return build(elide.get(path, queryParams, user));
     }
 
     /**
@@ -105,7 +101,8 @@ public class JsonApiEndpoint {
         @PathParam("path") String path,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        return build(elide.patch(contentType, accept, path, jsonapiDocument, getUser.apply(securityContext)));
+        User user = new SecurityContextUser(securityContext);
+        return build(elide.patch(contentType, accept, path, jsonapiDocument, user));
     }
 
     /**
@@ -123,7 +120,8 @@ public class JsonApiEndpoint {
         @PathParam("path") String path,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
-        return build(elide.delete(path, jsonApiDocument, getUser.apply(securityContext)));
+        User user = new SecurityContextUser(securityContext);
+        return build(elide.delete(path, jsonApiDocument, user));
     }
 
     private static Response build(ElideResponse response) {

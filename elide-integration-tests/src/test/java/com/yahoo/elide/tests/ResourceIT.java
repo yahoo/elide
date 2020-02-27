@@ -73,6 +73,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -2201,7 +2202,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/specialread")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo("[{\"errors\":[{\"detail\":\"ReadPermission Denied\",\"status\":\"403\"}]}]"));
+                .body(equalTo("[{\"errors\":[{\"detail\":\"UpdatePermission Denied\",\"status\":\"403\"}]}]"));
     }
 
     @Test
@@ -2475,7 +2476,14 @@ public class ResourceIT extends IntegrationTest {
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .withAuditLogger(new TestAuditLogger())
                 .build());
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1);
+
+        com.yahoo.elide.security.User user = new com.yahoo.elide.security.User(new Principal() {
+            @Override
+            public String getName() {
+                return "-1";
+            }
+        });
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }

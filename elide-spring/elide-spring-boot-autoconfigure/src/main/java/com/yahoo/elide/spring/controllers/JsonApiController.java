@@ -9,11 +9,14 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.security.User;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
+import com.yahoo.elide.spring.security.AuthenticationUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -26,7 +29,6 @@ import org.springframework.web.servlet.HandlerMapping;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.security.Principal;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -55,50 +57,55 @@ public class JsonApiController {
 
     @GetMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
     public ResponseEntity<String> elideGet(@RequestParam Map<String, String> allRequestParams,
-                                           HttpServletRequest request, Principal authentication) {
+                                           HttpServletRequest request, Authentication authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
-        ElideResponse response = elide.get(pathname, new MultivaluedHashMap<>(allRequestParams), authentication);
+        User user = new AuthenticationUser(authentication);
+        ElideResponse response = elide.get(pathname, new MultivaluedHashMap<>(allRequestParams), user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
     public ResponseEntity<String> elidePost(@RequestBody String body,
-                                            HttpServletRequest request, Principal authentication) {
+                                            HttpServletRequest request, Authentication authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
+        User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .post(pathname, body, authentication);
+                .post(pathname, body, user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @PatchMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
     public ResponseEntity<String> elidePatch(@RequestBody String body,
-                                             HttpServletRequest request, Principal authentication) {
+                                             HttpServletRequest request, Authentication authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
+        User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .patch(JSON_API_CONTENT_TYPE, JSON_API_CONTENT_TYPE, pathname, body, authentication);
+                .patch(JSON_API_CONTENT_TYPE, JSON_API_CONTENT_TYPE, pathname, body, user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @DeleteMapping(value = "/**")
     public ResponseEntity<String> elideDelete(HttpServletRequest request,
-                                              Principal authentication) {
+                                              Authentication authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
+        User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .delete(pathname, null, authentication);
+                .delete(pathname, null, user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
     public ResponseEntity<String> elideDeleteRelationship(@RequestBody String body,
-                                                          HttpServletRequest request, Principal authentication) {
+                                                          HttpServletRequest request, Authentication authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
+        User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .delete(pathname, body, authentication);
+                .delete(pathname, body, user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 

@@ -11,7 +11,7 @@ import java.security.Principal;
 /**
  * Wrapper for opaque user passed in every request.
  */
-public abstract class User {
+public class User {
     @Getter private final Principal principal;
 
     public User(Principal principal) {
@@ -22,5 +22,7 @@ public abstract class User {
         return principal.getName();
     }
 
-    public abstract boolean isInRole(String role);
+    public boolean isInRole(String role) {
+        return false;
+    }
 }
