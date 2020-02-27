@@ -58,16 +58,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     protected abstract DataStoreTransaction beginTransaction(DataStore dataStore);
 
     @Override
-    public User accessUser(Object opaqueUser) {
-        User user = new User(opaqueUser);
-        for (DataStore dataStore : multiplexManager.dataStores) {
-            DataStoreTransaction transaction = transactions.get(dataStore);
-            user = transaction.accessUser(user.getOpaqueUser());
-        }
-        return user;
-    }
-
-    @Override
     public void createObject(Object entity, RequestScope scope) {
         getTransaction(entity).createObject(entity, scope);
     }
