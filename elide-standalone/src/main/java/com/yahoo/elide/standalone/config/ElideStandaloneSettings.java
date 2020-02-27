@@ -190,7 +190,7 @@ public interface ElideStandaloneSettings {
      * @return Default: True
      */
     default boolean enableAsync() {
-        return true;
+        return false;
     }
 
     /**
