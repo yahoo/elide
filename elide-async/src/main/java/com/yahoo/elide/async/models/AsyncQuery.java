@@ -48,7 +48,7 @@ public class AsyncQuery implements PrincipalOwned {
     @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
     private QueryStatus status;
 
-    @OneToOne
+    @OneToOne(mappedBy = "query")
     private AsyncQueryResult result;
 
     private Date createdOn;
