@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.PrincipalOwned;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.security.ChangeSpec;

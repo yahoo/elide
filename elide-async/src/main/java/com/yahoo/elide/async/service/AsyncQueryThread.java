@@ -25,9 +25,7 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.security.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

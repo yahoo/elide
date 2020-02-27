@@ -94,10 +94,6 @@ public class AsyncQueryCleanerThread implements Runnable {
         long difference = TimeUnit.MINUTES.convert(differenceInMillies, TimeUnit.MILLISECONDS);
 
         // Check if its twice as long as max run time. It means the host/app crashed or restarted.
-        if(difference > maxRunTime * 2) {
-            return true;
-        } else {
-            return false;
-        }
+        return (difference > maxRunTime * 2);
     }
 }
