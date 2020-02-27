@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.Principal;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -268,12 +269,12 @@ public class Elide {
      * @param handler a function that creates the request scope and request handler
      * @return the response
      */
-    protected ElideResponse handleRequest(boolean isReadOnly, Object opaqueUser,
+    protected ElideResponse handleRequest(boolean isReadOnly, Principal opaqueUser,
                                           Supplier<DataStoreTransaction> transaction,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = transaction.get()) {
-            final User user = tx.accessUser(opaqueUser);
+            final User user = new User(opaqueUser);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
