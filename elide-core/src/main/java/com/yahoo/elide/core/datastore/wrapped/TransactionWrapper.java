@@ -13,7 +13,6 @@ import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
-import com.yahoo.elide.security.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -22,7 +21,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 /**
- * Delegates all calls to a wrapped transaction.
+ * Delegates all calls to a wrapped transaction
  */
 @Data
 @AllArgsConstructor

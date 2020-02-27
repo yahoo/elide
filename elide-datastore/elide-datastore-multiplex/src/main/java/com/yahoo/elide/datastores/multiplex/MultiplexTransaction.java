@@ -20,7 +20,6 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
-import com.yahoo.elide.security.User;
 
 import java.io.IOException;
 import java.io.Serializable;

@@ -57,7 +57,7 @@ public class FilterExpressionCheckObj extends BaseId {
         Path.PathElement path1 = new Path.PathElement(FilterExpressionCheckObj.class, long.class, "id");
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
-        int userId = (int) requestScope.getUser().getOpaqueUser();
+        int userId = Integer.valueOf(requestScope.getUser().getPrincipal().getName());
         if (setUserId) {
             value.add(setId);
         } else {

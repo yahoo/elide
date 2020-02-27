@@ -14,7 +14,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 
 import example.TestCheckMappings;
 
@@ -71,20 +70,5 @@ public class VerboseErrorResponsesTestBinder extends AbstractBinder {
                 // do nothing
             }
         }).to(Elide.class).named("elide");
-
-        // User function
-        bindFactory(new Factory<DefaultOpaqueUserFunction>() {
-            private final Integer user = 1;
-
-            @Override
-            public DefaultOpaqueUserFunction provide() {
-                return v -> user;
-            }
-
-            @Override
-            public void dispose(DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
-                // do nothing
-            }
-        }).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
     }
 }

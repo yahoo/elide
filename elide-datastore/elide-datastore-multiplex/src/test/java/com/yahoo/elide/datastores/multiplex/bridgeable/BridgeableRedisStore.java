@@ -27,7 +27,6 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
-import com.yahoo.elide.security.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -207,11 +206,6 @@ public class BridgeableRedisStore implements DataStore {
         @Override
         public void close() throws IOException {
 
-        }
-
-        @Override
-        public User accessUser(Object opaqueUser) {
-            return null;
         }
 
         @Override

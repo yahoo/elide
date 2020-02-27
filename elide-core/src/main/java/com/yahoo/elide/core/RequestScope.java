@@ -211,7 +211,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
     }
 
-    @Override
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
         return (Set) newPersistentResources;
     }

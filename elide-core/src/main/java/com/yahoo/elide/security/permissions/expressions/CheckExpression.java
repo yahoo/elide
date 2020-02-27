@@ -11,8 +11,8 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 import static com.yahoo.elide.security.permissions.ExpressionResult.UNEVALUATED;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.OperationCheck;

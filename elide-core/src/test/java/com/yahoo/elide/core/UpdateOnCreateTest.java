@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 
 import example.Author;
@@ -26,10 +27,10 @@ import java.util.Optional;
 
 public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
 
-    private User userOne = new User(1);
-    private User userTwo = new User(2);
-    private User userThree = new User(3);
-    private User userFour = new User(4);
+    private User userOne = new TestUser("1");
+    private User userTwo = new TestUser("2");
+    private User userThree = new TestUser("3");
+    private User userFour = new TestUser("4");
 
     private DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
@@ -235,7 +236,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     //Class level expression overwritten by field level expression
     @Test
     public void updatePermissionOverwrittenForRelationSuccessCase() {
-        RequestScope userThreeScope = new TestRequestScope(tx, new User(3), dictionary);
+        RequestScope userThreeScope = new TestRequestScope(tx, new TestUser("3"), dictionary);
 
 
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();

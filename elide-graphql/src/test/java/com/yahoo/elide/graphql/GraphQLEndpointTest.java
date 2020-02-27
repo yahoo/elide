@@ -27,7 +27,6 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -124,12 +123,7 @@ public class GraphQLEndpointTest {
                         .withEntityDictionary(new EntityDictionary(checkMappings))
                         .withAuditLogger(audit)
                         .build());
-        endpoint = new GraphQLEndpoint(elide, new DefaultOpaqueUserFunction() {
-            @Override
-            public Object apply(SecurityContext securityContext) {
-                return securityContext.getUserPrincipal();
-            }
-        });
+        endpoint = new GraphQLEndpoint(elide);
 
         DataStoreTransaction tx = inMemoryStore.beginTransaction();
 

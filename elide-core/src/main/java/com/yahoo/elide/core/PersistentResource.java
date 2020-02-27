@@ -1216,6 +1216,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return false;
     }
 
+   /**
+    * Returns whether or not this resource was created in this transaction.
+    * @return True if this resource is newly created.
+    */
+    public boolean isNewlyCreated() {
+       return requestScope.getNewResources().contains(this);
+    }
+
     /**
      * Gets lineage.
      * @return the lineage
