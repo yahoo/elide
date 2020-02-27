@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 

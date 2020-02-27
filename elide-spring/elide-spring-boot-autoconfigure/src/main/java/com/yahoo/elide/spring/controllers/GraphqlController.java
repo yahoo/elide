@@ -8,21 +8,22 @@ package com.yahoo.elide.spring.controllers;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.security.User;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 
+import com.yahoo.elide.spring.security.AuthenticationUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
-
-import java.security.Principal;
 
 /**
  * Spring rest controller for Elide GraphQL.
@@ -53,7 +54,8 @@ public class GraphqlController {
      * @return response
      */
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> post(@RequestBody String graphQLDocument, Principal user) {
+    public ResponseEntity<String> post(@RequestBody String graphQLDocument, Authentication principal) {
+        User user = new AuthenticationUser(principal);
 
         ElideResponse response = runner.run(graphQLDocument, user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());

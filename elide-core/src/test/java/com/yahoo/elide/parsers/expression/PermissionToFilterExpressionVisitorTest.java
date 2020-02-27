@@ -27,6 +27,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.OperationCheck;
@@ -228,7 +229,7 @@ public class PermissionToFilterExpressionVisitorTest {
     // Helpers
     //
     public RequestScope newRequestScope() {
-        User john = new User("John");
+        User john = new TestUser("John");
         return requestScope = new RequestScope(null, null, null, john, null, elideSettings);
     }
 

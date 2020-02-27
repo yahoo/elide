@@ -55,7 +55,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.security.Principal;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -160,7 +159,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
+    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, User opaqueUser) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
@@ -180,7 +179,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse post(String path, String jsonApiDocument, Object opaqueUser) {
+    public ElideResponse post(String path, String jsonApiDocument, User opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
@@ -202,7 +201,7 @@ public class Elide {
      * @return Elide response object
      */
     public ElideResponse patch(String contentType, String accept,
-                               String path, String jsonApiDocument, Object opaqueUser) {
+                               String path, String jsonApiDocument, User opaqueUser) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
@@ -238,7 +237,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse delete(String path, String jsonApiDocument, Object opaqueUser) {
+    public ElideResponse delete(String path, String jsonApiDocument, User opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
@@ -264,17 +263,16 @@ public class Elide {
      * Handle JSON API requests.
      *
      * @param isReadOnly if the transaction is read only
-     * @param opaqueUser the user object from the container
+     * @param user the user object from the container
      * @param transaction a transaction supplier
      * @param handler a function that creates the request scope and request handler
      * @return the response
      */
-    protected ElideResponse handleRequest(boolean isReadOnly, Principal opaqueUser,
+    protected ElideResponse handleRequest(boolean isReadOnly, User user,
                                           Supplier<DataStoreTransaction> transaction,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = transaction.get()) {
-            final User user = new User(opaqueUser);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();

@@ -18,7 +18,7 @@ public abstract class CommitChecks {
 
         @Override
         public boolean ok(Object object, RequestScope requestScope, Optional optional) {
-            Principal principal = ((Principal) requestScope.getUser().getOpaqueUser());
+            Principal principal = requestScope.getUser().getPrincipal();
             return !"3".equals(principal.getName());
         }
     }

@@ -16,7 +16,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
 
@@ -34,7 +33,6 @@ import java.util.Properties;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManagerFactory;
-import javax.ws.rs.core.SecurityContext;
 
 /**
  * Interface for configuring an ElideStandalone application.
@@ -95,15 +93,6 @@ public interface ElideStandaloneSettings {
         }
 
         return builder.build();
-    }
-
-    /**
-     * The function used to extract a user from the SecurityContext.
-     *
-     * @return Function for user extraction.
-     */
-    default DefaultOpaqueUserFunction getUserExtractionFunction() {
-        return SecurityContext::getUserPrincipal;
     }
 
     /* Non-required application/server settings */

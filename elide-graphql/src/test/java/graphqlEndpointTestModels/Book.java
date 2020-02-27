@@ -94,19 +94,19 @@ public class Book {
 
     @OnUpdatePreSecurity(value = "title")
     public void titlePreSecurity(RequestScope scope) {
-        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
+        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getPrincipal();
         user.appendLog("On Title Update Pre Security\n");
     }
 
     @OnUpdatePreCommit(value = "title")
     public void titlePreCommit(RequestScope scope) {
-        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
+        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getPrincipal();
         user.appendLog("On Title Update Pre Commit\n");
     }
 
     @OnUpdatePostCommit(value = "title")
     public void titlePostCommit(RequestScope scope) {
-        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
+        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getPrincipal();
         user.appendLog("On Title Update Post Commit\n");
     }
 }

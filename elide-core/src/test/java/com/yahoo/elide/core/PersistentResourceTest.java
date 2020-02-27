@@ -42,6 +42,7 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 
 import com.google.common.collect.ImmutableMap;
@@ -103,8 +104,9 @@ import javax.ws.rs.core.MultivaluedMap;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
-    private final User goodUser = new User(1);
-    private final User badUser = new User(-1);
+    private final User goodUser = new TestUser("1");
+    private final User badUser = new TestUser("-1");
+
     private DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
     @BeforeEach
@@ -697,7 +699,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
      */
     @Test
     public void testRelationshipMissingData() throws Exception {
-        User goodUser = new User(1);
+        User goodUser = new TestUser("1");
+
         @SuppressWarnings("resource")
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
@@ -1729,7 +1732,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         when(tx.createNewObject(Job.class)).thenReturn(job);
 
-        final RequestScope goodScope = buildRequestScope(tx, new User(1));
+        final RequestScope goodScope = buildRequestScope(tx, new TestUser("1"));
         PersistentResource<Job> created = PersistentResource.createObject(Job.class, goodScope, Optional.empty());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
@@ -2216,8 +2219,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        PatchRequestScope parentScope =
-                new PatchRequestScope("/book", tx, new User(1), elideSettings);
+        PatchRequestScope parentScope = new PatchRequestScope("/book", tx, new TestUser("1"), elideSettings);
         PatchRequestScope scope = new PatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works
@@ -2244,7 +2246,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 "Hemingway"
         );
 
-        RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class), new User(1), queryParams);
+        RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class),
+                new TestUser("1"), queryParams);
 
         Optional<FilterExpression> filter = scope.getLoadFilterExpression(Author.class);
         FilterPredicate predicate = (FilterPredicate) filter.get();
@@ -2261,7 +2264,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         queryParams.add("fields[author]", "name");
 
-        RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class), new User(1), queryParams);
+        RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class),
+                new TestUser("1"), queryParams);
         Map<String, Set<String>> expected = ImmutableMap.of("author", ImmutableSet.of("name"));
         assertEquals(expected, scope.getSparseFields());
     }

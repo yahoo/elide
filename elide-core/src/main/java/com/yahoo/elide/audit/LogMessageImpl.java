@@ -125,7 +125,7 @@ public class LogMessageImpl implements LogMessage {
                 singleElementContext.setVariable(name, singleElementExpression);
             }
 
-            final Object user = getUser().getOpaqueUser();
+            final Object user = getUser().getPrincipal();
             if (user != null) {
                 final ValueExpression opaqueUserValueExpression = EXPRESSION_FACTORY
                     .createValueExpression(
