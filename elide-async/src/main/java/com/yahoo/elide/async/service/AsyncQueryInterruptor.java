@@ -16,7 +16,7 @@ import javax.inject.Singleton;
 @Singleton
 class AsyncQueryInterruptor {
 
-	  private static AsyncQueryInterruptor interruptor;
+    private static AsyncQueryInterruptor interruptor;
     private ExecutorService interruptorService;
 
     protected static AsyncQueryInterruptor getInstance(int threadPoolSize) {
@@ -32,7 +32,7 @@ class AsyncQueryInterruptor {
       interruptorService = Executors.newFixedThreadPool(threadPoolSize);
     }
 
-	  protected ExecutorService getExecutorService() {
+    protected ExecutorService getExecutorService() {
       return interruptorService;
     }
 }
