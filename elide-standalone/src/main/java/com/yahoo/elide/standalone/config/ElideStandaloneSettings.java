@@ -187,7 +187,7 @@ public interface ElideStandaloneSettings {
     /**
      * Enable the support for Async querying feature. If false, the async feature will be disabled.
      *
-     * @return Default: True
+     * @return Default: False
      */
     default boolean enableAsync() {
         return false;
