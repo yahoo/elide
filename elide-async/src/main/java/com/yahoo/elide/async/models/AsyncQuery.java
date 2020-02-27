@@ -94,6 +94,10 @@ public class AsyncQuery implements PrincipalOwned {
         this.status = status;
     }
 
+    public AsyncQueryResult getResult() {
+        return result;
+    }
+
     @OnCreatePostCommit
     public void executeQueryFromExecutor(RequestScope scope) {
         log.info("AsyncExecutorService executor object: {}", asyncExecutorService);
