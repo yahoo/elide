@@ -159,11 +159,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public User accessUser(Object opaqueUser) {
-        return tx.accessUser(opaqueUser);
-    }
-
-    @Override
     public void preCommit() {
         tx.preCommit();
     }

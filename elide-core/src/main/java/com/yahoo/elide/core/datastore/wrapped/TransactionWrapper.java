@@ -30,11 +30,6 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     protected DataStoreTransaction tx;
 
     @Override
-    public User accessUser(Object opaqueUser) {
-        return tx.accessUser(opaqueUser);
-    }
-
-    @Override
     public void preCommit() {
         tx.preCommit();
     }

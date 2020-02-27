@@ -142,7 +142,7 @@ public class QueryRunner {
                                                 String graphQLDocument, JsonNode jsonDocument) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-            final User user = tx.accessUser(principal);
+            final User user = new User(principal);
 
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
