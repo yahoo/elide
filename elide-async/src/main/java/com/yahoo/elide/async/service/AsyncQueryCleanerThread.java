@@ -20,6 +20,8 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.request.EntityProjection;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -28,16 +30,12 @@ import lombok.extern.slf4j.Slf4j;
  * due to app/host crash or restart.
  */
 @Slf4j
+@Data
+@AllArgsConstructor
 public class AsyncQueryCleanerThread implements Runnable {
 
     private int maxRunTime;
     private Elide elide;
-
-    AsyncQueryCleanerThread(int maxRunTime, Elide elide) {
-        log.debug("New Async Query Cleaner thread created");
-        this.maxRunTime = maxRunTime;
-        this.elide = elide;
-    }
 
     @Override
     public void run() {
@@ -66,15 +64,13 @@ public class AsyncQueryCleanerThread implements Runnable {
 
             Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
             Iterator<Object> itr = loaded.iterator();
+            long currentTime = new Date().getTime();
             while(itr.hasNext()) {
                 AsyncQuery query = (AsyncQuery) itr.next();
-                long differenceInMillies = Math.abs((new Date()).getTime() - query.getCreatedOn().getTime());
-                long difference = TimeUnit.MINUTES.convert(differenceInMillies, TimeUnit.MILLISECONDS);
 
-                // Check if its twice as long as max run time. It means the host/app crashed or restarted.
-                if(difference > maxRunTime * 2) {
+                if(isTimedOut(currentTime, query)) {
                     log.info("Updating Async Query Status to TIMEDOUT");
-                    query.setQueryStatus(QueryStatus.TIMEDOUT);
+                    query.setStatus(QueryStatus.TIMEDOUT);
                     tx.save(query, scope);
                     tx.commit(scope);
                     tx.flush(scope);
@@ -90,6 +86,18 @@ public class AsyncQueryCleanerThread implements Runnable {
             } catch (IOException e) {
                 log.error("IOException: {}", e.getMessage());
             }
+        }
+    }
+
+    private boolean isTimedOut(long currentTime, AsyncQuery query) {
+        long differenceInMillies = Math.abs(currentTime - query.getCreatedOn().getTime());
+        long difference = TimeUnit.MINUTES.convert(differenceInMillies, TimeUnit.MILLISECONDS);
+
+        // Check if its twice as long as max run time. It means the host/app crashed or restarted.
+        if(difference > maxRunTime * 2) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

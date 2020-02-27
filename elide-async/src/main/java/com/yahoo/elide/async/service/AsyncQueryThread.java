@@ -25,8 +25,12 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.security.User;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
  * stages of execution.
  */
 @Slf4j
+@Data
+@AllArgsConstructor
 public class AsyncQueryThread implements Runnable {
 
 	private String query;
@@ -43,16 +49,6 @@ public class AsyncQueryThread implements Runnable {
 	private Elide elide;
 	private QueryRunner runner;
 	private UUID id;
-
-    public AsyncQueryThread(String query, QueryType queryType, Principal user, Elide elide, QueryRunner runner, UUID id){
-        log.debug("New Async Query thread created");
-        this.query = query;
-        this.queryType = queryType;
-        this.user = user;
-        this.elide = elide;
-        this.runner = runner;
-        this.id = id;
-    }
 
     @Override
     public void run() {
@@ -98,6 +94,7 @@ public class AsyncQueryThread implements Runnable {
 
         } catch (IOException e) {
             log.error("IOException: {}", e.getMessage());
+            // If a DB transaction fails we might need to set query status to FAILURE
         } catch (URISyntaxException e) {
             log.error("URISyntaxException: {}", e.getMessage());
         } catch (Exception e) {
@@ -155,7 +152,7 @@ public class AsyncQueryThread implements Runnable {
             .type(AsyncQuery.class)
             .build();
         AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-        query.setQueryStatus(status);
+        query.setStatus(status);
         tx.save(query, scope);
         tx.commit(scope);
         tx.flush(scope);
