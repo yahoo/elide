@@ -24,6 +24,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @Slf4j
+@Data
 public class AsyncQuery implements PrincipalOwned {
     @Id
     private UUID id; //Can be generated or provided.
@@ -72,30 +74,6 @@ public class AsyncQuery implements PrincipalOwned {
     @PreUpdate
     public void preUpdate() {
         this.updatedOn = new Date();
-    }
-
-    public void setResult(AsyncQueryResult result) {
-        this.result = result;
-    }
-
-    public Date getUpdatedOn() {
-        return this.updatedOn;
-    }
-
-    public Date getCreatedOn() {
-        return this.createdOn;
-    }
-
-    public QueryStatus getQueryStatus() {
-        return status;
-    }
-
-    public void setQueryStatus(QueryStatus status) {
-        this.status = status;
-    }
-
-    public AsyncQueryResult getResult() {
-        return result;
     }
 
     @OnCreatePostCommit

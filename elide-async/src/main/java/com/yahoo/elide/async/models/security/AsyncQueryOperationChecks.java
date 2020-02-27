@@ -11,6 +11,7 @@ import java.util.Optional;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.PrincipalOwned;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
@@ -28,12 +29,7 @@ public class AsyncQueryOperationChecks {
         @Override
         public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             Principal principal = ((Principal) requestScope.getUser().getOpaqueUser());
-
-            if(object.getClass().equals(AsyncQuery.class)) {
-                return ((AsyncQuery) object).getPrincipalName().equals(principal.getName());
-            } else {
-                return ((AsyncQueryResult) object).getPrincipalName().equals(principal.getName());
-            }
+            return ((PrincipalOwned) object).getPrincipalName().equals(principal.getName());
         }
     }
 

@@ -8,7 +8,10 @@ package com.yahoo.elide.async.service;
 import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -17,6 +20,8 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.request.EntityProjection;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -24,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
  * beyond the max run time and update status.
  */
 @Slf4j
+@Data
+@AllArgsConstructor
 public class AsyncQueryInterruptThread implements Runnable {
 
     private Elide elide;
@@ -31,15 +38,6 @@ public class AsyncQueryInterruptThread implements Runnable {
     private UUID id;
     private Date submittedOn;
     private int interruptTime;
-
-    public AsyncQueryInterruptThread(Elide elide, Future<?> task, UUID id, Date submittedOn, int interruptTime){
-        log.debug("New Async Query Interrupt thread created");
-        this.elide = elide;
-        this.task = task;
-        this.id = id;
-        this.submittedOn = submittedOn;
-        this.interruptTime = interruptTime;
-    }
 
     @Override
     public void run() {
@@ -55,17 +53,19 @@ public class AsyncQueryInterruptThread implements Runnable {
             long interruptTimeInMillies = interruptTime * 60 * 1000;
             long differenceInMillies = interruptTimeInMillies - ((new Date()).getTime() - submittedOn.getTime());
             if(differenceInMillies > 0) {
-               log.debug("Sleeping for {}", differenceInMillies);
-               Thread.sleep(differenceInMillies);
-            }
-
-            if(!task.isDone()) {
-                log.debug("Interrupting the task");
-                task.cancel(true);
-                updateAsyncQueryStatus(QueryStatus.TIMEDOUT, id);
+               log.debug("Waiting on the future with the given timeout for {}", differenceInMillies);
+               task.get(differenceInMillies, TimeUnit.MILLISECONDS);
             }
         } catch (InterruptedException e) {
+            // Incase the future.get is interrupted , the underlying query may still have succeeded
             log.error("InterruptedException: {}", e.getMessage());
+        } catch (ExecutionException e) {
+            // Query Status set to failure will be handled by the processQuery method
+            log.error("ExecutionException: {}", e.getMessage());
+        } catch (TimeoutException e) {
+            log.error("TimeoutException: {}", e.getMessage());
+            task.cancel(true);
+            updateAsyncQueryStatus(QueryStatus.TIMEDOUT, id);
         }
     }
 
@@ -86,7 +86,7 @@ public class AsyncQueryInterruptThread implements Runnable {
             .type(AsyncQuery.class)
             .build();
             AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-            query.setQueryStatus(status);
+            query.setStatus(status);
             tx.save(query, scope);
             tx.commit(scope);
             tx.flush(scope);

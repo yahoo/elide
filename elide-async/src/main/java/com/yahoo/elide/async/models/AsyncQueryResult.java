@@ -20,6 +20,8 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import lombok.Data;
+
 /**
  * Model for Async Query Result
  */
@@ -28,6 +30,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @CreatePermission(expression = "Prefab.Role.None")
+@Data
 public class AsyncQueryResult implements PrincipalOwned {
     @Id
     private UUID id; //Matches UUID in query.
@@ -59,60 +62,4 @@ public class AsyncQueryResult implements PrincipalOwned {
     public void preUpdate() {
         updatedOn = new Date();
     }
-
-    public void setContentLength(Integer contentLength) {
-        this.contentLength = contentLength;
-    }
-
-    public void setResponseBody(String responseBody) {
-        this.responseBody = responseBody;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public void setQuery(AsyncQuery query) {
-        this.query = query;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-	public Date getCreatedOn() {
-		return createdOn;
-	}
-
-	public void setCreatedOn(Date createdOn) {
-		this.createdOn = createdOn;
-	}
-
-	public Date getUpdatedOn() {
-		return updatedOn;
-	}
-
-	public void setUpdatedOn(Date updatedOn) {
-		this.updatedOn = updatedOn;
-	}
-
-	public UUID getId() {
-		return id;
-	}
-
-	public Integer getContentLength() {
-		return contentLength;
-	}
-
-	public String getResponseBody() {
-		return responseBody;
-	}
-
-	public Integer getStatus() {
-		return status;
-	}
-
-	public AsyncQuery getQuery() {
-		return query;
-	}
 }
