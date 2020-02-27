@@ -52,6 +52,7 @@ public class AsyncQueryInterruptThread implements Runnable {
         try {
             long interruptTimeInMillies = interruptTime * 60 * 1000;
             long differenceInMillies = interruptTimeInMillies - ((new Date()).getTime() - submittedOn.getTime());
+            
             if(differenceInMillies > 0) {
                log.debug("Waiting on the future with the given timeout for {}", differenceInMillies);
                task.get(differenceInMillies, TimeUnit.MILLISECONDS);
@@ -83,14 +84,13 @@ public class AsyncQueryInterruptThread implements Runnable {
 
         try {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
-            .type(AsyncQuery.class)
-            .build();
+                    .type(AsyncQuery.class)
+                    .build();
             AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
             query.setStatus(status);
             tx.save(query, scope);
             tx.commit(scope);
             tx.flush(scope);
-            tx.close();
         } catch (Exception e) {
             log.error("Exception: {}", e.getMessage());
         } finally {
