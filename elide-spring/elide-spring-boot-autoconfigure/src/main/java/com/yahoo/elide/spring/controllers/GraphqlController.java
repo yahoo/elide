@@ -50,7 +50,7 @@ public class GraphqlController {
      * Single entry point for GraphQL requests.
      *
      * @param graphQLDocument post data as json document
-     * @param user The user principal
+     * @param principal The user principal
      * @return response
      */
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
