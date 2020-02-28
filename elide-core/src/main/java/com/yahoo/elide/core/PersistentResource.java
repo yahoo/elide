@@ -804,7 +804,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param id resource id
      */
     public void setId(String id) {
-        this.setValue(dictionary.getIdFieldName(getResourceClass()), id);
+        dictionary.setId(obj, id);
     }
 
     /**
