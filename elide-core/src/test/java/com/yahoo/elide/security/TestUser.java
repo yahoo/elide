@@ -8,6 +8,9 @@ package com.yahoo.elide.security;
 
 import java.security.Principal;
 
+/**
+ * Elide user for testing.
+ */
 public class TestUser extends User {
 
     public TestUser(String name) {

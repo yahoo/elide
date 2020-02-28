@@ -10,6 +10,9 @@ import com.yahoo.elide.security.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
+/**
+ * Elide User object for Spring Boot.
+ */
 public class AuthenticationUser extends User {
     private Authentication authentication;
 

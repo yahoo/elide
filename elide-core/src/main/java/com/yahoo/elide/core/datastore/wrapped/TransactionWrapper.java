@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 /**
- * Delegates all calls to a wrapped transaction
+ * Delegates all calls to a wrapped transaction.
  */
 @Data
 @AllArgsConstructor

@@ -10,6 +10,9 @@ import com.yahoo.elide.security.User;
 
 import javax.ws.rs.core.SecurityContext;
 
+/**
+ * Elide User for JAXRS.
+ */
 public class SecurityContextUser extends User {
     private SecurityContext ctx;
 
