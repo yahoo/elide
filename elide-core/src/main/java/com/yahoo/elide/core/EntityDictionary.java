@@ -1420,7 +1420,17 @@ public class EntityDictionary {
     }
 
     /**
+     * Sets the ID field of a target object.
+     * @param target the object which owns the ID to set.
+     * @param id the value to set
+     */
+    public void setId(Object target, String id) {
+        setValue(target, getIdFieldName(lookupBoundClass(target.getClass())), id);
+    }
+
+    /**
      * Invoke the set[fieldName] method on the target object OR set the field with the corresponding name.
+     * @param target The object which owns the field to set
      * @param fieldName the field name to set or invoke equivalent set method
      * @param value the value to set
      */
