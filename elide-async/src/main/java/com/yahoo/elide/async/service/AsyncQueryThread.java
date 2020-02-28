@@ -22,10 +22,7 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
-import com.yahoo.elide.request.EntityProjection;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -60,7 +57,8 @@ public class AsyncQueryThread implements Runnable {
     protected void processQuery() {
         try {
             // Change async query to processing
-            updateAsyncQueryStatus(QueryStatus.PROCESSING, id);
+            AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
+            asyncDbUtil.updateAsyncQuery(QueryStatus.PROCESSING, id);
             ElideResponse response = null;
             log.debug("query: {}", query);
             log.debug("queryType: {}", queryType);
@@ -79,16 +77,16 @@ public class AsyncQueryThread implements Runnable {
             }
             // if 200 - response code then Change async query to complete else change to Failure
             if (response.getResponseCode() == 200) {
-                asyncQuery = updateAsyncQueryStatus(QueryStatus.COMPLETE, id);
+                asyncQuery = asyncDbUtil.updateAsyncQuery(QueryStatus.COMPLETE, id);
             } else {
-                asyncQuery = updateAsyncQueryStatus(QueryStatus.FAILURE, id);
+                asyncQuery = asyncDbUtil.updateAsyncQuery(QueryStatus.FAILURE, id);
             }
 
             // Create AsyncQueryResult entry for AsyncQuery
-            asyncQueryResult = createAsyncQueryResult(response.getResponseCode(), response.getBody(), asyncQuery, id);
+            asyncQueryResult = asyncDbUtil.createAsyncQueryResult(response.getResponseCode(), response.getBody(), asyncQuery, id);
 
             // Add queryResult object to query object
-            updateAsyncQueryStatus(asyncQueryResult, id);
+            asyncDbUtil.updateAsyncQuery(asyncQueryResult, id);
 
         } catch (IOException e) {
             log.error("IOException: {}", e.getMessage());
@@ -130,85 +128,5 @@ public class AsyncQueryThread implements Runnable {
         uri = new URIBuilder(query);
         log.debug("Retrieving path from query");
         return uri.getPath();
-    }
-
-    /**
-     * This method updates the model for AsyncQuery with passed status value.
-     * @param status new status based on the enum QueryStatus
-     * @param asyncQueryId queryId from asyncQuery request
-     * @throws IOException IOException from DataStoreTransaction
-     * @return AsyncQuery Object
-     */
-    protected AsyncQuery updateAsyncQueryStatus(QueryStatus status, UUID asyncQueryId) throws IOException {
-        log.debug("Updating AsyncQuery status to {}", status);
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-
-        // Creating new RequestScope for Datastore transaction
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-
-        EntityProjection asyncQueryCollection = EntityProjection.builder()
-            .type(AsyncQuery.class)
-            .build();
-        AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-        query.setStatus(status);
-        tx.save(query, scope);
-        tx.commit(scope);
-        tx.flush(scope);
-        tx.close();
-        return query;
-    }
-
-    /**
-     * This method updates the model for AsyncQuery with result object,
-     * @param asyncQueryResult AsyncQueryResult object to be associated with the AsyncQuery object
-     * @param asyncQueryId UUID of the AsyncQuery to be associated with the AsyncQueryResult object
-     * @throws IOException IOException from DataStoreTransaction
-     */
-    protected void updateAsyncQueryStatus(AsyncQueryResult asyncQueryResult, UUID asyncQueryId) throws IOException {
-        log.debug("Updating AsyncQueryResult to {}", asyncQueryResult);
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-
-        // Creating new RequestScope for Datastore transaction
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-
-        EntityProjection asyncQueryCollection = EntityProjection.builder()
-            .type(AsyncQuery.class)
-            .build();
-        AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-        query.setResult(asyncQueryResult);
-        tx.save(query, scope);
-        tx.commit(scope);
-        tx.flush(scope);
-        tx.close();
-    }
-
-    /**
-     * This method persists the model for AsyncQueryResult
-     * @param status ElideResponse status from AsyncQuery
-     * @param responseBody ElideResponse responseBody from AsyncQuery
-     * @param asyncQuery AsyncQuery object to be associated with the AsyncQueryResult object
-     * @param asyncQueryId UUID of the AsyncQuery to be associated with the AsyncQueryResult object
-     * @throws IOException IOException from DataStoreTransaction
-     * @return AsyncQueryResult Object
-     */
-    protected AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId) throws IOException {
-		log.debug("Adding AsyncQueryResult entry");
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-
-        // Creating new RequestScope for Datastore transaction
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-
-        AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
-        asyncQueryResult.setStatus(status);
-        asyncQueryResult.setResponseBody(responseBody);
-        asyncQueryResult.setContentLength(responseBody.length());
-        asyncQueryResult.setId(asyncQueryId);
-        asyncQueryResult.setQuery(asyncQuery);
-        tx.createObject(asyncQueryResult, scope);
-        tx.save(asyncQueryResult, scope);
-        tx.commit(scope);
-        tx.flush(scope);
-        tx.close();
-        return asyncQueryResult;
     }
 }

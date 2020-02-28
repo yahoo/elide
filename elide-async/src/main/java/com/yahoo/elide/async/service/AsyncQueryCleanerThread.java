@@ -48,7 +48,7 @@ public class AsyncQueryCleanerThread implements Runnable {
      * */
     private void timeoutAsyncQuery() {
         DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-
+        AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
         try {
             EntityDictionary dictionary = elide.getElideSettings().getDictionary();
             RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
@@ -70,10 +70,7 @@ public class AsyncQueryCleanerThread implements Runnable {
 
                 if(isTimedOut(currentTime, query)) {
                     log.info("Updating Async Query Status to TIMEDOUT");
-                    query.setStatus(QueryStatus.TIMEDOUT);
-                    tx.save(query, scope);
-                    tx.commit(scope);
-                    tx.flush(scope);
+                    asyncDbUtil.updateAsyncQuery(QueryStatus.TIMEDOUT, query.getId());
                 }
             }
         }

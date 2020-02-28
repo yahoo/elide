@@ -66,8 +66,9 @@ public class AsyncExecutorService {
 	public void executeQuery(String query, QueryType queryType, Principal user, UUID id) {
 		AsyncQueryThread queryWorker = new AsyncQueryThread(query, queryType, user, elide, runner, id);
 		// Change async query in Datastore to queued
+		AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
 		try {
-			queryWorker.updateAsyncQueryStatus(QueryStatus.QUEUED, id);
+			asyncDbUtil.updateAsyncQuery(QueryStatus.QUEUED, id);
 		} catch (IOException e) {
 			log.error("IOException: {}", e.getMessage());
 		}

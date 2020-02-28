@@ -14,11 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.request.EntityProjection;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -49,6 +45,7 @@ public class AsyncQueryInterruptThread implements Runnable {
      * the maximum run time.
      */
     protected void interruptQuery() {
+        AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
         try {
             long interruptTimeInMillies = interruptTime * 60 * 1000;
             long differenceInMillies = interruptTimeInMillies - ((new Date()).getTime() - submittedOn.getTime());
@@ -66,37 +63,9 @@ public class AsyncQueryInterruptThread implements Runnable {
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e.getMessage());
             task.cancel(true);
-            updateAsyncQueryStatus(QueryStatus.TIMEDOUT, id);
-        }
-    }
-
-    /**
-     * This method updates the model for AsyncQuery with passed query status value.
-     * @param status new status based on the enum QueryStatus
-     * @param asyncQueryId queryId from asyncQuery request
-     */
-    protected void updateAsyncQueryStatus(QueryStatus status, UUID asyncQueryId) {
-        log.debug("Updating AsyncQuery status to {}", status);
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-
-        // Creating new RequestScope for Datastore transaction
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-
-        try {
-            EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
-                    .build();
-            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-            query.setStatus(status);
-            tx.save(query, scope);
-            tx.commit(scope);
-            tx.flush(scope);
-        } catch (Exception e) {
-            log.error("Exception: {}", e.getMessage());
-        } finally {
             try {
-                tx.close();
-            } catch (IOException e) {
+                asyncDbUtil.updateAsyncQuery(QueryStatus.TIMEDOUT, id);
+            } catch (IOException e1) {
                 log.error("IOException: {}", e.getMessage());
             }
         }
