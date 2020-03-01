@@ -196,15 +196,6 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Number of hosts running Elide Service.
-     *
-     * @return Default: 1
-     */
-    default Integer getNumberOfHosts() {
-        return 1;
-    }
-
-    /**
      * Whether Dates should be ISO8601 strings (true) or epochs (false).
      * @return
      */
