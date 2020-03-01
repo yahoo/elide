@@ -15,6 +15,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
 import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -30,6 +31,7 @@ import lombok.Data;
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @CreatePermission(expression = "Prefab.Role.None")
+@DeletePermission(expression = "Prefab.Role.None")
 @Data
 public class AsyncQueryResult implements PrincipalOwned {
     @Id

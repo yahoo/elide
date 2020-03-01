@@ -33,47 +33,48 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class AsyncExecutorService {
 
-	private final int DEFAULT_THREADPOOL_SIZE = 6;
-	private final int DEFAULT_CLEANUP_DELAY = 360;
+    private final int DEFAULT_THREADPOOL_SIZE = 6;
+    private final int DEFAULT_CLEANUP_DELAY = 360;
+    private final int MAX_CLEANUP_INTIAL_DELAY = 100;
 
-	private Elide elide;
-	private QueryRunner runner;
-	private ExecutorService executor;
-	private ExecutorService interruptor;
-	private int maxRunTime;
+    private Elide elide;
+    private QueryRunner runner;
+    private ExecutorService executor;
+    private ExecutorService interruptor;
+    private int maxRunTime;
 
-	@Inject
+    @Inject
     public AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, Integer numberOfNodes) {
-		this.elide = elide;
-		this.runner = new QueryRunner(elide);
-		this.maxRunTime = maxRunTime;
-		executor = AsyncQueryExecutor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
-		interruptor = AsyncQueryInterruptor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
+        this.elide = elide;
+        this.runner = new QueryRunner(elide);
+        this.maxRunTime = maxRunTime;
+        executor = AsyncQueryExecutor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
+        interruptor = AsyncQueryInterruptor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
 
-		// Setting up query cleaner that marks long running query as TIMEDOUT.
-		ScheduledExecutorService cleaner = AsyncQueryCleaner.getInstance().getExecutorService();
-		AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(maxRunTime, elide);
+        // Setting up query cleaner that marks long running query as TIMEDOUT.
+        ScheduledExecutorService cleaner = AsyncQueryCleaner.getInstance().getExecutorService();
+        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(maxRunTime, elide);
 
-		// Since there will be multiple hosts running the elide service,
-		// setting up random delays to avoid all of them trying to cleanup at the same time.
-		Random random = new Random();
-		int initialDelay = random.ints(0, numberOfNodes * 2).limit(1).findFirst().getAsInt();
+        // Since there will be multiple hosts running the elide service,
+        // setting up random delays to avoid all of them trying to cleanup at the same time.
+        Random random = new Random();
+        int initialDelay = random.ints(0, MAX_CLEANUP_INTIAL_DELAY).limit(1).findFirst().getAsInt();
 
-		//Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
-		cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelay, Math.max(DEFAULT_CLEANUP_DELAY, maxRunTime * 2), TimeUnit.MINUTES);
-	}
+        //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
+        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelay, Math.max(DEFAULT_CLEANUP_DELAY, maxRunTime * 2), TimeUnit.MINUTES);
+    }
 
-	public void executeQuery(String query, QueryType queryType, Principal user, UUID id) {
-		AsyncQueryThread queryWorker = new AsyncQueryThread(query, queryType, user, elide, runner, id);
-		// Change async query in Datastore to queued
-		AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
-		try {
-			asyncDbUtil.updateAsyncQuery(QueryStatus.QUEUED, id);
-		} catch (IOException e) {
-			log.error("IOException: {}", e.getMessage());
-		}
+    public void executeQuery(String query, QueryType queryType, Principal user, UUID id) {
+        AsyncQueryThread queryWorker = new AsyncQueryThread(query, queryType, user, elide, runner, id);
+        // Change async query in Datastore to queued
+        AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
+        try {
+            asyncDbUtil.updateAsyncQuery(QueryStatus.QUEUED, id);
+        } catch (IOException e) {
+            log.error("IOException: {}", e.getMessage());
+        }
 
-		AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide, executor.submit(queryWorker), id, new Date(), maxRunTime);
-		interruptor.execute(queryInterruptWorker);
-	}
+        AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide, executor.submit(queryWorker), id, new Date(), maxRunTime);
+        interruptor.execute(queryInterruptWorker);
+    }
 }

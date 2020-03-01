@@ -33,7 +33,7 @@ public class AsyncQueryInterruptThread implements Runnable {
     private Future<?> task;
     private UUID id;
     private Date submittedOn;
-    private int interruptTime;
+    private int interruptTimeMinutes;
 
     @Override
     public void run() {
@@ -47,12 +47,11 @@ public class AsyncQueryInterruptThread implements Runnable {
     protected void interruptQuery() {
         AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
         try {
-            long interruptTimeInMillies = interruptTime * 60 * 1000;
-            long differenceInMillies = interruptTimeInMillies - ((new Date()).getTime() - submittedOn.getTime());
+            long differenceMillies = calculateTimeOut(interruptTimeMinutes, submittedOn);
             
-            if(differenceInMillies > 0) {
-               log.debug("Waiting on the future with the given timeout for {}", differenceInMillies);
-               task.get(differenceInMillies, TimeUnit.MILLISECONDS);
+            if(differenceMillies > 0) {
+               log.debug("Waiting on the future with the given timeout for {}", differenceMillies);
+               task.get(differenceMillies, TimeUnit.MILLISECONDS);
             }
         } catch (InterruptedException e) {
             // Incase the future.get is interrupted , the underlying query may still have succeeded
@@ -69,5 +68,19 @@ public class AsyncQueryInterruptThread implements Runnable {
                 log.error("IOException: {}", e.getMessage());
             }
         }
+    }
+    
+    /**
+     * Method to calculate the time left to interrupt since submission of thread 
+     * in Milliseconds.
+     * @param interruptTimeMinutes max duration to run the query
+     * @param submittedOn time when query was submitted
+     * @return Interrupt time left
+     */
+    private long calculateTimeOut(long interruptTimeMinutes, Date submittedOn) {
+        long interruptTimeMillies = interruptTimeMinutes * 60 * 1000;
+        long differenceMillies = interruptTimeMillies - ((new Date()).getTime() - submittedOn.getTime());
+        
+        return differenceMillies;
     }
 }

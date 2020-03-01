@@ -17,6 +17,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Include(type = "query", rootLevel = true)
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
+@DeletePermission(expression = "Prefab.Role.None")
 @Slf4j
 @Data
 public class AsyncQuery implements PrincipalOwned {
@@ -62,9 +64,9 @@ public class AsyncQuery implements PrincipalOwned {
     private AsyncExecutorService asyncExecutorService;
 
     @Override
-	public String getPrincipalName() {
-		return principalName;
-	}
+    public String getPrincipalName() {
+        return principalName;
+    }
 
     @PrePersist
     public void prePersist() {
