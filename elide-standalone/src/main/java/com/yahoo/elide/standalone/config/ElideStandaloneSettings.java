@@ -133,21 +133,6 @@ public interface ElideStandaloneSettings {
     default String getModelPackageName() {
         return "com.yourcompany.elide.models";
     }
-    
-    /**
-     * Package name containing the Async models to support the Async query feature. This package will be 
-     * recursively scanned for @Entity's and registered with Elide.
-     *
-     * NOTE: This will scan for all entities in that package and bind this data to a set named "elideAllModels".
-     *       If providing a custom ElideSettings object, you can inject this data into your class by using:
-     *
-     *       <strong>@Inject @Named("elideAllModels") Set&lt;Class&gt; entities;</strong>
-     *
-     * @return
-     */
-    default String getAsyncModelPackageName() {
-        return (enableAsync() ? AsyncQuery.class.getPackage().getName() : null);
-    }
 
     /**
      * API root path specification for JSON-API. Namely, this is the mount point of your API. By default it will look
@@ -222,15 +207,6 @@ public interface ElideStandaloneSettings {
      */
     default Integer getMaxRunTimeMinutes() {
         return 60;
-    }
-
-    /**
-     * Number of hosts running Elide Service.
-     *
-     * @return Default: 1
-     */
-    default Integer getNumberOfHosts() {
-        return 1;
     }
 
     /**
