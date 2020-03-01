@@ -44,7 +44,7 @@ public class AsyncExecutorService {
     private int maxRunTime;
 
     @Inject
-    public AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, Integer numberOfNodes) {
+    public AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime) {
         this.elide = elide;
         this.runner = new QueryRunner(elide);
         this.maxRunTime = maxRunTime;
