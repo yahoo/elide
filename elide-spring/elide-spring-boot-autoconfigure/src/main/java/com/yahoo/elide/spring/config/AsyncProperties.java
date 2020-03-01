@@ -21,11 +21,6 @@ public class AsyncProperties extends ControllerProperties {
     /**
      * Default max query run time.
      */
-    private int maxRunTime = 60;
-
-    /**
-     * Default number of hosts running Elide.
-     */
-    private int numberOfHosts = 1;
+    private int maxRunTimeMinutes = 60;
 
 }

@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @SpringBootApplication
-@EntityScan(basePackages = {"${elide.modelPackage}"})
+@EntityScan
 public class App {
     public static void main(String[] args) throws Exception {
         SpringApplication.run(App.class, args);
