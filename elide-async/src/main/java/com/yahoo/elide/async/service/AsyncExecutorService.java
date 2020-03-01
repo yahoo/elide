@@ -34,8 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AsyncExecutorService {
 
     private final int DEFAULT_THREADPOOL_SIZE = 6;
-    private final int DEFAULT_CLEANUP_DELAY = 360;
-    private final int MAX_CLEANUP_INTIAL_DELAY = 100;
+    private final int DEFAULT_CLEANUP_DELAY_MINUTES = 360;
+    private final int MAX_CLEANUP_INTIAL_DELAY_MINUTES = 100;
 
     private Elide elide;
     private QueryRunner runner;
@@ -58,10 +58,11 @@ public class AsyncExecutorService {
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.
         Random random = new Random();
-        int initialDelay = random.ints(0, MAX_CLEANUP_INTIAL_DELAY).limit(1).findFirst().getAsInt();
+        int initialDelayMinutes = random.ints(0, MAX_CLEANUP_INTIAL_DELAY_MINUTES).limit(1).findFirst().getAsInt();
+        log.debug("Initial Delay for cleaner service is {}", initialDelayMinutes);
 
         //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
-        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelay, Math.max(DEFAULT_CLEANUP_DELAY, maxRunTime * 2), TimeUnit.MINUTES);
+        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(DEFAULT_CLEANUP_DELAY_MINUTES, maxRunTime * 2), TimeUnit.MINUTES);
     }
 
     public void executeQuery(String query, QueryType queryType, Principal user, UUID id) {
