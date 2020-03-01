@@ -87,10 +87,10 @@ public class AsyncQueryCleanerThread implements Runnable {
     }
 
     private boolean isTimedOut(long currentTime, AsyncQuery query) {
-        long differenceInMillies = Math.abs(currentTime - query.getCreatedOn().getTime());
-        long difference = TimeUnit.MINUTES.convert(differenceInMillies, TimeUnit.MILLISECONDS);
+        long differenceMillies = Math.abs(currentTime - query.getCreatedOn().getTime());
+        long differenceMinutes = TimeUnit.MINUTES.convert(differenceMillies, TimeUnit.MILLISECONDS);
 
         // Check if its twice as long as max run time. It means the host/app crashed or restarted.
-        return (difference > maxRunTime * 2);
+        return (differenceMillies > maxRunTime * 2);
     }
 }
