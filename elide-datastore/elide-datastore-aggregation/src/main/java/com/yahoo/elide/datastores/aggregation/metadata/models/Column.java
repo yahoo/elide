@@ -7,11 +7,14 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;
@@ -21,6 +24,7 @@ import lombok.ToString;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.Id;
 
@@ -57,6 +61,9 @@ public abstract class Column {
     @ToString.Exclude
     private Set<String> columnTags;
 
+    @Exclude
+    private LabelResolver labelResolver;
+
     protected Column(Table table, String fieldName, EntityDictionary dictionary) {
         this.table = table;
         Class<?> tableClass = dictionary.getEntityClass(table.getId());
@@ -75,6 +82,8 @@ public abstract class Column {
         if (valueType == null) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
+
+        this.labelResolver = constructLabelResolver();
     }
 
     public static ValueType getValueType(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
@@ -104,5 +113,32 @@ public abstract class Column {
         Class<?> columnCls = metadataDictionary.getParameterizedType(tableCls, getName());
 
         return new Path(Collections.singletonList(new Path.PathElement(tableCls, columnCls, getName())));
+    }
+
+    /**
+     * Construct a label resolver for this column.
+     *
+     * @return a label resolver
+     */
+    protected LabelResolver constructLabelResolver() {
+        return new LabelResolver() {
+            @Override
+            public <T> T resolveLabel(JoinPath fromPath,
+                                      Set<JoinPath> toResolve,
+                                      Map<JoinPath, T> resolved,
+                                      LabelGenerator<T> generator,
+                                      MetaDataStore metaDataStore) {
+                return generator.apply(fromPath, getName());
+            }
+        };
+    }
+
+    /**
+     * Resolve physical label of this column.
+     *
+     * @param metaDataStore meta data store
+     */
+    public void resolveReference(MetaDataStore metaDataStore) {
+        // NOOP
     }
 }

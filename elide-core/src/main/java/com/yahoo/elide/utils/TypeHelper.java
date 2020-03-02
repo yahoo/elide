@@ -72,4 +72,15 @@ public class TypeHelper {
     public static String getTypeAlias(Class<?> type) {
         return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
     }
+
+    /**
+     * Get alias for the final field of a path.
+     *
+     * @param path path to the field
+     * @param fieldName physical field name
+     * @return combined alias
+     */
+    public static String getFieldAlias(Path path, String fieldName) {
+        return getPathAlias(path) + PERIOD + fieldName;
+    }
 }

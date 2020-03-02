@@ -112,6 +112,7 @@ public abstract class QueryEngine {
                 .map(model -> constructTable(model, metadataDictionary))
                 .forEach(metaDataStore::addTable);
 
+        metaDataStore.resolveReference();
         metaDataStore.resolveSourceColumn();
     }
 

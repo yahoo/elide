@@ -13,8 +13,11 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
+import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
+import com.yahoo.elide.datastores.aggregation.metadata.models.LabelResolver;
+import com.yahoo.elide.datastores.aggregation.metadata.models.LabelResolver.LabelGenerator;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -34,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,13 +50,13 @@ public class MetaDataStore extends HashMapDataStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
-    private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
+    public static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
 
     @Getter
     private final Set<Class<?>> modelsToBind;
 
-    public MetaDataStore() {
+    public MetaDataStore(Set<Class<?>> modelsToBind) {
         super(META_DATA_PACKAGE);
 
         this.dictionary = new EntityDictionary(new HashMap<>());
@@ -61,8 +65,8 @@ public class MetaDataStore extends HashMapDataStore {
         ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(dictionary::bindEntity);
 
         // bind external data models in the package
-        this.modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
-        modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
+        this.modelsToBind = modelsToBind;
+        this.modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 
     @Override
@@ -142,6 +146,13 @@ public class MetaDataStore extends HashMapDataStore {
         }
     }
 
+    /**
+     * Get all metadata of a specific metadata class
+     *
+     * @param cls metadata class
+     * @param <T> metadata class
+     * @return all metadata of given class
+     */
     public <T> Set<T> getMetaData(Class<T> cls) {
         return dataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
     }
@@ -234,5 +245,52 @@ public class MetaDataStore extends HashMapDataStore {
                     column.setSourceColumn(sourceColumn);
                 })
         );
+    }
+
+    /**
+     * Get the label resolver for a field
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @return a label resolver
+     */
+    private LabelResolver getLabelResolver(Class<?> tableClass, String fieldName) {
+        return ((Table) dataStore.get(Table.class).get(dictionary.getJsonAliasFor(tableClass)))
+                .getColumnMap()
+                .get(fieldName)
+                .getLabelResolver();
+    }
+
+    /**
+     * Resolve the label for field navigated by the path.
+     *
+     * @param path path to the field
+     * @param toResolve paths that are pending resolving
+     * @param resolved resolved paths
+     * @param generator generator to construct labels
+     * @param <T> label value type
+     * @return resolved label
+     */
+    public  <T> T resolveLabel(JoinPath path,
+                               Set<JoinPath> toResolve,
+                               Map<JoinPath, T> resolved,
+                               LabelGenerator<T> generator) {
+        if (resolved.containsKey(path)) {
+            return resolved.get(path);
+        }
+
+        Path.PathElement last = path.lastElement().get();
+
+        return getLabelResolver(last.getType(), last.getFieldName())
+                .resolveLabel(path, toResolve, resolved, generator, this);
+    }
+
+    /**
+     * Resolve all column references in all tables.
+     */
+    public void resolveReference() {
+        getMetaData(Table.class)
+                .forEach(table -> table.getColumns()
+                        .forEach(column -> column.resolveReference(this)));
     }
 }

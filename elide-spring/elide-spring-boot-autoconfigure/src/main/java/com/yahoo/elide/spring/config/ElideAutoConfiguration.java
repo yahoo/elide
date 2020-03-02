@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.spring.config;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.METADATA_STORE_ANNOTATIONS;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
@@ -20,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.utils.ClassScanner;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -103,7 +106,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public QueryEngine buildQueryEngine(EntityManagerFactory entityManagerFactory) {
-        MetaDataStore metaDataStore = new MetaDataStore();
+        MetaDataStore metaDataStore = new MetaDataStore(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
 
         return new SQLQueryEngine(metaDataStore, entityManagerFactory);
     }

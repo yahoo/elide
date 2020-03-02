@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.resolveFormulaReferences;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.toFormulaReference;
-import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
+import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
@@ -423,16 +423,5 @@ public class SQLQueryEngine extends QueryEngine {
         toExtend.remove(toExtend.size() - 1);
         toExtend.addAll(extension.getPathElements());
         return new JoinPath(toExtend);
-    }
-
-    /**
-     * Get alias for the final field of a path.
-     *
-     * @param path path to the field
-     * @param fieldName physical field name
-     * @return combined alias
-     */
-    private static String getFieldAlias(Path path, String fieldName) {
-        return getPathAlias(path) + "." + fieldName;
     }
 }
