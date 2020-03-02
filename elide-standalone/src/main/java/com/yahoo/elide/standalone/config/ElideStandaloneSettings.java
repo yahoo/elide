@@ -192,6 +192,15 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Enable the support for cleaning up Async query history. If false, the async cleanup feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableAsyncCleanup() {
+        return false;
+    }
+
+    /**
      * Thread Size for Async queries to run in parallel.
      *
      * @return Default: 5
