@@ -39,6 +39,7 @@ public class AsyncCleanerService {
         // setting up random delays to avoid all of them trying to cleanup at the same time.
         Random random = new Random();
         int initialDelayMinutes = random.ints(0, MAX_CLEANUP_INTIAL_DELAY_MINUTES).limit(1).findFirst().getAsInt();
+        initialDelayMinutes = 1;
         log.debug("Initial Delay for cleaner service is {}", initialDelayMinutes);
 
         //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
