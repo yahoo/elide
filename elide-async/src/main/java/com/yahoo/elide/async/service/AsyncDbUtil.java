@@ -25,8 +25,8 @@ import com.yahoo.elide.request.EntityProjection;
 @Singleton
 public class AsyncDbUtil {
 
-	private Elide elide;
-	private static AsyncDbUtil asyncUtil;
+    private Elide elide;
+    private static AsyncDbUtil asyncUtil;
 
     protected static AsyncDbUtil getInstance(Elide elide) {
         if (asyncUtil == null) {
@@ -37,9 +37,9 @@ public class AsyncDbUtil {
         return asyncUtil;
       }
 
-	protected AsyncDbUtil(Elide elide) {
+    protected AsyncDbUtil(Elide elide) {
         this.elide = elide;
-	}
+    }
 
     /**
      * This method updates the model for AsyncQuery with passed value.

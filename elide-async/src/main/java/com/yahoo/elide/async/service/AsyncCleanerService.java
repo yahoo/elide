@@ -30,11 +30,10 @@ public class AsyncCleanerService {
 
     @Inject
     public AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes) {
-       
-    	// Setting up query cleaner that marks long running query as TIMEDOUT.
+
+        // Setting up query cleaner that marks long running query as TIMEDOUT.
         ScheduledExecutorService cleaner = AsyncQueryCleaner.getInstance().getExecutorService();
-        //AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(maxRunTimeMinutes, elide);
-        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(1, elide);
+        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(maxRunTimeMinutes, elide);
 
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.
@@ -44,8 +43,7 @@ public class AsyncCleanerService {
 
         //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
         //Or maxRunTimeMinutes * 2 so that this process does not coincides with query interrupt process.
-        //cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(DEFAULT_CLEANUP_DELAY_MINUTES, maxRunTimeMinutes * 2), TimeUnit.MINUTES);
-        cleaner.scheduleWithFixedDelay(cleanUpTask, 1, 1, TimeUnit.MINUTES);
+        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(DEFAULT_CLEANUP_DELAY_MINUTES, maxRunTimeMinutes * 2), TimeUnit.MINUTES);
     }
 
 }
