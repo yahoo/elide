@@ -17,6 +17,7 @@ elide:
     enabled: true
     threadPoolSize: 7
     maxRunTimeMinutes: 65
+    cleanupEnabled: true
 
 spring:
   jpa:
