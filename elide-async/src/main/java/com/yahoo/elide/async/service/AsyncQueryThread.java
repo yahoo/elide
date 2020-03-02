@@ -59,6 +59,7 @@ public class AsyncQueryThread implements Runnable {
             // Change async query to processing
             AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
             asyncDbUtil.updateAsyncQuery(QueryStatus.PROCESSING, id);
+            Thread.sleep(180000);
             ElideResponse response = null;
             log.debug("query: {}", query);
             log.debug("queryType: {}", queryType);
