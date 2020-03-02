@@ -8,11 +8,8 @@ package com.yahoo.elide.async.service;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Date;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -34,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AsyncExecutorService {
 
     private final int DEFAULT_THREADPOOL_SIZE = 6;
-    private final int DEFAULT_CLEANUP_DELAY_MINUTES = 360;
-    private final int MAX_CLEANUP_INTIAL_DELAY_MINUTES = 100;
 
     private Elide elide;
     private QueryRunner runner;
@@ -50,19 +45,6 @@ public class AsyncExecutorService {
         this.maxRunTime = maxRunTime;
         executor = AsyncQueryExecutor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
         interruptor = AsyncQueryInterruptor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
-
-        // Setting up query cleaner that marks long running query as TIMEDOUT.
-        ScheduledExecutorService cleaner = AsyncQueryCleaner.getInstance().getExecutorService();
-        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(maxRunTime, elide);
-
-        // Since there will be multiple hosts running the elide service,
-        // setting up random delays to avoid all of them trying to cleanup at the same time.
-        Random random = new Random();
-        int initialDelayMinutes = random.ints(0, MAX_CLEANUP_INTIAL_DELAY_MINUTES).limit(1).findFirst().getAsInt();
-        log.debug("Initial Delay for cleaner service is {}", initialDelayMinutes);
-
-        //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
-        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(DEFAULT_CLEANUP_DELAY_MINUTES, maxRunTime * 2), TimeUnit.MINUTES);
     }
 
     public void executeQuery(String query, QueryType queryType, Principal user, UUID id) {

@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class AsyncQueryCleanerThread implements Runnable {
 
-    private int maxRunTime;
+    private int maxRunTimeMinutes;
     private Elide elide;
 
     @Override
@@ -91,6 +91,6 @@ public class AsyncQueryCleanerThread implements Runnable {
         long differenceMinutes = TimeUnit.MINUTES.convert(differenceMillies, TimeUnit.MILLISECONDS);
 
         // Check if its twice as long as max run time. It means the host/app crashed or restarted.
-        return (differenceMillies > maxRunTime * 2);
+        return (differenceMinutes > maxRunTimeMinutes * 2);
     }
 }

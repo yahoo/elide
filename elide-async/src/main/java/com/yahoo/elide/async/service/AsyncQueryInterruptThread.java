@@ -33,7 +33,7 @@ public class AsyncQueryInterruptThread implements Runnable {
     private Future<?> task;
     private UUID id;
     private Date submittedOn;
-    private int interruptTimeMinutes;
+    private int maxRunTimeMinutes;
 
     @Override
     public void run() {
@@ -47,11 +47,11 @@ public class AsyncQueryInterruptThread implements Runnable {
     protected void interruptQuery() {
         AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
         try {
-            long differenceMillies = calculateTimeOut(interruptTimeMinutes, submittedOn);
+            long interruptTimeMillies = calculateTimeOut(maxRunTimeMinutes, submittedOn);
             
-            if(differenceMillies > 0) {
-               log.debug("Waiting on the future with the given timeout for {}", differenceMillies);
-               task.get(differenceMillies, TimeUnit.MILLISECONDS);
+            if(interruptTimeMillies > 0) {
+               log.debug("Waiting on the future with the given timeout for {}", interruptTimeMillies);
+               task.get(interruptTimeMillies, TimeUnit.MILLISECONDS);
             }
         } catch (InterruptedException e) {
             // Incase the future.get is interrupted , the underlying query may still have succeeded
@@ -77,10 +77,10 @@ public class AsyncQueryInterruptThread implements Runnable {
      * @param submittedOn time when query was submitted
      * @return Interrupt time left
      */
-    private long calculateTimeOut(long interruptTimeMinutes, Date submittedOn) {
-        long interruptTimeMillies = interruptTimeMinutes * 60 * 1000;
-        long differenceMillies = interruptTimeMillies - ((new Date()).getTime() - submittedOn.getTime());
+    private long calculateTimeOut(long maxRunTimeMinutes, Date submittedOn) {
+        long maxRunTimeMinutesMillies = maxRunTimeMinutes * 60 * 1000;
+        long interruptTimeMillies = maxRunTimeMinutesMillies - ((new Date()).getTime() - submittedOn.getTime());
         
-        return differenceMillies;
+        return interruptTimeMillies;
     }
 }
