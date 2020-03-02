@@ -19,8 +19,6 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -49,15 +47,13 @@ public class SQLDimension extends Dimension implements SQLColumn {
         String fieldName = getName();
         Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
 
-        this.reference = getLabelResolver().resolveLabel(
+        this.reference = metaDataStore.resolveLabel(
                 new JoinPath(
                         Collections.singletonList(
                                 new Path.PathElement(
                                         tableClass,
                                         dictionary.getParameterizedType(tableClass, fieldName),
                                         fieldName))),
-                new LinkedHashSet<>(),
-                new LinkedHashMap<>(),
                 (joinPath, reference) -> {
                     if (joinPath != null) {
                         joinPaths.add(joinPath);
@@ -65,8 +61,7 @@ public class SQLDimension extends Dimension implements SQLColumn {
                     } else {
                         return reference;
                     }
-                },
-                metaDataStore);
+                });
     }
 
     @Override

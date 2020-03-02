@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -271,10 +273,10 @@ public class MetaDataStore extends HashMapDataStore {
      * @param <T> label value type
      * @return resolved label
      */
-    public  <T> T resolveLabel(JoinPath path,
-                               Set<JoinPath> toResolve,
-                               Map<JoinPath, T> resolved,
-                               LabelGenerator<T> generator) {
+    public <T> T resolveLabel(JoinPath path,
+                              Set<JoinPath> toResolve,
+                              Map<JoinPath, T> resolved,
+                              LabelGenerator<T> generator) {
         if (resolved.containsKey(path)) {
             return resolved.get(path);
         }
@@ -283,6 +285,18 @@ public class MetaDataStore extends HashMapDataStore {
 
         return getLabelResolver(last.getType(), last.getFieldName())
                 .resolveLabel(path, toResolve, resolved, generator, this);
+    }
+
+    /**
+     * Resolve the label for field navigated by the path.
+     *
+     * @param path path to the field
+     * @param generator generator to construct labels
+     * @param <T> label value type
+     * @return resolved label
+     */
+    public <T> T resolveLabel(JoinPath path, LabelGenerator<T> generator) {
+        return resolveLabel(path, new LinkedHashSet<>(), new LinkedHashMap<>(), generator);
     }
 
     /**

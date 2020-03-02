@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.generateColumnReference;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.SQL_REFERENCE_GENERATOR;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 import static com.yahoo.elide.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
@@ -20,6 +20,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -52,10 +53,12 @@ import java.util.stream.Stream;
  * Class to construct query template into real sql query.
  */
 public class SQLQueryConstructor {
+    private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
 
-    public SQLQueryConstructor(EntityDictionary dictionary) {
-        this.dictionary = dictionary;
+    public SQLQueryConstructor(MetaDataStore metaDataStore) {
+        this.metaDataStore = metaDataStore;
+        this.dictionary = metaDataStore.getDictionary();
     }
 
     /**
@@ -330,7 +333,7 @@ public class SQLQueryConstructor {
                             .orElse(null);
 
                     String orderByClause = metric == null
-                            ? generateColumnReference(expandedPath, dictionary)
+                            ? metaDataStore.resolveLabel(expandedPath, SQL_REFERENCE_GENERATOR)
                             : metric.getFunctionExpression();
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
@@ -425,7 +428,7 @@ public class SQLQueryConstructor {
      * @return A SQL fragment that references a database column
      */
     private String generatePredicateReference(FilterPredicate predicate) {
-        return generateColumnReference(new JoinPath(predicate.getPath()), dictionary);
+        return metaDataStore.resolveLabel(new JoinPath(predicate.getPath()), SQL_REFERENCE_GENERATOR);
     }
 
     /**
