@@ -38,12 +38,12 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class AsyncQueryThread implements Runnable {
 
-	private String query;
-	private QueryType queryType;
-	private Principal user;
-	private Elide elide;
-	private QueryRunner runner;
-	private UUID id;
+    private String query;
+    private QueryType queryType;
+    private Principal user;
+    private Elide elide;
+    private QueryRunner runner;
+    private UUID id;
 
     @Override
     public void run() {
