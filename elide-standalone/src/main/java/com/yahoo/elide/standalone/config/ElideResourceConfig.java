@@ -13,6 +13,7 @@ import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -88,6 +89,12 @@ public class ElideResourceConfig extends ResourceConfig {
                 	AsyncExecutorService asyncExecService = new AsyncExecutorService(elide, settings.getAsyncThreadSize(), 
                             settings.getMaxRunTimeMinutes());
                     bind(asyncExecService).to(AsyncExecutorService.class);
+                }
+
+                // Binding async cleanup service
+                if(settings.enableAsyncCleanup()) {
+                	AsyncCleanerService asyncCleanerService = new AsyncCleanerService(elide, settings.getMaxRunTimeMinutes());
+                    bind(asyncCleanerService).to(AsyncCleanerService.class);
                 }
             }
         });
