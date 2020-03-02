@@ -39,9 +39,54 @@ public class AsyncQueryCleanerThread implements Runnable {
 
     @Override
     public void run() {
+    	deleteAsyncQuery();
         timeoutAsyncQuery();
     }
 
+    /**
+     * This method updates the status of long running async query which
+     * were not interrupted due to host crash/app shutdown to TIMEDOUT.
+     * */
+    private void deleteAsyncQuery() {
+        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
+        AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
+        try {
+            EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+            RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
+            RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
+
+            FilterExpression filter = filterParser.parseFilterExpression("createdOn=le=" + new Date() , AsyncQuery.class, false);
+            log.debug("filter = {}", filter.toString());
+
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .filterExpression(filter)
+                    .build();
+
+            Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
+            Iterator<Object> itr = loaded.iterator();
+            long currentTime = new Date().getTime();
+            while(itr.hasNext()) {
+                AsyncQuery query = (AsyncQuery) itr.next();
+
+                if(isTimedOut(currentTime, query)) {
+                    log.info("Updating Async Query Status to DELETE");
+                    asyncDbUtil.updateAsyncQuery(QueryStatus.TIMEDOUT, query.getId());
+                }
+            }
+        }
+        catch (Exception e) {
+            log.error("Exception: {}", e.getMessage());
+        }
+        finally {
+            try {
+                tx.close();
+            } catch (IOException e) {
+                log.error("IOException: {}", e.getMessage());
+            }
+        }
+    }
+    
     /**
      * This method updates the status of long running async query which
      * were not interrupted due to host crash/app shutdown to TIMEDOUT.
