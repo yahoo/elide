@@ -72,7 +72,6 @@ public class AsyncDbUtil {
      * This method deletes the AsyncQuery object from database.
      * @param asyncQueryId Unique UUID for the AsyncQuery Object
      * @throws IOException IOException from DataStoreTransaction
-     * @return
      */
     protected void deleteAsyncQuery(UUID asyncQueryId) throws IOException {
         DataStoreTransaction tx = elide.getDataStore().beginTransaction();
@@ -91,9 +90,8 @@ public class AsyncDbUtil {
 
     /**
      * This method deletes the AsyncQueryResult object from database.
-     * @param asyncQueryId Unique UUID for the AsyncQuery Object
+     * @param asyncQueryResultId Unique UUID for the AsyncQuery Object
      * @throws IOException IOException from DataStoreTransaction
-     * @return
      */
     protected void deleteAsyncQueryResult(UUID asyncQueryResultId) throws IOException {
         DataStoreTransaction tx = elide.getDataStore().beginTransaction();
