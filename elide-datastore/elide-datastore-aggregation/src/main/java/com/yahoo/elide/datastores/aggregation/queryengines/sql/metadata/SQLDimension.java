@@ -10,10 +10,10 @@ import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Getter;
@@ -48,7 +48,7 @@ public class SQLDimension extends Dimension implements SQLColumn {
         String fieldName = getName();
         Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
 
-        this.reference = metaDataStore.resolveLabel(
+        this.reference = metaDataStore.generateLabel(
                 new JoinPath(
                         Collections.singletonList(
                                 new Path.PathElement(

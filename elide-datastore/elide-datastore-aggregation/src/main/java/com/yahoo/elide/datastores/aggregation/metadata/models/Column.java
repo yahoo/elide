@@ -15,6 +15,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelStore;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
@@ -25,7 +26,6 @@ import lombok.ToString;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import javax.persistence.Id;
 
@@ -125,9 +125,8 @@ public abstract class Column {
         return new LabelResolver(this) {
             @Override
             public <T> T resolveLabel(JoinPath fromPath,
-                                      Map<JoinPath, T> resolved,
                                       LabelGenerator<T> generator,
-                                      MetaDataStore metaDataStore) {
+                                      LabelStore labelStore) {
                 return generator.apply(fromPath, getName());
             }
         };

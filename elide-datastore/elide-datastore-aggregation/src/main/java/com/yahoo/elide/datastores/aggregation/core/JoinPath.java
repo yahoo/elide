@@ -10,6 +10,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,5 +33,37 @@ public class JoinPath extends Path {
     protected boolean needNavigation(Class<?> entityClass, String fieldName, EntityDictionary dictionary) {
         return dictionary.isRelation(entityClass, fieldName)
                 || MetaDataStore.isTableJoin(entityClass, fieldName, dictionary);
+    }
+
+    /**
+     * Extend this path with a dotSeparatedPath.
+     *
+     * @param dictionary entity dictionary
+     * @param dotSeparatedPath path e.g. "bar.baz", starting for the end of current path
+     * @return extended path
+     */
+    public JoinPath extend(EntityDictionary dictionary, String dotSeparatedPath) {
+        JoinPath extension = new JoinPath(lastElement().get().getType(), dictionary, dotSeparatedPath);
+
+        // append new path after original path
+        JoinPath extended = extendJoinPath(this, extension);
+
+        return new JoinPath(extended);
+    }
+
+    /**
+     * Append an extension path to an original path, the last element of original path should be the same as the
+     * first element of extension path.
+     *
+     * @param path original path, e.g. <code>[A.B]/[B.C]</code>
+     * @param extension extension path, e.g. <code>[B.C]/[C.D]</code>
+     * @param <P> path extension
+     * @return extended path <code>[A.B]/[B.C]/[C.D]</code>
+     */
+    private static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
+        List<Path.PathElement> toExtend = new ArrayList<>(path.getPathElements());
+        toExtend.remove(toExtend.size() - 1);
+        toExtend.addAll(extension.getPathElements());
+        return new JoinPath(toExtend);
     }
 }

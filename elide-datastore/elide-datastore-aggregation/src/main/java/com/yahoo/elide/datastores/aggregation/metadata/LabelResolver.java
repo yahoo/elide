@@ -5,15 +5,11 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,24 +29,20 @@ public abstract class LabelResolver {
      * Resolve a label for a join path. This method need to be implemented for each column.
      *
      * @param fromPath path to be resolved
-     * @param resolved resolved paths
      * @param generator generator to construct labels
-     * @param metaDataStore meta data store
+     * @param labelStore table stores all resolvers
      * @param <T> label value type
      * @return resolved label
      */
-    public abstract <T> T resolveLabel(JoinPath fromPath,
-                                       Map<JoinPath, T> resolved,
-                                       LabelGenerator<T> generator,
-                                       MetaDataStore metaDataStore);
+    public abstract <T> T resolveLabel(JoinPath fromPath, LabelGenerator<T> generator, LabelStore labelStore);
 
     /**
      * Get all other resolvers that this resolver would involve when resolving label.
      *
-     * @param metaDataStore meta data store
+     * @param labelStore table stores all resolvers
      * @return dependency resolvers
      */
-    protected Set<LabelResolver> getDependencyResolvers(MetaDataStore metaDataStore) {
+    protected Set<LabelResolver> getDependencyResolvers(LabelStore labelStore) {
         return Collections.emptySet();
     }
 
@@ -87,53 +79,6 @@ public abstract class LabelResolver {
         return "Dimension formula reference loop found: "
                 + visited.stream().map(labelResolver -> labelResolver.column.getId()).collect(Collectors.joining("->"))
                 + "->" + loop.column.getId();
-    }
-
-    /**
-     * DFS recursion method for constructing label for a reference field in a class.
-     *
-     * @param fromPath path to a reference that needs to be resolved
-     * @param tableClass table class of that reference
-     * @param reference reference
-     * @param resolved resolved paths
-     * @param generator generator to construct labels
-     * @param metaDataStore meta data store
-     * @param <T> label value type
-     * @return resolved label for this reference
-     */
-    protected static <T> T resolveReference(JoinPath fromPath,
-                                            Class<?> tableClass,
-                                            String reference,
-                                            Map<JoinPath, T> resolved,
-                                            LabelGenerator<T> generator,
-                                            MetaDataStore metaDataStore) {
-
-        JoinPath extension = new JoinPath(tableClass, metaDataStore.getDictionary(), reference);
-
-        // append new path after original path
-        JoinPath extended = extendJoinPath(fromPath, extension);
-
-        if (!resolved.containsKey(extended)) {
-            resolved.put(extended, metaDataStore.resolveLabel(extended, resolved, generator));
-        }
-
-        return resolved.get(extended);
-    }
-
-    /**
-     * Append an extension path to an original path, the last element of original path should be the same as the
-     * first element of extension path.
-     *
-     * @param path original path, e.g. <code>[A.B]/[B.C]</code>
-     * @param extension extension path, e.g. <code>[B.C]/[C.D]</code>
-     * @param <P> path extension
-     * @return extended path <code>[A.B]/[B.C]/[C.D]</code>
-     */
-    private static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
-        List<Path.PathElement> toExtend = new ArrayList<>(path.getPathElements());
-        toExtend.remove(toExtend.size() - 1);
-        toExtend.addAll(extension.getPathElements());
-        return new JoinPath(toExtend);
     }
 
     /**

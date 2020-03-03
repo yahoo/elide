@@ -13,10 +13,8 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
-import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver.LabelGenerator;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -35,9 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
-public class MetaDataStore extends HashMapDataStore {
+public class MetaDataStore extends HashMapDataStore implements LabelStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
@@ -247,12 +243,7 @@ public class MetaDataStore extends HashMapDataStore {
         );
     }
 
-    /**
-     * Get the label resolver for a path
-     *
-     * @param path path to a logical field
-     * @return a label resolver
-     */
+    @Override
     public LabelResolver getLabelResolver(Path path) {
         Path.PathElement last = path.lastElement().get();
 
@@ -260,34 +251,6 @@ public class MetaDataStore extends HashMapDataStore {
                 .getColumnMap()
                 .get(last.getFieldName())
                 .getLabelResolver();
-    }
-
-    /**
-     * Resolve the label for field navigated by the path.
-     *
-     * @param path path to the field
-     * @param resolved resolved paths
-     * @param generator generator to construct labels
-     * @param <T> label value type
-     * @return resolved label
-     */
-    public <T> T resolveLabel(JoinPath path, Map<JoinPath, T> resolved, LabelGenerator<T> generator) {
-        return resolved.containsKey(path)
-                ? resolved.get(path)
-                : getLabelResolver(path).resolveLabel(path, resolved, generator, this);
-
-    }
-
-    /**
-     * Resolve the label for field navigated by the path.
-     *
-     * @param path path to the field
-     * @param generator generator to construct labels
-     * @param <T> label value type
-     * @return resolved label
-     */
-    public <T> T resolveLabel(JoinPath path, LabelGenerator<T> generator) {
-        return resolveLabel(path, new LinkedHashMap<>(), generator);
     }
 
     /**

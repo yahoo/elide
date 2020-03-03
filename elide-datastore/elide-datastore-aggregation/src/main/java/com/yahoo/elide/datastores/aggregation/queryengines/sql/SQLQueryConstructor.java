@@ -321,7 +321,7 @@ public class SQLQueryConstructor {
 
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
-                    JoinPath expandedPath = expandJoinToPath(entry.getKey());
+                    JoinPath expandedPath = extendToJoinToPath(entry.getKey());
                     Sorting.SortOrder order = entry.getValue();
 
                     Path.PathElement last = expandedPath.lastElement().get();
@@ -333,7 +333,7 @@ public class SQLQueryConstructor {
                             .orElse(null);
 
                     String orderByClause = metric == null
-                            ? metaDataStore.resolveLabel(expandedPath, SQL_REFERENCE_GENERATOR)
+                            ? metaDataStore.generateLabel(expandedPath, SQL_REFERENCE_GENERATOR)
                             : metric.getFunctionExpression();
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
@@ -348,7 +348,7 @@ public class SQLQueryConstructor {
      * @param path The path to expand.
      * @return The expanded path.
      */
-    private JoinPath expandJoinToPath(Path path) {
+    private JoinPath extendToJoinToPath(Path path) {
         Path.PathElement pathRoot = path.getPathElements().get(0);
 
         Class<?> entityClass = pathRoot.getType();
@@ -373,7 +373,7 @@ public class SQLQueryConstructor {
 
         return predicates.stream()
                 .map(FilterPredicate::getPath)
-                .map(this::expandJoinToPath)
+                .map(this::extendToJoinToPath)
                 .filter(path -> path.getPathElements().size() > 1)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -386,7 +386,7 @@ public class SQLQueryConstructor {
      */
     private Set<JoinPath> extractJoinPaths(Map<Path, Sorting.SortOrder> sortClauses) {
         return sortClauses.keySet().stream()
-                .map(this::expandJoinToPath)
+                .map(this::extendToJoinToPath)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -428,7 +428,7 @@ public class SQLQueryConstructor {
      * @return A SQL fragment that references a database column
      */
     private String generatePredicateReference(FilterPredicate predicate) {
-        return metaDataStore.resolveLabel(new JoinPath(predicate.getPath()), SQL_REFERENCE_GENERATOR);
+        return metaDataStore.generateLabel(predicate.getPath(), SQL_REFERENCE_GENERATOR);
     }
 
     /**

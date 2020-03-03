@@ -10,19 +10,17 @@ import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.toFo
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -83,12 +81,9 @@ public interface SQLColumn {
     default LabelResolver getLogicalColumnResolver(Class<?> tableClass, String fieldName) {
         return new LabelResolver(getColumn()) {
             @Override
-            public <T> T resolveLabel(JoinPath fromPath,
-                                      Map<JoinPath, T> resolved,
-                                      LabelGenerator<T> generator,
-                                      MetaDataStore metaDataStore) {
+            public <T> T resolveLabel(JoinPath fromPath, LabelGenerator<T> generator, LabelStore labelStore) {
                 return generator.apply(
-                        fromPath, metaDataStore.getDictionary().getAnnotatedColumnName(tableClass, fieldName));
+                        fromPath, labelStore.getDictionary().getAnnotatedColumnName(tableClass, fieldName));
             }
         };
     }
@@ -103,18 +98,17 @@ public interface SQLColumn {
     default LabelResolver getJoinToResolver(Class<?> tableClass, JoinTo joinTo) {
         return new LabelResolver(getColumn()) {
             @Override
-            public Set<LabelResolver> getDependencyResolvers(MetaDataStore metaDataStore) {
+            public Set<LabelResolver> getDependencyResolvers(LabelStore labelStore) {
                 return Collections.singleton(
-                        metaDataStore.getLabelResolver(
-                                new JoinPath(tableClass, metaDataStore.getDictionary(), joinTo.path())));
+                        labelStore.getLabelResolver(
+                                new JoinPath(tableClass, labelStore.getDictionary(), joinTo.path())));
             }
 
             @Override
-            public <T> T resolveLabel(JoinPath fromPath,
-                                      Map<JoinPath, T> resolved,
-                                      LabelGenerator<T> generator,
-                                      MetaDataStore metaDataStore) {
-                return resolveReference(fromPath, tableClass, joinTo.path(), resolved, generator, metaDataStore);
+            public <T> T resolveLabel(JoinPath fromPath, LabelGenerator<T> generator, LabelStore labelStore) {
+                return labelStore.generateLabel(
+                        fromPath.extend(labelStore.getDictionary(), joinTo.path()),
+                        generator);
             }
         };
     }
@@ -135,8 +129,8 @@ public interface SQLColumn {
 
         return new LabelResolver(getColumn()) {
             @Override
-            public Set<LabelResolver> getDependencyResolvers(MetaDataStore metaDataStore) {
-                EntityDictionary dictionary = metaDataStore.getDictionary();
+            public Set<LabelResolver> getDependencyResolvers(LabelStore labelStore) {
+                EntityDictionary dictionary = labelStore.getDictionary();
 
                 return references.stream()
                         .map(ref -> {
@@ -145,38 +139,29 @@ public interface SQLColumn {
                                 return null;
                             }
 
-                            return metaDataStore.getLabelResolver(new JoinPath(tableClass, dictionary, ref));
+                            return labelStore.getLabelResolver(new JoinPath(tableClass, dictionary, ref));
                         })
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
             }
 
             @Override
-            public <T> T resolveLabel(JoinPath fromPath,
-                                      Map<JoinPath, T> resolved,
-                                      LabelGenerator<T> generator,
-                                      MetaDataStore metaDataStore) {
-                EntityDictionary dictionary = metaDataStore.getDictionary();
+            public <T> T resolveLabel(JoinPath fromPath, LabelGenerator<T> generator, LabelStore labelStore) {
+                EntityDictionary dictionary = labelStore.getDictionary();
                 String expr = expression;
-
-                // store resolved reference sql statements
-                Map<String, T> resolvedReferences = references.stream()
-                        .collect(Collectors.toMap(
-                                Function.identity(),
-                                reference -> reference.indexOf('.') == -1
-                                        && dictionary.getParameterizedType(tableClass, reference) == null
-                                        ? generator.apply(fromPath, reference) // if the column is physical
-                                        : resolveReference(
-                                                fromPath,
-                                                tableClass,
-                                                reference,
-                                                resolved,
-                                                generator,
-                                                metaDataStore)));
 
                 // replace references with resolved statements/expressions
                 for (String reference : references) {
-                    expr = expr.replace(toFormulaReference(reference), resolvedReferences.get(reference).toString());
+                    T resolvedReference = reference.indexOf('.') == -1
+                            && dictionary.getParameterizedType(tableClass, reference) == null
+                            ? generator.apply(fromPath, reference)
+                            : labelStore.generateLabel(
+                                    fromPath.extend(labelStore.getDictionary(), reference),
+                                    generator);
+
+                    if (resolvedReference instanceof CharSequence) {
+                        expr = expr.replace(toFormulaReference(reference), (CharSequence) resolvedReference);
+                    }
                 }
 
                 return generator.apply(expr);

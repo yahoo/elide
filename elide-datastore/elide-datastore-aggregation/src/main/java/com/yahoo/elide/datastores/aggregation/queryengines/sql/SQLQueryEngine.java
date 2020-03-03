@@ -16,9 +16,9 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver.LabelGenerator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver.LabelGenerator;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
@@ -51,13 +51,8 @@ import javax.persistence.EntityTransaction;
  */
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
-    public static LabelGenerator<String> SQL_REFERENCE_GENERATOR = (joinPath, reference) -> {
-        if (joinPath != null) {
-            return getFieldAlias(joinPath, reference);
-        } else {
-            return reference;
-        }
-    };
+    public static LabelGenerator<String> SQL_REFERENCE_GENERATOR =
+            (joinPath, reference) -> joinPath != null ? getFieldAlias(joinPath, reference) : reference;
 
     private final EntityManagerFactory entityManagerFactory;
 
