@@ -69,6 +69,25 @@ public class AsyncDbUtil {
     }
 
     /**
+     * This method deletes the AsyncQuery object from database.
+     * @param asyncQueryId Unique UUID for the AsyncQuery Object
+     * @throws IOException IOException from DataStoreTransaction
+     * @return
+     */
+    protected void deleteAsyncQuery(UUID asyncQueryId) throws IOException {
+        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
+        EntityProjection asyncQueryCollection = EntityProjection.builder()
+            .type(AsyncQuery.class)
+            .build();
+        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
+        AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+        tx.delete(query, scope);
+        tx.commit(scope);
+        tx.flush(scope);
+        tx.close();
+    }
+
+    /**
      * This method persists the model for AsyncQueryResult
      * @param status ElideResponse status from AsyncQuery
      * @param responseBody ElideResponse responseBody from AsyncQuery
