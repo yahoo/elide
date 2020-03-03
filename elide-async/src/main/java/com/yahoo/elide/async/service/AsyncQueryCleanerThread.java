@@ -6,6 +6,9 @@
 package com.yahoo.elide.async.service;
 
 import java.io.IOException;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +39,11 @@ public class AsyncQueryCleanerThread implements Runnable {
 
     private int maxRunTimeMinutes;
     private Elide elide;
+    private int queryCleanupDays;
 
     @Override
     public void run() {
-    	deleteAsyncQuery();
+        deleteAsyncQuery();
         timeoutAsyncQuery();
     }
 
@@ -54,8 +58,19 @@ public class AsyncQueryCleanerThread implements Runnable {
             EntityDictionary dictionary = elide.getElideSettings().getDictionary();
             RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
             RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-
-            FilterExpression filter = filterParser.parseFilterExpression("createdOn=le=" + new Date() , AsyncQuery.class, false);
+            
+            //Calculate date to clean up
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(new Date());
+            cal.add(Calendar.DATE, -(queryCleanupDays));
+            Date cleanupDate = cal.getTime();
+            
+            Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+            String cleanupDateFormatted = dateFormat.format(cleanupDate);
+            log.debug("cleanupDateFormatted = {}", cleanupDateFormatted);
+            
+            FilterExpression filter = filterParser.parseFilterExpression("createdOn=le='" + cleanupDateFormatted + "'",
+                    AsyncQuery.class, false);
             log.debug("filter = {}", filter.toString());
 
             EntityProjection asyncQueryCollection = EntityProjection.builder()
@@ -65,14 +80,11 @@ public class AsyncQueryCleanerThread implements Runnable {
 
             Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
             Iterator<Object> itr = loaded.iterator();
-            long currentTime = new Date().getTime();
             while(itr.hasNext()) {
                 AsyncQuery query = (AsyncQuery) itr.next();
-
-                if(isTimedOut(currentTime, query)) {
-                    log.info("Updating Async Query Status to DELETE");
-                    asyncDbUtil.updateAsyncQuery(QueryStatus.TIMEDOUT, query.getId());
-                }
+                
+                log.info("Found a query to DELETE");
+                asyncDbUtil.deleteAsyncQuery(query.getId());
             }
         }
         catch (Exception e) {
