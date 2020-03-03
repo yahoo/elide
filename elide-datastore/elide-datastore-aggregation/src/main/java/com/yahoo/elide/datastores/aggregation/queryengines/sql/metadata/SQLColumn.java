@@ -74,23 +74,14 @@ public interface SQLColumn {
     }
 
     /**
-     * A partial implemented {@link LabelResolver} for all sql columns
-     */
-    abstract class SqlColumnLabelResolver extends LabelResolver {
-        private SqlColumnLabelResolver(SQLColumn column) {
-            super(column.getColumn());
-        }
-    }
-
-    /**
      * Get a logical column reference resolver
      *
      * @param tableClass table class
      * @param fieldName field name
      * @return a resolver
      */
-    default SqlColumnLabelResolver getLogicalColumnResolver(Class<?> tableClass, String fieldName) {
-        return new SqlColumnLabelResolver(this) {
+    default LabelResolver getLogicalColumnResolver(Class<?> tableClass, String fieldName) {
+        return new LabelResolver(getColumn()) {
             @Override
             public <T> T resolveLabel(JoinPath fromPath,
                                       Map<JoinPath, T> resolved,
@@ -109,8 +100,8 @@ public interface SQLColumn {
      * @param joinTo join to path
      * @return a resolver
      */
-    default SqlColumnLabelResolver getJoinToResolver(Class<?> tableClass, JoinTo joinTo) {
-        return new SqlColumnLabelResolver(this) {
+    default LabelResolver getJoinToResolver(Class<?> tableClass, JoinTo joinTo) {
+        return new LabelResolver(getColumn()) {
             @Override
             public Set<LabelResolver> getDependencyResolvers(MetaDataStore metaDataStore) {
                 return Collections.singleton(
@@ -135,14 +126,14 @@ public interface SQLColumn {
      * @param formula formula contains physical column, logical column and {@link JoinTo} paths
      * @return a resolver
      */
-    default SqlColumnLabelResolver getFormulaResolver(Class<?> tableClass, DimensionFormula formula) {
+    default LabelResolver getFormulaResolver(Class<?> tableClass, DimensionFormula formula) {
         final String expression = formula.value();
 
         // dimension references are deduplicated
         List<String> references =
                 resolveFormulaReferences(expression).stream().distinct().collect(Collectors.toList());
 
-        return new SqlColumnLabelResolver(this) {
+        return new LabelResolver(getColumn()) {
             @Override
             public Set<LabelResolver> getDependencyResolvers(MetaDataStore metaDataStore) {
                 EntityDictionary dictionary = metaDataStore.getDictionary();
