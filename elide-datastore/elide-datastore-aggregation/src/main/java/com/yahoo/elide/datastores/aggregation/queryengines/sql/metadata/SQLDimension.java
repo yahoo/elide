@@ -11,7 +11,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -43,12 +43,12 @@ public class SQLDimension extends Dimension implements SQLColumn {
     }
 
     @Override
-    public void resolveReference(MetaDataStore metaDataStore) {
-        EntityDictionary dictionary = metaDataStore.getDictionary();
+    public void resolveReference(LabelStore labelStore) {
+        EntityDictionary dictionary = labelStore.getDictionary();
         String fieldName = getName();
         Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
 
-        this.reference = metaDataStore.generateLabel(
+        this.reference = labelStore.generateLabel(
                 new JoinPath(
                         Collections.singletonList(
                                 new Path.PathElement(

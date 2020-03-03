@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
 import com.yahoo.elide.datastores.aggregation.metadata.LabelStore;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;
@@ -133,11 +132,11 @@ public abstract class Column {
     }
 
     /**
-     * Resolve physical label of this column.
+     * Resolve physical reference label of this column.
      *
-     * @param metaDataStore meta data store
+     * @param labelStore table stores all resolvers
      */
-    public void resolveReference(MetaDataStore metaDataStore) {
+    public void resolveReference(LabelStore labelStore) {
         // NOOP
     }
 }
