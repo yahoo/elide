@@ -205,6 +205,15 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Number of days history to retain for async query executions and results.
+     *
+     * @return Default: 7
+     */
+    default Integer getQueryCleanupDays() {
+        return 7;
+    }
+
+    /**
      * Whether Dates should be ISO8601 strings (true) or epochs (false).
      * @return
      */
