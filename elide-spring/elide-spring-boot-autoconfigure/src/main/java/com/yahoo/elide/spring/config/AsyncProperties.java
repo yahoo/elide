@@ -28,4 +28,9 @@ public class AsyncProperties extends ControllerProperties {
      */
     private boolean cleanupEnabled = false;
 
+    /**
+     * Default retention of async query and resultss
+     */
+    private int queryCleanupDays = 7;
+
 }

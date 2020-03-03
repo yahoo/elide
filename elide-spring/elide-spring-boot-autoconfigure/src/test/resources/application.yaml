@@ -18,6 +18,7 @@ elide:
     threadPoolSize: 7
     maxRunTimeMinutes: 65
     cleanupEnabled: true
+    queryCleanupDays: 7
 
 spring:
   jpa:

@@ -34,6 +34,7 @@ public class ElideAsyncCleanupConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncCleanerService buildAsyncCleanerService(Elide elide, ElideConfigProperties settings) {
-        return new AsyncCleanerService(elide, settings.getAsync().getMaxRunTimeMinutes());
+        return new AsyncCleanerService(elide, settings.getAsync().getMaxRunTimeMinutes(),
+        		settings.getAsync().getQueryCleanupDays());
     }
 }
