@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -250,16 +249,17 @@ public class MetaDataStore extends HashMapDataStore {
     }
 
     /**
-     * Get the label resolver for a field
+     * Get the label resolver for a path
      *
-     * @param tableClass table class
-     * @param fieldName field name
+     * @param path path to a logical field
      * @return a label resolver
      */
-    private LabelResolver getLabelResolver(Class<?> tableClass, String fieldName) {
-        return ((Table) dataStore.get(Table.class).get(dictionary.getJsonAliasFor(tableClass)))
+    public LabelResolver getLabelResolver(Path path) {
+        Path.PathElement last = path.lastElement().get();
+
+        return ((Table) dataStore.get(Table.class).get(dictionary.getJsonAliasFor(last.getType())))
                 .getColumnMap()
-                .get(fieldName)
+                .get(last.getFieldName())
                 .getLabelResolver();
     }
 
@@ -267,24 +267,16 @@ public class MetaDataStore extends HashMapDataStore {
      * Resolve the label for field navigated by the path.
      *
      * @param path path to the field
-     * @param toResolve paths that are pending resolving
      * @param resolved resolved paths
      * @param generator generator to construct labels
      * @param <T> label value type
      * @return resolved label
      */
-    public <T> T resolveLabel(JoinPath path,
-                              Set<JoinPath> toResolve,
-                              Map<JoinPath, T> resolved,
-                              LabelGenerator<T> generator) {
-        if (resolved.containsKey(path)) {
-            return resolved.get(path);
-        }
+    public <T> T resolveLabel(JoinPath path, Map<JoinPath, T> resolved, LabelGenerator<T> generator) {
+        return resolved.containsKey(path)
+                ? resolved.get(path)
+                : getLabelResolver(path).resolveLabel(path, resolved, generator, this);
 
-        Path.PathElement last = path.lastElement().get();
-
-        return getLabelResolver(last.getType(), last.getFieldName())
-                .resolveLabel(path, toResolve, resolved, generator, this);
     }
 
     /**
@@ -296,13 +288,17 @@ public class MetaDataStore extends HashMapDataStore {
      * @return resolved label
      */
     public <T> T resolveLabel(JoinPath path, LabelGenerator<T> generator) {
-        return resolveLabel(path, new LinkedHashSet<>(), new LinkedHashMap<>(), generator);
+        return resolveLabel(path, new LinkedHashMap<>(), generator);
     }
 
     /**
      * Resolve all column references in all tables.
      */
     public void resolveReference() {
+        getMetaData(Table.class)
+                .forEach(table -> table.getColumns()
+                        .forEach(column -> column.getLabelResolver().checkResolverLoop(this)));
+
         getMetaData(Table.class)
                 .forEach(table -> table.getColumns()
                         .forEach(column -> column.resolveReference(this)));

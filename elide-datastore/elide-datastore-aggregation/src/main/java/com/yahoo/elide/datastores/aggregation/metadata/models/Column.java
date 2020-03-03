@@ -83,7 +83,7 @@ public abstract class Column {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
 
-        this.labelResolver = constructLabelResolver();
+        this.labelResolver = constructLabelResolver(dictionary);
     }
 
     public static ValueType getValueType(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
@@ -120,11 +120,10 @@ public abstract class Column {
      *
      * @return a label resolver
      */
-    protected LabelResolver constructLabelResolver() {
-        return new LabelResolver() {
+    protected LabelResolver constructLabelResolver(EntityDictionary dictionary) {
+        return new LabelResolver(this) {
             @Override
             public <T> T resolveLabel(JoinPath fromPath,
-                                      Set<JoinPath> toResolve,
                                       Map<JoinPath, T> resolved,
                                       LabelGenerator<T> generator,
                                       MetaDataStore metaDataStore) {

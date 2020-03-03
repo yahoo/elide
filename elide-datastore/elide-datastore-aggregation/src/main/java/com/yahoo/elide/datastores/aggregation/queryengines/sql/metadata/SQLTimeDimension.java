@@ -11,6 +11,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.LabelResolver;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -64,7 +65,12 @@ public class SQLTimeDimension extends TimeDimension implements SQLColumn {
     }
 
     @Override
-    protected LabelResolver constructLabelResolver() {
-        return sqlColumnLabelResolver();
+    protected LabelResolver constructLabelResolver(EntityDictionary dictionary) {
+        return constructSQLColumnLabelResolver(dictionary);
+    }
+
+    @Override
+    public Column getColumn() {
+        return this;
     }
 }

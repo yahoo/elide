@@ -26,8 +26,7 @@ public class DimensionFormulaTest {
                 IllegalArgumentException.class,
                 () -> new SQLQueryEngine(metaDataStore, null));
         assertEquals(
-                "Dimension formula reference loop found in class loop: "
-                        + "[Loop].playerLevel->[Loop].playerLevel",
+                "Dimension formula reference loop found: loop.playerLevel->loop.playerLevel",
                 exception.getMessage());
     }
 
@@ -40,19 +39,9 @@ public class DimensionFormulaTest {
                 IllegalArgumentException.class,
                 () -> new SQLQueryEngine(metaDataStore, null));
 
-        String exception1 = "Dimension formula reference loop found in class loopCountryB: "
-                + "[LoopCountryB].inUsa->"
-                + "[LoopCountryB].countryA/[LoopCountryA].inUsa->"
-                + "[LoopCountryA].countryB/[LoopCountryB].inUsa->"
-                + "[LoopCountryB].countryA/[LoopCountryA].countryB/[LoopCountryB].inUsa->"
-                + "[LoopCountryB].countryA/[LoopCountryA].countryB/[LoopCountryB].inUsa";
+        String exception1 = "Dimension formula reference loop found: loopCountryA.inUsa->loopCountryB.inUsa->loopCountryA.inUsa";
 
-        String exception2 = "Dimension formula reference loop found in class loopCountryA: "
-                + "[LoopCountryA].inUsa->"
-                + "[LoopCountryA].countryB/[LoopCountryB].inUsa->"
-                + "[LoopCountryB].countryA/[LoopCountryA].inUsa->"
-                + "[LoopCountryA].countryB/[LoopCountryB].countryA/[LoopCountryA].inUsa->"
-                + "[LoopCountryA].countryB/[LoopCountryB].countryA/[LoopCountryA].inUsa";
+        String exception2 = "Dimension formula reference loop found: loopCountryB.inUsa->loopCountryA.inUsa->loopCountryB.inUsa";
 
         assertTrue(exception1.equals(exception.getMessage()) || exception2.equals(exception.getMessage()));
     }
