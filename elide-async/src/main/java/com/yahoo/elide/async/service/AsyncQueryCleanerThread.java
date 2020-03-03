@@ -85,6 +85,7 @@ public class AsyncQueryCleanerThread implements Runnable {
                 
                 log.info("Found a query to DELETE");
                 asyncDbUtil.deleteAsyncQuery(query.getId());
+                asyncDbUtil.deleteAsyncQueryResult(query.getId());
             }
         }
         catch (Exception e) {
