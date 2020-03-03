@@ -7,7 +7,6 @@ package com.yahoo.elide.standalone.config;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.async.models.AsyncQuery;
 
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.audit.AuditLogger;
@@ -216,6 +215,15 @@ public interface ElideStandaloneSettings {
      */
     default Integer getMaxRunTimeMinutes() {
         return 60;
+    }
+
+    /**
+     * Number of days history to retain for async query executions and results.
+     *
+     * @return Default: 7
+     */
+    default Integer getQueryCleanupDays() {
+        return 7;
     }
 
     /**
