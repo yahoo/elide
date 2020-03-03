@@ -18,7 +18,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.metadata.models.LabelResolver.LabelGenerator;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver.LabelGenerator;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;

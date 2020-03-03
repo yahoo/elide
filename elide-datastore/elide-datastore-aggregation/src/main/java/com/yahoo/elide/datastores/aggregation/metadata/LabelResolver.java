@@ -3,11 +3,11 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.metadata.models;
+package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -137,7 +137,7 @@ public abstract class LabelResolver {
     }
 
     /**
-     * LabelGenerator is an interface that convert a column and refernce pair into some other types of value.
+     * LabelGenerator is an interface that convert a [column, reference] pair into some other types of value.
      *
      * @param <T> label value type
      */

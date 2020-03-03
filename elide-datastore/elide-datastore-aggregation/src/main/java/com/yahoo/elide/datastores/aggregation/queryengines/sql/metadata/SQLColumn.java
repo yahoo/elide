@@ -12,7 +12,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.LabelResolver;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
