@@ -65,19 +65,8 @@ public class DataStoreIT extends IntegrationTest {
     private static final int ALL_BOOKS_COUNT = 3;
 
     public DataStoreIT() {
-        goodUser = new User(new Principal() {
-            @Override
-            public String getName() {
-                return "1";
-            }
-        });
-
-        badUser = new User(new Principal() {
-            @Override
-            public String getName() {
-                return "-1";
-            }
-        });
+        goodUser = new User(() -> "1");
+        badUser = new User(() -> "-1");
 
         mapper = new ObjectMapper();
         Map<String, Class<? extends Check>> checks = new HashMap(TestCheckMappings.MAPPINGS);

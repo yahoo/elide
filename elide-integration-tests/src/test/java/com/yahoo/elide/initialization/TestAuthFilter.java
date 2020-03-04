@@ -22,12 +22,7 @@ public class TestAuthFilter implements ContainerRequestFilter {
         containerRequestContext.setSecurityContext(new SecurityContext() {
             @Override
             public Principal getUserPrincipal() {
-                return new Principal() {
-                    @Override
-                    public String getName() {
-                        return "1";
-                    }
-                };
+                return () -> "1";
             }
 
             @Override
