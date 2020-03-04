@@ -73,7 +73,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
