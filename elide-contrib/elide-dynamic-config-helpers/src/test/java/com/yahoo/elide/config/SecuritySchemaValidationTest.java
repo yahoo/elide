@@ -36,7 +36,6 @@ public class SecuritySchemaValidationTest {
     public void testValidSecuritySchema() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/security/valid_security.json");
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results);
         assertTrue(results.isSuccess());
     }
 
@@ -44,7 +43,6 @@ public class SecuritySchemaValidationTest {
     public void testInValidSecuritySchema() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/security/invalid_security.json");
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results);
         assertFalse(results.isSuccess());
     }
 
@@ -52,8 +50,6 @@ public class SecuritySchemaValidationTest {
     public void testValidSecurityHJson() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/security/valid_security.hjson", true);
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results);
-        System.out.println(results.isSuccess());
         assertTrue(results.isSuccess());
     }
 
@@ -61,7 +57,6 @@ public class SecuritySchemaValidationTest {
     public void testInvalidSecurityHJson() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/security/invalid_security.hjson", true);
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results.isSuccess());
         assertFalse(results.isSuccess());
     }
 

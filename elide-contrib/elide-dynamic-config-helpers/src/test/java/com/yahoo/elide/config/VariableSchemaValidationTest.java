@@ -36,7 +36,6 @@ public class VariableSchemaValidationTest {
     public void testValidVariableSchema() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/variable/valid_variable.json");
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results);
         assertTrue(results.isSuccess());
     }
 
@@ -44,7 +43,6 @@ public class VariableSchemaValidationTest {
     public void testInValidVariableSchema() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/variable/invalid_variable.json");
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results);
         assertFalse(results.isSuccess());
     }
 
@@ -59,7 +57,6 @@ public class VariableSchemaValidationTest {
     public void testInvalidVariableHJson() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/variable/invalid_variable.hjson", true);
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results);
         assertFalse(results.isSuccess());
     }
 
