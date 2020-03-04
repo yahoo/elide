@@ -10,6 +10,7 @@ import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
@@ -27,13 +28,11 @@ import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.functions.LifeCycleHook;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Getter;
 
@@ -97,6 +96,8 @@ public class EntityBinding {
     @Getter
     private AccessType accessType;
 
+    private EntityDictionary dictionary;
+
     public final EntityPermissions entityPermissions;
     public final List<String> apiAttributes;
     public final List<String> apiRelationships;
@@ -108,8 +109,8 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, String> relationshipToInverse = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, CascadeType[]> relationshipToCascadeTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
-    public final MultiValuedMap<Pair<Class, String>, LifeCycleHook> fieldsToTriggers = new HashSetValuedHashMap<>();
-    public final MultiValuedMap<Class, LifeCycleHook> classToTriggers = new HashSetValuedHashMap<>();
+    public final MultiValuedMap<String, LifeCycleHookBinding> fieldTriggers = new HashSetValuedHashMap<>();
+    public final Set<LifeCycleHookBinding> classTriggers = new HashSet<>();
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
@@ -133,6 +134,7 @@ public class EntityBinding {
         entityClass = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
         idGenerated = false;
+        dictionary = null;
     }
 
     /**
@@ -164,6 +166,7 @@ public class EntityBinding {
                          String type,
                          String name,
                          Set<Class<? extends Annotation>> hiddenAnnotations) {
+        this.dictionary = dictionary;
         entityClass = cls;
         jsonApiType = type;
         entityName = name;
@@ -211,6 +214,7 @@ public class EntityBinding {
         }
 
         bindEntityFields(cls, type, fieldOrMethodList, hiddenAnnotations);
+        bindTriggerIfPresent();
 
         apiAttributes = dequeToList(attributesDeque);
         apiRelationships = dequeToList(relationshipsDeque);
@@ -270,18 +274,7 @@ public class EntityBinding {
                                   Collection<AccessibleObject> fieldOrMethodList,
                                   Set<Class<? extends Annotation>> hiddenAnnotations) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
-            bindTriggerIfPresent(OnCreatePreSecurity.class, fieldOrMethod);
-            bindTriggerIfPresent(OnDeletePreSecurity.class, fieldOrMethod);
-            bindTriggerIfPresent(OnUpdatePreSecurity.class, fieldOrMethod);
-            bindTriggerIfPresent(OnReadPreSecurity.class, fieldOrMethod);
-            bindTriggerIfPresent(OnCreatePreCommit.class, fieldOrMethod);
-            bindTriggerIfPresent(OnDeletePreCommit.class, fieldOrMethod);
-            bindTriggerIfPresent(OnUpdatePreCommit.class, fieldOrMethod);
-            bindTriggerIfPresent(OnReadPreCommit.class, fieldOrMethod);
-            bindTriggerIfPresent(OnCreatePostCommit.class, fieldOrMethod);
-            bindTriggerIfPresent(OnDeletePostCommit.class, fieldOrMethod);
-            bindTriggerIfPresent(OnUpdatePostCommit.class, fieldOrMethod);
-            bindTriggerIfPresent(OnReadPostCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(fieldOrMethod);
 
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
@@ -537,68 +530,54 @@ public class EntityBinding {
         return TypeUtils.getRawType(type, parentClass);
     }
 
-    private void bindTriggerIfPresent(Class<? extends Annotation> annotationClass, AccessibleObject fieldOrMethod) {
-        if (fieldOrMethod instanceof Method && fieldOrMethod.isAnnotationPresent(annotationClass)) {
-            Annotation trigger = fieldOrMethod.getAnnotation(annotationClass);
-            String value;
-            try {
-                value = (String) annotationClass.getMethod("value").invoke(trigger);
-            } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
-                value = "";
-            }
-
-            Method method = (Method) fieldOrMethod;
-
-            int paramCount = method.getParameterCount();
-            Class<?>[] paramTypes = method.getParameterTypes();
-
-            LifeCycleHook callback = (entity, scope, changes) -> {
-                try {
-                    if (changes.isPresent() && paramCount == 2
-                            && paramTypes[0].isInstance(scope)
-                            && paramTypes[1].isInstance(changes.get())) {
-                        method.invoke(entity, scope, changes.get());
-                    } else if (paramCount == 1 && paramTypes[0].isInstance(scope)) {
-                        method.invoke(entity, scope);
-                    } else if (paramCount == 0) {
-                        method.invoke(entity);
-                    } else {
-                        throw new IllegalArgumentException();
-                    }
-                } catch (ReflectiveOperationException e) {
-                    Throwables.propagateIfPossible(e.getCause());
-                    throw new IllegalArgumentException(e);
-                }
-            };
-
-            if (value.equals(ALL_FIELDS)) {
-                bindTrigger(annotationClass, callback);
-            } else {
-                bindTrigger(annotationClass, value, callback);
-            }
+    private void bindTriggerIfPresent(AccessibleObject fieldOrMethod) {
+        if (fieldOrMethod.isAnnotationPresent(LifeCycleHookBinding.class)) {
+            LifeCycleHookBinding trigger = fieldOrMethod.getAnnotation(LifeCycleHookBinding.class);
+            bindTrigger(trigger, getFieldName(fieldOrMethod));
+        }
+    }
+    private void bindTriggerIfPresent() {
+        if (entityClass.isAnnotationPresent(LifeCycleHookBinding.class)) {
+            LifeCycleHookBinding trigger = entityClass.getAnnotation(LifeCycleHookBinding.class);
+            bindTrigger(trigger);
         }
     }
 
-    public void bindTrigger(Class<? extends Annotation> annotationClass,
-                            String fieldOrMethodName,
-                            LifeCycleHook callback) {
-        fieldsToTriggers.put(Pair.of(annotationClass, fieldOrMethodName), callback);
+    public void bindTrigger(LifeCycleHookBinding binding,
+                            String fieldOrMethodName) {
+        fieldTriggers.put(fieldOrMethodName, binding);
     }
 
-    public void bindTrigger(Class<? extends Annotation> annotationClass,
-                            LifeCycleHook callback) {
-        classToTriggers.put(annotationClass, callback);
+    public void bindTrigger(LifeCycleHookBinding binding) {
+        classTriggers.add(binding);
     }
 
+    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(LifeCycleHookBinding.Operation op,
+                                                                        LifeCycleHookBinding.TransactionPhase phase,
+                                                                        String fieldName) {
+        Collection<LifeCycleHookBinding> bindings = fieldTriggers.get(fieldName);
+        if (bindings == null) {
+            return Collections.emptyList();
+        }
 
-    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<A> annotationClass, String fieldName) {
-        Collection<LifeCycleHook> methods = fieldsToTriggers.get(Pair.of(annotationClass, fieldName));
-        return methods == null ? Collections.emptyList() : methods;
+        return bindings.stream()
+                .filter((binding) -> {
+                    return (binding.operation() == op && binding.phase() == phase);
+                })
+                .map((binding) -> {
+                    return dictionary.getInjector().instantiate(binding.hook());
+                }).collect(Collectors.toSet());
     }
 
-    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<A> annotationClass) {
-        Collection<LifeCycleHook> methods = classToTriggers.get(annotationClass);
-        return methods == null ? Collections.emptyList() : methods;
+    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(LifeCycleHookBinding.Operation op,
+                                                                        LifeCycleHookBinding.TransactionPhase phase) {
+        return classTriggers.stream()
+                .filter((binding) -> {
+                    return (binding.operation() == op && binding.phase() == phase);
+                })
+                .map((binding) -> {
+                    return dictionary.getInjector().instantiate(binding.hook());
+                }).collect(Collectors.toSet());
     }
 
     /**
