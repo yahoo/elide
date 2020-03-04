@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
+import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -13,7 +14,6 @@ import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
 import com.yahoo.elide.datastores.aggregation.metadata.LabelStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -123,10 +123,8 @@ public abstract class Column {
     protected LabelResolver constructLabelResolver(EntityDictionary dictionary) {
         return new LabelResolver(this) {
             @Override
-            public <T> T resolveLabel(JoinPath fromPath,
-                                      LabelGenerator<T> generator,
-                                      LabelStore labelStore) {
-                return generator.apply(fromPath, getName());
+            public String resolveLabel(LabelStore labelStore, String labelPrefix) {
+                return getFieldAlias(labelPrefix, getName());
             }
         };
     }

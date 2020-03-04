@@ -6,9 +6,9 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.SQL_REFERENCE_GENERATOR;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
@@ -105,7 +105,9 @@ public class SQLQueryConstructor {
         }
 
         if (whereClause != null) {
-            builder.whereClause("WHERE " + translateFilterExpression(whereClause, this::generatePredicateReference));
+            builder.whereClause("WHERE " + translateFilterExpression(
+                    whereClause,
+                    filterPredicate -> generatePredicatePathReference(filterPredicate.getPath())));
 
             joinPaths.addAll(extractJoinPaths(whereClause));
         }
@@ -172,7 +174,7 @@ public class SQLQueryConstructor {
         if (metric != null) {
             return metric.getFunctionExpression();
         } else {
-            return generatePredicateReference(predicate);
+            return generatePredicatePathReference(predicate.getPath());
         }
     }
 
@@ -189,8 +191,6 @@ public class SQLQueryConstructor {
         List<String> metricProjections = template.getMetrics().stream()
                 .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
-
-        Class<?> tableClass = dictionary.getEntityClass(table.getId());
 
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
                 .map(dimension -> resolveSQLColumnReference(dimension, table) + " AS " + dimension.getAlias())
@@ -333,7 +333,7 @@ public class SQLQueryConstructor {
                             .orElse(null);
 
                     String orderByClause = metric == null
-                            ? metaDataStore.generateLabel(expandedPath, SQL_REFERENCE_GENERATOR)
+                            ? metaDataStore.resolveLabel(expandedPath, getPathAlias(expandedPath))
                             : metric.getFunctionExpression();
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
@@ -422,13 +422,13 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Converts a filter predicate into a SQL WHERE/HAVING clause column reference.
+     * Converts a path into a SQL WHERE/HAVING clause column reference.
      *
-     * @param predicate The predicate to convert
+     * @param path path to a field
      * @return A SQL fragment that references a database column
      */
-    private String generatePredicateReference(FilterPredicate predicate) {
-        return metaDataStore.generateLabel(predicate.getPath(), SQL_REFERENCE_GENERATOR);
+    private String generatePredicatePathReference(Path path) {
+        return metaDataStore.resolveLabel(path, "");
     }
 
     /**

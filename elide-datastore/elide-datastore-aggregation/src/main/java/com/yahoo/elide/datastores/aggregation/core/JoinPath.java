@@ -60,7 +60,7 @@ public class JoinPath extends Path {
      * @param <P> path extension
      * @return extended path <code>[A.B]/[B.C]/[C.D]</code>
      */
-    private static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
+    public static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
         List<Path.PathElement> toExtend = new ArrayList<>(path.getPathElements());
         toExtend.remove(toExtend.size() - 1);
         toExtend.addAll(extension.getPathElements());

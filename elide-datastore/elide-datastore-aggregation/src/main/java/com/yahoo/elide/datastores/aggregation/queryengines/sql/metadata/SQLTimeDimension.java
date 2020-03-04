@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -47,21 +45,14 @@ public class SQLTimeDimension extends TimeDimension implements SQLColumn {
         String fieldName = getName();
         Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
 
-        this.reference = labelStore.generateLabel(
+        this.reference = labelStore.resolveLabel(
                 new JoinPath(
                         Collections.singletonList(
                                 new Path.PathElement(
                                         tableClass,
                                         dictionary.getParameterizedType(tableClass, fieldName),
                                         fieldName))),
-                (joinPath, reference) -> {
-                    if (joinPath != null) {
-                        joinPaths.add(joinPath);
-                        return getFieldAlias(joinPath, reference);
-                    } else {
-                        return reference;
-                    }
-                });
+                "");
     }
 
     @Override

@@ -5,8 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
+import static com.yahoo.elide.datastores.aggregation.core.JoinPath.extendJoinPath;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.resolveFormulaReferences;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.toFormulaReference;
+import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
+import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -22,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * SQLColumn is a wrapper for {@link Column} that contains physical information for {@link SQLQueryEngine}.
@@ -81,9 +86,10 @@ public interface SQLColumn {
     default LabelResolver getLogicalColumnResolver(Class<?> tableClass, String fieldName) {
         return new LabelResolver(getColumn()) {
             @Override
-            public <T> T resolveLabel(JoinPath fromPath, LabelGenerator<T> generator, LabelStore labelStore) {
-                return generator.apply(
-                        fromPath, labelStore.getDictionary().getAnnotatedColumnName(tableClass, fieldName));
+            public String resolveLabel(LabelStore labelStore, String labelPrefix) {
+                return getFieldAlias(
+                        labelPrefix,
+                        labelStore.getDictionary().getAnnotatedColumnName(tableClass, fieldName));
             }
         };
     }
@@ -98,17 +104,28 @@ public interface SQLColumn {
     default LabelResolver getJoinToResolver(Class<?> tableClass, JoinTo joinTo) {
         return new LabelResolver(getColumn()) {
             @Override
-            public Set<LabelResolver> getDependencyResolvers(LabelStore labelStore) {
-                return Collections.singleton(
-                        labelStore.getLabelResolver(
-                                new JoinPath(tableClass, labelStore.getDictionary(), joinTo.path())));
+            public Set<JoinPath> resolveJoinPaths(LabelStore labelStore, JoinPath from) {
+                JoinPath to = getJoinToPath(labelStore);
+
+                return labelStore.getLabelResolver(to).resolveJoinPaths(labelStore, extendJoinPath(from, to));
             }
 
             @Override
-            public <T> T resolveLabel(JoinPath fromPath, LabelGenerator<T> generator, LabelStore labelStore) {
-                return labelStore.generateLabel(
-                        fromPath.extend(labelStore.getDictionary(), joinTo.path()),
-                        generator);
+            public Set<LabelResolver> getDependencyResolvers(LabelStore labelStore) {
+                return Collections.singleton(labelStore.getLabelResolver(getJoinToPath(labelStore)));
+            }
+
+            @Override
+            public String resolveLabel(LabelStore labelStore, String labelPrefix) {
+                JoinPath joinToPath = getJoinToPath(labelStore);
+
+                return appendAlias(
+                        labelPrefix,
+                        labelStore.resolveLabel(joinToPath, appendAlias(labelPrefix, getPathAlias(joinToPath))));
+            }
+
+            private JoinPath getJoinToPath(LabelStore labelStore) {
+                return new JoinPath(tableClass, labelStore.getDictionary(), joinTo.path());
             }
         };
     }
@@ -129,42 +146,72 @@ public interface SQLColumn {
 
         return new LabelResolver(getColumn()) {
             @Override
-            public Set<LabelResolver> getDependencyResolvers(LabelStore labelStore) {
-                EntityDictionary dictionary = labelStore.getDictionary();
-
+            public Set<JoinPath> resolveJoinPaths(LabelStore labelStore, JoinPath from) {
                 return references.stream()
-                        .map(ref -> {
+                        .map(reference -> {
                             // physical columns don't have dependency resolvers
-                            if (!ref.contains(".") && dictionary.getParameterizedType(tableClass, ref) == null) {
-                                return null;
+                            if (isPhysicalReference(labelStore, reference)) {
+                                return Stream.<JoinPath>empty();
                             }
 
-                            return labelStore.getLabelResolver(new JoinPath(tableClass, dictionary, ref));
+                            JoinPath to = getJoinToPath(labelStore, reference);
+
+                            return labelStore.getLabelResolver(to)
+                                    .resolveJoinPaths(labelStore, extendJoinPath(from, to)).stream();
+                        })
+                        .reduce(Stream.empty(), Stream::concat)
+                        .collect(Collectors.toSet());
+            }
+
+            @Override
+            public Set<LabelResolver> getDependencyResolvers(LabelStore labelStore) {
+                return references.stream()
+                        .map(reference -> {
+                            // physical columns don't have dependency resolvers
+                            return isPhysicalReference(labelStore, reference)
+                                    ? null
+                                    : labelStore.getLabelResolver(getJoinToPath(labelStore, reference));
+
                         })
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
             }
 
             @Override
-            public <T> T resolveLabel(JoinPath fromPath, LabelGenerator<T> generator, LabelStore labelStore) {
-                EntityDictionary dictionary = labelStore.getDictionary();
+            public String resolveLabel(LabelStore labelStore, String labelPrefix) {
                 String expr = expression;
 
                 // replace references with resolved statements/expressions
                 for (String reference : references) {
-                    T resolvedReference = reference.indexOf('.') == -1
-                            && dictionary.getParameterizedType(tableClass, reference) == null
-                            ? generator.apply(fromPath, reference)
-                            : labelStore.generateLabel(
-                                    fromPath.extend(labelStore.getDictionary(), reference),
-                                    generator);
+                    String resolvedReference;
 
-                    if (resolvedReference instanceof CharSequence) {
-                        expr = expr.replace(toFormulaReference(reference), (CharSequence) resolvedReference);
+                    if (!reference.contains(".")) {
+                        resolvedReference = getFieldAlias(
+                                labelPrefix,
+                                isPhysicalReference(labelStore, reference)
+                                        ? reference
+                                        : labelStore.getDictionary().getAnnotatedColumnName(tableClass, reference));
+                    } else {
+                        JoinPath joinPath = getJoinToPath(labelStore, reference);
+
+                        resolvedReference = appendAlias(
+                                labelPrefix,
+                                labelStore.resolveLabel(joinPath, appendAlias(labelPrefix, getPathAlias(joinPath))));
                     }
+
+                    expr = expr.replace(toFormulaReference(reference), resolvedReference);
                 }
 
-                return generator.apply(expr);
+                return expr;
+            }
+
+            private boolean isPhysicalReference(LabelStore labelStore, String reference) {
+                return !reference.contains(".")
+                        && labelStore.getDictionary().getParameterizedType(tableClass, reference) == null;
+            }
+
+            private JoinPath getJoinToPath(LabelStore labelStore, String reference) {
+                return new JoinPath(tableClass, labelStore.getDictionary(), reference);
             }
         };
     }

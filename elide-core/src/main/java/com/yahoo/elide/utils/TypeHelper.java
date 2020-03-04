@@ -60,7 +60,7 @@ public class TypeHelper {
      * @return alias for the field
      */
     public static String appendAlias(String parentAlias, String fieldName) {
-        return parentAlias + UNDERSCORE + fieldName;
+        return nullOrEmpty(parentAlias) ? fieldName : parentAlias + UNDERSCORE + fieldName;
     }
 
     /**
@@ -81,6 +81,27 @@ public class TypeHelper {
      * @return combined alias
      */
     public static String getFieldAlias(Path path, String fieldName) {
-        return getPathAlias(path) + PERIOD + fieldName;
+        return getFieldAlias(getPathAlias(path), fieldName);
+    }
+
+    /**
+     * Get alias for the final field of a path.
+     *
+     * @param tableAlias alias for table that contains the field
+     * @param fieldName physical field name
+     * @return combined alias
+     */
+    public static String getFieldAlias(String tableAlias, String fieldName) {
+        return nullOrEmpty(tableAlias) ? fieldName : tableAlias + PERIOD + fieldName;
+    }
+
+    /**
+     * Check whether an alias is null or empty string
+     *
+     * @param alias alias
+     * @return True if is null or empty
+     */
+    private static boolean nullOrEmpty(String alias) {
+        return alias == null || alias.equals("");
     }
 }

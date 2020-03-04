@@ -19,22 +19,31 @@ import java.util.stream.Collectors;
  * be stored for quick access.
  */
 public abstract class LabelResolver {
-    private final Column column;
+    private final Column roResolve;
 
-    public LabelResolver(Column column) {
-        this.column = column;
+    protected LabelResolver(Column roResolve) {
+        this.roResolve = roResolve;
     }
 
     /**
-     * Resolve a label for a join path. This method need to be implemented for each column.
+     * Resolve label for this column
      *
-     * @param fromPath path to be resolved
-     * @param generator generator to construct labels
-     * @param labelStore table stores all resolvers
-     * @param <T> label value type
+     * @param labelStore source-of-truth store
+     * @param labelPrefix prefix of resolved label
      * @return resolved label
      */
-    public abstract <T> T resolveLabel(JoinPath fromPath, LabelGenerator<T> generator, LabelStore labelStore);
+    public abstract String resolveLabel(LabelStore labelStore, String labelPrefix);
+
+    /**
+     * Get all joins needs for this column
+     *
+     * @param labelStore source-of-truth store
+     * @param from root join path to this column
+     * @return full join paths
+     */
+    public Set<JoinPath> resolveJoinPaths(LabelStore labelStore, JoinPath from) {
+        return Collections.singleton(from);
+    }
 
     /**
      * Get all other resolvers that this resolver would involve when resolving label.
@@ -77,34 +86,9 @@ public abstract class LabelResolver {
      */
     private static String referenceLoopMessage(LinkedHashSet<LabelResolver> visited, LabelResolver loop) {
         return "Dimension formula reference loop found: "
-                + visited.stream().map(labelResolver -> labelResolver.column.getId()).collect(Collectors.joining("->"))
-                + "->" + loop.column.getId();
-    }
-
-    /**
-     * LabelGenerator is an interface that convert a [column, reference] pair into some other types of value.
-     *
-     * @param <T> label value type
-     */
-    @FunctionalInterface
-    public interface LabelGenerator<T> {
-        /**
-         * Generate a "label" for given path and reference
-         *
-         * @param path path to a field
-         * @param reference reference that represent this field, e.g. physical column name
-         * @return generated label
-         */
-        T apply(JoinPath path, String reference);
-
-        /**
-         * Convert reference to "label"
-         *
-         * @param reference reference that represent this field, e.g. physical column name
-         * @return generated label
-         */
-        default T apply(String reference) {
-            return apply(null, reference);
-        }
+                + visited.stream()
+                        .map(labelResolver -> labelResolver.roResolve.getId())
+                        .collect(Collectors.joining("->"))
+                + "->" + loop.roResolve.getId();
     }
 }
