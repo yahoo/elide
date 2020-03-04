@@ -290,7 +290,7 @@
   },
   "minProperties": 1,
   "required": [
-    "models"
+    "tables"
   ],
   "additionalProperties": false
 }
