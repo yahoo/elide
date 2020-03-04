@@ -128,7 +128,9 @@ public class AsyncQueryCleanerThread implements Runnable {
 
                 if(isTimedOut(currentTime, query)) {
                     log.info("Updating Async Query Status to TIMEDOUT");
-                    asyncDbUtil.updateAsyncQuery(QueryStatus.TIMEDOUT, query.getId());
+                    asyncDbUtil.updateAsyncQuery(query.getId(), (asyncQueryObj) -> {
+                        asyncQueryObj.setStatus(QueryStatus.TIMEDOUT);
+                        });
                 }
             }
         }

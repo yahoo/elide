@@ -58,7 +58,9 @@ public class AsyncQueryThread implements Runnable {
         try {
             // Change async query to processing
             AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
-            asyncDbUtil.updateAsyncQuery(QueryStatus.PROCESSING, id);
+            asyncDbUtil.updateAsyncQuery(id, (asyncQuery) -> {
+                asyncQuery.setStatus(QueryStatus.PROCESSING);
+                });
             Thread.sleep(180000);
             ElideResponse response = null;
             log.debug("query: {}", query);
@@ -78,16 +80,22 @@ public class AsyncQueryThread implements Runnable {
             }
             // if 200 - response code then Change async query to complete else change to Failure
             if (response.getResponseCode() == 200) {
-                asyncQuery = asyncDbUtil.updateAsyncQuery(QueryStatus.COMPLETE, id);
+                asyncQuery = asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+                    asyncQueryObj.setStatus(QueryStatus.COMPLETE);
+                    });
             } else {
-                asyncQuery = asyncDbUtil.updateAsyncQuery(QueryStatus.FAILURE, id);
+                asyncQuery = asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+                    asyncQueryObj.setStatus(QueryStatus.FAILURE);
+                    });
             }
 
             // Create AsyncQueryResult entry for AsyncQuery
             asyncQueryResult = asyncDbUtil.createAsyncQueryResult(response.getResponseCode(), response.getBody(), asyncQuery, id);
 
             // Add queryResult object to query object
-            asyncDbUtil.updateAsyncQuery(asyncQueryResult, id);
+            asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+                asyncQueryObj.setResult(asyncQueryResult);
+                });
 
         } catch (IOException e) {
             log.error("IOException: {}", e.getMessage());

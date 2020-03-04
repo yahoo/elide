@@ -13,7 +13,6 @@ import javax.inject.Singleton;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
-import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.request.EntityProjection;
@@ -43,24 +42,19 @@ public class AsyncDbUtil {
 
     /**
      * This method updates the model for AsyncQuery with passed value.
-     * @param updatedAttribute Attribute from asyncQuery which needs to be updated
      * @param asyncQueryId Unique UUID for the AsyncQuery Object
+     * @param updateFunction Functional interface for updating AsyncQuery Object
      * @throws IOException IOException from DataStoreTransaction
      * @return AsyncQuery Object
      */
-    protected AsyncQuery updateAsyncQuery(Object updatedAttribute, UUID asyncQueryId) throws IOException {
+    protected AsyncQuery updateAsyncQuery(UUID asyncQueryId, UpdateQuery updateFunction) throws IOException {
         DataStoreTransaction tx = elide.getDataStore().beginTransaction();
         EntityProjection asyncQueryCollection = EntityProjection.builder()
             .type(AsyncQuery.class)
             .build();
         RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
         AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-        if (updatedAttribute.getClass().getSimpleName().equals("QueryStatus")) {
-            query.setStatus((QueryStatus) updatedAttribute);
-        }
-        else if (updatedAttribute.getClass().getSimpleName().equals("AsyncQueryResult")) {
-            query.setResult((AsyncQueryResult)updatedAttribute);
-        }
+        updateFunction.update(query);
         tx.save(query, scope);
         tx.commit(scope);
         tx.flush(scope);
