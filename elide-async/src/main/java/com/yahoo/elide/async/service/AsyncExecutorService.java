@@ -52,7 +52,9 @@ public class AsyncExecutorService {
         // Change async query in Datastore to queued
         AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
         try {
-            asyncDbUtil.updateAsyncQuery(QueryStatus.QUEUED, id);
+            asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+                asyncQueryObj.setStatus(QueryStatus.QUEUED);
+                });
         } catch (IOException e) {
             log.error("IOException: {}", e.getMessage());
         }
