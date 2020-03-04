@@ -1,0 +1,7 @@
+{
+  "fname" : "book",
+  "ftable" : "book",
+  "fschema$" : "testdb",
+  "description" : "valid schema for a book",
+  "cardinality" : "invalid"
+}

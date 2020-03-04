@@ -1,0 +1,9 @@
+{
+   desc_blah: blah blah blah
+   def_on: create_on
+   grain_dmy: ["{{day}}", "{{month}}", "{{year}}"]
+   grain_hd: ["{{hour}}", "{{day}}"]
+   foo: [1, 2, 3]
+   foobar: "[1, 2, 3]"
+   nullCheck: null
+}
