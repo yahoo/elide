@@ -97,9 +97,6 @@ public class AsyncQueryThread implements Runnable {
                 asyncQueryObj.setResult(asyncQueryResult);
                 });
 
-        } catch (IOException e) {
-            log.error("IOException: {}", e.getMessage());
-            // If a DB transaction fails we might need to set query status to FAILURE
         } catch (URISyntaxException e) {
             log.error("URISyntaxException: {}", e.getMessage());
         } catch (Exception e) {
