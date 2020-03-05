@@ -9,23 +9,31 @@ import java.io.IOException;
 import java.util.UUID;
 
 import javax.inject.Singleton;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class which uses the elide datastore to modify, update and create
  * AsyncQuery and AsyncQueryResult Objects
  */
 @Singleton
+@Slf4j
 public class AsyncDbUtil {
 
     private Elide elide;
     private static AsyncDbUtil asyncUtil;
+    private DataStore dataStore;
 
     protected static AsyncDbUtil getInstance(Elide elide) {
         if (asyncUtil == null) {
@@ -38,68 +46,60 @@ public class AsyncDbUtil {
 
     protected AsyncDbUtil(Elide elide) {
         this.elide = elide;
+        this.dataStore = elide.getDataStore();
     }
 
     /**
      * This method updates the model for AsyncQuery with passed value.
      * @param asyncQueryId Unique UUID for the AsyncQuery Object
      * @param updateFunction Functional interface for updating AsyncQuery Object
-     * @throws IOException IOException from DataStoreTransaction
      * @return AsyncQuery Object
      */
-    protected AsyncQuery updateAsyncQuery(UUID asyncQueryId, UpdateQuery updateFunction) throws IOException {
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-        EntityProjection asyncQueryCollection = EntityProjection.builder()
-            .type(AsyncQuery.class)
-            .build();
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-        AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-        updateFunction.update(query);
-        tx.save(query, scope);
-        tx.commit(scope);
-        tx.flush(scope);
-        tx.close();
-        return query;
+    protected AsyncQuery updateAsyncQuery(UUID asyncQueryId, UpdateQuery updateFunction) {
+        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .build();
+            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+            updateFunction.update(query);
+            tx.save(query, scope);
+            return query;
+        });
+        return queryObj;
     }
 
     /**
      * This method deletes the AsyncQuery object from database.
      * @param asyncQueryId Unique UUID for the AsyncQuery Object
-     * @throws IOException IOException from DataStoreTransaction
      */
-    protected void deleteAsyncQuery(UUID asyncQueryId) throws IOException {
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-        EntityProjection asyncQueryCollection = EntityProjection.builder()
-            .type(AsyncQuery.class)
-            .build();
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-        AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-        if(query != null) {
-            tx.delete(query, scope);
-            tx.commit(scope);
-            tx.flush(scope);
-        }
-        tx.close();
+    protected void deleteAsyncQuery(UUID asyncQueryId) {
+        executeInTransaction(dataStore, (tx, scope) -> {
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .build();
+            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+            if(query != null) {
+                tx.delete(query, scope);
+            }
+            return query;
+        });
     }
 
     /**
      * This method deletes the AsyncQueryResult object from database.
      * @param asyncQueryResultId Unique UUID for the AsyncQuery Object
-     * @throws IOException IOException from DataStoreTransaction
      */
-    protected void deleteAsyncQueryResult(UUID asyncQueryResultId) throws IOException {
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-        EntityProjection asyncQueryResultCollection = EntityProjection.builder()
-            .type(AsyncQueryResult.class)
-            .build();
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-        AsyncQueryResult queryResult = (AsyncQueryResult) tx.loadObject(asyncQueryResultCollection, asyncQueryResultId, scope);
-        if(queryResult != null) {
-            tx.delete(queryResult, scope);
-            tx.commit(scope);
-            tx.flush(scope);
-        }
-        tx.close();
+    protected void deleteAsyncQueryResult(UUID asyncQueryResultId) {
+        executeInTransaction(dataStore, (tx, scope) -> {
+            EntityProjection asyncQueryResultCollection = EntityProjection.builder()
+                    .type(AsyncQueryResult.class)
+                    .build();
+            AsyncQueryResult queryResult = (AsyncQueryResult) tx.loadObject(asyncQueryResultCollection, asyncQueryResultId, scope);
+            if(queryResult != null) {
+                tx.delete(queryResult, scope);
+            }
+            return queryResult;
+        });
     }
 
     /**
@@ -108,27 +108,43 @@ public class AsyncDbUtil {
      * @param responseBody ElideResponse responseBody from AsyncQuery
      * @param asyncQuery AsyncQuery object to be associated with the AsyncQueryResult object
      * @param asyncQueryId UUID of the AsyncQuery to be associated with the AsyncQueryResult object
-     * @throws IOException IOException from DataStoreTransaction
      * @return AsyncQueryResult Object
      */
-    protected AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId) throws IOException {
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-
-        // Creating new RequestScope for Datastore transaction
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-
+    protected AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId) {
         AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
         asyncQueryResult.setStatus(status);
         asyncQueryResult.setResponseBody(responseBody);
         asyncQueryResult.setContentLength(responseBody.length());
         asyncQueryResult.setId(asyncQueryId);
         asyncQueryResult.setQuery(asyncQuery);
-        tx.createObject(asyncQueryResult, scope);
-        tx.save(asyncQueryResult, scope);
-        tx.commit(scope);
-        tx.flush(scope);
-        tx.close();
+        executeInTransaction(dataStore, (tx, scope) -> {
+            tx.createObject(asyncQueryResult, scope);
+            return asyncQueryResult;
+        });
         return asyncQueryResult;
+    }
+
+    /**
+     * This method creates a transaction from the datastore, performs the DB action using
+     * a generic functional interface and closes the transaction.
+     * @param dataStore Elide datastore retrieved from Elide object
+     * @param action Functional interface to perform DB action
+     * @return Object Returns Entity Object (AsyncQueryResult or AsyncResult)
+     */
+    public Object executeInTransaction(DataStore dataStore, Transactional action) {
+        DataStoreTransaction tx = dataStore.beginTransaction();
+        JsonApiDocument jsonApiDoc = new JsonApiDocument();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+        RequestScope scope = new RequestScope("query", jsonApiDoc, tx, null, queryParams, elide.getElideSettings());
+        Object result = action.execute(tx, scope);
+        try {
+            tx.commit(scope);
+            tx.flush(scope);
+            tx.close();
+        } catch (IOException e) {
+            log.error("IOException: {}", e.getMessage());
+        }
+        return result;
     }
 
 }

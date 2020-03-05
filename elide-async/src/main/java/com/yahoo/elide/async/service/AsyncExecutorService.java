@@ -51,14 +51,9 @@ public class AsyncExecutorService {
         AsyncQueryThread queryWorker = new AsyncQueryThread(query, queryType, user, elide, runner, id);
         // Change async query in Datastore to queued
         AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
-        try {
-            asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
-                asyncQueryObj.setStatus(QueryStatus.QUEUED);
-                });
-        } catch (IOException e) {
-            log.error("IOException: {}", e.getMessage());
-        }
-
+        asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+            asyncQueryObj.setStatus(QueryStatus.QUEUED);
+            });
         AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide, executor.submit(queryWorker), id, new Date(), maxRunTime);
         interruptor.execute(queryInterruptWorker);
     }
