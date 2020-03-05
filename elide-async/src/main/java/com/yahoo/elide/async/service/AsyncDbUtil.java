@@ -56,6 +56,7 @@ public class AsyncDbUtil {
      * @return AsyncQuery Object
      */
     protected AsyncQuery updateAsyncQuery(UUID asyncQueryId, UpdateQuery updateFunction) {
+        log.debug("AsyncDbUtil updateAsyncQuery");
         AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
@@ -73,6 +74,7 @@ public class AsyncDbUtil {
      * @param asyncQueryId Unique UUID for the AsyncQuery Object
      */
     protected void deleteAsyncQuery(UUID asyncQueryId) {
+        log.debug("AsyncDbUtil deleteAsyncQuery");
         executeInTransaction(dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
@@ -90,6 +92,7 @@ public class AsyncDbUtil {
      * @param asyncQueryResultId Unique UUID for the AsyncQuery Object
      */
     protected void deleteAsyncQueryResult(UUID asyncQueryResultId) {
+        log.debug("AsyncDbUtil deleteAsyncQueryResult");
         executeInTransaction(dataStore, (tx, scope) -> {
             EntityProjection asyncQueryResultCollection = EntityProjection.builder()
                     .type(AsyncQueryResult.class)
@@ -111,6 +114,7 @@ public class AsyncDbUtil {
      * @return AsyncQueryResult Object
      */
     protected AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId) {
+        log.debug("AsyncDbUtil createAsyncQueryResult");
         AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
         asyncQueryResult.setStatus(status);
         asyncQueryResult.setResponseBody(responseBody);
@@ -132,6 +136,7 @@ public class AsyncDbUtil {
      * @return Object Returns Entity Object (AsyncQueryResult or AsyncResult)
      */
     public Object executeInTransaction(DataStore dataStore, Transactional action) {
+        log.debug("executeInTransaction");
         DataStoreTransaction tx = dataStore.beginTransaction();
         JsonApiDocument jsonApiDoc = new JsonApiDocument();
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
