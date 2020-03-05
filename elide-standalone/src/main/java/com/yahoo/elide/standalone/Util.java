@@ -75,7 +75,6 @@ public class Util {
         if (includeAsyncModel) {
             modelEntities.addAll(getAllEntities(AsyncQuery.class.getPackage().getName()));
         }
-
         return modelEntities;
     }
 
