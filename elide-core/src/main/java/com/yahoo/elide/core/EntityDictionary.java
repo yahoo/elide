@@ -1284,14 +1284,19 @@ public class EntityDictionary {
      * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
      * single time per request per field READ, CREATE, or UPDATE.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param fieldOrMethodName The name of the field or method
-     * @param binding The callback binding.
+     * @param fieldOrMethodName The name of the field or method.
+     * @param operation CREATE, READ, or UPDATE
+     * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
+     * @param hook The callback to invoke.
      */
     public void bindTrigger(Class<?> entityClass,
                             String fieldOrMethodName,
-                            LifeCycleHookBinding binding) {
+                            LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook) {
         bindIfUnbound(entityClass);
-        getEntityBinding(entityClass).bindTrigger(binding, fieldOrMethodName);
+
+        getEntityBinding(entityClass).bindTrigger(operation, phase, fieldOrMethodName, hook);
     }
 
     /**
@@ -1301,15 +1306,23 @@ public class EntityDictionary {
      *
      * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param binding The callback binding.
+     * @param operation CREATE, READ, or UPDATE
+     * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
+     * @param hook The callback to invoke.
+     * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
+     *                                 CRUD actions on the same model.
      */
-    public void bindTrigger(Class<?> entityClass, LifeCycleHookBinding binding) {
-
+    public void bindTrigger(Class<?> entityClass,
+                            LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook,
+                            boolean allowMultipleInvocations) {
         bindIfUnbound(entityClass);
-        if (binding.oncePerRequest() == false) {
-            getEntityBinding(entityClass).bindTrigger(binding);
+
+        if (allowMultipleInvocations) {
+            getEntityBinding(entityClass).bindTrigger(operation, phase, hook);
         } else {
-            getEntityBinding(entityClass).bindTrigger(binding, PersistentResource.CLASS_NO_FIELD);
+            getEntityBinding(entityClass).bindTrigger(operation, phase, PersistentResource.CLASS_NO_FIELD, hook);
         }
     }
 

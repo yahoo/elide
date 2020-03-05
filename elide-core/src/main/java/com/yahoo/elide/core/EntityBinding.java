@@ -35,6 +35,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -109,8 +111,10 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, String> relationshipToInverse = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, CascadeType[]> relationshipToCascadeTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
-    public final MultiValuedMap<String, LifeCycleHookBinding> fieldTriggers = new HashSetValuedHashMap<>();
-    public final Set<LifeCycleHookBinding> classTriggers = new HashSet<>();
+    public final MultiValuedMap<Triple<String, LifeCycleHookBinding.Operation, LifeCycleHookBinding.TransactionPhase>,
+            LifeCycleHook> fieldTriggers = new HashSetValuedHashMap<>();
+    public final MultiValuedMap<Pair<LifeCycleHookBinding.Operation, LifeCycleHookBinding.TransactionPhase>,
+            LifeCycleHook> classTriggers = new HashSetValuedHashMap<>();
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
@@ -542,50 +546,62 @@ public class EntityBinding {
         if (entityClass.isAnnotationPresent(LifeCycleHookBinding.class)) {
             LifeCycleHookBinding[] triggers = entityClass.getAnnotationsByType(LifeCycleHookBinding.class);
             for (LifeCycleHookBinding trigger : triggers) {
-                if (trigger.oncePerRequest()) {
-                    bindTrigger(trigger, PersistentResource.CLASS_NO_FIELD);
-                } else {
-                    bindTrigger(trigger);
-                }
+                bindTrigger(trigger);
             }
         }
     }
 
-    public void bindTrigger(LifeCycleHookBinding binding,
-                            String fieldOrMethodName) {
-        fieldTriggers.put(fieldOrMethodName, binding);
+    public void bindTrigger(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            String fieldOrMethodName,
+                            LifeCycleHook hook) {
+        Triple<String, LifeCycleHookBinding.Operation, LifeCycleHookBinding.TransactionPhase> key =
+                Triple.of(fieldOrMethodName, operation, phase);
+
+        fieldTriggers.put(key, hook);
     }
 
-    public void bindTrigger(LifeCycleHookBinding binding) {
-        classTriggers.add(binding);
+    private void bindTrigger(LifeCycleHookBinding binding,
+                            String fieldOrMethodName) {
+        LifeCycleHook hook = dictionary.getInjector().instantiate(binding.hook());
+        bindTrigger(binding.operation(), binding.phase(), fieldOrMethodName, hook);
+    }
+
+    public void bindTrigger(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook) {
+        Pair<LifeCycleHookBinding.Operation, LifeCycleHookBinding.TransactionPhase> key =
+                Pair.of(operation, phase);
+
+        classTriggers.put(key, hook);
+    }
+
+    private void bindTrigger(LifeCycleHookBinding binding) {
+        if (binding.oncePerRequest()) {
+            bindTrigger(binding, PersistentResource.CLASS_NO_FIELD);
+            return;
+        }
+
+        LifeCycleHook hook = dictionary.getInjector().instantiate(binding.hook());
+        bindTrigger(binding.operation(), binding.phase(), hook);
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(LifeCycleHookBinding.Operation op,
                                                                         LifeCycleHookBinding.TransactionPhase phase,
                                                                         String fieldName) {
-        Collection<LifeCycleHookBinding> bindings = fieldTriggers.get(fieldName);
-        if (bindings == null) {
-            return Collections.emptyList();
-        }
-
-        return bindings.stream()
-                .filter((binding) -> {
-                    return (binding.operation() == op && binding.phase() == phase);
-                })
-                .map((binding) -> {
-                    return dictionary.getInjector().instantiate(binding.hook());
-                }).collect(Collectors.toSet());
+        Triple<String, LifeCycleHookBinding.Operation, LifeCycleHookBinding.TransactionPhase> key =
+                Triple.of(fieldName, op, phase);
+        Collection<LifeCycleHook> bindings = fieldTriggers.get(key);
+        return (bindings == null ? Collections.emptyList() : bindings);
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(LifeCycleHookBinding.Operation op,
                                                                         LifeCycleHookBinding.TransactionPhase phase) {
-        return classTriggers.stream()
-                .filter((binding) -> {
-                    return (binding.operation() == op && binding.phase() == phase);
-                })
-                .map((binding) -> {
-                    return dictionary.getInjector().instantiate(binding.hook());
-                }).collect(Collectors.toSet());
+
+        Pair<LifeCycleHookBinding.Operation, LifeCycleHookBinding.TransactionPhase> key =
+                Pair.of(op, phase);
+        Collection<LifeCycleHook> bindings = classTriggers.get(key);
+        return (bindings == null ? Collections.emptyList() : bindings);
     }
 
     /**

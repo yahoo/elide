@@ -43,6 +43,7 @@ public class CRUDEvent {
     /**
      * Enum describing possible CRUD actions.
      */
+    //TODO - commonize with annotation enum
     public static enum CRUDAction {
         CREATE, READ, UPDATE, DELETE
     }

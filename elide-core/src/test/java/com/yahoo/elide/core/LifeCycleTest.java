@@ -8,6 +8,8 @@ package com.yahoo.elide.core;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
@@ -36,18 +38,6 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
-import com.yahoo.elide.annotation.OnCreatePreCommit;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
-import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
-import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
@@ -58,7 +48,6 @@ import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -67,8 +56,6 @@ import example.Book;
 import example.Editor;
 import example.Publisher;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -115,18 +102,22 @@ public class LifeCycleTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Editor.class);
-        ImmutableList.of(
-                OnCreatePostCommit.class, OnCreatePreCommit.class, OnCreatePreSecurity.class,
-                OnReadPostCommit.class, OnReadPreCommit.class, OnReadPreSecurity.class,
-                OnDeletePostCommit.class, OnDeletePreCommit.class, OnDeletePreSecurity.class)
-                .stream().forEach(cls -> dictionary.bindTrigger(Book.class, cls, callback));
-        ImmutableList.of(
-                OnUpdatePostCommit.class, OnUpdatePreCommit.class, OnUpdatePreSecurity.class)
-                .stream().forEach(cls -> dictionary.bindTrigger(Book.class, cls, "title", callback));
-        dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, onUpdateDeferredCallback, true);
-        dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, onUpdateImmediateCallback, true);
-        dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, onUpdatePostCommitCallback, true);
-        dictionary.bindTrigger(Author.class, OnUpdatePostCommit.class, onUpdatePostCommitAuthor, true);
+
+        LifeCycleHookBinding.Operation[] ops = { CREATE, READ, DELETE };
+        LifeCycleHookBinding.TransactionPhase[] phases = { PRESECURITY, PRECOMMIT, POSTCOMMIT};
+
+        for (LifeCycleHookBinding.TransactionPhase phase : phases) {
+            for (LifeCycleHookBinding.Operation operation : ops) {
+                dictionary.bindTrigger(Book.class, operation, phase, callback, false);
+            }
+
+            dictionary.bindTrigger(Book.class, "title", UPDATE, phase, callback);
+        }
+
+        dictionary.bindTrigger(Book.class, UPDATE, PRECOMMIT, onUpdateDeferredCallback, true);
+        dictionary.bindTrigger(Book.class, UPDATE, PRESECURITY, onUpdateImmediateCallback, true);
+        dictionary.bindTrigger(Book.class, UPDATE, POSTCOMMIT, onUpdatePostCommitCallback, true);
+        dictionary.bindTrigger(Author.class, UPDATE, POSTCOMMIT, onUpdatePostCommitAuthor, true);
     }
 
     @BeforeEach
@@ -742,12 +733,17 @@ public class LifeCycleTest {
         @Entity
         @Include
         class Book {
-            public String title;
-
-            @OnUpdatePreSecurity(value = "title")
-            public void blowUp(RequestScope scope) {
-                throw new IllegalStateException();
+            class PreSecurityHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    throw new IllegalStateException();
+                }
             }
+
+            @LifeCycleHookBinding(hook = PreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+            public String title;
         }
 
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
@@ -766,12 +762,17 @@ public class LifeCycleTest {
         @Entity
         @Include
         class Book {
-            public String title;
-
-            @OnUpdatePreCommit(value = "title")
-            public void blowUp(RequestScope scope) {
-                throw new IllegalStateException();
+            class PreCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    throw new IllegalStateException();
+                }
             }
+
+            @LifeCycleHookBinding(hook = PreCommitHook.class, operation = UPDATE, phase = PRESECURITY)
+            public String title;
         }
 
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
@@ -796,8 +797,39 @@ public class LifeCycleTest {
         @Entity
         @Include
         class Book {
+            class PreSecurityHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.readPreSecurityInvoked++;
+                }
+            }
+
+            class PreCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.readPreCommitInvoked++;
+                }
+            }
+
+            class PostCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.readPostCommitInvoked++;
+                }
+            }
+
             @Id
             private String id;
+
+            @LifeCycleHookBinding(hook = PreSecurityHook.class, operation = READ, phase = PRESECURITY)
+            @LifeCycleHookBinding(hook = PreCommitHook.class, operation = READ, phase = PRECOMMIT)
+            @LifeCycleHookBinding(hook = PostCommitHook.class, operation = READ, phase = POSTCOMMIT)
             private String title;
 
             @Exclude
@@ -811,21 +843,6 @@ public class LifeCycleTest {
             @Exclude
             @Transient
             private int readPostCommitInvoked = 0;
-
-            @OnReadPreSecurity("title")
-            public void readPreSecurity(RequestScope scope) {
-                readPreSecurityInvoked++;
-            }
-
-            @OnReadPreCommit("title")
-            public void readPreCommit(RequestScope scope) {
-                readPreCommitInvoked++;
-            }
-
-            @OnReadPostCommit("title")
-            public void readPostCommit(RequestScope scope) {
-                readPostCommitInvoked++;
-            }
         }
 
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
@@ -858,8 +875,39 @@ public class LifeCycleTest {
         @Entity
         @Include
         class Book {
+            class PreSecurityHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.updatePreSecurityInvoked++;
+                }
+            }
+
+            class PreCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.updatePreCommitInvoked++;
+                }
+            }
+
+            class PostCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.updatePostCommitInvoked++;
+                }
+            }
+
             @Id
             private String id;
+
+            @LifeCycleHookBinding(hook = PreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+            @LifeCycleHookBinding(hook = PreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
+            @LifeCycleHookBinding(hook = PostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
             private String title;
 
             @Exclude
@@ -873,21 +921,6 @@ public class LifeCycleTest {
             @Exclude
             @Transient
             private int updatePostCommitInvoked = 0;
-
-            @OnUpdatePreSecurity("title")
-            public void updatePreSecurity(RequestScope scope) {
-                updatePreSecurityInvoked++;
-            }
-
-            @OnUpdatePreCommit("title")
-            public void updatePreCommit(RequestScope scope) {
-                updatePreCommitInvoked++;
-            }
-
-            @OnUpdatePostCommit("title")
-            public void updatePostCommit(RequestScope scope) {
-                updatePostCommitInvoked++;
-            }
         }
 
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
