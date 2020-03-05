@@ -51,52 +51,46 @@ public class AsyncQueryCleanerThread implements Runnable {
      * This method updates the status of long running async query which
      * were not interrupted due to host crash/app shutdown to TIMEDOUT.
      * */
+    @SuppressWarnings("unchecked")
     private void deleteAsyncQuery() {
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
         AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
-        try {
-            EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-            RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
-            RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-            
-            //Calculate date to clean up
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(new Date());
-            cal.add(Calendar.DATE, -(queryCleanupDays));
-            Date cleanupDate = cal.getTime();
-            
-            Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-            String cleanupDateFormatted = dateFormat.format(cleanupDate);
-            log.debug("cleanupDateFormatted = {}", cleanupDateFormatted);
-            
-            FilterExpression filter = filterParser.parseFilterExpression("createdOn=le='" + cleanupDateFormatted + "'",
-                    AsyncQuery.class, false);
-            log.debug("filter = {}", filter.toString());
-
-            EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
-                    .filterExpression(filter)
-                    .build();
-
-            Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
-            Iterator<Object> itr = loaded.iterator();
-            while(itr.hasNext()) {
-                AsyncQuery query = (AsyncQuery) itr.next();
-                
-                log.info("Found a query to DELETE");
-                asyncDbUtil.deleteAsyncQuery(query.getId());
-                asyncDbUtil.deleteAsyncQueryResult(query.getId());
-            }
-        }
-        catch (Exception e) {
-            log.error("Exception: {}", e.getMessage());
-        }
-        finally {
+        Iterable<Object> loaded = (Iterable<Object>) asyncDbUtil.executeInTransaction(elide.getDataStore(), (tx, scope) -> {
             try {
-                tx.close();
-            } catch (IOException e) {
-                log.error("IOException: {}", e.getMessage());
+                EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+                RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
+
+                //Calculate date to clean up
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(new Date());
+                cal.add(Calendar.DATE, -(queryCleanupDays));
+                Date cleanupDate = cal.getTime();
+                Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+                String cleanupDateFormatted = dateFormat.format(cleanupDate);
+                log.debug("cleanupDateFormatted = {}", cleanupDateFormatted);
+
+                FilterExpression filter = filterParser.parseFilterExpression("createdOn=le='" + cleanupDateFormatted + "'",
+                        AsyncQuery.class, false);
+                log.debug("filter = {}", filter.toString());
+
+                EntityProjection asyncQueryCollection = EntityProjection.builder()
+                        .type(AsyncQuery.class)
+                        .filterExpression(filter)
+                        .build();
+
+                Iterable<Object> loadedObjects = tx.loadObjects(asyncQueryCollection, scope);
+                return loadedObjects;
+            } catch (Exception e) {
+                log.error("Exception: {}", e.getMessage());
             }
+            return null;
+        });
+        Iterator<Object> itr = loaded.iterator();
+        while(itr.hasNext()) {
+            AsyncQuery query = (AsyncQuery) itr.next();
+
+            log.info("Found a query to DELETE");
+            asyncDbUtil.deleteAsyncQuery(query.getId());
+            asyncDbUtil.deleteAsyncQueryResult(query.getId());
         }
     }
     
@@ -104,44 +98,38 @@ public class AsyncQueryCleanerThread implements Runnable {
      * This method updates the status of long running async query which
      * were not interrupted due to host crash/app shutdown to TIMEDOUT.
      * */
+	@SuppressWarnings("unchecked")
     private void timeoutAsyncQuery() {
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
         AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
-        try {
-            EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-            RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
-            RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-
-            FilterExpression filter = filterParser.parseFilterExpression("status=in=(" + QueryStatus.PROCESSING.toString() + ","
-                + QueryStatus.QUEUED.toString() + ")", AsyncQuery.class, false);
-
-            EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
-                    .filterExpression(filter)
-                    .build();
-
-            Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
-            Iterator<Object> itr = loaded.iterator();
-            long currentTime = new Date().getTime();
-            while(itr.hasNext()) {
-                AsyncQuery query = (AsyncQuery) itr.next();
-
-                if(isTimedOut(currentTime, query)) {
-                    log.info("Updating Async Query Status to TIMEDOUT");
-                    asyncDbUtil.updateAsyncQuery(query.getId(), (asyncQueryObj) -> {
-                        asyncQueryObj.setStatus(QueryStatus.TIMEDOUT);
-                        });
-                }
-            }
-        }
-        catch (Exception e) {
-            log.error("Exception: {}", e.getMessage());
-        }
-        finally {
+        Iterable<Object> loaded = (Iterable<Object>) asyncDbUtil.executeInTransaction(elide.getDataStore(), (tx, scope) -> {
             try {
-                tx.close();
-            } catch (IOException e) {
-                log.error("IOException: {}", e.getMessage());
+                EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+                RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
+                FilterExpression filter = filterParser.parseFilterExpression("status=in=(" + QueryStatus.PROCESSING.toString() + ","
+                        + QueryStatus.QUEUED.toString() + ")", AsyncQuery.class, false);
+
+                EntityProjection asyncQueryCollection = EntityProjection.builder()
+                        .type(AsyncQuery.class)
+                        .filterExpression(filter)
+                        .build();
+
+                Iterable<Object> loadedObj = tx.loadObjects(asyncQueryCollection, scope);
+                return loadedObj;
+            } catch (Exception e) {
+                log.error("Exception: {}", e.getMessage());
+            }
+            return null;
+        });
+        Iterator<Object> itr = loaded.iterator();
+        long currentTime = new Date().getTime();
+        while(itr.hasNext()) {
+            AsyncQuery query = (AsyncQuery) itr.next();
+
+            if(isTimedOut(currentTime, query)) {
+                log.info("Updating Async Query Status to TIMEDOUT");
+                asyncDbUtil.updateAsyncQuery(query.getId(), (asyncQueryObj) -> {
+                    asyncQueryObj.setStatus(QueryStatus.TIMEDOUT);
+                    });
             }
         }
     }
