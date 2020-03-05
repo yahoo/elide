@@ -115,17 +115,17 @@ public class AsyncDbUtil {
      */
     protected AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId) {
         log.debug("AsyncDbUtil createAsyncQueryResult");
-        AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
-        asyncQueryResult.setStatus(status);
-        asyncQueryResult.setResponseBody(responseBody);
-        asyncQueryResult.setContentLength(responseBody.length());
-        asyncQueryResult.setId(asyncQueryId);
-        asyncQueryResult.setQuery(asyncQuery);
-        executeInTransaction(dataStore, (tx, scope) -> {
+        AsyncQueryResult queryResultObj = (AsyncQueryResult) executeInTransaction(dataStore, (tx, scope) -> {
+            AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
+            asyncQueryResult.setStatus(status);
+            asyncQueryResult.setResponseBody(responseBody);
+            asyncQueryResult.setContentLength(responseBody.length());
+            asyncQueryResult.setId(asyncQueryId);
+            asyncQueryResult.setQuery(asyncQuery);
             tx.createObject(asyncQueryResult, scope);
             return asyncQueryResult;
         });
-        return asyncQueryResult;
+        return queryResultObj;
     }
 
     /**
@@ -141,13 +141,20 @@ public class AsyncDbUtil {
         JsonApiDocument jsonApiDoc = new JsonApiDocument();
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         RequestScope scope = new RequestScope("query", jsonApiDoc, tx, null, queryParams, elide.getElideSettings());
-        Object result = action.execute(tx, scope);
+        Object result = null;
         try {
+            result = action.execute(tx, scope);
             tx.commit(scope);
             tx.flush(scope);
-            tx.close();
-        } catch (IOException e) {
-            log.error("IOException: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("Exception: {}", e.getMessage());
+        } finally {
+            // Finally block to close a transaction incase of DB Exceptions
+            try {
+                tx.close();
+            } catch (IOException e) {
+                log.error("IOException: {}", e.getMessage());
+            }
         }
         return result;
     }
