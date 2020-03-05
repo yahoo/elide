@@ -430,7 +430,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param resource Resource on which to execute trigger
      * @param crudAction CRUD action
      */
-    protected void publishLifecycleEvent(PersistentResource<?> resource, CRUDEvent.CRUDAction crudAction) {
+    protected void publishLifecycleEvent(PersistentResource<?> resource, LifeCycleHookBinding.Operation crudAction) {
         lifecycleEvents.onNext(
                     new CRUDEvent(crudAction, resource, PersistentResource.CLASS_NO_FIELD, Optional.empty())
         );
@@ -446,7 +446,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      */
     protected void publishLifecycleEvent(PersistentResource<?> resource,
                                          String fieldName,
-                                         CRUDEvent.CRUDAction crudAction,
+                                         LifeCycleHookBinding.Operation crudAction,
                                          Optional<ChangeSpec> changeSpec) {
         lifecycleEvents.onNext(
                     new CRUDEvent(crudAction, resource, fieldName, changeSpec)
