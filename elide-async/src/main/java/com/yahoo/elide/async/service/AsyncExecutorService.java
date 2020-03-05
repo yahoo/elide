@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.service;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.util.Date;
 import java.util.UUID;
