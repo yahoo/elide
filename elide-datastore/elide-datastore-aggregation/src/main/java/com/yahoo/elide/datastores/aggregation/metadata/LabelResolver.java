@@ -108,6 +108,7 @@ public abstract class LabelResolver {
     /**
      * Get a {@link DimensionFormula} or {@link MetricFormula} reference resolver.
      *
+     * @param column column that this resolver is built for
      * @param tableClass table class
      * @param expression formula expression contains physical column, logical column and {@link JoinTo} paths
      * @return a resolver

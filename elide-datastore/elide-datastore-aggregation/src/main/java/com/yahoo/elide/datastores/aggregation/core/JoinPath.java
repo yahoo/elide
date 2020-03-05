@@ -36,22 +36,6 @@ public class JoinPath extends Path {
     }
 
     /**
-     * Extend this path with a dotSeparatedPath.
-     *
-     * @param dictionary entity dictionary
-     * @param dotSeparatedPath path e.g. "bar.baz", starting for the end of current path
-     * @return extended path
-     */
-    public JoinPath extend(EntityDictionary dictionary, String dotSeparatedPath) {
-        JoinPath extension = new JoinPath(lastElement().get().getType(), dictionary, dotSeparatedPath);
-
-        // append new path after original path
-        JoinPath extended = extendJoinPath(this, extension);
-
-        return new JoinPath(extended);
-    }
-
-    /**
      * Append an extension path to an original path, the last element of original path should be the same as the
      * first element of extension path.
      *

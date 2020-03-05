@@ -46,12 +46,21 @@ public class MetaDataStore extends HashMapDataStore implements LabelStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
-    public static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
+    private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
 
     @Getter
     private final Set<Class<?>> modelsToBind;
 
+    public MetaDataStore() {
+        this(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
+    }
+
+    /**
+     * Construct MetaDataStore with data models.
+     *
+     * @param modelsToBind models to bind
+     */
     public MetaDataStore(Set<Class<?>> modelsToBind) {
         super(META_DATA_PACKAGE);
 
@@ -182,18 +191,6 @@ public class MetaDataStore extends HashMapDataStore implements LabelStore {
      */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
-    }
-
-    /**
-     * Construct a column name as meta data
-     *
-     * @param tableClass table class
-     * @param fieldName field name
-     * @param dictionary entity dictionary to use
-     * @return <code>tableAlias.fieldName</code>
-     */
-    public static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
-        return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
     }
 
     /**

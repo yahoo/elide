@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
 import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 
 import com.yahoo.elide.annotation.Exclude;
@@ -86,6 +85,26 @@ public abstract class Column {
         this.labelResolver = constructLabelResolver(dictionary);
     }
 
+    /**
+     * Construct a column name as meta data
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @param dictionary entity dictionary to use
+     * @return <code>tableAlias.fieldName</code>
+     */
+    protected static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
+        return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
+    }
+
+    /**
+     * Resolve the value type of a field
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @param dictionary meta data dictionary
+     * @return field value type
+     */
     public static ValueType getValueType(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         if (dictionary.isRelation(tableClass, fieldName)) {
             return ValueType.RELATIONSHIP;

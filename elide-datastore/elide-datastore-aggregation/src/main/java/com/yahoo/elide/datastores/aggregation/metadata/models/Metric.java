@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 
