@@ -532,14 +532,22 @@ public class EntityBinding {
 
     private void bindTriggerIfPresent(AccessibleObject fieldOrMethod) {
         if (fieldOrMethod.isAnnotationPresent(LifeCycleHookBinding.class)) {
-            LifeCycleHookBinding trigger = fieldOrMethod.getAnnotation(LifeCycleHookBinding.class);
-            bindTrigger(trigger, getFieldName(fieldOrMethod));
+            LifeCycleHookBinding[] triggers = fieldOrMethod.getAnnotationsByType(LifeCycleHookBinding.class);
+            for (LifeCycleHookBinding trigger : triggers) {
+                bindTrigger(trigger, getFieldName(fieldOrMethod));
+            }
         }
     }
     private void bindTriggerIfPresent() {
         if (entityClass.isAnnotationPresent(LifeCycleHookBinding.class)) {
-            LifeCycleHookBinding trigger = entityClass.getAnnotation(LifeCycleHookBinding.class);
-            bindTrigger(trigger);
+            LifeCycleHookBinding[] triggers = entityClass.getAnnotationsByType(LifeCycleHookBinding.class);
+            for (LifeCycleHookBinding trigger : triggers) {
+                if (trigger.oncePerRequest()) {
+                    bindTrigger(trigger, PersistentResource.CLASS_NO_FIELD);
+                } else {
+                    bindTrigger(trigger);
+                }
+            }
         }
     }
 

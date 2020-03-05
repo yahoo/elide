@@ -6,6 +6,11 @@
 package com.yahoo.elide.core;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -30,6 +35,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
@@ -61,6 +67,8 @@ import example.Book;
 import example.Editor;
 import example.Publisher;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -911,9 +919,41 @@ public class LifeCycleTest {
     public void testCreateHookOnEntityFields() {
         @Entity
         @Include
+        @LifeCycleHookBinding(hook = Book.PreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
         class Book {
+
+            class PreSecurityHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.createPreSecurityInvoked++;
+                }
+            }
+
+            class PreCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.createPreCommitInvoked++;
+                }
+            }
+
+            class PostCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.createPostCommitInvoked++;
+                }
+            }
+
             @Id
             private String id;
+
+            @LifeCycleHookBinding(hook = PreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
+            @LifeCycleHookBinding(hook = PostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
             private String title;
 
             @Exclude
@@ -927,21 +967,6 @@ public class LifeCycleTest {
             @Exclude
             @Transient
             private int createPreSecurityInvoked = 0;
-
-            @OnCreatePreSecurity
-            public void createPreSecurity(RequestScope scope) {
-                createPreSecurityInvoked++;
-            }
-
-            @OnCreatePreCommit("title")
-            public void createPreCommit(RequestScope scope) {
-                createPreCommitInvoked++;
-            }
-
-            @OnCreatePostCommit("title")
-            public void createPostCommit(RequestScope scope) {
-                createPostCommitInvoked++;
-            }
         }
 
         EntityDictionary dictionary = TestDictionary.getTestDictionary();
@@ -975,7 +1000,38 @@ public class LifeCycleTest {
     public void testDeleteHookOnEntityFields() {
         @Entity
         @Include
+        @LifeCycleHookBinding(hook = Book.PreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+        @LifeCycleHookBinding(hook = Book.PreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
+        @LifeCycleHookBinding(hook = Book.PostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
         class Book {
+
+            class PreSecurityHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.deletePreSecurityInvoked++;
+                }
+            }
+
+            class PreCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.deletePreCommitInvoked++;
+                }
+            }
+
+            class PostCommitHook implements LifeCycleHook<Book> {
+                @Override
+                public void execute(Book elideEntity,
+                                    com.yahoo.elide.security.RequestScope requestScope,
+                                    Optional<ChangeSpec> changes) {
+                    elideEntity.deletePostCommitInvoked++;
+                }
+            }
+
             @Id
             private String id;
             private String title;
@@ -991,21 +1047,6 @@ public class LifeCycleTest {
             @Exclude
             @Transient
             private int deletePostCommitInvoked = 0;
-
-            @OnDeletePreSecurity
-            public void deletePreSecurity(RequestScope scope) {
-                deletePreSecurityInvoked++;
-            }
-
-            @OnDeletePreCommit
-            public void deletePreCommit(RequestScope scope) {
-                deletePreCommitInvoked++;
-            }
-
-            @OnDeletePostCommit
-            public void deletePostCommit(RequestScope scope) {
-                deletePostCommitInvoked++;
-            }
         }
 
         EntityDictionary dictionary = TestDictionary.getTestDictionary();

@@ -46,11 +46,11 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
         ArrayList<LifeCycleHook> hooks = new ArrayList<>();
 
         //Collect all the hooks that are keyed on a specific field.
-        hooks.addAll(dictionary.getTriggers(op, phase, event.getResource().getResourceClass(), event.getFieldName()));
+        hooks.addAll(dictionary.getTriggers(event.getResource().getResourceClass(), op, phase, event.getFieldName()));
 
         //Collect all the hooks that are keyed on any field.
         if (!event.getFieldName().isEmpty()) {
-            hooks.addAll(dictionary.getTriggers(op, phase, event.getResource().getResourceClass()));
+            hooks.addAll(dictionary.getTriggers(event.getResource().getResourceClass(), op, phase));
         }
 
         try {
