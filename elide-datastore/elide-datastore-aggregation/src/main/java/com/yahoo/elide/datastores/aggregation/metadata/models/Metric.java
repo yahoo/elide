@@ -6,28 +6,24 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.constructColumnName;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.resolveFormulaReferences;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.toFormulaReference;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
+import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
+import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
+import com.yahoo.elide.datastores.aggregation.metadata.LabelStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
-
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.persistence.ManyToOne;
 
@@ -67,8 +63,13 @@ public class Metric extends Column {
                     fieldName);
 
             if (formula != null) {
-                this.metricFunction = resolveFormula(
-                        table, fieldName, new LinkedHashSet<>(), new HashMap<>(), meta, dictionary);
+                this.metricFunction = constructMetricFunction(
+                        constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
+                        meta == null ? null : meta.longName(),
+                        meta == null ? null : meta.description(),
+                        formula.value(),
+                        new HashSet<>());
+
             } else {
                 throw new IllegalArgumentException("Trying to construct metric field "
                         + getId() + " without @MetricAggregation and @MetricFormula.");
@@ -95,9 +96,6 @@ public class Metric extends Column {
         try {
             MetricFunction metricFunction = aggregation.function().newInstance();
             metricFunction.setName(columnName + "[" + metricFunction.getName() + "]");
-            metricFunction.setExpression(String.format(
-                    metricFunction.getExpression(),
-                    dictionary.getAnnotatedColumnName(tableClass, fieldName)));
 
             if (meta != null) {
                 metricFunction.setLongName(meta.longName());
@@ -111,109 +109,91 @@ public class Metric extends Column {
     }
 
     /**
-     * Resolve aggregation function form {@link MetricFormula} annotation.
-     * This require traverse through the formula to resolve all references to other metric field.
+     * Dynamically construct a metric function
      *
-     * @param table table
-     * @param fieldName metric field name
-     * @param toResolve references that are not resolved yet, to detect cycle-reference
-     * @param resolved references that are already resolved
-     * @param meta meta annotation on the field
-     * @param dictionary dictionary with entity information
-     * @return resolved metric function instance
+     * @param id metric function id
+     * @param longName meta long name
+     * @param description meta description
+     * @param expression expression string
+     * @param arguments function arguments
+     * @return a metric function instance
      */
-    private MetricFunction resolveFormula(Table table,
-                                          String fieldName,
-                                          LinkedHashSet<String> toResolve,
-                                          Map<String, MetricFunction> resolved,
-                                          Meta meta,
-                                          EntityDictionary dictionary) {
-        Class<?> tableClass = dictionary.getEntityClass(table.getId());
-
-        if (toResolve.contains(fieldName)) {
-            throw new IllegalArgumentException("Metric formula reference loop found in class "
-                    + dictionary.getJsonAliasFor(tableClass) + ": "
-                    + String.join("->", toResolve) + "->" + fieldName);
-        }
-
-        MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
-                tableClass,
-                MetricFormula.class,
-                fieldName);
-
-        // if the metric is directly aggregation, add it into the resolved map
-        if (formula == null) {
-            resolved.put(fieldName, new Metric(table, fieldName, dictionary).getMetricFunction());
-        } else {
-            toResolve.add(fieldName);
-
-            String expression = formula.value();
-            List<String> references = resolveFormulaReferences(expression);
-            Set<FunctionArgument> arguments = new HashSet<>();
-            MutableInt index = new MutableInt();
-
-            references.forEach(ref -> {
-                // if the field is a physical column that is not present in the data model
-                if (dictionary.getParameterizedType(tableClass, ref) == null) {
-                    resolved.put(
-                            ref,
-                            constructMetricFunction("physicalReference", null, null, ref, Collections.emptySet()));
-                }
-
-                if (!resolved.containsKey(ref)) {
-                    resolveFormula(table, ref, toResolve, resolved, null, dictionary);
-                }
-
-                MetricFunction referenceFunction = resolved.get(ref);
-
-                if (referenceFunction.getExpression() == null || referenceFunction.getExpression().equals("")) {
-                    throw new IllegalArgumentException(
-                            "Metric formula contains metric function that doesn't have expression "
-                                    + dictionary.getJsonAliasFor(tableClass) + ": "
-                                    + String.join("->", toResolve) + "->" + ref);
-                }
-
-                // pass metric argument into arguments of current function
-                // TODO: add argument name mapping so that arguments can be injected correctly
-                referenceFunction.getArguments()
-                        .forEach(arg -> arguments.add(
-                                new FunctionArgument(
-                                        String.format("%s_%s_%s_%d_%s",
-                                                table.getId(),
-                                                fieldName,
-                                                ref,
-                                                index.getAndIncrement(),
-                                                arg.getId()),
-                                        arg.getName(),
-                                        arg.getDescription(),
-                                        arg.getType(),
-                                        arg.getSubType())));
-            });
-
-            for (String ref : references) {
-                expression = expression.replace(toFormulaReference(ref), resolved.get(ref).getExpression());
-            }
-
-            toResolve.remove(fieldName);
-            // add new function into resolved map
-            resolved.put(
-                    fieldName,
-                    constructMetricFunction(
-                            constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
-                            meta == null ? null : meta.longName(),
-                            meta == null ? null : meta.description(),
-                            expression,
-                            arguments));
-        }
-
-        return resolved.get(fieldName);
-    }
-
     protected MetricFunction constructMetricFunction(String id,
                                                      String longName,
                                                      String description,
                                                      String expression,
                                                      Set<FunctionArgument> arguments) {
         return new MetricFunction(id, longName, description, expression, arguments);
+    }
+
+    @Override
+    protected LabelResolver constructLabelResolver(EntityDictionary dictionary) {
+        Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
+        String fieldName = getName();
+
+        MetricAggregation aggregation = dictionary.getAttributeOrRelationAnnotation(
+                tableClass,
+                MetricAggregation.class,
+                fieldName);
+
+        if (aggregation != null) {
+            return getAggregationResolver(tableClass, fieldName);
+        } else {
+            MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
+                    tableClass,
+                    MetricFormula.class,
+                    fieldName);
+
+            if (formula != null) {
+                return getFormulaResolver(tableClass, formula);
+            } else {
+                return super.constructLabelResolver(dictionary);
+            }
+        }
+    }
+
+    /**
+     * Build a resolver for {@link MetricAggregation} metric field
+     *
+     * @param tableClass table class
+     * @param fieldName metric field name
+     * @return a resolver
+     */
+    private LabelResolver getAggregationResolver(Class<?> tableClass, String fieldName) {
+        return new LabelResolver(this) {
+            @Override
+            public String resolveLabel(LabelStore labelStore, String tableAlias) {
+                return String.format(
+                        getMetricFunction().getExpression(),
+                        getFieldAlias(
+                                tableAlias,
+                                labelStore.getDictionary().getAnnotatedColumnName(tableClass, fieldName)));
+            }
+        };
+    }
+
+    /**
+     * Get a {@link MetricFormula} reference resolver.
+     *
+     * @param tableClass table class
+     * @param formula formula contains physical column, logical column and join paths
+     * @return a resolver
+     */
+    private LabelResolver getFormulaResolver(Class<?> tableClass, MetricFormula formula) {
+        return LabelResolver.getFormulaResolver(this, tableClass, formula.value());
+    }
+
+    /**
+     * When resolving label, metrics need to resolve its expression into full expression
+     *
+     * @param labelStore table stores all resolvers
+     */
+    @Override
+    public void resolveLabel(LabelStore labelStore) {
+        EntityDictionary dictionary = labelStore.getDictionary();
+        Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
+        JoinPath rootPath = new JoinPath(tableClass, dictionary, getName());
+
+        getMetricFunction().setExpression(labelStore.resolveLabel(rootPath, getClassAlias(tableClass)));
     }
 }

@@ -61,7 +61,7 @@ public class VideoGame {
         return timeSpent;
     }
 
-    @MetricFormula("{{timeSpent}} / (CASE WHEN {{sessions}} = 0 THEN 1 ELSE {{sessions}} END)")
+    @MetricFormula("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))")
     public Float getTimeSpentPerSession() {
         return timeSpentPerSession;
     }

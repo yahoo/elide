@@ -8,13 +8,11 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
@@ -253,21 +251,5 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return getTypeAlias(entityClass);
-    }
-
-    /**
-     * Append an extension path to an original path, the last element of original path should be the same as the
-     * first element of extension path.
-     *
-     * @param path original path, e.g. <code>[A.B]/[B.C]</code>
-     * @param extension extension path, e.g. <code>[B.C]/[C.D]</code>
-     * @param <P> path extension
-     * @return extended path <code>[A.B]/[B.C]/[C.D]</code>
-     */
-    private static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
-        List<Path.PathElement> toExtend = new ArrayList<>(path.getPathElements());
-        toExtend.remove(toExtend.size() - 1);
-        toExtend.addAll(extension.getPathElements());
-        return new JoinPath(toExtend);
     }
 }

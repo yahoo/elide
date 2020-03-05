@@ -256,13 +256,26 @@ public class MetaDataStore extends HashMapDataStore implements LabelStore {
     /**
      * Resolve all column references in all tables.
      */
-    public void resolveReference() {
+    public void resolveLabel() {
         getMetaData(Table.class)
                 .forEach(table -> table.getColumns()
                         .forEach(column -> column.getLabelResolver().checkResolverLoop(this)));
 
         getMetaData(Table.class)
                 .forEach(table -> table.getColumns()
-                        .forEach(column -> column.resolveReference(this)));
+                        .forEach(column -> column.resolveLabel(this)));
+    }
+
+    /**
+     * Check whether a reference is not defined in the logical meta data table, which means it is physical.
+     *
+     * @param tableClass table class
+     * @param reference reference
+     * @param dictionary meta data dictionary
+     * @return True if the reference is to a physical column
+     */
+    public static boolean isPhysicalReference(Class<?> tableClass, String reference, EntityDictionary dictionary) {
+        return !reference.contains(".")
+                && dictionary.getParameterizedType(tableClass, reference) == null;
     }
 }

@@ -123,8 +123,8 @@ public abstract class Column {
     protected LabelResolver constructLabelResolver(EntityDictionary dictionary) {
         return new LabelResolver(this) {
             @Override
-            public String resolveLabel(LabelStore labelStore, String labelPrefix) {
-                return getFieldAlias(labelPrefix, getName());
+            public String resolveLabel(LabelStore labelStore, String tableAlias) {
+                return getFieldAlias(tableAlias, getName());
             }
         };
     }
@@ -134,7 +134,7 @@ public abstract class Column {
      *
      * @param labelStore table stores all resolvers
      */
-    public void resolveReference(LabelStore labelStore) {
+    public void resolveLabel(LabelStore labelStore) {
         // NOOP
     }
 }

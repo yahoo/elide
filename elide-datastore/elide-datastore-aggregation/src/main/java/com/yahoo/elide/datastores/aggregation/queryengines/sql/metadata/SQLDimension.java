@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -17,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,18 +42,12 @@ public class SQLDimension extends Dimension implements SQLColumn {
     }
 
     @Override
-    public void resolveReference(LabelStore labelStore) {
+    public void resolveLabel(LabelStore labelStore) {
         EntityDictionary dictionary = labelStore.getDictionary();
-        String fieldName = getName();
         Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
-        JoinPath rootPath = new JoinPath(
-                Collections.singletonList(
-                        new Path.PathElement(
-                                tableClass,
-                                dictionary.getParameterizedType(tableClass, fieldName),
-                                fieldName)));
+        JoinPath rootPath = new JoinPath(tableClass, labelStore.getDictionary(), getName());
 
-        this.reference = labelStore.resolveLabel(rootPath, "");
+        this.reference = labelStore.resolveLabel(rootPath, getClassAlias(tableClass));
         this.joinPaths.addAll(labelStore.resolveJoinPaths(rootPath));
     }
 

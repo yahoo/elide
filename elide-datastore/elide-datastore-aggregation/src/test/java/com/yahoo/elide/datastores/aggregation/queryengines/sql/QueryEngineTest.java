@@ -88,7 +88,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testFromSubQuery() {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -173,7 +173,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testNotProjectedFilter() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         PlayerStatsView.class, false))
                 .build();

@@ -428,7 +428,7 @@ public class SQLQueryConstructor {
      * @return A SQL fragment that references a database column
      */
     private String generatePredicatePathReference(Path path) {
-        return metaDataStore.resolveLabel(path, "");
+        return metaDataStore.resolveLabel(path, getClassAlias(path.getPathElements().get(0).getType()));
     }
 
     /**

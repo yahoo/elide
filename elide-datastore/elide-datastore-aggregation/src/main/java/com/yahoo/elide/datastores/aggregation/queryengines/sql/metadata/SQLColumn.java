@@ -6,11 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.core.JoinPath.extendJoinPath;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.resolveFormulaReferences;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.toFormulaReference;
-import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.extendTypeAlias;
 import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
-import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -23,10 +20,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * SQLColumn is a wrapper for {@link Column} that contains physical information for {@link SQLQueryEngine}.
@@ -86,9 +80,9 @@ public interface SQLColumn {
     default LabelResolver getLogicalColumnResolver(Class<?> tableClass, String fieldName) {
         return new LabelResolver(getColumn()) {
             @Override
-            public String resolveLabel(LabelStore labelStore, String labelPrefix) {
+            public String resolveLabel(LabelStore labelStore, String tableAlias) {
                 return getFieldAlias(
-                        labelPrefix,
+                        tableAlias,
                         labelStore.getDictionary().getAnnotatedColumnName(tableClass, fieldName));
             }
         };
@@ -116,12 +110,10 @@ public interface SQLColumn {
             }
 
             @Override
-            public String resolveLabel(LabelStore labelStore, String labelPrefix) {
+            public String resolveLabel(LabelStore labelStore, String tableAlias) {
                 JoinPath joinToPath = getJoinToPath(labelStore);
 
-                return appendAlias(
-                        labelPrefix,
-                        labelStore.resolveLabel(joinToPath, appendAlias(labelPrefix, getPathAlias(joinToPath))));
+                return labelStore.resolveLabel(joinToPath, extendTypeAlias(tableAlias, joinToPath));
             }
 
             private JoinPath getJoinToPath(LabelStore labelStore) {
@@ -138,81 +130,6 @@ public interface SQLColumn {
      * @return a resolver
      */
     default LabelResolver getFormulaResolver(Class<?> tableClass, DimensionFormula formula) {
-        final String expression = formula.value();
-
-        // dimension references are deduplicated
-        List<String> references =
-                resolveFormulaReferences(expression).stream().distinct().collect(Collectors.toList());
-
-        return new LabelResolver(getColumn()) {
-            @Override
-            public Set<JoinPath> resolveJoinPaths(LabelStore labelStore, JoinPath from) {
-                return references.stream()
-                        .map(reference -> {
-                            // physical columns don't have dependency resolvers
-                            if (isPhysicalReference(labelStore, reference)) {
-                                return Stream.<JoinPath>empty();
-                            }
-
-                            JoinPath to = getJoinToPath(labelStore, reference);
-
-                            return labelStore.getLabelResolver(to)
-                                    .resolveJoinPaths(labelStore, extendJoinPath(from, to)).stream();
-                        })
-                        .reduce(Stream.empty(), Stream::concat)
-                        .collect(Collectors.toSet());
-            }
-
-            @Override
-            public Set<LabelResolver> getDependencyResolvers(LabelStore labelStore) {
-                return references.stream()
-                        .map(reference -> {
-                            // physical columns don't have dependency resolvers
-                            return isPhysicalReference(labelStore, reference)
-                                    ? null
-                                    : labelStore.getLabelResolver(getJoinToPath(labelStore, reference));
-
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
-            }
-
-            @Override
-            public String resolveLabel(LabelStore labelStore, String labelPrefix) {
-                String expr = expression;
-
-                // replace references with resolved statements/expressions
-                for (String reference : references) {
-                    String resolvedReference;
-
-                    if (!reference.contains(".")) {
-                        resolvedReference = getFieldAlias(
-                                labelPrefix,
-                                isPhysicalReference(labelStore, reference)
-                                        ? reference
-                                        : labelStore.getDictionary().getAnnotatedColumnName(tableClass, reference));
-                    } else {
-                        JoinPath joinPath = getJoinToPath(labelStore, reference);
-
-                        resolvedReference = appendAlias(
-                                labelPrefix,
-                                labelStore.resolveLabel(joinPath, appendAlias(labelPrefix, getPathAlias(joinPath))));
-                    }
-
-                    expr = expr.replace(toFormulaReference(reference), resolvedReference);
-                }
-
-                return expr;
-            }
-
-            private boolean isPhysicalReference(LabelStore labelStore, String reference) {
-                return !reference.contains(".")
-                        && labelStore.getDictionary().getParameterizedType(tableClass, reference) == null;
-            }
-
-            private JoinPath getJoinToPath(LabelStore labelStore, String reference) {
-                return new JoinPath(tableClass, labelStore.getDictionary(), reference);
-            }
-        };
+        return LabelResolver.getFormulaResolver(getColumn(), tableClass, formula.value());
     }
 }

@@ -34,22 +34,22 @@ public interface LabelStore {
      * Get the label for a path.
      *
      * @param path path to a field
-     * @param labelPrefix label prefix for the path label
+     * @param tableAlias label prefix to the table that contains this field
      * @return full label for the path
      */
-    default String resolveLabel(JoinPath path, String labelPrefix) {
-        return getLabelResolver(path).resolveLabel(this, labelPrefix);
+    default String resolveLabel(JoinPath path, String tableAlias) {
+        return getLabelResolver(path).resolveLabel(this, tableAlias);
     }
 
     /**
      * Get the label for a path.
      *
      * @param path path to a field
-     * @param labelPrefix label prefix for the path label
+     * @param tableAlias label prefix to the table that contains this field
      * @return full label for the path
      */
-    default String resolveLabel(Path path, String labelPrefix) {
-        return resolveLabel(new JoinPath(path), labelPrefix);
+    default String resolveLabel(Path path, String tableAlias) {
+        return resolveLabel(new JoinPath(path), tableAlias);
     }
 
     /**
@@ -60,15 +60,5 @@ public interface LabelStore {
      */
     default Set<JoinPath> resolveJoinPaths(JoinPath path) {
         return getLabelResolver(path).resolveJoinPaths(this, path);
-    }
-
-    /**
-     * Resolve all joins needed for a path
-     *
-     * @param path path to a field
-     * @return all needed joins
-     */
-    default Set<JoinPath> resolveJoinPaths(Path path) {
-        return resolveJoinPaths(new JoinPath(path));
     }
 }
