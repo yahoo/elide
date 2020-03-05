@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.models;
 
-import java.security.Principal;
 import java.util.Date;
 import java.util.UUID;
 
@@ -81,6 +80,6 @@ public class AsyncQuery implements PrincipalOwned {
     @OnCreatePostCommit
     public void executeQueryFromExecutor(RequestScope scope) {
         log.info("AsyncExecutorService executor object: {}", asyncExecutorService);
-        asyncExecutorService.executeQuery(query, queryType, (Principal) scope.getUser().getOpaqueUser(), id);
+        asyncExecutorService.executeQuery(query, queryType, scope.getUser(), id);
     }
 }

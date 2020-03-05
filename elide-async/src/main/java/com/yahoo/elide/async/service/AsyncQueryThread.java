@@ -6,7 +6,6 @@
 package com.yahoo.elide.async.service;
 
 import java.net.URISyntaxException;
-import java.security.Principal;
 import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -22,6 +21,7 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.security.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,7 +39,7 @@ public class AsyncQueryThread implements Runnable {
 
     private String query;
     private QueryType queryType;
-    private Principal user;
+    private User user;
     private Elide elide;
     private QueryRunner runner;
     private UUID id;

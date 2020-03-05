@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.service;
 
-import java.security.Principal;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -17,15 +16,13 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.graphql.QueryRunner;
-
-import lombok.extern.slf4j.Slf4j;
+import com.yahoo.elide.security.User;
 
 /**
  * Service to execute Async queries. It will schedule task to track long
  * running queries and kills them. It will also schedule task to update
  * orphan query statuses after host/app crash or restart.
  */
-@Slf4j
 @Singleton
 public class AsyncExecutorService {
 
@@ -46,7 +43,7 @@ public class AsyncExecutorService {
         interruptor = AsyncQueryInterruptor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
     }
 
-    public void executeQuery(String query, QueryType queryType, Principal user, UUID id) {
+    public void executeQuery(String query, QueryType queryType, User user, UUID id) {
         AsyncQueryThread queryWorker = new AsyncQueryThread(query, queryType, user, elide, runner, id);
         // Change async query in Datastore to queued
         AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
