@@ -62,6 +62,9 @@ public class AsyncQuery implements PrincipalOwned {
     @Transient
     private AsyncExecutorService asyncExecutorService;
 
+    @Transient
+    protected String naturalKey = id.toString();
+
     @Override
     public String getPrincipalName() {
         return principalName;
@@ -81,5 +84,19 @@ public class AsyncQuery implements PrincipalOwned {
     public void executeQueryFromExecutor(RequestScope scope) {
         log.info("AsyncExecutorService executor object: {}", asyncExecutorService);
         asyncExecutorService.executeQuery(query, queryType, scope.getUser(), id);
+    }
+
+    @Override
+    public int hashCode() {
+        return naturalKey.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof AsyncQuery)) {
+            return false;
+        }
+
+        return ((AsyncQuery) obj).naturalKey.equals(naturalKey);
     }
 }
