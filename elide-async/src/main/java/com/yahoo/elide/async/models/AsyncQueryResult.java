@@ -49,7 +49,7 @@ public class AsyncQueryResult implements PrincipalOwned {
     private Date updatedOn;
 
     @Transient
-    protected String naturalKey = id.toString();
+    protected String naturalKey = UUID.randomUUID().toString();
 
     @OneToOne
     private AsyncQuery query;

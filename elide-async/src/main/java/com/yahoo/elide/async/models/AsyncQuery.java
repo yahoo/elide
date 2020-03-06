@@ -63,7 +63,7 @@ public class AsyncQuery implements PrincipalOwned {
     private AsyncExecutorService asyncExecutorService;
 
     @Transient
-    protected String naturalKey = id.toString();
+    protected String naturalKey = UUID.randomUUID().toString();
 
     @Override
     public String getPrincipalName() {
