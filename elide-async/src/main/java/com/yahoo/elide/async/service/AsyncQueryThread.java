@@ -54,9 +54,9 @@ public class AsyncQueryThread implements Runnable {
      * values for AsyncQuery and AsyncQueryResult models accordingly.
      */
     protected void processQuery() {
+        AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
         try {
             // Change async query to processing
-            AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
             asyncDbUtil.updateAsyncQuery(id, (asyncQuery) -> {
                 asyncQuery.setStatus(QueryStatus.PROCESSING);
                 });
@@ -77,29 +77,32 @@ public class AsyncQueryThread implements Runnable {
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}", response.getResponseCode());
                 log.debug("GRAPHQL_V1_0 getBody: {}", response.getBody());
             }
-            // if 200 - response code then Change async query to complete else change to Failure
-            if (response.getResponseCode() == 200) {
+            if (response != null){
                 asyncQuery = asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
                     asyncQueryObj.setStatus(QueryStatus.COMPLETE);
-                    });
-            } else {
-                asyncQuery = asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
-                    asyncQueryObj.setStatus(QueryStatus.FAILURE);
-                    });
-            }
-
-            // Create AsyncQueryResult entry for AsyncQuery
-            asyncQueryResult = asyncDbUtil.createAsyncQueryResult(response.getResponseCode(), response.getBody(), asyncQuery, id);
-
-            // Add queryResult object to query object
-            asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
-                asyncQueryObj.setResult(asyncQueryResult);
                 });
 
-        } catch (URISyntaxException e) {
-            log.error("URISyntaxException: {}", e.getMessage());
+                // Create AsyncQueryResult entry for AsyncQuery
+                asyncQueryResult = asyncDbUtil.createAsyncQueryResult(response.getResponseCode(), response.getBody(), asyncQuery, id);
+
+                // Add queryResult object to query object
+                asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+                    asyncQueryObj.setResult(asyncQueryResult);
+                });
+            } else {
+                // If no response is returned on AsyncQuery request we set the QueryStatus to FAILURE
+                // No AsyncQueryResult will be set for this case
+                asyncQuery = asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+                    asyncQueryObj.setStatus(QueryStatus.FAILURE);
+                 });
+            }
         } catch (Exception e) {
             log.error("Exception: {}", e.getMessage());
+            // If an Exception is encountered we set the QueryStatus to FAILURE
+            //No AsyncQueryResult will be set for this case
+            asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+                asyncQueryObj.setStatus(QueryStatus.FAILURE);
+            });
         }
     }
 
