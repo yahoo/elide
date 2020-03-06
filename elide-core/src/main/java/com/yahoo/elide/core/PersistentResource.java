@@ -990,6 +990,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private Set<PersistentResource> getRelation(com.yahoo.elide.request.Relationship relationship,
                                                 boolean checked) {
+        if (checked) {
+            //All getRelation calls funnel to here.  We only publish events for actions triggered directly
+            //by the API client.
+            requestScope.publishLifecycleEvent(this, READ);
+            requestScope.publishLifecycleEvent(this, relationship.getName(), READ, Optional.empty());
+        }
+
         if (checked && !checkRelation(relationship)) {
             return Collections.emptySet();
         }
@@ -1437,8 +1444,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Value
      */
     protected Object getValueUnchecked(String fieldName) {
-        requestScope.publishLifecycleEvent(this, READ);
-        requestScope.publishLifecycleEvent(this, fieldName, READ, Optional.empty());
         return getValue(getObject(), fieldName, requestScope);
     }
 
