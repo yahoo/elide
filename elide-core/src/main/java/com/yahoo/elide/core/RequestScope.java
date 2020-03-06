@@ -354,7 +354,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 .filter(CRUDEvent::isCreateEvent)
                 .subscribeWith(new LifecycleHookInvoker(dictionary,
                         LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
+                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, false))
                 .throwOnError();
     }
 
