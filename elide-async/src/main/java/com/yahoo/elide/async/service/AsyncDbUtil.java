@@ -88,18 +88,22 @@ public class AsyncDbUtil {
     }
 
     /**
-     * This method deletes the AsyncQueryResult object from database.
+     * This method deletes the AsyncQueryResult and AsyncQueryResult object from database.
      * @param asyncQueryResultId Unique UUID for the AsyncQuery Object
      */
-    protected void deleteAsyncQueryResult(UUID asyncQueryResultId) {
+    protected void deleteAsyncQueryAndResult(UUID asyncQueryResultId) {
         log.debug("AsyncDbUtil deleteAsyncQueryResult");
         executeInTransaction(dataStore, (tx, scope) -> {
-            EntityProjection asyncQueryResultCollection = EntityProjection.builder()
-                    .type(AsyncQueryResult.class)
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
                     .build();
-            AsyncQueryResult queryResult = (AsyncQueryResult) tx.loadObject(asyncQueryResultCollection, asyncQueryResultId, scope);
+            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryResultId, scope);
+            AsyncQueryResult queryResult = query.getResult();
             if(queryResult != null) {
                 tx.delete(queryResult, scope);
+            }
+            if(query != null) {
+                tx.delete(query, scope);
             }
             return queryResult;
         });
