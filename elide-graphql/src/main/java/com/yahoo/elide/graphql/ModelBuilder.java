@@ -41,13 +41,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ModelBuilder {
     public static final String ARGUMENT_DATA = "data";
-    public static final String ARGUMENT_INPUT = "Input";
     public static final String ARGUMENT_IDS = "ids";
     public static final String ARGUMENT_FILTER = "filter";
     public static final String ARGUMENT_SORT = "sort";
     public static final String ARGUMENT_FIRST = "first";
     public static final String ARGUMENT_AFTER = "after";
     public static final String ARGUMENT_OPERATION = "op";
+    public static final String OBJECT_PAGE_INFO = "PageInfo";
+    public static final String OBJECT_MUTATION_ROOT = "MutationRoot";
+    public static final String OBJECT_QUERY_ROOT = "QueryRoot";
 
     private EntityDictionary dictionary;
     private DataFetcher dataFetcher;
@@ -58,6 +60,7 @@ public class ModelBuilder {
     private GraphQLArgument pageFirstArgument;
     private GraphQLArgument sortArgument;
     private GraphQLConversionUtils generator;
+    private GraphQLNameUtils nameUtils;
     private GraphQLObjectType pageInfoObject;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
@@ -74,6 +77,7 @@ public class ModelBuilder {
      */
     public ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
         this.generator = new GraphQLConversionUtils(dictionary);
+        this.nameUtils = new GraphQLNameUtils(dictionary);
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
 
@@ -109,7 +113,7 @@ public class ModelBuilder {
                 .build();
 
         pageInfoObject = newObject()
-                .name("_pageInfoObject")
+                .name(OBJECT_PAGE_INFO)
                 .field(newFieldDefinition()
                         .name("hasNextPage")
                         .dataFetcher(dataFetcher)
@@ -158,7 +162,7 @@ public class ModelBuilder {
         resolveInputObjectRelationships();
 
         /* Construct root object */
-        GraphQLObjectType.Builder root = newObject().name("_root");
+        GraphQLObjectType.Builder root = newObject().name(OBJECT_QUERY_ROOT);
         for (Class<?> clazz : rootClasses) {
             String entityName = dictionary.getJsonAliasFor(clazz);
             root.field(newFieldDefinition()
@@ -175,7 +179,7 @@ public class ModelBuilder {
         }
 
         GraphQLObjectType queryRoot = root.build();
-        GraphQLObjectType mutationRoot = root.name("_mutation_root").build();
+        GraphQLObjectType mutationRoot = root.name(OBJECT_MUTATION_ROOT).build();
 
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
@@ -205,14 +209,14 @@ public class ModelBuilder {
             return connectionObjectRegistry.get(entityClass);
         }
 
-        String entityName = dictionary.getJsonAliasFor(entityClass);
+        String entityName = nameUtils.toOutputTypeName(entityClass);
 
         GraphQLObjectType connectionObject = newObject()
                 .name(entityName)
                 .field(newFieldDefinition()
                         .name("edges")
                         .dataFetcher(dataFetcher)
-                        .type(buildEdgesObject(entityName, buildQueryObject(entityClass))))
+                        .type(buildEdgesObject(entityClass, buildQueryObject(entityClass))))
                 .field(newFieldDefinition()
                         .name("pageInfo")
                         .dataFetcher(dataFetcher)
@@ -236,10 +240,8 @@ public class ModelBuilder {
 
         log.debug("Building query object for {}", entityClass.getName());
 
-        String entityName = dictionary.getJsonAliasFor(entityClass);
-
         GraphQLObjectType.Builder builder = newObject()
-                .name("_node__" + entityName);
+                .name(nameUtils.toNodeName(entityClass));
 
         String id = dictionary.getIdFieldName(entityClass);
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */
@@ -281,7 +283,7 @@ public class ModelBuilder {
                 continue;
             }
 
-            String relationshipEntityName = dictionary.getJsonAliasFor(relationshipClass);
+            String relationshipEntityName = nameUtils.toOutputTypeName(relationshipClass);
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationship);
 
             if (type.isToOne()) {
@@ -313,9 +315,9 @@ public class ModelBuilder {
         return queryObject;
     }
 
-    private GraphQLList buildEdgesObject(String relationName, GraphQLOutputType entityType) {
+    private GraphQLList buildEdgesObject(Class<?> relationClass, GraphQLOutputType entityType) {
         return new GraphQLList(newObject()
-                .name("_edges__" + relationName)
+                .name(nameUtils.toEdgesName(relationClass))
                 .field(newFieldDefinition()
                         .name("node")
                         .dataFetcher(dataFetcher)
@@ -352,10 +354,8 @@ public class ModelBuilder {
     private GraphQLInputType buildInputObjectStub(Class<?> clazz) {
         log.debug("Building input object for {}", clazz.getName());
 
-        String entityName = dictionary.getJsonAliasFor(clazz);
-
         MutableGraphQLInputObjectType.Builder builder = MutableGraphQLInputObjectType.newMutableInputObject();
-        builder.name(entityName + ARGUMENT_INPUT);
+        builder.name(nameUtils.toInputTypeName(clazz));
 
         String id = dictionary.getIdFieldName(clazz);
         if (id != null) {
@@ -378,9 +378,8 @@ public class ModelBuilder {
 
             GraphQLInputType attributeType = generator.attributeToInputObject(clazz, attributeClass, attribute);
 
-            /* If the attribute is an object, we need to change its name so it doesn't conflict with query objects */
             if (attributeType instanceof GraphQLInputObjectType) {
-                String objectName = attributeType.getName() + ARGUMENT_INPUT;
+                String objectName = attributeType.getName();
                 if (!convertedInputs.containsKey(objectName)) {
                     MutableGraphQLInputObjectType wrappedType =
                             new MutableGraphQLInputObjectType(
