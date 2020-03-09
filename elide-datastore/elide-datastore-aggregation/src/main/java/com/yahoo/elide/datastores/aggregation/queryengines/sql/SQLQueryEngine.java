@@ -15,12 +15,12 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -49,9 +49,12 @@ import javax.persistence.EntityTransaction;
 public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
 
+    private final SQLReferenceTable referenceTable;
+
     public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
         super(metaDataStore);
         this.entityManagerFactory = entityManagerFactory;
+        this.referenceTable = new SQLReferenceTable(metaDataStore);
     }
 
     @Override
@@ -167,7 +170,7 @@ public class SQLQueryEngine extends QueryEngine {
                     }
                 });
 
-        return new SQLQueryConstructor(getMetaDataStore()).resolveTemplate(
+        return new SQLQueryConstructor(referenceTable).resolveTemplate(
                 query,
                 queryTemplate,
                 query.getSorting(),
@@ -214,9 +217,11 @@ public class SQLQueryEngine extends QueryEngine {
     private SQLQuery toPageTotalSQL(SQLQuery sql) {
         // TODO: refactor this method
         String groupByDimensions =
-                extractSQLDimensions(sql.getClientQuery(), (SQLTable) sql.getClientQuery().getTable())
+                extractSQLDimensions(sql.getClientQuery(), sql.getClientQuery().getTable())
                         .stream()
-                        .map(SQLColumn::getReference)
+                        .map(dimension -> referenceTable.getResolvedReference(
+                                sql.getClientQuery().getTable(),
+                                dimension.getName()))
                         .collect(Collectors.joining(", "));
 
         String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
@@ -237,9 +242,9 @@ public class SQLQueryEngine extends QueryEngine {
      * @param table queried table
      * @return sql dimensions in this query
      */
-    private List<SQLColumn> extractSQLDimensions(Query query, SQLTable table) {
+    private List<Dimension> extractSQLDimensions(Query query, Table table) {
         return query.getDimensions().stream()
-                .map(projection -> table.getSQLColumn(projection.getColumn().getName()))
+                .map(projection -> table.getDimension(projection.getColumn().getName()))
                 .collect(Collectors.toList());
     }
 

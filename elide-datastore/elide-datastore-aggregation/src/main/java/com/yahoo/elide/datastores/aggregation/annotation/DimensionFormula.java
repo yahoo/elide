@@ -3,10 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation;
+package com.yahoo.elide.datastores.aggregation.annotation;
 
-import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -18,7 +17,7 @@ import java.lang.annotation.Target;
  * Indicates that a field is computed via a {@link #value()} custom dimension formula expression}, such as Calcite
  * SQL. This is similar to {@link MetricFormula}, except that dimension formula would be applied before aggregation.
  * <p>
- * Example: {@literal @}MetricFormula("IF({{reference}} >= 0, 'positive', 'negative')").
+ * Example: {@literal @}DimensionFormula("IF({{reference}} >= 0, 'positive', 'negative')").
  *
  * Rules:
  * 1. The provided references should can be other dimension field defined in the same class, physical column in current
@@ -28,7 +27,7 @@ import java.lang.annotation.Target;
  *    initial joined to sql expression.
  * <p>
  *
- * {@code expression} can also be composite. During {@link SQLColumn} construction, it will substitute attribute names
+ * {@code expression} can also be composite. After {@link Dimension} construction, it will substitute attribute names
  * in the provided expression with either:
  * <ul>
  *     <li> The column field name for that column in the query, or
@@ -57,7 +56,7 @@ import java.lang.annotation.Target;
  * }
  * }
  * </pre>
- * During {@link SQLColumn} construction, {@code countryIsInUsa} the provided expression will be substituted with
+ * After {@link Dimension} construction, {@code countryIsInUsa} the provided expression will be substituted with
  * {@code country.inUsa}.
  */
 @Documented
@@ -65,7 +64,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DimensionFormula {
     /**
-     * The custom metric expression that represents this dimension formula logic.
+     * The custom dimension expression that represents this dimension formula logic.
      *
      * @return dimension formula
      */

@@ -737,7 +737,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
-                .body("data.relationships.sourceColumn.data.id", equalTo("player.name"))
+                .body("data.relationships.sourceColumn.data.id", equalTo("playerStats.playerName"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()

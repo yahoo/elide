@@ -5,16 +5,11 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
-
-import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
-import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
-import com.yahoo.elide.datastores.aggregation.metadata.LabelStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.Data;
@@ -60,9 +55,6 @@ public abstract class Column {
     @ToString.Exclude
     private Set<String> columnTags;
 
-    @Exclude
-    private LabelResolver labelResolver;
-
     protected Column(Table table, String fieldName, EntityDictionary dictionary) {
         this.table = table;
         Class<?> tableClass = dictionary.getEntityClass(table.getId());
@@ -81,8 +73,6 @@ public abstract class Column {
         if (valueType == null) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
-
-        this.labelResolver = constructLabelResolver(dictionary);
     }
 
     /**
@@ -132,28 +122,5 @@ public abstract class Column {
         Class<?> columnCls = metadataDictionary.getParameterizedType(tableCls, getName());
 
         return new Path(Collections.singletonList(new Path.PathElement(tableCls, columnCls, getName())));
-    }
-
-    /**
-     * Construct a label resolver for this column.
-     *
-     * @return a label resolver
-     */
-    protected LabelResolver constructLabelResolver(EntityDictionary dictionary) {
-        return new LabelResolver(this) {
-            @Override
-            public String resolveLabel(LabelStore labelStore, String tableAlias) {
-                return getFieldAlias(tableAlias, getName());
-            }
-        };
-    }
-
-    /**
-     * Resolve physical reference label of this column.
-     *
-     * @param labelStore table stores all resolvers
-     */
-    public void resolveLabel(LabelStore labelStore) {
-        // NOOP
     }
 }

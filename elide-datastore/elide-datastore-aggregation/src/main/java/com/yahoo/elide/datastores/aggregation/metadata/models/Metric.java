@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 
 import com.yahoo.elide.annotation.Include;
@@ -13,10 +12,9 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.LabelResolver;
-import com.yahoo.elide.datastores.aggregation.metadata.LabelStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLReferenceResolver;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLReferenceTable;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -125,32 +123,6 @@ public class Metric extends Column {
         return new MetricFunction(id, longName, description, expression, arguments);
     }
 
-    @Override
-    protected LabelResolver constructLabelResolver(EntityDictionary dictionary) {
-        Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
-        String fieldName = getName();
-
-        MetricAggregation aggregation = dictionary.getAttributeOrRelationAnnotation(
-                tableClass,
-                MetricAggregation.class,
-                fieldName);
-
-        if (aggregation != null) {
-            return getAggregationResolver(tableClass, fieldName);
-        } else {
-            MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
-                    tableClass,
-                    MetricFormula.class,
-                    fieldName);
-
-            if (formula != null) {
-                return getFormulaResolver(tableClass, formula);
-            } else {
-                return super.constructLabelResolver(dictionary);
-            }
-        }
-    }
-
     /**
      * Build a resolver for {@link MetricAggregation} metric field
      *
@@ -158,41 +130,16 @@ public class Metric extends Column {
      * @param fieldName metric field name
      * @return a resolver
      */
-    private LabelResolver getAggregationResolver(Class<?> tableClass, String fieldName) {
-        return new LabelResolver(this) {
+    private SQLReferenceResolver getAggregationResolver(Class<?> tableClass, String fieldName) {
+        return new SQLReferenceResolver(this) {
             @Override
-            public String resolveLabel(LabelStore labelStore, String tableAlias) {
+            public String resolveReference(SQLReferenceTable referenceTable, String tableAlias) {
                 return String.format(
                         getMetricFunction().getExpression(),
                         getFieldAlias(
                                 tableAlias,
-                                labelStore.getDictionary().getAnnotatedColumnName(tableClass, fieldName)));
+                                referenceTable.getDictionary().getAnnotatedColumnName(tableClass, fieldName)));
             }
         };
-    }
-
-    /**
-     * Get a {@link MetricFormula} reference resolver.
-     *
-     * @param tableClass table class
-     * @param formula formula contains physical column, logical column and join paths
-     * @return a resolver
-     */
-    private LabelResolver getFormulaResolver(Class<?> tableClass, MetricFormula formula) {
-        return LabelResolver.getFormulaResolver(this, tableClass, formula.value());
-    }
-
-    /**
-     * When resolving label, metrics need to resolve its expression into full expression
-     *
-     * @param labelStore table stores all resolvers
-     */
-    @Override
-    public void resolveLabel(LabelStore labelStore) {
-        EntityDictionary dictionary = labelStore.getDictionary();
-        Class<?> tableClass = dictionary.getEntityClass(getTable().getId());
-        JoinPath rootPath = new JoinPath(tableClass, dictionary, getName());
-
-        getMetricFunction().setExpression(labelStore.resolveLabel(rootPath, getClassAlias(tableClass)));
     }
 }

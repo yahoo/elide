@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
-public class MetaDataStore extends HashMapDataStore implements LabelStore {
+public class MetaDataStore extends HashMapDataStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
@@ -238,41 +238,5 @@ public class MetaDataStore extends HashMapDataStore implements LabelStore {
                     column.setSourceColumn(sourceColumn);
                 })
         );
-    }
-
-    @Override
-    public LabelResolver getLabelResolver(Path path) {
-        Path.PathElement last = path.lastElement().get();
-
-        return ((Table) dataStore.get(Table.class).get(dictionary.getJsonAliasFor(last.getType())))
-                .getColumnMap()
-                .get(last.getFieldName())
-                .getLabelResolver();
-    }
-
-    /**
-     * Resolve all column references in all tables.
-     */
-    public void resolveLabel() {
-        getMetaData(Table.class)
-                .forEach(table -> table.getColumns()
-                        .forEach(column -> column.getLabelResolver().checkResolverLoop(this)));
-
-        getMetaData(Table.class)
-                .forEach(table -> table.getColumns()
-                        .forEach(column -> column.resolveLabel(this)));
-    }
-
-    /**
-     * Check whether a reference is not defined in the logical meta data table, which means it is physical.
-     *
-     * @param tableClass table class
-     * @param reference reference
-     * @param dictionary meta data dictionary
-     * @return True if the reference is to a physical column
-     */
-    public static boolean isPhysicalReference(Class<?> tableClass, String reference, EntityDictionary dictionary) {
-        return !reference.contains(".")
-                && dictionary.getParameterizedType(tableClass, reference) == null;
     }
 }
