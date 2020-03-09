@@ -3,6 +3,34 @@
   "$id": "http://elide.io/schemas/table_schema_v1#",
   "description": "Elide Table config json/hjson schema",
   "definitions": {
+    "grain": {
+      "title": "Grains",
+      "description": "Grains can have SQL expressions that can substitute column with the dimension definition expression",
+      "type": "object",
+      "properties": {
+        "grain": {
+          "title": "Time granularity",
+          "description": "Indicates grain time granularity",
+          "type": "string",
+          "enum": [
+            "DAY",
+            "WEEK",
+            "MONTH",
+            "YEAR"
+          ]
+        },
+        "sql": {
+          "title": "Grain SQL",
+          "description": "Grain SQL query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "grain",
+        "sql"
+      ],
+      "additionalProperties": false
+    },
     "join": {
       "title": "Join",
       "description": "Joins describe the SQL expression necessary to join two physical tables. Joins can be used when defining dimension columns that reference other tables.",
@@ -39,7 +67,8 @@
         "to",
         "type",
         "definition"
-      ]
+      ],
+      "additionalProperties": false
     },
     "measure": {
       "title": "Measure",
@@ -56,7 +85,7 @@
           "title": "Metric description",
           "description": "A long description of the metric.",
           "type": "string",
-          "default": "[$name]"
+          "default": "The metric name"
         },
         "category": {
           "title": "Measure group category",
@@ -85,19 +114,22 @@
           "description": "The data type of the field",
           "type": "string",
           "enum": [
-            "time",
-            "text",
-            "coordinate",
-            "number",
-            "boolean"
+            "TIME",
+            "INTEGER",
+            "DECIMAL",
+            "MONEY",
+            "TEXT",
+            "COORDINATE",
+            "BOOLEAN"
           ],
-          "default": "number"
+          "default": "INTEGER"
         }
       },
       "required": [
         "name",
         "definition"
-      ]
+      ],
+      "additionalProperties": false
     },
     "dimension": {
       "title": "Dimension",
@@ -114,7 +146,7 @@
           "title": "Dimension description",
           "description": "A long description of the dimension.",
           "type": "string",
-          "default": "[$name]"
+          "default": "The dimension name"
         },
         "category": {
           "title": "Dimension group category",
@@ -129,21 +161,21 @@
         },
         "readAccess": {
           "title": "Dimension read access",
-          "description": "Read permission for the metric.",
+          "description": "Read permission for the dimension.",
           "type": "string",
           "default": "Allow All"
         },
         "definition": {
           "title": "Dimension definition",
           "description": "The definition of the dimension",
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "type": {
           "title": "Dimension field type",
           "description": "The data type of the dimension field",
           "type": "string",
           "enum": [
-            "time",
             "text",
             "coordinate",
             "number",
@@ -160,20 +192,91 @@
             "type": "string"
           },
           "default": []
-        },
-        "grains": {
-          "title": "Dimension grains",
-          "description": "Time definition granularity",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       },
       "required": [
         "name",
+        "type",
         "definition"
-      ]
+      ],
+      "additionalProperties": false
+    },
+    "timeDimension": {
+      "title": "Time Dimension",
+      "description": "Time Dimensions represent labels for measures. Dimensions are used to filter and group measures.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Dimension name",
+          "description": "The name of the dimension. This will be the same as the POJO field name.",
+          "type": "string",
+          "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$"
+        },
+        "description": {
+          "title": "Dimension description",
+          "description": "A long description of the dimension.",
+          "type": "string",
+          "default": "The dimension name"
+        },
+        "category": {
+          "title": "Dimension group category",
+          "description": "Category for grouping dimension",
+          "type": "string"
+        },
+        "hidden": {
+          "title": "Hide/Show dimension",
+          "description": "Whether this dimension is exposed via API metadata",
+          "type": "boolean",
+          "default": false
+        },
+        "readAccess": {
+          "title": "Dimension read access",
+          "description": "Read permission for the dimension.",
+          "type": "string",
+          "default": "Allow All"
+        },
+        "definition": {
+          "title": "Dimension definition",
+          "description": "The definition of the dimension",
+          "type": "string",
+          "default": ""
+        },
+        "type": {
+          "title": "Dimension field type",
+          "description": "The data type of the dimension field",
+          "type": "string",
+          "enum": [
+            "time"
+          ],
+          "default": "time"
+        },
+        "tags": {
+          "title": "Dimension tags",
+          "description": "An array of string based tags for dimensions",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "grains": {
+          "title": "Time Dimension grains",
+          "description": "Time Dimension granularity and Sqls",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/grain"
+          },
+          "default": []
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "definition",
+        "grains"
+      ],
+      "additionalProperties": false
     }
   },
   "type": "object",
@@ -184,6 +287,9 @@
       "type": "array",
       "uniqueItems": true,
       "items": {
+        "title": "Elide Table Models",
+        "description": "Array of elide Table Models",
+        "type": "object",
         "properties": {
           "name": {
             "title": "Table Model Name",
@@ -198,30 +304,17 @@
             "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$",
             "default": ""
           },
-          "table": {
-            "title": "Table name",
-            "description": "The physical table name where the model lives.",
-            "type": "string",
-            "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$",
-            "default": ""
-          },
           "hidden": {
             "title": "Hide/Show Table",
             "description": "Whether this table is exposed via API metadata",
             "type": "boolean",
             "default": false
           },
-          "sql": {
-            "title": "Table SQL",
-            "description": "SQL query which is used to populate the table.",
-            "type": "string",
-            "default": ""
-          },
           "description": {
             "title": "Table Model description",
             "description": "A long description of the model.",
             "type": "string",
-            "default": "[$name]"
+            "default": "The model name"
           },
           "cardinality": {
             "title": "Model cardinality",
@@ -265,7 +358,10 @@
             "description": "One or more dimension definitions.",
             "type": "array",
             "items": {
-              "$ref": "#/definitions/dimension"
+              "oneOf": [
+                {"$ref": "#/definitions/dimension"} ,
+                {"$ref": "#/definitions/timeDimension"}
+              ]
             },
             "default": []
           },
@@ -280,17 +376,60 @@
             "default": []
           }
         },
-        "required": [
-          "name",
-          "dimensions"
-        ],
-        "additionalProperties": false
+        "oneOf": [
+          {
+            "properties": {
+              "sql": {
+                "title": "Table SQL",
+                "description": "SQL query which is used to populate the table.",
+                "type": "string",
+                "default": ""
+              }
+            },
+            "required": [
+              "name",
+              "sql",
+              "dimensions"
+            ]
+          } ,
+          {
+            "properties": {
+              "table": {
+                "title": "Table name",
+                "description": "The physical table name where the model lives.",
+                "type": "string",
+                "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$",
+                "default": ""
+              }
+            },
+            "required": [
+              "name",
+              "table",
+              "dimensions"
+            ]
+          },
+          {
+            "properties": {
+              "extends": {
+                "title": "Table Extends",
+                "description": "Extends another logical table.",
+                "type": "string",
+                "default": ""
+              }
+            },
+            "required": [
+              "name",
+              "extends",
+              "dimensions"
+            ]
+          }
+        ]
       }
     }
   },
   "minProperties": 1,
   "required": [
-    "models"
+    "tables"
   ],
   "additionalProperties": false
 }

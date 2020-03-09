@@ -36,9 +36,6 @@ public class TableSchemaValidationTest {
     public void testValidTableSchema() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/table/valid_table.json");
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results.toString());
-        System.out.println(results);
-        System.out.println(results.isSuccess());
         assertTrue(results.isSuccess());
     }
 
@@ -46,8 +43,6 @@ public class TableSchemaValidationTest {
     public void testInvalidTableSchema() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/table/invalid_table.json");
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results.toString());
-        System.out.println(results);
         assertFalse(results.isSuccess());
     }
 
@@ -55,9 +50,6 @@ public class TableSchemaValidationTest {
     public void testValidTableHJson() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/table/valid_table.hjson", true);
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results);
-        System.out.println(results.isSuccess());
-        System.out.println(results.toString());
         assertTrue(results.isSuccess());
     }
 
@@ -65,8 +57,6 @@ public class TableSchemaValidationTest {
     public void testInvalidTableHJson() throws Exception {
         JsonNode testNode = loadJsonFromClasspath("/table/invalid_table.hjson", true);
         ProcessingReport results = schema.validate(testNode);
-        System.out.println(results.toString());
-        System.out.println(results);
         assertFalse(results.isSuccess());
     }
 

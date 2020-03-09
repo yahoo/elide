@@ -5,48 +5,48 @@
     "type": "object",
     "properties": {
        "roles": {
-               "title": "Security Roles",
-              "description": "List of Roles that will map to security checks",
-              "type": "array",
-              "uniqueItems": true,
+            "title": "Security Roles",
+            "description": "List of Roles that will map to security checks",
+            "type": "array",
+            "uniqueItems": true,
             "items": {
                 "type": "string"
             }
-          },
-          "rules": {
-              "title": "Security Rules",
-              "description": "List of RSQL filter expression templates",
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
+        },
+        "rules": {
+            "title": "Security Rules",
+            "description": "List of RSQL filter expression templates",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
                 "properties": {
                     "type": {
-                           "title": "Rule Type",
-                          "description": "Type of security rule",
-                          "type": "string"
-                      },
-                      "filter": {
-                           "title": "Rule Filter",
-                          "description": "Rule filter expression",
-                          "type": "string"
-                      },
-                      "name": {
-                           "title": "Rule Name",
-                          "description": "Name of the security rule",
-                          "type": "string"
-                      }
+                        "title": "Rule Type",
+                        "description": "Type of security rule",
+                        "type": "string"
+                    },
+                    "filter": {
+                        "title": "Rule Filter",
+                        "description": "Rule filter expression",
+                        "type": "string"
+                    },
+                    "name": {
+                        "title": "Rule Name",
+                        "description": "Name of the security rule",
+                        "type": "string"
+                    }
                 },
                 "required": [
                     "filter",
                     "name"
                 ],
                 "additionalProperties": false
-              }
+            }
         }
     },
     "required": [
-                    "roles",
-                    "rules"
-                ],
+        "roles",
+        "rules"
+    ],
     "additionalProperties": false
 }
