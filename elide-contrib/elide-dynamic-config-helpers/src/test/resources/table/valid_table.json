@@ -2,7 +2,7 @@
     "tables": [
         {
             "name": "PlayerStats",
-            "u": "player_stats",
+            "table": "player_stats",
             "schema": "gamedb",
             "cardinality" : "large",
             "readAccess" : "A user is admin or is a player in the game",
