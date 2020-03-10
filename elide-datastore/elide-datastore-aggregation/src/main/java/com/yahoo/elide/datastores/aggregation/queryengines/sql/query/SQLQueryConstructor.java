@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
@@ -19,6 +19,7 @@ import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
@@ -30,8 +31,7 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Streams;

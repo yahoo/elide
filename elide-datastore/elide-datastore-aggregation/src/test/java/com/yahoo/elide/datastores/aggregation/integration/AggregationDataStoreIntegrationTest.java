@@ -737,7 +737,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
-                .body("data.relationships.sourceColumn.data.id", equalTo("playerStats.playerName"))
+                .body("data.attributes.columnType",  equalTo("REFERENCE"))
+                .body("data.attributes.expression",  equalTo("player.name"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
@@ -747,7 +748,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
                 .body("data.attributes.valueType",  equalTo("INTEGER"))
-                .body("data.relationships.sourceColumn.data.id", equalTo("playerStats.lowScore"))
+                .body("data.attributes.columnType",  equalTo("FIELD"))
+                .body("data.attributes.expression",  equalTo("lowScore"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
@@ -762,7 +764,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
                 .body("data.attributes.valueType",  equalTo("TIME"))
-                .body("data.relationships.sourceColumn.data.id", equalTo("playerStats.recordedDate"))
+                .body("data.attributes.columnType",  equalTo("FIELD"))
+                .body("data.attributes.expression",  equalTo("recordedDate"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body(
                         "data.relationships.supportedGrains.data.id",
@@ -774,6 +777,17 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         hasItems(
                                 "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
                                 "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/metric/videoGame.timeSpentPerSession")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("timeSpentPerSession"))
+                .body("data.attributes.valueType",  equalTo("DECIMAL"))
+                .body("data.attributes.columnType",  equalTo("FORMULA"))
+                .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
+                .body("data.relationships.table.data.id", equalTo("videoGame"));
     }
 
     private void create(String query, Map<String, Object> variables) throws IOException {

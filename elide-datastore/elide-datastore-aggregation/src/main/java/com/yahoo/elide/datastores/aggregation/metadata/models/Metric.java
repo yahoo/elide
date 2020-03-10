@@ -13,8 +13,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLReferenceResolver;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLReferenceTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceResolver;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

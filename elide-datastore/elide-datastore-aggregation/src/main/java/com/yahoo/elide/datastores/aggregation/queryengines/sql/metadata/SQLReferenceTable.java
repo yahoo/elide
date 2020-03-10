@@ -3,11 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.core.JoinPath.extendJoinPath;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.resolveFormulaReferences;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.toFormulaReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 import static com.yahoo.elide.utils.TypeHelper.extendTypeAlias;
 import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
@@ -15,6 +13,7 @@ import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -23,16 +22,18 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +41,8 @@ import java.util.stream.Stream;
  * LabelStore stores all label resolvers, resolved physical reference, resolved join paths for all columns.
  */
 public class SQLReferenceTable {
+    private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+
     @Getter
     private final EntityDictionary dictionary;
 
@@ -264,7 +267,7 @@ public class SQLReferenceTable {
      * @param reference physical column reference
      * @return a resolver
      */
-    private SQLReferenceResolver constructPhysicalColumnResolver(Class<?> tableClass, String reference) {
+    private static SQLReferenceResolver constructPhysicalColumnResolver(Class<?> tableClass, String reference) {
         return new SQLReferenceResolver(null) {
             @Override
             public String resolveReference(SQLReferenceTable referenceTable, String tableAlias) {
@@ -282,7 +285,7 @@ public class SQLReferenceTable {
      * @param dimension a dimension column
      * @return a resolver
      */
-    private SQLReferenceResolver constructLogicalColumnResolver(Class<?> tableClass, Dimension dimension) {
+    private static SQLReferenceResolver constructLogicalColumnResolver(Class<?> tableClass, Dimension dimension) {
         return new SQLReferenceResolver(dimension) {
             @Override
             public String resolveReference(SQLReferenceTable referenceTable, String tableAlias) {
@@ -300,7 +303,9 @@ public class SQLReferenceTable {
      * @param joinTo join to path
      * @return a resolver
      */
-    private SQLReferenceResolver constructJoinToResolver(Class<?> tableClass, Dimension dimension, JoinTo joinTo) {
+    private static SQLReferenceResolver constructJoinToResolver(Class<?> tableClass,
+                                                                Dimension dimension,
+                                                                JoinTo joinTo) {
         return new SQLReferenceResolver(dimension) {
             @Override
             public Set<JoinPath> resolveJoinPaths(SQLReferenceTable referenceTable, JoinPath from) {
@@ -442,5 +447,32 @@ public class SQLReferenceTable {
                 ((Metric) column).getMetricFunction().setExpression(getResolvedReference(table, fieldName));
             }
         });
+    }
+
+    /**
+     * Use regex to get all references from a formula expression.
+     *
+     * @param formula formula expression
+     * @return references appear in the formula.
+     */
+    public static List<String> resolveFormulaReferences(String formula) {
+        Matcher matcher = REFERENCE_PARENTHESES.matcher(formula);
+        List<String> references = new ArrayList<>();
+
+        while (matcher.find()) {
+            references.add(matcher.group(1));
+        }
+
+        return references;
+    }
+
+    /**
+     * Convert a resolved formula reference back to a reference presented in formula format.
+     *
+     * @param reference referenced field
+     * @return formula reference, <code>{{reference}}</code>
+     */
+    public static String toFormulaReference(String reference) {
+        return "{{" + reference + "}}";
     }
 }

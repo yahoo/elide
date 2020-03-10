@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -29,14 +28,11 @@ import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +40,6 @@ import java.util.stream.Collectors;
  */
 public class MetaDataStore extends HashMapDataStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
-    private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
@@ -191,52 +186,5 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
-    }
-
-    /**
-     * Use regex to get all references from a formula expression.
-     *
-     * @param formula formula expression
-     * @return references appear in the formula.
-     */
-    public static List<String> resolveFormulaReferences(String formula) {
-        Matcher matcher = REFERENCE_PARENTHESES.matcher(formula);
-        List<String> references = new ArrayList<>();
-
-        while (matcher.find()) {
-            references.add(matcher.group(1));
-        }
-
-        return references;
-    }
-
-    /**
-     * Convert a resolved formula reference back to a reference presented in formula format.
-     *
-     * @param reference referenced field
-     * @return formula reference, <code>{{reference}}</code>
-     */
-    public static String toFormulaReference(String reference) {
-        return "{{" + reference + "}}";
-    }
-
-    /**
-     * Resolve source columns for all Columns in all Tables.
-     */
-    public void resolveSourceColumn() {
-        getMetaData(Table.class).forEach(table ->
-                table.getColumns().forEach(column -> {
-                    Path sourcePath = column.getSourcePath(dictionary);
-                    Path.PathElement source = sourcePath.lastElement().get();
-
-                    Table sourceTable = (Table) dataStore.get(Table.class)
-                            .get(dictionary.getJsonAliasFor(source.getType()));
-
-                    Column sourceColumn = column instanceof Metric
-                            ? sourceTable.getMetric(source.getFieldName())
-                            : sourceTable.getDimension(source.getFieldName());
-                    column.setSourceColumn(sourceColumn);
-                })
-        );
     }
 }
