@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.service;
 
 import java.util.Random;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -28,12 +29,18 @@ public class AsyncCleanerService {
     private final int DEFAULT_CLEANUP_DELAY_MINUTES = 360;
     private final int MAX_CLEANUP_INTIAL_DELAY_MINUTES = 100;
 
-    @Inject
-    public AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays) {
+    private static AsyncCleanerService asyncCleanerService;
+    private ScheduledExecutorService cleanerService;
 
+    @Inject
+    public AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
+
+    	//If query is still running for twice than maxRunTime, then interrupt did not work due to host/app crash.
+    	int queryRunTimeThresholdMinutes = maxRunTimeMinutes * 2;
+    	
         // Setting up query cleaner that marks long running query as TIMEDOUT.
-        ScheduledExecutorService cleaner = AsyncQueryCleaner.getInstance().getExecutorService();
-        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(maxRunTimeMinutes, elide, queryCleanupDays);
+        ScheduledExecutorService cleaner = AsyncCleanerService.getInstance().getExecutorService();
+        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide, queryCleanupDays, asyncQueryDao);
 
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.
@@ -43,7 +50,24 @@ public class AsyncCleanerService {
 
         //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
         //Or maxRunTimeMinutes * 2 so that this process does not coincides with query interrupt process.
-        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(DEFAULT_CLEANUP_DELAY_MINUTES, maxRunTimeMinutes * 2), TimeUnit.MINUTES);
+        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(DEFAULT_CLEANUP_DELAY_MINUTES, queryRunTimeThresholdMinutes), TimeUnit.MINUTES);
+    }
+
+    private static AsyncCleanerService getInstance() {
+        if (asyncCleanerService == null) {
+          synchronized (AsyncCleanerService.class) {
+        	  asyncCleanerService = new AsyncCleanerService();
+          }
+        }
+        return asyncCleanerService;
+    }
+
+    private AsyncCleanerService() {
+      cleanerService = Executors.newSingleThreadScheduledExecutor();
+    }
+
+    private ScheduledExecutorService getExecutorService() {
+      return cleanerService;
     }
 
 }

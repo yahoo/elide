@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
@@ -17,15 +18,16 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Model for Async Query
@@ -35,14 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
-@Slf4j
 @Data
 public class AsyncQuery implements PrincipalOwned {
     @Id
     private UUID id; //Can be generated or provided.
-
-    //Extracted from the Principal object
-    private String principalName;
 
     private String query;  //JSON-API PATH or GraphQL payload.
 
@@ -51,7 +49,7 @@ public class AsyncQuery implements PrincipalOwned {
     @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
     private QueryStatus status;
 
-    @OneToOne(mappedBy = "query")
+    @OneToOne(mappedBy = "query", cascade = CascadeType.REMOVE)
     private AsyncQueryResult result;
 
     private Date createdOn;
@@ -62,7 +60,10 @@ public class AsyncQuery implements PrincipalOwned {
     @Transient
     private AsyncExecutorService asyncExecutorService;
 
-    @Transient
+    @Exclude
+    private String principalName;
+
+    @Exclude
     protected String naturalKey = UUID.randomUUID().toString();
 
     @Override
@@ -80,10 +81,14 @@ public class AsyncQuery implements PrincipalOwned {
         this.updatedOn = new Date();
     }
 
+    @OnCreatePreSecurity
+    public void extractPrincipalName(RequestScope scope) {
+    	setPrincipalName(scope.getUser().getName());
+    }
+    
     @OnCreatePostCommit
     public void executeQueryFromExecutor(RequestScope scope) {
-        log.info("AsyncExecutorService executor object: {}", asyncExecutorService);
-        asyncExecutorService.executeQuery(query, queryType, scope.getUser(), id);
+        asyncExecutorService.executeQuery(this, scope.getUser());
     }
 
     @Override

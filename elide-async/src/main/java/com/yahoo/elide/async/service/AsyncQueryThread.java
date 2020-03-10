@@ -6,7 +6,6 @@
 package com.yahoo.elide.async.service;
 
 import java.net.URISyntaxException;
-import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -17,7 +16,6 @@ import org.apache.http.client.utils.URIBuilder;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -37,12 +35,11 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class AsyncQueryThread implements Runnable {
 
-    private String query;
-    private QueryType queryType;
+    private AsyncQuery queryObj;
     private User user;
     private Elide elide;
     private QueryRunner runner;
-    private UUID id;
+    private AsyncQueryDAO asyncQueryDao;
 
     @Override
     public void run() {
@@ -54,53 +51,42 @@ public class AsyncQueryThread implements Runnable {
      * values for AsyncQuery and AsyncQueryResult models accordingly.
      */
     protected void processQuery() {
-        AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
         try {
             // Change async query to processing
-            asyncDbUtil.updateAsyncQuery(id, (asyncQuery) -> {
+            asyncQueryDao.updateAsyncQuery(queryObj.getId(), (asyncQuery) -> {
                 asyncQuery.setStatus(QueryStatus.PROCESSING);
                 });
-            //Thread.sleep(180000);
             ElideResponse response = null;
-            log.debug("query: {}", query);
-            log.debug("queryType: {}", queryType);
-            AsyncQuery asyncQuery;
-            AsyncQueryResult asyncQueryResult;
-            if (queryType.equals(QueryType.JSONAPI_V1_0)) {
-                MultivaluedMap<String, String> queryParams = getQueryParams(query);
-                response = elide.get(getPath(query), queryParams, user);
-                log.debug("JSONAPI_V1_0 getResponseCode: {}", response.getResponseCode());
-                log.debug("JSONAPI_V1_0 getBody: {}", response.getBody());
+            log.debug("AsyncQuery Object from request: {}", queryObj);
+            if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
+                MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
+                log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
+                response = elide.get(getPath(queryObj.getQuery()), queryParams, user);
+                log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}", response.getResponseCode(), response.getBody());
             }
-            else if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
-                response = runner.run(query, user);
-                log.debug("GRAPHQL_V1_0 getResponseCode: {}", response.getResponseCode());
-                log.debug("GRAPHQL_V1_0 getBody: {}", response.getBody());
+            else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+                response = runner.run(queryObj.getQuery(), user);
+                log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}", response.getResponseCode(), response.getBody());
             }
             if (response != null){
-                asyncQuery = asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
-                    asyncQueryObj.setStatus(QueryStatus.COMPLETE);
-                });
+                // If we receive a response update Query Status to complete
+                queryObj.setStatus(QueryStatus.COMPLETE);
 
-                // Create AsyncQueryResult entry for AsyncQuery
-                asyncQueryResult = asyncDbUtil.createAsyncQueryResult(response.getResponseCode(), response.getBody(), asyncQuery, id);
+                // Create AsyncQueryResult entry for AsyncQuery and add queryResult object to query object
+                asyncQueryDao.setAsyncQueryAndResult(response.getResponseCode(), response.getBody(), queryObj, queryObj.getId());
 
-                // Add queryResult object to query object
-                asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
-                    asyncQueryObj.setResult(asyncQueryResult);
-                });
             } else {
                 // If no response is returned on AsyncQuery request we set the QueryStatus to FAILURE
                 // No AsyncQueryResult will be set for this case
-                asyncQuery = asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+                asyncQueryDao.updateAsyncQuery(queryObj.getId(), (asyncQueryObj) -> {
                     asyncQueryObj.setStatus(QueryStatus.FAILURE);
                  });
             }
         } catch (Exception e) {
-            log.error("Exception: {}", e.getMessage());
+            log.error("Exception: {}", e);
             // If an Exception is encountered we set the QueryStatus to FAILURE
             //No AsyncQueryResult will be set for this case
-            asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+            asyncQueryDao.updateAsyncQuery(queryObj.getId(), (asyncQueryObj) -> {
                 asyncQueryObj.setStatus(QueryStatus.FAILURE);
             });
         }
@@ -120,7 +106,6 @@ public class AsyncQueryThread implements Runnable {
         for (NameValuePair queryParam : uri.getQueryParams()) {
             queryParams.add(queryParam.getName(), queryParam.getValue());
         }
-        log.debug("QueryParams: {}", queryParams);
         return queryParams;
     }
 
@@ -134,7 +119,6 @@ public class AsyncQueryThread implements Runnable {
     protected String getPath(String query) throws URISyntaxException {
         URIBuilder uri;
         uri = new URIBuilder(query);
-        log.debug("Retrieving path from query");
         return uri.getPath();
     }
 }

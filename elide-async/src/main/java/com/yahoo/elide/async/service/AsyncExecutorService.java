@@ -6,15 +6,15 @@
 package com.yahoo.elide.async.service;
 
 import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -33,24 +33,50 @@ public class AsyncExecutorService {
     private ExecutorService executor;
     private ExecutorService interruptor;
     private int maxRunTime;
+    private static AsyncExecutorService asyncExecutorService;
+    private AsyncQueryDAO asyncQueryDao;
+    
 
     @Inject
-    public AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime) {
+    public AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
         this.elide = elide;
         this.runner = new QueryRunner(elide);
         this.maxRunTime = maxRunTime;
-        executor = AsyncQueryExecutor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
-        interruptor = AsyncQueryInterruptor.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
+        executor = AsyncExecutorService.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
+        interruptor = AsyncExecutorService.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getInterruptorService();
+        this.asyncQueryDao = asyncQueryDao;
     }
 
-    public void executeQuery(String query, QueryType queryType, User user, UUID id) {
-        AsyncQueryThread queryWorker = new AsyncQueryThread(query, queryType, user, elide, runner, id);
+    public void executeQuery(AsyncQuery queryObj, User user) {
+        AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao);
         // Change async query in Datastore to queued
-        AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
-        asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+        asyncQueryDao.updateAsyncQuery(queryObj.getId(), (asyncQueryObj) -> {
             asyncQueryObj.setStatus(QueryStatus.QUEUED);
             });
-        AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide, executor.submit(queryWorker), id, new Date(), maxRunTime);
+        AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide, executor.submit(queryWorker), queryObj.getId(), new Date(), 
+                maxRunTime, asyncQueryDao);
         interruptor.execute(queryInterruptWorker);
+    }
+
+    private static AsyncExecutorService getInstance(int threadPoolSize) {
+        if (asyncExecutorService == null) {
+          synchronized (AsyncExecutorService.class) {
+        	  asyncExecutorService = new AsyncExecutorService(threadPoolSize);
+            }
+          }
+        return asyncExecutorService;
+    }
+
+    private AsyncExecutorService(int threadPoolSize) {
+    	executor = Executors.newFixedThreadPool(threadPoolSize);
+    	interruptor = Executors.newFixedThreadPool(threadPoolSize);
+    }
+
+    private ExecutorService getExecutorService() {
+        return executor;
+    }
+
+    private ExecutorService getInterruptorService() {
+        return interruptor;
     }
 }

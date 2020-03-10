@@ -13,7 +13,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-import javax.persistence.Transient;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -48,11 +47,11 @@ public class AsyncQueryResult implements PrincipalOwned {
 
     private Date updatedOn;
 
-    @Transient
-    protected String naturalKey = UUID.randomUUID().toString();
-
     @OneToOne
     private AsyncQuery query;
+
+    @Exclude
+    protected String naturalKey = UUID.randomUUID().toString();
 
     @Exclude
     public String getPrincipalName() {

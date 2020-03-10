@@ -33,6 +33,7 @@ public class AsyncQueryInterruptThread implements Runnable {
     private UUID id;
     private Date submittedOn;
     private int maxRunTimeMinutes;
+    private AsyncQueryDAO asyncQueryDao;
 
     @Override
     public void run() {
@@ -44,7 +45,6 @@ public class AsyncQueryInterruptThread implements Runnable {
      * the maximum run time.
      */
     protected void interruptQuery() {
-        AsyncDbUtil asyncDbUtil = AsyncDbUtil.getInstance(elide);
         try {
             long interruptTimeMillies = calculateTimeOut(maxRunTimeMinutes, submittedOn);
             
@@ -54,14 +54,14 @@ public class AsyncQueryInterruptThread implements Runnable {
             }
         } catch (InterruptedException e) {
             // Incase the future.get is interrupted , the underlying query may still have succeeded
-            log.error("InterruptedException: {}", e.getMessage());
+            log.error("InterruptedException: {}", e);
         } catch (ExecutionException e) {
             // Query Status set to failure will be handled by the processQuery method
-            log.error("ExecutionException: {}", e.getMessage());
+            log.error("ExecutionException: {}", e);
         } catch (TimeoutException e) {
-            log.error("TimeoutException: {}", e.getMessage());
+            log.error("TimeoutException: {}", e);
             task.cancel(true);
-            asyncDbUtil.updateAsyncQuery(id, (asyncQueryObj) -> {
+            asyncQueryDao.updateAsyncQuery(id, (asyncQueryObj) -> {
                 asyncQueryObj.setStatus(QueryStatus.TIMEDOUT);
                 });
         }
