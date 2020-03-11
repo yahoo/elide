@@ -363,7 +363,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLObjectType.Builder objectBuilder = newObject();
-        objectBuilder.name(nameUtils.toOutputTypeName(clazz));
+        objectBuilder.name(nameUtils.toNonElideOutputTypeName(clazz));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
@@ -409,7 +409,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLInputObjectType.Builder objectBuilder = newInputObject();
-        objectBuilder.name(nameUtils.toInputTypeName(clazz));
+        objectBuilder.name(nameUtils.toNonElideInputTypeName(clazz));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             log.info("Building input object attribute: {}", attribute);

@@ -8,13 +8,13 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
 
-import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 public class GraphQLNameUtils {
     private static final String MAP_SUFFIX = "Map";
     private static final String INPUT_SUFFIX = "Input";
-    private static final String NODE_SUFFIX = "Node";
-    private static final String EDGES_SUFFIX = "Edges";
+    private static final String CONNECTION_SUFFIX = "Connection";
+    private static final String EDGE_SUFFIX = "Edge";
 
     private final EntityDictionary dictionary;
 
@@ -23,8 +23,10 @@ public class GraphQLNameUtils {
     }
 
     public String toOutputTypeName(Class<?> clazz) {
-        return Optional.ofNullable(dictionary.getJsonAliasFor(clazz))
-                       .orElse(clazz.getSimpleName());
+        if (dictionary.hasBinding(clazz)) {
+            return StringUtils.capitalize(dictionary.getJsonAliasFor(clazz));
+        }
+        return clazz.getSimpleName();
     }
 
     public String toInputTypeName(Class<?> clazz) {
@@ -36,14 +38,26 @@ public class GraphQLNameUtils {
     }
 
     public String toMapEntryInputName(Class<?> keyClazz, Class<?> valueClazz) {
-        return toOutputTypeName(keyClazz) + toOutputTypeName(valueClazz) + MAP_SUFFIX + INPUT_SUFFIX;
+        return toMapEntryOutputName(keyClazz, valueClazz) + INPUT_SUFFIX;
     }
 
     public String toEdgesName(Class<?> clazz) {
-        return toOutputTypeName(clazz) + EDGES_SUFFIX;
+        return toOutputTypeName(clazz) + EDGE_SUFFIX;
     }
 
     public String toNodeName(Class<?> clazz) {
-        return toOutputTypeName(clazz) + NODE_SUFFIX;
+        return toOutputTypeName(clazz);
+    }
+
+    public String toConnectionName(Class<?> clazz) {
+        return toOutputTypeName(clazz) + CONNECTION_SUFFIX;
+    }
+
+    public String toNonElideOutputTypeName(Class<?> clazz) {
+        return StringUtils.uncapitalize(toOutputTypeName(clazz));
+    }
+
+    public String toNonElideInputTypeName(Class<?> clazz) {
+        return StringUtils.uncapitalize(toInputTypeName(clazz));
     }
 }

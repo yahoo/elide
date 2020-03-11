@@ -48,8 +48,8 @@ public class ModelBuilder {
     public static final String ARGUMENT_AFTER = "after";
     public static final String ARGUMENT_OPERATION = "op";
     public static final String OBJECT_PAGE_INFO = "PageInfo";
-    public static final String OBJECT_MUTATION_ROOT = "MutationRoot";
-    public static final String OBJECT_QUERY_ROOT = "QueryRoot";
+    public static final String OBJECT_MUTATION = "Mutation";
+    public static final String OBJECT_QUERY = "Query";
 
     private EntityDictionary dictionary;
     private DataFetcher dataFetcher;
@@ -162,7 +162,7 @@ public class ModelBuilder {
         resolveInputObjectRelationships();
 
         /* Construct root object */
-        GraphQLObjectType.Builder root = newObject().name(OBJECT_QUERY_ROOT);
+        GraphQLObjectType.Builder root = newObject().name(OBJECT_QUERY);
         for (Class<?> clazz : rootClasses) {
             String entityName = dictionary.getJsonAliasFor(clazz);
             root.field(newFieldDefinition()
@@ -179,7 +179,7 @@ public class ModelBuilder {
         }
 
         GraphQLObjectType queryRoot = root.build();
-        GraphQLObjectType mutationRoot = root.name(OBJECT_MUTATION_ROOT).build();
+        GraphQLObjectType mutationRoot = root.name(OBJECT_MUTATION).build();
 
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
@@ -209,7 +209,7 @@ public class ModelBuilder {
             return connectionObjectRegistry.get(entityClass);
         }
 
-        String entityName = nameUtils.toOutputTypeName(entityClass);
+        String entityName = nameUtils.toConnectionName(entityClass);
 
         GraphQLObjectType connectionObject = newObject()
                 .name(entityName)
@@ -283,7 +283,7 @@ public class ModelBuilder {
                 continue;
             }
 
-            String relationshipEntityName = nameUtils.toOutputTypeName(relationshipClass);
+            String relationshipEntityName = nameUtils.toConnectionName(relationshipClass);
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationship);
 
             if (type.isToOne()) {
