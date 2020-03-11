@@ -19,17 +19,37 @@
                     "name" : "highScore",
                     "type" : "INTEGER",
                     "definition": "MAX(score)"
+                },
+                {
+                    "name" : "highScoreCoord",
+                    "type" : "COORDINATE",
+                    "definition": "MAX(score)"
                 }
             ],
             "dimensions" : [
                 {
                 "name" : "countryCode",
-                "type" : "text",
+                "type" : "RELATIONSHIP",
+                "definition" : "playerCountry.isoCode"
+                },
+                {
+                "name" : "countryCode",
+                "type" : "TEXT",
                 "definition" : "playerCountry.isoCode"
                 },
                 {
                 "name" : "createdOn",
-                "type" : "time",
+                "type" : "TIME",
+                "definition" : "create_on",
+                "grains":[{
+
+                    "grain": "MONTH",
+                    "sql": "PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')"
+                 }]
+                },
+                {
+                "name" : "createdOn",
+                "type" : "TIME",
                 "definition" : "create_on",
                 "grains":[{
 

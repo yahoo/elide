@@ -1,6 +1,6 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "$id": "http://elide.io/schemas/variable_schema_v1#",
+    "$schema": "https://json-schema.org/draft-06/schema#",
+    "$id": "https://elide.io/schemas/variable_schema_v1#",
     "description": "Elide Variable config json/hjson schema",
     "type": "object",
     "patternProperties": {
@@ -8,6 +8,7 @@
           "anyOf": [
             {"type": "string"},
             {"type": "array"},
+            {"type": "object"},
             {"type": "null"}
           ]
         }

@@ -27,12 +27,12 @@
         dimensions : [
             {
                 name : countryCode
-                type : text
+                type : TEXT
                 definition : playerCountry.isoCode
             },
             {
                 name : createdOn
-                type : time
+                type : TIME
                 definition : create_on
                 grains: [
                 {

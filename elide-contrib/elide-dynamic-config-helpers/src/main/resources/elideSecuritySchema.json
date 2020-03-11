@@ -1,6 +1,6 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "$id": "http://elide.io/schemas/security_schema_v1#",
+    "$schema": "https://json-schema.org/draft-06/schema#",
+    "$id": "https://elide.io/schemas/security_schema_v1#",
     "description": "Elide Security config json/hjson schema",
     "type": "object",
     "properties": {

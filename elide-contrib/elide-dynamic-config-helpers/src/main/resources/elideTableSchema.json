@@ -1,6 +1,6 @@
 {
-  "$schema": "http://json-schema.org/draft-06/schema#",
-  "$id": "http://elide.io/schemas/table_schema_v1#",
+  "$schema": "https://json-schema.org/draft-06/schema#",
+  "$id": "https://elide.io/schemas/table_schema_v1#",
   "description": "Elide Table config json/hjson schema",
   "definitions": {
     "grain": {
@@ -70,6 +70,19 @@
       ],
       "additionalProperties": false
     },
+    "enumtype": {
+      "title": "Dimension field type",
+      "description": "The data type of the dimension field",
+      "type": "string",
+      "enum": [
+        "INTEGER",
+        "DECIMAL",
+        "MONEY",
+        "TEXT",
+        "COORDINATE",
+        "BOOLEAN"
+      ]
+    },
     "measure": {
       "title": "Measure",
       "description": "Metric definitions are extensible objects that contain a type field and one or more additional attributes. Each type is tied to logic in Elide that generates a metric function.",
@@ -110,17 +123,11 @@
           "type": "string"
         },
         "type": {
-          "title": "Field type",
-          "description": "The data type of the field",
-          "type": "string",
-          "enum": [
-            "TIME",
-            "INTEGER",
-            "DECIMAL",
-            "MONEY",
-            "TEXT",
-            "COORDINATE",
-            "BOOLEAN"
+          "oneOf":[
+            {"$ref": "#/definitions/enumtype"},
+            {"enum": [
+              "TIME"
+            ]}
           ],
           "default": "INTEGER"
         }
@@ -131,7 +138,7 @@
       ],
       "additionalProperties": false
     },
-    "dimension": {
+    "dimensionRef": {
       "title": "Dimension",
       "description": "Dimensions represent labels for measures. Dimensions are used to filter and group measures.",
       "type": "object",
@@ -171,18 +178,6 @@
           "type": "string",
           "default": ""
         },
-        "type": {
-          "title": "Dimension field type",
-          "description": "The data type of the dimension field",
-          "type": "string",
-          "enum": [
-            "text",
-            "coordinate",
-            "number",
-            "boolean"
-          ],
-          "default": "text"
-        },
         "tags": {
           "title": "Dimension tags",
           "description": "An array of string based tags for dimensions",
@@ -193,90 +188,69 @@
           },
           "default": []
         }
-      },
+      }
+    },
+    "dimension": {
+      "title": "Dimension",
+      "description": "Dimensions represent labels for measures. Dimensions are used to filter and group measures.",
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/definitions/dimensionRef" },
+        {
+          "properties": {
+            "type": {
+              "oneOf":[
+              {"$ref": "#/definitions/enumtype"},
+              {"enum": [
+                "RELATIONSHIP","ID"
+              ]}
+              ],
+              "default": "TEXT"
+            }
+          }
+        }
+      ],
       "required": [
         "name",
         "type",
         "definition"
-      ],
-      "additionalProperties": false
+      ]
     },
     "timeDimension": {
       "title": "Time Dimension",
       "description": "Time Dimensions represent labels for measures. Dimensions are used to filter and group measures.",
       "type": "object",
-      "properties": {
-        "name": {
-          "title": "Dimension name",
-          "description": "The name of the dimension. This will be the same as the POJO field name.",
-          "type": "string",
-          "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$"
-        },
-        "description": {
-          "title": "Dimension description",
-          "description": "A long description of the dimension.",
-          "type": "string",
-          "default": "The dimension name"
-        },
-        "category": {
-          "title": "Dimension group category",
-          "description": "Category for grouping dimension",
-          "type": "string"
-        },
-        "hidden": {
-          "title": "Hide/Show dimension",
-          "description": "Whether this dimension is exposed via API metadata",
-          "type": "boolean",
-          "default": false
-        },
-        "readAccess": {
-          "title": "Dimension read access",
-          "description": "Read permission for the dimension.",
-          "type": "string",
-          "default": "Allow All"
-        },
-        "definition": {
-          "title": "Dimension definition",
-          "description": "The definition of the dimension",
-          "type": "string",
-          "default": ""
-        },
-        "type": {
-          "title": "Dimension field type",
-          "description": "The data type of the dimension field",
-          "type": "string",
-          "enum": [
-            "time"
-          ],
-          "default": "time"
-        },
-        "tags": {
-          "title": "Dimension tags",
-          "description": "An array of string based tags for dimensions",
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "type": "string"
-          },
-          "default": []
-        },
-        "grains": {
-          "title": "Time Dimension grains",
-          "description": "Time Dimension granularity and Sqls",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/grain"
-          },
-          "default": []
+      "allOf": [
+        { "$ref": "#/definitions/dimensionRef" },
+        {
+          "properties": {
+            "type": {
+              "title": "Dimension field type",
+              "description": "The data type of the dimension field",
+              "type": "string",
+              "enum": [
+                "TIME"
+              ],
+              "default": "TIME"
+            },
+            "grains": {
+              "title": "Time Dimension grains",
+              "description": "Time Dimension granularity and Sqls",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/grain"
+              },
+              "default": []
+            }
+          }
         }
-      },
+      ],
       "required": [
         "name",
         "type",
         "definition",
         "grains"
-      ],
-      "additionalProperties": false
+      ]
     }
   },
   "type": "object",
@@ -358,7 +332,7 @@
             "description": "One or more dimension definitions.",
             "type": "array",
             "items": {
-              "oneOf": [
+              "anyOf": [
                 {"$ref": "#/definitions/dimension"} ,
                 {"$ref": "#/definitions/timeDimension"}
               ]

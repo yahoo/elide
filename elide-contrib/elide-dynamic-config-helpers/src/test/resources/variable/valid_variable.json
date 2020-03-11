@@ -3,5 +3,9 @@
    "def_on_test": "create_on",
    "grain_dmy": "[{{day}}, {{month}}, {{year}}]",
    "grain_hd": ["{{hour}}", "{{day}}"],
-   "nullCheck": null
+   "nullCheck": null,
+   "grainVariable":[{
+        "grain": "MONTH",
+        "sql": "PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')"
+    }]
 }
