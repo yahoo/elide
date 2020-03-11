@@ -1,12 +1,12 @@
 {
   "data": {
     "__type": {
-      "name": "_edges__playerStatsWithView",
+      "name": "PlayerStatsWithViewEdge",
       "fields": [
         {
           "name": "node",
           "type": {
-            "name": "_node__playerStatsWithView",
+            "name": "PlayerStatsWithView",
             "fields": [
               {
                 "name": "id",
