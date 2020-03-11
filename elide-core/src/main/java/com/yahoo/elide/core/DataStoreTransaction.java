@@ -12,7 +12,6 @@ import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
-import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
 import java.io.Serializable;
@@ -31,16 +30,6 @@ public interface DataStoreTransaction extends Closeable {
         FULL,
         PARTIAL,
         NONE
-    }
-
-    /**
-     * Wrap the opaque user.
-     *
-     * @param opaqueUser the opaque user
-     * @return wrapped user context
-     */
-    default User accessUser(Object opaqueUser) {
-        return new User(opaqueUser);
     }
 
     /**

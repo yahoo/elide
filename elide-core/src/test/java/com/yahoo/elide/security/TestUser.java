@@ -3,11 +3,15 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.security;
 
 /**
- * The request scope interface passed to checks.
+ * Elide user for testing.
  */
-public interface RequestScope {
-    User getUser();
+public class TestUser extends User {
+
+    public TestUser(String name) {
+        super(() -> name);
+    }
 }

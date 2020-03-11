@@ -12,6 +12,6 @@ import com.yahoo.elide.core.HttpStatus;
  */
 public class UnknownEntityException extends HttpStatusException {
     public UnknownEntityException(String entityType) {
-        super(HttpStatus.SC_BAD_REQUEST, "Unknown entity type: '" + entityType + "'");
+        super(HttpStatus.SC_BAD_REQUEST, "Unknown entity type: " + entityType);
     }
 }

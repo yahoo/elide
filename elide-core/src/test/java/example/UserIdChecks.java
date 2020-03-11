@@ -16,7 +16,7 @@ public class UserIdChecks {
     public static class UserOneCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
-            Integer id = (Integer) user.getOpaqueUser();
+            Integer id = Integer.parseInt(user.getPrincipal().getName());
             return id.equals(1);
         }
     }
@@ -24,7 +24,7 @@ public class UserIdChecks {
     public static class UserTwoCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
-            Integer id = (Integer) user.getOpaqueUser();
+            Integer id = Integer.parseInt(user.getPrincipal().getName());
             return id.equals(2);
         }
     }
@@ -32,7 +32,7 @@ public class UserIdChecks {
     public static class UserThreeCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
-            Integer id = (Integer) user.getOpaqueUser();
+            Integer id = Integer.parseInt(user.getPrincipal().getName());
             return id.equals(3);
         }
     }
@@ -40,7 +40,7 @@ public class UserIdChecks {
     public static class UserFourCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
-            Integer id = (Integer) user.getOpaqueUser();
+            Integer id = Integer.parseInt(user.getPrincipal().getName());
             return id.equals(4);
         }
     }

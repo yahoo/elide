@@ -804,7 +804,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param id resource id
      */
     public void setId(String id) {
-        this.setValue(dictionary.getIdFieldName(getResourceClass()), id);
+        dictionary.setId(obj, id);
     }
 
     /**
@@ -1214,6 +1214,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return this.matchesId(theirId) && Objects.equals(this.type, that.type);
         }
         return false;
+    }
+
+   /**
+    * Returns whether or not this resource was created in this transaction.
+    * @return True if this resource is newly created.
+    */
+    public boolean isNewlyCreated() {
+       return requestScope.getNewResources().contains(this);
     }
 
     /**

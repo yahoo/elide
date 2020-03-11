@@ -17,7 +17,7 @@ import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.TestUser;
 
 import com.google.common.collect.Sets;
 import example.Child;
@@ -67,7 +67,7 @@ public class IncludedProcessorTest {
 
         reset(mockTransaction);
 
-        testScope = new TestRequestScope(mockTransaction, new User(1), dictionary);
+        testScope = new TestRequestScope(mockTransaction, new TestUser("1"), dictionary);
 
         //Create objects
         Parent parent1 = newParent(1);

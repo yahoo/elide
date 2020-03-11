@@ -13,7 +13,7 @@ import com.yahoo.elide.core.HttpStatus;
  */
 public class InvalidCollectionException extends HttpStatusException {
     public InvalidCollectionException(String collection) {
-        this("Unknown collection '%s'",  collection);
+        this("Unknown collection %s",  collection);
     }
 
     public InvalidCollectionException(String format, String collection) {

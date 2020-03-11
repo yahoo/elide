@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.parsers.state;
 
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
@@ -175,7 +176,7 @@ public class RelationshipTerminalState extends BaseState {
         Collection<Resource> resources = data.get();
         if (CollectionUtils.isEmpty(resources)) {
             // As per: http://jsonapi.org/format/#crud-updating-relationship-responses-403
-            throw new ForbiddenAccessException("Unknown update");
+            throw new ForbiddenAccessException(UpdatePermission.class);
         }
         resources.stream().forEachOrdered(resource ->
             record.removeRelation(relationshipName, resource.toPersistentResource(requestScope)));
