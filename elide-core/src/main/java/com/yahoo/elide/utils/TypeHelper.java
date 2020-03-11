@@ -33,6 +33,23 @@ public class TypeHelper {
     }
 
     /**
+     * Extend an type alias to the final type of an extension path
+     *
+     * @param alias type alias to be extended, e.g. <code>a_b</code>
+     * @param extension path extension from aliased type, e.g. <code>[b.c]/[c.d]</code>
+     * @return extended type alias, e.g. <code>a_b_c</code>
+     */
+    public static String extendTypeAlias(String alias, Path extension) {
+        List<Path.PathElement> elements = extension.getPathElements();
+
+        for (int i = 0; i < elements.size() - 1; i++) {
+            alias = appendAlias(alias, elements.get(i).getFieldName());
+        }
+
+        return alias;
+    }
+
+    /**
      * Generate alias for representing a relationship path which dose not include the last field name.
      * The path would start with the class alias of the first element, and then each field would append "_fieldName" to
      * the result.
@@ -42,14 +59,7 @@ public class TypeHelper {
      * @return relationship path alias, i.e. <code>foo.bar.baz</code> would be <code>foo_bar</code>
      */
     public static String getPathAlias(Path path) {
-        List<Path.PathElement> elements = path.getPathElements();
-        String alias = getTypeAlias(elements.get(0).getType());
-
-        for (int i = 0; i < elements.size() - 1; i++) {
-            alias = appendAlias(alias, elements.get(i).getFieldName());
-        }
-
-        return alias;
+        return extendTypeAlias(getTypeAlias(path.getPathElements().get(0).getType()), path);
     }
 
     /**
@@ -60,7 +70,11 @@ public class TypeHelper {
      * @return alias for the field
      */
     public static String appendAlias(String parentAlias, String fieldName) {
-        return parentAlias + UNDERSCORE + fieldName;
+        return nullOrEmpty(parentAlias)
+                ? fieldName
+                : nullOrEmpty(fieldName)
+                        ? parentAlias
+                        : parentAlias + UNDERSCORE + fieldName;
     }
 
     /**
@@ -71,5 +85,37 @@ public class TypeHelper {
      */
     public static String getTypeAlias(Class<?> type) {
         return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
+    }
+
+    /**
+     * Get alias for the final field of a path.
+     *
+     * @param path path to the field
+     * @param fieldName physical field name
+     * @return combined alias
+     */
+    public static String getFieldAlias(Path path, String fieldName) {
+        return getFieldAlias(getPathAlias(path), fieldName);
+    }
+
+    /**
+     * Get alias for the final field of a path.
+     *
+     * @param tableAlias alias for table that contains the field
+     * @param fieldName physical field name
+     * @return combined alias
+     */
+    public static String getFieldAlias(String tableAlias, String fieldName) {
+        return nullOrEmpty(tableAlias) ? fieldName : tableAlias + PERIOD + fieldName;
+    }
+
+    /**
+     * Check whether an alias is null or empty string
+     *
+     * @param alias alias
+     * @return True if is null or empty
+     */
+    private static boolean nullOrEmpty(String alias) {
+        return alias == null || alias.equals("");
     }
 }

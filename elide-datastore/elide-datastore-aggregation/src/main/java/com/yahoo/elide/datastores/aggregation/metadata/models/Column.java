@@ -1,22 +1,30 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.*;
+import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FORMULA;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
+import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.utils.TypeHelper;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,10 +55,9 @@ public abstract class Column {
 
     private ValueType valueType;
 
-    @ToOne
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Column sourceColumn;
+    private ColumnType columnType;
+
+    private String expression;
 
     @ToString.Exclude
     private Set<String> columnTags;
@@ -59,7 +66,7 @@ public abstract class Column {
         this.table = table;
         Class<?> tableClass = dictionary.getEntityClass(table.getId());
 
-        this.id = table.getId() + "." + fieldName;
+        this.id = constructColumnName(tableClass, fieldName, dictionary);
         this.name = fieldName;
         this.columnTags = new HashSet<>();
 
@@ -73,8 +80,49 @@ public abstract class Column {
         if (valueType == null) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
+
+        if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricFormula.class)) {
+            columnType = FORMULA;
+            expression = dictionary
+                    .getAttributeOrRelationAnnotation(tableClass, MetricFormula.class, fieldName).value();
+        } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, DimensionFormula.class)) {
+            columnType = FORMULA;
+            expression = dictionary
+                    .getAttributeOrRelationAnnotation(tableClass, DimensionFormula.class, fieldName).value();
+        } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, JoinTo.class)) {
+            JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
+
+            columnType = REFERENCE;
+            JoinPath source = new JoinPath(tableClass, dictionary, joinTo.path());
+
+            Path.PathElement last = source.lastElement().get();
+            expression = TypeHelper.getFieldAlias(dictionary.getJsonAliasFor(last.getType()), last.getFieldName());
+        } else {
+            columnType = FIELD;
+            expression = dictionary.getAnnotatedColumnName(tableClass, fieldName);
+        }
     }
 
+    /**
+     * Construct a column name as meta data
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @param dictionary entity dictionary to use
+     * @return <code>tableAlias.fieldName</code>
+     */
+    protected static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
+        return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
+    }
+
+    /**
+     * Resolve the value type of a field
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @param dictionary meta data dictionary
+     * @return field value type
+     */
     public static ValueType getValueType(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
         if (dictionary.isRelation(tableClass, fieldName)) {
             return ValueType.RELATIONSHIP;
@@ -89,18 +137,5 @@ public abstract class Column {
                 return ValueType.getScalarType(fieldClass);
             }
         }
-    }
-
-    /**
-     * Return a Path that navigate to the source of this column.
-     *
-     * @param metadataDictionary metadata dictionary
-     * @return Path to source column
-     */
-    public Path getSourcePath(EntityDictionary metadataDictionary) {
-        Class<?> tableCls = metadataDictionary.getEntityClass(table.getId());
-        Class<?> columnCls = metadataDictionary.getParameterizedType(tableCls, getName());
-
-        return new Path(Collections.singletonList(new Path.PathElement(tableCls, columnCls, getName())));
     }
 }

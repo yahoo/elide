@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ValidatableResponse;
@@ -117,6 +116,89 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                         field("highScore", 2412),
                                         field("overallRating", "Great"),
                                         field("countryIsoCode", "USA")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void metricFormulaTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "videoGame",
+                                arguments(
+                                        argument("sort", "\"timeSpentPerSession\"")
+                                ),
+                                selections(
+                                        field("timeSpent"),
+                                        field("sessions"),
+                                        field("timeSpentPerSession"),
+                                        field("playerName")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "videoGame",
+                                selections(
+                                        field("timeSpent", 720),
+                                        field("sessions", 60),
+                                        field("timeSpentPerSession", 12.0),
+                                        field("playerName", "Jon Doe")
+                                ),
+                                selections(
+                                        field("timeSpent", 200),
+                                        field("sessions", 10),
+                                        field("timeSpentPerSession", 20.0),
+                                        field("playerName", "Jane Doe")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    /**
+     * Test sql expression in where, sorting, group by and projection.
+     * @throws Exception exception
+     */
+    @Test
+    public void dimensionFormulaTest() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("sort", "\"playerLevel\""),
+                                        argument("filter", "\"playerLevel>\\\"0\\\"\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("playerLevel")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 1234),
+                                        field("playerLevel", 1)
+                                ),
+                                selections(
+                                        field("highScore", 2412),
+                                        field("playerLevel", 2)
                                 )
                         )
                 )
@@ -573,41 +655,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    @Disabled
-    //FIXME Needs metric computation support for test case to be valid.
-    public void aggregationComputedMetricTest() throws Exception {
-        String graphQLRequest = document(
-                selection(
-                        field(
-                                "videoGame",
-                                selections(
-                                        field("timeSpent"),
-                                        field("sessions"),
-                                        field("timeSpentPerSession"),
-                                        field("timeSpentPerGame")
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expected = document(
-                selections(
-                        field(
-                                "videoGame",
-                                selections(
-                                        field("timeSpent", 1400),
-                                        field("sessions", 70),
-                                        field("timeSpentPerSession", 20),
-                                        field("timeSpentPerGame", 14)
-                                )
-                        )
-                )
-        ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expected);
-    }
-
-    @Test
     public void basicViewAggregationTest() throws Exception {
         String graphQLRequest = document(
                 selection(
@@ -690,7 +737,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
-                .body("data.relationships.sourceColumn.data.id", equalTo("player.name"))
+                .body("data.attributes.columnType",  equalTo("REFERENCE"))
+                .body("data.attributes.expression",  equalTo("player.name"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
@@ -700,12 +748,13 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
                 .body("data.attributes.valueType",  equalTo("INTEGER"))
-                .body("data.relationships.sourceColumn.data.id", equalTo("playerStats.lowScore"))
+                .body("data.attributes.columnType",  equalTo("FIELD"))
+                .body("data.attributes.expression",  equalTo("lowScore"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
                 .body("included.attributes.description", hasItem("sql min function"))
-                .body("included.attributes.expression", hasItem("MIN(lowScore)"))
+                .body("included.attributes.expression", hasItem("MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore)"))
                 .body("included.attributes.longName", hasItem("min"));
 
         given()
@@ -715,7 +764,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
                 .body("data.attributes.valueType",  equalTo("TIME"))
-                .body("data.relationships.sourceColumn.data.id", equalTo("playerStats.recordedDate"))
+                .body("data.attributes.columnType",  equalTo("FIELD"))
+                .body("data.attributes.expression",  equalTo("recordedDate"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body(
                         "data.relationships.supportedGrains.data.id",
@@ -727,6 +777,17 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         hasItems(
                                 "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
                                 "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/metric/videoGame.timeSpentPerSession")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("timeSpentPerSession"))
+                .body("data.attributes.valueType",  equalTo("DECIMAL"))
+                .body("data.attributes.columnType",  equalTo("FORMULA"))
+                .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
+                .body("data.relationships.table.data.id", equalTo("videoGame"));
     }
 
     private void create(String query, Map<String, Object> variables) throws IOException {

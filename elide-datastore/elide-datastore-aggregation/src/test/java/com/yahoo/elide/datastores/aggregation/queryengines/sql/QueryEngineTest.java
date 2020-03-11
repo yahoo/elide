@@ -3,7 +3,6 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Lists;
@@ -41,7 +39,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public static void init() {
         SQLUnitTest.init();
 
-        playerStatsViewTable = new SQLTable(PlayerStatsView.class, dictionary);
+        playerStatsViewTable = engine.getTable("playerStatsView");
     }
 
     /**
@@ -90,7 +88,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testFromSubQuery() {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -116,7 +114,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsViewTable.getDimension("countryName")))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         PlayerStatsView.class, false))
@@ -175,7 +173,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testNotProjectedFilter() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         PlayerStatsView.class, false))
                 .build();

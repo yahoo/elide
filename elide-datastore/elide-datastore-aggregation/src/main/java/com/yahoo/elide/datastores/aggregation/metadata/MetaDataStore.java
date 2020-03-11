@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -48,6 +48,15 @@ public class MetaDataStore extends HashMapDataStore {
     private final Set<Class<?>> modelsToBind;
 
     public MetaDataStore() {
+        this(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
+    }
+
+    /**
+     * Construct MetaDataStore with data models.
+     *
+     * @param modelsToBind models to bind
+     */
+    public MetaDataStore(Set<Class<?>> modelsToBind) {
         super(META_DATA_PACKAGE);
 
         this.dictionary = new EntityDictionary(new HashMap<>());
@@ -56,8 +65,8 @@ public class MetaDataStore extends HashMapDataStore {
         ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(dictionary::bindEntity);
 
         // bind external data models in the package
-        this.modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
-        modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
+        this.modelsToBind = modelsToBind;
+        this.modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 
     @Override
@@ -137,6 +146,13 @@ public class MetaDataStore extends HashMapDataStore {
         }
     }
 
+    /**
+     * Get all metadata of a specific metadata class
+     *
+     * @param cls metadata class
+     * @param <T> metadata class
+     * @return all metadata of given class
+     */
     public <T> Set<T> getMetaData(Class<T> cls) {
         return dataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
     }
@@ -156,7 +172,8 @@ public class MetaDataStore extends HashMapDataStore {
      * @return {@code true} if the field is a metric field
      */
     public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
-        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
+        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class)
+                || dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricFormula.class);
     }
 
     /**
@@ -169,25 +186,5 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
-    }
-
-    /**
-     * Resolve source columns for all Columns in all Tables.
-     */
-    public void resolveSourceColumn() {
-        getMetaData(Table.class).forEach(table ->
-                table.getColumns().forEach(column -> {
-                    Path sourcePath = column.getSourcePath(dictionary);
-                    Path.PathElement source = sourcePath.lastElement().get();
-
-                    Table sourceTable = (Table) dataStore.get(Table.class)
-                            .get(dictionary.getJsonAliasFor(source.getType()));
-
-                    Column sourceColumn = column instanceof Metric
-                            ? sourceTable.getMetric(source.getFieldName())
-                            : sourceTable.getDimension(source.getFieldName());
-                    column.setSourceColumn(sourceColumn);
-                })
-        );
     }
 }
