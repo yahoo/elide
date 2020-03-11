@@ -97,6 +97,13 @@ public class SQLReferenceTable {
         });
     }
 
+    /**
+     * Get physical reference for a path.
+     *
+     * @param path path to a field
+     * @param tableAlias table alias as prefix
+     * @return resolved physical reference
+     */
     public String resolveReference(Path path, String tableAlias) {
         return new SQLReferenceVisitor(metaDataStore, tableAlias).visitColumn(metaDataStore.getColumn(path));
     }

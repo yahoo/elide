@@ -100,10 +100,23 @@ public class MetaDataStore extends HashMapDataStore {
         return tables.get(tableClass);
     }
 
+    /**
+     * Get a {@link Column} from a table.
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @return meta data column
+     */
     public final Column getColumn(Class<?> tableClass, String fieldName) {
         return getTable(tableClass).getColumnMap().get(fieldName);
     }
 
+    /**
+     * Get a {@link Column} for the last field in a {@link Path}
+     *
+     * @param path path to a field
+     * @return meta data column
+     */
     public final Column getColumn(Path path) {
         Path.PathElement last = path.lastElement().get();
 
