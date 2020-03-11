@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * 1. The provided references should can be other dimension field defined in the same class, physical column in current
  *    physical table or a dot separated join path represent a logical dimension field defined in another table.
  * 2. Avoid cycle-reference.
- * 3. Sql expression can be carried when used with {@literal @}JoinTo, the outer layer expression would be 
+ * 3. Sql expression can be carried when used with {@literal @}JoinTo, the outer layer expression would be
  *    applied after the initial joined to sql expression.
  * <p>
  *
