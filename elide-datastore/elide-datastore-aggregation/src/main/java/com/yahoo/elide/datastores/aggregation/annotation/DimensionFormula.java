@@ -17,13 +17,13 @@ import java.lang.annotation.Target;
  * Indicates that a field is computed via a {@link #value()} custom dimension formula expression}, such as Calcite
  * SQL. This is similar to {@link MetricFormula}, except that dimension formula would be applied before aggregation.
  * <p>
- * Example: {@literal @}DimensionFormula("IF({{reference}} >= 0, 'positive', 'negative')").
+ * Example: {@literal @}DimensionFormula("IF({{reference}} &ge; 0, 'positive', 'negative')").
  *
  * Rules:
  * 1. The provided references should can be other dimension field defined in the same class, physical column in current
  *    physical table or a dot separated join path represent a logical dimension field defined in another table.
  * 2. Avoid cycle-reference.
- * 3. Sql expression can be carried when used with @JoinTo, the outer layer expression would be applied after the
+ * 3. Sql expression can be carried when used with {@literal @}JoinTo, the outer layer expression would be applied after the
  *    initial joined to sql expression.
  * <p>
  *
@@ -39,17 +39,17 @@ import java.lang.annotation.Target;
  * <pre>
  * {@code
  * public class FactTable {
- *     @DimensionFormula( "CASE WHEN {{overallRating}} = 'Good' THEN 1 ELSE 2 END")
+ *     {@literal @}DimensionFormula( "CASE WHEN {{overallRating}} = 'Good' THEN 1 ELSE 2 END")
  *     public int getPlayerLevel() {
  *         return playerLevel;
  *     }
  *
- *     @JoinTo(path = "country.inUsa")
+ *     {@literal @}JoinTo(path = "country.inUsa")
  *     public boolean isInUsa() {
  *         return inUsa;
  *     }
  *
- *     @DimensionFormula( "CASE WHEN {{country.inUsa}} THEN 'true' ELSE 'false' END")
+ *     {@literal @}DimensionFormula( "CASE WHEN {{country.inUsa}} THEN 'true' ELSE 'false' END")
  *     public String getCountryIsInUsa() {
  *         return countryIsInUsa;
  *     }
