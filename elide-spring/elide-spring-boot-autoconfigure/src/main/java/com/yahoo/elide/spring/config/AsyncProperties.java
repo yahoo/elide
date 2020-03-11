@@ -33,4 +33,10 @@ public class AsyncProperties extends ControllerProperties {
      */
     private int queryCleanupDays = 7;
 
+    /**
+     * Whether or not to use the default implementation of AsyncQueryDAO.
+     * If false, the user will provide custom implementation of AsyncQueryDAO.
+     */
+    private boolean defaultAsyncQueryDAO = true;
+
 }

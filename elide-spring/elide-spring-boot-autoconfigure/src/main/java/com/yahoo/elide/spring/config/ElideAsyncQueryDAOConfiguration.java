@@ -6,13 +6,11 @@
 package com.yahoo.elide.spring.config;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,22 +20,18 @@ import org.springframework.context.annotation.Configuration;
  * the default behavior.
  */
 @Configuration
-@EntityScan(basePackageClasses = AsyncQuery.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
-@ConditionalOnExpression("${elide.async.enabled:false}")
-public class ElideAsyncConfiguration {
+@ConditionalOnExpression("${elide.async.defaultAsyncQueryDAO:true}")
+public class ElideAsyncQueryDAOConfiguration {
 
     /**
-     * Configure the AsyncExecutorService used for submitting async query requests.
+     * Configure the AsyncQueryDAO used by async query requests.
      * @param elide elideObject.
-     * @param settings Elide settings.
-     * @return a AsyncExecutorService.
+     * @return an AsyncQueryDAO object.
      */
     @Bean
     @ConditionalOnMissingBean
-    public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
-    		AsyncQueryDAO asyncQueryDao) {
-        return new AsyncExecutorService(elide, settings.getAsync().getThreadPoolSize(),
-                settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao);
+    public AsyncQueryDAO buildAsyncQueryDAO(Elide elide) {
+        return new DefaultAsyncQueryDAO(elide, elide.getDataStore());
     }
 }

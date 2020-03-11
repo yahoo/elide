@@ -19,6 +19,7 @@ elide:
     maxRunTimeMinutes: 65
     cleanupEnabled: true
     queryCleanupDays: 7
+    defaultAsyncQueryDAO: true
 
 spring:
   jpa:
