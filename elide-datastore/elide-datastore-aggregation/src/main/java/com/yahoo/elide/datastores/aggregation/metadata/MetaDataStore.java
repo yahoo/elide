@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -32,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,8 @@ public class MetaDataStore extends HashMapDataStore {
 
     @Getter
     private final Set<Class<?>> modelsToBind;
+
+    private Map<Class<?>, Table> tables = new HashMap<>();
 
     public MetaDataStore() {
         this(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
@@ -81,8 +85,29 @@ public class MetaDataStore extends HashMapDataStore {
      * @param table table metadata
      */
     public void addTable(Table table) {
+        tables.put(dictionary.getEntityClass(table.getId()), table);
         addMetaData(table);
         table.getColumns().forEach(this::addColumn);
+    }
+
+    /**
+     * Get a table metadata object
+     *
+     * @param tableClass table class
+     * @return meta data table
+     */
+    public Table getTable(Class<?> tableClass) {
+        return tables.get(tableClass);
+    }
+
+    public final Column getColumn(Class<?> tableClass, String fieldName) {
+        return getTable(tableClass).getColumnMap().get(fieldName);
+    }
+
+    public final Column getColumn(Path path) {
+        Path.PathElement last = path.lastElement().get();
+
+        return getColumn(last.getType(), last.getFieldName());
     }
 
     /**

@@ -5,21 +5,19 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.*;
+import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FIELD;
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FORMULA;
+import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.REFERENCE;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.utils.TypeHelper;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -93,10 +91,7 @@ public abstract class Column {
             JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
 
             columnType = REFERENCE;
-            JoinPath source = new JoinPath(tableClass, dictionary, joinTo.path());
-
-            Path.PathElement last = source.lastElement().get();
-            expression = TypeHelper.getFieldAlias(dictionary.getJsonAliasFor(last.getType()), last.getFieldName());
+            expression = joinTo.path();
         } else {
             columnType = FIELD;
             expression = dictionary.getAnnotatedColumnName(tableClass, fieldName);

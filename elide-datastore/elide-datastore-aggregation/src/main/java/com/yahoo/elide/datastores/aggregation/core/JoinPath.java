@@ -36,6 +36,17 @@ public class JoinPath extends Path {
     }
 
     /**
+     * Extend this path with a extension dot separated path
+     *
+     * @param extensionPath extension path append to this join path
+     * @param dictionary dictionary
+     * @return expended join path e.g. <code>[A.B]/[B.C] + C.D = [A.B]/[B.C]/[C.D]</code>
+     */
+    public JoinPath extend(String extensionPath, EntityDictionary dictionary) {
+        return extendJoinPath(this, new JoinPath(lastElement().get().getType(), dictionary, extensionPath));
+    }
+
+    /**
      * Append an extension path to an original path, the last element of original path should be the same as the
      * first element of extension path.
      *
@@ -44,7 +55,7 @@ public class JoinPath extends Path {
      * @param <P> path extension
      * @return extended path <code>[A.B]/[B.C]/[C.D]</code>
      */
-    public static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
+    private static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
         List<Path.PathElement> toExtend = new ArrayList<>(path.getPathElements());
         toExtend.remove(toExtend.size() - 1);
         toExtend.addAll(extension.getPathElements());
