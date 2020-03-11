@@ -56,7 +56,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     @Test
     public void testGraphQLSchema() throws IOException {
         String graphQLRequest = "{"
-                + "__type(name: \"_edges__playerStatsWithView\") {"
+                + "__type(name: \"PlayerStatsWithViewEdge\") {"
                 + "   name "
                 + "     fields {"
                 + "         name "

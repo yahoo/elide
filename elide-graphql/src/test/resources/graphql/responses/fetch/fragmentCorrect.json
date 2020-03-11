@@ -19,11 +19,11 @@
                 }
               }
             ],
-            "__typename": "book"
+            "__typename": "BookConnection"
           },
-          "__typename": "_node__author"
+          "__typename": "Author"
         },
-        "__typename": "_edges__author"
+        "__typename": "AuthorEdge"
       },
       {
         "node": {
@@ -37,11 +37,11 @@
                 }
               }
             ],
-            "__typename": "book"
+            "__typename": "BookConnection"
           },
-          "__typename": "_node__author"
+          "__typename": "Author"
         },
-        "__typename": "_edges__author"
+        "__typename": "AuthorEdge"
       }
     ]
   }

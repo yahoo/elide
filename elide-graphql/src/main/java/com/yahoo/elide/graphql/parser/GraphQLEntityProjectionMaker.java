@@ -26,6 +26,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.graphql.GraphQLNameUtils;
 import com.yahoo.elide.graphql.ModelBuilder;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -72,6 +73,8 @@ public class GraphQLEntityProjectionMaker {
     private final Map<String, EntityProjection> rootProjections = new HashMap<>();
     private final Map<SourceLocation, Attribute> attributeMap = new HashMap<>();
 
+    private final GraphQLNameUtils nameUtils;
+
     /**
      * Constructor.
      *
@@ -87,6 +90,7 @@ public class GraphQLEntityProjectionMaker {
 
         this.variableResolver = new VariableResolver(variables);
         this.fragmentResolver = new FragmentResolver();
+        this.nameUtils = new GraphQLNameUtils(entityDictionary);
     }
 
     /**
@@ -231,7 +235,7 @@ public class GraphQLEntityProjectionMaker {
         FragmentDefinition fragmentDefinition = fragmentResolver.get(fragmentName);
 
         // type name in type condition of the Fragment must match the entity projection type name
-        if (entityDictionary.getJsonAliasFor(projectionBuilder.getType())
+        if (nameUtils.toConnectionName(projectionBuilder.getType())
                 .equals(fragmentDefinition.getTypeCondition().getName())) {
             fragmentDefinition.getSelectionSet().getSelections()
                     .forEach(selection -> addSelection(selection, projectionBuilder));
