@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class GraphQLConversionUtils {
-    protected static final String MAP = "Map";
     protected static final String KEY = "key";
     protected static final String VALUE = "value";
     protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
@@ -59,9 +58,11 @@ public class GraphQLConversionUtils {
     private final Map<Class, GraphQLInputObjectType> inputConversions = new HashMap<>();
     private final Map<Class, GraphQLEnumType> enumConversions = new HashMap<>();
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
+    private final GraphQLNameUtils nameUtils;
 
     public GraphQLConversionUtils(EntityDictionary dictionary) {
         this.entityDictionary = dictionary;
+        this.nameUtils = new GraphQLNameUtils(dictionary);
         registerCustomScalars();
     }
 
@@ -120,10 +121,10 @@ public class GraphQLConversionUtils {
 
         Enum [] values = (Enum []) enumClazz.getEnumConstants();
 
-        GraphQLEnumType.Builder builder = newEnum().name(toValidNameName(enumClazz.getName()));
+        GraphQLEnumType.Builder builder = newEnum().name(nameUtils.toOutputTypeName(enumClazz));
 
         for (Enum value : values) {
-            builder.value(toValidNameName(value.name()), value);
+            builder.value(value.toString(), value);
         }
 
         GraphQLEnumType enumResult = builder.build();
@@ -142,7 +143,7 @@ public class GraphQLConversionUtils {
      * @return The created type.
      */
     public GraphQLList classToQueryMap(Class<?> keyClazz, Class<?> valueClazz, DataFetcher fetcher) {
-        String mapName = toValidNameName(keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+        String mapName = nameUtils.toMapEntryOutputName(keyClazz, valueClazz);
 
         if (mapConversions.containsKey(mapName)) {
             return mapConversions.get(mapName);
@@ -179,7 +180,7 @@ public class GraphQLConversionUtils {
      */
     public GraphQLList classToInputMap(Class<?> keyClazz,
                                        Class<?> valueClazz) {
-        String mapName = toValidNameName("_input__" + keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+        String mapName = nameUtils.toMapEntryInputName(keyClazz, valueClazz);
 
         if (mapConversions.containsKey(mapName)) {
             return mapConversions.get(mapName);
@@ -294,19 +295,6 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Helper function converts a string into a valid name.
-     *
-     * @param input Input string
-     * @return Sanitized form of input string
-     */
-    protected String toValidNameName(String input) {
-        return input
-                .replace(".", "_") // Replaces package qualifier on class names
-                .replace("$", "__1") // Replaces inner-class qualifier
-                .replace("[", "___2"); // Replaces primitive list qualifier ([B == array of bytes)
-    }
-
-    /**
      * Helper function which converts an attribute of an entity to a GraphQL Input Type.
      * @param parentClass The parent entity class (Can either be an elide entity or not).
      * @param attributeClass The attribute class.
@@ -375,7 +363,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLObjectType.Builder objectBuilder = newObject();
-        objectBuilder.name(toValidNameName(clazz.getName()));
+        objectBuilder.name(nameUtils.toNonElideOutputTypeName(clazz));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
@@ -421,7 +409,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLInputObjectType.Builder objectBuilder = newInputObject();
-        objectBuilder.name(toValidNameName("_input__" + clazz.getName()));
+        objectBuilder.name(nameUtils.toNonElideInputTypeName(clazz));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             log.info("Building input object attribute: {}", attribute);
