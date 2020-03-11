@@ -88,7 +88,7 @@ public class AsyncQueryCleanerThread implements Runnable {
         Iterable<Object> loaded = getFilteredResults(filterExpression);
 
         asyncQueryDao.updateAsyncQueryCollection(loaded, (asyncQuery) -> {
-            asyncQuery.setStatus(QueryStatus.PROCESSING);
+            asyncQuery.setStatus(QueryStatus.TIMEDOUT);
             });
     }
 
