@@ -6,12 +6,11 @@
 package com.yahoo.elide.spring.config;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.AsyncCleanerService;
+import com.yahoo.elide.async.service.AsyncQueryDAO;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,8 +33,8 @@ public class ElideAsyncCleanupConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncCleanerService buildAsyncCleanerService(Elide elide, ElideConfigProperties settings,
-    		AsyncQueryDAO asyncQueryDao) {
+            AsyncQueryDAO asyncQueryDao) {
         return new AsyncCleanerService(elide, settings.getAsync().getMaxRunTimeMinutes(),
-        		settings.getAsync().getQueryCleanupDays(), asyncQueryDao);
+                settings.getAsync().getQueryCleanupDays(), asyncQueryDao);
     }
 }

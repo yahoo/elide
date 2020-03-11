@@ -36,7 +36,7 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
-    		AsyncQueryDAO asyncQueryDao) {
+            AsyncQueryDAO asyncQueryDao) {
         return new AsyncExecutorService(elide, settings.getAsync().getThreadPoolSize(),
                 settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao);
     }
