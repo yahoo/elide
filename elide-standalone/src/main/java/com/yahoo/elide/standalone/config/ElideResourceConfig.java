@@ -14,6 +14,7 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncCleanerService;
+import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -86,16 +87,21 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 // Binding async service
                 if(settings.enableAsync()) {
-                	AsyncExecutorService asyncExecService = new AsyncExecutorService(elide, settings.getAsyncThreadSize(), 
-                            settings.getMaxRunTimeMinutes());
-                    bind(asyncExecService).to(AsyncExecutorService.class);
-                }
+                    AsyncQueryDAO asyncQueryDao = settings.getAsyncQueryDAO();
+                    asyncQueryDao.setElide(elide);
+                    asyncQueryDao.setDataStore(elide.getDataStore());
+                    bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
-                // Binding async cleanup service
-                if(settings.enableAsyncCleanup()) {
-                	AsyncCleanerService asyncCleanerService = new AsyncCleanerService(elide, settings.getMaxRunTimeMinutes(),
-                			 settings.getQueryCleanupDays());
-                    bind(asyncCleanerService).to(AsyncCleanerService.class);
+                    AsyncExecutorService asyncExecService = new AsyncExecutorService(elide, settings.getAsyncThreadSize(),
+                            settings.getMaxRunTimeMinutes(), asyncQueryDao);
+                    bind(asyncExecService).to(AsyncExecutorService.class);
+
+                    // Binding async cleanup service
+                    if(settings.enableAsyncCleanup()) {
+                        AsyncCleanerService asyncCleanerService = new AsyncCleanerService(elide, settings.getMaxRunTimeMinutes(),
+                                 settings.getQueryCleanupDays());
+                        bind(asyncCleanerService).to(AsyncCleanerService.class);
+                    }
                 }
             }
         });
@@ -106,9 +112,9 @@ public class ElideResourceConfig extends ResourceConfig {
             protected void configure() {
                 Map<String, Swagger> swaggerDocs = settings.enableSwagger();
                 if (!swaggerDocs.isEmpty()) {
-                	// Include the async models in swagger docs
-                	if(settings.enableAsync()) { 
-                		EntityDictionary dictionary = new EntityDictionary(new HashMap());
+                    // Include the async models in swagger docs
+                    if(settings.enableAsync()) {
+                        EntityDictionary dictionary = new EntityDictionary(new HashMap());
                         dictionary.bindEntity(AsyncQuery.class);
                         dictionary.bindEntity(AsyncQueryResult.class);
                          
@@ -118,9 +124,9 @@ public class ElideResourceConfig extends ResourceConfig {
 
                         Swagger swagger = builder.build().basePath("/api/v1");
 
-                        swaggerDocs.put("async", swagger);	
-                	}
-                	
+                        swaggerDocs.put("async", swagger);
+                    }
+
                     bind(swaggerDocs).named("swagger").to(new TypeLiteral<Map<String, Swagger>>() { });
                 }
             }

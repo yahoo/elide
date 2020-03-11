@@ -18,6 +18,8 @@ import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
+import com.yahoo.elide.async.service.AsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -214,6 +216,15 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Implementation of AsyncQueryDAO to use.
+     *
+     * @return AsyncQueryDAO type object.
+     */
+    default AsyncQueryDAO getAsyncQueryDAO() {
+        return new DefaultAsyncQueryDAO();
+    }
+
+    /**
      * Whether Dates should be ISO8601 strings (true) or epochs (false).
      * @return
      */
@@ -230,7 +241,6 @@ public interface ElideStandaloneSettings {
         return true;
     }
 
-
     /**
      * Enable swagger documentation by returning non empty map object.
      * @return Map object that maps document name to swagger object.
@@ -238,7 +248,6 @@ public interface ElideStandaloneSettings {
     default Map<String, Swagger> enableSwagger() {
         return new HashMap<>();
     }
-
 
     /**
      * JAX-RS filters to register with the web service.
@@ -260,7 +269,6 @@ public interface ElideStandaloneSettings {
         // Do nothing by default
         return (x) -> { };
     }
-
 
     /**
      * Gets properties to configure the database
