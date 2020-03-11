@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.standalone;
 
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.utils.ClassScanner;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
@@ -23,7 +24,8 @@ import javax.persistence.spi.PersistenceUnitInfo;
  */
 public class Util {
 
-    public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, Properties options) {
+    public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, boolean includeAsyncModel, 
+            Properties options) {
 
         // Configure default options for example service
         if (options.isEmpty()) {
@@ -52,11 +54,28 @@ public class Util {
         }
 
         PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
-                getAllEntities(modelPackageName), options);
+                combineModelEntities(modelPackageName, includeAsyncModel), options);
 
         return new EntityManagerFactoryBuilderImpl(
                 new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>())
                 .build();
+    }
+
+    /**
+     * Combine the model entities with Async model.
+     *
+     * @param modelPackageName Package name
+     * @param includeAsyncModel Include Async model package Name
+     * @return All entities combined from both package.
+     */
+    public static List<String> combineModelEntities(String modelPackageName, boolean includeAsyncModel) {
+
+        List<String> modelEntities = getAllEntities(modelPackageName);
+
+        if (includeAsyncModel) {
+            modelEntities.addAll(getAllEntities(AsyncQuery.class.getPackage().getName()));
+        }
+        return modelEntities;
     }
 
     /**
