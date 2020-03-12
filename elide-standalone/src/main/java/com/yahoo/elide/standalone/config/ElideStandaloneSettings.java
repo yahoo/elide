@@ -202,7 +202,7 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: 60
      */
-    default Integer getMaxRunTimeMinutes() {
+    default Integer getAsyncMaxRunTimeMinutes() {
         return 60;
     }
 
@@ -211,8 +211,17 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: 7
      */
-    default Integer getQueryCleanupDays() {
+    default Integer getAsyncQueryCleanupDays() {
         return 7;
+    }
+
+    /**
+     *  Root path specification for the Async Models Swagger endpoint.
+     *
+     * @return Default: /api/v1
+     */
+    default String getAsyncSwaggerPath() {
+        return "/api/v1";
     }
 
     /**

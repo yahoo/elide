@@ -93,13 +93,13 @@ public class ElideResourceConfig extends ResourceConfig {
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
                     AsyncExecutorService asyncExecService = new AsyncExecutorService(elide, settings.getAsyncThreadSize(),
-                            settings.getMaxRunTimeMinutes(), asyncQueryDao);
+                            settings.getAsyncMaxRunTimeMinutes(), asyncQueryDao);
                     bind(asyncExecService).to(AsyncExecutorService.class);
 
                     // Binding async cleanup service
                     if(settings.enableAsyncCleanup()) {
-                        AsyncCleanerService asyncCleanerService = new AsyncCleanerService(elide, settings.getMaxRunTimeMinutes(),
-                                 settings.getQueryCleanupDays(), asyncQueryDao);
+                        AsyncCleanerService asyncCleanerService = new AsyncCleanerService(elide, settings.getAsyncMaxRunTimeMinutes(),
+                                 settings.getAsyncQueryCleanupDays(), asyncQueryDao);
                         bind(asyncCleanerService).to(AsyncCleanerService.class);
                     }
                 }
@@ -122,7 +122,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
                         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
 
-                        Swagger swagger = builder.build().basePath("/api/v1");
+                        Swagger swagger = builder.build().basePath(settings.getAsyncSwaggerPath());
 
                         swaggerDocs.put("async", swagger);
                     }
