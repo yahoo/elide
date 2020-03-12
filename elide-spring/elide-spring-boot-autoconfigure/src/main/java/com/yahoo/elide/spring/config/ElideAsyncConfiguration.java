@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Async Configuration For Elide Services.  Override any of the beans (by defining your own) 
+ * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
  * and setting flags to disable in properties to change the default behavior.
  */
 @Configuration
@@ -49,7 +49,7 @@ public class ElideAsyncConfiguration {
      * @param elide elideObject.
      * @param settings Elide settings.
      * @return a AsyncCleanerService.
-     */    
+     */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
