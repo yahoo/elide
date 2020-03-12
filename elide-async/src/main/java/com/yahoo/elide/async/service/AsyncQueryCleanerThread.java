@@ -50,14 +50,7 @@ public class AsyncQueryCleanerThread implements Runnable {
     @SuppressWarnings("unchecked")
     private void deleteAsyncQuery() {
 
-        //Calculate date to clean up
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.add(Calendar.DATE, -(queryCleanupDays));
-        Date cleanupDate = cal.getTime();
-        Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-        String cleanupDateFormatted = dateFormat.format(cleanupDate);
-        log.debug("cleanupDateFormatted = {}", cleanupDateFormatted);
+        String cleanupDateFormatted = evaluateFormattedFilterDate(Calendar.DATE, queryCleanupDays);
 
         String filterExpression = "createdOn=le='" + cleanupDateFormatted + "'";
 
@@ -74,24 +67,22 @@ public class AsyncQueryCleanerThread implements Runnable {
 	@SuppressWarnings("unchecked")
     private void timeoutAsyncQuery() {
 
-        //Calculate date to filter for clean up
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.add(Calendar.MINUTE, -(maxRunTimeMinutes));
-        Date filterDate = cal.getTime();
-        Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-        String filterDateFormatted = dateFormat.format(filterDate);
-        log.debug("FilterDateFormatted = {}", filterDateFormatted);
+        String filterDateFormatted = evaluateFormattedFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
         String filterExpression = "status=in=(" + QueryStatus.PROCESSING.toString() + ","
                 + QueryStatus.QUEUED.toString() + ");createdOn=le='" + filterDateFormatted + "'";
 
         Iterable<Object> loaded = getFilteredResults(filterExpression);
 
         asyncQueryDao.updateAsyncQueryCollection(loaded, (asyncQuery) -> {
-            asyncQuery.setStatus(QueryStatus.PROCESSING);
+            asyncQuery.setStatus(QueryStatus.TIMEDOUT);
             });
     }
 
+    /**
+     * This method uses the filter expression to evaluate a list of filtered results based on the expression
+     * @param filterExpression filter expression for filtering from datastore
+     * @return filtered results
+     */
 	@SuppressWarnings("unchecked")
 	private Iterable<Object> getFilteredResults(String filterExpression) {
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
@@ -114,5 +105,22 @@ public class AsyncQueryCleanerThread implements Runnable {
             return null;
         });
         return loaded;
+	}
+
+    /**
+     * Evaluates and subtracts the amount based on the calendar unit and amount from current date
+     * @param calendarUnit Enum such as Calendar.DATE or Calendar.MINUTE
+     * @param amount Amount of days to be subtracted from current time
+     * @return formatted filter date
+     */
+	private String evaluateFormattedFilterDate(int calendarUnit, int amount) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(calendarUnit, -(amount));
+        Date filterDate = cal.getTime();
+        Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+        String filterDateFormatted = dateFormat.format(filterDate);
+        log.debug("FilterDateFormatted = {}", filterDateFormatted);
+		return filterDateFormatted;
 	}
 }

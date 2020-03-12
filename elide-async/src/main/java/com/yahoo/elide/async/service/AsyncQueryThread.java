@@ -68,20 +68,15 @@ public class AsyncQueryThread implements Runnable {
                 response = runner.run(queryObj.getQuery(), user);
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}", response.getResponseCode(), response.getBody());
             }
-            if (response != null){
-                // If we receive a response update Query Status to complete
-                queryObj.setStatus(QueryStatus.COMPLETE);
-
-                // Create AsyncQueryResult entry for AsyncQuery and add queryResult object to query object
-                asyncQueryDao.setAsyncQueryAndResult(response.getResponseCode(), response.getBody(), queryObj, queryObj.getId());
-
-            } else {
-                // If no response is returned on AsyncQuery request we set the QueryStatus to FAILURE
-                // No AsyncQueryResult will be set for this case
-                asyncQueryDao.updateAsyncQuery(queryObj.getId(), (asyncQueryObj) -> {
-                    asyncQueryObj.setStatus(QueryStatus.FAILURE);
-                 });
+            if (response == null){
+                throw new NullPointerException("Response for request returned as null");
             }
+            // If we receive a response update Query Status to complete
+            queryObj.setStatus(QueryStatus.COMPLETE);
+
+            // Create AsyncQueryResult entry for AsyncQuery and add queryResult object to query object
+            asyncQueryDao.setAsyncQueryAndResult(response.getResponseCode(), response.getBody(), queryObj, queryObj.getId());
+
         } catch (Exception e) {
             log.error("Exception: {}", e);
             // If an Exception is encountered we set the QueryStatus to FAILURE
