@@ -15,6 +15,7 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -88,8 +89,10 @@ public class ElideResourceConfig extends ResourceConfig {
                 // Binding async service
                 if(settings.enableAsync()) {
                     AsyncQueryDAO asyncQueryDao = settings.getAsyncQueryDAO();
-                    asyncQueryDao.setElide(elide);
-                    asyncQueryDao.setDataStore(elide.getDataStore());
+                    if(asyncQueryDao.getClass().equals(DefaultAsyncQueryDAO.class)) {
+                        asyncQueryDao.setElide(elide);
+                        asyncQueryDao.setDataStore(elide.getDataStore());
+                    }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
                     AsyncExecutorService asyncExecService = new AsyncExecutorService(elide, settings.getAsyncThreadSize(),
