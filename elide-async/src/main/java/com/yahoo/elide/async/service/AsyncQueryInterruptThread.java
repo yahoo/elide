@@ -61,9 +61,7 @@ public class AsyncQueryInterruptThread implements Runnable {
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
             task.cancel(true);
-            asyncQueryDao.updateAsyncQuery(id, (asyncQueryObj) -> {
-                asyncQueryObj.setStatus(QueryStatus.TIMEDOUT);
-                });
+            asyncQueryDao.updateStatus(id, QueryStatus.TIMEDOUT);
         }
     }
     

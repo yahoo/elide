@@ -9,12 +9,14 @@ import javax.persistence.PreUpdate;
 
 import com.yahoo.elide.annotation.Exclude;
 
+import lombok.Getter;
+
 @MappedSuperclass
 public abstract class AsyncBase {
 
-    private Date createdOn;
+    @Getter private Date createdOn;
 
-    private Date updatedOn;
+    @Getter private Date updatedOn;
 
     @Exclude
     protected String naturalKey = UUID.randomUUID().toString();

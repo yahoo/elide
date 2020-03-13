@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.async.service;
 
+import java.util.Collection;
 import java.util.UUID;
 
-import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
-import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.async.models.QueryStatus;
 
 /**
  * Utility interface which uses the elide datastore to modify, update and create
@@ -19,40 +19,20 @@ import com.yahoo.elide.core.DataStore;
 public interface AsyncQueryDAO {
 
     /**
-     * Set elide object
-     * @param elide Elide Object.
-     */
-    public void setElide(Elide elide);
-
-    /**
-     * Set data store object
-     * @param dataStore Datastore Object from Elide.
-     */
-    public void setDataStore(DataStore dataStore);
-
-    /**
-     * This method updates the model for AsyncQuery with passed value.
+     * This method updates the QueryStatus for AsyncQuery for given QueryStatus.
      * @param asyncQueryId Unique UUID for the AsyncQuery Object
-     * @param updateFunction Functional interface for updating AsyncQuery Object
-     * @return AsyncQuery Object
+     * @param status Status from Enum QueryStatus
+     * @return AsyncQuery Updated AsyncQuery Object
      */
-    public AsyncQuery updateAsyncQuery(UUID asyncQueryId, UpdateQuery updateFunction);
+    public AsyncQuery updateStatus(UUID asyncQueryId, QueryStatus status);
 
     /**
-     * This method updates a collection of AsyncQuery objects from database and
-     * returns the objects updated.
-     * @param asyncQueryList Iterable list of AsyncQuery objects to be updated
-     * @return query object list updated
+     * This method uses the filter expression to evaluate a list of filtered results based on the expression
+     * and returns a collection of filtered AsyncQuery objects.
+     * @param filterExpression filter expression for filtering from datastore
+     * @return filtered results
      */
-    public Iterable<Object> updateAsyncQueryCollection(Iterable<Object> asyncQueryList, UpdateQuery updateFunction);
-
-    /**
-     * This method deletes a collection of AsyncQuery and AsyncQueryResult objects from database and
-     * returns the objects deleted.
-     * @param asyncQueryList Iterable list of AsyncQuery objects to be deleted
-     * @return query object list deleted
-     */
-    public Iterable<Object> deleteAsyncQueryAndResultCollection(Iterable<Object> asyncQueryList);
+    public Collection<AsyncQuery> loadQueries(String filterExpression);
 
     /**
      * This method persists the model for AsyncQueryResult, AsyncQuery object and establishes the relationship
@@ -62,15 +42,22 @@ public interface AsyncQueryDAO {
      * @param asyncQueryId UUID of the AsyncQuery to be associated with the AsyncQueryResult object
      * @return AsyncQueryResult Object
      */
-    public AsyncQueryResult setAsyncQueryAndResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId);
+    public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId);
 
     /**
-     * This method creates a transaction from the datastore, performs the DB action using
-     * a generic functional interface and closes the transaction.
-     * @param dataStore Elide datastore retrieved from Elide object
-     * @param action Functional interface to perform DB action
-     * @return Object Returns Entity Object (AsyncQueryResult or AsyncResult)
+     * This method deletes a collection of AsyncQuery and its associated AsyncQueryResult objects from database and
+     * returns the objects deleted.
+     * @param asyncQueryList Iterable list of AsyncQuery objects to be deleted
+     * @return query object list deleted
      */
-    public Object executeInTransaction(DataStore dataStore, Transactional action);
+    public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(Collection<AsyncQuery> asyncQueryList);
+
+    /**
+     * This method updates the status for a collection of AsyncQuery objects from database and
+     * returns the objects updated.
+     * @param asyncQueryList Iterable list of AsyncQuery objects to be updated
+     * @return query object list updated
+     */
+    public Collection<AsyncQuery> updateStatusAsyncQueryCollection(Collection<AsyncQuery> asyncQueryList, QueryStatus status);
 
 }

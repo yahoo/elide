@@ -8,15 +8,12 @@ package com.yahoo.elide.async.service;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.request.EntityProjection;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -54,7 +51,7 @@ public class AsyncQueryCleanerThread implements Runnable {
 
         String filterExpression = "createdOn=le='" + cleanupDateFormatted + "'";
 
-        Iterable<Object> loaded = getFilteredResults(filterExpression);
+        Collection<AsyncQuery> loaded = asyncQueryDao.loadQueries(filterExpression);
 
         asyncQueryDao.deleteAsyncQueryAndResultCollection(loaded);
 
@@ -71,41 +68,10 @@ public class AsyncQueryCleanerThread implements Runnable {
         String filterExpression = "status=in=(" + QueryStatus.PROCESSING.toString() + ","
                 + QueryStatus.QUEUED.toString() + ");createdOn=le='" + filterDateFormatted + "'";
 
-        Iterable<Object> loaded = getFilteredResults(filterExpression);
+        Collection<AsyncQuery> loaded = asyncQueryDao.loadQueries(filterExpression);
 
-        asyncQueryDao.updateAsyncQueryCollection(loaded, (asyncQuery) -> {
-            asyncQuery.setStatus(QueryStatus.TIMEDOUT);
-            });
+        asyncQueryDao.updateStatusAsyncQueryCollection(loaded, QueryStatus.TIMEDOUT);
     }
-
-    /**
-     * This method uses the filter expression to evaluate a list of filtered results based on the expression
-     * @param filterExpression filter expression for filtering from datastore
-     * @return filtered results
-     */
-	@SuppressWarnings("unchecked")
-	private Iterable<Object> getFilteredResults(String filterExpression) {
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
-
-        Iterable<Object> loaded = (Iterable<Object>) asyncQueryDao.executeInTransaction(elide.getDataStore(), (tx, scope) -> {
-            try {
-                FilterExpression filter = filterParser.parseFilterExpression(filterExpression, AsyncQuery.class, false);
-
-                EntityProjection asyncQueryCollection = EntityProjection.builder()
-                        .type(AsyncQuery.class)
-                        .filterExpression(filter)
-                        .build();
-
-                Iterable<Object> loadedObj = tx.loadObjects(asyncQueryCollection, scope);
-                return loadedObj;
-            } catch (Exception e) {
-                log.error("Exception: {}", e);
-            }
-            return null;
-        });
-        return loaded;
-	}
 
     /**
      * Evaluates and subtracts the amount based on the calendar unit and amount from current date

@@ -53,9 +53,7 @@ public class AsyncQueryThread implements Runnable {
     protected void processQuery() {
         try {
             // Change async query to processing
-            asyncQueryDao.updateAsyncQuery(queryObj.getId(), (asyncQuery) -> {
-                asyncQuery.setStatus(QueryStatus.PROCESSING);
-                });
+            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
             ElideResponse response = null;
             log.debug("AsyncQuery Object from request: {}", queryObj);
             if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
@@ -69,21 +67,19 @@ public class AsyncQueryThread implements Runnable {
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}", response.getResponseCode(), response.getBody());
             }
             if (response == null){
-                throw new NullPointerException("Response for request returned as null");
+                throw new Exception("Response for request returned as null");
             }
             // If we receive a response update Query Status to complete
             queryObj.setStatus(QueryStatus.COMPLETE);
 
             // Create AsyncQueryResult entry for AsyncQuery and add queryResult object to query object
-            asyncQueryDao.setAsyncQueryAndResult(response.getResponseCode(), response.getBody(), queryObj, queryObj.getId());
+            asyncQueryDao.createAsyncQueryResult(response.getResponseCode(), response.getBody(), queryObj, queryObj.getId());
 
         } catch (Exception e) {
             log.error("Exception: {}", e);
             // If an Exception is encountered we set the QueryStatus to FAILURE
             //No AsyncQueryResult will be set for this case
-            asyncQueryDao.updateAsyncQuery(queryObj.getId(), (asyncQueryObj) -> {
-                asyncQueryObj.setStatus(QueryStatus.FAILURE);
-            });
+            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE);
         }
     }
 
