@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfig.parser;
 
-import com.yahoo.elide.contrib.dynamicconfig.ElideDynamicConfigConstants;
 import com.yahoo.elide.contrib.dynamicconfig.ElideHjsonUtil;
 import com.yahoo.elide.contrib.dynamicconfig.model.ElideTable;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,11 +16,11 @@ public class ElideTableToPojo {
 
     private ElideTable parseTables(String jsonConfig) throws Exception {
 
-        if (ElideHjsonUtil.validateDataWithSchema(ElideDynamicConfigConstants.SCHEMA_TYPE_TABLE, jsonConfig)) {
+        if (ElideHjsonUtil.validateDataWithSchema(ElideHjsonUtil.SCHEMA_TYPE_TABLE, jsonConfig)) {
             return new ObjectMapper().readValue(jsonConfig, ElideTable.class);
         }
         else {
-            log.error(ElideDynamicConfigConstants.INVALID_ERROR_MSG);
+            log.error(ElideHjsonUtil.INVALID_ERROR_MSG);
             return null;
         }
     }

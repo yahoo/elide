@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfig.parser;
 
-import com.yahoo.elide.contrib.dynamicconfig.ElideDynamicConfigConstants;
 import com.yahoo.elide.contrib.dynamicconfig.ElideHjsonUtil;
 import com.yahoo.elide.contrib.dynamicconfig.model.ElideSecurity;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,11 +16,11 @@ public class ElideSecurityToPojo {
 
     private ElideSecurity parseSecurity(String jsonConfig) throws Exception {
 
-        if (ElideHjsonUtil.validateDataWithSchema(ElideDynamicConfigConstants.SCHEMA_TYPE_SECURITY, jsonConfig)) {
+        if (ElideHjsonUtil.validateDataWithSchema(ElideHjsonUtil.SCHEMA_TYPE_SECURITY, jsonConfig)) {
             return new ObjectMapper().readValue(jsonConfig, ElideSecurity.class);
         }
         else {
-            log.error(ElideDynamicConfigConstants.INVALID_ERROR_MSG);
+            log.error(ElideHjsonUtil.INVALID_ERROR_MSG);
             return null;
         }
     }

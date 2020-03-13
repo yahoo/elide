@@ -26,6 +26,19 @@ import java.nio.file.Paths;
 @Slf4j
 public class ElideHjsonUtil {
 
+    public static final String SCHEMA_TYPE_TABLE = "table";
+    public static final String SCHEMA_TYPE_SECURITY = "security";
+    public static final String SCHEMA_TYPE_VARIABLE = "variable";
+
+    public static final String ELIDE_TABLE_VALIDATION_SCHEMA = "elideTableSchema.json";
+    public static final String ELIDE_SECURITY_SCHEMA = "elideSecuritySchema.json";
+    public static final String ELIDE_VARIABLE_SCHEMA = "elideVariableSchema.json";
+
+    public static final String INVALID_ERROR_MSG = "Incompatible or invalid config";
+    public static final String HTTP_PREFIX = "http";
+    public static final String CHAR_SET = "UTF-8";
+    public static final String NEW_LINE = "\n";
+
     public static String hjsonToJson(String hjson) {
         return JsonValue.readHjson(hjson).toString();
     }
@@ -34,7 +47,7 @@ public class ElideHjsonUtil {
 
         BufferedReader reader = null;
         try {
-            reader = (filePath.startsWith(ElideDynamicConfigConstants.HTTP_PREFIX)
+            reader = (filePath.startsWith(HTTP_PREFIX)
                             ? getHttpFileReader(filePath) : getLocalFileReader(filePath));
             return readFileContent(reader);
         } catch (Exception e) {
@@ -69,7 +82,7 @@ public class ElideHjsonUtil {
         String line;
         while ((line = reader.readLine()) != null) {
             sb.append(line);
-            sb.append(ElideDynamicConfigConstants.NEW_LINE);
+            sb.append(NEW_LINE);
         }
         return sb.toString();
     }
@@ -81,7 +94,7 @@ public class ElideHjsonUtil {
 
     private static BufferedReader getLocalFileReader(String filePath) throws Exception {
         Path path = Paths.get(filePath);
-        return Files.newBufferedReader(path, Charset.forName(ElideDynamicConfigConstants.CHAR_SET));
+        return Files.newBufferedReader(path, Charset.forName(CHAR_SET));
     }
 
     private static JSONObject loadSchema(String confFile) throws IOException {
@@ -94,14 +107,14 @@ public class ElideHjsonUtil {
     private static JSONObject schemaToJsonObject(String schemaType) throws IOException {
 
         switch (schemaType) {
-            case ElideDynamicConfigConstants.SCHEMA_TYPE_TABLE:
-                return loadSchema(ElideDynamicConfigConstants.ELIDE_TABLE_VALIDATION_SCHEMA);
+            case SCHEMA_TYPE_TABLE:
+                return loadSchema(ELIDE_TABLE_VALIDATION_SCHEMA);
 
-            case ElideDynamicConfigConstants.SCHEMA_TYPE_SECURITY:
-                return loadSchema(ElideDynamicConfigConstants.ELIDE_SECURITY_SCHEMA);
+            case SCHEMA_TYPE_SECURITY:
+                return loadSchema(ELIDE_SECURITY_SCHEMA);
 
-            case ElideDynamicConfigConstants.SCHEMA_TYPE_VARIABLE:
-                return loadSchema(ElideDynamicConfigConstants.ELIDE_VARIABLE_SCHEMA);
+            case SCHEMA_TYPE_VARIABLE:
+                return loadSchema(ELIDE_VARIABLE_SCHEMA);
             default:
                 return null;
         }

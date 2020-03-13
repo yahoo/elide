@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfig.parser;
 
-import com.yahoo.elide.contrib.dynamicconfig.ElideDynamicConfigConstants;
 import com.yahoo.elide.contrib.dynamicconfig.ElideHjsonUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,11 +18,11 @@ public class ElideVariableToPojo {
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> populateVariableMap(String json) throws Exception {
-        if (ElideHjsonUtil.validateDataWithSchema(ElideDynamicConfigConstants.SCHEMA_TYPE_VARIABLE, json)) {
+        if (ElideHjsonUtil.validateDataWithSchema(ElideHjsonUtil.SCHEMA_TYPE_VARIABLE, json)) {
             return new ObjectMapper().readValue(json, Map.class);
         }
         else {
-            log.error(ElideDynamicConfigConstants.INVALID_ERROR_MSG);
+            log.error(ElideHjsonUtil.INVALID_ERROR_MSG);
             return null;
         }
     }
