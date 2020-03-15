@@ -27,6 +27,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -36,8 +37,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
-    private Elide elide;
-    private DataStore dataStore;
+    @Setter private Elide elide;
+    @Setter private DataStore dataStore;
+
+    // Default constructor is needed for standalone implementation for override in getAsyncQueryDao
+    public DefaultAsyncQueryDAO() {
+    }
 
     public DefaultAsyncQueryDAO(Elide elide, DataStore dataStore) {
     	this.elide = elide;
