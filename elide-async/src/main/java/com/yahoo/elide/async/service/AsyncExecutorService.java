@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -23,7 +22,6 @@ import com.yahoo.elide.security.User;
  * running queries and kills them. It will also schedule task to update
  * orphan query statuses after host/app crash or restart.
  */
-@Singleton
 public class AsyncExecutorService {
 
     private final int DEFAULT_THREADPOOL_SIZE = 6;
@@ -33,7 +31,6 @@ public class AsyncExecutorService {
     private ExecutorService executor;
     private ExecutorService interruptor;
     private int maxRunTime;
-    private static AsyncExecutorService asyncExecutorService;
     private AsyncQueryDAO asyncQueryDao;
     
 
@@ -42,8 +39,8 @@ public class AsyncExecutorService {
         this.elide = elide;
         this.runner = new QueryRunner(elide);
         this.maxRunTime = maxRunTime;
-        executor = AsyncExecutorService.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getExecutorService();
-        interruptor = AsyncExecutorService.getInstance(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize).getInterruptorService();
+        executor = Executors.newFixedThreadPool(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize);
+        interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize);
         this.asyncQueryDao = asyncQueryDao;
     }
 
@@ -56,25 +53,4 @@ public class AsyncExecutorService {
         interruptor.execute(queryInterruptWorker);
     }
 
-    private static AsyncExecutorService getInstance(int threadPoolSize) {
-        if (asyncExecutorService == null) {
-          synchronized (AsyncExecutorService.class) {
-        	  asyncExecutorService = new AsyncExecutorService(threadPoolSize);
-            }
-          }
-        return asyncExecutorService;
-    }
-
-    private AsyncExecutorService(int threadPoolSize) {
-    	executor = Executors.newFixedThreadPool(threadPoolSize);
-    	interruptor = Executors.newFixedThreadPool(threadPoolSize);
-    }
-
-    private ExecutorService getExecutorService() {
-        return executor;
-    }
-
-    private ExecutorService getInterruptorService() {
-        return interruptor;
-    }
 }
