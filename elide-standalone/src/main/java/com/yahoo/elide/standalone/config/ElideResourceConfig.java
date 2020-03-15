@@ -89,9 +89,8 @@ public class ElideResourceConfig extends ResourceConfig {
                 // Binding async service
                 if(settings.enableAsync()) {
                     AsyncQueryDAO asyncQueryDao = settings.getAsyncQueryDAO();
-                    if(asyncQueryDao.getClass().equals(DefaultAsyncQueryDAO.class)) {
-                        asyncQueryDao.setElide(elide);
-                        asyncQueryDao.setDataStore(elide.getDataStore());
+                    if(asyncQueryDao == null) {
+                        asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
