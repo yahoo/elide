@@ -16,6 +16,6 @@ public class VerboseEncodedErrorResponsesTestApplicationResourceConfig extends R
 
     @Inject
     public VerboseEncodedErrorResponsesTestApplicationResourceConfig(ServiceLocator injector) {
-        register(new EncodedErrorResponsesTestBinder(new TestAuditLogger(), injector, true, false));
+        register(new VerboseErrorResponsesTestBinder(new TestAuditLogger(), injector));
     }
 }

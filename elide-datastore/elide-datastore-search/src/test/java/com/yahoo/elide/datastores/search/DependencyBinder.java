@@ -16,9 +16,6 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
-import com.yahoo.elide.resources.JsonApiEndpoint;
-import com.yahoo.elide.security.executors.VerbosePermissionExecutor;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -62,7 +59,7 @@ public class DependencyBinder extends ResourceConfig {
                 Elide elide = new Elide(new ElideSettingsBuilder(searchStore)
                         .withAuditLogger(new Slf4jLogger())
                         .withEntityDictionary(dictionary)
-                        .withPermissionExecutor(VerbosePermissionExecutor::new)
+                        .withVerboseErrors()
                         .withDefaultMaxPageSize(PaginationImpl.MAX_PAGE_LIMIT)
                         .withDefaultPageSize(PaginationImpl.DEFAULT_PAGE_LIMIT)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
@@ -73,9 +70,6 @@ public class DependencyBinder extends ResourceConfig {
                         .build());
 
                 bind(elide).to(Elide.class).named("elide");
-                bind(JsonApiEndpoint.DEFAULT_GET_USER)
-                        .to(DefaultOpaqueUserFunction.class)
-                        .named("elideUserExtractionFunction");
             }
         });
     }

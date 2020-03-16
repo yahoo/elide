@@ -10,7 +10,7 @@
     <name>Elide Example: Hibernate5 API with Security</name>
     <description>Elide example using javax.persistence, MySQL and Elide Security</description>
     <groupId>com.yahoo.elide</groupId>
-    <version>5.0.0-pr7-SNAPSHOT</version>
+    <version>5.0.0-pr8-SNAPSHOT</version>
     <url>https://github.com/yahoo/elide</url>
 
     <issueManagement>
@@ -59,17 +59,17 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-standalone</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.antlr</groupId>

@@ -16,9 +16,10 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
+import com.yahoo.elide.async.service.AsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -34,7 +35,6 @@ import java.util.Properties;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManagerFactory;
-import javax.ws.rs.core.SecurityContext;
 
 /**
  * Interface for configuring an ElideStandalone application.
@@ -64,7 +64,7 @@ public interface ElideStandaloneSettings {
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
         EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
-                getDatabaseProperties());
+                enableAsync(), getDatabaseProperties());
         DataStore dataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
@@ -85,7 +85,6 @@ public interface ElideStandaloneSettings {
         dictionary.scanForSecurityChecks();
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withUseFilterExpressions(true)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
@@ -96,15 +95,6 @@ public interface ElideStandaloneSettings {
         }
 
         return builder.build();
-    }
-
-    /**
-     * The function used to extract a user from the SecurityContext.
-     *
-     * @return Function for user extraction.
-     */
-    default DefaultOpaqueUserFunction getUserExtractionFunction() {
-        return SecurityContext::getUserPrincipal;
     }
 
     /* Non-required application/server settings */
@@ -179,6 +169,60 @@ public interface ElideStandaloneSettings {
     default boolean enableGraphQL() {
         return true;
     }
+    
+    /**
+     * Enable the support for Async querying feature. If false, the async feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableAsync() {
+        return false;
+    }
+
+    /**
+     * Enable the support for cleaning up Async query history. If false, the async cleanup feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableAsyncCleanup() {
+        return false;
+    }
+
+    /**
+     * Thread Size for Async queries to run in parallel.
+     *
+     * @return Default: 5
+     */
+    default Integer getAsyncThreadSize() {
+        return 5;
+    }
+
+    /**
+     * Maximum Query Run time for Async Queries to mark as TIMEDOUT.
+     *
+     * @return Default: 60
+     */
+    default Integer getMaxRunTimeMinutes() {
+        return 60;
+    }
+
+    /**
+     * Number of days history to retain for async query executions and results.
+     *
+     * @return Default: 7
+     */
+    default Integer getQueryCleanupDays() {
+        return 7;
+    }
+
+    /**
+     * Implementation of AsyncQueryDAO to use.
+     *
+     * @return AsyncQueryDAO type object.
+     */
+    default AsyncQueryDAO getAsyncQueryDAO() {
+        return new DefaultAsyncQueryDAO();
+    }
 
     /**
      * Whether Dates should be ISO8601 strings (true) or epochs (false).
@@ -197,7 +241,6 @@ public interface ElideStandaloneSettings {
         return true;
     }
 
-
     /**
      * Enable swagger documentation by returning non empty map object.
      * @return Map object that maps document name to swagger object.
@@ -205,7 +248,6 @@ public interface ElideStandaloneSettings {
     default Map<String, Swagger> enableSwagger() {
         return new HashMap<>();
     }
-
 
     /**
      * JAX-RS filters to register with the web service.
@@ -227,7 +269,6 @@ public interface ElideStandaloneSettings {
         // Do nothing by default
         return (x) -> { };
     }
-
 
     /**
      * Gets properties to configure the database

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2016, Yahoo Inc.
+  ~ Copyright 2020, Yahoo Inc.
   ~ Licensed under the Apache License, Version 2.0
   ~ See LICENSE file in project root for terms.
   -->
@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>5.0.0-pr7-SNAPSHOT</version>
+    <version>5.0.0-pr8-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -23,6 +23,7 @@
         <module>elide-integration-tests</module>
         <module>elide-example</module>
         <module>elide-contrib</module>
+        <module>elide-async</module>
         <module>elide-standalone</module>
         <module>elide-spring</module>
     </modules>
@@ -103,12 +104,12 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>5.0.0-pr7-SNAPSHOT</version>
+                <version>5.0.0-pr8-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-example-models</artifactId>
-                <version>5.0.0-pr7-SNAPSHOT</version>
+                <version>5.0.0-pr8-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>

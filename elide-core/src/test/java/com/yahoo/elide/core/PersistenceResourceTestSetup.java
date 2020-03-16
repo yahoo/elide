@@ -18,6 +18,7 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
 
@@ -150,7 +151,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
-        User goodUser = new User(1);
+        User goodUser = new TestUser("1");
         RequestScope requestScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }

@@ -48,6 +48,7 @@ import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
@@ -151,7 +152,6 @@ public class LifeCycleTest {
          *  - create post-commit for the book
          */
         verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
-        verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));
         verify(tx).flush(isA(RequestScope.class));
@@ -176,7 +176,7 @@ public class LifeCycleTest {
         ElideResponse response = elide.post("/book", bookBody, null);
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getResponseCode());
         assertEquals(
-                "{\"errors\":[{\"detail\":\"InternalServerErrorException: Unexpected exception caught\"}]}",
+                "{\"errors\":[{\"detail\":\"Unexpected exception caught\"}]}",
                 response.getBody());
 
         /*
@@ -189,7 +189,6 @@ public class LifeCycleTest {
          *  - create post-commit for the book
          */
         verify(callback, times(1)).execute(eq(book), isA(RequestScope.class), any());
-        verify(tx).accessUser(any());
         verify(tx, never()).preCommit();
         verify(tx, never()).createObject(eq(book), isA(RequestScope.class));
         verify(tx, never()).flush(isA(RequestScope.class));
@@ -222,7 +221,6 @@ public class LifeCycleTest {
          *  - read post-commit for the book
          */
         verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
-        verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx).flush(any());
         verify(tx).commit(any());
@@ -256,7 +254,6 @@ public class LifeCycleTest {
          *  - read post-commit for the book
          */
         verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
-        verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx).flush(any());
         verify(tx).commit(any());
@@ -295,7 +292,6 @@ public class LifeCycleTest {
         verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
         verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(tx).accessUser(any());
         verify(tx).preCommit();
 
         verify(tx).save(eq(book), isA(RequestScope.class));
@@ -341,7 +337,6 @@ public class LifeCycleTest {
         verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
         verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(tx).accessUser(any());
         verify(tx, times(1)).preCommit();
 
         verify(tx, times(1)).save(eq(book), isA(RequestScope.class));
@@ -372,7 +367,6 @@ public class LifeCycleTest {
          *  - delete post-commit for the book
          */
         verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
-        verify(tx).accessUser(any());
         verify(tx).preCommit();
 
         verify(tx).delete(eq(book), isA(RequestScope.class));
@@ -1137,7 +1131,6 @@ public class LifeCycleTest {
         return new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withAuditLogger(auditLogger)
-                .withReturnErrorObjects(true)
                 .build();
     }
 
@@ -1149,6 +1142,8 @@ public class LifeCycleTest {
     }
 
     private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx) {
-        return new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
+        User user = new TestUser("1");
+
+        return new RequestScope(null, null, tx, user, null, getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
     }
 }

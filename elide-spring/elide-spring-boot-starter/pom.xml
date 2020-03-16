@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-spring-boot-starter</artifactId>
-    <version>5.0.0-pr7-SNAPSHOT</version>
+    <version>5.0.0-pr8-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Spring Boot Starter</name>
     <description>Elide Spring Boot Starter</description>
@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>5.0.0-pr7-SNAPSHOT</version>
+        <version>5.0.0-pr8-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -50,37 +50,43 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-async</artifactId>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <!-- Jetty -->
@@ -103,7 +109,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-spring-boot-autoconfigure</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>

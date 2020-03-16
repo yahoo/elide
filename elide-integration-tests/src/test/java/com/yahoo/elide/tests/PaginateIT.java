@@ -427,8 +427,8 @@ class PaginateIT extends IntegrationTest {
             .get(url)
         .then()
             .body("errors", hasSize(1),
-                "errors[0]",
-                equalTo("InvalidValueException: Invalid value: book doesn't contain the field onion"))
+                "errors[0].detail",
+                equalTo("Invalid value: book does not contain the field onion"))
             .statusCode(BAD_REQUEST_400);
 
     }
@@ -486,7 +486,7 @@ class PaginateIT extends IntegrationTest {
         when()
             .get(url)
         .then()
-            .body("errors[0]", containsString("Invalid Pagination Parameter"))
+            .body("errors[0].detail", containsString("Invalid Pagination Parameter"))
             .statusCode(BAD_REQUEST_400);
     }
 
@@ -606,7 +606,7 @@ class PaginateIT extends IntegrationTest {
             .get(url)
         .then()
             .body("errors", hasSize(1),
-                "errors[0]", containsString("InvalidValueException: Invalid value: Pagination limit must be less than or equal to 10"))
+                "errors[0].detail", containsString("Invalid value: Pagination limit must be less than or equal to 10"))
             .statusCode(BAD_REQUEST_400);
     }
 
@@ -617,7 +617,7 @@ class PaginateIT extends IntegrationTest {
             .get(url)
         .then()
             .body("errors", hasSize(1),
-                "errors[0]", containsString("InvalidPredicateException: Cannot paginate child")
+                "errors[0].detail", containsString("Cannot paginate child")
             ).statusCode(BAD_REQUEST_400);
     }
 
@@ -628,7 +628,7 @@ class PaginateIT extends IntegrationTest {
             .get(url)
         .then()
             .body("errors", hasSize(1),
-                "errors[0]", containsString("InvalidPredicateException: Cannot paginate child")
+                "errors[0].detail", containsString("Cannot paginate child")
             );
     }
 }

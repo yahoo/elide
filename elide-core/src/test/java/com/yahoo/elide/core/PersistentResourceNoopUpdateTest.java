@@ -13,6 +13,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import example.Child;
 import example.FunWithPermissions;
@@ -23,9 +24,11 @@ import java.util.Set;
 
 public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSetup {
     private final RequestScope goodUserScope;
+    private final User goodUser;
     PersistentResourceNoopUpdateTest() {
-        goodUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
-                new User(1), null, elideSettings);
+        goodUser = new TestUser("1");
+        goodUserScope = new RequestScope(null, null,
+                mock(DataStoreTransaction.class), goodUser, null, elideSettings);
         initDictionary();
         reset(goodUserScope.getTransaction());
     }
@@ -34,8 +37,6 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
         fun.setRelation3(child);
-
-        User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
@@ -52,8 +53,6 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
     public void testToOneAddRelation() {
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
-
-        User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
@@ -73,8 +72,6 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         children.add(child);
         fun.setRelation1(children);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
@@ -89,8 +86,6 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
     public void testToManyAddRelation() {
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
-
-        User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 

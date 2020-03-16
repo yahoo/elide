@@ -31,4 +31,19 @@ public class Role {
             return false;
         }
     }
+
+    /**
+     * Check which verifies if the user is a member of a particular role.
+     */
+    public static class RoleMemberCheck extends UserCheck {
+        private String role;
+
+        public RoleMemberCheck(String role) {
+            this.role = role;
+        }
+        @Override
+        public boolean ok(User user) {
+            return user.isInRole(role);
+        }
+    }
 }

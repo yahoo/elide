@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>5.0.0-pr7-SNAPSHOT</version>
+        <version>5.0.0-pr8-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -46,24 +46,24 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -127,7 +127,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr8-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>

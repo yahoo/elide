@@ -203,6 +203,12 @@ For example API calls, look at:
 
 Security is documented in depth [here](http://elide.io/pages/guide/03-security.html).
 
+## Async API
+
+For using Async API feature please refer to below examples: 
+https://github.com/yahoo/elide-standalone-example/pull/3
+https://github.com/yahoo/elide-spring-boot-example/pull/4
+
 ## Contribute
 Please refer to [the contributing.md file](CONTRIBUTING.md) for information about how to get involved. We welcome issues, questions, and pull requests.
 

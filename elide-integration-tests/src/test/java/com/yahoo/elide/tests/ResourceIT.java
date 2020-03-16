@@ -49,7 +49,6 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.google.common.collect.Sets;
@@ -553,7 +552,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failRootCollection() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection unknown\"}]}";
 
         given().when().get("/unknown").then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -562,7 +561,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failRootCollectionId() {
-        String expected = "{\"errors\":[\"InvalidObjectIdentifierException: Unknown identifier '6789' for parent\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown identifier 6789 for parent\"}]}";
 
         given().when().get("/parent/6789").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -570,7 +569,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failChild() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection unknown\"}]}";
 
         given().when().get("/parent/1/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -578,7 +577,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failFieldRequest() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'id'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection id\"}]}";
 
         given().when().get("/parent/1/id").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -586,7 +585,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void parseFailure() {
-        String expected = "{\"errors\":[\"InvalidURLException: token recognition error at: '|'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"token recognition error at: &#39;|&#39;\"}]}";
 
         given().when().get("company/1|apps/2/links/foo").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -1141,7 +1140,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void createParentList() {
         String request = jsonParser.getJson("/ResourceIT/createParentList.req.json");
-        String expected = "{\"errors\":[\"InvalidEntityBodyException: Bad Request Body";
+        String expected = "{\"errors\":[{\"detail\":\"Bad Request Body";
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -2202,7 +2201,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/specialread")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo("{\"errors\":[{\"detail\":null,\"status\":403}]}"));
+                .body(equalTo("[{\"errors\":[{\"detail\":\"UpdatePermission Denied\",\"status\":\"403\"}]}]"));
     }
 
     @Test
@@ -2249,7 +2248,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN)
-                .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
+                .body(equalTo("{\"errors\":[{\"detail\":\"CreatePermission Denied\"}]}"));
     }
 
     @Test
@@ -2471,41 +2470,14 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
-    public void elideBypassSecurity() {
-        Resource child = resource(
-                type("child"),
-                id("1"),
-                attributes(
-                        attr("computedFailTest", "computed"),
-                        attr("name", null)
-                ),
-                relationships(
-                        relation("friends"),
-                        relation("noReadAccess", TO_ONE),
-                        relation("parents",
-                                linkage(type("parent"), id("1"))
-                        )
-                )
-        );
-
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withAuditLogger(new TestAuditLogger())
-                .withPermissionExecutor(BypassPermissionExecutor.class)
-                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build());
-        ElideResponse response =
-                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
-        assertEquals(datum(child).toJSON(), response.getBody());
-    }
-
-    @Test
     public void elideSecurityEnabled() {
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .withAuditLogger(new TestAuditLogger())
                 .build());
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1);
+
+        com.yahoo.elide.security.User user = new com.yahoo.elide.security.User(() -> "-1");
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }

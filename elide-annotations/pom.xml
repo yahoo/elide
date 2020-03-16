@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.0-pr7-SNAPSHOT</version>
+        <version>5.0.0-pr8-SNAPSHOT</version>
     </parent>
 
     <licenses>

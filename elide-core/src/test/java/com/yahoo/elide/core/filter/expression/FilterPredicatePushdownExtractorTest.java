@@ -87,7 +87,7 @@ public class FilterPredicatePushdownExtractorTest {
         InvalidValueException e = assertThrows(
                 InvalidValueException.class,
                 () -> new InPredicate(new Path(Book.class, dictionary, "badfield"), "Literary Fiction"));
-        assertEquals("Invalid value: book doesn't contain the field badfield", e.getMessage());
+        assertEquals("Invalid value: book does not contain the field badfield", e.getMessage());
     }
 
     @Test

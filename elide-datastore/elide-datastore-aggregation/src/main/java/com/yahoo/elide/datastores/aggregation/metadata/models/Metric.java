@@ -5,12 +5,16 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceResolver;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -117,5 +121,25 @@ public class Metric extends Column {
                                                      String expression,
                                                      Set<FunctionArgument> arguments) {
         return new MetricFunction(id, longName, description, expression, arguments);
+    }
+
+    /**
+     * Build a resolver for {@link MetricAggregation} metric field
+     *
+     * @param tableClass table class
+     * @param fieldName metric field name
+     * @return a resolver
+     */
+    private SQLReferenceResolver getAggregationResolver(Class<?> tableClass, String fieldName) {
+        return new SQLReferenceResolver(this) {
+            @Override
+            public String resolveReference(SQLReferenceTable referenceTable, String tableAlias) {
+                return String.format(
+                        getMetricFunction().getExpression(),
+                        getFieldAlias(
+                                tableAlias,
+                                referenceTable.getDictionary().getAnnotatedColumnName(tableClass, fieldName)));
+            }
+        };
     }
 }

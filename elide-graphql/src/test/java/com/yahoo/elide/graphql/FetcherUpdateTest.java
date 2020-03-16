@@ -28,7 +28,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootCollectionInvalidIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
-        String expectedMessage = "Exception while fetching data (/book) : Unknown identifier '[42]' for book";
+        String expectedMessage = "Exception while fetching data (/book) : Unknown identifier [42] for book";
         runErrorComparisonTest("rootCollectionInvalidIds", expectedMessage);
     }
 
