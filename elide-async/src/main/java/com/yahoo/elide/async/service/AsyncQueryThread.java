@@ -11,6 +11,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 
 import com.yahoo.elide.Elide;
@@ -67,7 +68,7 @@ public class AsyncQueryThread implements Runnable {
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}", response.getResponseCode(), response.getBody());
             }
             if (response == null){
-                throw new Exception("Response for request returned as null");
+                throw new NoHttpResponseException("Response for request returned as null");
             }
             // If we receive a response update Query Status to complete
             queryObj.setStatus(QueryStatus.COMPLETE);
