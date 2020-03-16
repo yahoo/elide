@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.parser;
+package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-
+/**
+ * ElideVariablesToPojo test
+ */
 public class ElideVariablesToPojoTest {
 
     private ElideVariableToPojo testClass = new ElideVariableToPojo();
@@ -40,8 +42,7 @@ public class ElideVariablesToPojoTest {
     @Test
     public void testValidateFilePath() {
         String filePath = "https://raw.githubusercontent.com/hjson/hjson/master/testCases/trail_result.hjson";
-        //        String filePath = "/Users/amakwana/var.hjson";
-
+        
         Map<String, Object> map = testClass.parseVariableConfigFile(filePath);
 
         assertEquals(1, map.size());

@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.model;
+package com.yahoo.elide.contrib.dynamicconfighelpers.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +14,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-
+/**
+ * Measures represent metrics that can be aggregated at query time.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "name",
@@ -52,7 +54,11 @@ public class Measure {
     @JsonProperty("type")
     private Type type = Type.INTEGER;
 
-    //  default behaviour, in case description is null
+    /**
+     * Returns description of the measure.
+     * If null, returns the name. 
+     * @return description
+     */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
     }

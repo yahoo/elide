@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.config;
+package com.yahoo.elide.contrib.dynamicconfighelpers;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,45 +23,45 @@ import java.io.Reader;
 /**
  * Security Schema functional test.
  */
-public class VariableSchemaValidationTest {
+public class SecuritySchemaValidationTest {
 
     private final JsonSchema schema;
 
-    public VariableSchemaValidationTest() throws Exception {
+    public SecuritySchemaValidationTest() throws Exception {
         JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
-        schema = factory.getJsonSchema("resource:/elideVariableSchema.json");
+        schema = factory.getJsonSchema("resource:/elideSecuritySchema.json");
     }
 
     @Test
-    public void testValidVariableSchema() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/variable/valid_variable.json");
+    public void testValidSecuritySchema() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/security/valid_security.json");
         ProcessingReport results = schema.validate(testNode);
         assertTrue(results.isSuccess());
     }
 
     @Test
-    public void testInValidVariableSchema() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/variable/invalid_variable.json");
+    public void testInValidSecuritySchema() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/security/invalid_security.json");
         ProcessingReport results = schema.validate(testNode);
         assertFalse(results.isSuccess());
     }
 
     @Test
-    public void testValidVariableHJson() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/variable/valid_variable.hjson", true);
+    public void testValidSecurityHJson() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/security/valid_security.hjson", true);
         ProcessingReport results = schema.validate(testNode);
         assertTrue(results.isSuccess());
     }
 
     @Test
-    public void testInvalidVariableHJson() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/variable/invalid_variable.hjson", true);
+    public void testInvalidSecurityHJson() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/security/invalid_security.hjson", true);
         ProcessingReport results = schema.validate(testNode);
         assertFalse(results.isSuccess());
     }
 
     private InputStream loadStreamFromClasspath(String resource) throws Exception {
-        return VariableSchemaValidationTest.class.getResourceAsStream(resource);
+        return SecuritySchemaValidationTest.class.getResourceAsStream(resource);
     }
 
     private Reader loadReaderFromClasspath(String resource) throws Exception {

@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.model;
+package com.yahoo.elide.contrib.dynamicconfighelpers.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -20,51 +20,43 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Join
- * <p>
- * Joins describe the SQL expression necessary to join two physical tables.
- * Joins can be used when defining dimension columns that reference other tables.
+ * Grains can have SQL expressions that can substitute column
+ * with the dimension definition expression.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-    "name",
-    "to",
-    "type",
-    "definition"
+    "grain",
+    "sql"
 })
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Join {
+public class Grains {
 
 
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("grain")
+    private Grains.Grain grain;
 
-    @JsonProperty("to")
-    private String to;
+    @JsonProperty("sql")
+    private String sql;
 
-    @JsonProperty("type")
-    private Join.Type type;
+    public enum Grain {
 
-    @JsonProperty("definition")
-    private String definition;
-
-    public enum Type {
-
-        TO_ONE("toOne"),
-        TO_MANY("toMany");
+        DAY("DAY"),
+        WEEK("WEEK"),
+        MONTH("MONTH"),
+        YEAR("YEAR");
         private final String value;
-        private final static Map<String, Join.Type> CONSTANTS = new HashMap<String, Join.Type>();
+        private final static Map<String, Grains.Grain> CONSTANTS = new HashMap<String, Grains.Grain>();
 
         static {
-            for (Join.Type c: values()) {
+            for (Grains.Grain c: values()) {
                 CONSTANTS.put(c.value, c);
             }
         }
 
-        private Type(String value) {
+        private Grain(String value) {
             this.value = value;
         }
 
@@ -75,8 +67,8 @@ public class Join {
         }
 
         @JsonCreator
-        public static Join.Type fromValue(String value) {
-            Join.Type constant = CONSTANTS.get(value);
+        public static Grains.Grain fromValue(String value) {
+            Grains.Grain constant = CONSTANTS.get(value);
             if (constant == null) {
                 throw new IllegalArgumentException(value);
             } else {

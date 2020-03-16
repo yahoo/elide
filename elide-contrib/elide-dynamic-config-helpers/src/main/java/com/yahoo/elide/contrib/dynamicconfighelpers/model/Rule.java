@@ -3,37 +3,39 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.model;
+package com.yahoo.elide.contrib.dynamicconfighelpers.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
+/**
+ * Rules are a list of RSQL filter expression templates that
+ * support property expansion on the principal object.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-    "roles",
-    "rules"
+    "type",
+    "filter",
+    "name"
 })
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class ElideSecurity {
+public class Rule {
 
-    @JsonProperty("roles")
-    @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> roles = new LinkedHashSet<String>();
+    @JsonProperty("type")
+    private String type;
 
-    @JsonProperty("rules")
-    @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<Rule> rules = new LinkedHashSet<Rule>();
+    @JsonProperty("filter")
+    private String filter;
+
+    @JsonProperty("name")
+    private String name;
 }

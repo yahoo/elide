@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.model;
+package com.yahoo.elide.contrib.dynamicconfighelpers.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Table Model JSON.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "name",
@@ -86,7 +89,11 @@ public class Table {
     @JsonProperty("table")
     private String table = "";
 
-    //    default behaviour, in case description is null
+    /**
+     * Returns description of the table object.
+     * If null, returns the name. 
+     * @return description
+     */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
     }

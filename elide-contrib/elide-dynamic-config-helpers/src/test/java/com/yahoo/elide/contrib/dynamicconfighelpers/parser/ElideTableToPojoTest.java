@@ -3,16 +3,19 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.parser;
+package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.yahoo.elide.contrib.dynamicconfig.model.ElideTable;
-import com.yahoo.elide.contrib.dynamicconfig.model.Table;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * ElideTableToPojo test
+ */
 public class ElideTableToPojoTest {
 
     private ElideTableToPojo testClass = new ElideTableToPojo();

@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.model;
+package com.yahoo.elide.contrib.dynamicconfighelpers.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,6 +20,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Dimensions represent labels for measures.
+ * Dimensions are used to filter and group measures.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "name",
@@ -67,8 +71,11 @@ public class Dimension {
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<String>();
 
-
-    //    default behaviour, in case description is null
+    /**
+     * Returns description of the dimension.
+     * If null, returns the name. 
+     * @return description
+     */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
     }

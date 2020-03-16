@@ -3,17 +3,28 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.parser;
+package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
-import com.yahoo.elide.contrib.dynamicconfig.ElideHjsonUtil;
-import com.yahoo.elide.contrib.dynamicconfig.model.ElideTable;
+import com.yahoo.elide.contrib.dynamicconfighelpers.ElideHjsonUtil;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * The ElideSecurityToPojo class allows conversion of Table config Hjson 
+ * format to a Elide Table POJO.
+ */
 @Slf4j
 public class ElideTableToPojo {
 
+    /**
+     * Parse the table config to POJO
+     * @param jsonConfig hjson string table config 
+     * @return a ElideTable Object
+     * @throws Exception
+     */
     private ElideTable parseTables(String jsonConfig) throws Exception {
 
         if (ElideHjsonUtil.validateDataWithSchema(ElideHjsonUtil.SCHEMA_TYPE_TABLE, jsonConfig)) {
@@ -26,7 +37,7 @@ public class ElideTableToPojo {
     }
 
     /**
-     * Pass File path containing hjson config; http or local.
+     * Parse File path containing hjson config; http or local.
      * @param configFilePath : File Path to hjson config
      * @return ElideTable pojo
      */
@@ -45,7 +56,7 @@ public class ElideTableToPojo {
     }
 
     /**
-     * Pass hjson config string as input.
+     * Parse hjson config string as input.
      * @param hjsonConfig : hjson config String
      * @return ElideTable pojo
      */
