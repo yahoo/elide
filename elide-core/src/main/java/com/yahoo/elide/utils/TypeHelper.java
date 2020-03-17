@@ -21,6 +21,9 @@ public class TypeHelper {
     private static final String PERIOD = ".";
     private static final Set<Class<?>> PRIMITIVE_NUMBER_TYPES = Sets
             .newHashSet(short.class, int.class, long.class, float.class, double.class);
+    private static final Set<Class<?>> NUMBER_TYPES = Sets
+            .newHashSet(short.class, int.class, long.class, float.class, double.class,
+                    Short.class, Integer.class, Long.class, Float.class, Double.class);
 
     /**
      * Determine whether a type is primitive number type
@@ -30,6 +33,16 @@ public class TypeHelper {
      */
     public static boolean isPrimitiveNumberType(Class<?> type) {
         return PRIMITIVE_NUMBER_TYPES.contains(type);
+    }
+
+    /**
+     * Determine whether a type is number type
+     *
+     * @param type type to check
+     * @return True is the type is number type
+     */
+    public static boolean isNumberType(Class<?> type) {
+        return NUMBER_TYPES.contains(type);
     }
 
     /**

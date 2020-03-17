@@ -47,6 +47,7 @@ public class CountryView {
         this.countryId = countryId;
     }
 
+    @Column(name = "iso_code")
     public String getIsoCode() {
         return isoCode;
     }

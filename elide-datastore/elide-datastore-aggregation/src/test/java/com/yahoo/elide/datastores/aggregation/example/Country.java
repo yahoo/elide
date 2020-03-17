@@ -16,6 +16,7 @@ import org.hibernate.annotations.Formula;
 import lombok.Data;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -40,6 +41,10 @@ public class Country {
 
     private Continent continent;
 
+    private String nickName;
+
+    private int unSeats;
+
     @Setter
     private boolean inUsa;
 
@@ -52,6 +57,7 @@ public class Country {
         this.id = id;
     }
 
+    @Column(name = "iso_code")
     public String getIsoCode() {
         return isoCode;
     }
@@ -67,6 +73,24 @@ public class Country {
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    @Column(name = "nick_name")
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(final String nickName) {
+        this.nickName = nickName;
+    }
+
+    @Column(name = "un_seats")
+    public int getUnSeats() {
+        return unSeats;
+    }
+
+    public void setUnSeats(int seats) {
+        this.unSeats = seats;
     }
 
     @ManyToOne

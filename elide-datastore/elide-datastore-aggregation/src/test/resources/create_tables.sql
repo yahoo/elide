@@ -13,9 +13,11 @@ CREATE TABLE IF NOT EXISTS playerStats
 CREATE TABLE IF NOT EXISTS countries
     (
       id VARCHAR(255),
-      isoCode VARCHAR(255),
+      iso_code VARCHAR(255),
       name VARCHAR(255),
-      continent_id VARCHAR(255)
+      continent_id VARCHAR(255),
+      nick_name VARCHAR(255),
+      un_seats INT
     ) AS SELECT * FROM CSVREAD('classpath:country.csv');
 
 CREATE TABLE IF NOT EXISTS players

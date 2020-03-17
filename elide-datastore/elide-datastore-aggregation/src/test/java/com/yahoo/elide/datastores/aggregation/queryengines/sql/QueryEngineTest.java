@@ -608,6 +608,58 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats2, results.get(2));
     }
 
+    @Test
+    public void testNullJoinToStringValue() {
+        Query query = Query.builder()
+                .table(playerStatsTable)
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .groupByDimension(toProjection(playerStatsTable.getDimension("countryNickName")))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setHighScore(2412);
+        stats1.setCountryNickName("Uncle Sam");
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setHighScore(1000);
+        stats2.setCountryNickName(null);
+
+        assertEquals(2, results.size());
+        assertEquals(stats1, results.get(0));
+        assertEquals(stats2, results.get(1));
+    }
+
+    @Test
+    public void testNullJoinToIntValue() {
+        Query query = Query.builder()
+                .table(playerStatsTable)
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .groupByDimension(toProjection(playerStatsTable.getDimension("countryUnSeats")))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setHighScore(2412);
+        stats1.setCountryUnSeats(1);
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setHighScore(1000);
+        stats2.setCountryUnSeats(0);
+
+        assertEquals(2, results.size());
+        assertEquals(stats1, results.get(0));
+        assertEquals(stats2, results.get(1));
+    }
+
     //TODO - Add Invalid Request Tests
     @Test
     public void testInvalidTimeDimensionWhereClause() {

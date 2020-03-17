@@ -66,6 +66,10 @@ public class PlayerStats {
      */
     private Country country;
 
+    private String countryNickName;
+
+    private int countryUnSeats;
+
     /**
      * A subselect dimension.
      */
@@ -151,6 +155,24 @@ public class PlayerStats {
 
     public void setCountry(final Country country) {
         this.country = country;
+    }
+
+    @JoinTo(path = "country.nickName")
+    public String getCountryNickName() {
+        return countryNickName;
+    }
+
+    public void setCountryNickName(String nickName) {
+        this.countryNickName = countryNickName;
+    }
+
+    @JoinTo(path = "country.unSeats")
+    public int getCountryUnSeats() {
+        return countryUnSeats;
+    }
+
+    public void setCountryUnSeats(int seats) {
+        this.countryUnSeats = seats;
     }
 
     @JoinTo(path = "country.isoCode")
