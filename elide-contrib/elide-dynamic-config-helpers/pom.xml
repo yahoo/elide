@@ -48,6 +48,7 @@
         <slf4j-api.version>1.7.26</slf4j-api.version>
         <jsonschema2pojo-core.version>1.0.2</jsonschema2pojo-core.version>
         <lombok.version>1.18.10</lombok.version>
+        <handlebars.version>4.1.2</handlebars.version>
         <json-schema-validator.version>2.2.12</json-schema-validator.version>
     </properties>
 
@@ -107,6 +108,29 @@
             <groupId>org.everit.json</groupId>
             <artifactId>org.everit.json.schema</artifactId>
             <version>${everit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jknack</groupId>
+            <artifactId>handlebars</artifactId>
+            <version>${handlebars.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.6.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.6.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>1.6.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -1,0 +1,56 @@
+import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Id;
+
+/**
+ * A root level entity for testing AggregationDataStore.
+ */
+@Include(rootLevel = true)
+@Cardinality(size = CardinalitySize.{{#toUpperCase cardinality}}{{/toUpperCase}})
+@EqualsAndHashCode
+@ToString
+{{#if table}}@FromTable(name = "{{table}}"){{/if}}
+public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {
+
+{{#each dimensions}}
+    private {{#getDimensonType this}}{{/getDimensonType}} {{name}};
+
+{{!--  --}}
+{{#ifDimTypeMatches this "TIME"}}
+    @Temporal(grains = {
+    {{#each grains}}
+            @TimeGrainDefinition(grain = TimeGrain.{{grain}}, expression = "{{sql}}"){{#if @last}}{{else}}, {{/if}}
+    {{/each}}
+    }, timeZone = "UTC")
+
+    {{#generateDimGetterMethod this}}{{/generateDimGetterMethod}}
+
+    {{#generateDimSetterMethod this}}{{/generateDimSetterMethod}}
+
+{{!--  --}}
+{{else}}
+    {{#ifContains definition "."}}
+        @JoinTo(path = "{{definition}}")
+        @Column(updatable = false, insertable = false)
+        {{#generateDimGetterMethod this}}{{/generateDimGetterMethod}}
+
+        {{#generateDimSetterMethod this}}{{/generateDimSetterMethod}}
+    {{!--  --}}
+    {{else}}
+        @DimensionFormula("{{definition}}")
+        {{#generateDimGetterMethod this}}{{/generateDimGetterMethod}}
+    {{!--  --}}
+    {{/ifContains}}
+{{/ifDimTypeMatches}}
+{{/each}}
+
+{{#each joins}}
+    private {{#capitalizeFirstLetter to}}{{/capitalizeFirstLetter}} {{ to }};
+
+    @Join("{{ definition }}")
+    {{#generateJoinGetterMethod this}}{{/generateJoinGetterMethod}}
+
+    {{#generateJoinSetterMethod this}}{{/generateJoinSetterMethod}}
+
+{{/each}}
+}
