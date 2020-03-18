@@ -61,7 +61,7 @@ public class HelperSource {
 
     public boolean contains(String str, String search) {
 
-        return (str == null || str.indexOf(search) < 0) ? false : true;
+        return (str == null || str.indexOf(search) < 0);
     }
 
     public String generateSetterMethod(String type, String fieldName) {

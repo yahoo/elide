@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideTableToPojo;
 
@@ -73,6 +75,73 @@ public class TableHandlebarTest {
             + "    }]\n"
             + "}";
 
+    public static final String VALID_TABLE_JAVA = "import java.util.Date;\n"
+            + "import javax.persistence.Column;\n"
+            + "import javax.persistence.Id;\n"
+            + "\n"
+            + "/**\n"
+            + " * A root level entity for testing AggregationDataStore.\n"
+            + " */\n"
+            + "@Include(rootLevel = true)\n"
+            + "@Cardinality(size = CardinalitySize.LARGE)\n"
+            + "@EqualsAndHashCode\n"
+            + "@ToString\n"
+            + "@FromTable(name = \"player_stats\")\n"
+            + "public class PlayerStats {\n"
+            + "\n"
+            + "\n"
+            + "    private String countryIsoCode;\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "    \n"
+            + "        @DimensionFormula(\"playerCountry.isoCode\")\n"
+            + "        public String getCountryIsoCode() {\n"
+            + "        return countryIsoCode;\n"
+            + "    }\n"
+            + "    \n"
+            + "    \n"
+            + "\n"
+            + "\n"
+            + "    private Date createdOn;\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "    @Temporal(grains = {\n"
+            + "    \n"
+            + "            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = \"PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\"), \n"
+            + "    \n"
+            + "            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = \"PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')\")\n"
+            + "    \n"
+            + "    }, timeZone = \"UTC\")\n"
+            + "\n"
+            + "    public Date getCreatedOn() {\n"
+            + "        return createdOn;\n"
+            + "    }\n"
+            + "\n"
+            + "    public void setCreatedOn(Date createdOn) {\n"
+            + "        this.createdOn = createdOn;\n"
+            + "    }\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "    private Country country;\n"
+            + "\n"
+            + "    @Join(\"${to}.id = ${from}.country_id\")\n"
+            + "    public Country getCountry() {\n"
+            + "        return country;\n"
+            + "    }\n"
+            + "\n"
+            + "    public void setCountry(Country country) {\n"
+            + "        this.country = country;\n"
+            + "    }\n"
+            + "\n"
+            + "\n"
+            + "}\n";
+
     @Test
     public void whenHelperSourceIsCreatedThenCanRegister() throws IOException {
 
@@ -80,6 +149,7 @@ public class TableHandlebarTest {
         ElideTableToPojo testClass = new ElideTableToPojo();
         ElideTable table = testClass.parseTableConfig(VALID_TABLE);
 
-        System.out.println(obj.hydrateTableTemplate(table));
+        assertEquals(VALID_TABLE_JAVA, obj.hydrateTableTemplate(table));
+        //System.out.println(obj.hydrateTableTemplate(table));
     }
 }

@@ -32,7 +32,7 @@ public class TableHandlebar {
 
         String tableClassAsString = null;
 
-        TemplateLoader loader = new ClassPathTemplateLoader("/handlebars");
+        TemplateLoader loader = new ClassPathTemplateLoader("/templates");
         Handlebars handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
         handlebars.registerHelpers(ConditionalHelpers.class);
         handlebars.registerHelpers(new HelperSource());
