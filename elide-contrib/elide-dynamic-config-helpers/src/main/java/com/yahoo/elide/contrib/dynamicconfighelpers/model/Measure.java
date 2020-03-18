@@ -56,7 +56,7 @@ public class Measure {
 
     /**
      * Returns description of the measure.
-     * If null, returns the name. 
+     * If null, returns the name.
      * @return description
      */
     public String getDescription() {

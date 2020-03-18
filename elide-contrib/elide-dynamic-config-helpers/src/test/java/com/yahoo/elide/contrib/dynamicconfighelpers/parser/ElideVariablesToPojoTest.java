@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 /**
- * ElideVariablesToPojo test
+ * ElideVariablesToPojo test.
  */
 public class ElideVariablesToPojoTest {
 
@@ -42,7 +42,7 @@ public class ElideVariablesToPojoTest {
     @Test
     public void testValidateFilePath() {
         String filePath = "https://raw.githubusercontent.com/hjson/hjson/master/testCases/trail_result.hjson";
-        
+
         Map<String, Object> map = testClass.parseVariableConfigFile(filePath);
 
         assertEquals(1, map.size());

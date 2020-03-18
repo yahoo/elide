@@ -14,15 +14,15 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 
 /**
- * The ElideVariableToPojo class allows conversion of Variable config Hjson 
- * format to a Elide Security POJO.
+ * The ElideVariableToPojo class allows conversion of Variable config.
+ * Converts HJSON format to a Elide Security POJO.
  */
 @Slf4j
 public class ElideVariableToPojo {
 
     /**
-     * Parse the variable config to POJO
-     * @param jsonConfig hjson string variable config 
+     * Parse the variable config to POJO.
+     * @param jsonConfig hjson string variable config
      * @return a Map of Key Values representing the variable names and values
      * @throws Exception
      */

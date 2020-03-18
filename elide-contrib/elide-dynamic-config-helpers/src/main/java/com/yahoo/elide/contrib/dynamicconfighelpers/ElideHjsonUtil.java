@@ -24,7 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Util class for HJSON parsing
+ * Util class for HJSON parsing.
  */
 @Slf4j
 public class ElideHjsonUtil {
@@ -52,7 +52,7 @@ public class ElideHjsonUtil {
     }
 
     /**
-     * Config file reader. Supports HTTP or Local Filesystem. 
+     * Config file reader. Supports HTTP or Local Filesystem.
      * @param filePath Path to File
      * @return contents of the file
      * @throws Exception
@@ -104,7 +104,7 @@ public class ElideHjsonUtil {
 
     /**
      * Read file contents.
-     * @param reader BufferedReader object 
+     * @param reader BufferedReader object
      * @return contents of file
      * @throws IOException
      */
@@ -119,9 +119,9 @@ public class ElideHjsonUtil {
     }
 
     /**
-     * Get HTTP file reader. 
+     * Get HTTP file reader.
      * @param filePath Path to file
-     * @return BufferedReader object 
+     * @return BufferedReader object
      * @throws Exception
      */
     private static BufferedReader getHttpFileReader(String filePath) throws Exception {
@@ -132,7 +132,7 @@ public class ElideHjsonUtil {
     /**
      * Get local file system reader.
      * @param filePath Path to file
-     * @return BufferedReader object 
+     * @return BufferedReader object
      * @throws Exception
      */
     private static BufferedReader getLocalFileReader(String filePath) throws Exception {

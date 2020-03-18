@@ -14,7 +14,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 import org.junit.jupiter.api.Test;
 
 /**
- * ElideTableToPojo test
+ * ElideTableToPojo test.
  */
 public class ElideTableToPojoTest {
 

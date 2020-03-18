@@ -91,7 +91,7 @@ public class Table {
 
     /**
      * Returns description of the table object.
-     * If null, returns the name. 
+     * If null, returns the name.
      * @return description
      */
     public String getDescription() {

@@ -13,7 +13,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
 import org.junit.jupiter.api.Test;
 
 /**
- * ElideSecurityToPojo test
+ * ElideSecurityToPojo test.
  */
 public class ElideSecurityToPojoTest {
 

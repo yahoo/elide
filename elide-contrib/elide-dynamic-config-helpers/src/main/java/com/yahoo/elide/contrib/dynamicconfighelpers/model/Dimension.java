@@ -73,7 +73,7 @@ public class Dimension {
 
     /**
      * Returns description of the dimension.
-     * If null, returns the name. 
+     * If null, returns the name.
      * @return description
      */
     public String getDescription() {

@@ -13,15 +13,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * The ElideSecurityToPojo class allows conversion of Table config Hjson 
- * format to a Elide Table POJO.
+ * The ElideSecurityToPojo class allows conversion of Table config.
+ * Converts HJSON format to a Elide Table POJO.
  */
 @Slf4j
 public class ElideTableToPojo {
 
     /**
-     * Parse the table config to POJO
-     * @param jsonConfig hjson string table config 
+     * Parse the table config to POJO.
+     * @param jsonConfig hjson string table config
      * @return a ElideTable Object
      * @throws Exception
      */

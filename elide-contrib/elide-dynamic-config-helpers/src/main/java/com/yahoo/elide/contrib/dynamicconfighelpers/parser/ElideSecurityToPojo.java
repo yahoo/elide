@@ -13,15 +13,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * The ElideSecurityToPojo class allows conversion of Security config Hjson 
- * format to a Elide Security POJO.
+ * The ElideSecurityToPojo class allows conversion of Security config.
+ * Converts Hjson format to a Elide Security POJO.
  */
 @Slf4j
 public class ElideSecurityToPojo {
 
     /**
      * Parse the security config to POJO.
-     * @param jsonConfig hjson string security config 
+     * @param jsonConfig hjson string security config
      * @return a ElideSecurity Object
      * @throws Exception
      */
