@@ -1,6 +1,22 @@
+package com.yahoo.elide.contrib.dynamicconfig.model;
+
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
+import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Id;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * A root level entity for testing AggregationDataStore.
