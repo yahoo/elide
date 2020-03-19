@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -615,66 +616,94 @@ public class LifeCycleTest {
         PersistentResource resource = PersistentResource.createObject(TestModel.class, scope, Optional.of("1"));
         resource.setValueChecked("field", "should not affect calls since this is create!");
         assertNotNull(resource);
-        verify(mockModel, never()).classCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, never()).relationCallback(eq(CREATE), eq(PRESECURITY));
+
+        verify(mockModel, never()).classCallback(any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any());
+        verify(mockModel, never()).relationCallback(any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
 
         scope.runQueuedPreSecurityTriggers();
 
+        verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).attributeCallback(any(), any());
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).relationCallback(any(), any());
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRESECURITY));
         verify(mockModel, never()).everythingCallback(any(), any());
 
-        verify(mockModel, never()).classCallback(eq(READ), any());
-        verify(mockModel, never()).attributeCallback(eq(READ), any());
-        verify(mockModel, never()).relationCallback(eq(READ), any());
-
-        verify(mockModel, never()).classCallback(eq(DELETE), any());
-        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
-        verify(mockModel, never()).relationCallback(eq(DELETE), any());
-
-        verify(mockModel, never()).classCallback(eq(UPDATE), any());
-        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
-        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
-
+        clearInvocations(mockModel);
         scope.runQueuedPreCommitTriggers();
 
+        verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).attributeCallback(any(), any());
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).relationCallback(any(), any());
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(2)).everythingCallback(any(), any());
         verify(mockModel, times(2)).everythingCallback(eq(CREATE), eq(PRECOMMIT));
 
-        verify(mockModel, never()).classCallback(eq(READ), any());
-        verify(mockModel, never()).attributeCallback(eq(READ), any());
-        verify(mockModel, never()).relationCallback(eq(READ), any());
-
-        verify(mockModel, never()).classCallback(eq(DELETE), any());
-        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
-        verify(mockModel, never()).relationCallback(eq(DELETE), any());
-
-        verify(mockModel, never()).classCallback(eq(UPDATE), any());
-        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
-        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
-
+        clearInvocations(mockModel);
         scope.getPermissionExecutor().executeCommitChecks();
         scope.runQueuedPostCommitTriggers();
 
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, times(1)).attributeCallback(any(), any());
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, times(1)).relationCallback(any(), any());
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
+    }
 
-        verify(mockModel, never()).classCallback(eq(READ), any());
-        verify(mockModel, never()).attributeCallback(eq(READ), any());
-        verify(mockModel, never()).relationCallback(eq(READ), any());
+    @Test
+    public void testUpdate() {
+        TestModel mockModel = mock(TestModel.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.createNewObject(TestModel.class)).thenReturn(mockModel);
+        RequestScope scope = buildRequestScope(dictionary, tx);
 
-        verify(mockModel, never()).classCallback(eq(DELETE), any());
-        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
-        verify(mockModel, never()).relationCallback(eq(DELETE), any());
+        PersistentResource resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        resource.setValueChecked("field", "new value");
 
-        verify(mockModel, never()).classCallback(eq(UPDATE), any());
-        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
-        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).attributeCallback(any(), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
+
+        verify(mockModel, never()).relationCallback(any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        clearInvocations(mockModel);
+        scope.runQueuedPreSecurityTriggers();
+
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).relationCallback(any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any());
+
+        clearInvocations(mockModel);
+        scope.runQueuedPreCommitTriggers();
+
+        verify(mockModel, never()).relationCallback(any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).attributeCallback(any(), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
+
+        clearInvocations(mockModel);
+        scope.getPermissionExecutor().executeCommitChecks();
+        scope.runQueuedPostCommitTriggers();
+
+        verify(mockModel, never()).relationCallback(any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
+        verify(mockModel, times(1)).attributeCallback(any(), any());
+        verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
     }
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
