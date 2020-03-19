@@ -13,8 +13,14 @@ import javax.persistence.Id;
 public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {
 
 {{#each dimensions}}
-    private {{#getDimensonType this}}{{/getDimensonType}} {{name}};
+    private {{#getDimensionType this}}{{/getDimensionType}} {{name}};
+{{/each}}
 
+{{#each joins}}
+    private {{#capitalizeFirstLetter to}}{{/capitalizeFirstLetter}} {{ name }};
+ {{/each}}
+
+{{#each dimensions}}
 {{!--  --}}
 {{#ifDimTypeMatches this "TIME"}}
     @Temporal(grains = {
@@ -45,8 +51,6 @@ public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {
 {{/each}}
 
 {{#each joins}}
-    private {{#capitalizeFirstLetter to}}{{/capitalizeFirstLetter}} {{ to }};
-
     @Join("{{ definition }}")
     {{#generateJoinGetterMethod this}}{{/generateJoinGetterMethod}}
 

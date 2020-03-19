@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-public class TableHandlebarTest {
+public class HandlebarsHydratorTest {
 
     public static final String VALID_TABLE = "{\n"
             + "  tables: [{\n"
@@ -92,6 +92,14 @@ public class TableHandlebarTest {
             + "\n"
             + "    private String countryIsoCode;\n"
             + "\n"
+            + "    private Date createdOn;\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "    private Country playerCountry;\n"
+            + " \n"
+            + "\n"
+            + "\n"
             + "\n"
             + "\n"
             + "    \n"
@@ -102,8 +110,6 @@ public class TableHandlebarTest {
             + "    \n"
             + "    \n"
             + "\n"
-            + "\n"
-            + "    private Date createdOn;\n"
             + "\n"
             + "\n"
             + "\n"
@@ -128,28 +134,25 @@ public class TableHandlebarTest {
             + "\n"
             + "\n"
             + "\n"
-            + "    private Country country;\n"
-            + "\n"
             + "    @Join(\"${to}.id = ${from}.country_id\")\n"
-            + "    public Country getCountry() {\n"
-            + "        return country;\n"
+            + "    public Country getPlayerCountry() {\n"
+            + "        return playerCountry;\n"
             + "    }\n"
             + "\n"
-            + "    public void setCountry(Country country) {\n"
-            + "        this.country = country;\n"
+            + "    public void setPlayerCountry(Country playerCountry) {\n"
+            + "        this.playerCountry = playerCountry;\n"
             + "    }\n"
             + "\n"
             + "\n"
             + "}\n";
 
     @Test
-    public void whenHelperSourceIsCreatedThenCanRegister() throws IOException {
+    public void testTableHydration() throws IOException {
 
-        TableHandlebar obj = new TableHandlebar();
+        HandlebarsHydrator obj = new HandlebarsHydrator();
         ElideTableToPojo testClass = new ElideTableToPojo();
         ElideTable table = testClass.parseTableConfig(VALID_TABLE);
 
         assertEquals(VALID_TABLE_JAVA, obj.hydrateTableTemplate(table));
-        //System.out.println(obj.hydrateTableTemplate(table));
     }
 }
