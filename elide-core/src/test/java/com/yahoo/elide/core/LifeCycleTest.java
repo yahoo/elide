@@ -14,15 +14,11 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -70,6 +66,7 @@ public class LifeCycleTest {
     @LifeCycleHookBinding(hook = TestModel.ClassPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = TestModel.ClassPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
     @LifeCycleHookBinding(hook = TestModel.ClassPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = TestModel.ClassPreCommitHookEverything.class, operation = CREATE, phase = PRECOMMIT, oncePerRequest = false)
     @LifeCycleHookBinding(hook = TestModel.ClassPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = TestModel.ClassPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
     @LifeCycleHookBinding(hook = TestModel.ClassPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
@@ -97,6 +94,16 @@ public class LifeCycleTest {
                                 com.yahoo.elide.security.RequestScope requestScope,
                                 Optional<ChangeSpec> changes) {
                 elideEntity.classCallback(operation, PRECOMMIT);
+            }
+        }
+
+        static class ClassPreCommitHookEverything implements LifeCycleHook<TestModel> {
+            @Override
+            public void execute(LifeCycleHookBinding.Operation operation,
+                                TestModel elideEntity,
+                                com.yahoo.elide.security.RequestScope requestScope,
+                                Optional<ChangeSpec> changes) {
+                elideEntity.everythingCallback(operation, PRECOMMIT);
             }
         }
 
@@ -220,6 +227,11 @@ public class LifeCycleTest {
                                   LifeCycleHookBinding.TransactionPhase phase) {
             //NOOP - this will be mocked to verify hook invocation.
         }
+
+        public void everythingCallback(LifeCycleHookBinding.Operation operation,
+                                       LifeCycleHookBinding.TransactionPhase phase) {
+            //NOOP - this will be mocked to verify hook invocation.
+        }
     }
 
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
@@ -252,12 +264,13 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRECOMMIT));
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+
+        verify(mockModel, times(2)).everythingCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, never()).everythingCallback(eq(UPDATE), any());
+        verify(mockModel, never()).everythingCallback(eq(DELETE), any());
+        verify(mockModel, never()).everythingCallback(eq(READ), any());
 
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRECOMMIT));
@@ -265,12 +278,8 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRESECURITY));
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
 
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT));
@@ -278,12 +287,8 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRESECURITY));
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRECOMMIT));
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
 
         verify(tx).preCommit();
         verify(tx, times(1)).createObject(eq(mockModel), isA(RequestScope.class));
@@ -312,44 +317,10 @@ public class LifeCycleTest {
                 "{\"errors\":[{\"detail\":\"Unexpected exception caught\"}]}",
                 response.getBody());
 
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(POSTCOMMIT));
-
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(POSTCOMMIT));
-
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any());
+        verify(mockModel, never()).relationCallback(any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
 
         verify(tx, never()).preCommit();
         verify(tx, never()).createObject(eq(mockModel), isA(RequestScope.class));
@@ -374,45 +345,28 @@ public class LifeCycleTest {
         ElideResponse response = elide.get("/testModel/1", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
+        verify(mockModel, never()).everythingCallback(any(), any());
+
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
 
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
 
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(POSTCOMMIT));
-
+        verify(mockModel, never()).relationCallback(eq(CREATE), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
         verify(tx).preCommit();
         verify(tx).flush(any());
         verify(tx).commit(any());
@@ -436,44 +390,23 @@ public class LifeCycleTest {
         ElideResponse response = elide.get("/testModel/1", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
+        verify(mockModel, never()).everythingCallback(any(), any());
+
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
 
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
 
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, times(0)).relationCallback(any(), any());
 
         verify(tx).preCommit();
         verify(tx).flush(any());
@@ -499,44 +432,28 @@ public class LifeCycleTest {
         ElideResponse response = elide.get("/testModel/1/relationships/models", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
+        verify(mockModel, never()).everythingCallback(any(), any());
+
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
 
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
 
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).relationCallback(eq(CREATE), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
 
         verify(tx).preCommit();
         verify(tx).flush(any());
@@ -562,44 +479,26 @@ public class LifeCycleTest {
         ElideResponse response = elide.patch(contentType, contentType, "/testModel/1", body, null);
         assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
 
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        verify(mockModel, never()).classCallback(eq(READ), any());
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(POSTCOMMIT));
 
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).attributeCallback(eq(READ), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
         verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
         verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
         verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(POSTCOMMIT));
 
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).relationCallback(eq(READ), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
 
         verify(tx).preCommit();
         verify(tx).save(eq(mockModel), isA(RequestScope.class));
@@ -625,45 +524,29 @@ public class LifeCycleTest {
         ElideResponse response = elide.delete("/testModel/1", "", null);
         assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
 
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRECOMMIT));
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(POSTCOMMIT));
 
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any());
+        verify(mockModel, never()).attributeCallback(eq(READ), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
 
         //TODO - Read should not be called for a delete.
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(POSTCOMMIT));
 
         verify(tx).preCommit();
         verify(tx).delete(eq(mockModel), isA(RequestScope.class));
@@ -694,44 +577,27 @@ public class LifeCycleTest {
                 "{\"errors\":[{\"detail\":\"Constraint violation\"}]}",
                 response.getBody());
 
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        verify(mockModel, never()).classCallback(eq(READ), any());
+        verify(mockModel, never()).classCallback(eq(CREATE), any());
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
         verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(PRECOMMIT));
         verify(mockModel, times(0)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).classCallback(eq(DELETE), eq(POSTCOMMIT));
 
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, never()).attributeCallback(eq(READ), any());
+        verify(mockModel, never()).attributeCallback(eq(CREATE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
         verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY));
         verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(PRECOMMIT));
         verify(mockModel, times(0)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).attributeCallback(eq(DELETE), eq(POSTCOMMIT));
 
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(UPDATE), eq(POSTCOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRESECURITY));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(PRECOMMIT));
-        verify(mockModel, times(0)).relationCallback(eq(DELETE), eq(POSTCOMMIT));
+        verify(mockModel, never()).relationCallback(eq(READ), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
+        verify(mockModel, never()).relationCallback(eq(CREATE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
 
         verify(tx).preCommit();
         verify(tx).save(eq(mockModel), isA(RequestScope.class));
@@ -744,40 +610,71 @@ public class LifeCycleTest {
     public void testCreate() {
         TestModel mockModel = mock(TestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(TestModel.class)).thenReturn(book);
+        when(tx.createNewObject(TestModel.class)).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = PersistentResource.createObject(TestModel.class, scope, Optional.of("1"));
         resource.setValueChecked("field", "should not affect calls since this is create!");
         assertNotNull(resource);
-        verify(mockModel, never()).onCreatePreSecurity(scope);
-        verify(book, never()).checkPermission(scope);
+        verify(mockModel, never()).classCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, never()).attributeCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, never()).relationCallback(eq(CREATE), eq(PRESECURITY));
 
         scope.runQueuedPreSecurityTriggers();
-        verify(book, times(1)).onCreatePreSecurity(scope);
-        verify(book, never()).onDeletePreSecurity(scope);
-        verify(book, never()).onUpdatePreSecurityTitle(scope);
-        verify(book, never()).onCreatePreCommitStar(eq(scope), any());
-        verify(book, times(1)).onReadPreSecurity(scope);
-        verify(book, never()).checkPermission(scope);
+
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRESECURITY));
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        verify(mockModel, never()).classCallback(eq(READ), any());
+        verify(mockModel, never()).attributeCallback(eq(READ), any());
+        verify(mockModel, never()).relationCallback(eq(READ), any());
+
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
+
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
 
         scope.runQueuedPreCommitTriggers();
-        verify(book, times(1)).onCreatePreCommit(scope);
-        verify(book, never()).onDeletePreCommit(scope);
-        verify(book, never()).onUpdatePreCommitTitle(scope);
-        verify(book, times(2)).onCreatePreCommitStar(eq(scope), any());
-        verify(book, times(1)).onReadPreCommitTitle(scope);
-        verify(book, never()).checkPermission(scope);
+
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(2)).everythingCallback(eq(CREATE), eq(PRECOMMIT));
+
+        verify(mockModel, never()).classCallback(eq(READ), any());
+        verify(mockModel, never()).attributeCallback(eq(READ), any());
+        verify(mockModel, never()).relationCallback(eq(READ), any());
+
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
+
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
 
         scope.getPermissionExecutor().executeCommitChecks();
-        verify(book, times(3)).checkPermission(scope);
-
         scope.runQueuedPostCommitTriggers();
-        verify(book, times(1)).onCreatePostCommit(scope);
-        verify(book, never()).onDeletePostCommit(scope);
-        verify(book, never()).onUpdatePostCommitTitle(scope);
-        verify(book, times(2)).onCreatePreCommitStar(eq(scope), any());
-        verify(book, times(1)).onReadPostCommit(scope);
-        verify(book, times(3)).checkPermission(scope);
+
+        verify(mockModel, times(1)).classCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(POSTCOMMIT));
+        verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT));
+
+        verify(mockModel, never()).classCallback(eq(READ), any());
+        verify(mockModel, never()).attributeCallback(eq(READ), any());
+        verify(mockModel, never()).relationCallback(eq(READ), any());
+
+        verify(mockModel, never()).classCallback(eq(DELETE), any());
+        verify(mockModel, never()).attributeCallback(eq(DELETE), any());
+        verify(mockModel, never()).relationCallback(eq(DELETE), any());
+
+        verify(mockModel, never()).classCallback(eq(UPDATE), any());
+        verify(mockModel, never()).attributeCallback(eq(UPDATE), any());
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any());
     }
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
