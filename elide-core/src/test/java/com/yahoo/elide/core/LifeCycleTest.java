@@ -39,6 +39,7 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
@@ -834,11 +835,8 @@ public class LifeCycleTest {
         resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
 
         scope.runQueuedPreSecurityTriggers();
-        tx.save(mockModel, scope);
-        tx.save(modelToAdd, scope);
         scope.runQueuedPreCommitTriggers();
         scope.runQueuedPostCommitTriggers();
-        tx.commit(scope);
 
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT), notNull());
@@ -851,11 +849,56 @@ public class LifeCycleTest {
         resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
 
         scope.runQueuedPreSecurityTriggers();
-        tx.save(mockModel, scope);
-        tx.save(modelToAdd, scope);
         scope.runQueuedPreCommitTriggers();
         scope.runQueuedPostCommitTriggers();
-        tx.commit(scope);
+
+        verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
+    }
+
+    @Test
+    public void testRemoveFromCollectionTrigger() {
+        PropertyTestModel mockModel = mock(PropertyTestModel.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.createNewObject(PropertyTestModel.class)).thenReturn(mockModel);
+        RequestScope scope = buildRequestScope(dictionary, tx);
+
+        PropertyTestModel childModel1 = mock(PropertyTestModel.class);
+        PropertyTestModel childModel2 = mock(PropertyTestModel.class);
+        when(childModel1.getId()).thenReturn("2");
+        when(childModel2.getId()).thenReturn("3");
+
+        PersistentResource resource = PersistentResource.createObject(PropertyTestModel.class, scope, Optional.of("1"));
+        PersistentResource childResource1 = new PersistentResource(childModel1, null, "2", scope);
+        PersistentResource childResource2 = new PersistentResource(childModel2, null, "3", scope);
+
+        resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1, childResource2)));
+
+        scope.runQueuedPreSecurityTriggers();
+        scope.runQueuedPreCommitTriggers();
+        scope.runQueuedPostCommitTriggers();
+
+        verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
+        verify(mockModel, times(2)).relationCallback(eq(CREATE), eq(POSTCOMMIT), notNull());
+
+        //Build another resource, scope & reset the mock to do another operation:
+        scope = buildRequestScope(dictionary, tx);
+        resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        reset(mockModel);
+        Relationship relationship = Relationship.builder()
+                .projection(EntityProjection.builder()
+                    .type(PropertyTestModel.class)
+                    .build())
+                .name("models")
+                .build();
+
+        when(tx.getRelation(tx, mockModel, relationship, scope)).thenReturn(Arrays.asList(childModel1, childModel2));
+
+        resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1)));
+
+        scope.runQueuedPreSecurityTriggers();
+        scope.runQueuedPreCommitTriggers();
+        scope.runQueuedPostCommitTriggers();
 
         verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
