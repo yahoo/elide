@@ -17,6 +17,8 @@ import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class for handlebars hydration.
@@ -37,9 +39,9 @@ public class HandlebarsHydrator {
      * @return table java class
      * @throws IOException
      */
-    public String hydrateTableTemplate(ElideTable table) throws IOException {
+    public List<String> hydrateTableTemplate(ElideTable table) throws IOException {
 
-        String tableClassAsString = null;
+        List<String> tableClassStringList = new ArrayList<>();
 
         TemplateLoader loader = new ClassPathTemplateLoader("/templates");
         Handlebars handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
@@ -48,9 +50,9 @@ public class HandlebarsHydrator {
         Template template = handlebars.compile("table");
 
         for (Table t : table.getTables()) {
-            tableClassAsString = template.apply(t);
+            tableClassStringList.add(template.apply(t));
         }
 
-        return tableClassAsString;
+        return tableClassStringList;
     }
 }

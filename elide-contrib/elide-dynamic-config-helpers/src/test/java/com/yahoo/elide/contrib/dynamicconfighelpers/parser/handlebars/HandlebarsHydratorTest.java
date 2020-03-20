@@ -13,6 +13,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideTableToPojo;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 public class HandlebarsHydratorTest {
 
@@ -169,6 +170,8 @@ public class HandlebarsHydratorTest {
         ElideTableToPojo testClass = new ElideTableToPojo();
         ElideTable table = testClass.parseTableConfig(VALID_TABLE);
 
-        assertEquals(VALID_TABLE_JAVA, obj.hydrateTableTemplate(table));
+        List<String> tableObjects = obj.hydrateTableTemplate(table);
+
+        assertEquals(VALID_TABLE_JAVA, tableObjects.get(0));
     }
 }
