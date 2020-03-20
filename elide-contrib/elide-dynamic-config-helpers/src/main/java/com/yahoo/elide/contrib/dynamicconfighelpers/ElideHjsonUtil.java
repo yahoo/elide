@@ -14,7 +14,6 @@ import org.json.JSONTokener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -118,8 +117,7 @@ public class ElideHjsonUtil {
                 sb.append(NEW_LINE);
             }
             return sb.toString();
-        }
-        finally {
+        } finally {
             reader.close();
         }
     }
@@ -154,7 +152,7 @@ public class ElideHjsonUtil {
      */
     private static JSONObject loadSchema(String confFilePath) throws IOException {
         try (InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(confFilePath);
-                        InputStreamReader reader = new InputStreamReader(stream)){
+                        InputStreamReader reader = new InputStreamReader(stream)) {
             String content = readFileContent(new BufferedReader(reader));
             return new JSONObject(new JSONTokener(content));
         }
