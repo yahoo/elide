@@ -43,7 +43,7 @@ public class ElideVariableToPojo {
      */
     public Map<String, Object> parseVariableConfigFile(String configFilePath) {
         try {
-            if (ElideHjsonUtil.isNull(configFilePath)) {
+            if (ElideHjsonUtil.isNullOrEmpty(configFilePath)) {
                 return null;
             }
             return populateVariableMap(ElideHjsonUtil.hjsonToJson(ElideHjsonUtil.readConfigFile(configFilePath)));
@@ -60,7 +60,7 @@ public class ElideVariableToPojo {
      */
     public Map<String, Object> parseVariableConfig(String hjsonConfig) {
         try {
-            if (ElideHjsonUtil.isNull(hjsonConfig)) {
+            if (ElideHjsonUtil.isNullOrEmpty(hjsonConfig)) {
                 return null;
             }
             return populateVariableMap(ElideHjsonUtil.hjsonToJson(hjsonConfig));

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -109,7 +110,7 @@ public class ElideHjsonUtil {
      * @throws IOException
      */
     private static String readFileContent(BufferedReader reader) throws IOException {
-        try{ 
+        try {
             StringBuffer sb = new StringBuffer();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -152,10 +153,11 @@ public class ElideHjsonUtil {
      * @throws IOException
      */
     private static JSONObject loadSchema(String confFilePath) throws IOException {
-        InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream(confFilePath);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        String content = readFileContent(reader)
-        return new JSONObject(new JSONTokener(content));
+        try (InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(confFilePath);
+                        InputStreamReader reader = new InputStreamReader(stream)){
+            String content = readFileContent(new BufferedReader(reader));
+            return new JSONObject(new JSONTokener(content));
+        }
     }
 
     /**

@@ -44,7 +44,7 @@ public class ElideTableToPojo {
     public ElideTable parseTableConfigFile(String configFilePath) {
 
         try {
-            if (ElideHjsonUtil.isNull(configFilePath)) {
+            if (ElideHjsonUtil.isNullOrEmpty(configFilePath)) {
                 return null;
             }
             return parseTables(ElideHjsonUtil.hjsonToJson(ElideHjsonUtil.readConfigFile(configFilePath)));
@@ -62,7 +62,7 @@ public class ElideTableToPojo {
      */
     public ElideTable parseTableConfig(String hjsonConfig) {
         try {
-            if (ElideHjsonUtil.isNull(hjsonConfig)) {
+            if (ElideHjsonUtil.isNullOrEmpty(hjsonConfig)) {
                 return null;
             }
             return parseTables(ElideHjsonUtil.hjsonToJson(hjsonConfig));

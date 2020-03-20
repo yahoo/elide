@@ -42,7 +42,7 @@ public class ElideSecurityToPojo {
      */
     public ElideSecurity parseSecurityConfigFile(String configFilePath) {
         try {
-            if (ElideHjsonUtil.isNull(configFilePath)) {
+            if (ElideHjsonUtil.isNullOrEmpty(configFilePath)) {
                 return null;
             }
             return parseSecurity(ElideHjsonUtil.hjsonToJson(ElideHjsonUtil.readConfigFile(configFilePath)));
@@ -59,7 +59,7 @@ public class ElideSecurityToPojo {
      */
     public ElideSecurity parseSecurityConfig(String hjsonConfig) {
         try {
-            if (ElideHjsonUtil.isNull(hjsonConfig)) {
+            if (ElideHjsonUtil.isNullOrEmpty(hjsonConfig)) {
                 return null;
             }
             return parseSecurity(ElideHjsonUtil.hjsonToJson(hjsonConfig));
