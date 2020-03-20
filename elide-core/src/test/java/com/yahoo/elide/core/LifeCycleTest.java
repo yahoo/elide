@@ -46,6 +46,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -214,7 +215,7 @@ public class LifeCycleTest {
         @LifeCycleHookBinding(hook = TestModel.RelationPreSecurityHook.class, operation = READ, phase = PRESECURITY)
         @LifeCycleHookBinding(hook = TestModel.RelationPreCommitHook.class, operation = READ, phase = PRECOMMIT)
         @LifeCycleHookBinding(hook = TestModel.RelationPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
-        Set<TestModel> models;
+        Set<TestModel> models = new HashSet<>();
 
         public void classCallback(LifeCycleHookBinding.Operation operation,
                                   LifeCycleHookBinding.TransactionPhase phase) {
@@ -662,7 +663,7 @@ public class LifeCycleTest {
     }
 
     @Test
-    public void testUpdate() {
+    public void testAttributeUpdate() {
         TestModel mockModel = mock(TestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(TestModel.class)).thenReturn(mockModel);
@@ -708,6 +709,63 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
         verify(mockModel, times(1)).attributeCallback(any(), any(), any());
         verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
+    }
+
+    @Test
+    public void testRelationshipUpdate() {
+        TestModel mockModel = mock(TestModel.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.createNewObject(TestModel.class)).thenReturn(mockModel);
+        RequestScope scope = buildRequestScope(dictionary, tx);
+
+        TestModel modelToRemove = mock(TestModel.class);
+
+        PersistentResource resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resourceToAdd = new PersistentResource(modelToRemove, null, scope.getUUIDFor(mockModel), scope);
+
+        resource.addRelation("models", resourceToAdd);
+
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRESECURITY));
+
+        //TODO - this should be only called once.  THis is called twice because the mock has a null collection.
+        verify(mockModel, times(2)).relationCallback(any(), any(), any());
+        verify(mockModel, times(2)).relationCallback(eq(UPDATE), eq(PRESECURITY), notNull());
+
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        clearInvocations(mockModel);
+        scope.runQueuedPreSecurityTriggers();
+
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+
+        clearInvocations(mockModel);
+        scope.runQueuedPreCommitTriggers();
+
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
+        //TODO - this should be only called once.
+        verify(mockModel, times(2)).relationCallback(any(), any(), any());
+        verify(mockModel, times(2)).relationCallback(eq(UPDATE), eq(PRECOMMIT), notNull());
+
+        clearInvocations(mockModel);
+        scope.getPermissionExecutor().executeCommitChecks();
+        scope.runQueuedPostCommitTriggers();
+
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
+        //TODO - this should be only called once.
+        verify(mockModel, times(2)).relationCallback(any(), any(), any());
+        verify(mockModel, times(2)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
     }
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
