@@ -36,7 +36,7 @@ public class HandlebarsHydrator {
     /**
      * Method to hydrate the Table template.
      * @param table
-     * @return table java class
+     * @return table java class list
      * @throws IOException
      */
     public List<String> hydrateTableTemplate(ElideTable table) throws IOException {
@@ -54,5 +54,24 @@ public class HandlebarsHydrator {
         }
 
         return tableClassStringList;
+    }
+    
+    /**
+     * Method to return the List of Class Names hydrated.
+     * @param table
+     * @return table java class name list
+     * @throws IOException
+     */
+    public List<String> getTableClassNames(ElideTable table) throws IOException {
+
+        List<String> tableClassStringNameList = new ArrayList<>();
+
+        HandlebarsHelper helper = new HandlebarsHelper();
+        
+        for (Table t : table.getTables()) {
+        	tableClassStringNameList.add(helper.capitalizeFirstLetter(t.getName()));
+        }
+
+        return tableClassStringNameList;
     }
 }
