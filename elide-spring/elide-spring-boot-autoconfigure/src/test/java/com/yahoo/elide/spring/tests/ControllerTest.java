@@ -246,6 +246,15 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
+    public void swaggerXSSDocumentTest() {
+        when()
+                .get("/doc/<script>")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body(equalTo("Unknown document: &lt;script&gt;"));
+    }
+
+    @Test
     public void graphqlTestForbiddenCreate() {
         ArtifactGroup group = new ArtifactGroup();
         group.setDeprecated(true);

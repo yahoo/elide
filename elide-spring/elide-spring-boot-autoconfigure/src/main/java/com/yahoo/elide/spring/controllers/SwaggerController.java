@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.controllers;
 
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 
+import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
@@ -82,10 +83,11 @@ public class SwaggerController {
      */
     @GetMapping(value = "/{name}", produces = JSON_CONTENT_TYPE)
     public ResponseEntity<String> list(@PathVariable("name") String name) {
+        String encodedName = Encode.forHtml(name);
 
-        if (documents.containsKey(name)) {
-            return ResponseEntity.status(HttpStatus.OK).body(documents.get(name));
+        if (documents.containsKey(encodedName)) {
+            return ResponseEntity.status(HttpStatus.OK).body(documents.get(encodedName));
         }
-        return ResponseEntity.status(404).body("Unknown document: " + name);
+        return ResponseEntity.status(404).body("Unknown document: " + encodedName);
     }
 }

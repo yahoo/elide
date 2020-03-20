@@ -41,7 +41,7 @@
 
     <properties>
         <spring.boot.version>2.2.4.RELEASE</spring.boot.version>
-        <tomcat.version>9.0.30</tomcat.version>
+        <tomcat.version>9.0.33</tomcat.version>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
         <min_jdk_version>1.8</min_jdk_version>
         <max_jdk_version>1.8</max_jdk_version>
@@ -90,6 +90,13 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.12</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.owasp.encoder</groupId>
+            <artifactId>encoder</artifactId>
+            <version>1.2.2</version>
             <optional>true</optional>
         </dependency>
 
