@@ -7,18 +7,6 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
-import com.yahoo.elide.annotation.OnCreatePreCommit;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
-import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
-import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -295,7 +283,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Get the filter expression for a particular relationship
+     * Get the filter expression for a particular relationship.
      * @param parentType The parent type which has the relationship
      * @param relationName The relationship name
      * @return A type specific filter expression for the given relationship
@@ -366,7 +354,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 .filter(CRUDEvent::isCreateEvent)
                 .subscribeWith(new LifecycleHookInvoker(dictionary,
                         LifeCycleHookBinding.Operation.CREATE,
-                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT,false))
+                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
                 .throwOnError();
 
         this.queuedLifecycleEvents

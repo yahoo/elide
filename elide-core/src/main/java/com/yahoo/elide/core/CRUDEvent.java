@@ -6,6 +6,11 @@
 
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.security.ChangeSpec;
 
@@ -13,11 +18,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Optional;
-
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 
 /**
  * Captures all the bits related to a CRUD operation on a model.

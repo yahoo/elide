@@ -5,6 +5,9 @@
  */
 package example;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
@@ -26,9 +29,6 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
-
 /**
  * Model for publisher.
  */
@@ -38,7 +38,8 @@ public class Publisher {
 
     static class UpdatePreCommit implements LifeCycleHook<Publisher> {
         @Override
-        public void execute(Publisher elideEntity, RequestScope requestScope, Optional<ChangeSpec> changes) {
+        public void execute(LifeCycleHookBinding.Operation operation, Publisher elideEntity,
+                            RequestScope requestScope, Optional<ChangeSpec> changes) {
             elideEntity.updateHookInvoked = true;
         }
     }

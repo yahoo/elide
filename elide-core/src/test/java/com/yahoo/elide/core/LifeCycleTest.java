@@ -13,6 +13,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,7 +30,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableSet;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
@@ -43,9 +43,11 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 
+import com.google.common.collect.ImmutableSet;
+import org.junit.jupiter.api.Test;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
