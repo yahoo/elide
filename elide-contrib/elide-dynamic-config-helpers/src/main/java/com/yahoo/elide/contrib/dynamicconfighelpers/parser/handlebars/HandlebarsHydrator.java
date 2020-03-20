@@ -55,7 +55,7 @@ public class HandlebarsHydrator {
 
         return tableClassStringList;
     }
-    
+
     /**
      * Method to return the List of Class Names hydrated.
      * @param table
@@ -67,9 +67,9 @@ public class HandlebarsHydrator {
         List<String> tableClassStringNameList = new ArrayList<>();
 
         HandlebarsHelper helper = new HandlebarsHelper();
-        
+
         for (Table t : table.getTables()) {
-        	tableClassStringNameList.add(helper.capitalizeFirstLetter(t.getName()));
+            tableClassStringNameList.add(helper.capitalizeFirstLetter(t.getName()));
         }
 
         return tableClassStringNameList;

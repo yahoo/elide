@@ -77,7 +77,7 @@ public class HandlebarsHydratorTest {
             + "}";
 
     public static final String VALID_TABLE_JAVA_NAME = "PlayerStats";
-    		
+
     public static final String VALID_TABLE_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.Include;\n"
@@ -176,7 +176,7 @@ public class HandlebarsHydratorTest {
 
         assertEquals(VALID_TABLE_JAVA, tableObjects.get(0));
     }
-    
+
     @Test
     public void getTableClassNames() throws IOException {
 
