@@ -98,8 +98,8 @@ public class ElideHjsonUtil {
      * @param input string to validate
      * @return whether string is null or not
      */
-    public static boolean isNull(String input) {
-        return (input == null || input.trim().length() == 0) ? true : false;
+    public static boolean isNullOrEmpty(String input) {
+        return (input == null || input.trim().length() == 0);
     }
 
     /**
@@ -109,13 +109,18 @@ public class ElideHjsonUtil {
      * @throws IOException
      */
     private static String readFileContent(BufferedReader reader) throws IOException {
-        StringBuffer sb = new StringBuffer();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line);
-            sb.append(NEW_LINE);
+        try{ 
+            StringBuffer sb = new StringBuffer();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+                sb.append(NEW_LINE);
+            }
+            return sb.toString();
         }
-        return sb.toString();
+        finally {
+            reader.close();
+        }
     }
 
     /**
@@ -146,10 +151,10 @@ public class ElideHjsonUtil {
      * @return
      * @throws IOException
      */
-    private static JSONObject loadSchema(String confFile) throws IOException {
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        File file = new File(classLoader.getResource(confFile).getFile());
-        String content = new String(Files.readAllBytes(file.toPath()));
+    private static JSONObject loadSchema(String confFilePath) throws IOException {
+        InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream(confFilePath);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        String content = readFileContent(reader)
         return new JSONObject(new JSONTokener(content));
     }
 
