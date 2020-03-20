@@ -76,6 +76,8 @@ public class HandlebarsHydratorTest {
             + "    }]\n"
             + "}";
 
+    public static final String VALID_TABLE_JAVA_NAME = "PlayerStats";
+    		
     public static final String VALID_TABLE_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.Include;\n"
@@ -173,5 +175,17 @@ public class HandlebarsHydratorTest {
         List<String> tableObjects = obj.hydrateTableTemplate(table);
 
         assertEquals(VALID_TABLE_JAVA, tableObjects.get(0));
+    }
+    
+    @Test
+    public void getTableClassNames() throws IOException {
+
+        HandlebarsHydrator obj = new HandlebarsHydrator();
+        ElideTableToPojo testClass = new ElideTableToPojo();
+        ElideTable table = testClass.parseTableConfig(VALID_TABLE);
+
+        List<String> tableObjects = obj.getTableClassNames(table);
+
+        assertEquals(VALID_TABLE_JAVA_NAME, tableObjects.get(0));
     }
 }
