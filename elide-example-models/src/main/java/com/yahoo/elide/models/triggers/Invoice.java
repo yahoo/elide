@@ -8,12 +8,9 @@ package com.yahoo.elide.models.triggers;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnCreatePreCommit;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.models.BaseId;
 import com.yahoo.elide.models.triggers.services.BillingService;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
 
 import lombok.Data;
 
@@ -33,22 +30,10 @@ public class Invoice extends BaseId {
     @Inject
     private BillingService billingService;
 
+    @LifeCycleHookBinding(operation = LifeCycleHookBinding.Operation.CREATE, hook = InvoiceCompletionHook.class,
+            phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT)
+    @LifeCycleHookBinding(operation = LifeCycleHookBinding.Operation.UPDATE, hook = InvoiceCompletionHook.class,
+            phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT)
     private boolean complete = false;
     private long total = 0;
-
-    @OnCreatePreCommit("complete")
-    @OnUpdatePreCommit("complete")
-    public void onComplete(RequestScope scope, ChangeSpec changes) {
-        boolean after = (Boolean) changes.getModified();
-        boolean before = (Boolean) changes.getOriginal();
-
-        if (after == before) {
-            return;
-        }
-
-        if (after == true) {
-            long surcharge = billingService.purchase(this);
-            setTotal(total + surcharge);
-        }
-    }
 }

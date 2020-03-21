@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
 
+import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
@@ -559,7 +560,9 @@ public class EntityBinding {
 
     private void bindTrigger(LifeCycleHookBinding binding,
                             String fieldOrMethodName) {
-        LifeCycleHook hook = dictionary.getInjector().instantiate(binding.hook());
+        Injector injector = dictionary.getInjector();
+        LifeCycleHook hook = injector.instantiate(binding.hook());
+        injector.inject(hook);
         bindTrigger(binding.operation(), binding.phase(), fieldOrMethodName, hook);
     }
 
