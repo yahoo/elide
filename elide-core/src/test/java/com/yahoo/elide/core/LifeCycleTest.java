@@ -41,6 +41,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.functions.LifeCycleHook;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.ChangeSpec;
@@ -715,6 +716,52 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(POSTCOMMIT), any());
         verify(mockModel, times(1)).relationCallback(any(), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT), any());
+    }
+
+    @Test
+    public void testRead() {
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        RequestScope scope = buildRequestScope(dictionary, tx);
+        PersistentResource resource = new PersistentResource(mockModel, null, "1", scope);
+
+        resource.getValueChecked(Attribute.builder().type(String.class).name("field").build());
+
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
+        verify(mockModel, times(1)).attributeCallback(any(), any(), any());
+        verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRESECURITY), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
+
+        clearInvocations(mockModel);
+        scope.runQueuedPreSecurityTriggers();
+
+        verify(mockModel, never()).classCallback(any(), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+
+        clearInvocations(mockModel);
+        scope.runQueuedPreCommitTriggers();
+
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
+        verify(mockModel, times(1)).attributeCallback(any(), any(), any());
+        verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRECOMMIT), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
+
+        clearInvocations(mockModel);
+        scope.runQueuedPostCommitTriggers();
+
+        verify(mockModel, times(1)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
+        verify(mockModel, times(1)).attributeCallback(any(), any(), any());
+        verify(mockModel, times(1)).attributeCallback(eq(READ), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
     }
 
     @Test
