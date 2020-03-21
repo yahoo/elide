@@ -718,6 +718,61 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void testDelete() {
+        FieldTestModel mockModel = mock(FieldTestModel.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        RequestScope scope = buildRequestScope(dictionary, tx);
+        PersistentResource resource = new PersistentResource(mockModel, null, "1", scope);
+
+        resource.deleteResource();
+
+        verify(mockModel, times(2)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRESECURITY));
+
+        //TODO - DELETE should not invoke READ.
+        verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
+        verify(mockModel, times(1)).relationCallback(any(), any(), any());
+        verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRESECURITY), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+
+        clearInvocations(mockModel);
+        scope.runQueuedPreSecurityTriggers();
+
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classCallback(any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
+
+        scope.runQueuedPreCommitTriggers();
+
+        verify(mockModel, times(2)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRECOMMIT));
+
+        //TODO - DELETE should not invoke READ.
+        verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
+        verify(mockModel, times(1)).relationCallback(any(), any(), any());
+        verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+
+        clearInvocations(mockModel);
+        scope.getPermissionExecutor().executeCommitChecks();
+        scope.runQueuedPostCommitTriggers();
+
+        verify(mockModel, times(2)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(eq(DELETE), eq(POSTCOMMIT));
+
+        //TODO - DELETE should not invoke READ.
+        verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
+        verify(mockModel, times(1)).relationCallback(any(), any(), any());
+        verify(mockModel, times(1)).relationCallback(eq(READ), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).attributeCallback(any(), any(), any());
+    }
+
+    @Test
     public void testAttributeUpdate() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
