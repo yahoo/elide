@@ -65,233 +65,233 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
+ * Model used to mock different lifecycle test scenarios.
+ */
+@Include(type = "testModel")
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHookEverything.class, operation = CREATE,
+        phase = PRECOMMIT, oncePerRequest = false)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = READ, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = READ, phase = PRECOMMIT)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
+class FieldTestModel {
+
+    static class ClassPreSecurityHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.classCallback(operation, PRESECURITY);
+        }
+    }
+
+    static class ClassPreCommitHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.classCallback(operation, PRECOMMIT);
+        }
+    }
+
+    static class ClassPreCommitHookEverything implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.everythingCallback(operation, PRECOMMIT);
+        }
+    }
+
+    static class ClassPostCommitHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.classCallback(operation, POSTCOMMIT);
+        }
+    }
+
+    static class AttributePreSecurityHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.attributeCallback(operation, PRESECURITY, changes.orElse(null));
+        }
+    }
+
+    static class AttributePreCommitHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.attributeCallback(operation, PRECOMMIT, changes.orElse(null));
+        }
+    }
+
+    static class AttributePostCommitHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.attributeCallback(operation, POSTCOMMIT, changes.orElse(null));
+        }
+    }
+
+    static class RelationPreSecurityHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.relationCallback(operation, PRESECURITY, changes.orElse(null));
+        }
+    }
+
+    static class RelationPreCommitHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.relationCallback(operation, PRECOMMIT, changes.orElse(null));
+        }
+    }
+
+    static class RelationPostCommitHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.relationCallback(operation, POSTCOMMIT, changes.orElse(null));
+        }
+    }
+
+    @Id
+    private String id;
+
+    @Getter
+    @Setter
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = READ, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = READ, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = READ, phase = POSTCOMMIT)
+    private String field;
+
+    @Getter
+    @Setter
+    @OneToMany
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = READ, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = READ, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
+    private Set<FieldTestModel> models = new HashSet<>();
+
+    public void classCallback(LifeCycleHookBinding.Operation operation,
+                              LifeCycleHookBinding.TransactionPhase phase) {
+        //NOOP - this will be mocked to verify hook invocation.
+    }
+
+    public void attributeCallback(LifeCycleHookBinding.Operation operation,
+                                  LifeCycleHookBinding.TransactionPhase phase,
+                                  ChangeSpec changes) {
+        //NOOP - this will be mocked to verify hook invocation.
+    }
+
+    public void relationCallback(LifeCycleHookBinding.Operation operation,
+                                 LifeCycleHookBinding.TransactionPhase phase,
+                                 ChangeSpec changes) {
+        //NOOP - this will be mocked to verify hook invocation.
+    }
+
+    public void everythingCallback(LifeCycleHookBinding.Operation operation,
+                                   LifeCycleHookBinding.TransactionPhase phase) {
+        //NOOP - this will be mocked to verify hook invocation.
+    }
+}
+
+@Include
+class PropertyTestModel {
+    static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            PropertyTestModel elideEntity,
+                            com.yahoo.elide.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.relationCallback(operation, POSTCOMMIT, changes.orElse(null));
+        }
+    }
+
+    private String id;
+
+    private Set<PropertyTestModel> models = new HashSet<>();
+
+    @Id
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @ManyToMany
+    @LifeCycleHookBinding(hook = PropertyTestModel.RelationPostCommitHook.class,
+            operation = CREATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = PropertyTestModel.RelationPostCommitHook.class,
+            operation = UPDATE, phase = POSTCOMMIT)
+    public Set<PropertyTestModel> getModels() {
+        return models;
+    }
+
+    public void setModels(Set<PropertyTestModel> models) {
+        this.models = models;
+    }
+
+    public void relationCallback(LifeCycleHookBinding.Operation operation,
+                                 LifeCycleHookBinding.TransactionPhase phase,
+                                 ChangeSpec changes) {
+        //NOOP - this will be mocked to verify hook invocation.
+    }
+}
+
+/**
  * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.
  */
 public class LifeCycleTest {
-
-    /**
-     * Model used to mock different lifecycle test scenarios.
-     */
-    @Include(type = "testModel")
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHookEverything.class, operation = CREATE,
-            phase = PRECOMMIT, oncePerRequest = false)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = READ, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = READ, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
-    static class FieldTestModel {
-
-        static class ClassPreSecurityHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.classCallback(operation, PRESECURITY);
-            }
-        }
-
-        static class ClassPreCommitHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.classCallback(operation, PRECOMMIT);
-            }
-        }
-
-        static class ClassPreCommitHookEverything implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.everythingCallback(operation, PRECOMMIT);
-            }
-        }
-
-        static class ClassPostCommitHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.classCallback(operation, POSTCOMMIT);
-            }
-        }
-
-        static class AttributePreSecurityHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.attributeCallback(operation, PRESECURITY, changes.orElse(null));
-            }
-        }
-
-        static class AttributePreCommitHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.attributeCallback(operation, PRECOMMIT, changes.orElse(null));
-            }
-        }
-
-        static class AttributePostCommitHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.attributeCallback(operation, POSTCOMMIT, changes.orElse(null));
-            }
-        }
-
-        static class RelationPreSecurityHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.relationCallback(operation, PRESECURITY, changes.orElse(null));
-            }
-        }
-
-        static class RelationPreCommitHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.relationCallback(operation, PRECOMMIT, changes.orElse(null));
-            }
-        }
-
-        static class RelationPostCommitHook implements LifeCycleHook<FieldTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                FieldTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.relationCallback(operation, POSTCOMMIT, changes.orElse(null));
-            }
-        }
-
-        @Id
-        private String id;
-
-        @Getter
-        @Setter
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = READ, phase = PRESECURITY)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = READ, phase = PRECOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = READ, phase = POSTCOMMIT)
-        private String field;
-
-        @Getter
-        @Setter
-        @OneToMany
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = READ, phase = PRESECURITY)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = READ, phase = PRECOMMIT)
-        @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
-        private Set<FieldTestModel> models = new HashSet<>();
-
-        public void classCallback(LifeCycleHookBinding.Operation operation,
-                                  LifeCycleHookBinding.TransactionPhase phase) {
-            //NOOP - this will be mocked to verify hook invocation.
-        }
-
-        public void attributeCallback(LifeCycleHookBinding.Operation operation,
-                                      LifeCycleHookBinding.TransactionPhase phase,
-                                      ChangeSpec changes) {
-            //NOOP - this will be mocked to verify hook invocation.
-        }
-
-        public void relationCallback(LifeCycleHookBinding.Operation operation,
-                                     LifeCycleHookBinding.TransactionPhase phase,
-                                     ChangeSpec changes) {
-            //NOOP - this will be mocked to verify hook invocation.
-        }
-
-        public void everythingCallback(LifeCycleHookBinding.Operation operation,
-                                       LifeCycleHookBinding.TransactionPhase phase) {
-            //NOOP - this will be mocked to verify hook invocation.
-        }
-    }
-
-    @Include
-    static class PropertyTestModel {
-        static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
-            @Override
-            public void execute(LifeCycleHookBinding.Operation operation,
-                                PropertyTestModel elideEntity,
-                                com.yahoo.elide.security.RequestScope requestScope,
-                                Optional<ChangeSpec> changes) {
-                elideEntity.relationCallback(operation, POSTCOMMIT, changes.orElse(null));
-            }
-        }
-
-        private String id;
-
-        private Set<PropertyTestModel> models = new HashSet<>();
-
-        @Id
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        @ManyToMany
-        @LifeCycleHookBinding(hook = PropertyTestModel.RelationPostCommitHook.class,
-                operation = CREATE, phase = POSTCOMMIT)
-        @LifeCycleHookBinding(hook = PropertyTestModel.RelationPostCommitHook.class,
-                operation = UPDATE, phase = POSTCOMMIT)
-        public Set<PropertyTestModel> getModels() {
-            return models;
-        }
-
-        public void setModels(Set<PropertyTestModel> models) {
-            this.models = models;
-        }
-
-        public void relationCallback(LifeCycleHookBinding.Operation operation,
-                                     LifeCycleHookBinding.TransactionPhase phase,
-                                     ChangeSpec changes) {
-            //NOOP - this will be mocked to verify hook invocation.
-        }
-    }
 
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
     private EntityDictionary dictionary;
