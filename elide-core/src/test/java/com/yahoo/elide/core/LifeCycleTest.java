@@ -16,7 +16,9 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -30,6 +32,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
@@ -902,6 +905,54 @@ public class LifeCycleTest {
 
         verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(UPDATE), eq(POSTCOMMIT), notNull());
+    }
+
+    @Test
+    public void testPreCommitLifecycleHookException() {
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel testModel = mock(FieldTestModel.class);
+
+        doThrow(IllegalStateException.class)
+                .when(testModel)
+                .attributeCallback(eq(UPDATE), eq(PRECOMMIT), any(ChangeSpec.class));
+
+        RequestScope scope = buildRequestScope(dictionary, tx);
+        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+        resource.updateAttribute("field", "New value");
+        scope.runQueuedPreSecurityTriggers();
+        assertThrows(IllegalStateException.class, () -> scope.runQueuedPreCommitTriggers());
+    }
+
+    @Test
+    public void testPostCommitLifecycleHookException() {
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel testModel = mock(FieldTestModel.class);
+
+        doThrow(IllegalStateException.class)
+                .when(testModel)
+                .attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any(ChangeSpec.class));
+
+        RequestScope scope = buildRequestScope(dictionary, tx);
+        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+        resource.updateAttribute("field", "New value");
+        scope.runQueuedPreSecurityTriggers();
+        scope.runQueuedPreCommitTriggers();
+        assertThrows(IllegalStateException.class, () -> scope.runQueuedPostCommitTriggers());
+    }
+
+    @Test
+    public void testPreSecurityLifecycleHookException() {
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        FieldTestModel testModel = mock(FieldTestModel.class);
+
+        doThrow(IllegalStateException.class)
+                .when(testModel)
+                .attributeCallback(eq(UPDATE), eq(PRESECURITY), any(ChangeSpec.class));
+
+        RequestScope scope = buildRequestScope(dictionary, tx);
+        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+
+        assertThrows(IllegalStateException.class, () -> resource.updateAttribute("field", "New value"));
     }
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
