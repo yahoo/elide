@@ -335,7 +335,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Run queued on triggers (i.e. @OnCreatePreSecurity, @OnUpdatePreSecurity, etc.).
+     * Run queued pre-security lifecycle triggers.
      */
     public void runQueuedPreSecurityTriggers() {
         this.queuedLifecycleEvents
@@ -347,7 +347,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Run queued pre triggers (i.e. @OnCreatePreCommit, @OnUpdatePreCommit, etc.).
+     * Run queued pre-commit lifecycle triggers.
      */
     public void runQueuedPreCommitTriggers() {
         this.queuedLifecycleEvents
@@ -380,7 +380,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Run queued post triggers (i.e. @OnCreatePostCommit, @OnUpdatePostCommit, etc.).
+     * Run queued post-commit lifecycle triggers.
      */
     public void runQueuedPostCommitTriggers() {
         this.queuedLifecycleEvents

@@ -12,18 +12,6 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
-import com.yahoo.elide.annotation.OnCreatePreCommit;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
-import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
-import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
@@ -186,20 +174,9 @@ public class EntityBinding {
             /* Add all public methods that are computed OR life cycle hooks */
             fieldOrMethodList.addAll(
                     getInstanceMembers(cls.getMethods(),
-                            (method) -> method.isAnnotationPresent(ComputedAttribute.class)
-                                    || method.isAnnotationPresent(ComputedRelationship.class)
-                                    || method.isAnnotationPresent(OnReadPreSecurity.class)
-                                    || method.isAnnotationPresent(OnReadPreCommit.class)
-                                    || method.isAnnotationPresent(OnReadPostCommit.class)
-                                    || method.isAnnotationPresent(OnUpdatePreSecurity.class)
-                                    || method.isAnnotationPresent(OnUpdatePreCommit.class)
-                                    || method.isAnnotationPresent(OnUpdatePostCommit.class)
-                                    || method.isAnnotationPresent(OnCreatePreSecurity.class)
-                                    || method.isAnnotationPresent(OnCreatePreCommit.class)
-                                    || method.isAnnotationPresent(OnCreatePostCommit.class)
-                                    || method.isAnnotationPresent(OnDeletePreSecurity.class)
-                                    || method.isAnnotationPresent(OnDeletePreCommit.class)
-                                    || method.isAnnotationPresent(OnDeletePostCommit.class)
+                            (method) -> method.isAnnotationPresent(LifeCycleHookBinding.class)
+                            || method.isAnnotationPresent(ComputedAttribute.class)
+                            || method.isAnnotationPresent(ComputedRelationship.class)
                     )
             );
 
