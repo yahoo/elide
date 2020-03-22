@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -15,7 +15,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -65,7 +64,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Model used to mock different lifecycle test scenarios.
+ * Model used to mock different lifecycle test scenarios.  This model uses fields instead of properties.
  */
 @Include(type = "testModel")
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
@@ -110,7 +109,7 @@ class FieldTestModel {
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
-            elideEntity.everythingCallback(operation, PRECOMMIT);
+            elideEntity.classAllFieldsCallback(operation, PRECOMMIT);
         }
     }
 
@@ -237,12 +236,15 @@ class FieldTestModel {
         //NOOP - this will be mocked to verify hook invocation.
     }
 
-    public void everythingCallback(LifeCycleHookBinding.Operation operation,
-                                   LifeCycleHookBinding.TransactionPhase phase) {
+    public void classAllFieldsCallback(LifeCycleHookBinding.Operation operation,
+                                       LifeCycleHookBinding.TransactionPhase phase) {
         //NOOP - this will be mocked to verify hook invocation.
     }
 }
 
+/**
+ * Model used to mock different lifecycle test scenarios.  This model uses properties instead of fields.
+ */
 @Include
 class PropertyTestModel {
     static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
@@ -327,10 +329,8 @@ public class LifeCycleTest {
         verify(mockModel, never()).classCallback(eq(UPDATE), any());
         verify(mockModel, never()).classCallback(eq(DELETE), any());
 
-        verify(mockModel, times(2)).everythingCallback(eq(CREATE), eq(PRECOMMIT));
-        verify(mockModel, never()).everythingCallback(eq(UPDATE), any());
-        verify(mockModel, never()).everythingCallback(eq(DELETE), any());
-        verify(mockModel, never()).everythingCallback(eq(READ), any());
+        verify(mockModel, times(2)).classAllFieldsCallback(any(), any());
+        verify(mockModel, times(2)).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
 
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRESECURITY), any());
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRECOMMIT), any());
@@ -380,7 +380,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).classCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(tx, never()).preCommit();
         verify(tx, never()).createObject(eq(mockModel), isA(RequestScope.class));
@@ -405,7 +405,7 @@ public class LifeCycleTest {
         ElideResponse response = elide.get("/testModel/1", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
@@ -450,7 +450,7 @@ public class LifeCycleTest {
         ElideResponse response = elide.get("/testModel/1", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
@@ -466,7 +466,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).attributeCallback(eq(UPDATE), any(), any());
         verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
 
-        verify(mockModel, times(0)).relationCallback(any(), any(), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
 
         verify(tx).preCommit();
         verify(tx).flush(any());
@@ -492,7 +492,7 @@ public class LifeCycleTest {
         ElideResponse response = elide.get("/testModel/1/relationships/models", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
@@ -539,7 +539,7 @@ public class LifeCycleTest {
         ElideResponse response = elide.patch(contentType, contentType, "/testModel/1", body, null);
         assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, never()).classCallback(eq(READ), any());
         verify(mockModel, never()).classCallback(eq(CREATE), any());
@@ -584,7 +584,7 @@ public class LifeCycleTest {
         ElideResponse response = elide.delete("/testModel/1", "", null);
         assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, never()).classCallback(eq(UPDATE), any());
         verify(mockModel, never()).classCallback(eq(CREATE), any());
@@ -637,7 +637,7 @@ public class LifeCycleTest {
                 "{\"errors\":[{\"detail\":\"Constraint violation\"}]}",
                 response.getBody());
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, never()).classCallback(eq(READ), any());
         verify(mockModel, never()).classCallback(eq(CREATE), any());
@@ -674,12 +674,11 @@ public class LifeCycleTest {
         RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = PersistentResource.createObject(FieldTestModel.class, scope, Optional.of("1"));
         resource.setValueChecked("field", "should not affect calls since this is create!");
-        assertNotNull(resource);
 
         verify(mockModel, never()).classCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         scope.runQueuedPreSecurityTriggers();
 
@@ -689,7 +688,7 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRESECURITY), any());
         verify(mockModel, times(1)).relationCallback(any(), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRESECURITY), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         clearInvocations(mockModel);
         scope.runQueuedPreCommitTriggers();
@@ -700,14 +699,14 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).attributeCallback(eq(CREATE), eq(PRECOMMIT), any());
         verify(mockModel, times(1)).relationCallback(any(), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(PRECOMMIT), any());
-        verify(mockModel, times(2)).everythingCallback(any(), any());
-        verify(mockModel, times(2)).everythingCallback(eq(CREATE), eq(PRECOMMIT));
+        verify(mockModel, times(2)).classAllFieldsCallback(any(), any());
+        verify(mockModel, times(2)).classAllFieldsCallback(eq(CREATE), eq(PRECOMMIT));
 
         clearInvocations(mockModel);
         scope.getPermissionExecutor().executeCommitChecks();
         scope.runQueuedPostCommitTriggers();
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(CREATE), eq(POSTCOMMIT));
         verify(mockModel, times(1)).attributeCallback(any(), any(), any());
@@ -730,14 +729,14 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).attributeCallback(any(), any(), any());
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRESECURITY), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
 
         clearInvocations(mockModel);
         scope.runQueuedPreSecurityTriggers();
 
         verify(mockModel, never()).classCallback(any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
 
@@ -748,7 +747,7 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).attributeCallback(any(), any(), any());
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(PRECOMMIT), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
 
         clearInvocations(mockModel);
@@ -758,7 +757,7 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
         verify(mockModel, times(1)).attributeCallback(any(), any(), any());
         verify(mockModel, times(1)).attributeCallback(eq(READ), eq(POSTCOMMIT), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
     }
 
@@ -779,13 +778,13 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
         verify(mockModel, times(1)).relationCallback(any(), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRESECURITY), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
 
         clearInvocations(mockModel);
         scope.runQueuedPreSecurityTriggers();
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).classCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
@@ -799,7 +798,7 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
         verify(mockModel, times(1)).relationCallback(any(), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
 
         clearInvocations(mockModel);
@@ -813,7 +812,7 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
         verify(mockModel, times(1)).relationCallback(any(), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(READ), eq(POSTCOMMIT), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
     }
 
@@ -833,12 +832,12 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).attributeCallback(eq(UPDATE), eq(PRESECURITY), notNull());
 
         verify(mockModel, never()).relationCallback(any(), any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         clearInvocations(mockModel);
         scope.runQueuedPreSecurityTriggers();
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
 
@@ -846,7 +845,7 @@ public class LifeCycleTest {
         scope.runQueuedPreCommitTriggers();
 
         verify(mockModel, never()).relationCallback(any(), any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
@@ -858,7 +857,7 @@ public class LifeCycleTest {
         scope.runQueuedPostCommitTriggers();
 
         verify(mockModel, never()).relationCallback(any(), any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
@@ -873,10 +872,10 @@ public class LifeCycleTest {
         when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
 
-        FieldTestModel modelToRemove = mock(FieldTestModel.class);
+        FieldTestModel modelToAdd = mock(FieldTestModel.class);
 
         PersistentResource resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
-        PersistentResource resourceToAdd = new PersistentResource(modelToRemove, null, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, null, scope.getUUIDFor(mockModel), scope);
 
         resource.addRelation("models", resourceToAdd);
 
@@ -888,12 +887,12 @@ public class LifeCycleTest {
         verify(mockModel, times(2)).relationCallback(eq(UPDATE), eq(PRESECURITY), notNull());
 
         verify(mockModel, never()).attributeCallback(any(), any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         clearInvocations(mockModel);
         scope.runQueuedPreSecurityTriggers();
 
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).relationCallback(any(), any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
 
@@ -901,7 +900,7 @@ public class LifeCycleTest {
         scope.runQueuedPreCommitTriggers();
 
         verify(mockModel, never()).attributeCallback(any(), any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(PRECOMMIT));
@@ -914,7 +913,7 @@ public class LifeCycleTest {
         scope.runQueuedPostCommitTriggers();
 
         verify(mockModel, never()).attributeCallback(any(), any(), any());
-        verify(mockModel, never()).everythingCallback(any(), any());
+        verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
         verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(UPDATE), eq(POSTCOMMIT));
@@ -932,6 +931,7 @@ public class LifeCycleTest {
 
         PropertyTestModel modelToAdd = mock(PropertyTestModel.class);
 
+        //First we test adding to a newly created object.
         PersistentResource resource = PersistentResource.createObject(PropertyTestModel.class, scope, Optional.of("1"));
         PersistentResource resourceToAdd = new PersistentResource(modelToAdd, null, scope.getUUIDFor(mockModel), scope);
 
@@ -944,7 +944,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT), notNull());
 
-        //Build another resource, scope & reset the mock to do another operation:
+        //Build another resource, scope & reset the mock to do a pure update (no create):
         scope = buildRequestScope(dictionary, tx);
         resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
@@ -971,6 +971,7 @@ public class LifeCycleTest {
         when(childModel1.getId()).thenReturn("2");
         when(childModel2.getId()).thenReturn("3");
 
+        //First we test removing from a newly created object.
         PersistentResource resource = PersistentResource.createObject(PropertyTestModel.class, scope, Optional.of("1"));
         PersistentResource childResource1 = new PersistentResource(childModel1, null, "2", scope);
         PersistentResource childResource2 = new PersistentResource(childModel2, null, "3", scope);
@@ -984,7 +985,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
         verify(mockModel, times(2)).relationCallback(eq(CREATE), eq(POSTCOMMIT), notNull());
 
-        //Build another resource, scope & reset the mock to do another operation:
+        //Build another resource, scope & reset the mock to do a pure update (no create):
         scope = buildRequestScope(dictionary, tx);
         resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);

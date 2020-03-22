@@ -558,7 +558,9 @@ public class EntityBinding {
             return;
         }
 
+        Injector injector = dictionary.getInjector();
         LifeCycleHook hook = dictionary.getInjector().instantiate(binding.hook());
+        injector.inject(hook);
         bindTrigger(binding.operation(), binding.phase(), hook);
     }
 
