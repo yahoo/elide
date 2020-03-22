@@ -83,6 +83,42 @@ import javax.ws.rs.core.MultivaluedMap;
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
 class FieldTestModel {
 
+    @Id
+    private String id;
+
+    @Getter
+    @Setter
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = READ, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = READ, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = READ, phase = POSTCOMMIT)
+    private String field;
+
+    @Getter
+    @Setter
+    @OneToMany
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = READ, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = READ, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
+    private Set<FieldTestModel> models = new HashSet<>();
+
     static class ClassPreSecurityHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
@@ -183,42 +219,6 @@ class FieldTestModel {
         }
     }
 
-    @Id
-    private String id;
-
-    @Getter
-    @Setter
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = READ, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = READ, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = READ, phase = POSTCOMMIT)
-    private String field;
-
-    @Getter
-    @Setter
-    @OneToMany
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = READ, phase = PRESECURITY)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = READ, phase = PRECOMMIT)
-    @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
-    private Set<FieldTestModel> models = new HashSet<>();
-
     public void classCallback(LifeCycleHookBinding.Operation operation,
                               LifeCycleHookBinding.TransactionPhase phase) {
         //NOOP - this will be mocked to verify hook invocation.
@@ -247,6 +247,10 @@ class FieldTestModel {
  */
 @Include
 class PropertyTestModel {
+    private String id;
+
+    private Set<PropertyTestModel> models = new HashSet<>();
+
     static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
@@ -256,10 +260,6 @@ class PropertyTestModel {
             elideEntity.relationCallback(operation, POSTCOMMIT, changes.orElse(null));
         }
     }
-
-    private String id;
-
-    private Set<PropertyTestModel> models = new HashSet<>();
 
     @Id
     public String getId() {
@@ -574,8 +574,6 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
-
-        String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         dictionary.setValue(mockModel, "id", "1");
         when(store.beginTransaction()).thenReturn(tx);

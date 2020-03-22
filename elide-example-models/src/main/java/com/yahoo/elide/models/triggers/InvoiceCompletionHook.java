@@ -21,19 +21,19 @@ import javax.inject.Inject;
 public class InvoiceCompletionHook implements LifeCycleHook<Invoice> {
 
     @Inject
-    BillingService billingService;
+    private BillingService billingService;
 
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, Invoice invoice,
                         RequestScope requestScope, Optional<ChangeSpec> changes) {
-        boolean after = (Boolean) changes.get().getModified();
-        boolean before = (Boolean) changes.get().getOriginal();
+        boolean completeNow = (Boolean) changes.get().getModified();
+        boolean completeBefore = (Boolean) changes.get().getOriginal();
 
-        if (after == before) {
+        if (completeNow == completeBefore) {
             return;
         }
 
-        if (after == true) {
+        if (completeNow) {
             long surcharge = billingService.purchase(invoice);
             invoice.setTotal(invoice.getTotal() + surcharge);
         }
