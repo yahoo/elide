@@ -12,12 +12,9 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * ElideSecurityToPojo test.
- */
 public class ElideSecurityToPojoTest {
 
-    private ElideSecurityToPojo testClass = new ElideSecurityToPojo();
+    private ElideConfigParser testClass = new ElideConfigParser();
     private static final String VALID_SECURITY = "{\n"
                     + "    roles : [\n"
                     + "        admin, \n"
@@ -39,12 +36,12 @@ public class ElideSecurityToPojoTest {
 
     @Test
     public void testValidSecurity() throws Exception {
-        ElideSecurity sec = testClass.parseSecurityConfig(VALID_SECURITY);
+        ElideSecurity sec = (ElideSecurity) testClass.parseConfigString(VALID_SECURITY, "security");
         assertEquals(3, sec.getRoles().size());
     }
 
     @Test
     public void testInValidSecurity() throws Exception {
-        assertNull(testClass.parseSecurityConfig(""));
+        assertNull(testClass.parseConfigFile("", ""));
     }
 }

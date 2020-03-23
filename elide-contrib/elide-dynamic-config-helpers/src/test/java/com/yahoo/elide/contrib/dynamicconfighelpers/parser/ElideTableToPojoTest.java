@@ -13,12 +13,9 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * ElideTableToPojo test.
- */
 public class ElideTableToPojoTest {
 
-    private ElideTableToPojo testClass = new ElideTableToPojo();
+    private ElideConfigParser testClass = new ElideConfigParser();
     private static final String VALID_TABLE = "{\n"
                     + "    tables: [{\n"
                     + "        name: PlayerStats\n"
@@ -70,7 +67,7 @@ public class ElideTableToPojoTest {
 
     @Test
     public void testValidTable() throws Exception {
-        ElideTable table = testClass.parseTableConfig(VALID_TABLE);
+        ElideTable table = (ElideTable) testClass.parseConfigString(VALID_TABLE, "table");
 
         for (Table t : table.getTables()) {
             assertEquals(t.getMeasures().get(0).getName() , t.getMeasures().get(0).getDescription());
@@ -81,6 +78,20 @@ public class ElideTableToPojoTest {
 
     @Test
     public void testInValidTable() throws Exception {
-        assertNull(testClass.parseTableConfig(""));
+        assertNull(testClass.parseConfigFile("", "test"));
+    }
+
+    @Test
+    public void testValidTableConfig() {
+        String tableSchemaFile = "https://raw.githubusercontent.com/yahoo/elide/elide-5.x-dynamic-config/"
+                        + "elide-contrib/elide-dynamic-config-helpers/src/test/resources/table/valid_table.hjson";
+
+        ElideTable table = (ElideTable) testClass.parseConfigFile(tableSchemaFile, "table");
+
+        for (Table t : table.getTables()) {
+            assertEquals(t.getMeasures().get(0).getName() , t.getMeasures().get(0).getDescription());
+            assertEquals("MAX(score)", t.getMeasures().get(0).getDefinition());
+            assertEquals(Table.Cardinality.LARGE, t.getCardinality());
+        }
     }
 }

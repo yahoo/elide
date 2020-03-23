@@ -5,6 +5,11 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.hjson.JsonValue;
@@ -22,12 +27,10 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
-/**
- * Util class for HJSON parsing.
- */
 @Slf4j
-public class ElideHjsonUtil {
+public class Util {
 
     public static final String SCHEMA_TYPE_TABLE = "table";
     public static final String SCHEMA_TYPE_SECURITY = "security";
@@ -42,47 +45,24 @@ public class ElideHjsonUtil {
     public static final String CHAR_SET = "UTF-8";
     public static final String NEW_LINE = "\n";
 
-   /**
-    * HJSON to JSON string conversion.
-    * @param hjson hjson string
-    * @return json string
-    */
     public static String hjsonToJson(String hjson) {
         return JsonValue.readHjson(hjson).toString();
     }
 
-    /**
-     * Config file reader. Supports HTTP or Local Filesystem.
-     * @param filePath Path to File
-     * @return contents of the file
-     * @throws Exception
-     */
     public static String readConfigFile(String filePath) throws Exception {
-
-        BufferedReader reader = null;
         try {
-            reader = (filePath.startsWith(HTTP_PREFIX)
+            BufferedReader reader = (filePath.startsWith(HTTP_PREFIX)
                             ? getHttpFileReader(filePath) : getLocalFileReader(filePath));
             return readFileContent(reader);
         } catch (Exception e) {
             throw e;
-        } finally {
-            reader.close();
         }
     }
 
-    /**
-     * Validates JSON to Schema.
-     * @param schemaType type of schema
-     * @param jsonConfig json string
-     * @return whether json validation passed
-     */
-    public static boolean validateDataWithSchema(String schemaType, String jsonConfig) {
+    public static boolean validateDataWithSchema(JSONObject schemaObj, String jsonConfig) {
 
         try {
-            JSONObject schemaObj = schemaToJsonObject(schemaType);
             JSONObject data = new JSONObject(new JSONTokener(jsonConfig));
-
             Schema schema = SchemaLoader.load(schemaObj);
             schema.validate(data);
             return true;
@@ -93,21 +73,10 @@ public class ElideHjsonUtil {
         }
     }
 
-    /**
-     * Null check for the string.
-     * @param input string to validate
-     * @return whether string is null or not
-     */
     public static boolean isNullOrEmpty(String input) {
         return (input == null || input.trim().length() == 0);
     }
 
-    /**
-     * Read file contents.
-     * @param reader BufferedReader object
-     * @return contents of file
-     * @throws IOException
-     */
     private static String readFileContent(BufferedReader reader) throws IOException {
         try {
             StringBuffer sb = new StringBuffer();
@@ -122,34 +91,16 @@ public class ElideHjsonUtil {
         }
     }
 
-    /**
-     * Get HTTP file reader.
-     * @param filePath Path to file
-     * @return BufferedReader object
-     * @throws Exception
-     */
     private static BufferedReader getHttpFileReader(String filePath) throws Exception {
         URL url = new URL(filePath);
         return new BufferedReader(new InputStreamReader(url.openStream()));
     }
 
-    /**
-     * Get local file system reader.
-     * @param filePath Path to file
-     * @return BufferedReader object
-     * @throws Exception
-     */
     private static BufferedReader getLocalFileReader(String filePath) throws Exception {
         Path path = Paths.get(filePath);
         return Files.newBufferedReader(path, Charset.forName(CHAR_SET));
     }
 
-    /**
-     * Get the Json Object matching the schema json.
-     * @param confFile
-     * @return
-     * @throws IOException
-     */
     private static JSONObject loadSchema(String confFilePath) throws IOException {
         try (InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(confFilePath);
                         InputStreamReader reader = new InputStreamReader(stream)) {
@@ -158,13 +109,7 @@ public class ElideHjsonUtil {
         }
     }
 
-    /**
-     * Get the Json Object matching the schema type.
-     * @param schemaType Type of Schema
-     * @return JSONObject represention of the schema
-     * @throws IOException
-     */
-    private static JSONObject schemaToJsonObject(String schemaType) throws IOException {
+    public static JSONObject schemaToJsonObject(String schemaType) throws IOException {
 
         switch (schemaType) {
             case SCHEMA_TYPE_TABLE:
@@ -175,6 +120,23 @@ public class ElideHjsonUtil {
 
             case SCHEMA_TYPE_VARIABLE:
                 return loadSchema(ELIDE_VARIABLE_SCHEMA);
+            default:
+                return null;
+        }
+    }
+
+    public static Object getModelPojo(String inputConfigType, String jsonConfig) throws Exception {
+
+        switch (inputConfigType) {
+            case Util.SCHEMA_TYPE_TABLE:
+                return new ObjectMapper().readValue(jsonConfig, ElideTable.class);
+
+            case Util.SCHEMA_TYPE_SECURITY:
+                return new ObjectMapper().readValue(jsonConfig, ElideSecurity.class);
+
+            case Util.SCHEMA_TYPE_VARIABLE:
+                return new ObjectMapper().readValue(jsonConfig, Map.class);
+
             default:
                 return null;
         }

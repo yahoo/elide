@@ -12,12 +12,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-/**
- * ElideVariablesToPojo test.
- */
+
 public class ElideVariablesToPojoTest {
 
-    private ElideVariableToPojo testClass = new ElideVariableToPojo();
+    private ElideConfigParser testClass = new ElideConfigParser();
 
     @Test
     public void testValidateVariable() throws Exception {
@@ -26,7 +24,7 @@ public class ElideVariablesToPojoTest {
                        + "    fi:[1,2,3]\n"
                        + "    fum: this is a test!\n"
                        + "}";
-        Map<String, Object> map = testClass.parseVariableConfig(str);
+        Map<String, Object> map = (Map) testClass.parseConfigString(str, "variable");
 
         assertEquals(3, map.size());
         assertEquals("bar", map.get("fo"));
@@ -36,16 +34,6 @@ public class ElideVariablesToPojoTest {
 
     @Test
     public void testValidateVariableInvalid() throws Exception {
-        assertNull(testClass.parseVariableConfig(""));
-    }
-
-    @Test
-    public void testValidateFilePath() {
-        String filePath = "https://raw.githubusercontent.com/hjson/hjson/master/testCases/trail_result.hjson";
-
-        Map<String, Object> map = testClass.parseVariableConfigFile(filePath);
-
-        assertEquals(1, map.size());
-        assertEquals("0   -- this string starts at 0 and ends at 1, preceding and trailing whitespace is ignored --   1", map.get("foo"));
+        assertNull(testClass.parseConfigString("", "test"));
     }
 }
