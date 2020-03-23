@@ -91,12 +91,14 @@ public class HandlebarsHydratorTest {
             + "import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;\n"
             + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;\n"
             + "\n"
+            + "import lombok.EqualsAndHashCode;\n" 
+            + "import lombok.ToString;\n"
+            + "import lombok.Data;\n"
+            + "\n"
             + "import java.util.Date;\n"
             + "import javax.persistence.Column;\n"
             + "import javax.persistence.Id;\n"
-            + "\n"
-            + "import lombok.EqualsAndHashCode;\n"
-            + "import lombok.ToString;\n"
+            + "import javax.persistence.Entity;\n"
             + "\n"
             + "/**\n"
             + " * A root level entity for testing AggregationDataStore.\n"
@@ -105,8 +107,13 @@ public class HandlebarsHydratorTest {
             + "@Cardinality(size = CardinalitySize.LARGE)\n"
             + "@EqualsAndHashCode\n"
             + "@ToString\n"
+            + "@Entity\n"
+            + "@Data\n"
             + "@FromTable(name = \"player_stats\")\n"
             + "public class PlayerStats {\n"
+            + "\n"
+            + "    @Id\n"
+            + "    private String name;\n"
             + "\n"
             + "\n"
             + "    private String countryIsoCode;\n"
@@ -163,7 +170,7 @@ public class HandlebarsHydratorTest {
             + "    }\n"
             + "\n"
             + "\n"
-            + "}\n";
+            + "}";
 
     @Test
     public void testTableHydration() throws IOException {

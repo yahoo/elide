@@ -11,12 +11,14 @@ import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Data;
+
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Id;
-
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import javax.persistence.Entity;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -25,8 +27,13 @@ import lombok.ToString;
 @Cardinality(size = CardinalitySize.{{#toUpperCase cardinality}}{{/toUpperCase}})
 @EqualsAndHashCode
 @ToString
+@Entity
+@Data
 {{#if table}}@FromTable(name = "{{table}}"){{/if}}
 public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {
+
+    @Id
+    private String name;
 
 {{#each dimensions}}
     private {{#getDimensionType this}}{{/getDimensionType}} {{name}};
