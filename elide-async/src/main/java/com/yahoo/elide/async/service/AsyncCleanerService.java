@@ -14,6 +14,7 @@ import javax.inject.Inject;
 
 import com.yahoo.elide.Elide;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,6 +28,8 @@ public class AsyncCleanerService {
     private final int DEFAULT_CLEANUP_DELAY_MINUTES = 360;
     private final int MAX_CLEANUP_INTIAL_DELAY_MINUTES = 100;
 
+    @Getter private ScheduledExecutorService cleaner;
+
     @Inject
     public AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
 
@@ -34,7 +37,7 @@ public class AsyncCleanerService {
         int queryRunTimeThresholdMinutes = maxRunTimeMinutes * 2;
 
         // Setting up query cleaner that marks long running query as TIMEDOUT.
-        ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
+        cleaner = Executors.newSingleThreadScheduledExecutor();
         AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide, queryCleanupDays, asyncQueryDao);
 
         // Since there will be multiple hosts running the elide service,
