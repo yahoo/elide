@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation;
+package com.yahoo.elide.datastores.aggregation.annotation.dimensionformula;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;

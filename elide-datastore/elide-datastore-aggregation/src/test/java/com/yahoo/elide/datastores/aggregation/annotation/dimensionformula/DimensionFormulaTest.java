@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation;
+package com.yahoo.elide.datastores.aggregation.annotation.dimensionformula;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,6 +27,18 @@ public class DimensionFormulaTest {
                 () -> new SQLQueryEngine(metaDataStore, null));
         assertEquals(
                 "Formula reference loop found: loop.playerLevel->loop.playerLevel",
+                exception.getMessage());
+    }
+
+    @Test
+    public void testJoinToLoop() {
+        MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(JoinToLoop.class));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> new SQLQueryEngine(metaDataStore, null));
+        assertEquals(
+                "Formula reference loop found: joinToLoop.playerLevel->joinToLoop.playerLevel",
                 exception.getMessage());
     }
 

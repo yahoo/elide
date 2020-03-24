@@ -67,6 +67,10 @@ public class FormulaValidator extends ColumnVisitor<Void> {
      */
     @Override
     protected Void visitReferenceDimension(Dimension dimension) {
+        if (visited.contains(dimension)) {
+            throw new IllegalArgumentException(referenceLoopMessage(visited, dimension));
+        }
+
         Class<?> tableClass = dictionary.getEntityClass(dimension.getTable().getId());
 
         JoinPath joinToPath = new JoinPath(

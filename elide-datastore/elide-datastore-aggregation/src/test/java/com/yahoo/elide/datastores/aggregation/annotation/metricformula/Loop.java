@@ -3,21 +3,22 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.annotation;
+package com.yahoo.elide.datastores.aggregation.annotation.metricformula;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
+import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.Column;
-
 @Include(rootLevel = true)
 @Cardinality(size = CardinalitySize.LARGE)
 @EqualsAndHashCode
 @ToString
-public class DimensionReference {
+public class Loop {
     // PK
     @Setter
     private String id;
@@ -26,17 +27,8 @@ public class DimensionReference {
     @Setter
     private long highScore;
 
-    // degenerated dimension using sql expression
-    @Setter
-    private int playerLevel;
-
-    @MetricFormula("{{playerLevel}}")
+    @MetricFormula("{{highScore}}")
     public long getHighScore() {
         return highScore;
-    }
-
-    @Column(name = "overallRating")
-    public int getPlayerLevel() {
-        return playerLevel;
     }
 }

@@ -34,7 +34,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.request.Sorting;
 
-import com.google.common.collect.Streams;
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
@@ -400,8 +399,7 @@ public class SQLQueryConstructor {
                                            Table table) {
         return resolveProjectedDimensions(groupByDimensions, table).stream()
                 .map(column -> referenceTable.getResolvedJoinPaths(table, column.getName()))
-                .map(Collection::stream)
-                .reduce(Stream.empty(), (s1, s2) -> Streams.concat(s1, s2))
+                .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 

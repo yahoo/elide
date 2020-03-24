@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * LabelStore stores all label resolvers, resolved physical reference, resolved join paths for all columns.
+ * Table stores all resolved physical reference and join paths of all columns.
  */
 public class SQLReferenceTable {
     private final MetaDataStore metaDataStore;
