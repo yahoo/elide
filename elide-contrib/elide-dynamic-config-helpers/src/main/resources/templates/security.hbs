@@ -1,0 +1,22 @@
+package com.yahoo.elide.contrib.dynamicconfig.model;
+
+import java.security.Principal;
+import java.util.Optional;
+import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;
+
+/**
+ * Operation Checks on the Async Query and Result objects.
+ */
+public class AsyncQueryOperationChecks {
+
+{{#each rules}}
+    @SecurityCheck(AsyncQueryOwner{{#getClassSuffix name}}{{/getClassSuffix}}.{{#getVarName name}}{{/getVarName}})
+    public static class AsyncQueryOwner{{#getClassSuffix name}}{{/getClassSuffix}} extends RoleMemberCheck {
+        public static final String {{#getVarName name}}{{/getVarName}} = "{{name}}";
+        public AsyncQueryOwner{{#getClassSuffix name}}{{/getClassSuffix}}() {
+                        super("{{#getRoleName name}}{{/getRoleName}}");
+                }
+    }
+{{/each}}
+}

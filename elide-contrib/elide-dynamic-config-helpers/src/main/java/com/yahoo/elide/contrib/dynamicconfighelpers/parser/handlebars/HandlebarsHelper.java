@@ -13,7 +13,9 @@ import com.github.jknack.handlebars.Options;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * Helper class for handlebar template hydration.
@@ -21,6 +23,7 @@ import java.util.Locale;
 public class HandlebarsHelper {
 
     private static final String EMPTY_STRING = "";
+    private static final String UNDERSCORE = "_";
     private static final String STRING = "String";
     private static final String DATE = "Date";
     private static final String DOUBLE = "Double";
@@ -30,6 +33,7 @@ public class HandlebarsHelper {
     private static final String FOUR_SPACES = "    ";
     private static final String EIGHT_SPACES = FOUR_SPACES + FOUR_SPACES;
     private static final String NEWLINE = "\n";
+    private static final String WHITESPACE_REGEX = "\\s+";
 
     /**
      * Capitalize first letter of the string.
@@ -175,6 +179,42 @@ public class HandlebarsHelper {
         String fieldName = join.getName();
         return "public " + type + " get" + capitalizeFirstLetter(fieldName) + "() {" + NEWLINE + EIGHT_SPACES
                         + "return " + fieldName + ";" + NEWLINE + FOUR_SPACES + "}";
+    }
+
+    // Security.java helper methods
+    /**
+     * @param name
+     *            Name of the security rule
+     * @return Capitalize First Letter of Each Word and remove spaces
+     */
+    public String getClassSuffix(String name) {
+
+        String[] nameSplit = name.trim().split(WHITESPACE_REGEX);
+        return String.join(EMPTY_STRING,
+                Arrays.asList(nameSplit).stream().map(str -> capitalizeFirstLetter(str)).collect(Collectors.toList()));
+    }
+
+    /**
+     * @param name
+     *            Name of the security rule
+     * @return Change each word to upper case and replace spaces with underscore
+     */
+    public String getVarName(String name) {
+
+        String[] nameSplit = name.trim().split(WHITESPACE_REGEX);
+        return String.join(UNDERSCORE,
+                Arrays.asList(nameSplit).stream().map(str -> toUpperCase(str)).collect(Collectors.toList()));
+    }
+
+    /**
+     * @param name
+     *            Name of the security rule
+     * @return Last word in lower case
+     */
+    public String getRoleName(String name) {
+
+        String[] nameSplit = name.trim().split(WHITESPACE_REGEX);
+        return toLowerCase(nameSplit[nameSplit.length - 1]);
     }
 
     /**
