@@ -37,9 +37,9 @@ public class HandlebarsHydrator {
 
     /**
      * Method to hydrate the Table template.
-     * @param table
+     * @param table ElideTable object
      * @return table java class list
-     * @throws IOException
+     * @throws IOException IOException
      */
     public List<String> hydrateTableTemplate(ElideTable table) throws IOException {
 
@@ -59,11 +59,11 @@ public class HandlebarsHydrator {
     }
 
     /**
-     * Method to replace variables in hjson config
+     * Method to replace variables in hjson config.
      * @param config hjson config string
      * @param replacements Map of variable key value pairs
      * @return hjson config string with variables replaced
-     * @throws IOException
+     * @throws IOException IOException
      */
     public String hydrateConfigTemplate(String config, Map<String, Object> replacements) throws IOException {
 
@@ -76,9 +76,9 @@ public class HandlebarsHydrator {
 
     /**
      * Method to return the List of Class Names hydrated.
-     * @param table
+     * @param table ElideTable object
      * @return table java class name list
-     * @throws IOException
+     * @throws IOException IOException
      */
     public List<String> getTableClassNames(ElideTable table) throws IOException {
 
@@ -95,9 +95,9 @@ public class HandlebarsHydrator {
 
     /**
      * Method to hydrate the Security template.
-     * @param security
+     * @param security ElideSecurity Object
      * @return security java class string
-     * @throws IOException
+     * @throws IOException IOException
      */
     public String hydrateSecurityTemplate(ElideSecurity security) throws IOException {
 

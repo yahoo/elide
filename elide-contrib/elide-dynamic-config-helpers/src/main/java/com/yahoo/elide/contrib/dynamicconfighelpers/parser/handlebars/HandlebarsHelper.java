@@ -71,7 +71,7 @@ public class HandlebarsHelper {
      * @param str String representation of the template
      * @param options options object with string to match
      * @return template if matched
-     * @throws IOException
+     * @throws IOException IOException
      */
     public CharSequence ifContains(String str, Options options) throws IOException {
 
@@ -84,7 +84,7 @@ public class HandlebarsHelper {
      * @param dim Elide dimension object
      * @param options options object with type/string to match
      * @return template if matched
-     * @throws IOException
+     * @throws IOException IOException
      */
     public CharSequence ifDimTypeMatches(Dimension dim, Options options) throws IOException {
 
@@ -183,8 +183,8 @@ public class HandlebarsHelper {
 
     // Security.java helper methods
     /**
-     * @param name
-     *            Name of the security rule
+     * Get the Class Name for Security.
+     * @param name Name of the security rule
      * @return Capitalize First Letter of Each Word and remove spaces
      */
     public String getClassSuffix(String name) {
@@ -195,8 +195,8 @@ public class HandlebarsHelper {
     }
 
     /**
-     * @param name
-     *            Name of the security rule
+     * Get Variable Name for Security rule.
+     * @param name Name of the security rule
      * @return Change each word to upper case and replace spaces with underscore
      */
     public String getVarName(String name) {
@@ -207,8 +207,8 @@ public class HandlebarsHelper {
     }
 
     /**
-     * @param name
-     *            Name of the security rule
+     * Get Name of the security role from security rule.
+     * @param name Name of the security rule
      * @return Last word in lower case
      */
     public String getRoleName(String name) {
