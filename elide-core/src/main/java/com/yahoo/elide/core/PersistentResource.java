@@ -320,7 +320,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidObjectIdentifierException(missedIds.toString(), dictionary.getJsonAliasFor(loadClass));
         }
 
+        if (filter.isPresent()) {
+            allResources = allResources.stream()
+                    .filter(resource -> enforceJoinFilter(resource, filter.get()))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+
         return allResources;
+    }
+
+    private static boolean enforceJoinFilter(PersistentResource resource, FilterExpression filter) {
+        EnforceJoinFilterExpressionVisitor visitor = new EnforceJoinFilterExpressionVisitor(resource);
+        return filter.accept(visitor);
     }
 
     /**

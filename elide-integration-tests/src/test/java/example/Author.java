@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 
 import lombok.Builder;
@@ -72,6 +73,11 @@ public class Author {
     @ManyToMany(mappedBy = "authors")
     @Getter @Setter
     private Collection<Book> books = new ArrayList<>();
+
+    @Getter @Setter
+    @ReadPermission(expression = "deny all")
+    private String homeAddress;
+
     @Override
     public String toString() {
         return "Author: " + id;

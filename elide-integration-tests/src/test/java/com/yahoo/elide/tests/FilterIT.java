@@ -1363,6 +1363,21 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testFailFilterBookByAuthorAddress() throws IOException {
+        /* Test default */
+        JsonNode result = getAsNode("book?filter[book.authors.homeAddress]=main&include=authors");
+        JsonNode data = result.get("data");
+        assertEquals(0, data.size(), result.toString());
+
+        /* Test RSQL */
+        result = getAsNode(
+                String.format("book?filter[book]=authors.homeAddress=='main'", hemingwayId),
+                HttpStatus.SC_BAD_REQUEST);
+        assertEquals(0, data.size(), result.toString());
+    }
+
+
+    @Test
     void testGetBadRelationshipRoot() throws IOException {
         /* Test Default */
         JsonNode result = getAsNode(
