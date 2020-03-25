@@ -95,7 +95,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return String.format("PersistentResource{type=%s, id=%s}", type, uuid.orElse(getId()));
     }
 
-   /**
+    /**
      * Create a resource in the database.
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
      * @param entityClass the entity class
@@ -234,7 +234,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return a FilterExpression defined by FilterExpressionCheck.
      */
     private static <T> Optional<FilterExpression> getPermissionFilterExpression(Class<T> loadClass,
-                                                                      RequestScope requestScope) {
+            RequestScope requestScope) {
         try {
             return requestScope.getPermissionExecutor().getReadPermissionFilter(loadClass);
         } catch (ForbiddenAccessException e) {
@@ -305,7 +305,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        Set<PersistentResource> existingResources = filter(ReadPermission.class,
+        Set<PersistentResource> existingResources = filter(ReadPermission.class, filter,
                 new PersistentResourceSet(tx.loadObjects(loadClass, Optional.ofNullable(filterExpression), sorting,
                 pagination.map(p -> p.evaluate(loadClass)), requestScope), requestScope));
 
@@ -320,18 +320,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidObjectIdentifierException(missedIds.toString(), dictionary.getJsonAliasFor(loadClass));
         }
 
-        if (filter.isPresent()) {
-            allResources = allResources.stream()
-                    .filter(resource -> enforceJoinFilter(resource, filter.get()))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-        }
-
         return allResources;
-    }
-
-    private static boolean enforceJoinFilter(PersistentResource resource, FilterExpression filter) {
-        EnforceJoinFilterExpressionVisitor visitor = new EnforceJoinFilterExpressionVisitor(resource);
-        return filter.accept(visitor);
     }
 
     /**
@@ -380,7 +369,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         RelationshipType type = getRelationshipType(fieldName);
-        Set<PersistentResource> resources = filter(ReadPermission.class,
+        Set<PersistentResource> resources = filter(ReadPermission.class, Optional.empty(),
                 getRelationUncheckedUnfiltered(fieldName));
         boolean isUpdated;
         if (type.isToMany()) {
@@ -413,8 +402,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return true if updated. false otherwise
      */
     protected boolean updateToManyRelation(String fieldName,
-                                           Set<PersistentResource> resourceIdentifiers,
-                                           Set<PersistentResource> mine) {
+            Set<PersistentResource> resourceIdentifiers,
+            Set<PersistentResource> mine) {
 
         Set<PersistentResource> requested;
         Set<PersistentResource> updated;
@@ -490,8 +479,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return true if updated. false otherwise
      */
     protected boolean updateToOneRelation(String fieldName,
-                                          Set<PersistentResource> resourceIdentifiers,
-                                          Set<PersistentResource> mine) {
+            Set<PersistentResource> resourceIdentifiers,
+            Set<PersistentResource> mine) {
         Object newValue = null;
         PersistentResource newResource = null;
         if (CollectionUtils.isNotEmpty(resourceIdentifiers)) {
@@ -538,7 +527,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return True if object updated, false otherwise
      */
     public boolean clearRelation(String relationName) {
-        Set<PersistentResource> mine = filter(ReadPermission.class, getRelationUncheckedUnfiltered(relationName));
+        Set<PersistentResource> mine = filter(ReadPermission.class, Optional.empty(),
+                getRelationUncheckedUnfiltered(relationName));
         checkFieldAwareDeferPermissions(UpdatePermission.class, relationName, Collections.emptySet(),
                 mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
 
@@ -827,10 +817,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return PersistentResource relation
      */
     public Set<PersistentResource> getRelation(String relation,
-                                          List<String> ids,
-                                          Optional<FilterExpression> filter,
-                                          Optional<Sorting> sorting,
-                                          Optional<Pagination> pagination) {
+            List<String> ids,
+            Optional<FilterExpression> filter,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
 
         FilterExpression filterExpression;
 
@@ -862,8 +852,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         // TODO: Filter on new resources?
         // TODO: Update pagination to subtract the number of new resources created?
 
-        Set<PersistentResource> existingResources = filter(ReadPermission.class,
-            getRelation(relation, Optional.ofNullable(filterExpression), sorting, pagination, true));
+        Set<PersistentResource> existingResources = filter(ReadPermission.class, filter,
+                getRelation(relation, Optional.ofNullable(filterExpression), sorting, pagination, true));
 
         // TODO: Sort again in memory now that two sets are glommed together?
 
@@ -888,9 +878,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Filter expression for given ids and type.
      */
     private static FilterExpression buildIdFilterExpression(List<String> ids,
-                                                            Class<?> entityType,
-                                                            EntityDictionary dictionary,
-                                                            RequestScope scope) {
+            Class<?> entityType,
+            EntityDictionary dictionary,
+            RequestScope scope) {
         Class<?> idType = dictionary.getIdType(entityType);
         String idField = dictionary.getIdFieldName(entityType);
         String typeAlias = dictionary.getJsonAliasFor(entityType);
@@ -918,11 +908,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return collection relation
      */
     public Set<PersistentResource> getRelationCheckedFiltered(String relationName,
-                                                              Optional<FilterExpression> filterExpression,
-                                                              Optional<Sorting> sorting,
-                                                              Optional<Pagination> pagination) {
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
 
-        return filter(ReadPermission.class,
+        return filter(ReadPermission.class, filterExpression,
                 getRelation(relationName, filterExpression, sorting, pagination, true));
     }
 
@@ -935,10 +925,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private Set<PersistentResource> getRelation(String relationName,
-                                                Optional<FilterExpression> filterExpression,
-                                                Optional<Sorting> sorting,
-                                                Optional<Pagination> pagination,
-                                                boolean checked) {
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            boolean checked) {
 
         if (checked && !checkRelation(relationName)) {
             return Collections.emptySet();
@@ -985,9 +975,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return collection relation
      */
     protected Set<PersistentResource> getRelationChecked(String relationName,
-                                                         Optional<FilterExpression> filterExpression,
-                                                         Optional<Sorting> sorting,
-                                                         Optional<Pagination> pagination) {
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
         if (!checkRelation(relationName)) {
             return Collections.emptySet();
         }
@@ -1005,9 +995,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return the resources in the relationship
      */
     private Set<PersistentResource> getRelationUnchecked(String relationName,
-                                                         Optional<FilterExpression> filterExpression,
-                                                         Optional<Sorting> sorting,
-                                                         Optional<Pagination> pagination) {
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
         if (relationClass == null) {
@@ -1058,7 +1048,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return True if collection should be skipped (i.e. denied access), false otherwise
      */
     private static boolean shouldSkipCollection(Class<?> resourceClass, Class<? extends Annotation> annotationClass,
-                                                RequestScope requestScope) {
+            RequestScope requestScope) {
         try {
             requestScope.getPermissionExecutor().checkUserPermissions(resourceClass, annotationClass);
         } catch (ForbiddenAccessException e) {
@@ -1568,7 +1558,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Filtered set of resources
      */
     protected static Set<PersistentResource> filter(Class<? extends Annotation> permission,
-                                                    Set<PersistentResource> resources) {
+            Optional<FilterExpression> filter,
+            Set<PersistentResource> resources) {
         Set<PersistentResource> filteredSet = new LinkedHashSet<>();
         for (PersistentResource resource : resources) {
             try {
@@ -1580,6 +1571,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 // object will behave as expected.
                 if (!resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);
+                    // enforce ReadPermission on filter join
+                    if (filter.isPresent() && !filter.get().accept(new EnforceJoinFilterExpressionVisitor(resource))) {
+                        continue;
+                    }
                 }
                 filteredSet.add(resource);
             } catch (ForbiddenAccessException e) {
@@ -1643,9 +1638,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private <A extends Annotation> ExpressionResult checkFieldAwareDeferPermissions(Class<A> annotationClass,
-                                                                        String fieldName,
-                                                                        Object modified,
-                                                                        Object original) {
+            String fieldName,
+            Object modified,
+            Object original) {
         ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
@@ -1656,7 +1651,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
-                                                     String fieldName) {
+            String fieldName) {
         if (!sparseFields.isEmpty()) {
             if (!sparseFields.containsKey(type)) {
                 return false;

@@ -31,15 +31,14 @@ public class EnforceJoinFilterExpressionVisitor implements FilterExpressionVisit
         this.resource = resource;
     }
 
+    /**
+     * Enforce ReadPermission on provided query filter
+     *
+     * @return true if allowed, false if rejected
+     */
     @Override
     public Boolean visitPredicate(FilterPredicate filterPredicate) {
         RequestScope requestScope = resource.getRequestScope();
-
-        // enforce filter checking only when user filter is present
-        if (!requestScope.getQueryParams().isPresent()
-                || !requestScope.getQueryParams().get().keySet().stream().anyMatch(k -> k.startsWith("filter["))) {
-            return true;
-        }
         Set<PersistentResource> val = Collections.singleton(resource);
         for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
             Class<?> entityClass = pathElement.getType();
