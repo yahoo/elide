@@ -469,7 +469,6 @@ public class SQLQueryConstructor {
      * @return projected columns
      */
     private String resolveDimensionReference(ColumnProjection columnProjection, Table table) {
-        Class<?> tableClass = dictionary.getEntityClass(table.getId());
         String fieldName = columnProjection.getColumn().getName();
 
         if (columnProjection instanceof TimeDimensionProjection) {

@@ -53,13 +53,14 @@ public class TypeHelper {
      * @return extended type alias, e.g. <code>a_b_c</code>
      */
     public static String extendTypeAlias(String alias, Path extension) {
+        String result = alias;
         List<Path.PathElement> elements = extension.getPathElements();
 
         for (int i = 0; i < elements.size() - 1; i++) {
-            alias = appendAlias(alias, elements.get(i).getFieldName());
+            result = appendAlias(result, elements.get(i).getFieldName());
         }
 
-        return alias;
+        return result;
     }
 
     /**

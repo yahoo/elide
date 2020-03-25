@@ -28,10 +28,10 @@ public class VideoGame {
     private Long id;
 
     @Setter
-    Long sessions;
+    private Long sessions;
 
     @Setter
-    Long timeSpent;
+    private Long timeSpent;
 
     @Setter
     private Float timeSpentPerSession;
