@@ -20,11 +20,11 @@ public interface AsyncQueryDAO {
 
     /**
      * This method updates the QueryStatus for AsyncQuery for given QueryStatus.
-     * @param asyncQueryId Unique UUID for the AsyncQuery Object
+     * @param asyncQuery The AsyncQuery Object to be updated
      * @param status Status from Enum QueryStatus
      * @return AsyncQuery Updated AsyncQuery Object
      */
-    public AsyncQuery updateStatus(UUID asyncQueryId, QueryStatus status);
+    public AsyncQuery updateStatus(AsyncQuery asyncQuery, QueryStatus status);
 
     /**
      * This method uses the filter expression to evaluate a list of filtered results based on the expression

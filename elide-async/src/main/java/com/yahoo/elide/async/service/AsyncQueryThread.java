@@ -54,7 +54,7 @@ public class AsyncQueryThread implements Runnable {
     protected void processQuery() {
         try {
             // Change async query to processing
-            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
+            asyncQueryDao.updateStatus(queryObj, QueryStatus.PROCESSING);
             ElideResponse response = null;
             log.debug("AsyncQuery Object from request: {}", queryObj);
             if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
@@ -71,7 +71,7 @@ public class AsyncQueryThread implements Runnable {
                 throw new NoHttpResponseException("Response for request returned as null");
             }
             // If we receive a response update Query Status to complete
-            queryObj.setStatus(QueryStatus.COMPLETE);
+            asyncQueryDao.updateStatus(queryObj, QueryStatus.COMPLETE);
 
             // Create AsyncQueryResult entry for AsyncQuery and add queryResult object to query object
             asyncQueryDao.createAsyncQueryResult(response.getResponseCode(), response.getBody(), queryObj, queryObj.getId());
@@ -80,7 +80,7 @@ public class AsyncQueryThread implements Runnable {
             log.error("Exception: {}", e);
             // If an Exception is encountered we set the QueryStatus to FAILURE
             //No AsyncQueryResult will be set for this case
-            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE);
+            asyncQueryDao.updateStatus(queryObj, QueryStatus.FAILURE);
         }
     }
 

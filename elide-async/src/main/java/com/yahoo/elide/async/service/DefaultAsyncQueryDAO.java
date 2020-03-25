@@ -50,28 +50,24 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQuery updateStatus(UUID asyncQueryId, QueryStatus status) {
-        return updateAsyncQuery(asyncQueryId, (asyncQueryObj) -> {
+    public AsyncQuery updateStatus(AsyncQuery asyncQuery, QueryStatus status) {
+        return updateAsyncQuery(asyncQuery, (asyncQueryObj) -> {
             asyncQueryObj.setStatus(status);
         });
     }
 
     /**
      * This method updates the model for AsyncQuery with passed value.
-     * @param asyncQueryId Unique UUID for the AsyncQuery Object
+     * @param asyncQuery The AsyncQuery Object which will be updated
      * @param updateFunction Functional interface for updating AsyncQuery Object
      * @return AsyncQuery Object
      */
-    private AsyncQuery updateAsyncQuery(UUID asyncQueryId, UpdateQuery updateFunction) {
+    private AsyncQuery updateAsyncQuery(AsyncQuery asyncQuery, UpdateQuery updateFunction) {
         log.debug("updateAsyncQuery");
         AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
-            EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
-                    .build();
-            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-            updateFunction.update(query);
-            tx.save(query, scope);
-            return query;
+            updateFunction.update(asyncQuery);
+            tx.save(asyncQuery, scope);
+            return asyncQuery;
         });
         return queryObj;
     }

@@ -6,13 +6,13 @@
 package com.yahoo.elide.async.service;
 
 import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 
 import lombok.AllArgsConstructor;
@@ -30,7 +30,7 @@ public class AsyncQueryInterruptThread implements Runnable {
 
     private Elide elide;
     private Future<?> task;
-    private UUID id;
+    private AsyncQuery asyncQuery;
     private Date submittedOn;
     private int maxRunTimeMinutes;
     private AsyncQueryDAO asyncQueryDao;
@@ -61,7 +61,7 @@ public class AsyncQueryInterruptThread implements Runnable {
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
             task.cancel(true);
-            asyncQueryDao.updateStatus(id, QueryStatus.TIMEDOUT);
+            asyncQueryDao.updateStatus(asyncQuery, QueryStatus.TIMEDOUT);
         }
     }
     
