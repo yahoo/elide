@@ -22,6 +22,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -88,16 +89,11 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     private Collection<AsyncQuery> updateAsyncQueryCollection(Collection<AsyncQuery> asyncQueryList, UpdateQuery updateFunction) {
         log.debug("updateAsyncQueryCollection");
         executeInTransaction(dataStore, (tx, scope) -> {
-            EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
-                    .build();
-
             Iterator<AsyncQuery> itr = asyncQueryList.iterator();
             while(itr.hasNext()) {
                 AsyncQuery query = (AsyncQuery) itr.next();
-                AsyncQuery asyncQuery = (AsyncQuery) tx.loadObject(asyncQueryCollection, query.getId(), scope);
-                updateFunction.update(asyncQuery);
-                tx.save(asyncQuery, scope);
+                updateFunction.update(query);
+                tx.save(query, scope);
             }
             return asyncQueryList;
         });
@@ -105,26 +101,36 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(Collection<AsyncQuery> asyncQueryList) {
+    @SuppressWarnings("unchecked")
+    public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(String filterExpression) {
         log.debug("deleteAsyncQueryAndResultCollection");
-        executeInTransaction(dataStore, (tx, scope) -> {
-            EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
-                    .build();
+        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
 
-            Iterator<AsyncQuery> itr = asyncQueryList.iterator();
+        Collection<AsyncQuery> asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
+            try {
+                FilterExpression filter = filterParser.parseFilterExpression(filterExpression, AsyncQuery.class, false);
+                EntityProjection asyncQueryCollection = EntityProjection.builder()
+                        .type(AsyncQuery.class)
+                        .filterExpression(filter)
+                        .build();
 
-            while(itr.hasNext()) {
-                AsyncQuery query = (AsyncQuery) itr.next();
-                AsyncQuery asyncQuery = (AsyncQuery) tx.loadObject(asyncQueryCollection, query.getId(), scope);
-                if(asyncQuery != null) {
-                    tx.delete(asyncQuery, scope);
+                Iterable<Object> itr = tx.loadObjects(asyncQueryCollection, scope);
+
+                while(((Iterator<AsyncQuery>) itr).hasNext()) {
+                    AsyncQuery query = (AsyncQuery) ((Iterator<AsyncQuery>) itr).next();
+                    //asyncQuery = (AsyncQuery) tx.loadObject(asyncQueryCollection, query.getId(), scope);
+                    if(query != null) {
+                        tx.delete(query, scope);
+                    }
                 }
+                return itr;
+            } catch (ParseException e) {
+                log.error("Exception: {}", e);
             }
-
-            return asyncQueryList;
+            return null;
         });
-        return (Collection<AsyncQuery>) asyncQueryList;
+        return asyncQueryList;
     }
 
     @Override
@@ -161,7 +167,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
                 Iterable<Object> loadedObj = tx.loadObjects(asyncQueryCollection, scope);
                 return loadedObj;
-            } catch (Exception e) {
+            } catch (ParseException e) {
                 log.error("Exception: {}", e);
             }
             return null;

@@ -51,9 +51,7 @@ public class AsyncQueryCleanerThread implements Runnable {
 
         String filterExpression = "createdOn=le='" + cleanupDateFormatted + "'";
 
-        Collection<AsyncQuery> loaded = asyncQueryDao.loadQueries(filterExpression);
-
-        asyncQueryDao.deleteAsyncQueryAndResultCollection(loaded);
+        asyncQueryDao.deleteAsyncQueryAndResultCollection(filterExpression);
 
     }
     

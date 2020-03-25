@@ -38,7 +38,7 @@ public abstract class AsyncBase {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof AsyncBase) || !(this.getClass() == obj.getClass())) {
+        if (obj == null || !(obj instanceof AsyncBase) || this.getClass() != obj.getClass()) {
             return false;
         }
 
