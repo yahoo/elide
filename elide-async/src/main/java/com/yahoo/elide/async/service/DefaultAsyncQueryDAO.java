@@ -115,16 +115,16 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                         .filterExpression(filter)
                         .build();
 
-                Iterable<Object> itr = tx.loadObjects(asyncQueryCollection, scope);
+                Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
+                Iterator<Object> itr = loaded.iterator();
 
-                while(((Iterator<AsyncQuery>) itr).hasNext()) {
-                    AsyncQuery query = (AsyncQuery) ((Iterator<AsyncQuery>) itr).next();
-                    //asyncQuery = (AsyncQuery) tx.loadObject(asyncQueryCollection, query.getId(), scope);
+                while(itr.hasNext()) {
+                    AsyncQuery query = (AsyncQuery) itr.next();
                     if(query != null) {
                         tx.delete(query, scope);
                     }
                 }
-                return itr;
+                return null;
             } catch (ParseException e) {
                 log.error("Exception: {}", e);
             }

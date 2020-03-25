@@ -47,7 +47,7 @@ public interface AsyncQueryDAO {
     /**
      * This method deletes a collection of AsyncQuery and its associated AsyncQueryResult objects from database and
      * returns the objects deleted.
-     * @param asyncQueryList Iterable list of AsyncQuery objects to be deleted
+     * @param filterExpression filter expression to delete AsyncQuery Objects based on
      * @return query object list deleted
      */
     public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(String filterExpression);
@@ -56,6 +56,7 @@ public interface AsyncQueryDAO {
      * This method updates the status for a collection of AsyncQuery objects from database and
      * returns the objects updated.
      * @param asyncQueryList Iterable list of AsyncQuery objects to be updated
+     * @param status status to be updated
      * @return query object list updated
      */
     public Collection<AsyncQuery> updateStatusAsyncQueryCollection(Collection<AsyncQuery> asyncQueryList, QueryStatus status);

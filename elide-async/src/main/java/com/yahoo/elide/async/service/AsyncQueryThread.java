@@ -78,9 +78,16 @@ public class AsyncQueryThread implements Runnable {
 
         } catch (Exception e) {
             log.error("Exception: {}", e);
-            // If an Exception is encountered we set the QueryStatus to FAILURE
-            //No AsyncQueryResult will be set for this case
-            asyncQueryDao.updateStatus(queryObj, QueryStatus.FAILURE);
+            if (e.getClass().equals(InterruptedException.class)) {
+                // An InterruptedException is encountered when we interrupt the query when it goes beyond max run time
+                // We set the QueryStatus to TIMEDOUT
+                // No AsyncQueryResult will be set for this case
+                asyncQueryDao.updateStatus(queryObj, QueryStatus.TIMEDOUT);
+            } else {
+                // If an Exception is encountered we set the QueryStatus to FAILURE
+                // No AsyncQueryResult will be set for this case
+                asyncQueryDao.updateStatus(queryObj, QueryStatus.FAILURE);
+            }
         }
     }
 
