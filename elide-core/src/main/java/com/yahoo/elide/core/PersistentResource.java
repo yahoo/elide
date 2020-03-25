@@ -1552,6 +1552,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     /**
      * Filter a set of PersistentResources.
+     * Verify fields have ReadPermission on filter join.
      *
      * @param permission the permission
      * @param resources  the resources
@@ -1571,8 +1572,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 // object will behave as expected.
                 if (!resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);
-                    // enforce ReadPermission on filter join
-                    if (filter.isPresent() && !filter.get().accept(new EnforceJoinFilterExpressionVisitor(resource))) {
+                    // Verify fields have ReadPermission on filter join
+                    if (filter.isPresent()
+                            && !filter.get().accept(new VerifyFieldAccessFilterExpressionVisitor(resource))) {
                         continue;
                     }
                 }

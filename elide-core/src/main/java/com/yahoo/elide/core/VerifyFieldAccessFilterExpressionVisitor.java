@@ -24,10 +24,10 @@ import java.util.stream.StreamSupport;
 /**
  * Enforce read permission on filter join
  */
-public class EnforceJoinFilterExpressionVisitor implements FilterExpressionVisitor<Boolean> {
+public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressionVisitor<Boolean> {
     private PersistentResource<?> resource;
 
-    public EnforceJoinFilterExpressionVisitor(PersistentResource<?> resource) {
+    public VerifyFieldAccessFilterExpressionVisitor(PersistentResource<?> resource) {
         this.resource = resource;
     }
 
@@ -60,7 +60,6 @@ public class EnforceJoinFilterExpressionVisitor implements FilterExpressionVisit
                 return false;
             }
         }
-
         return true;
     }
 
@@ -86,7 +85,7 @@ public class EnforceJoinFilterExpressionVisitor implements FilterExpressionVisit
     public Boolean visitAndExpression(AndFilterExpression expression) {
         Boolean left = expression.getLeft().accept(this);
         Boolean right = expression.getRight().accept(this);
-        // neither rejected
+        // are both allowed
         return left && right;
     }
 
@@ -94,13 +93,13 @@ public class EnforceJoinFilterExpressionVisitor implements FilterExpressionVisit
     public Boolean visitOrExpression(OrFilterExpression expression) {
         Boolean left = expression.getLeft().accept(this);
         Boolean right = expression.getRight().accept(this);
-        // neither rejected
+        // are both allowed
         return left && right;
     }
 
     @Override
     public Boolean visitNotExpression(NotFilterExpression expression) {
-        // check rejected
+        // is negated expression allowed
         return expression.getNegated().accept(this);
     }
 }

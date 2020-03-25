@@ -1370,9 +1370,8 @@ public class FilterIT extends IntegrationTest {
         assertEquals(0, data.size(), result.toString());
 
         /* Test RSQL */
-        result = getAsNode(
-                String.format("book?filter[book]=authors.homeAddress=='main'", hemingwayId),
-                HttpStatus.SC_BAD_REQUEST);
+        result = getAsNode("book?filter=authors.homeAddress=='main'");
+        data = result.get("data");
         assertEquals(0, data.size(), result.toString());
     }
 
