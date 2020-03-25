@@ -16,13 +16,11 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
- * Enforce read permission on filter join
+ * Enforce read permission on filter join.
  */
 public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressionVisitor<Boolean> {
     private PersistentResource<?> resource;
@@ -32,7 +30,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
     }
 
     /**
-     * Enforce ReadPermission on provided query filter
+     * Enforce ReadPermission on provided query filter.
      *
      * @return true if allowed, false if rejected
      */
@@ -41,7 +39,6 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         RequestScope requestScope = resource.getRequestScope();
         Set<PersistentResource> val = Collections.singleton(resource);
         for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
-            Class<?> entityClass = pathElement.getType();
             String fieldName = pathElement.getFieldName();
 
             if ("this".equals(fieldName)) {
@@ -78,7 +75,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
             return Stream.empty();
         }
 
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(persistentResourceSet.iterator(), 0), false);
+        return persistentResourceSet.stream();
     }
 
     @Override

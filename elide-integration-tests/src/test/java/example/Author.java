@@ -53,6 +53,17 @@ public class Author {
     @Exclude
     private String naturalKey = UUID.randomUUID().toString();
 
+    @Getter @Setter
+    private String name;
+
+    @ManyToMany(mappedBy = "authors")
+    @Getter @Setter
+    private Collection<Book> books = new ArrayList<>();
+
+    @Getter @Setter
+    @ReadPermission(expression = "deny all")
+    private String homeAddress;
+
     @Override
     public int hashCode() {
         return naturalKey.hashCode();
@@ -66,17 +77,6 @@ public class Author {
 
         return ((Author) obj).naturalKey.equals(naturalKey);
     }
-
-    @Getter @Setter
-    private String name;
-
-    @ManyToMany(mappedBy = "authors")
-    @Getter @Setter
-    private Collection<Book> books = new ArrayList<>();
-
-    @Getter @Setter
-    @ReadPermission(expression = "deny all")
-    private String homeAddress;
 
     @Override
     public String toString() {
