@@ -123,8 +123,11 @@ public class ElideResourceConfig extends ResourceConfig {
                         Info info = new Info().title("Async Service").version("1.0");
 
                         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+                        
+                        //Default value of getJsonApiPathSpec() ends with /* at the end. need to remove.
+                        String asyncBasePath = settings.getJsonApiPathSpec().replaceAll("/\\*", "");
 
-                        Swagger swagger = builder.build().basePath(settings.getAsyncSwaggerPath());
+                        Swagger swagger = builder.build().basePath(asyncBasePath);
 
                         swaggerDocs.put("async", swagger);
                     }

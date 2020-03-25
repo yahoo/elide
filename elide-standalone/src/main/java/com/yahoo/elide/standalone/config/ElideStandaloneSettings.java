@@ -216,15 +216,6 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     *  Root path specification for the Async Models Swagger endpoint.
-     *
-     * @return Default: /api/v1
-     */
-    default String getAsyncSwaggerPath() {
-        return "/api/v1";
-    }
-
-    /**
      * Implementation of AsyncQueryDAO to use.
      *
      * @return AsyncQueryDAO type object.
