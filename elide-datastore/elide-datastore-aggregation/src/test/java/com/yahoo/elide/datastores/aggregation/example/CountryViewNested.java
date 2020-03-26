@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Id;
 
 /**
@@ -35,6 +36,7 @@ public class CountryViewNested {
         this.id = id;
     }
 
+    @Column(name = "iso_code")
     public String getIsoCode() {
         return isoCode;
     }
