@@ -22,3 +22,9 @@ CREATE TABLE IF NOT EXISTS AsyncQueryResult (
     PRIMARY KEY (id),
     FOREIGN KEY (query_id) REFERENCES AsyncQuery(id)
 );
+
+CREATE TABLE IF NOT EXISTS players
+    (
+      id BIGINT,
+      name VARCHAR(255)
+    ) AS SELECT * FROM CSVREAD('classpath:player.csv');
