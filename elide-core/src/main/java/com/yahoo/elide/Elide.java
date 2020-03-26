@@ -97,7 +97,7 @@ public class Elide {
         registerCustomSerde();
     }
 
-    private void registerCustomSerde() {
+    protected void registerCustomSerde() {
         Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ElideTypeConverter.class);
 
         for (Class<?> clazz : classes) {
@@ -130,13 +130,13 @@ public class Elide {
         }
     }
 
-    private void registerCustomSerde(Class<?> type, Serde serde, String name) {
+    protected void registerCustomSerde(Class<?> type, Serde serde, String name) {
         log.info("Registering serde for type : {}", type);
         CoerceUtil.register(type, serde);
         registerCustomSerdeInObjectMapper(type, serde, name);
     }
 
-    private void registerCustomSerdeInObjectMapper(Class<?> type, Serde serde, String name) {
+    protected void registerCustomSerdeInObjectMapper(Class<?> type, Serde serde, String name) {
         ObjectMapper objectMapper = mapper.getObjectMapper();
         objectMapper.registerModule(new SimpleModule(name)
                 .addSerializer(type, new JsonSerializer<Object>() {
