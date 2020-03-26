@@ -5,18 +5,18 @@
  */
 package com.yahoo.elide.async.service;
 
-import java.io.IOException;
 import java.util.Date;
-import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.request.EntityProjection;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -24,22 +24,16 @@ import lombok.extern.slf4j.Slf4j;
  * beyond the max run time and update status.
  */
 @Slf4j
+@Data
+@AllArgsConstructor
 public class AsyncQueryInterruptThread implements Runnable {
 
     private Elide elide;
     private Future<?> task;
-    private UUID id;
+    private AsyncQuery asyncQuery;
     private Date submittedOn;
-    private int interruptTime;
-
-    public AsyncQueryInterruptThread(Elide elide, Future<?> task, UUID id, Date submittedOn, int interruptTime){
-        log.debug("New Async Query Interrupt thread created");
-        this.elide = elide;
-        this.task = task;
-        this.id = id;
-        this.submittedOn = submittedOn;
-        this.interruptTime = interruptTime;
-    }
+    private int maxRunTimeMinutes;
+    private AsyncQueryDAO asyncQueryDao;
 
     @Override
     public void run() {
@@ -52,53 +46,36 @@ public class AsyncQueryInterruptThread implements Runnable {
      */
     protected void interruptQuery() {
         try {
-            long interruptTimeInMillies = interruptTime * 60 * 1000;
-            long differenceInMillies = interruptTimeInMillies - ((new Date()).getTime() - submittedOn.getTime());
-            if(differenceInMillies > 0) {
-               log.debug("Sleeping for {}", differenceInMillies);
-               Thread.sleep(differenceInMillies);
-            }
-
-            if(!task.isDone()) {
-                log.debug("Interrupting the task");
-                task.cancel(true);
-                updateAsyncQueryStatus(QueryStatus.TIMEDOUT, id);
+            long interruptTimeMillies = calculateTimeOut(maxRunTimeMinutes, submittedOn);
+            
+            if(interruptTimeMillies > 0) {
+               log.debug("Waiting on the future with the given timeout for {}", interruptTimeMillies);
+               task.get(interruptTimeMillies, TimeUnit.MILLISECONDS);
             }
         } catch (InterruptedException e) {
-            log.error("InterruptedException: {}", e.getMessage());
+            // Incase the future.get is interrupted , the underlying query may still have succeeded
+            log.error("InterruptedException: {}", e);
+        } catch (ExecutionException e) {
+            // Query Status set to failure will be handled by the processQuery method
+            log.error("ExecutionException: {}", e);
+        } catch (TimeoutException e) {
+            log.error("TimeoutException: {}", e);
+            task.cancel(true);
+            asyncQueryDao.updateStatus(asyncQuery, QueryStatus.TIMEDOUT);
         }
     }
-
+    
     /**
-     * This method updates the model for AsyncQuery with passed query status value.
-     * @param status new status based on the enum QueryStatus
-     * @param asyncQueryId queryId from asyncQuery request
+     * Method to calculate the time left to interrupt since submission of thread 
+     * in Milliseconds.
+     * @param interruptTimeMinutes max duration to run the query
+     * @param submittedOn time when query was submitted
+     * @return Interrupt time left
      */
-    protected void updateAsyncQueryStatus(QueryStatus status, UUID asyncQueryId) {
-        log.debug("Updating AsyncQuery status to {}", status);
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
-
-        // Creating new RequestScope for Datastore transaction
-        RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
-
-        try {
-            EntityProjection asyncQueryCollection = EntityProjection.builder()
-            .type(AsyncQuery.class)
-            .build();
-            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
-            query.setQueryStatus(status);
-            tx.save(query, scope);
-            tx.commit(scope);
-            tx.flush(scope);
-            tx.close();
-        } catch (Exception e) {
-            log.error("Exception: {}", e.getMessage());
-        } finally {
-            try {
-                tx.close();
-            } catch (IOException e) {
-                log.error("IOException: {}", e.getMessage());
-            }
-        }
+    private long calculateTimeOut(long maxRunTimeMinutes, Date submittedOn) {
+        long maxRunTimeMinutesMillies = maxRunTimeMinutes * 60 * 1000;
+        long interruptTimeMillies = maxRunTimeMinutesMillies - ((new Date()).getTime() - submittedOn.getTime());
+        
+        return interruptTimeMillies;
     }
 }

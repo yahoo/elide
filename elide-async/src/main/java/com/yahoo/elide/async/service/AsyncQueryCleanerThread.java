@@ -5,21 +5,18 @@
  */
 package com.yahoo.elide.async.service;
 
-import java.io.IOException;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.request.EntityProjection;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -28,19 +25,18 @@ import lombok.extern.slf4j.Slf4j;
  * due to app/host crash or restart.
  */
 @Slf4j
+@Data
+@AllArgsConstructor
 public class AsyncQueryCleanerThread implements Runnable {
 
-    int maxRunTime;
-    Elide elide;
-
-    AsyncQueryCleanerThread(int maxRunTime, Elide elide) {
-        log.debug("New Async Query Cleaner thread created");
-        this.maxRunTime = maxRunTime;
-        this.elide = elide;
-    }
+    private int maxRunTimeMinutes;
+    private Elide elide;
+    private int queryCleanupDays;
+    private AsyncQueryDAO asyncQueryDao;
 
     @Override
     public void run() {
+        deleteAsyncQuery();
         timeoutAsyncQuery();
     }
 
@@ -48,48 +44,47 @@ public class AsyncQueryCleanerThread implements Runnable {
      * This method updates the status of long running async query which
      * were not interrupted due to host crash/app shutdown to TIMEDOUT.
      * */
-    private void timeoutAsyncQuery() {
-        DataStoreTransaction tx = elide.getDataStore().beginTransaction();
+    @SuppressWarnings("unchecked")
+    private void deleteAsyncQuery() {
 
-        try {
-            EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-            RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
-            RequestScope scope = new RequestScope(null, null, tx, null, null, elide.getElideSettings());
+        String cleanupDateFormatted = evaluateFormattedFilterDate(Calendar.DATE, queryCleanupDays);
 
-            FilterExpression filter = filterParser.parseFilterExpression("status=in=(" + QueryStatus.PROCESSING.toString() + ","
-                + QueryStatus.QUEUED.toString() + ")", AsyncQuery.class, false);
+        String filterExpression = "createdOn=le='" + cleanupDateFormatted + "'";
 
-            EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
-                    .filterExpression(filter)
-                    .build();
+        asyncQueryDao.deleteAsyncQueryAndResultCollection(filterExpression);
 
-            Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
-            Iterator<Object> itr = loaded.iterator();
-            while(itr.hasNext()) {
-                AsyncQuery query = (AsyncQuery) itr.next();
-                long differenceInMillies = Math.abs((new Date()).getTime() - query.getCreatedOn().getTime());
-                long difference = TimeUnit.MINUTES.convert(differenceInMillies, TimeUnit.MILLISECONDS);
-
-                // Check if its twice as long as max run time. It means the host/app crashed or restarted.
-                if(difference > maxRunTime * 2) {
-                    log.info("Updating Async Query Status to TIMEDOUT");
-                    query.setQueryStatus(QueryStatus.TIMEDOUT);
-                    tx.save(query, scope);
-                    tx.commit(scope);
-                    tx.flush(scope);
-                }
-            }
-        }
-        catch (Exception e) {
-            log.error("Exception: {}", e.getMessage());
-        }
-        finally {
-            try {
-                tx.close();
-            } catch (IOException e) {
-                log.error("IOException: {}", e.getMessage());
-            }
-        }
     }
+    
+    /**
+     * This method updates the status of long running async query which
+     * were not interrupted due to host crash/app shutdown to TIMEDOUT.
+     * */
+	@SuppressWarnings("unchecked")
+    private void timeoutAsyncQuery() {
+
+        String filterDateFormatted = evaluateFormattedFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
+        String filterExpression = "status=in=(" + QueryStatus.PROCESSING.toString() + ","
+                + QueryStatus.QUEUED.toString() + ");createdOn=le='" + filterDateFormatted + "'";
+
+        Collection<AsyncQuery> loaded = asyncQueryDao.loadQueries(filterExpression);
+
+        asyncQueryDao.updateStatusAsyncQueryCollection(loaded, QueryStatus.TIMEDOUT);
+    }
+
+    /**
+     * Evaluates and subtracts the amount based on the calendar unit and amount from current date
+     * @param calendarUnit Enum such as Calendar.DATE or Calendar.MINUTE
+     * @param amount Amount of days to be subtracted from current time
+     * @return formatted filter date
+     */
+	private String evaluateFormattedFilterDate(int calendarUnit, int amount) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(calendarUnit, -(amount));
+        Date filterDate = cal.getTime();
+        Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+        String filterDateFormatted = dateFormat.format(filterDate);
+        log.debug("FilterDateFormatted = {}", filterDateFormatted);
+		return filterDateFormatted;
+	}
 }

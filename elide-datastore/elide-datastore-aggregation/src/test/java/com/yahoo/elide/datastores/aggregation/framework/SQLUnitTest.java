@@ -27,7 +27,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.utils.ClassScanner;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,7 +49,7 @@ public abstract class SQLUnitTest {
     protected static QueryEngine engine;
 
     public static void init() {
-        metaDataStore = new MetaDataStore();
+        metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
 
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         dictionary = new EntityDictionary(new HashMap<>());
@@ -64,11 +64,10 @@ public abstract class SQLUnitTest {
         dictionary.bindEntity(Continent.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
-        playerStatsTable = new SQLTable(PlayerStats.class, dictionary);
-
         metaDataStore.populateEntityDictionary(dictionary);
 
         engine = new SQLQueryEngine(metaDataStore, emf);
+        playerStatsTable = engine.getTable("playerStats");
 
         ASIA.setName("Asia");
         ASIA.setId("1");

@@ -13,7 +13,6 @@ import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
-import com.yahoo.elide.security.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -28,11 +27,6 @@ import java.util.Set;
 @AllArgsConstructor
 public abstract class TransactionWrapper implements DataStoreTransaction {
     protected DataStoreTransaction tx;
-
-    @Override
-    public User accessUser(Object opaqueUser) {
-        return tx.accessUser(opaqueUser);
-    }
 
     @Override
     public void preCommit() {

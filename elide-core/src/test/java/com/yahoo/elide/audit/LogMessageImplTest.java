@@ -15,7 +15,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.TestUser;
 
 import com.google.common.collect.Sets;
 import example.Child;
@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,13 +52,8 @@ public class LogMessageImplTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, null, null, new User(
-            new Principal() {
-                @Override
-                public String getName() {
-                    return "aaron";
-                }
-            }), null,
+        final RequestScope requestScope = new RequestScope(null, null, null,
+                new TestUser("aaron"), null,
                 new ElideSettingsBuilder(null)
                         .withAuditLogger(new TestAuditLogger())
                         .withEntityDictionary(dictionary)

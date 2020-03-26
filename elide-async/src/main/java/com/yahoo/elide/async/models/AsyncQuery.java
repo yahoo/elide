@@ -5,26 +5,26 @@
  */
 package com.yahoo.elide.async.models;
 
-import java.security.Principal;
-import java.util.Date;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
+import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
 /**
  * Model for Async Query
@@ -33,65 +33,42 @@ import lombok.extern.slf4j.Slf4j;
 @Include(type = "query", rootLevel = true)
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
-@Slf4j
-public class AsyncQuery implements PrincipalOwned {
+@DeletePermission(expression = "Prefab.Role.None")
+@Data
+public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
-    UUID id; //Can be generated or provided.
+    private UUID id; //Can be generated or provided.
 
-    //Extracted from the Principal object
-    String principalName;
+    private String query;  //JSON-API PATH or GraphQL payload.
 
-    String query;  //JSON-API PATH or GraphQL payload.
-
-    QueryType queryType; //GRAPHQL, JSONAPI
+    private QueryType queryType; //GRAPHQL, JSONAPI
 
     @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
-    QueryStatus status;
+    private QueryStatus status;
 
-    @OneToOne
-    AsyncQueryResult result;
-
-    Date createdOn;
-    Date updatedOn;
-
-    @Override
-	public String getPrincipalName() {
-		return principalName;
-	}
-
-    @PrePersist
-    public void prePersist() {
-        createdOn = updatedOn = new Date();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedOn = new Date();
-    }
-
-    public void setResult(AsyncQueryResult result) {
-        this.result = result;
-    }
-
-    public Date getCreatedOn() {
-        return this.createdOn;
-    }
-
-    public QueryStatus getQueryStatus() {
-        return status;
-    }
-
-    public void setQueryStatus(QueryStatus status) {
-        this.status = status;
-    }
+    @OneToOne(mappedBy = "query", cascade = CascadeType.REMOVE)
+    private AsyncQueryResult result;
 
     @Inject
     @Transient
-    AsyncExecutorService asyncExecutorService;
+    private AsyncExecutorService asyncExecutorService;
 
+    @Exclude
+    private String principalName;
+
+    @Override
+    public String getPrincipalName() {
+        return principalName;
+    }
+
+    @OnCreatePreSecurity
+    public void extractPrincipalName(RequestScope scope) {
+    	setPrincipalName(scope.getUser().getName());
+    }
+    
     @OnCreatePostCommit
     public void executeQueryFromExecutor(RequestScope scope) {
-        log.info("AsyncExecutorService executor object: {}", asyncExecutorService);
-        asyncExecutorService.executeQuery(query, queryType, (Principal) scope.getUser().getOpaqueUser(), id);
+        asyncExecutorService.executeQuery(this, scope.getUser());
     }
+
 }

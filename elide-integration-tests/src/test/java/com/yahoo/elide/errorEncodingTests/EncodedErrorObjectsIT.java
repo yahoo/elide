@@ -15,9 +15,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
-import com.yahoo.elide.initialization.EncodedErrorObjectsTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.resources.JsonApiEndpoint;
 import com.yahoo.elide.utils.JsonParser;
 
 import org.apache.http.HttpStatus;
@@ -28,14 +26,10 @@ public class EncodedErrorObjectsIT extends IntegrationTest {
     private static final String GRAPHQL_CONTENT_TYPE = "application/json";
     private final JsonParser jsonParser = new JsonParser();
 
-    public EncodedErrorObjectsIT() {
-        super(EncodedErrorObjectsTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
-    }
-
     @Test
     public void invalidAttributeException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/InvalidAttributeException.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionExceptionErrorObject.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidAttributeException.json");
         given()
             .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)

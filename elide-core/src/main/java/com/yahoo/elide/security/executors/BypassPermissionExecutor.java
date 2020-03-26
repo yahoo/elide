@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.security.executors;
 
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
 import java.lang.annotation.Annotation;

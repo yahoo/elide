@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -12,6 +12,7 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -32,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,7 +49,18 @@ public class MetaDataStore extends HashMapDataStore {
     @Getter
     private final Set<Class<?>> modelsToBind;
 
+    private Map<Class<?>, Table> tables = new HashMap<>();
+
     public MetaDataStore() {
+        this(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
+    }
+
+    /**
+     * Construct MetaDataStore with data models.
+     *
+     * @param modelsToBind models to bind
+     */
+    public MetaDataStore(Set<Class<?>> modelsToBind) {
         super(META_DATA_PACKAGE);
 
         this.dictionary = new EntityDictionary(new HashMap<>());
@@ -56,8 +69,8 @@ public class MetaDataStore extends HashMapDataStore {
         ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(dictionary::bindEntity);
 
         // bind external data models in the package
-        this.modelsToBind = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
-        modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
+        this.modelsToBind = modelsToBind;
+        this.modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 
     @Override
@@ -72,8 +85,42 @@ public class MetaDataStore extends HashMapDataStore {
      * @param table table metadata
      */
     public void addTable(Table table) {
+        tables.put(dictionary.getEntityClass(table.getId()), table);
         addMetaData(table);
         table.getColumns().forEach(this::addColumn);
+    }
+
+    /**
+     * Get a table metadata object
+     *
+     * @param tableClass table class
+     * @return meta data table
+     */
+    public Table getTable(Class<?> tableClass) {
+        return tables.get(tableClass);
+    }
+
+    /**
+     * Get a {@link Column} from a table.
+     *
+     * @param tableClass table class
+     * @param fieldName field name
+     * @return meta data column
+     */
+    public final Column getColumn(Class<?> tableClass, String fieldName) {
+        return getTable(tableClass).getColumnMap().get(fieldName);
+    }
+
+    /**
+     * Get a {@link Column} for the last field in a {@link Path}
+     *
+     * @param path path to a field
+     * @return meta data column
+     */
+    public final Column getColumn(Path path) {
+        Path.PathElement last = path.lastElement().get();
+
+        return getColumn(last.getType(), last.getFieldName());
     }
 
     /**
@@ -137,6 +184,13 @@ public class MetaDataStore extends HashMapDataStore {
         }
     }
 
+    /**
+     * Get all metadata of a specific metadata class
+     *
+     * @param cls metadata class
+     * @param <T> metadata class
+     * @return all metadata of given class
+     */
     public <T> Set<T> getMetaData(Class<T> cls) {
         return dataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
     }
@@ -156,7 +210,8 @@ public class MetaDataStore extends HashMapDataStore {
      * @return {@code true} if the field is a metric field
      */
     public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
-        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class);
+        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class)
+                || dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricFormula.class);
     }
 
     /**
@@ -169,25 +224,5 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
-    }
-
-    /**
-     * Resolve source columns for all Columns in all Tables.
-     */
-    public void resolveSourceColumn() {
-        getMetaData(Table.class).forEach(table ->
-                table.getColumns().forEach(column -> {
-                    Path sourcePath = column.getSourcePath(dictionary);
-                    Path.PathElement source = sourcePath.lastElement().get();
-
-                    Table sourceTable = (Table) dataStore.get(Table.class)
-                            .get(dictionary.getJsonAliasFor(source.getType()));
-
-                    Column sourceColumn = column instanceof Metric
-                            ? sourceTable.getMetric(source.getFieldName())
-                            : sourceTable.getDimension(source.getFieldName());
-                    column.setSourceColumn(sourceColumn);
-                })
-        );
     }
 }

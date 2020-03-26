@@ -19,23 +19,8 @@ public class SQLTable extends Table {
         super(cls, dictionary);
     }
 
-    public final SQLColumn getSQLColumn(String fieldName) {
-        SQLDimension dimension = getColumn(SQLDimension.class, fieldName);
-        return dimension == null ? getColumn(SQLTimeDimension.class, fieldName) : dimension;
-    }
-
     @Override
     protected SQLMetric constructMetric(String fieldName, EntityDictionary dictionary) {
         return new SQLMetric(this, fieldName, dictionary);
-    }
-
-    @Override
-    protected SQLTimeDimension constructTimeDimension(String fieldName, EntityDictionary dictionary) {
-        return new SQLTimeDimension(this, fieldName, dictionary);
-    }
-
-    @Override
-    protected SQLDimension constructDimension(String fieldName, EntityDictionary dictionary) {
-        return new SQLDimension(this, fieldName, dictionary);
     }
 }

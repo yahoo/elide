@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
@@ -19,6 +20,7 @@ import javax.persistence.Id;
 @Include(type = "functionArgument")
 @Data
 @ToString
+@AllArgsConstructor
 public class FunctionArgument {
     @Id
     private String id;

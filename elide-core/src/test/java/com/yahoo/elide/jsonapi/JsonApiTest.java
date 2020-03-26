@@ -21,6 +21,7 @@ import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,7 +48,8 @@ import java.util.Map;
  */
 public class JsonApiTest {
     private JsonApiMapper mapper;
-    private User user = new User(0);
+    private User user = new TestUser("0");
+
     private EntityDictionary dictionary;
     private DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
 

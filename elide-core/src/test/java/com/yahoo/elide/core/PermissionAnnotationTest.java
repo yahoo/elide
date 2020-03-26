@@ -17,6 +17,7 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.PermissionExecutor;
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 
@@ -28,8 +29,8 @@ import org.junit.jupiter.api.Test;
  * Tests audit functions inside RecordDao.
  */
 public class PermissionAnnotationTest {
-    private static final User GOOD_USER = new User(3);
-    private static final User BAD_USER = new User(-1);
+    private static final User GOOD_USER = new TestUser("3");
+    private static final User BAD_USER = new TestUser("-1");
 
     private static PersistentResource<FunWithPermissions> funRecord;
     private static PersistentResource<FunWithPermissions> badRecord;

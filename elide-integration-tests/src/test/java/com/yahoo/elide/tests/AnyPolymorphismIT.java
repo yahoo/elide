@@ -257,7 +257,7 @@ public class AnyPolymorphismIT extends IntegrationTest {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
-                .body("errors[0]", containsString("Unknown collection"));
+                .body("errors[0].detail", containsString("Unknown collection"));
 
         //Filtering is not supported for these types.
         given()

@@ -8,11 +8,9 @@ package com.yahoo.elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.ErrorObjects;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
-import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
@@ -51,7 +49,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.owasp.encoder.Encode;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -158,7 +155,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
+    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, User opaqueUser) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
@@ -178,7 +175,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse post(String path, String jsonApiDocument, Object opaqueUser) {
+    public ElideResponse post(String path, String jsonApiDocument, User opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
@@ -200,7 +197,7 @@ public class Elide {
      * @return Elide response object
      */
     public ElideResponse patch(String contentType, String accept,
-                               String path, String jsonApiDocument, Object opaqueUser) {
+                               String path, String jsonApiDocument, User opaqueUser) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
@@ -236,7 +233,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse delete(String path, String jsonApiDocument, Object opaqueUser) {
+    public ElideResponse delete(String path, String jsonApiDocument, User opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
@@ -262,17 +259,16 @@ public class Elide {
      * Handle JSON API requests.
      *
      * @param isReadOnly if the transaction is read only
-     * @param opaqueUser the user object from the container
+     * @param user the user object from the container
      * @param transaction a transaction supplier
      * @param handler a function that creates the request scope and request handler
      * @return the response
      */
-    protected ElideResponse handleRequest(boolean isReadOnly, Object opaqueUser,
+    protected ElideResponse handleRequest(boolean isReadOnly, User user,
                                           Supplier<DataStoreTransaction> transaction,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = transaction.get()) {
-            final User user = tx.accessUser(opaqueUser);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -347,19 +343,8 @@ public class Elide {
             log.error("Internal Server Error", error);
         }
 
-        boolean encodeErrorResponse = elideSettings.isEncodeErrorResponses();
-        if (!(error instanceof CustomErrorException) && elideSettings.isReturnErrorObjects()) {
-            String errorDetail = isVerbose ? error.getVerboseMessage() : error.toString();
-            if (encodeErrorResponse) {
-                errorDetail = Encode.forHtml(errorDetail);
-            }
-            ErrorObjects errors = ErrorObjects.builder().addError().withDetail(errorDetail).build();
-            JsonNode responseBody = mapper.getObjectMapper().convertValue(errors, JsonNode.class);
-            return buildResponse(Pair.of(error.getStatus(), responseBody));
-        }
-
-        return buildResponse(isVerbose ? error.getVerboseErrorResponse(encodeErrorResponse)
-                : error.getErrorResponse(encodeErrorResponse));
+        return buildResponse(isVerbose ? error.getVerboseErrorResponse()
+                : error.getErrorResponse());
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

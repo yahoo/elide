@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.owasp.encoder.Encode;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -282,12 +283,11 @@ public class JsonApiPatch {
      * Turn an exception into a proper error response from patch extension.
      */
     private void throwErrorResponse() {
-        ObjectNode errorContainer = getErrorContainer();
-        ArrayNode errorList = (ArrayNode) errorContainer.get("errors");
+        ArrayNode errorContainer = getErrorContainer();
 
         boolean failed = false;
         for (PatchAction action : actions) {
-            failed = processAction(errorList, failed, action);
+            failed = processAction(errorContainer, failed, action);
         }
 
         JsonPatchExtensionException failure =
@@ -303,23 +303,27 @@ public class JsonApiPatch {
         throw failure;
     }
 
-    private ObjectNode getErrorContainer() {
-        ObjectNode container = JsonNodeFactory.instance.objectNode();
-        container.set("errors", JsonNodeFactory.instance.arrayNode());
+    private ArrayNode getErrorContainer() {
+        ArrayNode container = JsonNodeFactory.instance.arrayNode();
         return container;
     }
 
     private boolean processAction(ArrayNode errorList, boolean failed, PatchAction action) {
+        ObjectNode container = JsonNodeFactory.instance.objectNode();
+        ArrayNode errors = JsonNodeFactory.instance.arrayNode();
+        container.set("errors", errors);
+        errorList.add(container);
+
         if (action.cause != null) {
             // this is the failed operation
-            errorList.add(toErrorNode(action.cause.getMessage(), action.cause.getStatus()));
+            errors.add(toErrorNode(action.cause.getMessage(), action.cause.getStatus()));
             failed = true;
         } else if (!failed) {
             // this operation succeeded
-            errorList.add(ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION);
+            errors.add(ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION);
         } else {
             // this operation never ran
-            errorList.add(ERR_NODE_OPERATION_NOT_RUN);
+            errors.add(ERR_NODE_OPERATION_NOT_RUN);
         }
         return failed;
     }
@@ -350,9 +354,9 @@ public class JsonApiPatch {
      */
     private static JsonNode toErrorNode(String detail, Integer status) {
         ObjectNode formattedError = JsonNodeFactory.instance.objectNode();
-        formattedError.set("detail", JsonNodeFactory.instance.textNode(detail));
+        formattedError.set("detail", JsonNodeFactory.instance.textNode(Encode.forHtml(detail)));
         if (status != null) {
-            formattedError.set("status", JsonNodeFactory.instance.numberNode(status));
+            formattedError.set("status", JsonNodeFactory.instance.textNode(status.toString()));
         }
         return formattedError;
     }

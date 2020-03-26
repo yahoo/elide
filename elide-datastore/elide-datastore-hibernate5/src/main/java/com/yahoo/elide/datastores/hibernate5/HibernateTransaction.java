@@ -27,7 +27,6 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
-import com.yahoo.elide.security.User;
 
 import org.hibernate.FlushMode;
 import org.hibernate.ObjectNotFoundException;
@@ -293,10 +292,5 @@ public class HibernateTransaction implements DataStoreTransaction {
             session.getTransaction().rollback();
             throw new IOException("Transaction not closed");
         }
-    }
-
-    @Override
-    public User accessUser(Object opaqueUser) {
-        return new User(opaqueUser);
     }
 }
