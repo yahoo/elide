@@ -9,4 +9,8 @@ public class UnableToAddSerdeException extends RuntimeException {
     public UnableToAddSerdeException(String message) {
         super(message);
     }
+
+    public UnableToAddSerdeException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

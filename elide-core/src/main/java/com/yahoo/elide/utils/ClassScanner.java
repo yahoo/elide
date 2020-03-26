@@ -20,7 +20,7 @@ public class ClassScanner {
     /**
      * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
      *
-     * @param toScan     package to scan
+     * @param toScan package to scan
      * @param annotation Annotation to search
      * @return The classes
      */
@@ -32,11 +32,12 @@ public class ClassScanner {
      * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
      *
      * @param packageName package name to scan.
-     * @param annotation  Annotation to search
+     * @param annotation Annotation to search
      * @return The classes
      */
     static public Set<Class<?>> getAnnotatedClasses(String packageName, Class<? extends Annotation> annotation) {
-        try (ScanResult scanResult = new ClassGraph().enableAllInfo().whitelistPackages(packageName).scan()) {
+        try (ScanResult scanResult = new ClassGraph()
+                .enableClassInfo().enableAnnotationInfo().whitelistPackages(packageName).scan()) {
             return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());
@@ -46,11 +47,12 @@ public class ClassScanner {
     /**
      * Scans all classes accessible from the context class loader which belong to the current class loader.
      *
-     * @param annotation  Annotation to search
+     * @param annotation Annotation to search
      * @return The classes
      */
     static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> annotation) {
-        try (ScanResult scanResult = new ClassGraph().enableAllInfo().scan()) {
+        try (ScanResult scanResult = new ClassGraph()
+                .enableClassInfo().enableAnnotationInfo().scan()) {
             return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());
@@ -63,7 +65,8 @@ public class ClassScanner {
      * @return All the classes within a package.
      */
     static public Set<Class<?>> getAllClasses(String packageName) {
-        try (ScanResult scanResult = new ClassGraph().enableAllInfo().whitelistPackages(packageName).scan()) {
+        try (ScanResult scanResult = new ClassGraph()
+                .enableClassInfo().whitelistPackages(packageName).scan()) {
             return scanResult.getAllClasses().stream()
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());

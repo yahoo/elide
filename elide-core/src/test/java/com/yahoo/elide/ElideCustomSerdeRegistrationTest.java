@@ -24,21 +24,21 @@ class DummyTwo extends Dummy {
 class DummyThree extends Dummy {
 }
 
-@ElideTypeConverter(type = Dummy.class, name = "Dummy", subTypes = {DummyThree.class, DummyTwo.class})
-class DummySerde implements Serde<String, Dummy> {
-
-    @Override
-    public Dummy deserialize(String val) {
-        return null;
-    }
-
-    @Override
-    public String serialize(Dummy val) {
-        return null;
-    }
-}
-
 public class ElideCustomSerdeRegistrationTest {
+    @ElideTypeConverter(type = Dummy.class, name = "Dummy", subTypes = { DummyThree.class, DummyTwo.class })
+    public static class DummySerde implements Serde<String, Dummy> {
+
+        @Override
+        public Dummy deserialize(String val) {
+            return null;
+        }
+
+        @Override
+        public String serialize(Dummy val) {
+            return null;
+        }
+    }
+
     @Test
     public void testRegisterCustomSerde() {
         HashMapDataStore wrapped = new HashMapDataStore(Dummy.class.getPackage());
