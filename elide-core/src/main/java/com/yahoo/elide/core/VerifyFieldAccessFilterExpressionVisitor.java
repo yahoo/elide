@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
@@ -80,18 +81,18 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
 
     @Override
     public Boolean visitAndExpression(AndFilterExpression expression) {
-        Boolean left = expression.getLeft().accept(this);
-        Boolean right = expression.getRight().accept(this);
+        FilterExpression left = expression.getLeft();
+        FilterExpression right = expression.getRight();
         // are both allowed
-        return left && right;
+        return left.accept(this) && right.accept(this);
     }
 
     @Override
     public Boolean visitOrExpression(OrFilterExpression expression) {
-        Boolean left = expression.getLeft().accept(this);
-        Boolean right = expression.getRight().accept(this);
+        FilterExpression left = expression.getLeft();
+        FilterExpression right = expression.getRight();
         // are both allowed
-        return left && right;
+        return left.accept(this) && right.accept(this);
     }
 
     @Override
