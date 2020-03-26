@@ -7,7 +7,8 @@
       "id": "12345678-1234-1234-1234-1234567890ab",
       "type": "author",
       "attributes": {
-        "name": "Ernest Hemingway"
+        "name": "Ernest Hemingway",
+        "homeAddress": "main"
       },
       "relationships": {
         "books": {
