@@ -13,6 +13,13 @@ elide:
     path: /doc
     enabled: true
     version: "1.0"
+  async:
+    enabled: true
+    threadPoolSize: 7
+    maxRunTimeMinutes: 65
+    cleanupEnabled: true
+    queryCleanupDays: 7
+    defaultAsyncQueryDAO: true
 
 spring:
   jpa:

@@ -1,5 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
  com.yahoo.elide.spring.config.ElideAutoConfiguration, \
+ com.yahoo.elide.spring.config.ElideAsyncConfiguration, \
  com.yahoo.elide.spring.controllers.JsonApiController, \
  com.yahoo.elide.spring.controllers.GraphqlController, \
  com.yahoo.elide.spring.controllers.SwaggerController
