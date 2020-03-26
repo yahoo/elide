@@ -30,7 +30,7 @@ import lombok.Data;
  * Model for Async Query
  */
 @Entity
-@Include(type = "query", rootLevel = true)
+@Include(type = "asyncQuery", rootLevel = true)
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
