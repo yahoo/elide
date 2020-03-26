@@ -1,5 +1,5 @@
-rounds,timeSpent
-10,50
-20,150
-30,1000
-10,200
+game_rounds,timeSpent,player_id
+10,50,1
+20,150,1
+30,520,1
+10,200,2

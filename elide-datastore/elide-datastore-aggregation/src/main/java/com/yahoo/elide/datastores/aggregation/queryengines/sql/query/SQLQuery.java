@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.aggregation.queryengines.sql;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.query.Query;
 

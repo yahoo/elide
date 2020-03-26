@@ -14,6 +14,7 @@ import org.hibernate.annotations.Subselect;
 
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -42,6 +43,7 @@ public class SubCountry {
         this.id = id;
     }
 
+    @Column(name = "iso_code")
     public String getIsoCode() {
         return isoCode;
     }
