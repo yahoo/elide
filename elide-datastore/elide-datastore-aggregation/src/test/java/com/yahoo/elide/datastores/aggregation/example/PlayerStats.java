@@ -8,15 +8,16 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMin;
 
@@ -65,6 +66,10 @@ public class PlayerStats {
      */
     private Country country;
 
+    private String countryNickName;
+
+    private int countryUnSeats;
+
     /**
      * A subselect dimension.
      */
@@ -98,6 +103,12 @@ public class PlayerStats {
     private String player2Name;
 
     private Date recordedDate;
+
+    @Setter
+    private int playerLevel;
+
+    @Setter
+    private String countryIsInUsa;
 
     @Id
     public String getId() {
@@ -144,6 +155,24 @@ public class PlayerStats {
 
     public void setCountry(final Country country) {
         this.country = country;
+    }
+
+    @JoinTo(path = "country.nickName")
+    public String getCountryNickName() {
+        return countryNickName;
+    }
+
+    public void setCountryNickName(String nickName) {
+        this.countryNickName = countryNickName;
+    }
+
+    @JoinTo(path = "country.unSeats")
+    public int getCountryUnSeats() {
+        return countryUnSeats;
+    }
+
+    public void setCountryUnSeats(int seats) {
+        this.countryUnSeats = seats;
     }
 
     @JoinTo(path = "country.isoCode")
@@ -210,6 +239,11 @@ public class PlayerStats {
         this.player2Name = player2Name;
     }
 
+    @DimensionFormula("CASE WHEN {{overallRating}} = 'Good' THEN 1 ELSE 2 END")
+    public int getPlayerLevel() {
+        return playerLevel;
+    }
+
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      *
@@ -225,5 +259,10 @@ public class PlayerStats {
 
     public void setRecordedDate(final Date recordedDate) {
         this.recordedDate = recordedDate;
+    }
+
+    @DimensionFormula("CASE WHEN {{country.inUsa}} THEN 'true' ELSE 'false' END")
+    public String getCountryIsInUsa() {
+        return countryIsInUsa;
     }
 }

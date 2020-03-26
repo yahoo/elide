@@ -18,7 +18,6 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.security.User;
 import org.junit.jupiter.api.Test;
 
 public class TransactionWrapperTest {
@@ -27,21 +26,6 @@ public class TransactionWrapperTest {
         public TestTransactionWrapper(DataStoreTransaction wrapped) {
             super(wrapped);
         }
-    }
-
-    @Test
-    public void testAccessUser() {
-        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
-        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
-
-        Object wrappedUser = new Object();
-        User expectedUser = new User(wrappedUser);
-        when(wrapped.accessUser(eq(wrappedUser))).thenReturn(expectedUser);
-
-        User actualUser = wrapper.accessUser(wrappedUser);
-
-        verify(wrapped, times(1)).accessUser(eq(wrappedUser));
-        assertEquals(expectedUser, actualUser);
     }
 
     @Test

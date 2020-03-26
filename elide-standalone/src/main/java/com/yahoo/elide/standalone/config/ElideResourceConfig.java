@@ -9,7 +9,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.standalone.Util;
 
 import com.codahale.metrics.MetricRegistry;
@@ -72,10 +71,6 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 // Bind elide instance for injection into endpoint
                 bind(elide).to(Elide.class).named("elide");
-
-                // Bind user extraction function for endpoint
-                bind(settings.getUserExtractionFunction())
-                        .to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
 
                 // Bind additional elements
                 bind(elideSettings).to(ElideSettings.class);

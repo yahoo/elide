@@ -3,12 +3,13 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.pagination.PaginationImpl;
@@ -20,7 +21,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Lists;
@@ -41,7 +41,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public static void init() {
         SQLUnitTest.init();
 
-        playerStatsViewTable = new SQLTable(PlayerStatsView.class, dictionary);
+        playerStatsViewTable = engine.getTable("playerStatsView");
     }
 
     /**
@@ -90,7 +90,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testFromSubQuery() {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -116,7 +116,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsViewTable.getDimension("countryName")))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         PlayerStatsView.class, false))
@@ -175,7 +175,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testNotProjectedFilter() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         PlayerStatsView.class, false))
                 .build();
@@ -608,5 +608,76 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats2, results.get(2));
     }
 
+    @Test
+    public void testNullJoinToStringValue() {
+        Query query = Query.builder()
+                .table(playerStatsTable)
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .groupByDimension(toProjection(playerStatsTable.getDimension("countryNickName")))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setHighScore(2412);
+        stats1.setCountryNickName("Uncle Sam");
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setHighScore(1000);
+        stats2.setCountryNickName(null);
+
+        assertEquals(2, results.size());
+        assertEquals(stats1, results.get(0));
+        assertEquals(stats2, results.get(1));
+    }
+
+    @Test
+    public void testNullJoinToIntValue() {
+        Query query = Query.builder()
+                .table(playerStatsTable)
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .groupByDimension(toProjection(playerStatsTable.getDimension("countryUnSeats")))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setHighScore(2412);
+        stats1.setCountryUnSeats(1);
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setHighScore(1000);
+        stats2.setCountryUnSeats(0);
+
+        assertEquals(2, results.size());
+        assertEquals(stats1, results.get(0));
+        assertEquals(stats2, results.get(1));
+    }
+
     //TODO - Add Invalid Request Tests
+    @Test
+    public void testInvalidTimeDimensionWhereClause() {
+        FilterPredicate predicate = new FilterPredicate(
+                new Path(PlayerStats.class, dictionary, "recordedDate"),
+                Operator.IN,
+                Lists.newArrayList(Timestamp.valueOf("2019-07-11 00:00:00")));
+
+        Query query = Query.builder()
+                .table(playerStatsTable)
+                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .whereFilter(predicate)
+                .build();
+
+        InvalidPredicateException exception = assertThrows(
+                InvalidPredicateException.class,
+                () -> engine.executeQuery(query));
+
+        assertEquals("Can't filter on time dimension that's not projected: recordedDate", exception.getMessage());
+    }
 }

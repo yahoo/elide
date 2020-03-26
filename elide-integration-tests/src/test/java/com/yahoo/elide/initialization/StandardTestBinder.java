@@ -15,7 +15,6 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.models.triggers.services.BillingService;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 
 import example.TestCheckMappings;
 
@@ -72,20 +71,6 @@ public class StandardTestBinder extends AbstractBinder {
 
             }
         }).to(Elide.class).named("elide");
-
-        // User function
-        bindFactory(new Factory<DefaultOpaqueUserFunction>() {
-            private final Integer user = 1;
-
-            @Override
-            public DefaultOpaqueUserFunction provide() {
-                return v -> user;
-            }
-
-            @Override
-            public void dispose(DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
-            }
-        }).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
 
         bind(BILLING_SERVICE).to(BillingService.class);
     }

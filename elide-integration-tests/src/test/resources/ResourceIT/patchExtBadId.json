@@ -1,1 +1,4 @@
-{"errors":[{"detail":"Subsequent operation failed."},{"detail":"Unknown identifier '99999' for child","status":404}]}
+[
+  {"errors":[{"detail":"Subsequent operation failed."}]},
+  {"errors":[{"detail":"Unknown identifier 99999 for child","status":"404"}]}
+]

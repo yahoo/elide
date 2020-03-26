@@ -17,6 +17,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.security.Principal;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
@@ -125,7 +126,7 @@ public class LogMessageImpl implements LogMessage {
                 singleElementContext.setVariable(name, singleElementExpression);
             }
 
-            final Object user = getUser().getOpaqueUser();
+            final Principal user = getUser().getPrincipal();
             if (user != null) {
                 final ValueExpression opaqueUserValueExpression = EXPRESSION_FACTORY
                     .createValueExpression(

@@ -84,7 +84,7 @@ public class Path {
                 elements.add(new PathElement(currentClass, null, fieldName));
             } else {
                 String alias = dictionary.getJsonAliasFor(currentClass);
-                throw new InvalidValueException(alias + " doesn't contain the field " + fieldName);
+                throw new InvalidValueException(alias + " does not contain the field " + fieldName);
             }
         }
 

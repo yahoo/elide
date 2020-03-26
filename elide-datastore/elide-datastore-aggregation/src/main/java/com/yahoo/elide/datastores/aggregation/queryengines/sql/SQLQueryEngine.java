@@ -1,32 +1,31 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLColumn;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryConstructor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -53,9 +52,12 @@ import javax.persistence.EntityTransaction;
 public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
 
+    private final SQLReferenceTable referenceTable;
+
     public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
         super(metaDataStore);
         this.entityManagerFactory = entityManagerFactory;
+        this.referenceTable = new SQLReferenceTable(metaDataStore);
     }
 
     @Override
@@ -171,7 +173,7 @@ public class SQLQueryEngine extends QueryEngine {
                     }
                 });
 
-        return new SQLQueryConstructor(getMetadataDictionary()).resolveTemplate(
+        return new SQLQueryConstructor(referenceTable).resolveTemplate(
                 query,
                 queryTemplate,
                 query.getSorting(),
@@ -218,9 +220,11 @@ public class SQLQueryEngine extends QueryEngine {
     private SQLQuery toPageTotalSQL(SQLQuery sql) {
         // TODO: refactor this method
         String groupByDimensions =
-                extractSQLDimensions(sql.getClientQuery(), (SQLTable) sql.getClientQuery().getTable())
+                extractSQLDimensions(sql.getClientQuery(), sql.getClientQuery().getTable())
                         .stream()
-                        .map(SQLColumn::getReference)
+                        .map(dimension -> referenceTable.getResolvedReference(
+                                sql.getClientQuery().getTable(),
+                                dimension.getName()))
                         .collect(Collectors.joining(", "));
 
         String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
@@ -241,33 +245,10 @@ public class SQLQueryEngine extends QueryEngine {
      * @param table queried table
      * @return sql dimensions in this query
      */
-    private List<SQLColumn> extractSQLDimensions(Query query, SQLTable table) {
+    private List<Dimension> extractSQLDimensions(Query query, Table table) {
         return query.getDimensions().stream()
-                .map(projection -> table.getSQLColumn(projection.getColumn().getName()))
+                .map(projection -> table.getDimension(projection.getColumn().getName()))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Converts a filter predicate path into a SQL column reference.
-     * All other code should use this method to generate sql column reference, no matter where the reference is used (
-     * select statement, group by clause, where clause, having clause or order by clause).
-     *
-     * @param path The predicate path to convert
-     * @param dictionary dictionary to expand joinTo path
-     * @return A SQL fragment that references a database column
-     */
-    public static String generateColumnReference(Path path, EntityDictionary dictionary) {
-        Path.PathElement last = path.lastElement().get();
-        Class<?> lastClass = last.getType();
-        String fieldName = last.getFieldName();
-
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(lastClass, JoinTo.class, fieldName);
-
-        if (joinTo == null) {
-            return getPathAlias(path) + "." + dictionary.getAnnotatedColumnName(lastClass, last.getFieldName());
-        } else {
-            return generateColumnReference(new JoinPath(lastClass, dictionary, joinTo.path()), dictionary);
-        }
     }
 
     /**

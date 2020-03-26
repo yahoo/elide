@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.utils.coerce;
 
+import static com.yahoo.elide.utils.TypeHelper.isNumberType;
+
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.utils.coerce.converters.FromMapConverter;
@@ -13,12 +15,12 @@ import com.yahoo.elide.utils.coerce.converters.ToEnumConverter;
 import com.yahoo.elide.utils.coerce.converters.ToUUIDConverter;
 
 import com.google.common.collect.MapMaker;
-
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.Converter;
 
+import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +50,12 @@ public class CoerceUtil {
      */
     public static <T> T coerce(Object value, Class<T> cls) {
         initializeCurrentClassLoaderIfNecessary();
+
+        // null value of number type would be converted to 0, as 'null' would cause exception for primitive
+        // number classes
+        if (value == null && isNumberType(cls)) {
+            return (T) Array.get(Array.newInstance(cls, 1), 0);
+        }
 
         if (value == null || cls == null || cls.isInstance(value)) {
             return (T) value;

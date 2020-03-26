@@ -16,6 +16,7 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.utils.ClassScanner;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,8 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 
 public class MetaDataStoreTest {
-    private static MetaDataStore dataStore = new MetaDataStore();
+    private static MetaDataStore dataStore =
+            new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
 
     @BeforeAll
     public static void setup() {

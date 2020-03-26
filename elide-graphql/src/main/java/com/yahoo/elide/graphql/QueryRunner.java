@@ -72,8 +72,7 @@ public class QueryRunner {
         this.api = new GraphQL(builder.build());
 
         // TODO - add serializers to allow for custom handling of ExecutionResult and GraphQLError objects
-        GraphQLErrorSerializer errorSerializer =
-                new GraphQLErrorSerializer(elide.getElideSettings().isEncodeErrorResponses());
+        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
         SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
         module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
         module.addSerializer(GraphQLError.class, errorSerializer);
@@ -86,7 +85,7 @@ public class QueryRunner {
      * @param user The user who issued the query.
      * @return The response.
      */
-    public ElideResponse run(String graphQLDocument, Object user) {
+    public ElideResponse run(String graphQLDocument, User user) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -139,11 +138,10 @@ public class QueryRunner {
         return executeRequest.apply(topLevel);
     }
 
-    private ElideResponse executeGraphQLRequest(ObjectMapper mapper, Object principal,
+    private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-            final User user = tx.accessUser(principal);
 
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
@@ -162,7 +160,7 @@ public class QueryRunner {
             GraphQLProjectionInfo projectionInfo =
                     new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables).make(query);
             GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope(tx, user, elide.getElideSettings(), projectionInfo);
+                    new GraphQLRequestScope(tx, principal, elide.getElideSettings(), projectionInfo);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
@@ -233,20 +231,20 @@ public class QueryRunner {
             } else {
                 log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             }
-            return buildErrorResponse(new HttpStatusException(200, "") {
+            return buildErrorResponse(new HttpStatusException(200, e.getMessage()) {
                 @Override
                 public int getStatus() {
                     return 200;
                 }
 
                 @Override
-                public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
-                    return e.getErrorResponse(encodeResponse);
+                public Pair<Integer, JsonNode> getErrorResponse() {
+                    return e.getErrorResponse();
                 }
 
                 @Override
-                public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
-                    return e.getVerboseErrorResponse(encodeResponse);
+                public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+                    return e.getVerboseErrorResponse();
                 }
 
                 @Override
@@ -270,20 +268,17 @@ public class QueryRunner {
     private ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
         JsonNode errorNode;
-        boolean encodeErrorResponses = elide.getElideSettings().isEncodeErrorResponses();
-        if (!(error instanceof CustomErrorException) && elide.getElideSettings().isReturnErrorObjects()) {
+        if (!(error instanceof CustomErrorException)) {
             // get the error message and optionally encode it
-            String errorMessage = isVerbose ? error.getVerboseMessage() : error.toString();
-            if (encodeErrorResponses) {
-                errorMessage = Encode.forHtml(errorMessage);
-            }
+            String errorMessage = isVerbose ? error.getVerboseMessage() : error.getMessage();
+            errorMessage = Encode.forHtml(errorMessage);
             ErrorObjects errors = ErrorObjects.builder().addError()
                     .with("message", errorMessage).build();
             errorNode = mapper.convertValue(errors, JsonNode.class);
         } else {
             errorNode = isVerbose
-                    ? error.getVerboseErrorResponse(encodeErrorResponses).getRight()
-                    : error.getErrorResponse(encodeErrorResponses).getRight();
+                    ? error.getVerboseErrorResponse().getRight()
+                    : error.getErrorResponse().getRight();
         }
         String errorBody;
         try {
