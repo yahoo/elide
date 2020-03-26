@@ -1,5 +1,29 @@
 # Change Log
 
+## 4.5.14
+**Security**
+   * [view commit](https://github.com/yahoo/elide/commit/7239e47eca00226550300e5e67cdabbf12145ef0) Enforce ReadPermission for filter expression fields (#1236) 
+   * [view commit](https://github.com/yahoo/elide/commit/d56cf079510bd9f118685d0f347f8373603787b5) Fixes Issue #1211 (XSS mitigation for swagger controller) (#1237) 
+   
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/194ba9293ad996c0667666ab58857ba552ff3bc9) Bump jersey-container-jetty-servlet from 2.29.1 to 2.30.1 (#1199) 
+   * [view commit](https://github.com/yahoo/elide/commit/f6aef5939102fc7046ee353488ec5b5053a58a94) Update pom.xml 
+   * [view commit](https://github.com/yahoo/elide/commit/a8be84c248ff63be61da51a59c8973405ad8ce08) Bump classgraph from 4.8.60 to 4.8.65 (#1198) 
+   * [view commit](https://github.com/yahoo/elide/commit/2b540be444a567ba5796c41a6f1a10eb4a829fa9) Bump junit-jupiter-params from 5.5.2 to 5.6.0 (#1189) 
+   * [view commit](https://github.com/yahoo/elide/commit/b786396b0feac006b8de0de37d39e16fe5439188) Bump guava from 28.1-jre to 28.2-jre (#1193) 
+   * [view commit](https://github.com/yahoo/elide/commit/0ac62236032f364f4fef74ef42c6241b81cade83) Bump maven-checkstyle-plugin from 3.1.0 to 3.1.1 (#1191) 
+   * [view commit](https://github.com/yahoo/elide/commit/68234cf8fb2fdd9cfaf3a3e90e349728d4d56517) Bump resteasy.version from 3.9.3.Final to 3.11.0.Final (#1223) 
+   * [view commit](https://github.com/yahoo/elide/commit/2cceb052a74197079672801235f134cf9654af3f) Bump postgresql from 42.2.9 to 42.2.11 (#1217) 
+   * [view commit](https://github.com/yahoo/elide/commit/1b4695f1e026a82dfde877fbd0b68d4a9df94396) Bump version.jackson from 2.10.2 to 2.10.3 (#1231) 
+   * [view commit](https://github.com/yahoo/elide/commit/8e2ee9072245f61090512297a4a1f0111ef654fc) Bump jackson-module-jaxb-annotations from 2.10.2 to 2.10.3 (#1234) 
+   * [view commit](https://github.com/yahoo/elide/commit/1c489b622fbeecaa423321331d6b21cc2ae8935e) Bump spring.boot.version from 2.2.4.RELEASE to 2.2.5.RELEASE (#1232) 
+   * [view commit](https://github.com/yahoo/elide/commit/96e98eb520281d2d9ab58e19f8391ff6d9b58100) Bump checkstyle from 8.29 to 8.30 (#1233) 
+   * [view commit](https://github.com/yahoo/elide/commit/fe7ebb06c26f071c8d0da180d262377fc2e0197e) Bump build-helper-maven-plugin from 3.0.0 to 3.1.0 (#1230) 
+   * [view commit](https://github.com/yahoo/elide/commit/16c042515bbfbe56882e07d0cbe7e2d29985c49a) Bump metrics.version from 4.1.2 to 4.1.5 (#1229) 
+   * [view commit](https://github.com/yahoo/elide/commit/af16bdb4e637564173b2f7ef2b9d9554b1370f8d) Bump version.log4j from 2.13.0 to 2.13.1 (#1228) 
+   * [view commit](https://github.com/yahoo/elide/commit/c725b7777e3b2fe4e1e1fa76ef1b7fec6da26518) Bump version.jersey from 2.30 to 2.30.1 (#1227) 
+   * [view commit](https://github.com/yahoo/elide/commit/045c192516bbc463dad71695ef147cc5e7b30e9c) Bump version.jetty from 9.4.26.v20200117 to 9.4.27.v20200227 (#1226) 
+
 ## 4.5.13
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/236ed8f9af121a2ebc32dcb9f40c47062c742f6e) Added IsEmpty operation for filter predicate (#1176) 
