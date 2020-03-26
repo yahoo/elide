@@ -8,8 +8,8 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.JoinTo;
 
 import lombok.Data;
 
@@ -47,6 +47,7 @@ public class CountryView {
         this.countryId = countryId;
     }
 
+    @Column(name = "iso_code")
     public String getIsoCode() {
         return isoCode;
     }

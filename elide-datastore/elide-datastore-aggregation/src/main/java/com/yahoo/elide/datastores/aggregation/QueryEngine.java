@@ -94,7 +94,7 @@ public abstract class QueryEngine {
     protected abstract Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary);
 
     /**
-     * Query is responsible for constructing all Tables and Entities metadata in this metadata store.
+     * Query engine is responsible for constructing all Tables and Entities metadata in this metadata store.
      *
      * @param metaDataStore metadata store to populate
      */
@@ -111,8 +111,6 @@ public abstract class QueryEngine {
         metaDataStore.getModelsToBind().stream()
                 .map(model -> constructTable(model, metadataDictionary))
                 .forEach(metaDataStore::addTable);
-
-        metaDataStore.resolveSourceColumn();
     }
 
     /**

@@ -14,7 +14,6 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Sorting;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -32,7 +31,7 @@ public class ViewTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        playerStatsWithViewSchema = new SQLTable(PlayerStatsWithView.class, dictionary);
+        playerStatsWithViewSchema = engine.getTable("playerStatsWithView");
     }
 
     @Test

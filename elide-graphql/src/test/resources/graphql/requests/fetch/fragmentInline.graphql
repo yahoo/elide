@@ -4,12 +4,12 @@ query namedQuery {
   }
 }
 
-fragment AuthorFields on author {
+fragment AuthorFields on AuthorConnection {
   edges {
     node {
       id
       books {
-        ... on book {
+        ... on BookConnection {
           edges {
             node {
               id
