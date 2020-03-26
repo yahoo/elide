@@ -24,7 +24,7 @@ import lombok.Data;
  * Model for Async Query Result
  */
 @Entity
-@Include(type="queryResult")
+@Include(type="asyncQueryResult")
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @CreatePermission(expression = "Prefab.Role.None")
