@@ -21,12 +21,12 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -162,7 +162,7 @@ public class SQLQueryConstructor {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 
-        MetricFunctionInvocation metric = template.getMetrics().stream()
+        MetricProjection metric = template.getMetrics().stream()
                 // TODO: filter predicate should support alias
                 .filter(invocation -> invocation.getAlias().equals(fieldName))
                 .findFirst()
@@ -323,7 +323,7 @@ public class SQLQueryConstructor {
 
                     Path.PathElement last = expandedPath.lastElement().get();
 
-                    MetricFunctionInvocation metric = template.getMetrics().stream()
+                    MetricProjection metric = template.getMetrics().stream()
                             // TODO: filter predicate should support alias
                             .filter(invocation -> invocation.getAlias().equals(last.getFieldName()))
                             .findFirst()
@@ -472,7 +472,7 @@ public class SQLQueryConstructor {
         String fieldName = columnProjection.getColumn().getName();
 
         if (columnProjection instanceof TimeDimensionProjection) {
-            TimeDimension timeDimension = ((TimeDimensionProjection) columnProjection).getTimeDimension();
+            TimeDimension timeDimension = ((TimeDimensionProjection) columnProjection).getColumn();
             TimeDimensionGrain grainInfo = timeDimension.getSupportedGrains().stream()
                     .filter(g -> g.getGrain().equals(((TimeDimensionProjection) columnProjection).getGrain()))
                     .findFirst()

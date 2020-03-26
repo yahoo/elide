@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.query;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
@@ -31,7 +30,7 @@ public class Query {
     private final Table table;
 
     @Singular
-    private final List<MetricFunctionInvocation> metrics;
+    private final List<MetricProjection> metrics;
 
     @Singular
     private final Set<ColumnProjection> groupByDimensions;

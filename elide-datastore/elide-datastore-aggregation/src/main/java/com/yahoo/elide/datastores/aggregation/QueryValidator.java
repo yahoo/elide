@@ -13,9 +13,9 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.request.Sorting;
 
@@ -32,7 +32,7 @@ public class QueryValidator {
     private Set<String> allFields;
     private EntityDictionary dictionary;
     private Table queriedTable;
-    private List<MetricFunctionInvocation> metrics;
+    private List<MetricProjection> metrics;
     private Set<ColumnProjection> dimensionProjections;
 
     public QueryValidator(Query query, Set<String> allFields, EntityDictionary dictionary) {
