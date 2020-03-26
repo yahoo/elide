@@ -79,10 +79,10 @@
         <!-- dependency versions -->
         <version.antlr4>4.8-1</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.26.v20200117</version.jetty>
+        <version.jetty>9.4.27.v20200227</version.jetty>
         <version.restassured>4.2.0</version.restassured>
-        <version.jackson>2.10.2</version.jackson>
-        <version.jersey>2.30</version.jersey>
+        <version.jackson>2.10.3</version.jackson>
+        <version.jersey>2.30.1</version.jersey>
         <version.junit>5.6.0</version.junit>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <version.mysql>8.0.19</version.mysql>
@@ -129,7 +129,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>28.1-jre</version>
+                <version>28.2-jre</version>
             </dependency>
             <dependency>
                 <groupId>javax.inject</groupId>
@@ -282,7 +282,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.1.1</version>
                     <executions>
                         <execution>
                             <id>validate</id>
@@ -309,7 +309,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>8.29</version>
+                            <version>8.30</version>
                             <scope>compile</scope>
                         </dependency>
                     </dependencies>
