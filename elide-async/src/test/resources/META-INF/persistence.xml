@@ -12,6 +12,7 @@
     <persistence-unit name="asyncStore">
         <class>com.yahoo.elide.async.models.AsyncQuery</class>
         <class>com.yahoo.elide.async.models.AsyncQueryResult</class>
+        <class>com.yahoo.elide.async.integration.framework.Player</class>
 
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>

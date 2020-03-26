@@ -1,3 +1,8 @@
+/*
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.async.integration.tests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
@@ -8,20 +13,23 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
 import javax.persistence.Persistence;
 
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 
+import com.yahoo.elide.async.integration.framework.AsyncDataStoreTestHarness;
+import com.yahoo.elide.async.integration.framework.AsyncIntegrationTestApplicationResourceConfig;
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
-import com.yahoo.elide.async.integration.framework.AsyncDataStoreTestHarness;
-import com.yahoo.elide.async.integration.framework.AsyncIntegrationTestApplicationResourceConfig;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -50,7 +58,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
                        type("query"),
                        id("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
                        attributes(
-                               attr("query", "/group?sort=commonName&fields%5Bgroup%5D=commonName,description"),
+                               attr("query", "/player?sort=name&fields%5Bgroup%5D=name"),
                                attr("queryType", "JSONAPI_V1_0"),
                                attr("status", "QUEUED")
                        )
@@ -64,10 +72,25 @@ public class AsyncIntegrationTest extends IntegrationTest{
 
     /**
      * This test demonstrates an example get request using the JSON-API for Async.
+     * @throws InterruptedException
      */
     @Test
     @Order(2)
-    void jsonApiGetTest() {
-        System.out.println(given().contentType(JSONAPI_CONTENT_TYPE).when().get("/query").asString());
-     }
+    public void jsonApiAsyncQueryGetTest() throws InterruptedException {
+        //Adding slight delay before starting to wait for AsyncQuery to be completed
+        Thread.sleep(15000);
+        given()
+                .accept("application/vnd.api+json")
+                .get("/query/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
+                .body("data.attributes.createdOn", notNullValue())
+                .body("data.attributes.updatedOn", notNullValue())
+                .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
+                .body("data.relationships.result.data.type", equalTo("queryResult"))
+                .body("data.relationships.result.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
+    }
+
 }
