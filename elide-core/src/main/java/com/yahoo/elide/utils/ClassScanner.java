@@ -37,8 +37,7 @@ public class ClassScanner {
      */
     static public Set<Class<?>> getAnnotatedClasses(String packageName, Class<? extends Annotation> annotation) {
         try (ScanResult scanResult = new ClassGraph()
-                .enableClassInfo().enableAnnotationInfo().ignoreClassVisibility().whitelistPackages(packageName)
-                .scan()) {
+                .enableClassInfo().enableAnnotationInfo().whitelistPackages(packageName).scan()) {
             return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());
@@ -53,7 +52,7 @@ public class ClassScanner {
      */
     static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> annotation) {
         try (ScanResult scanResult = new ClassGraph()
-                .enableClassInfo().enableAnnotationInfo().ignoreClassVisibility().scan()) {
+                .enableClassInfo().enableAnnotationInfo().scan()) {
             return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());
@@ -67,8 +66,7 @@ public class ClassScanner {
      */
     static public Set<Class<?>> getAllClasses(String packageName) {
         try (ScanResult scanResult = new ClassGraph()
-                .enableClassInfo().ignoreClassVisibility()
-                .whitelistPackages(packageName).scan()) {
+                .enableClassInfo().whitelistPackages(packageName).scan()) {
             return scanResult.getAllClasses().stream()
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());

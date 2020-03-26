@@ -27,18 +27,14 @@ public class ClassScannerTest {
     @Test
     public void testGetAnnotatedClasses() {
         Set<Class<?>> classes = ClassScanner.getAnnotatedClasses("example", ReadPermission.class);
-        assertEquals(6, classes.size());
-        for (Class<?> cls : classes) {
-            assertTrue(cls.isAnnotationPresent(ReadPermission.class));
-        }
+        assertEquals(6, classes.size(), "Actual: " + classes);
+        classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(ReadPermission.class)));
     }
 
     @Test
     public void testGetAllAnnotatedClasses() {
         Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ReadPermission.class);
-        assertEquals(20, classes.size());
-        for (Class<?> cls : classes) {
-            assertTrue(cls.isAnnotationPresent(ReadPermission.class));
-        }
+        assertEquals(12, classes.size(), "Actual: " + classes);
+        classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(ReadPermission.class)));
     }
 }

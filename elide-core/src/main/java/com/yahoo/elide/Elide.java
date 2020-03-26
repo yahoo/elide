@@ -114,7 +114,7 @@ public class Elide {
                     | NoSuchMethodException | InvocationTargetException e) {
                 String errorMsg = String.format("Error while registering custom Serde: %s", e.getLocalizedMessage());
                 log.error(errorMsg);
-                throw new UnableToAddSerdeException(errorMsg);
+                throw new UnableToAddSerdeException(errorMsg, e);
             }
             ElideTypeConverter converter = clazz.getAnnotation(ElideTypeConverter.class);
             Class baseType = converter.type();

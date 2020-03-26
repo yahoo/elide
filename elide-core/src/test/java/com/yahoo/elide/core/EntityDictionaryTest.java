@@ -105,17 +105,17 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("Prefab.Common.UpdateOnCreate", getCheckIdentifier(UpdateOnCreate.class));
     }
 
+    @SecurityCheck("User is Admin")
+    public class Foo extends UserCheck {
+
+        @Override
+        public boolean ok(com.yahoo.elide.security.User user) {
+            return false;
+        }
+    }
+
     @Test
     public void testCheckScan() {
-
-        @SecurityCheck("User is Admin")
-        class Foo extends UserCheck {
-
-            @Override
-            public boolean ok(com.yahoo.elide.security.User user) {
-                return false;
-            }
-        }
 
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
         testDictionary.scanForSecurityChecks();
