@@ -165,11 +165,6 @@ public interface ColumnProjection extends Serializable {
             public Map<String, Argument> getArguments() {
                 return arguments;
             }
-
-            @Override
-            public MetricFunction getFunction() {
-                return metric.getMetricFunction();
-            }
         };
     }
 }

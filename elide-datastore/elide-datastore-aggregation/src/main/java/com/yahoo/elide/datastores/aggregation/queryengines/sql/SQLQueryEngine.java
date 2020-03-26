@@ -143,7 +143,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         SQLQueryTemplate queryTemplate = query.getMetrics().stream()
                 .map(metricProjection -> {
-                    if (!(metricProjection.getFunction() instanceof SQLMetricFunction)) {
+                    if (!(metricProjection.getColumn().getMetricFunction() instanceof SQLMetricFunction)) {
                         throw new InvalidPredicateException(
                                 "Non-SQL metric function on " + metricProjection.getAlias());
                     }

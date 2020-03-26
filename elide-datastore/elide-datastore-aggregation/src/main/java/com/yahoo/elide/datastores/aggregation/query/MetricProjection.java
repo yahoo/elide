@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 
 /**
  * Represents a projected metric column as an alias in a query.
@@ -21,18 +20,11 @@ public interface MetricProjection extends ColumnProjection {
     Metric getColumn();
 
     /**
-     * Get invoked metric function.
-     *
-     * @return metric function
-     */
-    MetricFunction getFunction();
-
-    /**
      * Get full expression with provided arguments.
      *
      * @return function expression
      */
     default String getFunctionExpression() {
-        return getFunction().constructExpression(getArguments());
+        return getColumn().getMetricFunction().constructExpression(getArguments());
     }
 }
