@@ -88,8 +88,9 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         author.setBooks(Sets.newHashSet(book));
 
         PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
-        //First test collecting the predicates in a Set
+
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
+        // unrestricted fields
         assertTrue(not.accept(visitor));
         assertTrue(and1.accept(visitor));
         assertTrue(and2.accept(visitor));
@@ -142,14 +143,16 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         when(permissionExecutor.checkSpecificFieldPermissions(resource, null, ReadPermission.class, HOME))
             .thenThrow(ForbiddenAccessException.class);
 
-        //First test collecting the predicates in a Set
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
+        // restricted HOME field
         assertFalse(not.accept(visitor));
         assertFalse(and1.accept(visitor));
         assertFalse(and2.accept(visitor));
         assertFalse(or.accept(visitor));
-        assertTrue(p1.accept(visitor));
         assertFalse(p2.accept(visitor));
+
+        // unrestricted fields
+        assertTrue(p1.accept(visitor));
         assertTrue(p3.accept(visitor));
         assertTrue(p4.accept(visitor));
 
