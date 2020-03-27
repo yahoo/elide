@@ -124,7 +124,6 @@ public class ElideStandalone {
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
-
         elideStandaloneSettings.updateServletContextHandler(context);
 
         try {
