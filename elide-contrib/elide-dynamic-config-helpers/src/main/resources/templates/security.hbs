@@ -10,7 +10,7 @@ public class DynamicConfigOperationChecks {
 {{#each roles}}
     @SecurityCheck(PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}}.PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}})
     public static class PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}} extends RoleMemberCheck {
-        public static final String PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}} = "{{this}}";
+        public static final String PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}} = "Principal is {{this}}";
         public PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}}() {
             super("{{this}}");
         }
