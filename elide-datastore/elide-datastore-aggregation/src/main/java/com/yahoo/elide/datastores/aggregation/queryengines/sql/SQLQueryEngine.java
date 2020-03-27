@@ -157,6 +157,11 @@ public class SQLQueryEngine extends QueryEngine {
                 .reduce(SQLQueryTemplate::merge)
                 .orElse(new SQLQueryTemplate() {
                     @Override
+                    public SQLTable getTable() {
+                        return (SQLTable) query.getTable();
+                    }
+
+                    @Override
                     public List<MetricProjection> getMetrics() {
                         return Collections.emptyList();
                     }

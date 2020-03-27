@@ -9,7 +9,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
@@ -26,7 +25,7 @@ import java.util.Set;
  * SQLMetric would contain {@link SQLMetricFunction} instead of {@link MetricFunction}.
  */
 public class SQLMetric extends Metric {
-    public SQLMetric(Table table, String fieldName, EntityDictionary dictionary) {
+    public SQLMetric(SQLTable table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
     }
 
@@ -56,6 +55,11 @@ public class SQLMetric extends Metric {
         MetricProjection projection = ColumnProjection.toMetricProjection(this, alias, arguments);
 
         return new SQLQueryTemplate() {
+            @Override
+            public SQLTable getTable() {
+                return (SQLTable) projection.getColumn().getTable();
+            }
+
             @Override
             public List<MetricProjection> getMetrics() {
                 return Collections.singletonList(projection);

@@ -9,6 +9,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import com.google.common.collect.Sets;
 
@@ -21,6 +22,13 @@ import java.util.Set;
  * SQLQueryTemplate contains projections information about a sql query.
  */
 public interface SQLQueryTemplate {
+    /**
+     * Get the queried table.
+     *
+     * @return sql table
+     */
+    SQLTable getTable();
+
     /**
      * Get all invoked metrics in this query.
      *
@@ -61,7 +69,13 @@ public interface SQLQueryTemplate {
      */
     default SQLQueryTemplate toTimeGrain(TimeGrain timeGrain) {
         SQLQueryTemplate wrapped = this;
+
         return new SQLQueryTemplate() {
+            @Override
+            public SQLTable getTable() {
+                return wrapped.getTable();
+            }
+
             @Override
             public List<MetricProjection> getMetrics() {
                 return wrapped.getMetrics();
@@ -86,12 +100,19 @@ public interface SQLQueryTemplate {
      * @return merged query template
      */
     default SQLQueryTemplate merge(SQLQueryTemplate second) {
-        SQLQueryTemplate first = this;
         // TODO: validate dimension
+        assert this.getTable().equals(second.getTable());
+
+        SQLQueryTemplate first = this;
         List<MetricProjection> merged = new ArrayList<>(first.getMetrics());
         merged.addAll(second.getMetrics());
 
         return new SQLQueryTemplate() {
+            @Override
+            public SQLTable getTable() {
+                return first.getTable();
+            }
+
             @Override
             public List<MetricProjection> getMetrics() {
                 return merged;
