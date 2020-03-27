@@ -70,7 +70,8 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 .getRelationshipType(entity.getClass(), fieldName) == RelationshipType.NONE) {
             return Stream.empty();
         }
-        return resource.getRelationChecked(fieldName, Optional.empty(), Optional.empty(), Optional.empty()).stream();
+        Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(resource, fieldName);
+        return resource.getRelationChecked(fieldName, filterExpression, Optional.empty(), Optional.empty()).stream();
     }
 
     @Override
