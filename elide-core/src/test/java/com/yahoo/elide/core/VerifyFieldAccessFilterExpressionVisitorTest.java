@@ -21,8 +21,6 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.security.PermissionExecutor;
 
-import com.google.common.collect.Sets;
-
 import example.Author;
 import example.Book;
 
@@ -30,10 +28,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 public class VerifyFieldAccessFilterExpressionVisitorTest {
 
-    private static final String ENTITY = "entity";
     private static final String GENRE = "genre";
     private static final String HOME = "homeAddress";
     private static final String NAME = "name";
@@ -44,13 +42,15 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     public void setupMocks() {
         // this will test with the default interface implementation
         scope = mock(RequestScope.class);
-        EntityDictionary dictionary = mock(EntityDictionary.class);
         PermissionExecutor permissionExecutor = mock(PermissionExecutor.class);
+        DataStoreTransaction transaction = mock(DataStoreTransaction.class);
+        EntityDictionary dictionary = new EntityDictionary(Collections.emptyMap());
+        dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Author.class);
 
         when(scope.getDictionary()).thenReturn(dictionary);
-        when(dictionary.getIdType(String.class)).thenReturn((Class) Long.class);
-        when(dictionary.getValue(ENTITY, NAME, scope)).thenReturn(3L);
         when(scope.getPermissionExecutor()).thenReturn(permissionExecutor);
+        when(scope.getTransaction()).thenReturn(transaction);
     }
 
     @Test
@@ -84,8 +84,8 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
         Book book = new Book();
         Author author = new Author();
-        book.setAuthors(Sets.newHashSet(author));
-        author.setBooks(Sets.newHashSet(book));
+        book.setAuthors(Collections.singleton(author));
+        author.setBooks(Collections.singleton(book));
 
         PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
 
@@ -135,8 +135,8 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
         Book book = new Book();
         Author author = new Author();
-        book.setAuthors(Sets.newHashSet(author));
-        author.setBooks(Sets.newHashSet(book));
+        book.setAuthors(Collections.singleton(author));
+        author.setBooks(Collections.singleton(book));
         PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
