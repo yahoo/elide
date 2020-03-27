@@ -18,8 +18,7 @@ import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,24 +37,25 @@ public class HandlebarsHydrator {
     /**
      * Method to hydrate the Table template.
      * @param table ElideTable object
-     * @return table java class list
+     * @return map with key as table java class name and value as table java class definition
      * @throws IOException IOException
      */
-    public List<String> hydrateTableTemplate(ElideTable table) throws IOException {
+    public Map<String, String> hydrateTableTemplate(ElideTable table) throws IOException {
 
-        List<String> tableClassStringList = new ArrayList<>();
+        Map<String, String> tableClasses = new HashMap<>();
 
         TemplateLoader loader = new ClassPathTemplateLoader("/templates");
         Handlebars handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
+        HandlebarsHelper helper = new HandlebarsHelper();
         handlebars.registerHelpers(ConditionalHelpers.class);
-        handlebars.registerHelpers(new HandlebarsHelper());
+        handlebars.registerHelpers(helper);
         Template template = handlebars.compile("table");
 
         for (Table t : table.getTables()) {
-            tableClassStringList.add(template.apply(t));
+            tableClasses.put(helper.capitalizeFirstLetter(t.getName()), template.apply(t));
         }
 
-        return tableClassStringList;
+        return tableClasses;
     }
 
     /**
@@ -72,25 +72,6 @@ public class HandlebarsHydrator {
         Template template = handlebars.compileInline(config);
 
         return template.apply(context);
-    }
-
-    /**
-     * Method to return the List of Class Names hydrated.
-     * @param table ElideTable object
-     * @return table java class name list
-     * @throws IOException IOException
-     */
-    public List<String> getTableClassNames(ElideTable table) throws IOException {
-
-        List<String> tableClassStringNameList = new ArrayList<>();
-
-        HandlebarsHelper helper = new HandlebarsHelper();
-
-        for (Table t : table.getTables()) {
-            tableClassStringNameList.add(helper.capitalizeFirstLetter(t.getName()));
-        }
-
-        return tableClassStringNameList;
     }
 
     /**

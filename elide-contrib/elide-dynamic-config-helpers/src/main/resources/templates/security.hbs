@@ -5,18 +5,15 @@ import java.util.Optional;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;
 
-/**
- * Operation Checks on the Async Query and Result objects.
- */
-public class AsyncQueryOperationChecks {
+public class DynamicConfigOperationChecks {
 
-{{#each rules}}
-    @SecurityCheck(AsyncQueryOwner{{#getClassSuffix name}}{{/getClassSuffix}}.{{#getVarName name}}{{/getVarName}})
-    public static class AsyncQueryOwner{{#getClassSuffix name}}{{/getClassSuffix}} extends RoleMemberCheck {
-        public static final String {{#getVarName name}}{{/getVarName}} = "{{name}}";
-        public AsyncQueryOwner{{#getClassSuffix name}}{{/getClassSuffix}}() {
-                        super("{{#getRoleName name}}{{/getRoleName}}");
-                }
+{{#each roles}}
+    @SecurityCheck(PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}}.PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}})
+    public static class PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}} extends RoleMemberCheck {
+        public static final String PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}} = "{{this}}";
+        public PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}}() {
+            super("{{this}}");
+        }
     }
 {{/each}}
 }

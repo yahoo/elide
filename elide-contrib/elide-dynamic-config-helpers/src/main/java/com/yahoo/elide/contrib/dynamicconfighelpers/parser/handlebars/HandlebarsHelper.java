@@ -5,12 +5,8 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
-
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Type;
 import com.github.jknack.handlebars.Options;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,16 +19,11 @@ import java.util.stream.Collectors;
 public class HandlebarsHelper {
 
     private static final String EMPTY_STRING = "";
-    private static final String UNDERSCORE = "_";
     private static final String STRING = "String";
     private static final String DATE = "Date";
-    private static final String DOUBLE = "Double";
+    private static final String BIGDECIMAL = "BigDecimal";
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
-    private static final String SPACE = " ";
-    private static final String FOUR_SPACES = "    ";
-    private static final String EIGHT_SPACES = FOUR_SPACES + FOUR_SPACES;
-    private static final String NEWLINE = "\n";
     private static final String WHITESPACE_REGEX = "\\s+";
 
     /**
@@ -44,6 +35,19 @@ public class HandlebarsHelper {
 
         return (str == null || str.length() == 0) ? str : str.substring(0, 1).toUpperCase(Locale.ENGLISH)
                 + str.substring(1);
+    }
+
+    /**
+     * Transform string to capitalize first letter of each word and remove spaces.
+     * @param str String to be transformed
+     * @return Capitalize First Letter of Each Word and remove spaces
+     */
+    public String firstCharOnlyToUpper(String str) {
+
+        return (str == null || str.length() == 0) ? str
+                : String.join(EMPTY_STRING, Arrays.asList(str.trim().split(WHITESPACE_REGEX)).stream().map(
+                        s -> s.substring(0, 1).toUpperCase(Locale.ENGLISH) + s.substring(1).toLowerCase(Locale.ENGLISH))
+                        .collect(Collectors.toList()));
     }
 
     /**
@@ -67,164 +71,27 @@ public class HandlebarsHelper {
     }
 
     /**
-     * If template matches a string.
-     * @param str String representation of the template
-     * @param options options object with string to match
-     * @return template if matched
-     * @throws IOException IOException
-     */
-    public CharSequence ifContains(String str, Options options) throws IOException {
-
-        String toMatch = options.param(0, null);
-        return options.isFalsy(contains(str, toMatch)) ? options.inverse() : options.fn();
-    }
-
-    /**
-     * If type of dimension matches passed value.
-     * @param dim Elide dimension object
+     * If type matches passed value.
+     * @param type Elide model type object
      * @param options options object with type/string to match
      * @return template if matched
      * @throws IOException IOException
      */
-    public CharSequence ifDimTypeMatches(Dimension dim, Options options) throws IOException {
+    public CharSequence ifTypeMatches(Object type, Options options) throws IOException {
 
-        String dimDataType = dim.getType().toString();
+        String inputType = type.toString();
         String typeToMatch = options.param(0, null);
-        boolean result = new EqualsBuilder().append(dimDataType, typeToMatch).isEquals();
-        return result ? options.fn() : options.inverse();
+        return inputType.equals(typeToMatch) ? options.fn() : options.inverse();
     }
 
     /**
-     * If string contains passed value.
-     * @param str String to be searched
-     * @param search pattern to search
-     * @return true/false if matched
-     */
-    public boolean contains(String str, String search) {
-
-        return (str == null || str.indexOf(search) < 0);
-    }
-
-    /**
-     * Generate setter method.
-     * @param type Type of the field
-     * @param fieldName Field Name
-     * @return setter method
-     */
-    public String generateSetterMethod(String type, String fieldName) {
-
-        return "public void set" + capitalizeFirstLetter(fieldName) + "(" + type + SPACE + fieldName + ") {" + NEWLINE
-                        + EIGHT_SPACES + "this." + fieldName + " = " + fieldName + ";" + NEWLINE + FOUR_SPACES + "}";
-    }
-
-    /**
-     * Generate setter method for Dimension Type.
-     * @param dim Dimension Object
-     * @return setter method
-     */
-    public String generateDimSetterMethod(Dimension dim) {
-
-        String type = getDimensionType(dim);
-        String fieldName = dim.getName();
-        return "public void set" + capitalizeFirstLetter(fieldName) + "(" + type + SPACE + fieldName + ") {" + NEWLINE
-                        + EIGHT_SPACES + "this." + fieldName + " = " + fieldName + ";" + NEWLINE + FOUR_SPACES + "}";
-    }
-
-    /**
-     * Generate setter method for Join Type.
-     * @param join Join Object
-     * @return setter method
-     */
-    public String generateJoinSetterMethod(Join join) {
-
-        String type = capitalizeFirstLetter(join.getTo());
-        String fieldName = join.getName();
-        return "public void set" + capitalizeFirstLetter(fieldName) + "(" + type + SPACE + fieldName + ") {" + NEWLINE
-                        + EIGHT_SPACES + "this." + fieldName + " = " + fieldName + ";" + NEWLINE + FOUR_SPACES + "}";
-    }
-
-    /**
-     * Generate getter method.
-     * @param type Type of the field
-     * @param fieldName field Name
-     * @return getter method
-     */
-    public String generateGetterMethod(String type, String fieldName) {
-
-        return "public " + type + " get" + capitalizeFirstLetter(fieldName) + "() {" + NEWLINE + EIGHT_SPACES
-                        + "return " + fieldName + ";" + NEWLINE + FOUR_SPACES + "}";
-    }
-
-    /**
-     * Generate getter method for Dimension type.
-     * @param dim Dimension Object
-     * @return getter method
-     */
-    public String generateDimGetterMethod(Dimension dim) {
-
-        String type = getDimensionType(dim);
-        String fieldName = dim.getName();
-        return "public " + type + " get" + capitalizeFirstLetter(fieldName) + "() {" + NEWLINE + EIGHT_SPACES
-                        + "return " + fieldName + ";" + NEWLINE + FOUR_SPACES + "}";
-    }
-
-    /**
-     * Generate getter method for Join type.
-     * @param join Join Object
-     * @return getter method
-     */
-    public String generateJoinGetterMethod(Join join) {
-
-        String type = capitalizeFirstLetter(join.getTo());
-        String fieldName = join.getName();
-        return "public " + type + " get" + capitalizeFirstLetter(fieldName) + "() {" + NEWLINE + EIGHT_SPACES
-                        + "return " + fieldName + ";" + NEWLINE + FOUR_SPACES + "}";
-    }
-
-    // Security.java helper methods
-    /**
-     * Get the Class Name for Security.
-     * @param name Name of the security rule
-     * @return Capitalize First Letter of Each Word and remove spaces
-     */
-    public String getClassSuffix(String name) {
-
-        String[] nameSplit = name.trim().split(WHITESPACE_REGEX);
-        return String.join(EMPTY_STRING,
-                Arrays.asList(nameSplit).stream().map(str -> capitalizeFirstLetter(str)).collect(Collectors.toList()));
-    }
-
-    /**
-     * Get Variable Name for Security rule.
-     * @param name Name of the security rule
-     * @return Change each word to upper case and replace spaces with underscore
-     */
-    public String getVarName(String name) {
-
-        String[] nameSplit = name.trim().split(WHITESPACE_REGEX);
-        return String.join(UNDERSCORE,
-                Arrays.asList(nameSplit).stream().map(str -> toUpperCase(str)).collect(Collectors.toList()));
-    }
-
-    /**
-     * Get Name of the security role from security rule.
-     * @param name Name of the security rule
-     * @return Last word in lower case
-     */
-    public String getRoleName(String name) {
-
-        String[] nameSplit = name.trim().split(WHITESPACE_REGEX);
-        return toLowerCase(nameSplit[nameSplit.length - 1]);
-    }
-
-    /**
-     * Get java type name corresponding to the dimension type.
-     * @param dim Dimension Object
+     * Get java type name corresponding to the Elide model type.
+     * @param type Elide model type object
      * @return The corresponding java type name
      */
-    public String getDimensionType(Dimension dim) {
+    public String getJavaType(Type type) {
 
-        switch (dim.getType()) {
+        switch (type) {
             case BOOLEAN:
                 return BOOLEAN;
             case COORDINATE:
@@ -236,9 +103,9 @@ public class HandlebarsHelper {
             case TIME:
                 return DATE;
             case DECIMAL:
-                return DOUBLE;
+                return BIGDECIMAL;
             case MONEY:
-                return DOUBLE;
+                return BIGDECIMAL;
             default:
                 return STRING;
         }

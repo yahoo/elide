@@ -1,14 +1,17 @@
 package com.yahoo.elide.contrib.dynamicconfig.model;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
+import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import lombok.EqualsAndHashCode;
@@ -29,55 +32,50 @@ import javax.persistence.Entity;
 @ToString
 @Entity
 @Data
-{{#if table}}@FromTable(name = "{{table}}"){{/if}}
-public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {
+{{#if table}}@FromTable(name = "{{#if schema}}{{schema}}.{{/if}}{{table}}"){{/if}}
+{{#if sql}}@FromSubquery(sql = "{{sql}}"){{/if}}
+{{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
+{{#if description}}@Meta(description = "{{description}}"){{/if}}
+public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {{#if extend}}extends {{#capitalizeFirstLetter extend}}{{/capitalizeFirstLetter}}{{/if}}{
 
     @Id
     private String name;
 
 {{#each dimensions}}
-    private {{#getDimensionType this}}{{/getDimensionType}} {{name}};
-{{/each}}
 
-{{#each joins}}
-    private {{#capitalizeFirstLetter to}}{{/capitalizeFirstLetter}} {{ name }};
- {{/each}}
-
-{{#each dimensions}}
-{{!--  --}}
-{{#ifDimTypeMatches this "TIME"}}
+{{#ifTypeMatches type "TIME"}}
     @Temporal(grains = {
     {{#each grains}}
             @TimeGrainDefinition(grain = TimeGrain.{{grain}}, expression = "{{sql}}"){{#if @last}}{{else}}, {{/if}}
     {{/each}}
     }, timeZone = "UTC")
+{{/ifTypeMatches}}
 
-    {{#generateDimGetterMethod this}}{{/generateDimGetterMethod}}
+    {{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
+    {{#if description}}@Meta(description = "{{description}}"){{/if}}
+    @DimensionFormula("{{definition}}")
+    private {{#getJavaType type}}{{/getJavaType}} {{name}};
 
-    {{#generateDimSetterMethod this}}{{/generateDimSetterMethod}}
-
-{{!--  --}}
-{{else}}
-    {{#ifContains definition "."}}
-        @JoinTo(path = "{{definition}}")
-        @Column(updatable = false, insertable = false)
-        {{#generateDimGetterMethod this}}{{/generateDimGetterMethod}}
-
-        {{#generateDimSetterMethod this}}{{/generateDimSetterMethod}}
-    {{!--  --}}
-    {{else}}
-        @DimensionFormula("{{definition}}")
-        {{#generateDimGetterMethod this}}{{/generateDimGetterMethod}}
-    {{!--  --}}
-    {{/ifContains}}
-{{/ifDimTypeMatches}}
 {{/each}}
 
-{{#each joins}}
-    @Join("{{ definition }}")
-    {{#generateJoinGetterMethod this}}{{/generateJoinGetterMethod}}
 
-    {{#generateJoinSetterMethod this}}{{/generateJoinSetterMethod}}
+{{#each joins}}
+
+    @Join("{{ definition }}")
+{{#ifTypeMatches type "toMany"}}
+    private Set<{{#capitalizeFirstLetter to}}{{/capitalizeFirstLetter}}> {{name}};
+{{else}}
+    private {{#capitalizeFirstLetter to}}{{/capitalizeFirstLetter}} {{name}};
+{{/ifTypeMatches}}
+
+{{/each}}
+
+{{#each measures}}
+
+    @MetricFormula("{{definition}}")
+    {{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
+    {{#if description}}@Meta(description = "{{description}}"){{/if}}
+    private {{#getJavaType type}}{{/getJavaType}} {{name}};
 
 {{/each}}
 }

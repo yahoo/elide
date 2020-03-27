@@ -9,19 +9,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
-import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideSecurityToPojo;
-import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideTableToPojo;
-import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideVariableToPojo;
+import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideConfigParser;
 
 import org.junit.jupiter.api.Test;
 
+
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 public class HandlebarsHydratorTest {
 
-    public static final String VALID_TABLE = "{\n"
+    private ElideConfigParser testClass = new ElideConfigParser();
+    private static final String VALID_TABLE = "{\n"
             + "  tables: [{\n"
             + "      name: PlayerStats\n"
             + "      table: player_stats\n"
@@ -37,7 +36,7 @@ public class HandlebarsHydratorTest {
             + "          {  \n"
             + "             name: playerCountry\n"
             + "             to: country\n"
-            + "             type: toOne\n"
+            + "             type: toMany\n"
             + "             definition: '${to}.id = ${from}.country_id'\n"
             + "          }\n"
             + "      ]\n"
@@ -55,6 +54,13 @@ public class HandlebarsHydratorTest {
             + "           name : countryIsoCode\n"
             + "           type : TEXT\n"
             + "           definition : playerCountry.isoCode\n"
+            + "         },\n"
+            + "         { \n"
+            + "           name : inUsa\n"
+            + "           type : BOOLEAN\n"
+            + "           definition : CASE WHEN true THEN true ELSE false END\n"
+            + "           description : player is from USA\n"
+            + "           readAccess : Principal is guesT\n"
             + "         },\n"
             + "         { \n"
             + "           name : createdOn\n"
@@ -80,7 +86,7 @@ public class HandlebarsHydratorTest {
             + "    }]\n"
             + "}";
 
-    public static final String VALID_TABLE_WITH_VARIABLES = "{\n"
+    private static final String VALID_TABLE_WITH_VARIABLES = "{\n"
             + "  tables: [{\n"
             + "      name: {{ name }}\n"
             + "      table: {{ table }}\n"
@@ -96,7 +102,7 @@ public class HandlebarsHydratorTest {
             + "          {  \n"
             + "             name: playerCountry\n"
             + "             to: country\n"
-            + "             type: toOne\n"
+            + "             type: toMany\n"
             + "             definition: '${to}.id = ${from}.country_id'\n"
             + "          }\n"
             + "      ]\n"
@@ -114,6 +120,13 @@ public class HandlebarsHydratorTest {
             + "           name : countryIsoCode\n"
             + "           type : TEXT\n"
             + "           definition : playerCountry.isoCode\n"
+            + "         },\n"
+            + "         { \n"
+            + "           name : inUsa\n"
+            + "           type : BOOLEAN\n"
+            + "           definition : CASE WHEN true THEN true ELSE false END\n"
+            + "           description : player is from USA\n"
+            + "           readAccess : Principal is guesT\n"
             + "         },\n"
             + "         { \n"
             + "           name : createdOn\n"
@@ -139,19 +152,22 @@ public class HandlebarsHydratorTest {
             + "    }]\n"
             + "}";
 
-    public static final String VALID_TABLE_JAVA_NAME = "PlayerStats";
+    private static final String VALID_TABLE_JAVA_NAME = "PlayerStats";
 
-    public static final String VALID_TABLE_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
+    private static final String VALID_TABLE_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.Include;\n"
+            + "import com.yahoo.elide.annotation.ReadPermission;\n"
             + "import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;\n"
             + "import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;\n"
             + "import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;\n"
             + "import com.yahoo.elide.datastores.aggregation.annotation.Join;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.Meta;\n"
             + "import com.yahoo.elide.datastores.aggregation.annotation.Temporal;\n"
             + "import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;\n"
             + "import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;\n"
+            + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;\n"
             + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;\n"
             + "\n"
             + "import lombok.EqualsAndHashCode;\n"
@@ -172,32 +188,32 @@ public class HandlebarsHydratorTest {
             + "@ToString\n"
             + "@Entity\n"
             + "@Data\n"
-            + "@FromTable(name = \"player_stats\")\n"
+            + "@FromTable(name = \"gamedb.player_stats\")\n"
+            + "\n"
+            + "@ReadPermission(expression = \"A user is admin or is a player in the game\")\n"
+            + "@Meta(description = \"A long description\")\n"
             + "public class PlayerStats {\n"
             + "\n"
             + "    @Id\n"
             + "    private String name;\n"
             + "\n"
             + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "    @ReadPermission(expression = \"Allow All\")\n"
+            + "    @Meta(description = \"countryIsoCode\")\n"
+            + "    @DimensionFormula(\"playerCountry.isoCode\")\n"
             + "    private String countryIsoCode;\n"
             + "\n"
-            + "    private Date createdOn;\n"
-            + "\n"
-            + "\n"
-            + "\n"
-            + "    private Country playerCountry;\n"
-            + " \n"
             + "\n"
             + "\n"
             + "\n"
             + "\n"
-            + "    \n"
-            + "        @DimensionFormula(\"playerCountry.isoCode\")\n"
-            + "        public String getCountryIsoCode() {\n"
-            + "        return countryIsoCode;\n"
-            + "    }\n"
-            + "    \n"
-            + "    \n"
+            + "    @ReadPermission(expression = \"Principal is guesT\")\n"
+            + "    @Meta(description = \"player is from USA\")\n"
+            + "    @DimensionFormula(\"CASE WHEN true THEN true ELSE false END\")\n"
+            + "    private Boolean inUsa;\n"
             + "\n"
             + "\n"
             + "\n"
@@ -210,13 +226,11 @@ public class HandlebarsHydratorTest {
             + "    \n"
             + "    }, timeZone = \"UTC\")\n"
             + "\n"
-            + "    public Date getCreatedOn() {\n"
-            + "        return createdOn;\n"
-            + "    }\n"
             + "\n"
-            + "    public void setCreatedOn(Date createdOn) {\n"
-            + "        this.createdOn = createdOn;\n"
-            + "    }\n"
+            + "    @ReadPermission(expression = \"Allow All\")\n"
+            + "    @Meta(description = \"createdOn\")\n"
+            + "    @DimensionFormula(\"create_on\")\n"
+            + "    private Date createdOn;\n"
             + "\n"
             + "\n"
             + "\n"
@@ -224,26 +238,31 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "\n"
             + "    @Join(\"${to}.id = ${from}.country_id\")\n"
-            + "    public Country getPlayerCountry() {\n"
-            + "        return playerCountry;\n"
-            + "    }\n"
             + "\n"
-            + "    public void setPlayerCountry(Country playerCountry) {\n"
-            + "        this.playerCountry = playerCountry;\n"
-            + "    }\n"
+            + "    private Set<Country> playerCountry;\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "    @MetricFormula(\"MAX(score)\")\n"
+            + "    @ReadPermission(expression = \"Allow All\")\n"
+            + "    @Meta(description = \"highScore\")\n"
+            + "    private Long highScore;\n"
             + "\n"
             + "\n"
             + "}\n";
 
-    public static final String VALID_VARIABLE = "{\n"
+    private static final String VALID_VARIABLE = "{\n"
             + "    name: PlayerStats\n"
             + "    table: player_stats\n"
             + "}";
 
     private static final String VALID_SECURITY = "{\n"
             + "    roles : [\n"
-            + "        admin, \n"
-            + "        guest, \n"
+            + "        admin \n"
+            + "        GUEST \n"
             + "        member\n"
             + "        ]\n"
             + "    rules: [\n"
@@ -258,33 +277,38 @@ public class HandlebarsHydratorTest {
             + "    ]\n"
             + "}";
 
-    public static final String VALID_SECURITY_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
+    private static final String VALID_SECURITY_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
             + "import java.security.Principal;\n"
             + "import java.util.Optional;\n"
             + "import com.yahoo.elide.annotation.SecurityCheck;\n"
             + "import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;\n"
             + "\n"
-            + "/**\n"
-            + " * Operation Checks on the Async Query and Result objects.\n"
-            + " */\n"
-            + "public class AsyncQueryOperationChecks {\n"
+            + "public class DynamicConfigOperationChecks {\n"
             + "\n"
             + "\n"
-            + "    @SecurityCheck(AsyncQueryOwnerPrincipalIsAdmin.PRINCIPAL_IS_ADMIN)\n"
-            + "    public static class AsyncQueryOwnerPrincipalIsAdmin extends RoleMemberCheck {\n"
-            + "        public static final String PRINCIPAL_IS_ADMIN = \"Principal is Admin\";\n"
-            + "        public AsyncQueryOwnerPrincipalIsAdmin() {\n"
-            + "                        super(\"admin\");\n"
-            + "                }\n"
+            + "    @SecurityCheck(PrincipalIsAdmin.PRINCIPAL_IS_ADMIN)\n"
+            + "    public static class PrincipalIsAdmin extends RoleMemberCheck {\n"
+            + "        public static final String PRINCIPAL_IS_ADMIN = \"admin\";\n"
+            + "        public PrincipalIsAdmin() {\n"
+            + "            super(\"admin\");\n"
+            + "        }\n"
             + "    }\n"
             + "\n"
-            + "    @SecurityCheck(AsyncQueryOwnerPrincipalIsMember.PRINCIPAL_IS_MEMBER)\n"
-            + "    public static class AsyncQueryOwnerPrincipalIsMember extends RoleMemberCheck {\n"
-            + "        public static final String PRINCIPAL_IS_MEMBER = \"Principal is member\";\n"
-            + "        public AsyncQueryOwnerPrincipalIsMember() {\n"
-            + "                        super(\"member\");\n"
-            + "                }\n"
+            + "    @SecurityCheck(PrincipalIsGuest.PRINCIPAL_IS_GUEST)\n"
+            + "    public static class PrincipalIsGuest extends RoleMemberCheck {\n"
+            + "        public static final String PRINCIPAL_IS_GUEST = \"GUEST\";\n"
+            + "        public PrincipalIsGuest() {\n"
+            + "            super(\"GUEST\");\n"
+            + "        }\n"
+            + "    }\n"
+            + "\n"
+            + "    @SecurityCheck(PrincipalIsMember.PRINCIPAL_IS_MEMBER)\n"
+            + "    public static class PrincipalIsMember extends RoleMemberCheck {\n"
+            + "        public static final String PRINCIPAL_IS_MEMBER = \"member\";\n"
+            + "        public PrincipalIsMember() {\n"
+            + "            super(\"member\");\n"
+            + "        }\n"
             + "    }\n"
             + "\n"
             + "}\n";
@@ -292,9 +316,9 @@ public class HandlebarsHydratorTest {
     @Test
     public void testConfigHydration() throws IOException {
 
-        ElideVariableToPojo testClass = new ElideVariableToPojo();
-        Map<String, Object> map = testClass.parseVariableConfig(VALID_VARIABLE);
         HandlebarsHydrator obj = new HandlebarsHydrator();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> map = (Map<String, Object>) testClass.parseConfigString(VALID_VARIABLE, "variable");
 
         assertEquals(VALID_TABLE, obj.hydrateConfigTemplate(VALID_TABLE_WITH_VARIABLES, map));
     }
@@ -303,33 +327,18 @@ public class HandlebarsHydratorTest {
     public void testTableHydration() throws IOException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        ElideTableToPojo testClass = new ElideTableToPojo();
-        ElideTable table = testClass.parseTableConfig(VALID_TABLE);
+        ElideTable table = (ElideTable) testClass.parseConfigString(VALID_TABLE, "table");
+        Map<String, String> tableClasses = obj.hydrateTableTemplate(table);
 
-        List<String> tableObjects = obj.hydrateTableTemplate(table);
-
-        assertEquals(VALID_TABLE_JAVA, tableObjects.get(0));
+        assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
+        assertEquals(VALID_TABLE_JAVA, tableClasses.get(VALID_TABLE_JAVA_NAME));
     }
 
     @Test
     public void testSecurityHydration() throws IOException {
-
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        ElideSecurityToPojo testClass = new ElideSecurityToPojo();
-        ElideSecurity security = testClass.parseSecurityConfig(VALID_SECURITY);
+        ElideSecurity security = (ElideSecurity) testClass.parseConfigString(VALID_SECURITY, "security");
 
         assertEquals(VALID_SECURITY_JAVA, obj.hydrateSecurityTemplate(security));
-    }
-
-    @Test
-    public void getTableClassNames() throws IOException {
-
-        HandlebarsHydrator obj = new HandlebarsHydrator();
-        ElideTableToPojo testClass = new ElideTableToPojo();
-        ElideTable table = testClass.parseTableConfig(VALID_TABLE);
-
-        List<String> tableObjects = obj.getTableClassNames(table);
-
-        assertEquals(VALID_TABLE_JAVA_NAME, tableObjects.get(0));
     }
 }
