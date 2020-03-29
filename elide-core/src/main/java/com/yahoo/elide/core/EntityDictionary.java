@@ -140,12 +140,7 @@ public class EntityDictionary {
      * @return simple name
      */
     public static String getSimpleName(Class<?> cls) {
-        String simpleName = SIMPLE_NAMES.get(cls);
-        if (simpleName == null) {
-            simpleName = cls.getSimpleName();
-            SIMPLE_NAMES.putIfAbsent(cls, simpleName);
-        }
-        return simpleName;
+        return SIMPLE_NAMES.computeIfAbsent(cls, key -> cls.getSimpleName());
     }
 
     /**
@@ -285,7 +280,7 @@ public class EntityDictionary {
      * @return the {@link Check} mapped to the identifier or {@code null} if the given identifer is unmapped
      */
     public Class<? extends Check> getCheck(String checkIdentifier) {
-        Class<? extends Check> checkCls = checkNames.computeIfAbsent(checkIdentifier, cls -> {
+        return checkNames.computeIfAbsent(checkIdentifier, cls -> {
             try {
                 return Class.forName(checkIdentifier).asSubclass(Check.class);
             } catch (ClassNotFoundException | ClassCastException e) {
@@ -293,7 +288,6 @@ public class EntityDictionary {
                         "Could not instantiate specified check '" + checkIdentifier + "'.", e);
             }
         });
-        return checkCls;
     }
 
     /**
@@ -336,11 +330,10 @@ public class EntityDictionary {
      * @return  List of all inherited entity types
      */
     public List<Class<?>> getSubclassingEntities(Class entityClass) {
-        return subclassingEntities.computeIfAbsent(entityClass, (unused) -> {
-            return entityBindings.keySet().stream()
-                    .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
-                    .collect(Collectors.toList());
-        });
+        return subclassingEntities.computeIfAbsent(entityClass, unused -> entityBindings
+                .keySet().stream()
+                .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
+                .collect(Collectors.toList()));
     }
 
     /**
