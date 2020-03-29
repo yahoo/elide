@@ -40,8 +40,8 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationshipName);
 
             //We don't need (or want) to fetch join the parent object.
-            return relationshipClass.equals(relationship.getParentType()) &&
-                    inverseRelationName.equals(relationship.getRelationshipName());
+            return relationshipClass.equals(relationship.getParentType())
+                    && inverseRelationName.equals(relationship.getRelationshipName());
         };
 
         return extractToOneMergeJoins(entityClass, alias, shouldSkip);
