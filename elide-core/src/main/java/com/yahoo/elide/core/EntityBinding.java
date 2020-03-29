@@ -576,6 +576,7 @@ public class EntityBinding {
      * Return annotation for provided method.
      *
      * @param annotationClass the annotation class
+     * @param method the method
      * @param <A> annotation type
      * @return the annotation
      */

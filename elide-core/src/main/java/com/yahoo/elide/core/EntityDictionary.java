@@ -894,6 +894,14 @@ public class EntityDictionary {
         return getEntityBinding(recordClass).getAnnotation(annotationClass);
     }
 
+    /**
+     * Return annotation from class for provided method.
+     * @param recordClass the record class
+     * @param method the method
+     * @param annotationClass the annotation class
+     * @param <A> genericClass
+     * @return the annotation
+     */
     public <A extends Annotation> A getAnnotation(Class<?> recordClass, String method, Class<A> annotationClass) {
         return getEntityBinding(recordClass).getAnnotation(annotationClass, method);
     }
