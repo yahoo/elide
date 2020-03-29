@@ -15,6 +15,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
@@ -78,7 +79,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
     @Test
     @Order(2)
     public void jsonApiRequestAsyncQueryGetTest() throws InterruptedException {
-        //Adding slight delay before starting to wait for AsyncQuery to be completed
+        //Adding slight delay before starting to wait for previous test to be completed
         Thread.sleep(5000);
         given()
                 .accept("application/vnd.api+json")
@@ -129,7 +130,10 @@ public class AsyncIntegrationTest extends IntegrationTest{
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) { edges { node { id createdOn updatedOn queryType status result { edges { node { id createdOn updatedOn responseBody status} } } } } } }\",\"variables\":null}")
+                .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
+                        + "{ edges { node { id createdOn updatedOn queryType status result "
+                        + "{ edges { node { id createdOn updatedOn responseBody status} } } } } } }\","
+                        + "\"variables\":null}")
                 .post("/graphQL")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -181,7 +185,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
     @Test
     @Order(6)
     public void graphQLApiRequestAsyncQueryGetTest() throws InterruptedException {
-        //Adding slight delay before starting to wait for AsyncQuery to be completed
+        //Adding slight delay before starting to wait for previous test to be completed
         Thread.sleep(5000);
         given()
                 .accept("application/vnd.api+json")
@@ -233,7 +237,10 @@ public class AsyncIntegrationTest extends IntegrationTest{
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263c\\\"]) { edges { node { id createdOn updatedOn queryType status result { edges { node { id createdOn updatedOn responseBody status} } } } } } }\",\"variables\":null}")
+                .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263c\\\"]) "
+                        + "{ edges { node { id createdOn updatedOn queryType status result "
+                        + "{ edges { node { id createdOn updatedOn responseBody status} } } } } } }\""
+                        + ",\"variables\":null}")
                 .post("/graphQL")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -251,4 +258,117 @@ public class AsyncIntegrationTest extends IntegrationTest{
                         + "{\"node\":{\"id\":\"3\",\"name\":\"Han\"}}]}}}"))
                 .body("data.asyncQuery.edges[0].node.result.edges[0].node.status", equalTo(200));
     }
+
+    /**
+     * This test demonstrates an example post request using JSON-API for a bad request JSONAPI query.
+     * The test is making a Async request for a collection (group) that does not exist.
+     */
+    @Test
+    @Order(9)
+    void jsonApiBadRequestPostTest() {
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .body(
+                    data(
+                        resource(
+                           type("asyncQuery"),
+                           id("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"),
+                           attributes(
+                                   attr("query", "/group?sort=name&fields%group%5D=id,name"),
+                                   attr("queryType", "JSONAPI_V1_0"),
+                                   attr("status", "QUEUED")
+                           )
+                        )
+                    ).toJSON())
+            .when()
+            .post("/asyncQuery")
+            .then()
+            .statusCode(org.apache.http.HttpStatus.SC_CREATED);
+     }
+
+    /**
+     * This test demonstrates an example get request of an AsyncQuery object using JSON-API for a bad request JSONAPI query.
+     * The test is making a Async request for a collection (group) that does not exist.
+     * @throws InterruptedException
+     */
+    @Test
+    @Order(10)
+    public void jsonApiBadRequestAsyncQueryGetTest() throws InterruptedException {
+        //Adding slight delay before starting to wait for previous test to be completed
+        Thread.sleep(5000);
+        given()
+                .accept("application/vnd.api+json")
+                .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263b")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"))
+                .body("data.type", equalTo("asyncQuery"))
+                .body("data.attributes.createdOn", notNullValue())
+                .body("data.attributes.updatedOn", notNullValue())
+                .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                .body("data.attributes.status", equalTo("FAILURE"))
+                .body("data.relationships.result.data", nullValue());
+    }
+
+    /**
+     * This test demonstrates an example get request of an AsyncQuery and its AsyncQueryResult object using GRAPHQL for a bad request JSONAPI query.
+     * The test is making a Async request for a collection (group) that does not exist.
+     */
+    @Test
+    @Order(11)
+    public void jsonApibadRequestGraphQLGetTest() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263b\\\"]) "
+                        + "{ edges { node { id createdOn updatedOn queryType status result "
+                        + "{ edges { node { id createdOn updatedOn responseBody status} } } } } } }\""
+                        + ",\"variables\":null}")
+                .post("/graphQL")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.asyncQuery.edges[0].node.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"))
+                .body("data.asyncQuery.edges[0].node.createdOn", notNullValue())
+                .body("data.asyncQuery.edges[0].node.updatedOn", notNullValue())
+                .body("data.asyncQuery.edges[0].node.queryType", equalTo("JSONAPI_V1_0"))
+                .body("data.asyncQuery.edges[0].node.status", equalTo("FAILURE"));
+    }
+
+    /**
+     * This test demonstrates an example get request of an AsyncQuery object using JSON-API for a JSONAPI query.
+     * The test is making a Async request for AsyncQuery object that does not exist.
+     * @throws InterruptedException
+     */
+    @Test
+    @Order(12)
+    public void jsonApiBadGetRequestAsyncQueryGetTest() throws InterruptedException {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263a")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body("errors[0].detail", equalTo("Unknown identifier ba31ca4e-ed8f-4be0-a0f3-12088fa9263a for asyncQuery"));
+    }
+
+    /**
+     * This test demonstrates an example get request of an AsyncQuery and its AsyncQueryResult object using GRAPHQL for a GRAPHQL query..
+     */
+    @Test
+    @Order(13)
+    public void graphQlApibadGetRequestGraphQLGetTest() {
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263a\\\"]) "
+                    + "{ edges { node { id createdOn updatedOn queryType status result "
+                    + "{ edges { node { id createdOn updatedOn responseBody status} } } } } } }\""
+                    + ",\"variables\":null}")
+            .post("/graphQL")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .body("data.asyncQuery", nullValue())
+            .body("errors[0].message", equalTo("Exception while fetching data (/asyncQuery) : Unknown identifier "
+                    + "[ba31ca4e-ed8f-4be0-a0f3-12088fa9263a] for asyncQuery"));
+    }
+
 }
