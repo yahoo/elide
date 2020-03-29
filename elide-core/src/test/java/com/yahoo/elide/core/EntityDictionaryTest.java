@@ -795,4 +795,23 @@ public class EntityDictionaryTest extends EntityDictionary {
                 bean.map);
         assertEquals(ImmutableSet.of(3.0, 4.0), bean.set);
     }
+
+    public static class TestCheck extends UserCheck {
+
+        @Override
+        public boolean ok(com.yahoo.elide.security.User user) {
+            throw new IllegalStateException();
+        }
+    }
+
+    @Test
+    public void testCheckLookup() throws Exception {
+        assertEquals(Role.ALL.class, this.getCheck("user has all access"));
+
+        assertEquals(TestCheck.class, this.getCheck("com.yahoo.elide.core.EntityDictionaryTest$TestCheck"));
+
+        assertThrows(IllegalArgumentException.class, () -> this.getCheck("UnknownClassName"));
+
+        assertThrows(IllegalArgumentException.class, () -> this.getCheck(String.class.getName()));
+    }
 }
