@@ -894,6 +894,10 @@ public class EntityDictionary {
         return getEntityBinding(recordClass).getAnnotation(annotationClass);
     }
 
+    public <A extends Annotation> A getAnnotation(Class<?> recordClass, String method, Class<A> annotationClass) {
+        return getEntityBinding(recordClass).getAnnotation(annotationClass, method);
+    }
+
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,
                                                                         Class<A> annotationClass,
                                                                         String fieldName) {
