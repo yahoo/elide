@@ -17,6 +17,7 @@ import static org.mockito.Mockito.verify;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
@@ -702,6 +703,22 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         Annotation first = getFirstAnnotation(Foo.class, Arrays.asList(Exclude.class, Include.class));
         assertTrue(first instanceof Exclude);
+    }
+
+    @Test
+    public void testAnnotationNoSuchMethod() {
+        bindEntity(Book.class);
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> getAnnotation(Book.class, "NoMethod", FilterExpressionPath.class));
+        assertTrue(e.getCause() instanceof NoSuchMethodException, e.toString());
+    }
+
+    @Test
+    public void testAnnotationFilterExpressionPath() {
+        bindEntity(Book.class);
+        FilterExpressionPath fe =
+                getAnnotation(Book.class, "getEditor", FilterExpressionPath.class);
+        assertEquals("publisher.editor", fe.value());
     }
 
     @Test
