@@ -57,9 +57,7 @@ public class SortingIT extends IntegrationTest {
     @Test
     public void testSortingRootCollectionByRelationshipProperty() throws IOException {
         JsonNode result = getAsNode("/book?sort=-publisher.name");
-        //We expect 2 results because the Hibernate does an inner join between book & publisher
-        assertEquals(2, result.get("data").size());
-
+        int size = result.get("data").size();
 
         JsonNode books = result.get("data");
         String firstBookName = books.get(0).get("attributes").get("title").asText();
@@ -69,14 +67,12 @@ public class SortingIT extends IntegrationTest {
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = getAsNode("/book?sort=publisher.name");
-        //We expect 2 results because the Hibernate does an inner join between book & publisher
-        assertEquals(2, result.get("data").size());
 
         books = result.get("data");
-        firstBookName = books.get(0).get("attributes").get("title").asText();
+        firstBookName = books.get(size - 2).get("attributes").get("title").asText();
         assertEquals("The Old Man and the Sea", firstBookName);
 
-        secondBookName = books.get(1).get("attributes").get("title").asText();
+        secondBookName = books.get(size - 1).get("attributes").get("title").asText();
         assertEquals("For Whom the Bell Tolls", secondBookName);
     }
 

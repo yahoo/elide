@@ -13,6 +13,7 @@ import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 /**
  * Constructs a HQL query to fetch a hibernate collection proxy.
@@ -26,6 +27,24 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                                           Session session) {
         super(dictionary, session);
         this.relationship = relationship;
+    }
+
+    @Override
+    protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
+        Function<String, Boolean> shouldSkip = (relationshipName) -> {
+            String inverseRelationName = dictionary.getRelationInverse(entityClass, relationshipName);
+            if (inverseRelationName.isEmpty()) {
+                return false;
+            }
+
+            Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationshipName);
+
+            //We don't need (or want) to fetch join the parent object.
+            return relationshipClass.equals(relationship.getParentType())
+                    && inverseRelationName.equals(relationship.getRelationshipName());
+        };
+
+        return extractToOneMergeJoins(entityClass, alias, shouldSkip);
     }
 
     /**

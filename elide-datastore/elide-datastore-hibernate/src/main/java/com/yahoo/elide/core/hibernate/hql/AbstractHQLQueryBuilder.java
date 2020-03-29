@@ -25,9 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.persistence.OneToOne;
 
 /**
  * Abstract class used to construct HQL queries.
@@ -190,15 +189,17 @@ public abstract class AbstractHQLQueryBuilder {
      * @return The JOIN clause that can be added to the FROM clause.
      */
     protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
+        return extractToOneMergeJoins(entityClass, alias, (unused) -> false);
+    }
+
+    protected String extractToOneMergeJoins(Class<?> entityClass, String alias,
+                                            Function<String, Boolean> skipRelation) {
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
         StringBuilder joinString = new StringBuilder("");
         for (String relationshipName : relationshipNames) {
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
             if (type.isToOne() && !type.isComputed()) {
-                // fetch only OneToOne with mappedBy
-                OneToOne oneToOne = dictionary.getAttributeOrRelationAnnotation(
-                        entityClass, OneToOne.class, relationshipName);
-                if (oneToOne == null || oneToOne.mappedBy().isEmpty()) {
+                if (skipRelation.apply(relationshipName)) {
                     continue;
                 }
                 joinString.append(" LEFT JOIN FETCH ");
