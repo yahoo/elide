@@ -98,7 +98,7 @@ public class Elide {
     }
 
     protected void registerCustomSerde() {
-        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ElideTypeConverter.class);
+        Set<Class<?>> classes = registerCustomSerdeScan();
 
         for (Class<?> clazz : classes) {
             if (!Serde.class.isAssignableFrom(clazz)) {
@@ -147,6 +147,10 @@ public class Elide {
                         jsonGenerator.writeObject(serde.serialize(obj));
                     }
                 }));
+    }
+
+    protected Set<Class<?>> registerCustomSerdeScan() {
+        return ClassScanner.getAnnotatedClasses(ElideTypeConverter.class);
     }
 
     /**
