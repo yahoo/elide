@@ -16,6 +16,7 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,8 +53,6 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                         .flatMap(x -> getValueChecked(x, fieldName, requestScope))
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
-            } catch (IllegalArgumentException e) {
-                // Not a persistent resource
             } catch (ForbiddenAccessException e) {
                 return false;
             }
@@ -66,17 +65,13 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         // checkFieldAwareReadPermissions
         requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, null, ReadPermission.class,
                 fieldName);
-        Object obj = PersistentResource.getValue(resource.getObject(), fieldName, requestScope);
-        PersistentResourceSet persistentResourceSet;
-        if (obj instanceof Iterable) {
-            persistentResourceSet = new PersistentResourceSet(resource, (Iterable) obj, requestScope);
-        } else if (obj != null) {
-            persistentResourceSet = new PersistentResourceSet(resource, Collections.singleton(obj), requestScope);
-        } else {
+        Object entity = resource.getObject();
+        if (entity == null || resource.getDictionary()
+                .getRelationshipType(entity.getClass(), fieldName) == RelationshipType.NONE) {
             return Stream.empty();
         }
-
-        return persistentResourceSet.stream();
+        // use no filter to allow the read directly from loaded resource
+        return resource.getRelationChecked(fieldName, Optional.empty(), Optional.empty(), Optional.empty()).stream();
     }
 
     @Override
