@@ -1,5 +1,12 @@
 # Change Log
 
+## 4.5.15
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/7048968af3a0838da51ccfcaf0d1cff468b2f9f8) Improve performance of initial class scans (#1238) 
+   * [view commit](https://github.com/yahoo/elide/commit/d2d6234daafeea5fb00f622b17565622ef58a267) Allow replacement of custom serde scan (#1242) 
+   * [view commit](https://github.com/yahoo/elide/commit/57bd29c0904d4060d2f8a9ec57c8fa244d01db1f) Patch security fix to make it compatiable with non-ORM data stores (#1240) 
+   * [view commit](https://github.com/yahoo/elide/commit/cfad3ffda19d4dfaf019076663aeff014a9bada6) Fixed N+1 problems for all toOne relationships (#1241) 
+
 ## 4.5.14
 **Security**
    * [view commit](https://github.com/yahoo/elide/commit/7239e47eca00226550300e5e67cdabbf12145ef0) Enforce ReadPermission for filter expression fields (#1236) 
