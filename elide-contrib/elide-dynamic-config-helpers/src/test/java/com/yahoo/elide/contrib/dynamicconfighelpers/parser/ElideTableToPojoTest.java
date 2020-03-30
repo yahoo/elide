@@ -6,7 +6,6 @@
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
@@ -68,25 +67,6 @@ public class ElideTableToPojoTest {
     @Test
     public void testValidTable() throws Exception {
         ElideTable table = (ElideTable) testClass.parseConfigString(VALID_TABLE, "table");
-
-        for (Table t : table.getTables()) {
-            assertEquals(t.getMeasures().get(0).getName() , t.getMeasures().get(0).getDescription());
-            assertEquals("MAX(score)", t.getMeasures().get(0).getDefinition());
-            assertEquals(Table.Cardinality.LARGE, t.getCardinality());
-        }
-    }
-
-    @Test
-    public void testInValidTable() throws Exception {
-        assertNull(testClass.parseConfigFile("", "test"));
-    }
-
-    @Test
-    public void testValidTableConfig() {
-        String tableSchemaFile = "https://raw.githubusercontent.com/yahoo/elide/elide-5.x-dynamic-config/"
-                        + "elide-contrib/elide-dynamic-config-helpers/src/test/resources/table/valid_table.hjson";
-
-        ElideTable table = (ElideTable) testClass.parseConfigFile(tableSchemaFile, "table");
 
         for (Table t : table.getTables()) {
             assertEquals(t.getMeasures().get(0).getName() , t.getMeasures().get(0).getDescription());

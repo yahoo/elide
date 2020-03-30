@@ -22,19 +22,28 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class Util {
+/**
+ * Util class for Dynamic config module.
+ */
+public class DynamicConfigHelpersUtil {
 
     public static final String SCHEMA_TYPE_TABLE = "table";
     public static final String SCHEMA_TYPE_SECURITY = "security";
     public static final String SCHEMA_TYPE_VARIABLE = "variable";
+
+    public static final String TABLE_CONFIG_PATH = "tables/";
+    public static final String SECURITY_CONFIG_PATH = "security.hjson";
+    public static final String VARIABLE_CONFIG_PATH = "variables.hjson";
 
     public static final String ELIDE_TABLE_VALIDATION_SCHEMA = "elideTableSchema.json";
     public static final String ELIDE_SECURITY_SCHEMA = "elideSecuritySchema.json";
@@ -45,21 +54,22 @@ public class Util {
     public static final String CHAR_SET = "UTF-8";
     public static final String NEW_LINE = "\n";
 
-    public static String hjsonToJson(String hjson) {
+    /**
+     * Converts hjson input string to valid json string.
+     * @param hjson
+     * @return json string
+     */
+    public String hjsonToJson(String hjson) {
         return JsonValue.readHjson(hjson).toString();
     }
 
-    public static String readConfigFile(String filePath) throws Exception {
-        try {
-            BufferedReader reader = (filePath.startsWith(HTTP_PREFIX)
-                            ? getHttpFileReader(filePath) : getLocalFileReader(filePath));
-            return readFileContent(reader);
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
-    public static boolean validateDataWithSchema(JSONObject schemaObj, String jsonConfig) {
+    /**
+     * Validates json config against json schema.
+     * @param schemaObj
+     * @param jsonConfig
+     * @return true or false
+     */
+    public boolean validateDataWithSchema(JSONObject schemaObj, String jsonConfig) {
 
         try {
             JSONObject data = new JSONObject(new JSONTokener(jsonConfig));
@@ -73,8 +83,88 @@ public class Util {
         }
     }
 
-    public static boolean isNullOrEmpty(String input) {
+    /**
+     * Checks whether input is null or empty.
+     * @param input
+     * @return true or false
+     */
+    public boolean isNullOrEmpty(String input) {
         return (input == null || input.trim().length() == 0);
+    }
+
+    /**
+     * Loads appropriate schema per input schema type.
+     * @param schemaType
+     * @return jsonObject of schema
+     * @throws IOException
+     */
+    public JSONObject schemaToJsonObject(String schemaType) throws IOException {
+
+        switch (schemaType) {
+        case SCHEMA_TYPE_TABLE:
+            return loadSchema(ELIDE_TABLE_VALIDATION_SCHEMA);
+
+        case SCHEMA_TYPE_SECURITY:
+            return loadSchema(ELIDE_SECURITY_SCHEMA);
+
+        case SCHEMA_TYPE_VARIABLE:
+            return loadSchema(ELIDE_VARIABLE_SCHEMA);
+        default:
+            return null;
+        }
+    }
+
+    /**
+     * Converts json string to appropriate POJO.
+     * @param inputConfigType
+     * @param jsonConfig
+     * @return model pojo
+     * @throws Exception
+     */
+    public Object getModelPojo(String inputConfigType, String jsonConfig) throws Exception {
+
+        switch (inputConfigType) {
+        case DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE:
+            return new ObjectMapper().readValue(jsonConfig, ElideTable.class);
+
+        case DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY:
+            return new ObjectMapper().readValue(jsonConfig, ElideSecurity.class);
+
+        case DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE:
+            return new ObjectMapper().readValue(jsonConfig, Map.class);
+
+        default:
+            return null;
+        }
+    }
+
+    /**
+     * Load config from LocalPath.
+     * @param basePath
+     * @param configType
+     * @return List of Json configs from local dir.
+     * @throws Exception
+     */
+    public List<String> getJsonConfig(String basePath, String configType) throws Exception {
+        List<String> configs = new ArrayList<>();
+
+        if (!basePath.endsWith("/")) {
+            basePath += '/';
+        }
+
+        switch (configType) {
+        case SCHEMA_TYPE_VARIABLE:
+            configs.add(hjsonToJson(readConfigFile(basePath + VARIABLE_CONFIG_PATH)));
+            return configs;
+
+        case SCHEMA_TYPE_SECURITY:
+            configs.add(hjsonToJson(readConfigFile(basePath  + SECURITY_CONFIG_PATH)));
+            return configs;
+
+        case SCHEMA_TYPE_TABLE:
+            return getTablesConfig(basePath + TABLE_CONFIG_PATH);
+        }
+        return null;
     }
 
     private static String readFileContent(BufferedReader reader) throws IOException {
@@ -91,11 +181,6 @@ public class Util {
         }
     }
 
-    private static BufferedReader getHttpFileReader(String filePath) throws Exception {
-        URL url = new URL(filePath);
-        return new BufferedReader(new InputStreamReader(url.openStream()));
-    }
-
     private static BufferedReader getLocalFileReader(String filePath) throws Exception {
         Path path = Paths.get(filePath);
         return Files.newBufferedReader(path, Charset.forName(CHAR_SET));
@@ -103,42 +188,31 @@ public class Util {
 
     private static JSONObject loadSchema(String confFilePath) throws IOException {
         try (InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(confFilePath);
-                        InputStreamReader reader = new InputStreamReader(stream)) {
+                InputStreamReader reader = new InputStreamReader(stream)) {
             String content = readFileContent(new BufferedReader(reader));
             return new JSONObject(new JSONTokener(content));
         }
     }
 
-    public static JSONObject schemaToJsonObject(String schemaType) throws IOException {
-
-        switch (schemaType) {
-            case SCHEMA_TYPE_TABLE:
-                return loadSchema(ELIDE_TABLE_VALIDATION_SCHEMA);
-
-            case SCHEMA_TYPE_SECURITY:
-                return loadSchema(ELIDE_SECURITY_SCHEMA);
-
-            case SCHEMA_TYPE_VARIABLE:
-                return loadSchema(ELIDE_VARIABLE_SCHEMA);
-            default:
-                return null;
+    private List<String> getTablesConfig(String tablePath) throws Exception {
+        List<String> configList = new ArrayList<>();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(tablePath))) {
+            for (Path path : stream) {
+                if (!Files.isDirectory(path)) {
+                    String hjson = readConfigFile(tablePath + path.getFileName().toString());
+                    configList.add(hjsonToJson(hjson));
+                }
+            }
         }
+        return configList;
     }
 
-    public static Object getModelPojo(String inputConfigType, String jsonConfig) throws Exception {
-
-        switch (inputConfigType) {
-            case Util.SCHEMA_TYPE_TABLE:
-                return new ObjectMapper().readValue(jsonConfig, ElideTable.class);
-
-            case Util.SCHEMA_TYPE_SECURITY:
-                return new ObjectMapper().readValue(jsonConfig, ElideSecurity.class);
-
-            case Util.SCHEMA_TYPE_VARIABLE:
-                return new ObjectMapper().readValue(jsonConfig, Map.class);
-
-            default:
-                return null;
+    private static String readConfigFile(String filePath) throws Exception {
+        try {
+            BufferedReader reader = getLocalFileReader(filePath);
+            return readFileContent(reader);
+        } catch (Exception e) {
+            throw e;
         }
     }
 }
