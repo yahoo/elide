@@ -1,0 +1,47 @@
+/*
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.util.Map;
+
+public class ElideConfigParserTest {
+
+    private ElideConfigParser testClass = new ElideConfigParser();
+
+    @Test
+    public void testValidateVariablePath() throws Exception {
+
+        String path = "src/test/resources/models";
+        File file = new File(path);
+        String absolutePath = file.getAbsolutePath();
+
+        testClass.parseConfigPath(absolutePath);
+        Map<String, Object> variable = testClass.getVariables();
+        assertEquals(2, variable.size());
+        assertEquals("blah", variable.get("bar"));
+
+        ElideSecurity security = testClass.getElideSecurity();
+        assertEquals(3, security.getRoles().size());
+
+        ElideTable tables = testClass.getElideTable();
+        assertEquals(1, tables.getTables().size());
+        for (Table t : tables.getTables()) {
+            assertEquals(t.getMeasures().get(0).getName() , t.getMeasures().get(0).getDescription());
+            assertEquals("MAX(score)", t.getMeasures().get(0).getDefinition());
+            assertEquals(Table.Cardinality.LARGE, t.getCardinality());
+        }
+    }
+}
