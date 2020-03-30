@@ -23,12 +23,13 @@ import lombok.extern.slf4j.Slf4j;
  * orphan query statuses after host/app crash or restart.
  */
 @Slf4j
+@Getter
 public class AsyncCleanerService {
 
     private final int DEFAULT_CLEANUP_DELAY_MINUTES = 360;
     private final int MAX_CLEANUP_INTIAL_DELAY_MINUTES = 100;
 
-    @Getter private ScheduledExecutorService cleaner;
+    private ScheduledExecutorService cleaner;
 
     @Inject
     public AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {

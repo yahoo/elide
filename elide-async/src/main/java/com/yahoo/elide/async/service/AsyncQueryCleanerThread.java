@@ -45,7 +45,7 @@ public class AsyncQueryCleanerThread implements Runnable {
      * were not interrupted due to host crash/app shutdown to TIMEDOUT.
      * */
     @SuppressWarnings("unchecked")
-    private void deleteAsyncQuery() {
+    protected void deleteAsyncQuery() {
 
         String cleanupDateFormatted = evaluateFormattedFilterDate(Calendar.DATE, queryCleanupDays);
 
@@ -60,7 +60,7 @@ public class AsyncQueryCleanerThread implements Runnable {
      * were not interrupted due to host crash/app shutdown to TIMEDOUT.
      * */
 	@SuppressWarnings("unchecked")
-    private void timeoutAsyncQuery() {
+    protected void timeoutAsyncQuery() {
 
         String filterDateFormatted = evaluateFormattedFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
         String filterExpression = "status=in=(" + QueryStatus.PROCESSING.toString() + ","

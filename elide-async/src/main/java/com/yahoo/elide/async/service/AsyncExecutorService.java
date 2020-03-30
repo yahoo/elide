@@ -17,11 +17,14 @@ import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
+import lombok.Getter;
+
 /**
  * Service to execute Async queries. It will schedule task to track long
  * running queries and kills them. It will also schedule task to update
  * orphan query statuses after host/app crash or restart.
  */
+@Getter
 public class AsyncExecutorService {
 
     private final int DEFAULT_THREADPOOL_SIZE = 6;
