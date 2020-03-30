@@ -5,24 +5,30 @@
  */
 package com.yahoo.elide.async.service;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import org.mockito.Mockito;
-
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.service.AsyncCleanerService;
-import com.yahoo.elide.async.service.AsyncQueryDAO;
-import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
 
 public class AsyncCleanerServiceTest {
 
+    private Elide elide;
+    private AsyncQueryDAO dao;
+    private AsyncCleanerService service;
+
+    @BeforeEach
+    public void setup() {
+        elide = mock(Elide.class);
+        dao = mock(DefaultAsyncQueryDAO.class);
+        service = spy(new AsyncCleanerService(elide, 5, 5, dao));
+    }
+
     @Test
     public void testCleanerSet() {
-        Elide elide = Mockito.mock(Elide.class);
-        AsyncQueryDAO dao = Mockito.mock(DefaultAsyncQueryDAO.class);
-        AsyncCleanerService service = Mockito.spy(new AsyncCleanerService(elide, 5, 5, dao));
         assertNotNull(service.getCleaner());
     }
 }

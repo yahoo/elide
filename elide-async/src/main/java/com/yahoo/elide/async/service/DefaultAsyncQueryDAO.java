@@ -21,6 +21,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,18 +39,23 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 @Singleton
 @Slf4j
+@Getter
 public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Setter private Elide elide;
     @Setter private DataStore dataStore;
+    @Setter private EntityDictionary dictionary;
+    @Setter private RSQLFilterDialect filterParser;
 
     // Default constructor is needed for standalone implementation for override in getAsyncQueryDao
     public DefaultAsyncQueryDAO() {
     }
 
     public DefaultAsyncQueryDAO(Elide elide, DataStore dataStore) {
-        this.elide = elide;
-        this.dataStore = dataStore;
+    	this.elide = elide;
+    	this.dataStore = dataStore;
+        dictionary = elide.getElideSettings().getDictionary();
+        filterParser = new RSQLFilterDialect(dictionary);
     }
 
     @Override
@@ -129,8 +135,6 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     @SuppressWarnings("unchecked")
     public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(String filterExpression) {
         log.debug("deleteAsyncQueryAndResultCollection");
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
 
         try {
             FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
@@ -176,6 +180,27 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             return asyncQueryResult;
         });
         return queryResultObj;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Collection<AsyncQuery> loadQueries(String filterExpression) {
+        Collection<AsyncQuery> loaded = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
+            try {
+                FilterExpression filter = filterParser.parseFilterExpression(filterExpression, AsyncQuery.class, false);
+
+                EntityProjection asyncQueryCollection = EntityProjection.builder()
+                        .type(AsyncQuery.class)
+                        .filterExpression(filter)
+                        .build();
+
+                Iterable<Object> loadedObj = tx.loadObjects(asyncQueryCollection, scope);
+                return loadedObj;
+            } catch (ParseException e) {
+                log.error("Exception: {}", e);
+            }
+            return null;
+        });
+        return loaded;
     }
 
     /**

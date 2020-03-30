@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * after host/app crash or restart.
  */
 @Slf4j
+@Getter
 public class AsyncCleanerService {
 
     private final int defaultCleanupDelayMinutes = 360;
@@ -35,7 +36,7 @@ public class AsyncCleanerService {
 
     private static AsyncCleanerService asyncCleanerService = null;
 
-    @Getter private ScheduledExecutorService cleaner;
+    private ScheduledExecutorService cleaner;
 
     @Inject
     private AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays,

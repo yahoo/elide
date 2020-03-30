@@ -21,13 +21,21 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.security.User;
+
+import lombok.Getter;
+
 /**
  * Service to execute Async queries.
  * It will schedule task to track long running queries and kills them.
  * It will also schedule task to update orphan query statuses after
  * host/app crash or restart.
  */
-@Slf4j
+@Getter
 public class AsyncExecutorService {
 
     private final int defaultThreadpoolSize = 6;
