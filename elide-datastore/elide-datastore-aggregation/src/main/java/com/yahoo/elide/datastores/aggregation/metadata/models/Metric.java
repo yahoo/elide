@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -9,12 +9,14 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.ManyToOne;
 
@@ -35,7 +37,7 @@ public class Metric extends Column {
         super(table, fieldName, dictionary);
         Class<?> tableClass = dictionary.getEntityClass(table.getId());
 
-        MetricAggregation metric = dictionary.getAttributeOrRelationAnnotation(
+        MetricAggregation aggregation = dictionary.getAttributeOrRelationAnnotation(
                 tableClass,
                 MetricAggregation.class,
                 fieldName);
@@ -45,22 +47,70 @@ public class Metric extends Column {
                 Meta.class,
                 fieldName);
 
+        if (aggregation != null) {
+            this.metricFunction = resolveAggregation(tableClass, fieldName, aggregation, meta, dictionary);
+        } else {
+            MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
+                    tableClass,
+                    MetricFormula.class,
+                    fieldName);
+
+            if (formula != null) {
+                this.metricFunction = constructMetricFunction(
+                        constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
+                        meta == null ? null : meta.longName(),
+                        meta == null ? null : meta.description(),
+                        formula.value(),
+                        new HashSet<>());
+
+            } else {
+                throw new IllegalArgumentException("Trying to construct metric field "
+                        + getId() + " without @MetricAggregation and @MetricFormula.");
+            }
+        }
+    }
+
+    /**
+     * Resolve aggregation function from {@link MetricAggregation} annotation.
+     *
+     * @param tableClass table class
+     * @param fieldName metric field name
+     * @param aggregation aggregation annotation on the field
+     * @param meta meta annotation on the field
+     * @param dictionary dictionary with entity information
+     * @return resolved metric function instance
+     */
+    private static MetricFunction resolveAggregation(Class<?> tableClass,
+                                                     String fieldName,
+                                                     MetricAggregation aggregation,
+                                                     Meta meta,
+                                                     EntityDictionary dictionary) {
+        String columnName = constructColumnName(tableClass, fieldName, dictionary);
         try {
-            this.metricFunction = metric.function().newInstance();
-            metricFunction.setName(getId() + "[" + metricFunction.getName() + "]");
-            metricFunction.setExpression(String.format(
-                    metricFunction.getExpression(),
-                    dictionary.getAnnotatedColumnName(tableClass, fieldName)));
+            MetricFunction metricFunction = aggregation.function().newInstance();
+            metricFunction.setName(columnName + "[" + metricFunction.getName() + "]");
 
             if (meta != null) {
                 metricFunction.setLongName(meta.longName());
                 metricFunction.setDescription(meta.description());
             }
+
+            return metricFunction;
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new IllegalArgumentException("Can't initialize function for metric " + getId());
+            throw new IllegalArgumentException("Can't initialize function for metric " + columnName);
         }
     }
 
+    /**
+     * Dynamically construct a metric function
+     *
+     * @param id metric function id
+     * @param longName meta long name
+     * @param description meta description
+     * @param expression expression string
+     * @param arguments function arguments
+     * @return a metric function instance
+     */
     protected MetricFunction constructMetricFunction(String id,
                                                      String longName,
                                                      String description,

@@ -18,22 +18,15 @@ import java.util.Map;
 
 /**
  * Custom serializer used to generate response messages from {@link GraphQLError} objects.
- * Supports optional encoding of the error's message field, making it safe for display in HTML.
+ * Supports encoding of the error's message field, making it safe for display in HTML.
  */
 public class GraphQLErrorSerializer extends StdSerializer<GraphQLError> {
-    private final boolean encodeErrors;
 
     /**
      * Construct a new GraphQLErrorSerializer, optionally with error encoding enabled.
-     * @param encodeErrors true if the message field should be encoded
      */
-    public GraphQLErrorSerializer(boolean encodeErrors) {
-        super(GraphQLError.class);
-        this.encodeErrors = encodeErrors;
-    }
-
     public GraphQLErrorSerializer() {
-        this(false);
+        super(GraphQLError.class);
     }
 
     @Override
@@ -41,9 +34,7 @@ public class GraphQLErrorSerializer extends StdSerializer<GraphQLError> {
         Map<String, Object> errorSpec = value.toSpecification();
         gen.writeStartObject();
 
-        gen.writeStringField("message",
-                encodeErrors ? Encode.forHtml((String) errorSpec.get("message"))
-                        : (String) errorSpec.get("message"));
+        gen.writeStringField("message", Encode.forHtml((String) errorSpec.get("message")));
 
         if (errorSpec.containsKey("locations")) {
             gen.writeFieldName("locations");

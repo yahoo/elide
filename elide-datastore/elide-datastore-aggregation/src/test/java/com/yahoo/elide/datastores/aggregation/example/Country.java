@@ -8,9 +8,15 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import lombok.Data;
 
+import org.hibernate.annotations.Formula;
+
+import lombok.Data;
+import lombok.Setter;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -35,6 +41,13 @@ public class Country {
 
     private Continent continent;
 
+    private String nickName;
+
+    private int unSeats;
+
+    @Setter
+    private boolean inUsa;
+
     @Id
     public String getId() {
         return id;
@@ -44,6 +57,7 @@ public class Country {
         this.id = id;
     }
 
+    @Column(name = "iso_code")
     public String getIsoCode() {
         return isoCode;
     }
@@ -61,6 +75,24 @@ public class Country {
         this.name = name;
     }
 
+    @Column(name = "nick_name")
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(final String nickName) {
+        this.nickName = nickName;
+    }
+
+    @Column(name = "un_seats")
+    public int getUnSeats() {
+        return unSeats;
+    }
+
+    public void setUnSeats(int seats) {
+        this.unSeats = seats;
+    }
+
     @ManyToOne
     @JoinColumn(name = "continent_id")
     public Continent getContinent() {
@@ -69,5 +101,11 @@ public class Country {
 
     public void setContinent(Continent continent) {
         this.continent = continent;
+    }
+
+    @DimensionFormula("CASE WHEN {{name}} = 'United States' THEN true ELSE false END")
+    @Formula("CASE WHEN name = 'United States' THEN true ELSE false END")
+    public boolean isInUsa() {
+        return inUsa;
     }
 }

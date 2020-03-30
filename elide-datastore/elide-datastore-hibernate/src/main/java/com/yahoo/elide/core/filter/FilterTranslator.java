@@ -25,6 +25,7 @@ import static com.yahoo.elide.core.filter.Operator.POSTFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.PREFIX;
 import static com.yahoo.elide.core.filter.Operator.PREFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.TRUE;
+import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
 
 import com.yahoo.elide.core.Path;
@@ -57,7 +58,7 @@ public class FilterTranslator implements FilterOperation<String> {
     public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_NO_ALIAS = FilterPredicate::getFieldPath;
 
     public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_WITH_ALIAS =
-            (predicate) -> getPathAlias(predicate.getPath()) + "." + predicate.getField();
+            (predicate) -> getFieldAlias(getPathAlias(predicate.getPath()), predicate.getField());
 
     static {
         predicateOverrides = new HashMap<>();

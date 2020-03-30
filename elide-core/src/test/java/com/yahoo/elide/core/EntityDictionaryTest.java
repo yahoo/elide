@@ -98,6 +98,13 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
+    public void testSetId() {
+        Parent parent = new Parent();
+        setId(parent, "123");
+        assertEquals(parent.getId(), 123);
+    }
+
+    @Test
     public void testFindCheckByExpression() {
         assertEquals("user has all access", getCheckIdentifier(Role.ALL.class));
         assertEquals("Prefab.Role.None", getCheckIdentifier(Role.NONE.class));

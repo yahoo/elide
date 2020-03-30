@@ -27,7 +27,6 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
-import com.yahoo.elide.security.User;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -300,10 +299,5 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                         .build();
 
         return (Long) query.getQuery().getSingleResult();
-    }
-
-    @Override
-    public User accessUser(Object opaqueUser) {
-        return new User(opaqueUser);
     }
 }

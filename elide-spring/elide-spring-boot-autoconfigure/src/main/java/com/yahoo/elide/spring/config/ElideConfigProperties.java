@@ -32,6 +32,11 @@ public class ElideConfigProperties {
     private SwaggerControllerProperties swagger;
 
     /**
+     * Settings for the Async.
+     */
+    private AsyncProperties async;
+
+    /**
      * Default pagination size for collections if the client doesn't paginate.
      */
     private int pageSize = 500;

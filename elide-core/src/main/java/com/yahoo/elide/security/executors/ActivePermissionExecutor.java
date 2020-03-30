@@ -14,13 +14,12 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
@@ -375,8 +374,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             ExpressionResult result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
             if (result == FAIL) {
                 ForbiddenAccessException e = new ForbiddenAccessException(
-                        EntityDictionary.getSimpleName(expr.getAnnotationClass()),
-                        expression, Expression.EvaluationMode.ALL_CHECKS);
+                        expr.getAnnotationClass(), expression, Expression.EvaluationMode.ALL_CHECKS);
                 if (log.isTraceEnabled()) {
                     log.trace("{}", e.getLoggedMessage());
                 }
@@ -423,7 +421,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
                 if (result == FAIL) {
                     ForbiddenAccessException e = new ForbiddenAccessException(
-                        EntityDictionary.getSimpleName(annotationClass),
+                        annotationClass,
                         expression,
                         Expression.EvaluationMode.ALL_CHECKS);
                     if (log.isTraceEnabled()) {
@@ -437,8 +435,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return DEFERRED;
         }
         if (result == FAIL) {
-            ForbiddenAccessException e = new ForbiddenAccessException(
-                    EntityDictionary.getSimpleName(annotationClass), expression, mode);
+            ForbiddenAccessException e = new ForbiddenAccessException(annotationClass, expression, mode);
             if (log.isTraceEnabled()) {
                 log.trace("{}", e.getLoggedMessage());
             }

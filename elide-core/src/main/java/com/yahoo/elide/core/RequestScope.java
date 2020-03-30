@@ -72,7 +72,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final LinkedHashSet<PersistentResource> deletedResources;
     @Getter private final String path;
     @Getter private final ElideSettings elideSettings;
-    @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
     @Getter private final MultipleFilterDialect filterDialect;
 
@@ -119,7 +118,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.filterDialect = new MultipleFilterDialect(elideSettings.getJoinFilterDialects(),
                 elideSettings.getSubqueryFilterDialects());
         this.elideSettings = elideSettings;
-        this.useFilterExpressions = elideSettings.isUseFilterExpressions();
         this.updateStatusCode = elideSettings.getUpdateStatusCode();
 
         this.globalFilterExpression = null;
@@ -207,14 +205,12 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
         this.elideSettings = outerRequestScope.elideSettings;
-        this.useFilterExpressions = outerRequestScope.useFilterExpressions;
-        this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.lifecycleEvents = outerRequestScope.lifecycleEvents;
         this.distinctLifecycleEvents = outerRequestScope.distinctLifecycleEvents;
+        this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
     }
 
-    @Override
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
         return (Set) newPersistentResources;
     }

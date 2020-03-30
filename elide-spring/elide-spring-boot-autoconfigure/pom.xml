@@ -40,8 +40,8 @@
     </scm>
 
     <properties>
-        <spring.boot.version>2.2.4.RELEASE</spring.boot.version>
-        <tomcat.version>9.0.30</tomcat.version>
+        <spring.boot.version>2.2.5.RELEASE</spring.boot.version>
+        <tomcat.version>9.0.31</tomcat.version>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
         <min_jdk_version>1.8</min_jdk_version>
         <max_jdk_version>1.8</max_jdk_version>
@@ -94,6 +94,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-async</artifactId>
+            <version>5.0.0-pr7-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.12</version>
@@ -133,6 +139,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${spring.boot.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
             <version>${spring.boot.version}</version>
             <optional>true</optional>
         </dependency>
