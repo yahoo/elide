@@ -709,7 +709,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testAnnotationNoSuchMethod() {
         bindEntity(Book.class);
         IllegalStateException e = assertThrows(IllegalStateException.class,
-                () -> getAnnotation(Book.class, "NoMethod", FilterExpressionPath.class));
+                () -> getMethodAnnotation(Book.class, "NoMethod", FilterExpressionPath.class));
         assertTrue(e.getCause() instanceof NoSuchMethodException, e.toString());
     }
 
@@ -717,7 +717,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testAnnotationFilterExpressionPath() {
         bindEntity(Book.class);
         FilterExpressionPath fe =
-                getAnnotation(Book.class, "getEditor", FilterExpressionPath.class);
+                getMethodAnnotation(Book.class, "getEditor", FilterExpressionPath.class);
         assertEquals("publisher.editor", fe.value());
     }
 

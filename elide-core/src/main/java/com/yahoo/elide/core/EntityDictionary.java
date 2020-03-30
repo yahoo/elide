@@ -886,8 +886,8 @@ public class EntityDictionary {
      * @param <A> genericClass
      * @return the annotation
      */
-    public <A extends Annotation> A getAnnotation(Class<?> recordClass, String method, Class<A> annotationClass) {
-        return getEntityBinding(recordClass).getAnnotation(annotationClass, method);
+    public <A extends Annotation> A getMethodAnnotation(Class<?> recordClass, String method, Class<A> annotationClass) {
+        return getEntityBinding(recordClass).getMethodAnnotation(annotationClass, method);
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,

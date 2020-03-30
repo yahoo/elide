@@ -580,7 +580,7 @@ public class EntityBinding {
      * @param <A> annotation type
      * @return the annotation
      */
-    public <A extends Annotation> A getAnnotation(Class<A> annotationClass, String method) {
+    public <A extends Annotation> A getMethodAnnotation(Class<A> annotationClass, String method) {
         Annotation annotation = annotations.computeIfAbsent(Pair.of(annotationClass, method), key -> {
             try {
                 return Optional.ofNullable((Annotation) entityClass.getMethod(method).getAnnotation(annotationClass))

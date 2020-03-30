@@ -91,7 +91,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     protected static Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
         EntityDictionary dictionary = coreScope(requestScope).getDictionary();
-        FilterExpressionPath fep = dictionary.getAnnotation(type, method, FilterExpressionPath.class);
+        FilterExpressionPath fep = dictionary.getMethodAnnotation(type, method, FilterExpressionPath.class);
         return new Path(type, dictionary, fep == null ? defaultPath : fep.value());
     }
 
