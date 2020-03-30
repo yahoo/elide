@@ -40,7 +40,7 @@
 
     <properties>
         <dataStoreHarness>com.yahoo.elide.datastores.hibernate3.HibernateDataStoreHarness</dataStoreHarness>
-        <excludeTags>emptyOnAttributeCollection</excludeTags>
+        <excludeTags>emptyOnAttributeCollection,memberOfAttributeCollection</excludeTags>
     </properties>
 
     <dependencies>

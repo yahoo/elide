@@ -165,6 +165,20 @@ public enum Operator {
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return (entity) -> !isEmpty(field, requestScope).test(entity);
         }
+    },
+
+    HASMEMBER("hasmember", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return hasMember(field, values, requestScope);
+        }
+    },
+
+    HASNOMEMBER("hasnomember", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return entiry -> !hasMember(field, values, requestScope).test(entiry);
+        }
     }
     ;
 
@@ -189,6 +203,8 @@ public enum Operator {
         NOTNULL.negated = ISNULL;
         ISEMPTY.negated = NOTEMPTY;
         NOTEMPTY.negated = ISEMPTY;
+        HASMEMBER.negated = HASNOMEMBER;
+        HASNOMEMBER.negated = HASMEMBER;
     }
 
     /**
@@ -344,6 +360,25 @@ public enum Operator {
             }
             if (val instanceof Map<?, ?>) {
                 return ((Map<?, ?>) val).isEmpty();
+            }
+
+            return false;
+        };
+    }
+
+    private static <T> Predicate<T> hasMember(String field, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("HasMember can only take one argument");
+            }
+            Object val = getFieldValue(entity, field, requestScope);
+            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+            if (val == null) { return false; }
+            if (val instanceof Collection<?>) {
+                return ((Collection<?>) val).contains(filterStr);
+            }
+            if (val instanceof Map<?, ?>) {
+                return ((Map<?, ?>) val).keySet().contains(filterStr);
             }
 
             return false;

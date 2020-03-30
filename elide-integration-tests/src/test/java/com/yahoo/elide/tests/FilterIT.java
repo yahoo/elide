@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
@@ -1666,6 +1667,118 @@ public class FilterIT extends IntegrationTest {
                 result.get("errors").get(0).asText()
         );
 
+    }
+
+    @Test
+    @Tag("memberOfAttributeCollection")
+    void testMemberOfOnAttributes() throws IOException {
+        JsonNode result;
+        String filterString = "Booker Prize";
+        Set<JsonNode> awardBook = new HashSet<>();
+        Set<JsonNode> nullNedAwardBook = new HashSet<>();
+
+
+        // * Filter On Root Entity *
+        for (JsonNode book : books.get("data")) {
+            Iterator<JsonNode> awards = book.get("attributes").get("awards").elements();
+            while (awards.hasNext()) {
+                if (awards.next().asText().equals(filterString)) {
+                    awardBook.add(book.get("id"));
+                    break;
+                }
+            }
+        }
+        // Test Default filter type on Root Entity
+        result = getAsNode(String.format("/book?filter[book.awards][hasmember]=%s", filterString));
+        assertEquals(awardBook.size(), result.get("data").size());
+        for (JsonNode book : result.get("data")) {
+            assertTrue(awardBook.contains(book.get("id")));
+        }
+        // Test RSQL type filter on Root Entity
+        result = getAsNode(String.format("/book?filter[book]=awards=hasmember=\"%s\"", filterString));
+        assertEquals(awardBook.size(), result.get("data").size());
+        for (JsonNode book : result.get("data")) {
+            assertTrue(awardBook.contains(book.get("id")));
+        }
+
+
+        // * Filter On Non Root Entity *
+        for (JsonNode book : nullNedBooks.get("data")) {
+            Iterator<JsonNode> awards = book.get("attributes").get("awards").elements();
+            while (awards.hasNext()) {
+                if (awards.next().asText().equals(filterString)) {
+                    nullNedAwardBook.add(book.get("id"));
+                    break;
+                }
+            }
+        }
+        // Test Default filter type on NonRoot Entity
+        result = getAsNode(String.format("/author/%s/books?filter[book.awards][hasmember]=%s", nullNedId, filterString));
+        assertEquals(nullNedAwardBook.size(), result.get("data").size());
+        for (JsonNode book : result.get("data")) {
+            assertTrue(nullNedAwardBook.contains(book.get("id")));
+        }
+        // Test RSQL type filter on NonRoot Entity
+        result = getAsNode(String.format("/author/%s/books?filter[book]=awards=hasmember=\"%s\"", nullNedId, filterString));
+        assertEquals(result.get("data").size(), nullNedAwardBook.size());
+        for (JsonNode book : result.get("data")) {
+            assertTrue(nullNedAwardBook.contains(book.get("id")));
+        }
+    }
+
+    @Test
+    void testMemberOfOnRelationships() throws IOException {
+        JsonNode result;
+        int filterId = 1;
+        Set<JsonNode> author1Book = new HashSet<>();
+
+
+        // * Filter On Root Entity *
+        for (JsonNode book : books.get("data")) {
+            Iterator<JsonNode> bookAuthors = book.get("relationships").get("authors").get("data").elements();
+            while (bookAuthors.hasNext()) {
+                if (bookAuthors.next().get("id").asInt() == filterId) {
+                    author1Book.add(book.get("id"));
+                    break;
+                }
+            }
+        }
+        // Test Default filter type on Root Entity
+        result = getAsNode(String.format("/book?filter[book.authors.id][hasmember]=%d", filterId));
+        assertEquals(author1Book.size(), result.get("data").size());
+        for (JsonNode book : result.get("data")) {
+            assertTrue(author1Book.contains(book.get("id")));
+        }
+        // Test RSQL type filter on Root Entity
+        result = getAsNode(String.format("/book?filter[book]=authors=hasmember=\"%d\"", filterId));
+        assertEquals(author1Book.size(), result.get("data").size());
+        for (JsonNode book : result.get("data")) {
+            assertTrue(author1Book.contains(book.get("id")));
+        }
+
+
+//        // * Filter On Non Root Entity *
+//        for (JsonNode book : nullNedBooks.get("data")) {
+//            Iterator<JsonNode> awards = book.get("attributes").get("awards").elements();
+//            while (awards.hasNext()) {
+//                if (awards.next().asText().equals(filterId)) {
+//                    nullNedAwardBook.add(book.get("id"));
+//                    break;
+//                }
+//            }
+//        }
+//        // Test Default filter type on NonRoot Entity
+//        result = getAsNode(String.format("/author/%s/books?filter[book.authors][hasmember]=%s", nullNedId, filterId));
+//        assertEquals(nullNedAwardBook.size(), result.get("data").size());
+//        for (JsonNode book : result.get("data")) {
+//            assertTrue(nullNedAwardBook.contains(book.get("id")));
+//        }
+//        // Test RSQL type filter on NonRoot Entity
+//        result = getAsNode(String.format("/author/%s/books?filter[book]=awards=hasmember=\"%s\"", nullNedId, filterId));
+//        assertEquals(result.get("data").size(), nullNedAwardBook.size());
+//        for (JsonNode book : result.get("data")) {
+//            assertTrue(nullNedAwardBook.contains(book.get("id")));
+//        }
     }
 
     @AfterAll

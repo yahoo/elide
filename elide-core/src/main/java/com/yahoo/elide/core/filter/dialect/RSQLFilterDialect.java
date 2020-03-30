@@ -60,6 +60,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
     private static final ComparisonOperator ISEMPTY_OP = new ComparisonOperator("=isempty=", false);
+    private static final ComparisonOperator HASMEMBER_OP = new ComparisonOperator("=hasmember=", false);
+    private static final ComparisonOperator HASNOMEMBER_OP = new ComparisonOperator("=hasnomember=", false);
 
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
@@ -68,6 +70,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     .put(RSQLOperators.GREATER_THAN, Operator.GT)
                     .put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE)
                     .put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE)
+                    .put(HASMEMBER_OP, Operator.HASMEMBER)
+                    .put(HASNOMEMBER_OP, Operator.HASNOMEMBER)
                     .build();
 
 
@@ -90,6 +94,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         Set<ComparisonOperator> operators = RSQLOperators.defaultOperators();
         operators.add(ISNULL_OP);
         operators.add(ISEMPTY_OP);
+        operators.add(HASMEMBER_OP);
+        operators.add(HASNOMEMBER_OP);
         return operators;
     }
 
@@ -291,7 +297,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             Path path = buildPath(entityType, relationship);
 
             //handles '=isempty=' op before coerce arguments
-            // ToMany Association is allowed if the operation in Is Empty
+            // ToMany Association is allowed if the operation is IsEmpty
             if (op.equals(ISEMPTY_OP)) {
                 if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, path)
                         && !allowNestedToManyAssociations) {
@@ -406,5 +412,6 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg));
             }
         }
+
     }
 }

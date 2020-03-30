@@ -8,6 +8,8 @@ package com.yahoo.elide.core.filter;
 import static com.yahoo.elide.core.filter.Operator.FALSE;
 import static com.yahoo.elide.core.filter.Operator.GE;
 import static com.yahoo.elide.core.filter.Operator.GT;
+import static com.yahoo.elide.core.filter.Operator.HASMEMBER;
+import static com.yahoo.elide.core.filter.Operator.HASNOMEMBER;
 import static com.yahoo.elide.core.filter.Operator.IN;
 import static com.yahoo.elide.core.filter.Operator.INFIX;
 import static com.yahoo.elide.core.filter.Operator.INFIX_CASE_INSENSITIVE;
@@ -168,6 +170,21 @@ public class FilterTranslator implements FilterOperation<String> {
 
         operatorGenerators.put(NOTEMPTY, (columnAlias, params) -> {
             return String.format("%s IS NOT EMPTY", columnAlias);
+        });
+
+        operatorGenerators.put(HASMEMBER, (columnAlias, params) -> {
+            Preconditions.checkArgument(params.size() == 1);
+            String x =  String.format("%s MEMBER OF %s",
+                    params.get(0).getPlaceholder(),
+                    columnAlias);
+            return x;
+        });
+
+        operatorGenerators.put(HASNOMEMBER, (columnAlias, params) -> {
+            Preconditions.checkArgument(params.size() == 1);
+            return String.format("%s NOT MEMBER OF %s",
+                    params.get(0).getPlaceholder(),
+                    columnAlias);
         });
 
     }
