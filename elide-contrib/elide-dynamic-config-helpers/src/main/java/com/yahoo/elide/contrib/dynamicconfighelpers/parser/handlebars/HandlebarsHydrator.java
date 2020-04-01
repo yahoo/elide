@@ -26,6 +26,7 @@ import java.util.Map;
  */
 public class HandlebarsHydrator {
 
+    public static final String SECURITY_CLASS_PREFIX = "DynamicConfigOperationChecksPrincipalIs";
     public static final EscapingStrategy MY_ESCAPING_STRATEGY = new Hbs(new String[][]{
         {"<", "&lt;" },
         {">", "&gt;" },
@@ -80,14 +81,21 @@ public class HandlebarsHydrator {
      * @return security java class string
      * @throws IOException IOException
      */
-    public String hydrateSecurityTemplate(ElideSecurity security) throws IOException {
+    public Map<String, String> hydrateSecurityTemplate(ElideSecurity security) throws IOException {
+
+        Map<String, String> securityClasses = new HashMap<>();
 
         TemplateLoader loader = new ClassPathTemplateLoader("/templates");
         Handlebars handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
+        HandlebarsHelper helper = new HandlebarsHelper();
         handlebars.registerHelpers(ConditionalHelpers.class);
-        handlebars.registerHelpers(new HandlebarsHelper());
+        handlebars.registerHelpers(helper);
         Template template = handlebars.compile("security");
 
-        return template.apply(security);
+        for (String role : security.getRoles()) {
+            securityClasses.put(SECURITY_CLASS_PREFIX + helper.firstCharOnlyToUpper(role), template.apply(role));
+        }
+
+        return securityClasses;
     }
 }

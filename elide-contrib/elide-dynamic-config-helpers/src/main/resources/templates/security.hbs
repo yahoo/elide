@@ -1,19 +1,13 @@
 package com.yahoo.elide.contrib.dynamicconfig.model;
 
-import java.security.Principal;
-import java.util.Optional;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;
 
-public class DynamicConfigOperationChecks {
+@SecurityCheck(DynamicConfigOperationChecksPrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}}.PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}})
+public class DynamicConfigOperationChecksPrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}} extends RoleMemberCheck {
 
-{{#each roles}}
-    @SecurityCheck(PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}}.PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}})
-    public static class PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}} extends RoleMemberCheck {
-        public static final String PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}} = "Principal is {{this}}";
-        public PrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}}() {
-            super("{{this}}");
-        }
+    public static final String PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}} = "Principal is {{this}}";
+    public DynamicConfigOperationChecksPrincipalIs{{#firstCharOnlyToUpper this}}{{/firstCharOnlyToUpper}}() {
+        super("{{this}}");
     }
-{{/each}}
 }

@@ -259,6 +259,9 @@ public class HandlebarsHydratorTest {
             + "    table: player_stats\n"
             + "}";
 
+    private static final String VALID_SECURITY_ADMIN_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsAdmin";
+    private static final String VALID_SECURITY_GUEST_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsGuest";
+
     private static final String VALID_SECURITY = "{\n"
             + "    roles : [\n"
             + "        admin \n"
@@ -277,40 +280,32 @@ public class HandlebarsHydratorTest {
             + "    ]\n"
             + "}";
 
-    private static final String VALID_SECURITY_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
+    private static final String VALID_SECURITY_ADMIN_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
-            + "import java.security.Principal;\n"
-            + "import java.util.Optional;\n"
             + "import com.yahoo.elide.annotation.SecurityCheck;\n"
             + "import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;\n"
             + "\n"
-            + "public class DynamicConfigOperationChecks {\n"
+            + "@SecurityCheck(DynamicConfigOperationChecksPrincipalIsAdmin.PRINCIPAL_IS_ADMIN)\n"
+            + "public class DynamicConfigOperationChecksPrincipalIsAdmin extends RoleMemberCheck {\n"
             + "\n"
-            + "\n"
-            + "    @SecurityCheck(PrincipalIsAdmin.PRINCIPAL_IS_ADMIN)\n"
-            + "    public static class PrincipalIsAdmin extends RoleMemberCheck {\n"
-            + "        public static final String PRINCIPAL_IS_ADMIN = \"Principal is admin\";\n"
-            + "        public PrincipalIsAdmin() {\n"
-            + "            super(\"admin\");\n"
-            + "        }\n"
+            + "    public static final String PRINCIPAL_IS_ADMIN = \"Principal is admin\";\n"
+            + "    public DynamicConfigOperationChecksPrincipalIsAdmin() {\n"
+            + "        super(\"admin\");\n"
             + "    }\n"
+            + "}\n";
+
+    private static final String VALID_SECURITY_GUEST_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
-            + "    @SecurityCheck(PrincipalIsGuest.PRINCIPAL_IS_GUEST)\n"
-            + "    public static class PrincipalIsGuest extends RoleMemberCheck {\n"
-            + "        public static final String PRINCIPAL_IS_GUEST = \"Principal is GUEST\";\n"
-            + "        public PrincipalIsGuest() {\n"
-            + "            super(\"GUEST\");\n"
-            + "        }\n"
+            + "import com.yahoo.elide.annotation.SecurityCheck;\n"
+            + "import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;\n"
+            + "\n"
+            + "@SecurityCheck(DynamicConfigOperationChecksPrincipalIsGuest.PRINCIPAL_IS_GUEST)\n"
+            + "public class DynamicConfigOperationChecksPrincipalIsGuest extends RoleMemberCheck {\n"
+            + "\n"
+            + "    public static final String PRINCIPAL_IS_GUEST = \"Principal is GUEST\";\n"
+            + "    public DynamicConfigOperationChecksPrincipalIsGuest() {\n"
+            + "        super(\"GUEST\");\n"
             + "    }\n"
-            + "\n"
-            + "    @SecurityCheck(PrincipalIsMember.PRINCIPAL_IS_MEMBER)\n"
-            + "    public static class PrincipalIsMember extends RoleMemberCheck {\n"
-            + "        public static final String PRINCIPAL_IS_MEMBER = \"Principal is member\";\n"
-            + "        public PrincipalIsMember() {\n"
-            + "            super(\"member\");\n"
-            + "        }\n"
-            + "    }\n"
-            + "\n"
             + "}\n";
 
     @Test
@@ -338,7 +333,11 @@ public class HandlebarsHydratorTest {
     public void testSecurityHydration() throws IOException {
         HandlebarsHydrator obj = new HandlebarsHydrator();
         ElideSecurity security = (ElideSecurity) testClass.parseConfigString(VALID_SECURITY, "security");
+        Map<String, String> securityClasses = obj.hydrateSecurityTemplate(security);
 
-        assertEquals(VALID_SECURITY_JAVA, obj.hydrateSecurityTemplate(security));
+        assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_ADMIN_JAVA_NAME));
+        assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_GUEST_JAVA_NAME));
+        assertEquals(VALID_SECURITY_ADMIN_JAVA, securityClasses.get(VALID_SECURITY_ADMIN_JAVA_NAME));
+        assertEquals(VALID_SECURITY_GUEST_JAVA, securityClasses.get(VALID_SECURITY_GUEST_JAVA_NAME));
     }
 }
