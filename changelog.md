@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.5.16
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/912b246451cff7b5833fc173cbc3fbf68cccce2e) Optimize field annotation lookup (#1243) 
+
 ## 4.5.15
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/7048968af3a0838da51ccfcaf0d1cff468b2f9f8) Improve performance of initial class scans (#1238) 
