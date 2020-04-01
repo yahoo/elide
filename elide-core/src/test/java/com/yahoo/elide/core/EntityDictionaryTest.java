@@ -17,6 +17,7 @@ import static org.mockito.Mockito.verify;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
@@ -705,6 +706,22 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
+    public void testAnnotationNoSuchMethod() {
+        bindEntity(Book.class);
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> getMethodAnnotation(Book.class, "NoMethod", FilterExpressionPath.class));
+        assertTrue(e.getCause() instanceof NoSuchMethodException, e.toString());
+    }
+
+    @Test
+    public void testAnnotationFilterExpressionPath() {
+        bindEntity(Book.class);
+        FilterExpressionPath fe =
+                getMethodAnnotation(Book.class, "getEditor", FilterExpressionPath.class);
+        assertEquals("publisher.editor", fe.value());
+    }
+
+    @Test
     public void testBadLookupEntityClass() {
         assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(null));
         assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(Object.class));
@@ -794,5 +811,24 @@ public class EntityDictionaryTest extends EntityDictionary {
                 ImmutableMap.of("one", 1L, "two", 2L),
                 bean.map);
         assertEquals(ImmutableSet.of(3.0, 4.0), bean.set);
+    }
+
+    public static class TestCheck extends UserCheck {
+
+        @Override
+        public boolean ok(com.yahoo.elide.security.User user) {
+            throw new IllegalStateException();
+        }
+    }
+
+    @Test
+    public void testCheckLookup() throws Exception {
+        assertEquals(Role.ALL.class, this.getCheck("user has all access"));
+
+        assertEquals(TestCheck.class, this.getCheck("com.yahoo.elide.core.EntityDictionaryTest$TestCheck"));
+
+        assertThrows(IllegalArgumentException.class, () -> this.getCheck("UnknownClassName"));
+
+        assertThrows(IllegalArgumentException.class, () -> this.getCheck(String.class.getName()));
     }
 }
