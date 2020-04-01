@@ -23,8 +23,9 @@ public class ElideVariablesToPojoTest {
                        + "    fi:[1,2,3]\n"
                        + "    fum: this is a test!\n"
                        + "}";
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Map<String, Object> map = (Map) testClass.parseConfigString(str, "variable");
+
+        testClass.parseConfigString(str, "variable");
+        Map<String, Object> map = testClass.getVariables();
 
         assertEquals(3, map.size());
         assertEquals("bar", map.get("fo"));

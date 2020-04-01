@@ -81,7 +81,7 @@ public class HandlebarsHydrator {
      * @return security java class string
      * @throws IOException IOException
      */
-    public Map<String, String> hydrateSecurityTemplate(ElideSecurity security) throws IOException {
+    public Map<String, String> hydrateSecurityTemplate(ElideSecurityConfig security) throws IOException {
 
         Map<String, String> securityClasses = new HashMap<>();
 

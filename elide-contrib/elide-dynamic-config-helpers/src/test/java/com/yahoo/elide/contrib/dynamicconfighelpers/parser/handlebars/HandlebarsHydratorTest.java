@@ -7,8 +7,6 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideConfigParser;
 
 import org.junit.jupiter.api.Test;
@@ -312,8 +310,8 @@ public class HandlebarsHydratorTest {
     public void testConfigHydration() throws IOException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        @SuppressWarnings("unchecked")
-        Map<String, Object> map = (Map<String, Object>) testClass.parseConfigString(VALID_VARIABLE, "variable");
+        testClass.parseConfigString(VALID_VARIABLE, "variable");
+        Map<String, Object> map = testClass.getVariables();
 
         assertEquals(VALID_TABLE, obj.hydrateConfigTemplate(VALID_TABLE_WITH_VARIABLES, map));
     }
@@ -322,8 +320,8 @@ public class HandlebarsHydratorTest {
     public void testTableHydration() throws IOException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        ElideTable table = (ElideTable) testClass.parseConfigString(VALID_TABLE, "table");
-        Map<String, String> tableClasses = obj.hydrateTableTemplate(table);
+        testClass.parseConfigString(VALID_TABLE, "table");
+        Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
         assertEquals(VALID_TABLE_JAVA, tableClasses.get(VALID_TABLE_JAVA_NAME));
@@ -332,8 +330,8 @@ public class HandlebarsHydratorTest {
     @Test
     public void testSecurityHydration() throws IOException {
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        ElideSecurity security = (ElideSecurity) testClass.parseConfigString(VALID_SECURITY, "security");
-        Map<String, String> securityClasses = obj.hydrateSecurityTemplate(security);
+        testClass.parseConfigString(VALID_SECURITY, "security");
+        Map<String, String> securityClasses = obj.hydrateSecurityTemplate(testClass.getElideSecurityConfig());
 
         assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_ADMIN_JAVA_NAME));
         assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_GUEST_JAVA_NAME));
