@@ -7,8 +7,6 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
-
 import org.junit.jupiter.api.Test;
 
 public class ElideSecurityToPojoTest {
@@ -35,7 +33,7 @@ public class ElideSecurityToPojoTest {
 
     @Test
     public void testValidSecurity() throws Exception {
-        ElideSecurity sec = (ElideSecurity) testClass.parseConfigString(VALID_SECURITY, "security");
-        assertEquals(3, sec.getRoles().size());
+        testClass.parseConfigString(VALID_SECURITY, "security");
+        assertEquals(3, testClass.getElideSecurityConfig().getRoles().size());
     }
 }

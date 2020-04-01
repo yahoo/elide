@@ -7,7 +7,7 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.junit.jupiter.api.Test;
@@ -66,7 +66,8 @@ public class ElideTableToPojoTest {
 
     @Test
     public void testValidTable() throws Exception {
-        ElideTable table = (ElideTable) testClass.parseConfigString(VALID_TABLE, "table");
+        testClass.parseConfigString(VALID_TABLE, "table");
+        ElideTableConfig table = this.testClass.getElideTableConfig();
 
         for (Table t : table.getTables()) {
             assertEquals(t.getMeasures().get(0).getName() , t.getMeasures().get(0).getDescription());
