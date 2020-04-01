@@ -7,9 +7,8 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.junit.jupiter.api.Test;
@@ -33,15 +32,24 @@ public class ElideConfigParserTest {
         assertEquals(2, variable.size());
         assertEquals("blah", variable.get("bar"));
 
-        ElideSecurity security = testClass.getElideSecurity();
+        ElideSecurityConfig security = testClass.getElideSecurityConfig();
         assertEquals(3, security.getRoles().size());
 
-        ElideTable tables = testClass.getElideTable();
-        assertEquals(1, tables.getTables().size());
+        ElideTableConfig tables = testClass.getElideTableConfig();
+        assertEquals(2, tables.getTables().size());
         for (Table t : tables.getTables()) {
             assertEquals(t.getMeasures().get(0).getName() , t.getMeasures().get(0).getDescription());
             assertEquals("MAX(score)", t.getMeasures().get(0).getDefinition());
             assertEquals(Table.Cardinality.LARGE, t.getCardinality());
+        }
+    }
+
+    @Test
+    public void testNullConfig() {
+        try {
+            testClass.parseConfigPath(null);
+        } catch (NullPointerException npe) {
+            assertEquals("Config path is null", npe.getMessage());
         }
     }
 }

@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,31 +33,30 @@ import java.util.Map;
 
 @Slf4j
 /**
- * Util class for Dynamic config module.
+ * Util class for Dynamic config helper module.
  */
 public class DynamicConfigHelpersUtil {
 
     public static final String SCHEMA_TYPE_TABLE = "table";
     public static final String SCHEMA_TYPE_SECURITY = "security";
     public static final String SCHEMA_TYPE_VARIABLE = "variable";
-
-    public static final String TABLE_CONFIG_PATH = "tables/";
-    public static final String SECURITY_CONFIG_PATH = "security.hjson";
-    public static final String VARIABLE_CONFIG_PATH = "variables.hjson";
-
-    public static final String ELIDE_TABLE_VALIDATION_SCHEMA = "elideTableSchema.json";
-    public static final String ELIDE_SECURITY_SCHEMA = "elideSecuritySchema.json";
-    public static final String ELIDE_VARIABLE_SCHEMA = "elideVariableSchema.json";
-
     public static final String INVALID_ERROR_MSG = "Incompatible or invalid config";
-    public static final String HTTP_PREFIX = "http";
-    public static final String CHAR_SET = "UTF-8";
-    public static final String NEW_LINE = "\n";
+
+    private static final String TABLE_CONFIG_PATH = "tables/";
+    private static final String SECURITY_CONFIG_PATH = "security.hjson";
+    private static final String VARIABLE_CONFIG_PATH = "variables.hjson";
+
+    private static final String ELIDE_TABLE_VALIDATION_SCHEMA = "elideTableSchema.json";
+    private static final String ELIDE_SECURITY_SCHEMA = "elideSecuritySchema.json";
+    private static final String ELIDE_VARIABLE_SCHEMA = "elideVariableSchema.json";
+
+    private static final String CHAR_SET = "UTF-8";
+    private static final String NEW_LINE = "\n";
 
     /**
      * Converts hjson input string to valid json string.
-     * @param hjson
-     * @return json string
+     * @param hjson : input config in hjson format
+     * @return valid json string
      */
     public String hjsonToJson(String hjson) {
         return JsonValue.readHjson(hjson).toString();
@@ -65,11 +64,11 @@ public class DynamicConfigHelpersUtil {
 
     /**
      * Validates json config against json schema.
-     * @param schemaObj
-     * @param jsonConfig
+     * @param schemaObj : schema object
+     * @param jsonConfig : config to be validated against schema
      * @return true or false
      */
-    public boolean validateDataWithSchema(JSONObject schemaObj, String jsonConfig) {
+    public boolean isConfigValid(JSONObject schemaObj, String jsonConfig) {
 
         try {
             JSONObject data = new JSONObject(new JSONTokener(jsonConfig));
@@ -85,7 +84,7 @@ public class DynamicConfigHelpersUtil {
 
     /**
      * Checks whether input is null or empty.
-     * @param input
+     * @param input : input string
      * @return true or false
      */
     public boolean isNullOrEmpty(String input) {
@@ -94,7 +93,7 @@ public class DynamicConfigHelpersUtil {
 
     /**
      * Loads appropriate schema per input schema type.
-     * @param schemaType
+     * @param schemaType i.e. table, security or variable
      * @return jsonObject of schema
      * @throws IOException
      */
@@ -116,21 +115,21 @@ public class DynamicConfigHelpersUtil {
 
     /**
      * Converts json string to appropriate POJO.
-     * @param inputConfigType
-     * @param jsonConfig
-     * @return model pojo
+     * @param inputConfigType ex. table, security or variable
+     * @param jsonConfig input json config
+     * @return config pojo
      * @throws Exception
      */
     public Object getModelPojo(String inputConfigType, String jsonConfig) throws Exception {
 
         switch (inputConfigType) {
-        case DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE:
-            return new ObjectMapper().readValue(jsonConfig, ElideTable.class);
+        case SCHEMA_TYPE_TABLE:
+            return new ObjectMapper().readValue(jsonConfig, ElideTableConfig.class);
 
-        case DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY:
-            return new ObjectMapper().readValue(jsonConfig, ElideSecurity.class);
+        case SCHEMA_TYPE_SECURITY:
+            return new ObjectMapper().readValue(jsonConfig, ElideSecurityConfig.class);
 
-        case DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE:
+        case SCHEMA_TYPE_VARIABLE:
             return new ObjectMapper().readValue(jsonConfig, Map.class);
 
         default:
@@ -140,9 +139,9 @@ public class DynamicConfigHelpersUtil {
 
     /**
      * Load config from LocalPath.
-     * @param basePath
-     * @param configType
-     * @return List of Json configs from local dir.
+     * @param basePath : base dir of config
+     * @param configType : type of config ex. variable, table, security
+     * @return List of Json configs read from local dir.
      * @throws Exception
      */
     public List<String> getJsonConfig(String basePath, String configType) throws Exception {

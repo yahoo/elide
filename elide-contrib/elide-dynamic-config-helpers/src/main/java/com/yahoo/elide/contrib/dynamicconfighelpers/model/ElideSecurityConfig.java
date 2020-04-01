@@ -30,7 +30,7 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class ElideSecurity {
+public class ElideSecurityConfig {
 
     @JsonProperty("roles")
     @JsonDeserialize(as = LinkedHashSet.class)
