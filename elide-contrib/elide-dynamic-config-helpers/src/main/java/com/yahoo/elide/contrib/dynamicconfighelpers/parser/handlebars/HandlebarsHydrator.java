@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurity;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTable;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.EscapingStrategy;
@@ -41,7 +41,7 @@ public class HandlebarsHydrator {
      * @return map with key as table java class name and value as table java class definition
      * @throws IOException IOException
      */
-    public Map<String, String> hydrateTableTemplate(ElideTable table) throws IOException {
+    public Map<String, String> hydrateTableTemplate(ElideTableConfig table) throws IOException {
 
         Map<String, String> tableClasses = new HashMap<>();
 

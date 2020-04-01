@@ -29,7 +29,7 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class ElideTable {
+public class ElideTableConfig {
 
     @JsonProperty("tables")
     @JsonDeserialize(as = LinkedHashSet.class)

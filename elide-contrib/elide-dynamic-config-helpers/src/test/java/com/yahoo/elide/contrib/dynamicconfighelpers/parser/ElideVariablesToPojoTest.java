@@ -6,7 +6,6 @@
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,16 +23,12 @@ public class ElideVariablesToPojoTest {
                        + "    fi:[1,2,3]\n"
                        + "    fum: this is a test!\n"
                        + "}";
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         Map<String, Object> map = (Map) testClass.parseConfigString(str, "variable");
 
         assertEquals(3, map.size());
         assertEquals("bar", map.get("fo"));
 
         assertEquals("[1, 2, 3]", map.get("fi").toString());
-    }
-
-    @Test
-    public void testValidateVariableInvalid() throws Exception {
-        assertNull(testClass.parseConfigString("", "test"));
     }
 }
