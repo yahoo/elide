@@ -27,8 +27,10 @@ public class AsyncCleanerService {
     private final int DEFAULT_CLEANUP_DELAY_MINUTES = 360;
     private final int MAX_CLEANUP_INTIAL_DELAY_MINUTES = 100;
 
+    private static AsyncCleanerService asyncCleanerService = null;
+
     @Inject
-    public AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
+    private AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
 
         //If query is still running for twice than maxRunTime, then interrupt did not work due to host/app crash.
         int queryRunTimeThresholdMinutes = maxRunTimeMinutes * 2;
@@ -46,6 +48,25 @@ public class AsyncCleanerService {
         //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
         //Or maxRunTimeMinutes * 2 so that this process does not coincides with query interrupt process.
         cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(DEFAULT_CLEANUP_DELAY_MINUTES, queryRunTimeThresholdMinutes), TimeUnit.MINUTES);
+    }
+
+    /**
+     * Initialize the singleton AsyncCleanerService object
+     * @param elide Elide Instance
+     * @param maxRunTimeMinutes max run times in minutes
+     * @param queryCleanupDays Async Query Clean up days
+     * @param asyncQueryDao DAO Object
+     */
+    public static void init(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
+        if(asyncCleanerService == null) {
+            asyncCleanerService = new AsyncCleanerService(elide, maxRunTimeMinutes, queryCleanupDays, asyncQueryDao);
+        } else {
+            log.debug("asyncCleanerService is already initialized.");
+        }
+    }
+
+    public static AsyncCleanerService getInstance() {
+        return asyncCleanerService;
     }
 
 }
