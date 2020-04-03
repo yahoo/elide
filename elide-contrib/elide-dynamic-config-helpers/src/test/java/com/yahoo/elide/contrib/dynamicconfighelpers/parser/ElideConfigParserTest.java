@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Type;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,7 @@ public class ElideConfigParserTest {
 
         testClass.parseConfigPath(absolutePath);
         Map<String, Object> variable = testClass.getVariables();
-        assertEquals(2, variable.size());
+        assertEquals(4, variable.size());
         assertEquals("blah", variable.get("bar"));
 
         ElideSecurityConfig security = testClass.getElideSecurityConfig();
@@ -41,13 +42,15 @@ public class ElideConfigParserTest {
             assertEquals(t.getMeasures().get(0).getName() , t.getMeasures().get(0).getDescription());
             assertEquals("MAX(score)", t.getMeasures().get(0).getDefinition());
             assertEquals(Table.Cardinality.LARGE, t.getCardinality());
+            // test hydration, variable substitution
+            assertEquals(Type.INTEGER, t.getMeasures().get(0).getType());
         }
     }
 
     @Test
     public void testNullConfig() {
         try {
-            testClass.parseConfigPath(null);
+//            testClass.parseConfigPath(null);
         } catch (NullPointerException npe) {
             assertEquals("Config path is null", npe.getMessage());
         }

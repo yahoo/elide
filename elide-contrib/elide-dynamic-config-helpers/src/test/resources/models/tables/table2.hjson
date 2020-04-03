@@ -20,7 +20,7 @@
         measures : [
             {
             name : highScore
-            type : INTEGER
+            type : "{{measure_type}}"
             definition: 'MAX(score)'
             }
         ]

@@ -1,4 +1,6 @@
 {
    foo: [1, 2, 3]
    bar: blah
+   hour: hour_replace
+   measure_type: INTEGER
 }

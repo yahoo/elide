@@ -7,7 +7,7 @@ package com.yahoo.elide.contrib.dynamicconfighelpers;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
-
+import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.everit.json.schema.Schema;
@@ -164,6 +164,18 @@ public class DynamicConfigHelpersUtil {
             return getTablesConfig(basePath + TABLE_CONFIG_PATH);
         }
         return null;
+    }
+
+    /**
+     * resolves variables in table and security config.
+     * @param jsonConfig of table or security
+     * @param variables map from config
+     * @return json string with resolved variables
+     * @throws IOException
+     */
+    public String resolveVariables(String jsonConfig, Map<String, Object> variables) throws IOException {
+        HandlebarsHydrator hydrator = new HandlebarsHydrator();
+        return hydrator.hydrateConfigTemplate(jsonConfig, variables);
     }
 
     private static String readFileContent(BufferedReader reader) throws IOException {

@@ -72,12 +72,14 @@ public class ElideConfigParser {
 
         //security
         String securityJson = util.getJsonConfig(localConfigPath, DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY).get(0);
-        populatePojo(securityJson, DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY);
+        populatePojo(util.resolveVariables(securityJson, this.variables),
+                DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY);
 
         //table
         Set<Table> tables = new HashSet<>();
         for (String tableJson : util.getJsonConfig(localConfigPath, DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE)) {
-            ElideTableConfig table = (ElideTableConfig) parseJsonConfig(tableJson,
+            ElideTableConfig table = (ElideTableConfig) parseJsonConfig(
+                    util.resolveVariables(tableJson, this.variables),
                     DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE);
             tables.addAll(table.getTables());
         }
