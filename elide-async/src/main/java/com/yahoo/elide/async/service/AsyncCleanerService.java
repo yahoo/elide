@@ -26,7 +26,7 @@ public class AsyncCleanerService {
 
     private final int DEFAULT_CLEANUP_DELAY_MINUTES = 360;
     private final int MAX_CLEANUP_INTIAL_DELAY_MINUTES = 100;
-
+    
     private static AsyncCleanerService asyncCleanerService = null;
 
     @Inject
@@ -57,7 +57,7 @@ public class AsyncCleanerService {
      * @param queryCleanupDays Async Query Clean up days
      * @param asyncQueryDao DAO Object
      */
-    public static void init(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
+    public synchronized static void init(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
         if(asyncCleanerService == null) {
             asyncCleanerService = new AsyncCleanerService(elide, maxRunTimeMinutes, queryCleanupDays, asyncQueryDao);
         } else {
