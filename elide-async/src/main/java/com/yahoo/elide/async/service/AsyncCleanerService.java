@@ -57,7 +57,7 @@ public class AsyncCleanerService {
      * @param queryCleanupDays Async Query Clean up days
      * @param asyncQueryDao DAO Object
      */
-    public synchronized static void init(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
+    public static void init(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays, AsyncQueryDAO asyncQueryDao) {
         if(asyncCleanerService == null) {
             asyncCleanerService = new AsyncCleanerService(elide, maxRunTimeMinutes, queryCleanupDays, asyncQueryDao);
         } else {
@@ -65,7 +65,7 @@ public class AsyncCleanerService {
         }
     }
 
-    public static AsyncCleanerService getInstance() {
+    public synchronized static AsyncCleanerService getInstance() {
         return asyncCleanerService;
     }
 
