@@ -40,8 +40,9 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDao) {
-        return new AsyncExecutorService(elide, settings.getAsync().getThreadPoolSize(),
+        AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
                 settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao);
+        return AsyncExecutorService.getInstance();
     }
 
     /**
@@ -55,8 +56,9 @@ public class ElideAsyncConfiguration {
     @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
     public AsyncCleanerService buildAsyncCleanerService(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDao) {
-        return new AsyncCleanerService(elide, settings.getAsync().getMaxRunTimeMinutes(),
+        AsyncCleanerService.init(elide, settings.getAsync().getMaxRunTimeMinutes(),
                 settings.getAsync().getQueryCleanupDays(), asyncQueryDao);
+        return AsyncCleanerService.getInstance();
     }
 
     /**

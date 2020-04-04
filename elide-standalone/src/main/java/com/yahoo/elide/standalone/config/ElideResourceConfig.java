@@ -94,15 +94,15 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
-                    AsyncExecutorService asyncExecService = new AsyncExecutorService(elide, settings.getAsyncThreadSize(),
+                    AsyncExecutorService.init(elide, settings.getAsyncThreadSize(),
                             settings.getAsyncMaxRunTimeMinutes(), asyncQueryDao);
-                    bind(asyncExecService).to(AsyncExecutorService.class);
+                    bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding async cleanup service
                     if(settings.enableAsyncCleanup()) {
-                        AsyncCleanerService asyncCleanerService = new AsyncCleanerService(elide, settings.getAsyncMaxRunTimeMinutes(),
-                                 settings.getAsyncQueryCleanupDays(), asyncQueryDao);
-                        bind(asyncCleanerService).to(AsyncCleanerService.class);
+                        AsyncCleanerService.init(elide, settings.getAsyncMaxRunTimeMinutes(),
+                                settings.getAsyncQueryCleanupDays(), asyncQueryDao);
+                        bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
                     }
                 }
             }
