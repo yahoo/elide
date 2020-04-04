@@ -51,7 +51,8 @@ public class AsyncCleanerService {
     }
 
     /**
-     * Initialize the singleton AsyncCleanerService object
+     * Initialize the singleton AsyncCleanerService object.
+     * If already initialized earlier, no new object is created.
      * @param elide Elide Instance
      * @param maxRunTimeMinutes max run times in minutes
      * @param queryCleanupDays Async Query Clean up days
@@ -65,6 +66,10 @@ public class AsyncCleanerService {
         }
     }
 
+    /**
+     * Get instance of AsyncCleanerService
+     * @return AsyncCleanerService Object
+     */
     public synchronized static AsyncCleanerService getInstance() {
         return asyncCleanerService;
     }
