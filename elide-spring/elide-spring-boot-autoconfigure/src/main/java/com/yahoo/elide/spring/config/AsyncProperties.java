@@ -16,7 +16,7 @@ public class AsyncProperties extends ControllerProperties {
     /**
      * Default thread pool size.
      */
-    private int threadPoolSize = 6;
+    private int threadPoolSize = 5;
 
     /**
      * Default max query run time.
