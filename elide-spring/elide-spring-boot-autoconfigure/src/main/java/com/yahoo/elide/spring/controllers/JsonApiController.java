@@ -6,6 +6,7 @@
 package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -45,6 +46,7 @@ public class JsonApiController {
     private final Elide elide;
     private final ElideConfigProperties settings;
     public static final String JSON_API_CONTENT_TYPE = JSONAPI_CONTENT_TYPE;
+    public static final String JSON_API_PATCH_CONTENT_TYPE = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 
     @Autowired
     public JsonApiController(Elide elide, ElideConfigProperties settings) {
@@ -72,13 +74,13 @@ public class JsonApiController {
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
-    @PatchMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
+    @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
     public ResponseEntity<String> elidePatch(@RequestBody String body,
                                              HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         ElideResponse response = elide
-                .patch(JSON_API_CONTENT_TYPE, JSON_API_CONTENT_TYPE, pathname, body, authentication);
+                .patch(request.getContentType(), request.getContentType(), pathname, body, authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
