@@ -17,10 +17,13 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.patchOperation;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.patchSet;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperationType.add;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.contains;
@@ -93,6 +96,7 @@ public class ControllerTest extends IntegrationTest {
             .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
+
         when()
                 .get("/json/group")
                 .then()
@@ -135,6 +139,30 @@ public class ControllerTest extends IntegrationTest {
                 .patch("/json/group/com.example.repository")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
+    }
+
+    @Test
+    public void jsonApiPatchExtensionTest() {
+        given()
+                .contentType(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .accept(JsonApiController.JSON_API_PATCH_CONTENT_TYPE)
+                .body(
+                        patchSet(
+                                patchOperation(add, "/group",
+                                        resource(
+                                                type("group"),
+                                                id("com.example.repository.foo"),
+                                                attributes(
+                                                    attr("commonName", "Foo")
+                                                )
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/json")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
