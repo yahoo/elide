@@ -48,6 +48,7 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final String FETCH = " FETCH ";
     protected static final String SELECT = "SELECT ";
     protected static final String AS = " AS ";
+    protected static final String DISTINCT = "DISTINCT ";
 
     protected static final boolean USE_ALIAS = true;
     protected static final boolean NO_ALIAS = false;
@@ -241,5 +242,18 @@ public abstract class AbstractHQLQueryBuilder {
             }
         }
         return sortingRules;
+    }
+
+    /**
+     * Returns whether filter expression contains toMany relationship
+     * @param filterExpression
+     * @return
+     */
+    protected boolean containsOneToMany(FilterExpression filterExpression) {
+        PredicateExtractionVisitor visitor = new PredicateExtractionVisitor(new ArrayList<>());
+        Collection<FilterPredicate> predicates = filterExpression.accept(visitor);
+
+        return predicates.stream()
+                .anyMatch(predicate -> FilterPredicate.toManyInPath(dictionary, predicate.getPath()));
     }
 }
