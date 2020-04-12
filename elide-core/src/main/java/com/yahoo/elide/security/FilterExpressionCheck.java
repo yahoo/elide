@@ -91,22 +91,8 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     protected static Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
         EntityDictionary dictionary = coreScope(requestScope).getDictionary();
-        try {
-            FilterExpressionPath fep = getFilterExpressionPath(type, method, dictionary);
-            return new Path(type, dictionary, fep == null ? defaultPath : fep.value());
-        } catch (NoSuchMethodException | SecurityException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static FilterExpressionPath getFilterExpressionPath(
-            Class<?> type,
-            String method,
-            EntityDictionary dictionary) throws NoSuchMethodException {
-        FilterExpressionPath path = dictionary.lookupBoundClass(type)
-                .getMethod(method)
-                .getAnnotation(FilterExpressionPath.class);
-        return path;
+        FilterExpressionPath fep = dictionary.getMethodAnnotation(type, method, FilterExpressionPath.class);
+        return new Path(type, dictionary, fep == null ? defaultPath : fep.value());
     }
 
     protected static com.yahoo.elide.core.RequestScope coreScope(RequestScope requestScope) {

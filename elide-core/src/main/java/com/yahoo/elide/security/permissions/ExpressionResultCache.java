@@ -29,12 +29,8 @@ public class ExpressionResultCache {
     }
 
     public void putResultFor(Class<? extends Check> checkClass, PersistentResource resource, ExpressionResult result) {
-        Map<PersistentResource, ExpressionResult> cache = computedResults.get(checkClass);
-        if (cache == null) {
-            cache = new IdentityHashMap<>();
-            computedResults.put(checkClass, cache);
-        }
-
+        Map<PersistentResource, ExpressionResult> cache = computedResults.computeIfAbsent(checkClass,
+                unused -> new IdentityHashMap<>());
         cache.put(resource, result);
     }
 

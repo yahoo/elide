@@ -117,7 +117,7 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
 
-    public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Object, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
     private static final String ALL_FIELDS = "*";
@@ -569,6 +569,26 @@ public class EntityBinding {
         Annotation annotation = annotations.computeIfAbsent(annotationClass, cls -> Optional.ofNullable(
                 EntityDictionary.getFirstAnnotation(entityClass, Collections.singletonList(annotationClass)))
                 .orElse(NO_ANNOTATION));
+        return annotation == NO_ANNOTATION ? null : annotationClass.cast(annotation);
+    }
+
+    /**
+     * Return annotation for provided method.
+     *
+     * @param annotationClass the annotation class
+     * @param method the method
+     * @param <A> annotation type
+     * @return the annotation
+     */
+    public <A extends Annotation> A getMethodAnnotation(Class<A> annotationClass, String method) {
+        Annotation annotation = annotations.computeIfAbsent(Pair.of(annotationClass, method), key -> {
+            try {
+                return Optional.ofNullable((Annotation) entityClass.getMethod(method).getAnnotation(annotationClass))
+                        .orElse(NO_ANNOTATION);
+            } catch (NoSuchMethodException | SecurityException e) {
+                throw new IllegalStateException(e);
+            }
+        });
         return annotation == NO_ANNOTATION ? null : annotationClass.cast(annotation);
     }
 
