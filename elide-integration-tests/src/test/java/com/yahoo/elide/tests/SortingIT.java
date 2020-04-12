@@ -8,7 +8,9 @@ package com.yahoo.elide.tests;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.utils.JsonParser;
 
@@ -102,28 +104,9 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
-    public void testSortingRootCollectionByRelationshipPropertyWithJoinFilter() throws IOException {
-        JsonNode result = getAsNode("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name");
-        //We expect 2 results because the Hibernate does an inner join between book & publisher
-        assertEquals(2, result.get("data").size());
-
-        JsonNode books = result.get("data");
-        String firstBookName = books.get(0).get("attributes").get("title").asText();
-        assertEquals("For Whom the Bell Tolls", firstBookName);
-
-        String secondBookName = books.get(1).get("attributes").get("title").asText();
-        assertEquals("The Old Man and the Sea", secondBookName);
-
-        result = getAsNode("/book?filter[book.authors.name][infixi]=Hemingway&sort=publisher.name");
-        //We expect 2 results because the Hibernate does an inner join between book & publisher
-        assertEquals(2, result.get("data").size());
-
-        books = result.get("data");
-        firstBookName = books.get(0).get("attributes").get("title").asText();
-        assertEquals("The Old Man and the Sea", firstBookName);
-
-        secondBookName = books.get(1).get("attributes").get("title").asText();
-        assertEquals("For Whom the Bell Tolls", secondBookName);
+    public void testSortingRootCollectionByRelationshipPropertyWithJoinFilterAndPagination() throws IOException {
+        final JsonNode result = getAsNode("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name", HttpStatus.SC_BAD_REQUEST);
+        assertNotNull(result.get("errors"));
     }
 
     @Test
