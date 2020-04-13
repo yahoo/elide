@@ -1,5 +1,19 @@
 # Change Log
 
+## 4.6
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/90a4f1e9ab5bae620f31fb511cc9522f55004710) Bump rxjava from 2.2.17 to 2.2.19 (#1253) 
+   * [view commit](https://github.com/yahoo/elide/commit/1d18f9f3925be263ffd16e512e521806ac3ca851) Fixing Spring JSON-API controller to allow JSON-API PATCH content type (#1258) 
+   * [view commit](https://github.com/yahoo/elide/commit/52d7ab1f16a57717c49b73ce2b9725562ac01a94) Bump commons-lang3 from 3.9 to 3.10 (#1257) 
+   * [view commit](https://github.com/yahoo/elide/commit/16f21a04d3be4c3aeefc283586676a7e55cf24e7) Fixes #1244: Incorrect pagination with ToMany filtering (#1254) 
+   * [view commit](https://github.com/yahoo/elide/commit/0c4b3ab3a59ae4b5c4fdaff1dcdec47313233c50) Bump liquibase-core from 3.8.5 to 3.8.9 (#1260) 
+   * [view commit](https://github.com/yahoo/elide/commit/ac313fb67a3e6a21365cb138a38c264c838ac573) Bump version.junit from 5.6.0 to 5.6.1 (#1252) 
+   * [view commit](https://github.com/yahoo/elide/commit/64b4b762bf32c210512d308fedc655d3e2f65e07) Bump resteasy.version from 3.11.0.Final to 3.11.2.Final (#1256) 
+   * [view commit](https://github.com/yahoo/elide/commit/fe2ba95966dbf0a902fae8e4e421764f997b2588) Bump hibernate-search-orm from 5.11.4.Final to 5.11.5.Final (#1247) 
+   * [view commit](https://github.com/yahoo/elide/commit/1106bc5387567e0bec148029b9cd54d22e982f5f) Bump mockito-core from 3.2.4 to 3.3.3 (#1251) 
+   * [view commit](https://github.com/yahoo/elide/commit/3dc10e0022b353b9b0edcbb73b1992bf0848155a) Bump jersey-container-servlet-core from 2.30 to 2.30.1 (#1249) 
+   * [view commit](https://github.com/yahoo/elide/commit/674e2a7b2ae0a6ea5f95360b3ba9cb314a014216) Bump dependency-check-maven from 5.3.0 to 5.3.2 (#1246) 
+
 ## 4.5.16
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/912b246451cff7b5833fc173cbc3fbf68cccce2e) Optimize field annotation lookup (#1243) 
