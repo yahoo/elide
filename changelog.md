@@ -1,6 +1,6 @@
 # Change Log
 
-## 4.6
+## 4.6.0
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/90a4f1e9ab5bae620f31fb511cc9522f55004710) Bump rxjava from 2.2.17 to 2.2.19 (#1253) 
    * [view commit](https://github.com/yahoo/elide/commit/1d18f9f3925be263ffd16e512e521806ac3ca851) Fixing Spring JSON-API controller to allow JSON-API PATCH content type (#1258) 
