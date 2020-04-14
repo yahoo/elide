@@ -18,6 +18,7 @@ import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service to execute Async queries. It will schedule task to track long
@@ -25,6 +26,7 @@ import lombok.Getter;
  * orphan query statuses after host/app crash or restart.
  */
 @Getter
+@Slf4j
 public class AsyncExecutorService {
 
     private final int DEFAULT_THREADPOOL_SIZE = 6;
@@ -35,10 +37,10 @@ public class AsyncExecutorService {
     private ExecutorService interruptor;
     private int maxRunTime;
     private AsyncQueryDAO asyncQueryDao;
-    
+    private static AsyncExecutorService asyncExecutorService = null;
 
     @Inject
-    public AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
+    private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
         this.elide = elide;
         this.runner = new QueryRunner(elide);
         this.maxRunTime = maxRunTime;
@@ -46,7 +48,36 @@ public class AsyncExecutorService {
         interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize);
         this.asyncQueryDao = asyncQueryDao;
     }
+    
+    /**
+     * Initialize the singleton AsyncExecutorService object.
+     * If already initialized earlier, no new object is created.
+     * @param elide Elide Instance
+     * @param threadPoolSize thred pool size
+     * @param maxRunTime max run times in minutes
+     * @param asyncQueryDao DAO Object
+     */
+    public static void init(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
+        if(asyncExecutorService == null) {
+            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, maxRunTime, asyncQueryDao);
+        } else {
+            log.debug("asyncExecutorService is already initialized.");
+        }
+    }
 
+    /**
+     * Get instance of AsyncExecutorService
+     * @return AsyncExecutorService Object
+     */
+    public synchronized static AsyncExecutorService getInstance() {
+        return asyncExecutorService;
+    }
+    
+    /**
+     * Execute Query asynchronously.
+     * @param queryObj Query Object
+     * @param user User
+     */
     public void executeQuery(AsyncQuery queryObj, User user) {
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao);
         // Change async query in Datastore to queued
