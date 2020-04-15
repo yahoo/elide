@@ -51,7 +51,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
      */
     @Test
     @Order(1)
-    void jsonApiRequestPostTest() {
+    public void jsonApiRequestPostTest() {
         given()
         .contentType(JSONAPI_CONTENT_TYPE)
         .body(
@@ -157,7 +157,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
      */
     @Test
     @Order(5)
-    void graphQlApiRequestPostTest() {
+    public void graphQlApiRequestPostTest() {
         given()
         .contentType(JSONAPI_CONTENT_TYPE)
         .body(
@@ -265,7 +265,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
      */
     @Test
     @Order(9)
-    void jsonApiBadRequestPostTest() {
+    public void jsonApiBadRequestPostTest() {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .body(

@@ -29,7 +29,7 @@ public class AsyncQueryCleanerThreadTest {
     private AsyncQueryDAO asyncQueryDao;
 
     @BeforeEach
-    public void setup() {
+    public void setupMocks() {
         elide = mock(Elide.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao);

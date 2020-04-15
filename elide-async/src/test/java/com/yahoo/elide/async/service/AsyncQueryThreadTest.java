@@ -35,7 +35,7 @@ public class AsyncQueryThreadTest {
     private AsyncQueryDAO asyncQueryDao;
 
     @BeforeEach
-    public void setup() {
+    public void setupMocks() {
         user = mock(User.class);
         elide = mock(Elide.class);
         runner = mock(QueryRunner.class);
