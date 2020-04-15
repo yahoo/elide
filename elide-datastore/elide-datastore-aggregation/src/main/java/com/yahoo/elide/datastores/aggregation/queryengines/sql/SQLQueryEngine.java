@@ -17,13 +17,13 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLMetric;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryConstructor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -149,6 +149,7 @@ public class SQLQueryEngine extends QueryEngine {
                     }
 
                     return ((SQLMetric) metricProjection.getColumn()).resolve(
+                            referenceTable,
                             metricProjection.getArguments(),
                             metricProjection.getAlias(),
                             groupByDimensions,
@@ -162,7 +163,7 @@ public class SQLQueryEngine extends QueryEngine {
                     }
 
                     @Override
-                    public List<MetricProjection> getMetrics() {
+                    public List<SQLMetricProjection> getMetrics() {
                         return Collections.emptyList();
                     }
 

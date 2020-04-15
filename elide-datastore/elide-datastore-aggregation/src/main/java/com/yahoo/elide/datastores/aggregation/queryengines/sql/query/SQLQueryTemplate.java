@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
@@ -34,7 +33,7 @@ public interface SQLQueryTemplate {
      *
      * @return invoked metrics
      */
-    List<MetricProjection> getMetrics();
+    List<SQLMetricProjection> getMetrics();
 
     /**
      * Get all non-time dimensions in this query.
@@ -77,7 +76,7 @@ public interface SQLQueryTemplate {
             }
 
             @Override
-            public List<MetricProjection> getMetrics() {
+            public List<SQLMetricProjection> getMetrics() {
                 return wrapped.getMetrics();
             }
 
@@ -104,7 +103,7 @@ public interface SQLQueryTemplate {
         assert this.getTable().equals(second.getTable());
 
         SQLQueryTemplate first = this;
-        List<MetricProjection> merged = new ArrayList<>(first.getMetrics());
+        List<SQLMetricProjection> merged = new ArrayList<>(first.getMetrics());
         merged.addAll(second.getMetrics());
 
         return new SQLQueryTemplate() {
@@ -114,7 +113,7 @@ public interface SQLQueryTemplate {
             }
 
             @Override
-            public List<MetricProjection> getMetrics() {
+            public List<SQLMetricProjection> getMetrics() {
                 return merged;
             }
 

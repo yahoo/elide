@@ -12,7 +12,6 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Getter;
@@ -90,10 +89,6 @@ public class SQLReferenceTable {
                     new SQLReferenceVisitor(metaDataStore, getClassAlias(tableClass)).visitColumn(column));
 
             resolvedJoinPaths.get(tableClass).put(fieldName, joinVisitor.visitColumn(column));
-
-            if (column instanceof Metric) {
-                ((Metric) column).getMetricFunction().setExpression(getResolvedReference(table, fieldName));
-            }
         });
     }
 
