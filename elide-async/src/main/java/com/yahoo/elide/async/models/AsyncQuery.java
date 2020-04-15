@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
@@ -37,6 +38,7 @@ import lombok.Data;
 @Data
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
+    @Column(columnDefinition="varchar(36)")
     private UUID id; //Can be generated or provided.
 
     private String query;  //JSON-API PATH or GraphQL payload.
