@@ -15,8 +15,9 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.Elide;
@@ -28,13 +29,14 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.User;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncExecutorServiceTest {
 
     private AsyncExecutorService service;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
 
-    @BeforeEach
+    @BeforeAll
     public void setup() {
         elide = mock(Elide.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
@@ -61,7 +63,7 @@ public class AsyncExecutorServiceTest {
     public void testAsyncExecutorServiceSet() {
         assertEquals(elide, service.getElide());
         assertNotNull(service.getRunner());
-        assertEquals(7, service.getMaxRunTime());
+        assertEquals(60, service.getMaxRunTime());
         assertNotNull(service.getExecutor());
         assertNotNull(service.getInterruptor());
         assertEquals(asyncQueryDao, service.getAsyncQueryDao());
