@@ -8,9 +8,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 
 import com.google.common.base.Preconditions;
@@ -59,7 +59,7 @@ public abstract class AbstractEntityHydrator {
 
         //Get all the projections from the client query.
         List<String> projections = this.query.getMetrics().stream()
-                .map(MetricFunctionInvocation::getAlias)
+                .map(MetricProjection::getAlias)
                 .collect(Collectors.toList());
 
         projections.addAll(this.query.getDimensions().stream()
