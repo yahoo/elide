@@ -754,7 +754,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
                 .body("included.attributes.description", hasItem("sql min function"))
-                .body("included.attributes.expression", hasItem("MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore)"))
+                .body("included.attributes.expression", hasItem("MIN(%s)"))
                 .body("included.attributes.longName", hasItem("min"));
 
         given()
