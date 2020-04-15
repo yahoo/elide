@@ -8,7 +8,6 @@ package com.yahoo.elide.async.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,7 +52,9 @@ public class AsyncExecutorServiceTest {
         when(elideSettings.getMapper()).thenReturn(mapper);
         when(mapper.getObjectMapper()).thenReturn(objectMapper);
 
-        service = spy(new AsyncExecutorService(elide, 7, 7, asyncQueryDao));
+        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
+
+        service = AsyncExecutorService.getInstance();
     }
 
     @Test

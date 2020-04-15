@@ -52,11 +52,9 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
                 AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
 
-                AsyncExecutorService asyncExecService = new AsyncExecutorService(elide, 7,
-                        7, asyncQueryDao);
+                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
 
-                AsyncCleanerService asyncCleanerService = new AsyncCleanerService(elide, 7,
-                        7, asyncQueryDao);
+                AsyncCleanerService.init(elide, 60, 7, asyncQueryDao);
 
                 // Bind elide instance for injection into endpoint
                 bind(elide).to(Elide.class).named("elide");
@@ -67,8 +65,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(elide.getElideSettings().getDataStore()).to(DataStore.class).named("elideDataStore");
 
                 bind(asyncQueryDao).to(AsyncQueryDAO.class);
-                bind(asyncExecService).to(AsyncExecutorService.class);
-                bind(asyncCleanerService).to(AsyncCleanerService.class);
+                bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
+                bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             };
         });
 
