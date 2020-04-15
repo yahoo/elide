@@ -32,15 +32,14 @@ public class AsyncQueryInterruptThreadTest {
     private Elide elide;
     private Future<?> task;
     private AsyncQuery asyncQuery;
-    private Date submittedOn;
     private AsyncQueryDAO asyncQueryDao;
 
     @BeforeEach
-    public void setup() {
+    public void setupMocks() {
         elide = mock(Elide.class);
         task = mock(Future.class);
         asyncQuery = mock(AsyncQuery.class);
-        submittedOn = new Date();
+        Date submittedOn = new Date();
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         interruptThread = new AsyncQueryInterruptThread(elide, task, asyncQuery, submittedOn, 10, asyncQueryDao);
     }

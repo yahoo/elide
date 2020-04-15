@@ -43,7 +43,7 @@ public class DefaultAsyncQueryDAOTest {
     private RSQLFilterDialect filterParser;
 
     @BeforeEach
-    public void setup() {
+    public void setupMocks() {
         elide = mock(Elide.class);
         dataStore = mock(DataStore.class);
         asyncQuery = mock(AsyncQuery.class);

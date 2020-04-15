@@ -17,14 +17,12 @@ import com.yahoo.elide.Elide;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncCleanerServiceTest {
 
-    private Elide elide;
-    private AsyncQueryDAO dao;
     private AsyncCleanerService service;
 
     @BeforeAll
-    public void setup() {
-        elide = mock(Elide.class);
-        dao = mock(DefaultAsyncQueryDAO.class);
+    public void setupMocks() {
+        Elide elide = mock(Elide.class);
+        AsyncQueryDAO dao = mock(DefaultAsyncQueryDAO.class);
         AsyncCleanerService.init(elide, 5, 60, dao);
         service = AsyncCleanerService.getInstance();
     }

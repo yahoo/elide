@@ -37,7 +37,7 @@ public class AsyncExecutorServiceTest {
     private AsyncQueryDAO asyncQueryDao;
 
     @BeforeAll
-    public void setup() {
+    public void setupMocks() {
         elide = mock(Elide.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         ElideSettings elideSettings = mock(ElideSettings.class);
