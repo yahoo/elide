@@ -18,8 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * ColumnVisitor is an abstract class that parses different types of column based on column's {@link ColumnType} and
- * {@link Column#getExpression()}.
+ * ColumnVisitor is an abstract class that parses different types of column based on column's {@link ColumnType}.
  *
  * @param <T> output value type
  */
