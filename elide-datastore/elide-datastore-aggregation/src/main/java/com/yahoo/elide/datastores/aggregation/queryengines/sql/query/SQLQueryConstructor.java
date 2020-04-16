@@ -18,7 +18,6 @@ import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
@@ -106,7 +105,7 @@ public class SQLQueryConstructor {
                     whereClause,
                     filterPredicate -> generatePredicatePathReference(filterPredicate.getPath(), template)));
 
-            joinPaths.addAll(extractJoinPaths(whereClause));
+            joinPaths.addAll(extractJoinPaths(template.getTable(), whereClause));
         }
 
         if (havingClause != null) {
@@ -114,14 +113,14 @@ public class SQLQueryConstructor {
                     havingClause,
                     (predicate) -> constructHavingClauseWithReference(predicate, template)));
 
-            joinPaths.addAll(extractJoinPaths(havingClause));
+            joinPaths.addAll(extractJoinPaths(template.getTable(), havingClause));
         }
 
         if (sorting != null) {
             Map<Path, Sorting.SortOrder> sortClauses = sorting.getSortingPaths();
             builder.orderByClause(extractOrderBy(sortClauses, template));
 
-            joinPaths.addAll(extractJoinPaths(sortClauses));
+            joinPaths.addAll(extractJoinPaths(template.getTable(), sortClauses));
         }
 
         builder.joinClause(extractJoin(joinPaths));
@@ -333,51 +332,45 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Expands a predicate path (from a sort or filter predicate) to the path contained in
-     * the JoinTo annotation.  If no JoinTo annotation is present, the original path is returned.
-     *
-     * @param path The path to expand.
-     * @return The expanded path.
+     * Coverts a Path from a table to a join path.
+     * @param table The table being queried.
+     * @param path The path object from the table that may contain a join.
+     * @return
      */
-    private JoinPath extendToJoinToPath(Path path) {
-        Path.PathElement pathRoot = path.getPathElements().get(0);
+    private Set<JoinPath> extractJoinPaths(Table table, Path path) {
+        Path.PathElement last = path.lastElement().get();
 
-        Class<?> entityClass = pathRoot.getType();
-        String fieldName = pathRoot.getFieldName();
-
-        JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(entityClass, JoinTo.class, fieldName);
-
-        return joinTo == null || joinTo.path().equals("")
-                ? new JoinPath(path)
-                : new JoinPath(entityClass, dictionary, joinTo.path());
-
+        return referenceTable.getResolvedJoinPaths(table, last.getFieldName());
     }
 
     /**
      * Given a filter expression, extracts any entity relationship traversals that require joins.
      *
+     * @param table The table that is being queried.
      * @param expression The filter expression
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<JoinPath> extractJoinPaths(FilterExpression expression) {
+    private Set<JoinPath> extractJoinPaths(Table table, FilterExpression expression) {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
                 .map(FilterPredicate::getPath)
-                .map(this::extendToJoinToPath)
-                .filter(path -> path.getPathElements().size() > 1)
+                .map(path -> extractJoinPaths(table, path))
+                .flatMap(Set::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
      * Given a list of columns to sort on, extracts any entity relationship traversals that require joins.
      *
+     * @param table The table that is being queried.
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<JoinPath> extractJoinPaths(Map<Path, Sorting.SortOrder> sortClauses) {
+    private Set<JoinPath> extractJoinPaths(Table table, Map<Path, Sorting.SortOrder> sortClauses) {
         return sortClauses.keySet().stream()
-                .map(this::extendToJoinToPath)
+                .map(path -> extractJoinPaths(table, path))
+                .flatMap(Set::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
