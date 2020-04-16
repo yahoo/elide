@@ -82,6 +82,10 @@ public class QueryValidator {
                                 tableClass.getSimpleName()));
             }
 
+            if (path.getPathElements().size() > 1) {
+                throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
+            }
+
             if (queriedTable.isMetric(fieldName)) {
                 if (metrics.stream().noneMatch(m -> m.getAlias().equals(fieldName))) {
                     throw new InvalidOperationException(
