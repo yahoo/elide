@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -90,16 +89,5 @@ public class SQLReferenceTable {
 
             resolvedJoinPaths.get(tableClass).put(fieldName, joinVisitor.visitColumn(column));
         });
-    }
-
-    /**
-     * Get physical reference for a path.
-     *
-     * @param path path to a field
-     * @param tableAlias table alias as prefix
-     * @return resolved physical reference
-     */
-    public String resolveReference(Path path, String tableAlias) {
-        return new SQLReferenceVisitor(metaDataStore, tableAlias).visitColumn(metaDataStore.getColumn(path));
     }
 }

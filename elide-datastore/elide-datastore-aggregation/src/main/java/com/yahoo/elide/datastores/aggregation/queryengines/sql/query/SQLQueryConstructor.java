@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 import static com.yahoo.elide.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
@@ -313,6 +312,7 @@ public class SQLQueryConstructor {
 
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
+                    Path path = entry.getKey();
                     JoinPath expandedPath = extendToJoinToPath(entry.getKey());
                     Sorting.SortOrder order = entry.getValue();
 
@@ -325,7 +325,7 @@ public class SQLQueryConstructor {
                             .orElse(null);
 
                     String orderByClause = metric == null
-                            ? referenceTable.resolveReference(expandedPath, getPathAlias(expandedPath))
+                            ? resolvePathReference(template.getTable(), path)
                             : metric.getFunctionExpression();
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
@@ -438,7 +438,12 @@ public class SQLQueryConstructor {
             }
         }
 
-        return referenceTable.resolveReference(path, getClassAlias(path.getPathElements().get(0).getType()));
+        return resolvePathReference(template.getTable(), path);
+    }
+
+    private String resolvePathReference(Table table, Path path) {
+        Path.PathElement firstElement = path.getPathElements().get(0);
+        return referenceTable.getResolvedReference(table, firstElement.getFieldName());
     }
 
     /**
