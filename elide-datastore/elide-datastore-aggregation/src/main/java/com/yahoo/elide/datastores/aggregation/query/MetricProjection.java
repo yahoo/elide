@@ -10,7 +10,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 /**
  * Represents a projected metric column as an alias in a query.
  */
-public interface MetricProjection extends ColumnProjection {
+public interface MetricProjection extends ColumnProjection<Metric> {
     /**
      * Get the projected metric.
      *

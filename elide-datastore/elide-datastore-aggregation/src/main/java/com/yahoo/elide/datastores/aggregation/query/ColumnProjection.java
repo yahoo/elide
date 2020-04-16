@@ -26,14 +26,15 @@ import java.util.stream.Collectors;
 
 /**
  * Represents a projected column as an alias in a query.
+ * @param <T> Column type of the projection.
  */
-public interface ColumnProjection extends Serializable {
+public interface ColumnProjection<T extends Column> extends Serializable {
     /**
      * Get the projected column.
      *
      * @return column
      */
-    Column getColumn();
+    T getColumn();
 
     /**
      * Get the projection alias.
