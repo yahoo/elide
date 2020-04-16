@@ -23,7 +23,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLMetri
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryConstructor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
@@ -36,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -148,35 +146,10 @@ public class SQLQueryEngine extends QueryEngine {
                                 "Non-SQL metric function on " + metricProjection.getAlias());
                     }
 
-                    return ((SQLMetric) metricProjection.getColumn()).resolve(
-                            referenceTable,
-                            metricProjection.getArguments(),
-                            metricProjection.getAlias(),
-                            groupByDimensions,
-                            timeDimension);
+                    return ((SQLMetric) metricProjection.getColumn()).resolve(query, metricProjection, referenceTable);
                 })
                 .reduce(SQLQueryTemplate::merge)
-                .orElse(new SQLQueryTemplate() {
-                    @Override
-                    public SQLTable getTable() {
-                        return (SQLTable) query.getTable();
-                    }
-
-                    @Override
-                    public List<SQLMetricProjection> getMetrics() {
-                        return Collections.emptyList();
-                    }
-
-                    @Override
-                    public Set<ColumnProjection> getNonTimeDimensions() {
-                        return groupByDimensions;
-                    }
-
-                    @Override
-                    public TimeDimensionProjection getTimeDimension() {
-                        return timeDimension;
-                    }
-                });
+                .orElse(new SQLQueryTemplate(query, referenceTable));
 
         return new SQLQueryConstructor(referenceTable).resolveTemplate(
                 query,

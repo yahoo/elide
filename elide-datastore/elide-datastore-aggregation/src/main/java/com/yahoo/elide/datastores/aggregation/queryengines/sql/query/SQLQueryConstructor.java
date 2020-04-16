@@ -19,14 +19,10 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
@@ -89,7 +85,7 @@ public class SQLQueryConstructor {
 
         builder.projectionClause(constructProjectionWithReference(template));
 
-        Set<ColumnProjection> groupByDimensions = template.getGroupByDimensions();
+        Set<SQLColumnProjection> groupByDimensions = template.getGroupByDimensions();
 
         if (!groupByDimensions.isEmpty()) {
             if (!template.getMetrics().isEmpty()) {
@@ -133,9 +129,9 @@ public class SQLQueryConstructor {
      * @param groupByDimensions columns to project out
      * @return <code>GROUP BY tb1.col1, tb2.col2, ...</code>
      */
-    private String constructGroupByWithReference(Set<ColumnProjection> groupByDimensions) {
+    private String constructGroupByWithReference(Set<SQLColumnProjection> groupByDimensions) {
         return "GROUP BY " + groupByDimensions.stream()
-                .map(this::resolveProjectionReference)
+                .map(SQLColumnProjection::toSQL)
                 .collect(Collectors.joining(", "));
     }
 
@@ -162,7 +158,7 @@ public class SQLQueryConstructor {
                 .orElse(null);
 
         if (metric != null) {
-            return metric.getFunctionExpression();
+            return metric.toSQL();
         } else {
             return generatePredicatePathReference(predicate.getPath(), template);
         }
@@ -178,11 +174,11 @@ public class SQLQueryConstructor {
     private String constructProjectionWithReference(SQLQueryTemplate template) {
         // TODO: project metric field using table column reference
         List<String> metricProjections = template.getMetrics().stream()
-                .map(invocation -> invocation.getFunctionExpression() + " AS " + invocation.getAlias())
+                .map(invocation -> invocation.toSQL() + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
-                .map(dimension -> resolveProjectionReference(dimension) + " AS " + dimension.getAlias())
+                .map(dimension -> dimension.toSQL() + " AS " + dimension.getAlias())
                 .collect(Collectors.toList());
 
         if (metricProjections.isEmpty()) {
@@ -323,7 +319,7 @@ public class SQLQueryConstructor {
 
                     String orderByClause = metric == null
                             ? referenceTable.getResolvedReference(template.getTable(), last.getFieldName())
-                            : metric.getFunctionExpression();
+                            : metric.toSQL();
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
@@ -381,7 +377,7 @@ public class SQLQueryConstructor {
      * @param table queried table
      * @return A set of path elements that capture a relationship traversal.
      */
-    private Set<JoinPath> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
+    private Set<JoinPath> extractJoinPaths(Set<SQLColumnProjection> groupByDimensions,
                                            Table table) {
         return resolveProjectedDimensions(groupByDimensions, table).stream()
                 .map(column -> referenceTable.getResolvedJoinPaths(table, column.getName()))
@@ -415,14 +411,14 @@ public class SQLQueryConstructor {
 
         TimeDimension timeDimension = template.getTable().getTimeDimension(last.getFieldName());
         if (timeDimension != null) {
-            TimeDimensionProjection timeProjection = template.getGroupByDimensions().stream()
+            SQLTimeDimensionProjection timeProjection = template.getGroupByDimensions().stream()
                 .filter(projection -> projection.getColumn().equals(timeDimension))
-                .map(TimeDimensionProjection.class::cast)
+                .map(SQLTimeDimensionProjection.class::cast)
                 .findFirst()
                 .orElseThrow(() -> new InvalidPredicateException("Can't filter on time dimension that's not projected: "
                                         + last.getFieldName()));
 
-            return resolveProjectionReference(timeProjection);
+            return timeProjection.toSQL();
         }
 
         return referenceTable.getResolvedReference(template.getTable(), last.getFieldName());
@@ -435,38 +431,10 @@ public class SQLQueryConstructor {
      * @param table sql table
      * @return projected columns
      */
-    private Set<Dimension> resolveProjectedDimensions(Set<ColumnProjection> columnProjections, Table table) {
+    private Set<Dimension> resolveProjectedDimensions(Set<SQLColumnProjection> columnProjections, Table table) {
         return columnProjections.stream()
                 .map(colProjection -> table.getDimension(colProjection.getColumn().getName()))
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Resolve projected sql column as column reference from a queried table.
-     * If the projection is {@link TimeDimensionProjection}, the correct time grain expression would be used.
-     *
-     * @param columnProjection projection
-     * @return projected columns
-     */
-    private String resolveProjectionReference(ColumnProjection columnProjection) {
-        Column column = columnProjection.getColumn();
-        Table table = column.getTable();
-        String fieldName = column.getName();
-
-        if (columnProjection instanceof TimeDimensionProjection) {
-            TimeDimension timeDimension = (TimeDimension) column;
-            TimeDimensionGrain grainInfo = timeDimension.getSupportedGrains().stream()
-                    .filter(g -> g.getGrain().equals(((TimeDimensionProjection) columnProjection).getGrain()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Requested time grain not supported."));
-
-            //TODO - We will likely migrate to a templating language when we support parameterized metrics.
-            return String.format(
-                    grainInfo.getExpression(),
-                    referenceTable.getResolvedReference(table, fieldName));
-        } else {
-            return referenceTable.getResolvedReference(table, fieldName);
-        }
     }
 
     /**
