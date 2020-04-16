@@ -313,10 +313,9 @@ public class SQLQueryConstructor {
         return " ORDER BY " + sortClauses.entrySet().stream()
                 .map((entry) -> {
                     Path path = entry.getKey();
-                    JoinPath expandedPath = extendToJoinToPath(entry.getKey());
                     Sorting.SortOrder order = entry.getValue();
 
-                    Path.PathElement last = expandedPath.lastElement().get();
+                    Path.PathElement last = path.lastElement().get();
 
                     MetricProjection metric = template.getMetrics().stream()
                             // TODO: filter predicate should support alias
@@ -325,7 +324,7 @@ public class SQLQueryConstructor {
                             .orElse(null);
 
                     String orderByClause = metric == null
-                            ? resolvePathReference(template.getTable(), path)
+                            ? referenceTable.getResolvedReference(template.getTable(), last.getFieldName())
                             : metric.getFunctionExpression();
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
@@ -420,30 +419,21 @@ public class SQLQueryConstructor {
      * @return A SQL fragment that references a database column
      */
     private String generatePredicatePathReference(Path path, SQLQueryTemplate template) {
-        // if the predicate is for a time dimension, it needs to be projected in the query with specified time grain
-        if (path.getPathElements().size() == 1) {
-            Path.PathElement last = path.lastElement().get();
+        Path.PathElement last = path.lastElement().get();
 
-            TimeDimension timeDimension = template.getTable().getTimeDimension(last.getFieldName());
-            if (timeDimension != null) {
-                TimeDimensionProjection timeProjection = template.getGroupByDimensions().stream()
-                        .filter(projection -> projection.getColumn().equals(timeDimension))
-                        .map(TimeDimensionProjection.class::cast)
-                        .findFirst()
-                        .orElseThrow(() ->
-                                new InvalidPredicateException("Can't filter on time dimension that's not projected: "
+        TimeDimension timeDimension = template.getTable().getTimeDimension(last.getFieldName());
+        if (timeDimension != null) {
+            TimeDimensionProjection timeProjection = template.getGroupByDimensions().stream()
+                .filter(projection -> projection.getColumn().equals(timeDimension))
+                .map(TimeDimensionProjection.class::cast)
+                .findFirst()
+                .orElseThrow(() -> new InvalidPredicateException("Can't filter on time dimension that's not projected: "
                                         + last.getFieldName()));
 
-                return resolveProjectionReference(timeProjection);
-            }
+            return resolveProjectionReference(timeProjection);
         }
 
-        return resolvePathReference(template.getTable(), path);
-    }
-
-    private String resolvePathReference(Table table, Path path) {
-        Path.PathElement firstElement = path.getPathElements().get(0);
-        return referenceTable.getResolvedReference(table, firstElement.getFieldName());
+        return referenceTable.getResolvedReference(template.getTable(), last.getFieldName());
     }
 
     /**
