@@ -25,7 +25,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -156,7 +155,7 @@ public class SQLQueryConstructor {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 
-        MetricProjection metric = template.getMetrics().stream()
+        SQLMetricProjection metric = template.getMetrics().stream()
                 // TODO: filter predicate should support alias
                 .filter(invocation -> invocation.getAlias().equals(fieldName))
                 .findFirst()
@@ -316,7 +315,7 @@ public class SQLQueryConstructor {
 
                     Path.PathElement last = path.lastElement().get();
 
-                    MetricProjection metric = template.getMetrics().stream()
+                    SQLMetricProjection metric = template.getMetrics().stream()
                             // TODO: filter predicate should support alias
                             .filter(invocation -> invocation.getAlias().equals(last.getFieldName()))
                             .findFirst()

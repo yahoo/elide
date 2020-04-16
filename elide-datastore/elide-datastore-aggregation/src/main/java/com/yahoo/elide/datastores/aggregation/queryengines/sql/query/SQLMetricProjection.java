@@ -17,13 +17,12 @@ import java.util.Map;
 /**
  * Metric projection that can expand the metric into a SQL projection fragment.
  */
-public class SQLMetricProjection implements MetricProjection {
+public class SQLMetricProjection implements MetricProjection, SQLColumnProjection<Metric> {
 
     private SQLMetric metric;
     private SQLReferenceTable sqlReferenceTable;
     private String alias;
     private Map<String, Argument> arguments;
-
 
     public SQLMetricProjection(SQLMetric metric,
                                SQLReferenceTable sqlReferenceTable,
@@ -33,6 +32,11 @@ public class SQLMetricProjection implements MetricProjection {
         this.sqlReferenceTable = sqlReferenceTable;
         this.arguments = arguments;
         this.alias = alias;
+    }
+
+    @Override
+    public SQLReferenceTable getReferenceTable() {
+        return sqlReferenceTable;
     }
 
     @Override

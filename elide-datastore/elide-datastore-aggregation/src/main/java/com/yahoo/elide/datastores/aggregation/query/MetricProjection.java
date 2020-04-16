@@ -18,13 +18,4 @@ public interface MetricProjection extends ColumnProjection<Metric> {
      */
     @Override
     Metric getColumn();
-
-    /**
-     * Get full expression with provided arguments.
-     *
-     * @return function expression
-     */
-    default String getFunctionExpression() {
-        return getColumn().getMetricFunction().constructExpression(getArguments());
-    }
 }
