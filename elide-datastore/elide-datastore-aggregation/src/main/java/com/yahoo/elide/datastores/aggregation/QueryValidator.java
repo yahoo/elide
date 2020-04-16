@@ -48,6 +48,7 @@ public class QueryValidator {
      * Method that handles all checks to make sure query is valid before we attempt to execute the query.
      */
     public void validate() {
+        validateWhereClause(query.getWhereFilter());
         validateHavingClause(query.getHavingFilter());
         validateSorting();
     }
@@ -108,6 +109,28 @@ public class QueryValidator {
     }
 
     /**
+     * Ensures that no filter predicates tries not navigate a relationship.
+     * @param whereClause
+     */
+    private void validateWhereClause(FilterExpression whereClause) {
+        // TODO: support having clause for alias
+        if (whereClause instanceof FilterPredicate) {
+            Path path = ((FilterPredicate) whereClause).getPath();
+            if (path.getPathElements().size() > 1) {
+                throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
+            }
+        } else if (whereClause instanceof AndFilterExpression) {
+            validateWhereClause(((AndFilterExpression) whereClause).getLeft());
+            validateWhereClause(((AndFilterExpression) whereClause).getRight());
+        } else if (whereClause instanceof OrFilterExpression) {
+            validateWhereClause(((OrFilterExpression) whereClause).getLeft());
+            validateWhereClause(((OrFilterExpression) whereClause).getRight());
+        } else if (whereClause instanceof NotFilterExpression) {
+            validateWhereClause(((NotFilterExpression) whereClause).getNegated());
+        }
+    }
+
+    /**
      * Method to verify that all the sorting options provided
      * by the user are valid and supported.
      */
@@ -127,6 +150,10 @@ public class QueryValidator {
      */
     private void validateSortingPath(Path path, Set<String> allFields) {
         List<Path.PathElement> pathElements = path.getPathElements();
+
+        if (pathElements.size() > 1) {
+            throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
+        }
 
         Path.PathElement currentElement = pathElements.get(0);
         String currentField = currentElement.getFieldName();
