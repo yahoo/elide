@@ -102,14 +102,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
 
     @Override
     public String toSQL() {
-        TimeDimensionGrain grainInfo = column.getSupportedGrains().stream()
-                .filter(g -> g.getGrain().equals(this.getGrain()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Requested time grain not supported."));
-
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return String.format(
-                grainInfo.getExpression(),
+                grain.getExpression(),
                 sqlReferenceTable.getResolvedReference(column.getTable(), column.getName()));
     }
 
