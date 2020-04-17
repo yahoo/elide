@@ -16,6 +16,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,30 +39,13 @@ public class ElideConfigParser {
      */
     public void parseConfigPath(String localFilePath) {
         try {
-            if (util.isNullOrEmpty(localFilePath)) {
-                throw new NullPointerException("Config path is null");
-            }
-            parse(localFilePath);
+      if (util.isNullOrEmpty(localFilePath)) {
+    throw new NullPointerException("Config path is null");
+      }
+      parse(localFilePath);
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error(e.getMessage());
-        }
-    }
-
-    /**
-     * Parse hjson config string.
-     * @param hjsonConfig : hjson config String
-     * @throws NullPointerException
-     */
-    public void parseConfigString(String hjsonConfig, String configType) {
-        try {
-            if (util.isNullOrEmpty(hjsonConfig)) {
-                throw new NullPointerException("config is null");
-            }
-            populatePojo(util.hjsonToJson(hjsonConfig), configType);
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error(e.getMessage());
+      e.printStackTrace();
+      log.error(e.getMessage());
         }
     }
 
@@ -75,45 +59,45 @@ public class ElideConfigParser {
         populatePojo(securityJson, DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY);
 
         //table
-        Set<Table> tables = new HashSet<>();
-        for (String tableJson : util.getJsonConfig(localConfigPath, DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE)) {
-            ElideTableConfig table = (ElideTableConfig) parseJsonConfig(tableJson,
-                    DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE);
-            tables.addAll(table.getTables());
-        }
-        this.elideTableConfig = new ElideTableConfig();
-        this.elideTableConfig.setTables(tables);
+        populateTablesPojo(util.getJsonConfig(localConfigPath, DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE));
     }
 
     @SuppressWarnings("unchecked")
     private void populatePojo(String jsonConfig, String configType) throws Exception {
         switch (configType) {
         case DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE:
-            this.variables = (Map<String, Object>) parseJsonConfig(jsonConfig,
-                    DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE);
-            break;
+      this.variables = (Map<String, Object>) parseJsonConfig(jsonConfig,
+        DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE);
+      break;
 
         case DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY:
-            this.elideSecurityConfig = (ElideSecurityConfig) parseJsonConfig(jsonConfig,
-                    DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY);
-            break;
-
-        case DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE:
-            this.elideTableConfig = (ElideTableConfig) parseJsonConfig(jsonConfig,
-                    DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE);
-            break;
+      this.elideSecurityConfig = (ElideSecurityConfig) parseJsonConfig(jsonConfig,
+        DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY);
+      break;
         }
     }
+
+    private void populateTablesPojo(List<String> tablesJson) throws Exception {
+        Set<Table> tables = new HashSet<>();
+        for (String tableJson : tablesJson) {
+      ElideTableConfig table = (ElideTableConfig) parseJsonConfig(tableJson,
+              DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE);
+      tables.addAll(table.getTables());
+        }
+        this.elideTableConfig = new ElideTableConfig();
+        this.elideTableConfig.setTables(tables);
+    }
+
 
     private Object parseJsonConfig(String jsonConfig, String inputConfigType) throws Exception {
         JSONObject configType = util.schemaToJsonObject(inputConfigType);
 
         if (configType != null && util.isConfigValid(configType, jsonConfig)) {
-            return util.getModelPojo(inputConfigType, jsonConfig);
+      return util.getModelPojo(inputConfigType, jsonConfig);
         }
         else {
-            log.error(DynamicConfigHelpersUtil.INVALID_ERROR_MSG);
-            return null;
+      log.error(DynamicConfigHelpersUtil.INVALID_ERROR_MSG);
+      return null;
         }
     }
 }
