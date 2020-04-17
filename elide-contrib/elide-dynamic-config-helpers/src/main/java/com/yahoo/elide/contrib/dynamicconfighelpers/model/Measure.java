@@ -46,7 +46,7 @@ public class Measure {
     private Boolean hidden = false;
 
     @JsonProperty("readAccess")
-    private String readAccess = "Allow All";
+    private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("definition")
     private String definition;
