@@ -10,8 +10,15 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.request.Argument;
 
 import com.google.common.base.Functions;
 
@@ -92,6 +99,38 @@ public abstract class QueryEngine {
      * @return constructed Table
      */
     protected abstract Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary);
+
+    /**
+     * Construct a parameterized instance of a Column.
+     * @param dimension The dimension column.
+     * @param alias The client provide alias.
+     * @param arguments The client provided parameterized arguments.
+     * @return
+     */
+    public abstract ColumnProjection constructDimensionProjection(Dimension dimension,
+                                                                  String alias,
+                                                                  Map<String, Argument> arguments);
+
+    /**
+     * Construct a parameterized instance of a Column.
+     * @param dimension The dimension column.
+     * @param alias The client provide alias.
+     * @param arguments The client provided parameterized arguments.
+     * @return
+     */
+    public abstract TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
+                                                                             String alias,
+                                                                             Map<String, Argument> arguments);
+    /**
+     * Construct a parameterized instance of a Column.
+     * @param metric The metric column.
+     * @param alias The client provide alias.
+     * @param arguments The client provided parameterized arguments.
+     * @return
+     */
+    public abstract MetricProjection constructMetricProjection(Metric metric,
+                                                               String alias,
+                                                               Map<String, Argument> arguments);
 
     /**
      * Query engine is responsible for constructing all Tables and Entities metadata in this metadata store.
