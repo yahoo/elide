@@ -54,6 +54,6 @@ public class SQLMetric extends Metric {
                 .scope(query.getScope())
                 .build();
 
-        return new SQLQueryTemplate(singleMetricQuery, referenceTable);
+        return new SQLQueryTemplate(singleMetricQuery);
     }
 }

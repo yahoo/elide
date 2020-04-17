@@ -196,7 +196,7 @@ public class SQLQueryEngine extends QueryEngine {
                     return ((SQLMetric) metricProjection.getColumn()).resolve(query, metricProjection, referenceTable);
                 })
                 .reduce(SQLQueryTemplate::merge)
-                .orElse(new SQLQueryTemplate(query, referenceTable));
+                .orElse(new SQLQueryTemplate(query));
 
         return new SQLQueryConstructor(referenceTable).resolveTemplate(
                 query,

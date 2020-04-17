@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import com.google.common.collect.Sets;
@@ -38,7 +37,7 @@ public class SQLQueryTemplate {
         this.metrics = metrics;
     }
 
-    public SQLQueryTemplate(Query query, SQLReferenceTable referenceTable) {
+    public SQLQueryTemplate(Query query) {
         table = (SQLTable) query.getTable();
         timeDimension = query.getTimeDimensions().stream()
                 .findFirst()
