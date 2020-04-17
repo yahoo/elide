@@ -6,10 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.pagination.PaginationImpl;
@@ -658,26 +656,5 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(2, results.size());
         assertEquals(stats1, results.get(0));
         assertEquals(stats2, results.get(1));
-    }
-
-    //TODO - Add Invalid Request Tests
-    @Test
-    public void testInvalidTimeDimensionWhereClause() {
-        FilterPredicate predicate = new FilterPredicate(
-                new Path(PlayerStats.class, dictionary, "recordedDate"),
-                Operator.IN,
-                Lists.newArrayList(Timestamp.valueOf("2019-07-11 00:00:00")));
-
-        Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .whereFilter(predicate)
-                .build();
-
-        InvalidPredicateException exception = assertThrows(
-                InvalidPredicateException.class,
-                () -> engine.executeQuery(query));
-
-        assertEquals("Can't filter on time dimension that's not projected: recordedDate", exception.getMessage());
     }
 }

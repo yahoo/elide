@@ -19,19 +19,24 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Sorting;
 
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +51,12 @@ import java.util.stream.Stream;
 public class SQLQueryConstructor {
     private final SQLReferenceTable referenceTable;
     private final EntityDictionary dictionary;
+    private final MetaDataStore metaDataStore;
 
     public SQLQueryConstructor(SQLReferenceTable referenceTable) {
         this.referenceTable = referenceTable;
         this.dictionary = referenceTable.getDictionary();
+        this.metaDataStore = referenceTable.getMetaDataStore();
     }
 
     /**
@@ -311,15 +318,8 @@ public class SQLQueryConstructor {
 
                     Path.PathElement last = path.lastElement().get();
 
-                    SQLMetricProjection metric = template.getMetrics().stream()
-                            // TODO: filter predicate should support alias
-                            .filter(invocation -> invocation.getAlias().equals(last.getFieldName()))
-                            .findFirst()
-                            .orElse(null);
-
-                    String orderByClause = metric == null
-                            ? referenceTable.getResolvedReference(template.getTable(), last.getFieldName())
-                            : metric.toSQL();
+                    SQLColumnProjection projection = fieldToColumnProjection(template, last.getFieldName());
+                    String orderByClause = projection.toSQL();
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
@@ -409,19 +409,8 @@ public class SQLQueryConstructor {
     private String generatePredicatePathReference(Path path, SQLQueryTemplate template) {
         Path.PathElement last = path.lastElement().get();
 
-        TimeDimension timeDimension = template.getTable().getTimeDimension(last.getFieldName());
-        if (timeDimension != null) {
-            SQLTimeDimensionProjection timeProjection = template.getGroupByDimensions().stream()
-                .filter(projection -> projection.getColumn().equals(timeDimension))
-                .map(SQLTimeDimensionProjection.class::cast)
-                .findFirst()
-                .orElseThrow(() -> new InvalidPredicateException("Can't filter on time dimension that's not projected: "
-                                        + last.getFieldName()));
-
-            return timeProjection.toSQL();
-        }
-
-        return referenceTable.getResolvedReference(template.getTable(), last.getFieldName());
+        SQLColumnProjection projection = fieldToColumnProjection(template, last.getFieldName());
+        return projection.toSQL();
     }
 
     /**
@@ -505,5 +494,52 @@ public class SQLQueryConstructor {
      */
     private static boolean isSubselect(Class<?> cls) {
         return cls.isAnnotationPresent(Subselect.class) || cls.isAnnotationPresent(FromSubquery.class);
+    }
+
+    private SQLColumnProjection fieldToColumnProjection(SQLQueryTemplate queryTemplate, String fieldName) {
+        SQLColumnProjection projection = queryTemplate.getColumnProjections()
+                .stream()
+                .filter(columnProjection -> fieldName.equals(columnProjection.getAlias()))
+                .findFirst()
+                .orElse(null);
+
+        if (projection != null) {
+            return projection;
+        }
+
+        Table table = queryTemplate.getTable();
+
+        Metric metric = table.getMetric(fieldName);
+        if (metric != null) {
+            return new SQLMetricProjection(metric, referenceTable, metric.getName(), new LinkedHashMap<>());
+        }
+        TimeDimension timeDimension = table.getTimeDimension(fieldName);
+        if (timeDimension != null) {
+            return new SQLTimeDimensionProjection(timeDimension, referenceTable);
+        }
+
+        Dimension dimension = table.getDimension(fieldName);
+
+        return new SQLColumnProjection() {
+            @Override
+            public SQLReferenceTable getReferenceTable() {
+                return referenceTable;
+            }
+
+            @Override
+            public Column getColumn() {
+                return dimension;
+            }
+
+            @Override
+            public String getAlias() {
+                return dimension.getName();
+            }
+
+            @Override
+            public Map<String, Argument> getArguments() {
+                return new LinkedHashMap<>();
+            }
+        };
     }
 }

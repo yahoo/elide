@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.request.Argument;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -28,6 +29,28 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     private final String alias;
     private final Map<String, Argument> arguments;
 
+    /**
+     * Default constructor for columns that are projected in filter and sorting clauses.
+     * @param column The column in the filter/sorting clause.
+     * @param sqlReferenceTable The reference table.
+     */
+    public SQLTimeDimensionProjection(TimeDimension column,
+                                      SQLReferenceTable sqlReferenceTable) {
+        this(
+                column,
+                column.getSupportedGrains().iterator().next().getGrain(),
+                column.getTimezone(),
+                sqlReferenceTable,
+                column.getName(),
+                new LinkedHashMap<>()
+        );
+    }
+
+    /**
+     * Default constructor to convert a timeDimensionProjection into its SQL equivalent.
+     * @param timeDimensionProjection The timeDimensionProjection to convert.
+     * @param sqlReferenceTable The reference table.
+     */
     public SQLTimeDimensionProjection(TimeDimensionProjection timeDimensionProjection,
                                       SQLReferenceTable sqlReferenceTable) {
         this(
@@ -41,6 +64,15 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     }
 
 
+    /**
+     * All argument constructor.
+     * @param column The column being projected.
+     * @param grain The selected time grain.
+     * @param timezone The selected time zone.
+     * @param sqlReferenceTable The reference table.
+     * @param alias The client provided alias.
+     * @param arguments List of client provided arguments.
+     */
     public SQLTimeDimensionProjection(TimeDimension column,
                                       TimeGrain grain,
                                       TimeZone timezone,

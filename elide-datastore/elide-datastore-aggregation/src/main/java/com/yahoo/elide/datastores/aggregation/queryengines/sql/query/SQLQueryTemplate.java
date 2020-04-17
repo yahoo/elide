@@ -25,6 +25,11 @@ import java.util.stream.Collectors;
 @Data
 public class SQLQueryTemplate {
 
+    private final SQLTable table;
+    private final List<SQLMetricProjection> metrics;
+    private final Set<SQLColumnProjection> nonTimeDimensions;
+    private final SQLTimeDimensionProjection timeDimension;
+
     public SQLQueryTemplate(SQLTable table, List<SQLMetricProjection> metrics,
                      Set<SQLColumnProjection> nonTimeDimensions, SQLTimeDimensionProjection timeDimension) {
         this.table = table;
@@ -48,11 +53,6 @@ public class SQLQueryTemplate {
                 .map((metric) -> new SQLMetricProjection(metric, referenceTable))
                 .collect(Collectors.toList());
     }
-
-    private final SQLTable table;
-    private final List<SQLMetricProjection> metrics;
-    private final Set<SQLColumnProjection> nonTimeDimensions;
-    private final SQLTimeDimensionProjection timeDimension;
 
     /**
      * Get all GROUP BY dimensions in this query, include time and non-time dimensions.
@@ -79,5 +79,19 @@ public class SQLQueryTemplate {
          merged.addAll(second.getMetrics());
 
          return new SQLQueryTemplate(first.getTable(), merged, first.getNonTimeDimensions(), first.getTimeDimension());
+     }
+
+    /**
+     * Returns the entire list of column projections.
+     * @return metrics and dimensions.
+     */
+     public List<SQLColumnProjection> getColumnProjections() {
+         ArrayList<SQLColumnProjection> columnProjections = new ArrayList<>();
+         columnProjections.addAll(metrics);
+         columnProjections.addAll(nonTimeDimensions);
+         if (timeDimension != null) {
+            columnProjections.add(timeDimension);
+         }
+         return columnProjections;
      }
 }

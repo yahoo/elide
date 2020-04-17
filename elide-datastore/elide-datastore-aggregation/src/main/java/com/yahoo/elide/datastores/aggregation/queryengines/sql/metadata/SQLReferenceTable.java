@@ -23,6 +23,7 @@ import java.util.Set;
  * Table stores all resolved physical reference and join paths of all columns.
  */
 public class SQLReferenceTable {
+    @Getter
     private final MetaDataStore metaDataStore;
 
     @Getter
