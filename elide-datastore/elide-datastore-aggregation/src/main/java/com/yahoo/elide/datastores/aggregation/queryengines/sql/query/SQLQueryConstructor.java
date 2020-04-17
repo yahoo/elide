@@ -19,7 +19,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -51,12 +50,10 @@ import java.util.stream.Stream;
 public class SQLQueryConstructor {
     private final SQLReferenceTable referenceTable;
     private final EntityDictionary dictionary;
-    private final MetaDataStore metaDataStore;
 
     public SQLQueryConstructor(SQLReferenceTable referenceTable) {
         this.referenceTable = referenceTable;
         this.dictionary = referenceTable.getDictionary();
-        this.metaDataStore = referenceTable.getMetaDataStore();
     }
 
     /**
@@ -96,7 +93,9 @@ public class SQLQueryConstructor {
 
         if (!groupByDimensions.isEmpty()) {
             if (!template.getMetrics().isEmpty()) {
-                builder.groupByClause(constructGroupByWithReference(groupByDimensions));
+                builder.groupByClause("GROUP BY " + groupByDimensions.stream()
+                        .map((column) -> column.toSQL(template))
+                        .collect(Collectors.joining(", ")));
             }
 
             joinPaths.addAll(extractJoinPaths(groupByDimensions, table));
@@ -131,18 +130,6 @@ public class SQLQueryConstructor {
     }
 
     /**
-     * Construct directly projection GROUP BY clause using column reference.
-     *
-     * @param groupByDimensions columns to project out
-     * @return <code>GROUP BY tb1.col1, tb2.col2, ...</code>
-     */
-    private String constructGroupByWithReference(Set<SQLColumnProjection> groupByDimensions) {
-        return "GROUP BY " + groupByDimensions.stream()
-                .map(SQLColumnProjection::toSQL)
-                .collect(Collectors.joining(", "));
-    }
-
-    /**
      * Construct HAVING clause filter using physical column references. Metric fields need to be aggregated in HAVING.
      *
      * @param predicate a filter predicate in HAVING clause
@@ -165,7 +152,7 @@ public class SQLQueryConstructor {
                 .orElse(null);
 
         if (metric != null) {
-            return metric.toSQL();
+            return metric.toSQL(template);
         } else {
             return generatePredicatePathReference(predicate.getPath(), template);
         }
@@ -181,11 +168,11 @@ public class SQLQueryConstructor {
     private String constructProjectionWithReference(SQLQueryTemplate template) {
         // TODO: project metric field using table column reference
         List<String> metricProjections = template.getMetrics().stream()
-                .map(invocation -> invocation.toSQL() + " AS " + invocation.getAlias())
+                .map(invocation -> invocation.toSQL(template) + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = template.getGroupByDimensions().stream()
-                .map(dimension -> dimension.toSQL() + " AS " + dimension.getAlias())
+                .map(dimension -> dimension.toSQL(template) + " AS " + dimension.getAlias())
                 .collect(Collectors.toList());
 
         if (metricProjections.isEmpty()) {
@@ -319,7 +306,7 @@ public class SQLQueryConstructor {
                     Path.PathElement last = path.lastElement().get();
 
                     SQLColumnProjection projection = fieldToColumnProjection(template, last.getFieldName());
-                    String orderByClause = projection.toSQL();
+                    String orderByClause = projection.toSQL(template);
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
@@ -410,7 +397,7 @@ public class SQLQueryConstructor {
         Path.PathElement last = path.lastElement().get();
 
         SQLColumnProjection projection = fieldToColumnProjection(template, last.getFieldName());
-        return projection.toSQL();
+        return projection.toSQL(template);
     }
 
     /**

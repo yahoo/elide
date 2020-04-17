@@ -101,7 +101,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     }
 
     @Override
-    public String toSQL() {
+    public String toSQL(SQLQueryTemplate queryTemplate) {
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return String.format(
                 grain.getExpression(),

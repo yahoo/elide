@@ -44,7 +44,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public String toSQL() {
+    public String toSQL(SQLQueryTemplate queryTemplate) {
         return sqlReferenceTable.getResolvedReference(metric.getTable(), metric.getName());
     }
 

@@ -18,7 +18,12 @@ public interface SQLColumnProjection<T extends Column> extends ColumnProjection<
 
     SQLReferenceTable getReferenceTable();
 
-    default String toSQL() {
+    /**
+     * Generate a SQL fragment for this combination column and client arguments.
+     * @param queryTemplate The query template.
+     * @return
+     */
+    default String toSQL(SQLQueryTemplate queryTemplate) {
         return getReferenceTable().getResolvedReference(getColumn().getTable(), getColumn().getName());
     }
 }
