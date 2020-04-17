@@ -17,7 +17,7 @@ import java.util.TimeZone;
 /**
  * Represents a requested time dimension in a query.
  */
-public interface TimeDimensionProjection extends ColumnProjection {
+public interface TimeDimensionProjection extends ColumnProjection<TimeDimension> {
     /**
      * Get the projected time dimension.
      *

@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  */
 public class EntityProjectionTranslator {
     private Table queriedTable;
+    private QueryEngine engine;
 
     private EntityProjection entityProjection;
     private Set<ColumnProjection> dimensionProjections;
@@ -46,7 +47,9 @@ public class EntityProjectionTranslator {
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
 
-    public EntityProjectionTranslator(Table table, EntityProjection entityProjection, EntityDictionary dictionary) {
+    public EntityProjectionTranslator(QueryEngine engine, Table table,
+                                      EntityProjection entityProjection, EntityDictionary dictionary) {
+        this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
@@ -104,7 +107,7 @@ public class EntityProjectionTranslator {
                 .map(timeDimAttr -> {
                     TimeDimension timeDim = queriedTable.getTimeDimension(timeDimAttr.getName());
 
-                    return ColumnProjection.toTimeDimensionProjection(
+                    return engine.constructTimeDimensionProjection(
                             timeDim,
                             timeDimAttr.getAlias(),
                             timeDimAttr.getArguments().stream()
@@ -123,7 +126,7 @@ public class EntityProjectionTranslator {
                     Dimension dimension = queriedTable.getDimension(dimAttr.getName());
                     return dimension == null
                             ? null
-                            : ColumnProjection.toDimensionProjection(
+                            : engine.constructDimensionProjection(
                                     dimension,
                                     dimAttr.getAlias(),
                                     dimAttr.getArguments().stream()
@@ -137,7 +140,7 @@ public class EntityProjectionTranslator {
                     Dimension dimension = queriedTable.getDimension(dimAttr.getName());
                     return dimension == null
                             ? null
-                            : ColumnProjection.toDimensionProjection(
+                            : engine.constructDimensionProjection(
                                 dimension,
                                 dimAttr.getAlias(),
                                 Collections.emptyMap());
@@ -154,7 +157,7 @@ public class EntityProjectionTranslator {
     private List<MetricProjection> resolveMetrics() {
         return entityProjection.getAttributes().stream()
                 .filter(attribute -> queriedTable.isMetric(attribute.getName()))
-                .map(attribute -> ColumnProjection.toMetricProjection(
+                .map(attribute -> engine.constructMetricProjection(
                         queriedTable.getMetric(attribute.getName()),
                         attribute.getAlias(),
                         attribute.getArguments().stream()

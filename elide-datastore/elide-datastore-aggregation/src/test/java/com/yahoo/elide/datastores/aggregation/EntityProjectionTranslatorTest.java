@@ -51,6 +51,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
     @Test
     public void testBasicTranslation() {
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
+                engine,
                 playerStatsTable,
                 basicProjection,
                 dictionary
@@ -77,6 +78,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 .build();
 
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
+                engine,
                 playerStatsTable,
                 projection,
                 dictionary
@@ -102,6 +104,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 .build();
 
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
+                engine,
                 playerStatsTable,
                 projection,
                 dictionary
@@ -129,6 +132,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 .build();
 
         assertThrows(InvalidOperationException.class, () -> new EntityProjectionTranslator(
+                engine,
                 playerStatsTable,
                 projection,
                 dictionary

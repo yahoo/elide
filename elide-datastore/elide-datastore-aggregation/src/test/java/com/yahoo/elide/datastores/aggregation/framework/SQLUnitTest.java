@@ -88,17 +88,17 @@ public abstract class SQLUnitTest {
     }
 
     public static ColumnProjection toProjection(Dimension dimension) {
-        return ColumnProjection.toDimensionProjection(dimension, dimension.getName(), Collections.emptyMap());
+        return engine.constructDimensionProjection(dimension, dimension.getName(), Collections.emptyMap());
     }
 
     public static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain) {
-        return ColumnProjection.toTimeDimensionProjection(
+        return engine.constructTimeDimensionProjection(
                 dimension,
                 dimension.getName(),
                 Collections.singletonMap("grain", Argument.builder().name("grain").value(grain).build()));
     }
 
     public static MetricProjection invoke(Metric metric) {
-        return ColumnProjection.toMetricProjection(metric, metric.getName(), Collections.emptyMap());
+        return engine.constructMetricProjection(metric, metric.getName(), Collections.emptyMap());
     }
 }
