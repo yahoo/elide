@@ -1,6 +1,7 @@
 package com.yahoo.elide.contrib.dynamicconfig.model;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
@@ -21,7 +22,6 @@ import lombok.Data;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Id;
-import javax.persistence.Entity;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -30,16 +30,16 @@ import javax.persistence.Entity;
 @Cardinality(size = CardinalitySize.{{#toUpperCase cardinality}}{{/toUpperCase}})
 @EqualsAndHashCode
 @ToString
-@Entity
 @Data
 {{#if table}}@FromTable(name = "{{#if schema}}{{schema}}.{{/if}}{{table}}"){{/if}}
 {{#if sql}}@FromSubquery(sql = "{{sql}}"){{/if}}
 {{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
 {{#if description}}@Meta(description = "{{description}}"){{/if}}
+{{#if hidden}}@Exclude{{/if}}
 public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {{#if extend}}extends {{#capitalizeFirstLetter extend}}{{/capitalizeFirstLetter}}{{/if}}{
 
     @Id
-    private String name;
+    private String Id;
 
 {{#each dimensions}}
 
@@ -53,6 +53,7 @@ public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {{#if ext
 
     {{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
     {{#if description}}@Meta(description = "{{description}}"){{/if}}
+    {{#if hidden}}@Exclude{{/if}}
     @DimensionFormula("{{definition}}")
     private {{#getJavaType type}}{{/getJavaType}} {{name}};
 
@@ -75,6 +76,7 @@ public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {{#if ext
     @MetricFormula("{{definition}}")
     {{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
     {{#if description}}@Meta(description = "{{description}}"){{/if}}
+    {{#if hidden}}@Exclude{{/if}}
     private {{#getJavaType type}}{{/getJavaType}} {{name}};
 
 {{/each}}
