@@ -42,15 +42,15 @@ public class SQLQueryTemplate {
         table = (SQLTable) query.getTable();
         timeDimension = query.getTimeDimensions().stream()
                 .findFirst()
-                .map((timeDim) -> new SQLTimeDimensionProjection(timeDim, referenceTable))
+                .map(SQLTimeDimensionProjection.class::cast)
                 .orElse(null);
 
         nonTimeDimensions = query.getGroupByDimensions().stream()
-                .map((dim) -> SQLColumnProjection.toSQLColumnProjection(dim, referenceTable))
+                .map(SQLColumnProjection.class::cast)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         metrics = query.getMetrics().stream()
-                .map((metric) -> new SQLMetricProjection(metric, referenceTable))
+                .map(SQLMetricProjection.class::cast)
                 .collect(Collectors.toList());
     }
 

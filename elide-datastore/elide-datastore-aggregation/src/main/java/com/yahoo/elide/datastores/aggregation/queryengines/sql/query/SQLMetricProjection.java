@@ -23,16 +23,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private String alias;
     private Map<String, Argument> arguments;
 
-    public SQLMetricProjection(MetricProjection metricProjection,
-                               SQLReferenceTable sqlReferenceTable) {
-        this(
-                metricProjection.getColumn(),
-                sqlReferenceTable,
-                metricProjection.getAlias(),
-                metricProjection.getArguments()
-        );
-    }
-
     public SQLMetricProjection(Metric metric,
                                SQLReferenceTable sqlReferenceTable,
                                String alias,
