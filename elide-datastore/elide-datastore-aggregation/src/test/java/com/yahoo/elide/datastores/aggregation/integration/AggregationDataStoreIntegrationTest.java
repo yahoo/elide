@@ -726,9 +726,9 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats.player2Name",
                                 "playerStats.countryIsoCode",
                                 "playerStats.subCountryIsoCode",
-                                "playerStats.recordedDate",
                                 "playerStats.overallRating"))
-                .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"));
+                .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"))
+                .body("data.relationships.timeDimensions.data.id", hasItems("playerStats.recordedDate"));
 
         given()
                 .accept("application/vnd.api+json")
