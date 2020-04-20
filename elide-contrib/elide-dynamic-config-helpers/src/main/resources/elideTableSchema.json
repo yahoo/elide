@@ -45,7 +45,7 @@
           "title": "Join table name",
           "description": "The name of the table that is being joined to",
           "type": "string",
-          "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$"
+          "pattern": "^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$"
         },
         "type": {
           "title": "Type of Join",
@@ -92,13 +92,12 @@
           "title": "Metric name",
           "description": "The name of the metric. This will be the same as the POJO field name.",
           "type": "string",
-          "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$"
+          "pattern": "^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$"
         },
         "description": {
           "title": "Metric description",
           "description": "A long description of the metric.",
-          "type": "string",
-          "default": "The metric name"
+          "type": "string"
         },
         "category": {
           "title": "Measure group category",
@@ -115,7 +114,7 @@
           "title": "Measure read access",
           "description": "Read permission for the metric.",
           "type": "string",
-          "default": "Allow All"
+          "default": "Prefab.Role.All"
         },
         "definition": {
           "title": "Metric definition",
@@ -147,13 +146,12 @@
           "title": "Dimension name",
           "description": "The name of the dimension. This will be the same as the POJO field name.",
           "type": "string",
-          "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$"
+          "pattern": "^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$"
         },
         "description": {
           "title": "Dimension description",
           "description": "A long description of the dimension.",
-          "type": "string",
-          "default": "The dimension name"
+          "type": "string"
         },
         "category": {
           "title": "Dimension group category",
@@ -170,7 +168,7 @@
           "title": "Dimension read access",
           "description": "Read permission for the dimension.",
           "type": "string",
-          "default": "Allow All"
+          "default": "Prefab.Role.All"
         },
         "definition": {
           "title": "Dimension definition",
@@ -269,13 +267,13 @@
             "title": "Table Model Name",
             "description": "The name of the model. This will be the same as the POJO class name.",
             "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*$"
+            "pattern": "^[A-Z][0-9A-Za-z]*$"
           },
           "schema": {
             "title": "Table Schema",
             "description": "The database or schema where the model lives.",
             "type": "string",
-            "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$",
+            "pattern": "^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$",
             "default": ""
           },
           "hidden": {
@@ -287,8 +285,7 @@
           "description": {
             "title": "Table Model description",
             "description": "A long description of the model.",
-            "type": "string",
-            "default": "The model name"
+            "type": "string"
           },
           "cardinality": {
             "title": "Model cardinality",
@@ -307,7 +304,7 @@
             "title": "Table read access",
             "description": "Read permission for the table.",
             "type": "string",
-            "default": "Allow All"
+            "default": "Prefab.Role.All"
           },
           "joins": {
             "title": "Table joins",
@@ -372,7 +369,7 @@
                 "title": "Table name",
                 "description": "The physical table name where the model lives.",
                 "type": "string",
-                "pattern": "^([A-Za-z]*_?[A-Za-z]*)*$",
+                "pattern": "^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$",
                 "default": ""
               }
             },
