@@ -41,8 +41,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
             @Override
             protected void configure() {
                 Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
-                checkMappings.put("Principal is Owner", AsyncQueryOwner.class);
-                checkMappings.put("value is Cancelled", AsyncQueryStatusValue.class);
+                checkMappings.put(AsyncQueryOwner.PRINCIPAL_IS_OWNER, AsyncQueryOwner.class);
+                checkMappings.put(AsyncQueryStatusValue.VALUE_IS_CANCELLED, AsyncQueryStatusValue.class);
 
                 EntityDictionary dictionary = new EntityDictionary(checkMappings, injector::inject);
                 Elide elide = new Elide(new ElideSettingsBuilder(AsyncIntegrationTest.getDataStore())

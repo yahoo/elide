@@ -72,10 +72,6 @@ public class DefaultAsyncQueryDAOTest {
 
     @Test
     public void testUpdateStatus() {
-
-        when(dataStore.beginTransaction()).thenReturn(tx);
-        when(elide.getElideSettings()).thenReturn(elideSettings);
-
         AsyncQuery result = asyncQueryDAO.updateStatus(asyncQuery, QueryStatus.PROCESSING);
 
         assertEquals(result, asyncQuery);
