@@ -93,7 +93,7 @@ public class HandlebarsHydrator {
         Template template = handlebars.compile("security");
 
         for (String role : security.getRoles()) {
-            securityClasses.put(SECURITY_CLASS_PREFIX + helper.firstCharOnlyToUpper(role), template.apply(role));
+            securityClasses.put(SECURITY_CLASS_PREFIX + helper.titleCaseRemoveSpaces(role), template.apply(role));
         }
 
         return securityClasses;

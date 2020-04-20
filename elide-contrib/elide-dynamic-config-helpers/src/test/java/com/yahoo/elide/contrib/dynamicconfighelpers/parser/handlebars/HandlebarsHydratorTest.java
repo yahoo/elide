@@ -156,7 +156,12 @@ public class HandlebarsHydratorTest {
 
     private static final String VALID_TABLE_JAVA_NAME = "PlayerStats";
 
-    private static final String VALID_TABLE_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
+    private static final String VALID_TABLE_JAVA = "/*\n"
+            + " * Copyright 2020, Yahoo Inc.\n"
+            + " * Licensed under the Apache License, Version 2.0\n"
+            + " * See LICENSE file in project root for terms.\n"
+            + " */\n"
+            + "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.Include;\n"
             + "import com.yahoo.elide.annotation.Exclude;\n"
@@ -285,7 +290,12 @@ public class HandlebarsHydratorTest {
             + "    ]\n"
             + "}";
 
-    private static final String VALID_SECURITY_ADMIN_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
+    private static final String VALID_SECURITY_ADMIN_JAVA = "/*\n"
+            + " * Copyright 2020, Yahoo Inc.\n"
+            + " * Licensed under the Apache License, Version 2.0\n"
+            + " * See LICENSE file in project root for terms.\n"
+            + " */\n"
+            + "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.SecurityCheck;\n"
             + "import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;\n"
@@ -299,7 +309,12 @@ public class HandlebarsHydratorTest {
             + "    }\n"
             + "}\n";
 
-    private static final String VALID_SECURITY_GUEST_JAVA = "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
+    private static final String VALID_SECURITY_GUEST_JAVA = "/*\n"
+            + " * Copyright 2020, Yahoo Inc.\n"
+            + " * Licensed under the Apache License, Version 2.0\n"
+            + " * See LICENSE file in project root for terms.\n"
+            + " */\n"
+            + "package com.yahoo.elide.contrib.dynamicconfig.model;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.SecurityCheck;\n"
             + "import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;\n"

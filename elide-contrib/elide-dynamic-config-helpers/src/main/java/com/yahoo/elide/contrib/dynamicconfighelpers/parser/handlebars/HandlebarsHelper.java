@@ -38,15 +38,16 @@ public class HandlebarsHelper {
     }
 
     /**
-     * Transform string to capitalize first letter of each word and remove spaces.
-     * @param str String to be transformed
-     * @return Capitalize First Letter of Each Word and remove spaces
-     */
-    public String firstCharOnlyToUpper(String str) {
+    * Transform string to capitalize first character of each word, change other
+    * characters to lower case and remove spaces.
+    * @param str String to be transformed
+    * @return Capitalize First Letter of Each Word and remove spaces
+    */
+    public String titleCaseRemoveSpaces(String str) {
 
         return (str == null || str.length() == 0) ? str
                 : String.join(EMPTY_STRING, Arrays.asList(str.trim().split(WHITESPACE_REGEX)).stream().map(
-                        s -> s.substring(0, 1).toUpperCase(Locale.ENGLISH) + s.substring(1).toLowerCase(Locale.ENGLISH))
+                        s -> toUpperCase(s.substring(0, 1)) + toLowerCase(s.substring(1)))
                         .collect(Collectors.toList()));
     }
 
