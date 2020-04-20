@@ -12,10 +12,15 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import javax.persistence.Persistence;
 import javax.ws.rs.core.MediaType;
@@ -127,29 +132,40 @@ public class AsyncIntegrationTest extends IntegrationTest{
     @Test
     @Order(4)
     public void jsonApiRequestGraphQLGetTest() {
-        given()
+
+        String response = given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
-                        + "{ edges { node { id createdOn updatedOn queryType status result "
-                        + "{ edges { node { id createdOn updatedOn responseBody status} } } } } } }\","
+                        + "{ edges { node { id queryType status result "
+                        + "{ edges { node { id responseBody status} } } } } } }\","
                         + "\"variables\":null}")
                 .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.asyncQuery.edges[0].node.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
-                .body("data.asyncQuery.edges[0].node.createdOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.updatedOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.queryType", equalTo("JSONAPI_V1_0"))
-                .body("data.asyncQuery.edges[0].node.status", equalTo("COMPLETE"))
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.createdOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.updatedOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.responseBody", equalTo("{\"data\":"
-                        + "[{\"type\":\"player\",\"id\":\"3\",\"attributes\":{\"name\":\"Han\"}},"
-                        + "{\"type\":\"player\",\"id\":\"2\",\"attributes\":{\"name\":\"Jane Doe\"}},"
-                        + "{\"type\":\"player\",\"id\":\"1\",\"attributes\":{\"name\":\"Jon Doe\"}}]}"))
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.status", equalTo(200));
+                .asString();
+
+        String expectedResponse = document(
+                selections(
+                        field(
+                                "asyncQuery",
+                                selections(
+                                        field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
+                                        field("queryType", "JSONAPI_V1_0"),
+                                        field("status", "COMPLETE"),
+                                        field("result",
+                                                selections(
+                                                        field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
+                                                        field("responseBody", "{\\\"data\\\":"
+                                                                + "[{\\\"type\\\":\\\"player\\\",\\\"id\\\":\\\"3\\\",\\\"attributes\\\":{\\\"name\\\":\\\"Han\\\"}},"
+                                                                + "{\\\"type\\\":\\\"player\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"name\\\":\\\"Jane Doe\\\"}},"
+                                                                + "{\\\"type\\\":\\\"player\\\",\\\"id\\\":\\\"1\\\",\\\"attributes\\\":{\\\"name\\\":\\\"Jon Doe\\\"}}]}"),
+                                                        field("status", 200)
+                                                        ))
+                                )
+                        )
+                )
+        ).toResponse();
+
+		assertEquals(expectedResponse, response);
     }
 
     /**
@@ -234,29 +250,40 @@ public class AsyncIntegrationTest extends IntegrationTest{
     @Test
     @Order(8)
     public void graphQlApiRequestGraphQLGetTest() {
-        given()
+        String response = given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263c\\\"]) "
-                        + "{ edges { node { id createdOn updatedOn queryType status result "
-                        + "{ edges { node { id createdOn updatedOn responseBody status} } } } } } }\""
+                        + "{ edges { node { id queryType status result "
+                        + "{ edges { node { id responseBody status} } } } } } }\""
                         + ",\"variables\":null}")
                 .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.asyncQuery.edges[0].node.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"))
-                .body("data.asyncQuery.edges[0].node.createdOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.updatedOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.queryType", equalTo("GRAPHQL_V1_0"))
-                .body("data.asyncQuery.edges[0].node.status", equalTo("COMPLETE"))
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"))
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.createdOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.updatedOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.responseBody", equalTo("{\"data\":{\"player\":{\"edges\":"
-                        + "[{\"node\":{\"id\":\"1\",\"name\":\"Jon Doe\"}},"
-                        + "{\"node\":{\"id\":\"2\",\"name\":\"Jane Doe\"}},"
-                        + "{\"node\":{\"id\":\"3\",\"name\":\"Han\"}}]}}}"))
-                .body("data.asyncQuery.edges[0].node.result.edges[0].node.status", equalTo(200));
+                .asString();
+
+        String expectedResponse = document(
+                selections(
+                        field(
+                                "asyncQuery",
+                                selections(
+                                        field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"),
+                                        field("queryType", "GRAPHQL_V1_0"),
+                                        field("status", "COMPLETE"),
+                                        field("result",
+                                                selections(
+                                                        field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"),
+                                                        field("responseBody", "{\\\"data\\\":{\\\"player\\\":{\\\"edges\\\":"
+                                                                + "[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"name\\\":\\\"Jon Doe\\\"}}"
+                                                                + ",{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"name\\\":\\\"Jane Doe\\\"}},"
+                                                                + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"name\\\":\\\"Han\\\"}}]}}}"),
+                                                        field("status", 200)
+                                                        ))
+                                )
+                        )
+                )
+        ).toResponse();
+
+		assertEquals(expectedResponse, response);
+
     }
 
     /**
@@ -321,15 +348,13 @@ public class AsyncIntegrationTest extends IntegrationTest{
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263b\\\"]) "
-                        + "{ edges { node { id createdOn updatedOn queryType status result "
-                        + "{ edges { node { id createdOn updatedOn responseBody status} } } } } } }\""
+                        + "{ edges { node { id queryType status result "
+                        + "{ edges { node { id responseBody status} } } } } } }\""
                         + ",\"variables\":null}")
                 .post("/graphQL")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.asyncQuery.edges[0].node.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"))
-                .body("data.asyncQuery.edges[0].node.createdOn", notNullValue())
-                .body("data.asyncQuery.edges[0].node.updatedOn", notNullValue())
                 .body("data.asyncQuery.edges[0].node.queryType", equalTo("JSONAPI_V1_0"))
                 .body("data.asyncQuery.edges[0].node.status", equalTo("FAILURE"));
     }
@@ -356,7 +381,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
     @Test
     @Order(13)
     public void graphQlApibadGetRequestGraphQLGetTest() {
-        given()
+         given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263a\\\"]) "
