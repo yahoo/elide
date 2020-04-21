@@ -491,4 +491,31 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     public boolean isVerbose() {
         return verbose;
     }
+
+    /**
+     * Check strictly user permissions on an entity field.
+     *
+     * @param <A> type parameter
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param field The entity field
+     */
+    @Override
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+                                                                        Class<A> annotationClass,
+                                                                        String field) {
+        Supplier<Expression> expressionSupplier = () -> {
+            return expressionBuilder.buildUserCheckFieldExpressions(
+                    resourceClass,
+                    requestScope,
+                    annotationClass,
+                    field);
+        };
+
+        return checkOnlyUserPermissions(
+                resourceClass,
+                annotationClass,
+                Optional.empty(),
+                expressionSupplier);
+    }
 }

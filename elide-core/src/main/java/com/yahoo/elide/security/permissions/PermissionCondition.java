@@ -97,6 +97,14 @@ public class PermissionCondition {
         this.field = Optional.empty();
     }
 
+    PermissionCondition(Class<? extends Annotation> permission, Class<?> entityClass, String field) {
+        this.permission = permission;
+        this.resource = Optional.empty();
+        this.entityClass = entityClass;
+        this.changes = Optional.empty();
+        this.field = Optional.of(field);
+    }
+
     PermissionCondition(Class<? extends Annotation> permission, PersistentResource resource, String field) {
         this.permission = permission;
         this.resource = Optional.of(resource);
