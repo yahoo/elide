@@ -130,14 +130,10 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
         RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
 
-        Collection<AsyncQuery> asyncQueryList = null;
-
         try {
             FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
                     AsyncQuery.class, false);
-
-            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
-                    (tx, scope) -> {
+            executeInTransaction(dataStore, (tx, scope) -> {
 
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
@@ -153,12 +149,12 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                         tx.delete(query, scope);
                     }
                 }
-                return itr;
+                return null;
             });
         } catch (ParseException e) {
             log.error("Exception: {}", e);
         }
-        return asyncQueryList;
+        return null;
     }
 
     @Override
