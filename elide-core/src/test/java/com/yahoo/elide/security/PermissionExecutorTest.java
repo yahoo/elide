@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.ElideSettings;
@@ -21,6 +22,7 @@ import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 
+import com.yahoo.elide.security.permissions.ExpressionResult;
 import example.TestCheckMappings;
 
 import org.junit.jupiter.api.Test;
@@ -411,6 +413,40 @@ public class PermissionExecutorTest {
         requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
         requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec);
         requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec);
+    }
+
+    @Test
+    public void testUserCheckOnFieldSuccess() {
+        PersistentResource resource = newResource(OpenBean.class);
+        RequestScope requestScope = resource.getRequestScope();
+        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(OpenBean.class,
+                ReadPermission.class,
+                "open");
+
+        assertEquals(ExpressionResult.PASS, result);
+    }
+
+    @Test
+    public void testUserCheckOnFieldFailure() {
+        PersistentResource resource = newResource(SampleBean.class);
+        RequestScope requestScope = resource.getRequestScope();
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> requestScope.getPermissionExecutor().checkUserPermissions(SampleBean.class,
+                ReadPermission.class,
+                "cannotSeeMe"));
+    }
+
+    @Test
+    public void testUserCheckOnFieldDeferred() {
+        PersistentResource resource = newResource(SampleBean.class);
+        RequestScope requestScope = resource.getRequestScope();
+
+        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(SampleBean.class,
+                ReadPermission.class,
+                "allVisible");
+
+        assertEquals(ExpressionResult.DEFERRED, result);
     }
 
     public <T> PersistentResource<T> newResource(T obj, Class<T> cls) {

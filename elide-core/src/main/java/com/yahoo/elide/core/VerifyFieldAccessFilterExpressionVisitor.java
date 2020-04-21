@@ -13,6 +13,8 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.security.PermissionExecutor;
+import com.yahoo.elide.security.permissions.ExpressionResult;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -40,6 +42,15 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
     public Boolean visitPredicate(FilterPredicate filterPredicate) {
         RequestScope requestScope = resource.getRequestScope();
         Set<PersistentResource> val = Collections.singleton(resource);
+
+        ExpressionResult result = evaluateUserChecks(filterPredicate.getPath());
+
+        if (result == ExpressionResult.PASS) {
+            return true;
+        } else if (result == ExpressionResult.FAIL) {
+            return false;
+        }
+
         for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
             String fieldName = pathElement.getFieldName();
 
@@ -72,6 +83,28 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         }
         // use no filter to allow the read directly from loaded resource
         return resource.getRelationChecked(fieldName, Optional.empty(), Optional.empty(), Optional.empty()).stream();
+    }
+
+    private ExpressionResult evaluateUserChecks(Path path) {
+        PermissionExecutor executor = resource.getRequestScope().getPermissionExecutor();
+
+        ExpressionResult result = ExpressionResult.PASS;
+
+        for (Path.PathElement element : path.getPathElements()) {
+            try {
+                result = executor.checkUserPermissions(
+                        element.getType(),
+                        ReadPermission.class,
+                        element.getFieldName());
+            } catch (ForbiddenAccessException e) {
+                return ExpressionResult.FAIL;
+            }
+
+            if (result != ExpressionResult.PASS) {
+                return result;
+            }
+        }
+        return result;
     }
 
     @Override

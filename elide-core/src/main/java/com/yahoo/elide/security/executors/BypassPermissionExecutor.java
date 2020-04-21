@@ -55,6 +55,13 @@ public class BypassPermissionExecutor implements PermissionExecutor {
     }
 
     @Override
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+                                                                        Class<A> annotationClass,
+                                                                        String field) {
+        return ExpressionResult.PASS;
+    }
+
+    @Override
     public void executeCommitChecks() {
 
     }
