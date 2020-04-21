@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -141,7 +142,6 @@ public interface ElideStandaloneSettings {
         return "/graphql/api/v1/*";
     }
 
-
     /**
      * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
      *
@@ -220,7 +220,7 @@ public interface ElideStandaloneSettings {
      * @return AsyncQueryDAO type object.
      */
     default AsyncQueryDAO getAsyncQueryDAO() {
-        return null;
+        return new DefaultAsyncQueryDAO();
     }
 
     /**

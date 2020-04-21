@@ -5,12 +5,6 @@
  */
 package com.yahoo.elide.async.service;
 
-import java.util.Date;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
@@ -18,6 +12,12 @@ import com.yahoo.elide.async.models.QueryStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Date;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Runnable thread for terminating AsyncQueryThread executing
@@ -47,8 +47,8 @@ public class AsyncQueryInterruptThread implements Runnable {
     protected void interruptQuery() {
         try {
             long interruptTimeMillies = calculateTimeOut(maxRunTimeMinutes, submittedOn);
-            
-            if(interruptTimeMillies > 0) {
+
+            if (interruptTimeMillies > 0) {
                log.debug("Waiting on the future with the given timeout for {}", interruptTimeMillies);
                task.get(interruptTimeMillies, TimeUnit.MILLISECONDS);
             }
@@ -64,10 +64,9 @@ public class AsyncQueryInterruptThread implements Runnable {
             asyncQueryDao.updateStatus(asyncQuery, QueryStatus.TIMEDOUT);
         }
     }
-    
+
     /**
-     * Method to calculate the time left to interrupt since submission of thread 
-     * in Milliseconds.
+     * Method to calculate the time left to interrupt since submission of thread in Milliseconds.
      * @param interruptTimeMinutes max duration to run the query
      * @param submittedOn time when query was submitted
      * @return Interrupt time left
@@ -75,7 +74,7 @@ public class AsyncQueryInterruptThread implements Runnable {
     private long calculateTimeOut(long maxRunTimeMinutes, Date submittedOn) {
         long maxRunTimeMinutesMillies = maxRunTimeMinutes * 60 * 1000;
         long interruptTimeMillies = maxRunTimeMinutesMillies - ((new Date()).getTime() - submittedOn.getTime());
-        
+
         return interruptTimeMillies;
     }
 }
