@@ -1,5 +1,18 @@
 # Change Log
 
+## 4.6.1
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/d2fefd4b998995469a3cc6fd13f76204a057ce2a) shortcut the test (#1269) 
+   * [view commit](https://github.com/yahoo/elide/commit/e495fc2881d3f7dbfd82b914c23204779ef7534d) Bump classgraph from 4.8.65 to 4.8.69 (#1268) 
+   * [view commit](https://github.com/yahoo/elide/commit/85b13b62646509674fb7dfa41b179b20d3cba49b) Bump snakeyaml from 1.25 to 1.26 (#1264) 
+   * [view commit](https://github.com/yahoo/elide/commit/966db764b738667d8d674ca020224f0bb9936784) Bump version.junit from 5.6.1 to 5.6.2 (#1263) 
+   * [view commit](https://github.com/yahoo/elide/commit/6c13c002a543b606ff2e1bc79249f13ea1d024f1) Bump version.restassured from 4.2.0 to 4.3.0 (#1266) 
+   * [view commit](https://github.com/yahoo/elide/commit/6993e35fbfabff4144b028e53fa24398dd2d2e39) Short Circuit Filter Expression Security If User Checks would pass/fail. (#1275) 
+   * [view commit](https://github.com/yahoo/elide/commit/5e0b345fe1d944dccd5e47e94eb029312b9a6e6f) Bump postgresql from 42.2.11 to 42.2.12 (#1267) 
+   * [view commit](https://github.com/yahoo/elide/commit/6ca8592344f4e7b94ac9f0e4de27944c1f870000) Bump metrics.version from 4.1.5 to 4.1.6 (#1265) 
+   * [view commit](https://github.com/yahoo/elide/commit/48807cd236f2097eb3f1a04ff5348446e3644422) Bump version.jetty from 9.4.27.v20200227 to 9.4.28.v20200408 (#1262) 
+   * [view commit](https://github.com/yahoo/elide/commit/005f02108b33de18b0075e1dc34c6eb2b94eb435) Bump tomcat.version from 9.0.33 to 9.0.34 (#1261) 
+
 ## 4.6.0
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/90a4f1e9ab5bae620f31fb511cc9522f55004710) Bump rxjava from 2.2.17 to 2.2.19 (#1253) 
