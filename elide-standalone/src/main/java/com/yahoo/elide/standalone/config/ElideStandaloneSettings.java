@@ -220,7 +220,7 @@ public interface ElideStandaloneSettings {
      * @return AsyncQueryDAO type object.
      */
     default AsyncQueryDAO getAsyncQueryDAO() {
-        return new DefaultAsyncQueryDAO();
+        return null;
     }
 
     /**
