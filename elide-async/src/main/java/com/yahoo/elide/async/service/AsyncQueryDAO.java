@@ -26,14 +26,6 @@ public interface AsyncQueryDAO {
     public AsyncQuery updateStatus(AsyncQuery asyncQuery, QueryStatus status);
 
     /**
-     * This method uses the filter expression to evaluate a list of filtered results based on the expression.
-     * and returns a collection of filtered AsyncQuery objects.
-     * @param filterExpression filter expression for filtering from datastore
-     * @return filtered results
-     */
-    public Collection<AsyncQuery> loadQueries(String filterExpression);
-
-    /**
      * This method persists the model for AsyncQueryResult, AsyncQuery object and establishes the relationship.
      * @param status ElideResponse status from AsyncQuery
      * @param responseBody ElideResponse responseBody from AsyncQuery

@@ -95,30 +95,31 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
         RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
 
-        Collection<AsyncQuery> asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
-                (tx, scope) -> {
-            try {
-                FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
-                        AsyncQuery.class, false);
-                EntityProjection asyncQueryCollection = EntityProjection.builder()
-                        .type(AsyncQuery.class)
-                        .filterExpression(filter)
-                        .build();
+        Collection<AsyncQuery> asyncQueryList = null;
 
-                Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
-                Iterator<Object> itr = loaded.iterator();
+        try {
+             FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
+                    AsyncQuery.class, false);
+             asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
+                        (tx, scope) -> {
+                 EntityProjection asyncQueryCollection = EntityProjection.builder()
+                         .type(AsyncQuery.class)
+                         .filterExpression(filter)
+                         .build();
 
-                while (itr.hasNext()) {
-                   AsyncQuery query = (AsyncQuery) itr.next();
-                   updateFunction.update(query);
-                   tx.save(query, scope);
-                }
-                return null;
-                } catch (ParseException e) {
-                    log.error("Exception: {}", e);
-                }
-            return null;
-        });
+                 Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
+                 Iterator<Object> itr = loaded.iterator();
+
+                 while (itr.hasNext()) {
+                     AsyncQuery query = (AsyncQuery) itr.next();
+                     updateFunction.update(query);
+                     tx.save(query, scope);
+                 }
+                 return itr;
+             });
+        } catch (ParseException e) {
+            log.error("Exception: {}", e);
+        }
         return asyncQueryList;
     }
 
@@ -129,11 +130,15 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
         RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
 
-        Collection<AsyncQuery> asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
-                (tx, scope) -> {
-            try {
-                FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
-                        AsyncQuery.class, false);
+        Collection<AsyncQuery> asyncQueryList = null;
+
+        try {
+            FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
+                    AsyncQuery.class, false);
+
+            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
+                    (tx, scope) -> {
+
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
                         .filterExpression(filter)
@@ -148,12 +153,11 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                         tx.delete(query, scope);
                     }
                 }
-                return null;
-            } catch (ParseException e) {
-                log.error("Exception: {}", e);
-            }
-            return null;
-        });
+                return itr;
+            });
+        } catch (ParseException e) {
+            log.error("Exception: {}", e);
+        }
         return asyncQueryList;
     }
 
@@ -174,30 +178,6 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             return asyncQueryResult;
         });
         return queryResultObj;
-    }
-
-    @SuppressWarnings("unchecked")
-    public Collection<AsyncQuery> loadQueries(String filterExpression) {
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
-
-        Collection<AsyncQuery> loaded = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
-            try {
-                FilterExpression filter = filterParser.parseFilterExpression(filterExpression, AsyncQuery.class, false);
-
-                EntityProjection asyncQueryCollection = EntityProjection.builder()
-                        .type(AsyncQuery.class)
-                        .filterExpression(filter)
-                        .build();
-
-                Iterable<Object> loadedObj = tx.loadObjects(asyncQueryCollection, scope);
-                return loadedObj;
-            } catch (ParseException e) {
-                log.error("Exception: {}", e);
-            }
-            return null;
-        });
-        return loaded;
     }
 
     /**
