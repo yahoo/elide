@@ -100,7 +100,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 return ExpressionResult.FAIL;
             }
 
-            if (result == ExpressionResult.DEFERRED || result == ExpressionResult.FAIL) {
+            if (result != ExpressionResult.PASS) {
                 return result;
             }
         }
