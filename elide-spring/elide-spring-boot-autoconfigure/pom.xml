@@ -97,6 +97,7 @@
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
             <version>5.0.0-pr7-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
 
         <dependency>

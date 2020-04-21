@@ -6,9 +6,8 @@
 package com.yahoo.elide.async.models;
 
 /**
- * Get principal owner name interface
+ * Get principal owner name interface.
  */
 public interface PrincipalOwned {
     public String getPrincipalName();
 }
-

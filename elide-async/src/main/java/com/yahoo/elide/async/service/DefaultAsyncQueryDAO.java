@@ -5,15 +5,6 @@
  */
 package com.yahoo.elide.async.service;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.UUID;
-
-import javax.inject.Singleton;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
@@ -31,8 +22,17 @@ import com.yahoo.elide.request.EntityProjection;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.UUID;
+
+import javax.inject.Singleton;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+
 /**
- * Utility class which implements AsyncQueryDAO
+ * Utility class which implements AsyncQueryDAO.
  */
 @Singleton
 @Slf4j
@@ -46,8 +46,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     public DefaultAsyncQueryDAO(Elide elide, DataStore dataStore) {
-    	this.elide = elide;
-    	this.dataStore = dataStore;
+        this.elide = elide;
+        this.dataStore = dataStore;
     }
 
     @Override
@@ -74,8 +74,9 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public Collection<AsyncQuery> updateStatusAsyncQueryCollection(Collection<AsyncQuery> asyncQueryList, QueryStatus status) {
-        return updateAsyncQueryCollection(asyncQueryList, (asyncQuery) -> {
+    public Collection<AsyncQuery> updateStatusAsyncQueryCollection(String filterExpression,
+            QueryStatus status) {
+        return updateAsyncQueryCollection(filterExpression, (asyncQuery) -> {
             asyncQuery.setStatus(status);
             });
     }
@@ -83,19 +84,40 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     /**
      * This method updates a collection of AsyncQuery objects from database and
      * returns the objects updated.
-     * @param asyncQueryList Iterable list of AsyncQuery objects to be updated
+     * @param filterExpression Filter expression to update AsyncQuery Objects based on
+     * @param updateFunction Functional interface for updating AsyncQuery Object
      * @return query object list updated
      */
-    private Collection<AsyncQuery> updateAsyncQueryCollection(Collection<AsyncQuery> asyncQueryList, UpdateQuery updateFunction) {
+    @SuppressWarnings("unchecked")
+    private Collection<AsyncQuery> updateAsyncQueryCollection(String filterExpression,
+            UpdateQuery updateFunction) {
         log.debug("updateAsyncQueryCollection");
-        executeInTransaction(dataStore, (tx, scope) -> {
-            Iterator<AsyncQuery> itr = asyncQueryList.iterator();
-            while(itr.hasNext()) {
-                AsyncQuery query = (AsyncQuery) itr.next();
-                updateFunction.update(query);
-                tx.save(query, scope);
-            }
-            return asyncQueryList;
+        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
+
+        Collection<AsyncQuery> asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
+                (tx, scope) -> {
+            try {
+                FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
+                        AsyncQuery.class, false);
+                EntityProjection asyncQueryCollection = EntityProjection.builder()
+                        .type(AsyncQuery.class)
+                        .filterExpression(filter)
+                        .build();
+
+                Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
+                Iterator<Object> itr = loaded.iterator();
+
+                while (itr.hasNext()) {
+                   AsyncQuery query = (AsyncQuery) itr.next();
+                   updateFunction.update(query);
+                   tx.save(query, scope);
+                }
+                return null;
+                } catch (ParseException e) {
+                    log.error("Exception: {}", e);
+                }
+            return null;
         });
         return asyncQueryList;
     }
@@ -107,9 +129,11 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
         RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
 
-        Collection<AsyncQuery> asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
+        Collection<AsyncQuery> asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
+                (tx, scope) -> {
             try {
-                FilterExpression filter = filterParser.parseFilterExpression(filterExpression, AsyncQuery.class, false);
+                FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
+                        AsyncQuery.class, false);
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
                         .filterExpression(filter)
@@ -118,9 +142,9 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                 Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
                 Iterator<Object> itr = loaded.iterator();
 
-                while(itr.hasNext()) {
+                while (itr.hasNext()) {
                     AsyncQuery query = (AsyncQuery) itr.next();
-                    if(query != null) {
+                    if (query != null) {
                         tx.delete(query, scope);
                     }
                 }
@@ -134,7 +158,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery, UUID asyncQueryId) {
+    public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody,
+            AsyncQuery asyncQuery, UUID asyncQueryId) {
         log.debug("createAsyncQueryResult");
         AsyncQueryResult queryResultObj = (AsyncQueryResult) executeInTransaction(dataStore, (tx, scope) -> {
             AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
@@ -186,9 +211,9 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         log.debug("executeInTransaction");
         Object result = null;
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
-	        JsonApiDocument jsonApiDoc = new JsonApiDocument();
-	        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-	        RequestScope scope = new RequestScope("query", jsonApiDoc, tx, null, queryParams, elide.getElideSettings());
+            JsonApiDocument jsonApiDoc = new JsonApiDocument();
+            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+            RequestScope scope = new RequestScope("query", jsonApiDoc, tx, null, queryParams, elide.getElideSettings());
             result = action.execute(tx, scope);
             tx.commit(scope);
             tx.flush(scope);
