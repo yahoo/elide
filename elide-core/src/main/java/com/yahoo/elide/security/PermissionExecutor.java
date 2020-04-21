@@ -89,6 +89,17 @@ public interface PermissionExecutor {
     <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass, Class<A> annotationClass);
 
     /**
+     * Check strictly user permissions on an entity field.
+     *
+     * @param <A> type parameter
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param field The entity field
+     */
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+                                                                        Class<A> annotationClass,
+                                                                        String field);
+    /**
      * Get the read filter, if defined.
      *
      * @param resourceClass the class to check for a filter
