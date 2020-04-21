@@ -91,12 +91,16 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         ExpressionResult result = ExpressionResult.PASS;
 
         for (Path.PathElement element : path.getPathElements()) {
-            result = executor.checkUserPermissions(
-                    element.getType(),
-                    ReadPermission.class,
-                    element.getFieldName());
+            try {
+                result = executor.checkUserPermissions(
+                        element.getType(),
+                        ReadPermission.class,
+                        element.getFieldName());
+            } catch (ForbiddenAccessException e) {
+                return ExpressionResult.FAIL;
+            }
 
-            if (result == ExpressionResult.DEFERRED || result == ExpressionResult.FAIL) {
+            if (result == ExpressionResult.DEFERRED) {
                 return result;
             }
         }
