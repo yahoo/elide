@@ -515,7 +515,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         return checkOnlyUserPermissions(
                 resourceClass,
                 annotationClass,
-                Optional.empty(),
+                Optional.of(field),
                 expressionSupplier);
     }
 }
