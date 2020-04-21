@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -219,6 +220,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
+        DataStoreTransaction tx = scope.getTransaction();
 
         when(permissionExecutor.checkUserPermissions(Book.class, ReadPermission.class, "authors"))
                 .thenReturn(ExpressionResult.PASS);
@@ -232,5 +234,6 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, "authors");
         verify(permissionExecutor, times(1)).checkUserPermissions(Author.class, ReadPermission.class, "name");
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
+        verify(tx, never()).getRelation(any(), any(), any(), any(), any(), any(), any());
     }
 }
