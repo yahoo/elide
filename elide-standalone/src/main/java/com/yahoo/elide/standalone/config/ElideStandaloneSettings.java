@@ -141,7 +141,6 @@ public interface ElideStandaloneSettings {
         return "/graphql/api/v1/*";
     }
 
-
     /**
      * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
      *

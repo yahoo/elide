@@ -1,4 +1,13 @@
+/*
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.async.models;
+
+import com.yahoo.elide.annotation.Exclude;
+
+import lombok.Getter;
 
 import java.util.Date;
 import java.util.UUID;
@@ -6,10 +15,6 @@ import java.util.UUID;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-
-import com.yahoo.elide.annotation.Exclude;
-
-import lombok.Getter;
 
 @MappedSuperclass
 public abstract class AsyncBase {

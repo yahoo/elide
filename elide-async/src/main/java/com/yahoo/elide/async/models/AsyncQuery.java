@@ -5,15 +5,6 @@
  */
 package com.yahoo.elide.async.models;
 
-import java.util.UUID;
-
-import javax.inject.Inject;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
-
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -26,8 +17,19 @@ import com.yahoo.elide.core.RequestScope;
 
 import lombok.Data;
 
+import java.util.UUID;
+
+import javax.inject.Inject;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.Transient;
+
 /**
- * Model for Async Query
+ * Model for Async Query.
  */
 @Entity
 @Include(type = "asyncQuery", rootLevel = true)
@@ -37,6 +39,7 @@ import lombok.Data;
 @Data
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
+    @Column(columnDefinition = "varchar(36)")
     private UUID id; //Can be generated or provided.
 
     private String query;  //JSON-API PATH or GraphQL payload.
@@ -56,6 +59,11 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Exclude
     private String principalName;
 
+    @PrePersist
+    public void prePersistStatus() {
+        status = QueryStatus.QUEUED;
+    }
+
     @Override
     public String getPrincipalName() {
         return principalName;
@@ -63,12 +71,11 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
 
     @OnCreatePreSecurity
     public void extractPrincipalName(RequestScope scope) {
-    	setPrincipalName(scope.getUser().getName());
+        setPrincipalName(scope.getUser().getName());
     }
-    
+
     @OnCreatePostCommit
     public void executeQueryFromExecutor(RequestScope scope) {
         asyncExecutorService.executeQuery(this, scope.getUser());
     }
-
 }

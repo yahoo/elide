@@ -65,7 +65,7 @@ public class Table {
     private Table.Cardinality cardinality = Table.Cardinality.fromValue("tiny");
 
     @JsonProperty("readAccess")
-    private String readAccess = "Allow All";
+    private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("joins")
     private List<Join> joins = new ArrayList<Join>();

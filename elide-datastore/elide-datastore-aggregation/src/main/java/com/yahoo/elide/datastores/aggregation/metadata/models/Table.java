@@ -57,6 +57,10 @@ public class Table {
     @ToString.Exclude
     private Set<Dimension> dimensions;
 
+    @OneToMany
+    @ToString.Exclude
+    private Set<TimeDimension> timeDimensions;
+
     @ToString.Exclude
     private Set<String> tableTags;
 
@@ -81,8 +85,12 @@ public class Table {
                 .map(Metric.class::cast)
                 .collect(Collectors.toSet());
         this.dimensions = this.columns.stream()
-                .filter(col -> !(col instanceof Metric))
+                .filter(col -> !(col instanceof Metric || col instanceof TimeDimension))
                 .map(Dimension.class::cast)
+                .collect(Collectors.toSet());
+        this.timeDimensions = this.columns.stream()
+                .filter(col -> (col instanceof TimeDimension))
+                .map(TimeDimension.class::cast)
                 .collect(Collectors.toSet());
 
         Meta meta = cls.getAnnotation(Meta.class);

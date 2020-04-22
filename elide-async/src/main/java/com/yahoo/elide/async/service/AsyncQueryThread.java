@@ -5,15 +5,6 @@
  */
 package com.yahoo.elide.async.service;
 
-import java.net.URISyntaxException;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.NoHttpResponseException;
-import org.apache.http.client.utils.URIBuilder;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -22,9 +13,18 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.client.utils.URIBuilder;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import java.net.URISyntaxException;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Runnable thread for executing the query provided in Async Query.
@@ -50,7 +50,7 @@ public class AsyncQueryThread implements Runnable {
     /**
      * This is the main method which processes the Async Query request, executes the query and updates
      * values for AsyncQuery and AsyncQueryResult models accordingly.
-     */
+    */
     protected void processQuery() {
         try {
             // Change async query to processing
@@ -61,20 +61,25 @@ public class AsyncQueryThread implements Runnable {
                 MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
                 log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
                 response = elide.get(getPath(queryObj.getQuery()), queryParams, user);
-                log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}", response.getResponseCode(), response.getBody());
+                log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
+                        response.getResponseCode(), response.getBody());
             }
             else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
                 response = runner.run(queryObj.getQuery(), user);
-                log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}", response.getResponseCode(), response.getBody());
+                log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
+                        response.getResponseCode(), response.getBody());
             }
-            if (response == null){
+            if (response == null) {
                 throw new NoHttpResponseException("Response for request returned as null");
             }
+
+            // Create AsyncQueryResult entry for AsyncQuery and
+            // add queryResult object to query object
+            asyncQueryDao.createAsyncQueryResult(response.getResponseCode(), response.getBody(),
+                    queryObj, queryObj.getId());
+
             // If we receive a response update Query Status to complete
             asyncQueryDao.updateStatus(queryObj, QueryStatus.COMPLETE);
-
-            // Create AsyncQueryResult entry for AsyncQuery and add queryResult object to query object
-            asyncQueryDao.createAsyncQueryResult(response.getResponseCode(), response.getBody(), queryObj, queryObj.getId());
 
         } catch (Exception e) {
             log.error("Exception: {}", e);
@@ -92,8 +97,8 @@ public class AsyncQueryThread implements Runnable {
     }
 
     /**
-     * This method parses the url and gets the query params and adds them into a MultivaluedMap
-     * to be used by underlying Elide.get method
+     * This method parses the url and gets the query params.
+     * And adds them into a MultivaluedMap to be used by underlying Elide.get method
      * @param query query from the Async request
      * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      * @return MultivaluedMap with query parameters
@@ -109,8 +114,8 @@ public class AsyncQueryThread implements Runnable {
     }
 
     /**
-     * This method parses the url and gets the query params and retrieves path
-     * to be used by underlying Elide.get method
+     * This method parses the url and gets the query params.
+     * And retrieves path to be used by underlying Elide.get method
      * @param query query from the Async request
      * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      * @return Path extracted from URI
