@@ -10,12 +10,11 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.request.Argument;
@@ -25,11 +24,12 @@ import com.yahoo.elide.request.Relationship;
 
 import com.google.common.collect.Sets;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -37,16 +37,19 @@ import java.util.stream.Collectors;
  */
 public class EntityProjectionTranslator {
     private Table queriedTable;
+    private QueryEngine engine;
 
     private EntityProjection entityProjection;
     private Set<ColumnProjection> dimensionProjections;
     private Set<TimeDimensionProjection> timeDimensions;
-    private List<MetricFunctionInvocation> metrics;
+    private List<MetricProjection> metrics;
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
 
-    public EntityProjectionTranslator(Table table, EntityProjection entityProjection, EntityDictionary dictionary) {
+    public EntityProjectionTranslator(QueryEngine engine, Table table,
+                                      EntityProjection entityProjection, EntityDictionary dictionary) {
+        this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
@@ -104,33 +107,11 @@ public class EntityProjectionTranslator {
                 .map(timeDimAttr -> {
                     TimeDimension timeDim = queriedTable.getTimeDimension(timeDimAttr.getName());
 
-                    Argument grainArgument = timeDimAttr.getArguments().stream()
-                            .filter(attr -> attr.getName().equals("grain"))
-                            .findAny()
-                            .orElse(null);
-
-                    TimeDimensionGrain resolvedGrain;
-                    if (grainArgument == null) {
-                        //The first grain is the default.
-                        resolvedGrain = timeDim.getSupportedGrains().stream()
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalStateException(
-                                        String.format("Requested default grain, no grain defined on %s",
-                                                timeDimAttr.getName())));
-                    } else {
-                        String requestedGrainName = grainArgument.getValue().toString();
-
-                        resolvedGrain = timeDim.getSupportedGrains().stream()
-                                .filter(supportedGrain -> supportedGrain.getGrain().name().toLowerCase(Locale.ENGLISH)
-                                        .equals(requestedGrainName))
-                                .findFirst()
-                                .orElseThrow(() -> new InvalidOperationException(
-                                        String.format("Unsupported grain %s for field %s",
-                                                requestedGrainName,
-                                                timeDimAttr.getName())));
-                    }
-
-                    return ColumnProjection.toProjection(timeDim, resolvedGrain.getGrain(), timeDimAttr.getAlias());
+                    return engine.constructTimeDimensionProjection(
+                            timeDim,
+                            timeDimAttr.getAlias(),
+                            timeDimAttr.getArguments().stream()
+                                    .collect(Collectors.toMap(Argument::getName, Function.identity())));
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -143,7 +124,13 @@ public class EntityProjectionTranslator {
                 .filter(attribute -> queriedTable.getTimeDimension(attribute.getName()) == null)
                 .map(dimAttr -> {
                     Dimension dimension = queriedTable.getDimension(dimAttr.getName());
-                    return dimension == null ? null : ColumnProjection.toProjection(dimension, dimAttr.getAlias());
+                    return dimension == null
+                            ? null
+                            : engine.constructDimensionProjection(
+                                    dimension,
+                                    dimAttr.getAlias(),
+                                    dimAttr.getArguments().stream()
+                                            .collect(Collectors.toMap(Argument::getName, Function.identity())));
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -151,7 +138,12 @@ public class EntityProjectionTranslator {
         Set<ColumnProjection> relationships = entityProjection.getRelationships().stream()
                 .map(dimAttr -> {
                     Dimension dimension = queriedTable.getDimension(dimAttr.getName());
-                    return dimension == null ? null : ColumnProjection.toProjection(dimension, dimAttr.getAlias());
+                    return dimension == null
+                            ? null
+                            : engine.constructDimensionProjection(
+                                dimension,
+                                dimAttr.getAlias(),
+                                Collections.emptyMap());
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -162,12 +154,14 @@ public class EntityProjectionTranslator {
     /**
      * Gets metrics based on attributes from {@link EntityProjection}.
      */
-    private List<MetricFunctionInvocation> resolveMetrics() {
+    private List<MetricProjection> resolveMetrics() {
         return entityProjection.getAttributes().stream()
                 .filter(attribute -> queriedTable.isMetric(attribute.getName()))
-                .map(attribute -> queriedTable.getMetric(attribute.getName())
-                        .getMetricFunction()
-                        .invoke(attribute.getArguments(), attribute.getAlias()))
+                .map(attribute -> engine.constructMetricProjection(
+                        queriedTable.getMetric(attribute.getName()),
+                        attribute.getAlias(),
+                        attribute.getArguments().stream()
+                                .collect(Collectors.toMap(Argument::getName, Function.identity()))))
                 .collect(Collectors.toList());
     }
 

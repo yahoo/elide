@@ -5,25 +5,23 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.request.Argument;
 
 import java.io.Serializable;
-import java.util.TimeZone;
+import java.util.Map;
 
 /**
  * Represents a projected column as an alias in a query.
+ * @param <T> Column type of the projection.
  */
-public interface ColumnProjection extends Serializable {
+public interface ColumnProjection<T extends Column> extends Serializable {
     /**
      * Get the projected column.
      *
      * @return column
      */
-    Column getColumn();
+    T getColumn();
 
     /**
      * Get the projection alias.
@@ -33,59 +31,9 @@ public interface ColumnProjection extends Serializable {
     String getAlias();
 
     /**
-     * Project a dimension as alias.
+     * Get all arguments provided for this metric function.
      *
-     * @param dimension dimension column
-     * @param alias alias
-     * @return a projection represents that "dimension AS alias"
+     * @return request arguments
      */
-    static ColumnProjection toProjection(Dimension dimension, String alias) {
-        return new ColumnProjection() {
-            @Override
-            public Dimension getColumn() {
-                return dimension;
-            }
-
-            @Override
-            public String getAlias() {
-                return alias;
-            }
-        };
-    }
-
-    /**
-     * Project a time dimension as alias with specific time grain.
-     *
-     * @param dimension time dimension column
-     * @param grain projected time grain
-     * @param alias alias
-     * @return a projection represents that "grain(dimension) AS alias"
-     */
-    static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain, String alias) {
-        // TODO: get time zone from the request
-        if (dimension.getSupportedGrains().stream().anyMatch(g -> g.getGrain().equals(grain))) {
-            return new TimeDimensionProjection() {
-                @Override
-                public TimeGrain getGrain() {
-                    return grain;
-                }
-
-                @Override
-                public TimeZone getTimeZone() {
-                    return null;
-                }
-
-                @Override
-                public TimeDimension getTimeDimension() {
-                    return dimension;
-                }
-
-                @Override
-                public String getAlias() {
-                    return alias;
-                }
-            };
-        }
-        throw new InvalidValueException(dimension.getId() + " doesn't support grain " + grain);
-    }
+    Map<String, Argument> getArguments();
 }

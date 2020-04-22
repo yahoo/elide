@@ -14,19 +14,26 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLMetric;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryConstructor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
+import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
@@ -36,9 +43,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -63,6 +70,47 @@ public class SQLQueryEngine extends QueryEngine {
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
         return new SQLTable(entityClass, metaDataDictionary);
+    }
+
+    @Override
+    public ColumnProjection constructDimensionProjection(Dimension dimension,
+                                                         String alias,
+                                                         Map<String, Argument> arguments) {
+        return new SQLColumnProjection() {
+            @Override
+            public SQLReferenceTable getReferenceTable() {
+                return referenceTable;
+            }
+
+            @Override
+            public Column getColumn() {
+                return dimension;
+            }
+
+            @Override
+            public String getAlias() {
+                return alias;
+            }
+
+            @Override
+            public Map<String, Argument> getArguments() {
+                return arguments;
+            }
+        };
+    }
+
+    @Override
+    public TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
+                                                                    String alias,
+                                                                    Map<String, Argument> arguments) {
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), referenceTable, alias, arguments);
+    }
+
+    @Override
+    public MetricProjection constructMetricProjection(Metric metric,
+                                                      String alias,
+                                                      Map<String, Argument> arguments) {
+        return new SQLMetricProjection(metric, referenceTable, alias, arguments);
     }
 
     @Override
@@ -134,44 +182,21 @@ public class SQLQueryEngine extends QueryEngine {
      * @param query the client query.
      * @return the SQL query.
      */
-    protected SQLQuery toSQL(Query query) {
+    private SQLQuery toSQL(Query query) {
         Set<ColumnProjection> groupByDimensions = new LinkedHashSet<>(query.getGroupByDimensions());
         Set<TimeDimensionProjection> timeDimensions = new LinkedHashSet<>(query.getTimeDimensions());
 
-        // TODO: handle the case of more than one time dimensions
-        TimeDimensionProjection timeDimension = timeDimensions.stream().findFirst().orElse(null);
-
         SQLQueryTemplate queryTemplate = query.getMetrics().stream()
-                .map(invocation -> {
-                    MetricFunction function = invocation.getFunction();
-
-                    if (!(function instanceof SQLMetricFunction)) {
-                        throw new InvalidPredicateException("Non-SQL metric function on " + invocation.getAlias());
+                .map(metricProjection -> {
+                    if (!(metricProjection.getColumn().getMetricFunction() instanceof SQLMetricFunction)) {
+                        throw new InvalidPredicateException(
+                                "Non-SQL metric function on " + metricProjection.getAlias());
                     }
 
-                    return ((SQLMetricFunction) function).resolve(
-                            invocation.getArgumentMap(),
-                            invocation.getAlias(),
-                            groupByDimensions,
-                            timeDimension);
+                    return ((SQLMetric) metricProjection.getColumn()).resolve(query, metricProjection, referenceTable);
                 })
                 .reduce(SQLQueryTemplate::merge)
-                .orElse(new SQLQueryTemplate() {
-                    @Override
-                    public List<MetricFunctionInvocation> getMetrics() {
-                        return Collections.emptyList();
-                    }
-
-                    @Override
-                    public Set<ColumnProjection> getNonTimeDimensions() {
-                        return groupByDimensions;
-                    }
-
-                    @Override
-                    public TimeDimensionProjection getTimeDimension() {
-                        return timeDimension;
-                    }
-                });
+                .orElse(new SQLQueryTemplate(query));
 
         return new SQLQueryConstructor(referenceTable).resolveTemplate(
                 query,
