@@ -7,6 +7,7 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Random;
@@ -15,12 +16,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
-
-import com.yahoo.elide.Elide;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Service to execute Async queries.
  * It will schedule task to track long running queries and kills them.
@@ -47,7 +42,8 @@ public class AsyncCleanerService {
 
         // Setting up query cleaner that marks long running query as TIMEDOUT.
         cleaner = Executors.newSingleThreadScheduledExecutor();
-        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide, queryCleanupDays, asyncQueryDao);
+        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide,
+            queryCleanupDays, asyncQueryDao);
 
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.

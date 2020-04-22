@@ -35,5 +35,4 @@ public class AsyncTestSecurityContext implements SecurityContext {
     public boolean isUserInRole(String arg0) {
         return false;
     }
-
 }

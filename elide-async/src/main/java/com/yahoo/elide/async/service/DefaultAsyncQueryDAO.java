@@ -52,8 +52,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     public DefaultAsyncQueryDAO(Elide elide, DataStore dataStore) {
-    	this.elide = elide;
-    	this.dataStore = dataStore;
+        this.elide = elide;
+        this.dataStore = dataStore;
         dictionary = elide.getElideSettings().getDictionary();
         filterParser = new RSQLFilterDialect(dictionary);
     }
@@ -100,8 +100,6 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     private Collection<AsyncQuery> updateAsyncQueryCollection(String filterExpression,
             UpdateQuery updateFunction) {
         log.debug("updateAsyncQueryCollection");
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
 
         Collection<AsyncQuery> asyncQueryList = null;
 
@@ -123,7 +121,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                      updateFunction.update(query);
                      tx.save(query, scope);
                  }
-                 return itr;
+                 return loaded;
              });
         } catch (ParseException e) {
             log.error("Exception: {}", e);
@@ -136,10 +134,12 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(String filterExpression) {
         log.debug("deleteAsyncQueryAndResultCollection");
 
+        Collection<AsyncQuery> asyncQueryList = null;
+
         try {
             FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
                     AsyncQuery.class, false);
-            executeInTransaction(dataStore, (tx, scope) -> {
+            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
 
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
@@ -155,12 +155,12 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                         tx.delete(query, scope);
                     }
                 }
-                return null;
+                return loaded;
             });
         } catch (ParseException e) {
             log.error("Exception: {}", e);
         }
-        return null;
+        return asyncQueryList;
     }
 
     @Override

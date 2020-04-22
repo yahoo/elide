@@ -5,17 +5,6 @@
  */
 package com.yahoo.elide.async.integration.framework;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.inject.Inject;
-
-import org.glassfish.hk2.api.ServiceLocator;
-import org.glassfish.jersey.internal.inject.AbstractBinder;
-import org.glassfish.jersey.server.ResourceConfig;
-
-import com.google.common.collect.Lists;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -31,6 +20,18 @@ import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.security.checks.Check;
+
+import com.google.common.collect.Lists;
+
+import org.glassfish.hk2.api.ServiceLocator;
+import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.server.ResourceConfig;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
 
 public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfig {
     public static final InMemoryLogger LOGGER = new InMemoryLogger();
@@ -79,5 +80,4 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
     private void registerFilters(List<Class<?>> filters) {
         filters.forEach(this::register);
     }
-
 }

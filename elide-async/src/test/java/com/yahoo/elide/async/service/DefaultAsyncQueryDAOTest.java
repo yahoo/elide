@@ -12,14 +12,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -30,6 +22,14 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.UUID;
 
 public class DefaultAsyncQueryDAOTest {
 
@@ -79,18 +79,16 @@ public class DefaultAsyncQueryDAOTest {
         verify(asyncQuery, times(1)).setStatus(QueryStatus.PROCESSING);
     }
 
-    @Test
-    public void testUpdateStatusAsyncQueryCollection() {
-        Collection<AsyncQuery> asyncQueryList = new ArrayList<AsyncQuery>();
-        asyncQueryList.add(asyncQuery);
-        asyncQueryList.add(asyncQuery);
+   @Test
+   public void testUpdateStatusAsyncQueryCollection() {
+       Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery);
+       when(tx.loadObjects(any(), any())).thenReturn(loaded);
 
-        Collection<AsyncQuery> result = asyncQueryDAO.updateStatusAsyncQueryCollection(asyncQueryList, QueryStatus.TIMEDOUT);
+       asyncQueryDAO.updateStatusAsyncQueryCollection("status=in=(PROCESSING,QUEUED);createdOn=le='2020-04-22T13:28Z'", QueryStatus.TIMEDOUT);
 
-        assertEquals(result, asyncQueryList);
-        verify(tx, times(2)).save(any(AsyncQuery.class), any(RequestScope.class));
-        verify(asyncQuery, times(2)).setStatus(QueryStatus.TIMEDOUT);
-    }
+       verify(tx, times(2)).save(any(AsyncQuery.class), any(RequestScope.class));
+       verify(asyncQuery, times(2)).setStatus(QueryStatus.TIMEDOUT);
+   }
 
     @Test
     public void testDeleteAsyncQueryAndResultCollection() {
@@ -103,26 +101,18 @@ public class DefaultAsyncQueryDAOTest {
     }
 
     @Test
-    public void testLoadQueries() {
-        asyncQueryDAO.loadQueries("createdOn=le='2020-03-23T02:02Z'");
-
-        verify(tx, times(1)).loadObjects(any(), any(RequestScope.class));
-    }
-
-    @Test
     public void testCreateAsyncQueryResult() {
         Integer status = 200;
         String responseBody = "responseBody";
         UUID uuid = UUID.fromString("ba31ca4e-ed8f-4be0-a0f3-12088fa9263e");
         AsyncQueryResult result = asyncQueryDAO.createAsyncQueryResult(status, "responseBody", asyncQuery, uuid);
 
-        assertEquals(status,result.getStatus());
-        assertEquals(responseBody,result.getResponseBody());
-        assertEquals(asyncQuery,result.getQuery());
-        assertEquals(uuid,result.getId());
+        assertEquals(status, result.getStatus());
+        assertEquals(responseBody, result.getResponseBody());
+        assertEquals(asyncQuery, result.getQuery());
+        assertEquals(uuid, result.getId());
         verify(tx, times(1)).createObject(any(), any(RequestScope.class));
         verify(tx, times(1)).save(any(), any(RequestScope.class));
 
     }
-
 }

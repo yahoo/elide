@@ -12,14 +12,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -28,6 +20,15 @@ import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.User;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncExecutorServiceTest {
@@ -78,5 +79,4 @@ public class AsyncExecutorServiceTest {
 
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.QUEUED);
     }
-
 }

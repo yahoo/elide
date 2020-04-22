@@ -6,30 +6,21 @@
 package com.yahoo.elide.async.integration.tests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import javax.persistence.Persistence;
-import javax.ws.rs.core.MediaType;
-
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
 
 import com.yahoo.elide.async.integration.framework.AsyncDataStoreTestHarness;
 import com.yahoo.elide.async.integration.framework.AsyncIntegrationTestApplicationResourceConfig;
@@ -38,9 +29,18 @@ import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+
+import javax.persistence.Persistence;
+import javax.ws.rs.core.MediaType;
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AsyncIntegrationTest extends IntegrationTest{
+public class AsyncIntegrationTest extends IntegrationTest {
 
     public AsyncIntegrationTest() {
         super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
@@ -165,7 +165,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
                 )
         ).toResponse();
 
-		assertEquals(expectedResponse, response);
+        assertEquals(expectedResponse, response);
     }
 
     /**
@@ -282,7 +282,7 @@ public class AsyncIntegrationTest extends IntegrationTest{
                 )
         ).toResponse();
 
-		assertEquals(expectedResponse, response);
+        assertEquals(expectedResponse, response);
 
     }
 
@@ -395,5 +395,4 @@ public class AsyncIntegrationTest extends IntegrationTest{
             .body("errors[0].message", equalTo("Exception while fetching data (/asyncQuery) : Unknown identifier "
                     + "[ba31ca4e-ed8f-4be0-a0f3-12088fa9263a] for asyncQuery"));
     }
-
 }
