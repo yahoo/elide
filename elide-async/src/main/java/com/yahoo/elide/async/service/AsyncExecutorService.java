@@ -7,7 +7,6 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -81,8 +80,7 @@ public class AsyncExecutorService {
      */
     public void executeQuery(AsyncQuery queryObj, User user) {
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao);
-        // Change async query in Datastore to queued
-        asyncQueryDao.updateStatus(queryObj, QueryStatus.QUEUED);
+
         AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide,
                executor.submit(queryWorker), queryObj, new Date(), maxRunTime, asyncQueryDao);
         interruptor.execute(queryInterruptWorker);

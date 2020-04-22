@@ -19,14 +19,15 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
+import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.utils.ClassScanner;
 
 import java.util.Collections;
@@ -87,14 +88,17 @@ public abstract class SQLUnitTest {
     }
 
     public static ColumnProjection toProjection(Dimension dimension) {
-        return ColumnProjection.toProjection(dimension, dimension.getName());
+        return engine.constructDimensionProjection(dimension, dimension.getName(), Collections.emptyMap());
     }
 
     public static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain) {
-        return ColumnProjection.toProjection(dimension, grain, dimension.getName());
+        return engine.constructTimeDimensionProjection(
+                dimension,
+                dimension.getName(),
+                Collections.singletonMap("grain", Argument.builder().name("grain").value(grain).build()));
     }
 
-    public static MetricFunctionInvocation invoke(Metric metric) {
-        return metric.getMetricFunction().invoke(Collections.emptySet(), metric.getName());
+    public static MetricProjection invoke(Metric metric) {
+        return engine.constructMetricProjection(metric, metric.getName(), Collections.emptyMap());
     }
 }
