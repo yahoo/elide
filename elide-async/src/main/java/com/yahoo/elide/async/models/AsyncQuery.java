@@ -25,6 +25,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.Transient;
 
 /**
@@ -57,6 +58,11 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
 
     @Exclude
     private String principalName;
+
+    @PrePersist
+    public void prePersistStatus() {
+        status = QueryStatus.QUEUED;
+    }
 
     @Override
     public String getPrincipalName() {
