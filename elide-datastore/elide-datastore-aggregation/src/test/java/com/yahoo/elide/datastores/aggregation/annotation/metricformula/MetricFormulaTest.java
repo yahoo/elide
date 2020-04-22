@@ -21,7 +21,7 @@ public class MetricFormulaTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, null));
+                () -> new SQLQueryEngine(metaDataStore, null, null));
         assertEquals(
                 "Formula reference loop found: loop.highScore->loop.highScore",
                 exception.getMessage());

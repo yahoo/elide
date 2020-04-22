@@ -28,7 +28,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
 
-        QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory);
+        QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
 
         AggregationDataStore aggregationDataStore = new AggregationDataStore(sqlQueryEngine);
 
