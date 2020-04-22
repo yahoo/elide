@@ -5,78 +5,63 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import com.google.common.collect.Sets;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * SQLQueryTemplate contains projections information about a sql query.
  */
-public interface SQLQueryTemplate {
-    /**
-     * Get all invoked metrics in this query.
-     *
-     * @return invoked metrics
-     */
-    List<MetricFunctionInvocation> getMetrics();
+@Data
+public class SQLQueryTemplate {
 
-    /**
-     * Get all non-time dimensions in this query.
-     *
-     * @return non-time dimensions
-     */
-    Set<ColumnProjection> getNonTimeDimensions();
+    private final SQLTable table;
+    private final List<SQLMetricProjection> metrics;
+    private final Set<SQLColumnProjection> nonTimeDimensions;
+    private final SQLTimeDimensionProjection timeDimension;
 
-    /**
-     * Get aggregated time dimension for this query.
-     *
-     * @return time dimension
-     */
-    TimeDimensionProjection getTimeDimension();
+    public SQLQueryTemplate(SQLTable table, List<SQLMetricProjection> metrics,
+                     Set<SQLColumnProjection> nonTimeDimensions, SQLTimeDimensionProjection timeDimension) {
+        this.table = table;
+        this.nonTimeDimensions = nonTimeDimensions;
+        this.timeDimension = timeDimension;
+        this.metrics = metrics;
+    }
+
+    public SQLQueryTemplate(Query query) {
+        table = (SQLTable) query.getTable();
+        timeDimension = query.getTimeDimensions().stream()
+                .findFirst()
+                .map(SQLTimeDimensionProjection.class::cast)
+                .orElse(null);
+
+        nonTimeDimensions = query.getGroupByDimensions().stream()
+                .map(SQLColumnProjection.class::cast)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        metrics = query.getMetrics().stream()
+                .map(SQLMetricProjection.class::cast)
+                .collect(Collectors.toList());
+    }
 
     /**
      * Get all GROUP BY dimensions in this query, include time and non-time dimensions.
      *
      * @return all GROUP BY dimensions
      */
-    default Set<ColumnProjection> getGroupByDimensions() {
+    public Set<SQLColumnProjection> getGroupByDimensions() {
         return getTimeDimension() == null
                 ? getNonTimeDimensions()
                 : Sets.union(getNonTimeDimensions(), Collections.singleton(getTimeDimension()));
-    }
-
-    /**
-     * Get a copy of this query with a requested time grain.
-     *
-     * @param timeGrain requested time grain
-     * @return a copied query template
-     */
-    default SQLQueryTemplate toTimeGrain(TimeGrain timeGrain) {
-        SQLQueryTemplate wrapped = this;
-        return new SQLQueryTemplate() {
-            @Override
-            public List<MetricFunctionInvocation> getMetrics() {
-                return wrapped.getMetrics();
-            }
-
-            @Override
-            public Set<ColumnProjection> getNonTimeDimensions() {
-                return wrapped.getNonTimeDimensions();
-            }
-
-            @Override
-            public TimeDimensionProjection getTimeDimension() {
-                return wrapped.getTimeDimension().toTimeGrain(timeGrain);
-            }
-        };
     }
 
     /**
@@ -85,27 +70,27 @@ public interface SQLQueryTemplate {
      * @param second other query template
      * @return merged query template
      */
-    default SQLQueryTemplate merge(SQLQueryTemplate second) {
-        SQLQueryTemplate first = this;
-        // TODO: validate dimension
-        List<MetricFunctionInvocation> merged = new ArrayList<>(first.getMetrics());
-        merged.addAll(second.getMetrics());
+     public SQLQueryTemplate merge(SQLQueryTemplate second) {
+         // TODO: validate dimension
+         assert this.getTable().equals(second.getTable());
+         SQLQueryTemplate first = this;
+         List<SQLMetricProjection> merged = new ArrayList<>(first.getMetrics());
+         merged.addAll(second.getMetrics());
 
-        return new SQLQueryTemplate() {
-            @Override
-            public List<MetricFunctionInvocation> getMetrics() {
-                return merged;
-            }
+         return new SQLQueryTemplate(first.getTable(), merged, first.getNonTimeDimensions(), first.getTimeDimension());
+     }
 
-            @Override
-            public Set<ColumnProjection> getNonTimeDimensions() {
-                return first.getNonTimeDimensions();
-            }
-
-            @Override
-            public TimeDimensionProjection getTimeDimension() {
-                return first.getTimeDimension();
-            }
-        };
-    }
+    /**
+     * Returns the entire list of column projections.
+     * @return metrics and dimensions.
+     */
+     public List<SQLColumnProjection> getColumnProjections() {
+         ArrayList<SQLColumnProjection> columnProjections = new ArrayList<>();
+         columnProjections.addAll(metrics);
+         columnProjections.addAll(nonTimeDimensions);
+         if (timeDimension != null) {
+            columnProjections.add(timeDimension);
+         }
+         return columnProjections;
+     }
 }

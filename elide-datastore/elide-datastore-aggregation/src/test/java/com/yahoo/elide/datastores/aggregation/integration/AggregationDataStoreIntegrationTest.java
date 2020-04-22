@@ -726,9 +726,9 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats.player2Name",
                                 "playerStats.countryIsoCode",
                                 "playerStats.subCountryIsoCode",
-                                "playerStats.recordedDate",
                                 "playerStats.overallRating"))
-                .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"));
+                .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"))
+                .body("data.relationships.timeDimensions.data.id", hasItems("playerStats.recordedDate"));
 
         given()
                 .accept("application/vnd.api+json")
@@ -754,7 +754,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
                 .body("included.attributes.description", hasItem("sql min function"))
-                .body("included.attributes.expression", hasItem("MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore)"))
+                .body("included.attributes.expression", hasItem("MIN(%s)"))
                 .body("included.attributes.longName", hasItem("min"));
 
         given()

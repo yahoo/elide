@@ -281,6 +281,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testRootFilterNotInSingle() throws IOException {
         int nonLiteraryFictionBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -309,6 +310,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testRootFilterNotInMultiple() throws IOException {
         int nonFictionBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -420,6 +422,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testRootFilterPrefixWithSpecialChars() throws IOException {
         int titleStartsWithTheBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -447,6 +450,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testRootFilterInfix() throws IOException {
         int titleContainsTheBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -851,6 +855,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testNonRootFilterInfix() throws IOException {
         int titleContainsTheBookCount = 0;
         for (JsonNode node : asimovBooks.get("data")) {
@@ -1147,6 +1152,7 @@ public class FilterIT extends IntegrationTest {
      * Verifies that issue 508 is closed.
      */
     @Test
+    @Tag("skipInMemory")
     void testIssue508() throws IOException {
         JsonNode result = getAsNode("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default Publisher')&page[totals]");
 
@@ -1192,6 +1198,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testGetBooksFilteredByAuthors() throws IOException {
         /* Test Default */
         JsonNode result = getAsNode("book?filter[book.authors.name]=Null Ned");
@@ -1215,6 +1222,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testGetBooksFilteredByAuthorsId() throws IOException {
         String nullNedIdStr = String.valueOf(nullNedId);
         /* Test Default */
@@ -1239,6 +1247,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testGetBooksFilteredByAuthorAndTitle() throws IOException {
         /* Test Default */
         JsonNode result = getAsNode("book?filter[book.authors.name]=Null Ned&filter[book.title]=Life with Null Ned");
@@ -1260,6 +1269,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testFilterAuthorsByBookChapterTitle() throws IOException {
         /* Test Default */
         JsonNode result = getAsNode("/author?sort=-name&filter[author.books.chapters.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!");

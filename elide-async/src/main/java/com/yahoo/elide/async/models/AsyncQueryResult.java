@@ -5,12 +5,6 @@
  */
 package com.yahoo.elide.async.models;
 
-import java.util.UUID;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
@@ -20,11 +14,18 @@ import com.yahoo.elide.annotation.UpdatePermission;
 
 import lombok.Data;
 
+import java.util.UUID;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
 /**
- * Model for Async Query Result
+ * Model for Async Query Result.
  */
 @Entity
-@Include(type="asyncQueryResult")
+@Include(type = "asyncQueryResult")
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @CreatePermission(expression = "Prefab.Role.None")
@@ -32,6 +33,7 @@ import lombok.Data;
 @Data
 public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
     @Id
+    @Column(columnDefinition = "varchar(36)")
     private UUID id; //Matches UUID in query.
 
     private Integer contentLength;
@@ -47,5 +49,4 @@ public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
     public String getPrincipalName() {
         return query.getPrincipalName();
     }
-
 }

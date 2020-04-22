@@ -8,11 +8,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Getter;
@@ -25,6 +23,7 @@ import java.util.Set;
  * Table stores all resolved physical reference and join paths of all columns.
  */
 public class SQLReferenceTable {
+    @Getter
     private final MetaDataStore metaDataStore;
 
     @Getter
@@ -90,21 +89,6 @@ public class SQLReferenceTable {
                     new SQLReferenceVisitor(metaDataStore, getClassAlias(tableClass)).visitColumn(column));
 
             resolvedJoinPaths.get(tableClass).put(fieldName, joinVisitor.visitColumn(column));
-
-            if (column instanceof Metric) {
-                ((Metric) column).getMetricFunction().setExpression(getResolvedReference(table, fieldName));
-            }
         });
-    }
-
-    /**
-     * Get physical reference for a path.
-     *
-     * @param path path to a field
-     * @param tableAlias table alias as prefix
-     * @return resolved physical reference
-     */
-    public String resolveReference(Path path, String tableAlias) {
-        return new SQLReferenceVisitor(metaDataStore, tableAlias).visitColumn(metaDataStore.getColumn(path));
     }
 }

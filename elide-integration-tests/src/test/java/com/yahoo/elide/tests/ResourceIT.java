@@ -66,6 +66,7 @@ import example.User;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -1716,6 +1717,7 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     //Verifies violation of unique column constraint.
     public void patchExtBadValue() throws IOException {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadValue.req.json");

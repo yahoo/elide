@@ -96,9 +96,6 @@
             </exclusions>
         </dependency>
 
-
-
-        <!-- Hibernate 5 -->
         <!-- Integration test -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

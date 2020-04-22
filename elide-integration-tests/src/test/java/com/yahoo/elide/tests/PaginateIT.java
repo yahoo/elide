@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.Response;
@@ -515,6 +516,7 @@ class PaginateIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testPaginateAnnotationTotalsWithToManyJoinFilter() {
         /* Test RSQL Global */
         String url = "/author?page[totals]&filter=books.title=in=('The Roman Republic','Foundation','Life With Null Ned')";

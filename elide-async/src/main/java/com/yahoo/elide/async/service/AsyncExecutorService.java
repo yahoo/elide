@@ -5,29 +5,29 @@
  */
 package com.yahoo.elide.async.service;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.security.User;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
-import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.graphql.QueryRunner;
-import com.yahoo.elide.security.User;
-
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Service to execute Async queries. It will schedule task to track long
- * running queries and kills them. It will also schedule task to update
- * orphan query statuses after host/app crash or restart.
+ * Service to execute Async queries.
+ * It will schedule task to track long running queries and kills them.
+ * It will also schedule task to update orphan query statuses after
+ * host/app crash or restart.
  */
 @Slf4j
 public class AsyncExecutorService {
 
-    private final int DEFAULT_THREADPOOL_SIZE = 6;
+    private final int defaultThreadpoolSize = 6;
 
     private Elide elide;
     private QueryRunner runner;
@@ -42,11 +42,11 @@ public class AsyncExecutorService {
         this.elide = elide;
         this.runner = new QueryRunner(elide);
         this.maxRunTime = maxRunTime;
-        executor = Executors.newFixedThreadPool(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize);
-        interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? DEFAULT_THREADPOOL_SIZE : threadPoolSize);
+        executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
+        interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         this.asyncQueryDao = asyncQueryDao;
     }
-    
+
     /**
      * Initialize the singleton AsyncExecutorService object.
      * If already initialized earlier, no new object is created.
@@ -56,7 +56,7 @@ public class AsyncExecutorService {
      * @param asyncQueryDao DAO Object
      */
     public static void init(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
-        if(asyncExecutorService == null) {
+        if (asyncExecutorService == null) {
             asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, maxRunTime, asyncQueryDao);
         } else {
             log.debug("asyncExecutorService is already initialized.");
@@ -64,13 +64,13 @@ public class AsyncExecutorService {
     }
 
     /**
-     * Get instance of AsyncExecutorService
+     * Get instance of AsyncExecutorService.
      * @return AsyncExecutorService Object
      */
     public synchronized static AsyncExecutorService getInstance() {
         return asyncExecutorService;
     }
-    
+
     /**
      * Execute Query asynchronously.
      * @param queryObj Query Object
@@ -78,11 +78,9 @@ public class AsyncExecutorService {
      */
     public void executeQuery(AsyncQuery queryObj, User user) {
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao);
-        // Change async query in Datastore to queued
-        asyncQueryDao.updateStatus(queryObj, QueryStatus.QUEUED);
-        AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide, executor.submit(queryWorker), queryObj, new Date(),
-               maxRunTime, asyncQueryDao);
+
+        AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide,
+               executor.submit(queryWorker), queryObj, new Date(), maxRunTime, asyncQueryDao);
         interruptor.execute(queryInterruptWorker);
     }
-
 }

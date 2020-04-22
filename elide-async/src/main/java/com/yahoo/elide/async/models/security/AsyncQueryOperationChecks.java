@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.async.models.security;
 
-import java.security.Principal;
-import java.util.Optional;
-
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.PrincipalOwned;
@@ -15,6 +12,9 @@ import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
+
+import java.security.Principal;
+import java.util.Optional;
 
 /**
  * Operation Checks on the Async Query and Result objects.
