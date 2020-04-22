@@ -3,12 +3,12 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.integration.framework;
+package com.yahoo.elide.async.integration.tests.framework;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.async.integration.tests.AsyncIntegrationTest;
+import com.yahoo.elide.async.integration.tests.AsyncBT;
 import com.yahoo.elide.async.models.security.AsyncQueryOperationChecks.AsyncQueryOwner;
 import com.yahoo.elide.async.models.security.AsyncQueryOperationChecks.AsyncQueryStatusValue;
 import com.yahoo.elide.async.service.AsyncCleanerService;
@@ -22,6 +22,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.security.checks.Check;
 
 import com.google.common.collect.Lists;
+
+import example.TestCheckMappings;
 
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
@@ -41,12 +43,12 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
+                Map<String, Class<? extends Check>> checkMappings = new HashMap<>(TestCheckMappings.MAPPINGS);
                 checkMappings.put(AsyncQueryOwner.PRINCIPAL_IS_OWNER, AsyncQueryOwner.class);
                 checkMappings.put(AsyncQueryStatusValue.VALUE_IS_CANCELLED, AsyncQueryStatusValue.class);
 
                 EntityDictionary dictionary = new EntityDictionary(checkMappings, injector::inject);
-                Elide elide = new Elide(new ElideSettingsBuilder(AsyncIntegrationTest.getDataStore())
+                Elide elide = new Elide(new ElideSettingsBuilder(AsyncBT.getDataStore())
                         .withEntityDictionary(dictionary)
                         .withAuditLogger(new Slf4jLogger())
                         .build());

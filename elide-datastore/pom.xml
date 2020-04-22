@@ -100,7 +100,11 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-async</artifactId>
+            <version>5.0.0-pr7-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -145,7 +149,7 @@
                             <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
                         </systemPropertyVariables>
                         <includes>
-                            <include>%regex[.*IT.*]</include>
+                            <include>%regex[.*BT.*]</include>
                         </includes>
                         <dependenciesToScan>com.yahoo.elide:elide-integration-tests</dependenciesToScan>
                     </configuration>

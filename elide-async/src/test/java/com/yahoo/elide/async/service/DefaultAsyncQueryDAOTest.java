@@ -26,9 +26,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.UUID;
 
 public class DefaultAsyncQueryDAOTest {

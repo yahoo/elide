@@ -77,6 +77,6 @@ public class AsyncExecutorServiceTest {
 
         service.executeQuery(queryObj, testUser);
 
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.QUEUED);
+        verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
     }
 }

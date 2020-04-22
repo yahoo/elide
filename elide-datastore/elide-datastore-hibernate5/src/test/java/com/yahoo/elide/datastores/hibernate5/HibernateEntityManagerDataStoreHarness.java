@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.models.generics.Manager;
@@ -58,6 +59,7 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
+            bindClasses.addAll(ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
