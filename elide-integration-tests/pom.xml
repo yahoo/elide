@@ -50,6 +50,11 @@
             <artifactId>elide-test-helpers</artifactId>
             <version>${elide.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-async</artifactId>
+            <version>${elide.version}</version>
+        </dependency>
 
         <!-- Additional dependencies -->
         <dependency>
