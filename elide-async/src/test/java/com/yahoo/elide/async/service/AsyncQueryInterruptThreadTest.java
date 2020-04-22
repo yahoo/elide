@@ -13,18 +13,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.QueryStatus;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.QueryStatus;
 
 public class AsyncQueryInterruptThreadTest {
 

@@ -56,7 +56,7 @@ public class AsyncQueryCleanerThread implements Runnable {
      * This method updates the status of long running async query which
      * were interrupted due to host crash/app shutdown to TIMEDOUT.
      * */
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     protected void timeoutAsyncQuery() {
 
         String filterDateFormatted = evaluateFormattedFilterDate(Calendar.MINUTE, maxRunTimeMinutes);

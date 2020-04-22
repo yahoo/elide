@@ -6,20 +6,16 @@
 package com.yahoo.elide.async.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 
 public class AsyncQueryCleanerThreadTest {
@@ -52,11 +48,8 @@ public class AsyncQueryCleanerThreadTest {
 
     @Test
     public void timeoutAsyncQuery() {
-        Collection<AsyncQuery> loaded = new ArrayList<AsyncQuery>();
-        when(asyncQueryDao.loadQueries(anyString())).thenReturn(loaded);
-
         cleanerThread.timeoutAsyncQuery();
 
-        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(loaded, QueryStatus.TIMEDOUT);
+        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(anyString(), any(QueryStatus.class));
     }
 }
