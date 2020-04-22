@@ -7,7 +7,6 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
