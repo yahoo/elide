@@ -508,6 +508,7 @@
                     <skipSystemScope>true</skipSystemScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     <suppressionFile>suppressions.xml</suppressionFile>
+                    <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
                 </configuration>
                 <executions>
                     <execution>
