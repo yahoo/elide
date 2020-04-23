@@ -134,8 +134,8 @@ Add Lifecycle hooks to your models to embed custom business logic that execute i
 @Include(rootLevel = true)
 @ReadPermission("Everyone")
 @CreatePermission("Admin OR Publisher")
-@DeletePermission("Noone")
-@UpdatePermission("Noone")
+@DeletePermission("None")
+@UpdatePermission("None")
 @LifeCycleHookBinding(operation = UPDATE, hook = BookCreationHook.class, phase = PRECOMMIT)
 public class Book {
 
