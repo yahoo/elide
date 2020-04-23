@@ -1373,6 +1373,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testFailFilterBookByAuthorAddress() throws IOException {
         /* Test default */
         JsonNode result = getAsNode("book?filter[book.authors.homeAddress]=main&include=authors");

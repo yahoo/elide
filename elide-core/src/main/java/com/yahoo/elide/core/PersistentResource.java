@@ -352,6 +352,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .build();
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
+                Optional.ofNullable(modifiedProjection.getFilterExpression()),
                 new PersistentResourceSet(tx.loadObjects(modifiedProjection, requestScope), requestScope));
 
         Set<PersistentResource> allResources = Sets.union(newResources, existingResources);
@@ -896,13 +897,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         // TODO: Filter on new resources?
         // TODO: Update pagination to subtract the number of new resources created?
 
-        Set<PersistentResource> existingResources = filter(ReadPermission.class,
-
-        getRelation(relationship.copyOf()
-            .projection(relationship.getProjection().copyOf()
-                        .filterExpression(filterExpression)
-                        .build())
-                    .build(), true));
+        Set<PersistentResource> existingResources = filter(
+                ReadPermission.class,
+                Optional.ofNullable(filterExpression),
+                getRelation(relationship.copyOf()
+                    .projection(relationship.getProjection().copyOf()
+                                .filterExpression(filterExpression)
+                                .build())
+                            .build(), true));
 
         // TODO: Sort again in memory now that two sets are glommed together?
 
@@ -958,6 +960,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public Set<PersistentResource> getRelationCheckedFiltered(com.yahoo.elide.request.Relationship relationship) {
         return filter(ReadPermission.class,
+                Optional.ofNullable(relationship.getProjection().getFilterExpression()),
                 getRelation(relationship, true));
     }
 

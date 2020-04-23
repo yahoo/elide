@@ -17,14 +17,12 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import example.TestCheckMappings;
 
-import com.yahoo.elide.security.permissions.ExpressionResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -460,7 +458,7 @@ public class PermissionExecutorTest {
 
     public <T> PersistentResource<T> newResource(Class<T> cls, boolean markNew) {
         try {
-            Object obj = cls.newInstance();
+            T obj = cls.newInstance();
             return newResource(obj, cls, markNew);
         } catch (InstantiationException | IllegalAccessException e) {
             return null;

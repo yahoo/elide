@@ -106,6 +106,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testSortingRootCollectionByRelationshipPropertyWithJoinFilterAndPagination() throws IOException {
         final JsonNode result = getAsNode("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name", HttpStatus.SC_BAD_REQUEST);
         assertNotNull(result.get("errors"));

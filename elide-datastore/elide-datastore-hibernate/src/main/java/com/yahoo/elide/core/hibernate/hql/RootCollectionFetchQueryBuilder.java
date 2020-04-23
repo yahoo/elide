@@ -54,10 +54,9 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + extractToOneMergeJoins(entityClass, entityAlias);
 
             boolean requiresDistinct = pagination.isPresent() && containsOneToMany(filterExpression.get());
-            Boolean sortOverRelationship = sorting
-                .map(sort -> sort.getValidSortingRules(entityClass, dictionary).keySet().stream()
-                    .anyMatch(path -> path.getPathElements().size() > 1))
-                .orElse(false);
+            Boolean sortOverRelationship = sorting.map(sort -> sort.getSortingPaths().keySet()
+                            .stream().anyMatch(path -> path.getPathElements().size() > 1))
+                    .orElse(false);
             if (requiresDistinct && sortOverRelationship) {
                 //SQL does not support distinct and order by on columns which are not selected
                 throw new InvalidValueException("Combination of pagination, sorting over relationship and"

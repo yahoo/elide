@@ -234,6 +234,6 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, "authors");
         verify(permissionExecutor, times(1)).checkUserPermissions(Author.class, ReadPermission.class, "name");
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
-        verify(tx, never()).getRelation(any(), any(), any(), any(), any(), any(), any());
+        verify(tx, never()).getRelation(any(), any(), any(), any());
     }
 }

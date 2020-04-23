@@ -114,17 +114,17 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("Prefab.Collections.RemoveOnly", getCheckIdentifier(RemoveOnly.class));
     }
 
+    @SecurityCheck("User is Admin")
+    public class Bar extends UserCheck {
+
+        @Override
+        public boolean ok(com.yahoo.elide.security.User user) {
+            return false;
+        }
+    }
+
     @Test
     public void testCheckScan() {
-
-        @SecurityCheck("User is Admin")
-        class Bar extends UserCheck {
-
-            @Override
-            public boolean ok(com.yahoo.elide.security.User user) {
-                return false;
-            }
-        }
 
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
         testDictionary.scanForSecurityChecks();
@@ -132,24 +132,22 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("User is Admin", testDictionary.getCheckIdentifier(Bar.class));
     }
 
+    @SecurityCheck("Filter Expression Injection Test")
+    public class Foo extends FilterExpressionCheck {
+
+        @Inject
+        Long testLong;
+
+        @Override
+        public FilterExpression getFilterExpression(Class entityClass,
+                                                    com.yahoo.elide.security.RequestScope requestScope) {
+            assertEquals(testLong, 123L);
+            return null;
+        }
+    }
 
     @Test
     public void testCheckInjection() {
-
-        @SecurityCheck("Filter Expression Injection Test")
-        class Foo extends FilterExpressionCheck {
-
-            @Inject
-            Long testLong;
-
-            @Override
-            public FilterExpression getFilterExpression(Class entityClass,
-                                                        com.yahoo.elide.security.RequestScope requestScope) {
-                assertEquals(testLong, 123L);
-                return null;
-            }
-        }
-
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
             @Override
             public void inject(Object entity) {
