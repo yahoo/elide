@@ -5,28 +5,28 @@
  */
 package com.yahoo.elide.async.models;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
+
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.async.hooks.ExecuteQueryHook;
+import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 
 import lombok.Data;
 
 import java.util.UUID;
-
-import javax.inject.Inject;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
-import javax.persistence.Transient;
 
 /**
  * Model for Async Query.
@@ -36,6 +36,8 @@ import javax.persistence.Transient;
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
+@LifeCycleHookBinding(hook = UpdatePrincipalNameHook.class, operation = CREATE, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = ExecuteQueryHook.class, operation = CREATE, phase = POSTCOMMIT)
 @Data
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
@@ -52,10 +54,6 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @OneToOne(mappedBy = "query", cascade = CascadeType.REMOVE)
     private AsyncQueryResult result;
 
-    @Inject
-    @Transient
-    private AsyncExecutorService asyncExecutorService;
-
     @Exclude
     private String principalName;
 
@@ -67,15 +65,5 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Override
     public String getPrincipalName() {
         return principalName;
-    }
-
-    @OnCreatePreSecurity
-    public void extractPrincipalName(RequestScope scope) {
-        setPrincipalName(scope.getUser().getName());
-    }
-
-    @OnCreatePostCommit
-    public void executeQueryFromExecutor(RequestScope scope) {
-        asyncExecutorService.executeQuery(this, scope.getUser());
     }
 }
