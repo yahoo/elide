@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.SecurityCheck;
@@ -938,14 +939,16 @@ public class EntityDictionary {
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,
-                                                                        Class<A> annotationClass,
+                                                                        LifeCycleHookBinding.Operation op,
+                                                                        LifeCycleHookBinding.TransactionPhase phase,
                                                                         String fieldName) {
-        return getEntityBinding(cls).getTriggers(annotationClass, fieldName);
+        return getEntityBinding(cls).getTriggers(op, phase, fieldName);
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,
-                                                                        Class<A> annotationClass) {
-        return getEntityBinding(cls).getTriggers(annotationClass);
+                                                                        LifeCycleHookBinding.Operation op,
+                                                                        LifeCycleHookBinding.TransactionPhase phase) {
+        return getEntityBinding(cls).getTriggers(op, phase);
     }
 
     /**
@@ -1277,17 +1280,19 @@ public class EntityDictionary {
      * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
      * single time per request per field READ, CREATE, or UPDATE.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
-     * @param fieldOrMethodName The name of the field or method
-     * @param callback The callback function to invoke.
+     * @param fieldOrMethodName The name of the field or method.
+     * @param operation CREATE, READ, or UPDATE
+     * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
+     * @param hook The callback to invoke.
      */
     public void bindTrigger(Class<?> entityClass,
-                            Class<? extends Annotation> annotationClass,
                             String fieldOrMethodName,
-                            LifeCycleHook callback) {
-
+                            LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook) {
         bindIfUnbound(entityClass);
-        getEntityBinding(entityClass).bindTrigger(annotationClass, fieldOrMethodName, callback);
+
+        getEntityBinding(entityClass).bindTrigger(operation, phase, fieldOrMethodName, hook);
     }
 
     /**
@@ -1297,36 +1302,25 @@ public class EntityDictionary {
      *
      * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
-     * @param callback The callback function to invoke.
+     * @param operation CREATE, READ, or UPDATE
+     * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
+     * @param hook The callback to invoke.
      * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
-     *                              CRUD actions on the same model.
+     *                                 CRUD actions on the same model.
      */
     public void bindTrigger(Class<?> entityClass,
-                            Class<? extends Annotation> annotationClass,
-                            LifeCycleHook callback,
+                            LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook,
                             boolean allowMultipleInvocations) {
         bindIfUnbound(entityClass);
+
         if (allowMultipleInvocations) {
-            getEntityBinding(entityClass).bindTrigger(annotationClass, callback);
+            getEntityBinding(entityClass).bindTrigger(operation, phase, hook);
         } else {
-            getEntityBinding(entityClass).bindTrigger(annotationClass, PersistentResource.CLASS_NO_FIELD, callback);
+            getEntityBinding(entityClass).bindTrigger(operation, phase, PersistentResource.CLASS_NO_FIELD, hook);
         }
     }
-
-    /**
-     * Binds a lifecycle hook to a particular entity class.   The hook will be called a single time per request
-     * per class READ, CREATE, UPDATE, or DELETE.
-     * @param entityClass The entity that triggers the lifecycle hook.
-     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
-     * @param callback The callback function to invoke.
-     */
-    public void bindTrigger(Class<?> entityClass,
-                            Class<? extends Annotation> annotationClass,
-                            LifeCycleHook callback) {
-        bindTrigger(entityClass, annotationClass, callback, false);
-    }
-
 
     /**
      * Returns true if the relationship cascades deletes and false otherwise.

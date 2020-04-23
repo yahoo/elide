@@ -5,9 +5,15 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -145,7 +151,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
 
-        requestScope.publishLifecycleEvent(newResource, CRUDEvent.CRUDAction.CREATE);
+        requestScope.publishLifecycleEvent(newResource, CREATE);
 
         String type = newResource.getType();
         requestScope.setUUIDForObject(type, id, newResource.getObject());
@@ -785,7 +791,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         transaction.delete(getObject(), requestScope);
         auditClass(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
-        requestScope.publishLifecycleEvent(this, CRUDEvent.CRUDAction.DELETE);
+        requestScope.publishLifecycleEvent(this, DELETE);
         requestScope.getDeletedResources().add(this);
     }
 
@@ -985,6 +991,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private Set<PersistentResource> getRelation(com.yahoo.elide.request.Relationship relationship,
                                                 boolean checked) {
+        if (checked) {
+            //All getRelation calls funnel to here.  We only publish events for actions triggered directly
+            //by the API client.
+            requestScope.publishLifecycleEvent(this, READ);
+            requestScope.publishLifecycleEvent(this, relationship.getName(), READ, Optional.empty());
+        }
+
         if (checked && !checkRelation(relationship)) {
             return Collections.emptySet();
         }
@@ -1407,8 +1420,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     @Deprecated
     protected Object getValueChecked(String fieldName) {
-        requestScope.publishLifecycleEvent(this, CRUDEvent.CRUDAction.READ);
-        requestScope.publishLifecycleEvent(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
+        requestScope.publishLifecycleEvent(this, READ);
+        requestScope.publishLifecycleEvent(this, fieldName, READ, Optional.empty());
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, requestScope);
     }
@@ -1419,8 +1432,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return value value
      */
     protected Object getValueChecked(Attribute attribute) {
-        requestScope.publishLifecycleEvent(this, CRUDEvent.CRUDAction.READ);
-        requestScope.publishLifecycleEvent(this, attribute.getName(), CRUDEvent.CRUDAction.READ, Optional.empty());
+        requestScope.publishLifecycleEvent(this, READ);
+        requestScope.publishLifecycleEvent(this, attribute.getName(), READ, Optional.empty());
         checkFieldAwareDeferPermissions(ReadPermission.class, attribute.getName(), (Object) null, (Object) null);
         return transaction.getAttribute(getObject(), attribute, requestScope);
     }
@@ -1432,8 +1445,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Value
      */
     protected Object getValueUnchecked(String fieldName) {
-        requestScope.publishLifecycleEvent(this, CRUDEvent.CRUDAction.READ);
-        requestScope.publishLifecycleEvent(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
         return getValue(getObject(), fieldName, requestScope);
     }
 
@@ -1711,9 +1722,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private void triggerUpdate(String fieldName, Object original, Object value) {
         ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
-        CRUDEvent.CRUDAction action = isNewlyCreated()
-                ? CRUDEvent.CRUDAction.CREATE
-                : CRUDEvent.CRUDAction.UPDATE;
+        LifeCycleHookBinding.Operation action = isNewlyCreated()
+                ? CREATE
+                : UPDATE;
 
         requestScope.publishLifecycleEvent(this, fieldName, action, Optional.of(changeSpec));
         requestScope.publishLifecycleEvent(this, action);

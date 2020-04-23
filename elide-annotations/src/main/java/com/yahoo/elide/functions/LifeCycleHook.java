@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.functions;
 
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 
@@ -18,11 +19,13 @@ import java.util.Optional;
 public interface LifeCycleHook<T> {
     /**
      * Run for a lifecycle event.
+     * @param operation CREATE, READ, UPDATE, or DELETE
      * @param elideEntity The entity that triggered the event
      * @param requestScope The request scope
      * @param changes Optionally, the changes that were made to the entity
      */
-    public abstract void execute(T elideEntity,
+    public abstract void execute(LifeCycleHookBinding.Operation operation,
+                                 T elideEntity,
                                  RequestScope requestScope,
                                  Optional<ChangeSpec> changes);
 }

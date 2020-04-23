@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -18,8 +19,8 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.MappedInterface;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
@@ -183,7 +184,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         LifeCycleHook<Foo2> trigger = mock(LifeCycleHook.class);
 
-        bindTrigger(Foo2.class, OnUpdatePreSecurity.class, "bar", trigger);
+        bindTrigger(Foo2.class, "bar", UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger);
         assertEquals(1, getAllFields(Foo2.class).size());
     }
 
@@ -200,7 +201,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         LifeCycleHook<Foo3> trigger = mock(LifeCycleHook.class);
 
-        bindTrigger(Foo3.class, OnUpdatePreSecurity.class, trigger, true);
+        bindTrigger(Foo3.class, UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger, true);
         assertEquals(1, getAllFields(Foo3.class).size());
     }
 
@@ -217,7 +218,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         LifeCycleHook<Foo4> trigger = mock(LifeCycleHook.class);
 
-        bindTrigger(Foo4.class, OnUpdatePreSecurity.class, trigger);
+        bindTrigger(Foo4.class, UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger, false);
         assertEquals(1, getAllFields(Foo4.class).size());
     }
 

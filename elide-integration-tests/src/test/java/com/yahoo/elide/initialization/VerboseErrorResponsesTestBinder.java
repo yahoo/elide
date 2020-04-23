@@ -15,6 +15,8 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 
+import com.yahoo.elide.models.triggers.Invoice;
+import com.yahoo.elide.models.triggers.services.BillingService;
 import example.TestCheckMappings;
 
 import org.glassfish.hk2.api.Factory;
@@ -70,5 +72,13 @@ public class VerboseErrorResponsesTestBinder extends AbstractBinder {
                 // do nothing
             }
         }).to(Elide.class).named("elide");
+
+        bind(new BillingService() {
+                 @Override
+                 public long purchase(Invoice invoice) {
+                     return 0;
+                 }
+             }
+        ).to(BillingService.class);
     }
 }
