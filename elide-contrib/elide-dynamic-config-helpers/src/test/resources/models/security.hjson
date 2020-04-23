@@ -1,7 +1,7 @@
 {
     roles : [
-        admin,
-        guest,
+        admin
+        guest
         member
         ]
     rules: [

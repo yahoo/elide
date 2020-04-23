@@ -81,7 +81,7 @@ public class ElideConfigParser {
     private void populateTablesPojo(List<String> tablesJson) throws Exception {
         Set<Table> tables = new HashSet<>();
         for (String tableJson : tablesJson) {
-      ElideTableConfig table = (ElideTableConfig) parseJsonConfig(tableJson,
+      ElideTableConfig table = (ElideTableConfig) parseJsonConfig(util.resolveVariables(tableJson, this.variables),
               DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE);
       tables.addAll(table.getTables());
         }

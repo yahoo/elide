@@ -15,6 +15,12 @@
                 to: country
                 type: toOne
                 definition: '${to}.id = ${from}.country_id'
+            },
+            {
+                name: playerTeam
+                to: team
+                type: toMany
+                definition: '${to}.id = ${from}.team_id'
             }
         ]
         measures : [

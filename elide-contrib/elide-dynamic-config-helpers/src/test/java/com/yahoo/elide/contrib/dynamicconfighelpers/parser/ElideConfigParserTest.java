@@ -30,7 +30,7 @@ public class ElideConfigParserTest {
 
         testClass.parseConfigPath(absolutePath);
         Map<String, Object> variable = testClass.getVariables();
-        assertEquals(4, variable.size());
+        assertEquals(6, variable.size());
         assertEquals("blah", variable.get("bar"));
 
         ElideSecurityConfig security = testClass.getElideSecurityConfig();
