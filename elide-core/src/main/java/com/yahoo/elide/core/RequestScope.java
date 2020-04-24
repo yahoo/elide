@@ -443,12 +443,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     public Object getObjectById(Class<?> type, String id) {
-        Object result = objectEntityCache.get(type.getName(), id);
+        Class<?> boundType = dictionary.lookupBoundClass(type);
+
+        Object result = objectEntityCache.get(boundType.getName(), id);
 
         // Check inheritance too
-        Iterator<Class<?>> it = dictionary.getSuperClassEntities(type).iterator();
+        Iterator<Class<?>> it = dictionary.getSuperClassEntities(boundType).iterator();
         while (result == null && it.hasNext()) {
-            String newType = getInheritanceKey(it.next().getName(), type.getName());
+            String newType = getInheritanceKey(it.next().getName(), boundType.getName());
             result = objectEntityCache.get(newType, id);
         }
 
@@ -456,11 +458,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     public void setUUIDForObject(Class<?> type, String id, Object object) {
-        objectEntityCache.put(type.getName(), id, object);
+        Class<?> boundType = dictionary.lookupBoundClass(type);
+
+        objectEntityCache.put(boundType.getName(), id, object);
 
         // Insert for all inherited entities as well
         dictionary.getSuperClassEntities(type).stream()
-                .map(i -> getInheritanceKey(type.getName(), i.getName()))
+                .map(i -> getInheritanceKey(boundType.getName(), i.getName()))
                 .forEach((newType) -> objectEntityCache.put(newType, id, object));
     }
 

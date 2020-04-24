@@ -330,6 +330,20 @@ public class EntityDictionary {
     }
 
     /**
+     * Get a list of inherited entities from a particular entity.
+     * Namely, the list of entities inheriting from the provided class.
+     *
+     * @param entityClass Entity class
+     * @return  List of all inherited entity types
+     */
+     public List<Class<?>> getSubclassingEntities(Class entityClass) {
+         return subclassingEntities.computeIfAbsent(entityClass, unused -> entityBindings
+                            .keySet().stream()
+                            .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
+                            .collect(Collectors.toList()));
+     }
+
+    /**
      * Returns the friendly named mapped to this given check.
      * @param checkClass The class to lookup
      * @return the friendly name of the check.
