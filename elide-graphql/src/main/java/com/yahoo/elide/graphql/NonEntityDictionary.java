@@ -11,6 +11,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,7 +35,8 @@ public class NonEntityDictionary extends EntityDictionary {
     public void bindEntity(Class<?> cls) {
         String type = WordUtils.uncapitalize(cls.getSimpleName());
 
-        Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
+        String version = "";
+        Class<?> duplicate = bindJsonApiToEntity.put(Pair.of(type, ""), cls);
 
         if (duplicate != null && !duplicate.equals(cls)) {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);

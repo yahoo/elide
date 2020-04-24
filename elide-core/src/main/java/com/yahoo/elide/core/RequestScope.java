@@ -448,7 +448,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         Object result = objectEntityCache.get(boundType.getName(), id);
 
         // Check inheritance too
-        Iterator<Class<?>> it = dictionary.getSuperClassEntities(boundType).iterator();
+        Iterator<Class<?>> it = dictionary.getSubclassingEntities(boundType).iterator();
         while (result == null && it.hasNext()) {
             String newType = getInheritanceKey(it.next().getName(), boundType.getName());
             result = objectEntityCache.get(newType, id);
