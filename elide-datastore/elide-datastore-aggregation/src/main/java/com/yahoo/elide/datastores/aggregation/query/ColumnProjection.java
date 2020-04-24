@@ -36,4 +36,8 @@ public interface ColumnProjection<T extends Column> extends Serializable {
      * @return request arguments
      */
     Map<String, Argument> getArguments();
+
+    // force implementations to define equals/hashCode
+    boolean equals(Object other);
+    int hashCode();
 }
