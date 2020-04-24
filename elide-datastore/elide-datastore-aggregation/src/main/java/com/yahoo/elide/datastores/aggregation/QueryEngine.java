@@ -66,9 +66,6 @@ import java.util.stream.Collectors;
  * </pre>
  * Implementor must assume that {@link DataStoreTransaction} will never keep reference to any internal state of a
  * {@link QueryEngine} object. This ensures the plugability of various {@link QueryEngine} implementations.
- * <p>
- * This is a {@link java.util.function functional interface} whose functional method is
- * {@link #executeQuery(Query, boolean)}.
  */
 public abstract class QueryEngine {
     @Getter
