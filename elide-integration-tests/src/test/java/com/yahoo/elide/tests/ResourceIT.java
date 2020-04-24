@@ -27,7 +27,6 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -1407,7 +1406,6 @@ public class ResourceIT extends IntegrationTest {
                 .body(request)
                 .patch("/")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body("errors[0].detail", equalTo(detail));
     }
