@@ -1,0 +1,27 @@
+[
+    {
+        "op":"add",
+        "path":"/book",
+        "value":{
+            "type":"book",
+            "relationships":{
+                "authors":{
+                    "data":[
+                        {
+                            "type":"author",
+                            "id":"authorId"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "op":"add",
+        "path":"/author",
+        "value":{
+            "id":"authorId",
+            "type":"author"
+        }
+    }
+]

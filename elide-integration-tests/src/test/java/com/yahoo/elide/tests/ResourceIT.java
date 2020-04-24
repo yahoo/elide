@@ -1394,6 +1394,23 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    public void invalidPatchMissingId() {
+        String request = jsonParser.getJson("/ResourceIT/invalidPatchMissingId.req.json");
+
+        String detail = "Bad Request Body'Patch extension requires all objects to have an assigned "
+                + "ID (temporary or permanent) when assigning relationships.'";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(request)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0].detail", equalTo(detail));
+    }
+
+    @Test
     public void updateChildRelationToExisting() {
         String request = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.1.json");
