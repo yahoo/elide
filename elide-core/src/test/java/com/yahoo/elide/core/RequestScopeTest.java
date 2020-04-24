@@ -72,7 +72,7 @@ public class RequestScopeTest {
 
         String myId = "myId";
         // Test that a new inherited class is counted for base type
-        requestScope.setUUIDForObject(dictionary.getJsonAliasFor(MyInheritedClass.class), myId, new MyInheritedClass());
-        assertNotNull(requestScope.getObjectById(dictionary.getJsonAliasFor(MyBaseClass.class), myId));
+        requestScope.setUUIDForObject(MyInheritedClass.class, myId, new MyInheritedClass());
+        assertNotNull(requestScope.getObjectById(MyBaseClass.class, myId));
     }
 }
