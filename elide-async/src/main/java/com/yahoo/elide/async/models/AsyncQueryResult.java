@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.async.models;
 
+import static com.yahoo.elide.core.EntityDictionary.ASYNC_QUERY_RESULT;
+
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
@@ -20,8 +22,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
-
-import static com.yahoo.elide.core.EntityDictionary.ASYNC_QUERY_RESULT;
 
 /**
  * Model for Async Query Result.
