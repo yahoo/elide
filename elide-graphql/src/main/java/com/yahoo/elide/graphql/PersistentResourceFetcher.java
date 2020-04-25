@@ -237,7 +237,8 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         Class<?> entityClass;
         EntityDictionary dictionary = context.requestScope.getDictionary();
         if (context.isRoot()) {
-            entityClass = dictionary.getEntityClass(context.field.getName());
+            //TODO - Version needs to come from the API
+            entityClass = dictionary.getEntityClass(context.field.getName(), "");
         } else {
             assert context.parentResource != null;
             entityClass = dictionary.getParameterizedType(

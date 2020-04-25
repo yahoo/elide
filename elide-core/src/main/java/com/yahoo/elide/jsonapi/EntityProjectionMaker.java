@@ -291,7 +291,9 @@ public class EntityProjectionMaker
 
             //entityLabel represents a root collection.
             if (parentClass == null) {
-                Class<?> entityClass = dictionary.getEntityClass(entityLabel);
+
+                //TODO - version needs to come from the API
+                Class<?> entityClass = dictionary.getEntityClass(entityLabel, "");
 
                 if (entityClass != null) {
                     return entityClass;

@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -101,8 +102,9 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
     private Set<JoinPath> visitJoinToReference(Column column, String joinToPath) {
         Set<JoinPath> joinPaths = new HashSet<>();
 
+        Table table = column.getTable();
         JoinPath joinPath = froms.empty()
-                ? new JoinPath(dictionary.getEntityClass(column.getTable().getId()), dictionary, joinToPath)
+                ? new JoinPath(dictionary.getEntityClass(table.getId(), table.getVersion()), dictionary, joinToPath)
                 : froms.peek().extend(joinToPath, dictionary);
         joinPaths.add(joinPath);
 

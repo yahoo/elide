@@ -156,7 +156,9 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         Class<?>[] types = new Class[keyParts.length];
         String type = keyParts[0];
-        types[0] = dictionary.getEntityClass(type);
+
+        //TODO - this needs to come from the API.
+        types[0] = dictionary.getEntityClass(type, "");
 
         if (types[0] == null) {
             throw new ParseException("Unknown entity in filter: " + type);

@@ -126,7 +126,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
          * This works today by virtue that global filter expressions are only used for root collections
          * and NOT nested associations.
          */
-        Class entityType = dictionary.getEntityClass(lastPathComponent);
+        //TODO - this needs to come from the API.
+        Class entityType = dictionary.getEntityClass(lastPathComponent, "");
         if (entityType == null) {
             throw new ParseException("No such collection: " + lastPathComponent);
         }
@@ -152,7 +153,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     throw new ParseException("Exactly one RSQL expression must be defined for type : " + typeName);
                 }
 
-                Class entityType = dictionary.getEntityClass(typeName);
+                //TODO - this needs to come from the API
+                Class entityType = dictionary.getEntityClass(typeName, "");
                 if (entityType == null) {
                     throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
                 }

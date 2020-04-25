@@ -62,7 +62,7 @@ public abstract class Column {
 
     protected Column(Table table, String fieldName, EntityDictionary dictionary) {
         this.table = table;
-        Class<?> tableClass = dictionary.getEntityClass(table.getId());
+        Class<?> tableClass = dictionary.getEntityClass(table.getId(), table.getVersion());
 
         this.id = constructColumnName(tableClass, fieldName, dictionary);
         this.name = fieldName;

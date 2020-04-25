@@ -150,7 +150,9 @@ public class Resource {
     public PersistentResource<?> toPersistentResource(RequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
         EntityDictionary dictionary = requestScope.getDictionary();
-        Class<?> cls = dictionary.getEntityClass(type);
+
+        //Version needs to come from the request scope.
+        Class<?> cls = dictionary.getEntityClass(type, "");
 
         if (cls == null) {
             throw new UnknownEntityException(type);

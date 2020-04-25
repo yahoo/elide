@@ -163,7 +163,8 @@ public class GraphQLEntityProjectionMaker {
                 // '__schema' and '__type' would not be handled by entity projection
                 return;
             }
-            Class<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName());
+            //TODO - Version needs to come from the API.
+            Class<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName(), "");
             if (entityType == null) {
                 throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
                         rootSelectionField.getName()));

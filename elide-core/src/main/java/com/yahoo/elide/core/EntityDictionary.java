@@ -231,8 +231,7 @@ public class EntityDictionary {
      * @param entityName entity name
      * @return binding class
      */
-    public Class<?> getEntityClass(String entityName) {
-        String version = "";
+    public Class<?> getEntityClass(String entityName, String version) {
         return bindJsonApiToEntity.get(Pair.of(entityName, version));
     }
 
@@ -808,7 +807,7 @@ public class EntityDictionary {
             type = include.type();
         }
 
-        String version = "";
+        String version = getModelVersion(cls);
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         entityBindings.put(declaredClass, new EntityBinding(this, declaredClass, type, name, hiddenAnnotations));
         if (include.rootLevel()) {
@@ -831,7 +830,7 @@ public class EntityDictionary {
 
         Include include = (Include) getFirstAnnotation(declaredClass, Collections.singletonList(Include.class));
 
-        String version = "";
+        String version = getModelVersion(declaredClass);
         bindJsonApiToEntity.put(Pair.of(entityBinding.jsonApiType, version), declaredClass);
         entityBindings.put(declaredClass, entityBinding);
         if (include.rootLevel()) {
@@ -1316,7 +1315,7 @@ public class EntityDictionary {
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
-        String version = "";
+        String version = getModelVersion(cls);
         String name = StringUtils.uncapitalize(cls.getSimpleName());
         return bindJsonApiToEntity.containsKey(Pair.of(name, version));
     }
@@ -1581,5 +1580,9 @@ public class EntityDictionary {
         } else {
             return column[0].name();
         }
+    }
+
+    public static String getModelVersion(Class<?> modelClass) {
+        return "";
     }
 }

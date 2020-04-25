@@ -167,7 +167,9 @@ public class CollectionTerminalState extends BaseState {
         }
 
         String id = resource.getId();
-        Class<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType());
+
+        //TODO - version needs to come from request scope.
+        Class<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType(), "");
 
         if (newObjectClass == null) {
             throw new UnknownEntityException("Entity " + resource.getType() + " not found");

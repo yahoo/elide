@@ -49,8 +49,8 @@ public class FilterPredicateTest {
         when(entityDictionary.getJsonAliasFor(Book.class)).thenReturn("book");
         when(entityDictionary.getJsonAliasFor(Author.class)).thenReturn("author");
 
-        doReturn(Book.class).when(entityDictionary).getEntityClass("book");
-        doReturn(Author.class).when(entityDictionary).getEntityClass("author");
+        doReturn(Book.class).when(entityDictionary).getEntityClass("book", "");
+        doReturn(Author.class).when(entityDictionary).getEntityClass("author", "");
         doReturn(String.class).when(entityDictionary).getParameterizedType(Book.class, "title");
         doReturn(String.class).when(entityDictionary).getParameterizedType(Book.class, "genre");
         doReturn(Integer.class).when(entityDictionary).getIdType(Book.class);

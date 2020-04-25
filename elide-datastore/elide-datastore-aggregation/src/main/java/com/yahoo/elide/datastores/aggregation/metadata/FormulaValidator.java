@@ -12,6 +12,7 @@ import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
@@ -71,7 +72,8 @@ public class FormulaValidator extends ColumnVisitor<Void> {
             throw new IllegalArgumentException(referenceLoopMessage(visited, dimension));
         }
 
-        Class<?> tableClass = dictionary.getEntityClass(dimension.getTable().getId());
+        Table table = dimension.getTable();
+        Class<?> tableClass = dictionary.getEntityClass(table.getId(), table.getVersion());
 
         JoinPath joinToPath = new JoinPath(
                 tableClass,
@@ -96,7 +98,8 @@ public class FormulaValidator extends ColumnVisitor<Void> {
             throw new IllegalArgumentException(referenceLoopMessage(visited, column));
         }
 
-        Class<?> tableClass = dictionary.getEntityClass(column.getTable().getId());
+        Table table = column.getTable();
+        Class<?> tableClass = dictionary.getEntityClass(table.getId(), table.getVersion());
 
         visited.add(column);
         for (String reference : resolveFormulaReferences(column.getExpression())) {

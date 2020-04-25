@@ -85,7 +85,7 @@ public class MetaDataStore extends HashMapDataStore {
      * @param table table metadata
      */
     public void addTable(Table table) {
-        tables.put(dictionary.getEntityClass(table.getId()), table);
+        tables.put(dictionary.getEntityClass(table.getId(), table.getVersion()), table);
         addMetaData(table);
         table.getColumns().forEach(this::addColumn);
     }

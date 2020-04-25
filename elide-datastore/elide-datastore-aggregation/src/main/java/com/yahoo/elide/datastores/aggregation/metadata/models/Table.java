@@ -39,6 +39,9 @@ public class Table {
 
     private String name;
 
+    @Exclude
+    private String version;
+
     private String description;
 
     private String category;
@@ -75,6 +78,7 @@ public class Table {
         }
 
         this.id = dictionary.getJsonAliasFor(cls);
+        this.version = EntityDictionary.getModelVersion(cls);
         this.tableTags = new HashSet<>();
 
         this.columns = constructColumns(cls, dictionary);

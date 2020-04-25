@@ -294,7 +294,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      */
     private boolean interfaceHasFilterExpression(Class<?> entityInterface) {
         for (String filterType : expressionsByType.keySet()) {
-            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType);
+            String version = EntityDictionary.getModelVersion(entityInterface);
+            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType, version);
             if (entityInterface.isAssignableFrom(polyMorphicClass)) {
                 return true;
             }
