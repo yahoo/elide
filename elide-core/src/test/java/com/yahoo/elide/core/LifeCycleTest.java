@@ -810,6 +810,7 @@ public class LifeCycleTest {
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
         ElideResponse response = elide.patch(contentType, contentType, "/", body, null);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
