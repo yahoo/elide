@@ -60,7 +60,7 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         User user = new SecurityContextUser(securityContext);
-        return build(elide.post(path, jsonapiDocument, user));
+        return build(elide.post(path, jsonapiDocument, user, ""));
     }
 
     /**
@@ -79,7 +79,7 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         User user = new SecurityContextUser(securityContext);
-        return build(elide.get(path, queryParams, user));
+        return build(elide.get(path, queryParams, user, ""));
     }
 
     /**
@@ -102,7 +102,7 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         User user = new SecurityContextUser(securityContext);
-        return build(elide.patch(contentType, accept, path, jsonapiDocument, user));
+        return build(elide.patch(contentType, accept, path, jsonapiDocument, user, ""));
     }
 
     /**
@@ -121,7 +121,7 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
         User user = new SecurityContextUser(securityContext);
-        return build(elide.delete(path, jsonApiDocument, user));
+        return build(elide.delete(path, jsonApiDocument, user, ""));
     }
 
     private static Response build(ElideResponse response) {

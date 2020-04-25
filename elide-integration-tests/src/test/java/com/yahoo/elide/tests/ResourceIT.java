@@ -2479,7 +2479,7 @@ public class ResourceIT extends IntegrationTest {
                 .build());
 
         com.yahoo.elide.security.User user = new com.yahoo.elide.security.User(() -> "-1");
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user);
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user, "");
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }

@@ -28,6 +28,7 @@ public class GraphQLRequestScope extends RequestScope {
     public GraphQLRequestScope(
             DataStoreTransaction transaction,
             User user,
+            String apiVersion,
             ElideSettings elideSettings,
             GraphQLProjectionInfo projectionInfo
     ) {
@@ -35,8 +36,7 @@ public class GraphQLRequestScope extends RequestScope {
         // we should have a GraphQLRequestScope and a JSONAPIRequestScope.
         // TODO: What should mutate multiple entity value be? There is a problem with this setting in practice.
         // Namely, we don't filter or paginate in the data store.
-        //TODO - Set API Version
-        super("/", "", null, transaction, user, new MultivaluedHashMap<>(), elideSettings);
+        super("/", apiVersion, null, transaction, user, new MultivaluedHashMap<>(), elideSettings);
         this.projectionInfo = projectionInfo;
 
         // Entity Projection is retrieved from projectionInfo.

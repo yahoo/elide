@@ -63,7 +63,7 @@ public class JsonApiController {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
-        ElideResponse response = elide.get(pathname, new MultivaluedHashMap<>(allRequestParams), user);
+        ElideResponse response = elide.get(pathname, new MultivaluedHashMap<>(allRequestParams), user, "");
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
@@ -74,7 +74,7 @@ public class JsonApiController {
 
         User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .post(pathname, body, user);
+                .post(pathname, body, user, "");
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
@@ -85,7 +85,7 @@ public class JsonApiController {
 
         User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .patch(request.getContentType(), request.getContentType(), pathname, body, user);
+                .patch(request.getContentType(), request.getContentType(), pathname, body, user, "");
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
@@ -96,7 +96,7 @@ public class JsonApiController {
 
         User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .delete(pathname, null, user);
+                .delete(pathname, null, user, "");
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
@@ -107,7 +107,7 @@ public class JsonApiController {
 
         User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .delete(pathname, body, user);
+                .delete(pathname, body, user, "");
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 

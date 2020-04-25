@@ -60,12 +60,12 @@ public class AsyncQueryThread implements Runnable {
             if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
                 MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
                 log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
-                response = elide.get(getPath(queryObj.getQuery()), queryParams, user);
+                response = elide.get(getPath(queryObj.getQuery()), queryParams, user, "");
                 log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
             }
             else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-                response = runner.run(queryObj.getQuery(), user);
+                response = runner.run(queryObj.getQuery(), user, "");
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
             }

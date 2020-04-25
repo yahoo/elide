@@ -57,7 +57,7 @@ public class GraphqlController {
     public ResponseEntity<String> post(@RequestBody String graphQLDocument, Authentication principal) {
         User user = new AuthenticationUser(principal);
 
-        ElideResponse response = runner.run(graphQLDocument, user);
+        ElideResponse response = runner.run(graphQLDocument, user, "");
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 }

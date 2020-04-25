@@ -83,9 +83,10 @@ public class QueryRunner {
      * Execute a GraphQL query and return the response.
      * @param graphQLDocument The graphQL document (wrapped in JSON payload).
      * @param user The user who issued the query.
+     * @param apiVersion The client requested API version.
      * @return The response.
      */
-    public ElideResponse run(String graphQLDocument, User user) {
+    public ElideResponse run(String graphQLDocument, User user, String apiVersion) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -100,7 +101,7 @@ public class QueryRunner {
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(mapper, user, graphQLDocument, node);
+                (node) -> executeGraphQLRequest(mapper, user, graphQLDocument, node, apiVersion);
 
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
@@ -139,7 +140,7 @@ public class QueryRunner {
     }
 
     private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
-                                                String graphQLDocument, JsonNode jsonDocument) {
+                                                String graphQLDocument, JsonNode jsonDocument, String apiVersion) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
 
@@ -159,9 +160,9 @@ public class QueryRunner {
 
             //TODO - get API version.
             GraphQLProjectionInfo projectionInfo =
-                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, "").make(query);
+                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion).make(query);
             GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope(tx, principal, elide.getElideSettings(), projectionInfo);
+                    new GraphQLRequestScope(tx, principal, apiVersion, elide.getElideSettings(), projectionInfo);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 

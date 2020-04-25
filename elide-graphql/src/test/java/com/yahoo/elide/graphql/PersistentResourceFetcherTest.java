@@ -173,7 +173,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo =
                 new GraphQLEntityProjectionMaker(settings, variables, "").make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, "", settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
@@ -199,7 +199,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, "", settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         if (isMutation) {
@@ -232,7 +232,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected ExecutionResult runGraphQLRequest(String graphQLRequest, Map<String, Object> variables) {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, "", settings, projectionInfo);
 
         return api.execute(graphQLRequest, requestScope, variables);
     }
