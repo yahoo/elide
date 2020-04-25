@@ -9,6 +9,7 @@ package com.yahoo.elide.core;
 import static com.yahoo.elide.core.EntityBinding.EMPTY_BINDING;
 
 import com.yahoo.elide.Injector;
+import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
@@ -87,6 +88,9 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
 
     @Getter
+    protected final Set<String> apiVersions;
+
+    @Getter
     protected final Injector injector;
 
     public final static String REGULAR_ID_NAME = "id";
@@ -102,6 +106,7 @@ public class EntityDictionary {
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.apiVersions = new HashSet<>();
         initializeChecks();
 
         //Default injector only injects Elide internals.
@@ -133,6 +138,7 @@ public class EntityDictionary {
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
     }
@@ -382,6 +388,18 @@ public class EntityDictionary {
      */
     public Set<Class<?>> getBoundClasses() {
         return entityBindings.keySet();
+    }
+
+    /**
+     * Get all bound classes for a particular API version.
+     *
+     * @return the bound classes
+     */
+    public Set<Class<?>> getBoundClassesByVersion(String apiVersion) {
+        return entityBindings.values().stream()
+                .filter(binding -> binding.getApiVersion().equals(apiVersion))
+                .map(EntityBinding::getEntityClass)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -809,7 +827,9 @@ public class EntityDictionary {
 
         String version = getModelVersion(cls);
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
-        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass, type, name, hiddenAnnotations));
+        apiVersions.add(version);
+        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass,
+                type, name, version, hiddenAnnotations));
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -833,6 +853,7 @@ public class EntityDictionary {
         String version = getModelVersion(declaredClass);
         bindJsonApiToEntity.put(Pair.of(entityBinding.jsonApiType, version), declaredClass);
         entityBindings.put(declaredClass, entityBinding);
+        apiVersions.add(version);
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -939,10 +960,24 @@ public class EntityDictionary {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
                 annotation = cls.getDeclaredAnnotation(annotationClass);
                 if (annotation != null) {
-                    break;
+                    return annotation;
                 }
             }
         }
+
+        return getFirstPackageAnnotation(entityClass, annotationClassList);
+    }
+
+    /**
+     * Return first matching annotation from a package or parent package.
+     *
+     * @param entityClass         Entity class type
+     * @param annotationClassList List of sought annotations
+     * @return annotation found
+     */
+    public static Annotation getFirstPackageAnnotation(Class<?> entityClass,
+                                                       List<Class<? extends Annotation>> annotationClassList) {
+        Annotation annotation = null;
         // no class annotation, try packages
         for (Package pkg = entityClass.getPackage(); annotation == null && pkg != null; pkg = getParentPackage(pkg)) {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
@@ -1582,7 +1617,15 @@ public class EntityDictionary {
         }
     }
 
+    /**
+     * Returns the api version bound to a particular model class.
+     * @param modelClass The model class to lookup.
+     * @return The api version associated with the model or empty string if there is no association.
+     */
     public static String getModelVersion(Class<?> modelClass) {
-        return "";
+        ApiVersion apiVersionAnnotation =
+                (ApiVersion) getFirstPackageAnnotation(modelClass, Arrays.asList(ApiVersion.class));
+
+        return (apiVersionAnnotation == null) ? "" : apiVersionAnnotation.version();
     }
 }

@@ -53,6 +53,7 @@ import javax.ws.rs.core.Response;
 public class QueryRunner {
     private final Elide elide;
     private GraphQL api;
+    private String apiVersion;
 
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
@@ -63,11 +64,12 @@ public class QueryRunner {
      * Builds a new query runner.
      * @param elide The singular elide instance for this service.
      */
-    public QueryRunner(Elide elide) {
+    public QueryRunner(Elide elide, String apiVersion) {
         this.elide = elide;
+        this.apiVersion = apiVersion;
 
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
-        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
+        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher, apiVersion);
 
         this.api = new GraphQL(builder.build());
 
@@ -83,10 +85,9 @@ public class QueryRunner {
      * Execute a GraphQL query and return the response.
      * @param graphQLDocument The graphQL document (wrapped in JSON payload).
      * @param user The user who issued the query.
-     * @param apiVersion The client requested API version.
      * @return The response.
      */
-    public ElideResponse run(String graphQLDocument, User user, String apiVersion) {
+    public ElideResponse run(String graphQLDocument, User user) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -101,7 +102,7 @@ public class QueryRunner {
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(mapper, user, graphQLDocument, node, apiVersion);
+                (node) -> executeGraphQLRequest(mapper, user, graphQLDocument, node);
 
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
@@ -140,7 +141,7 @@ public class QueryRunner {
     }
 
     private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
-                                                String graphQLDocument, JsonNode jsonDocument, String apiVersion) {
+                                                String graphQLDocument, JsonNode jsonDocument) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
 
@@ -267,7 +268,7 @@ public class QueryRunner {
         }
     }
 
-    private ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
+    public ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
         JsonNode errorNode;
         if (!(error instanceof CustomErrorException)) {

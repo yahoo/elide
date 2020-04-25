@@ -40,7 +40,7 @@ public class AsyncExecutorService {
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
         this.elide = elide;
-        this.runner = new QueryRunner(elide);
+        this.runner = new QueryRunner(elide, "");
         this.maxRunTime = maxRunTime;
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
@@ -76,8 +76,8 @@ public class AsyncExecutorService {
      * @param queryObj Query Object
      * @param user User
      */
-    public void executeQuery(AsyncQuery queryObj, User user) {
-        AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao);
+    public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
+        AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
 
         AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide,
                executor.submit(queryWorker), queryObj, new Date(), maxRunTime, asyncQueryDao);

@@ -11,6 +11,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
+import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -26,6 +27,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import io.swagger.models.Swagger;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -240,11 +242,11 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Enable swagger documentation by returning non empty map object.
-     * @return Map object that maps document name to swagger object.
+     * Enable swagger documentation by returning non empty list.
+     * @return list of swagger registration objects.
      */
-    default Map<String, Swagger> enableSwagger() {
-        return new HashMap<>();
+    default List<DocEndpoint.SwaggerRegistration> enableSwagger() {
+        return new ArrayList<>();
     }
 
     /**

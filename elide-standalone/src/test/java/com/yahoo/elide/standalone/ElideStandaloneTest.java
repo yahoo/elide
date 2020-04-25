@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.hasKey;
 
 import com.google.common.collect.Maps;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
+import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.models.Post;
@@ -28,8 +29,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -66,17 +67,17 @@ public class ElideStandaloneTest {
             }
 
             @Override
-            public Map<String, Swagger> enableSwagger() {
+            public List<DocEndpoint.SwaggerRegistration> enableSwagger() {
                 EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
 
                 dictionary.bindEntity(Post.class);
-                Info info = new Info().title("Test Service").version("1.0");
+                Info info = new Info().title("Test Service");
 
                 SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
                 Swagger swagger = builder.build();
 
-                Map<String, Swagger> docs = new HashMap<>();
-                docs.put("test", swagger);
+                List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
+                docs.add(new DocEndpoint.SwaggerRegistration("test", swagger));
                 return docs;
             }
 

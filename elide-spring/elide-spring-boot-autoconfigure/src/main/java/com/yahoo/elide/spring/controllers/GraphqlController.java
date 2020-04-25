@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.controllers;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
@@ -21,9 +22,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Spring rest controller for Elide GraphQL.
@@ -36,14 +41,17 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnExpression("${elide.graphql.enabled:false}")
 public class GraphqlController {
 
-    private final QueryRunner runner;
+    private final Map<String, QueryRunner> runners;
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     @Autowired
     public GraphqlController(Elide elide) {
         log.debug("Started ~~");
-        this.runner = new QueryRunner(elide);
+        this.runners = new HashMap<>();
+        for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
+            runners.put(apiVersion, new QueryRunner(elide, apiVersion));
+        }
     }
 
     /**
@@ -54,10 +62,20 @@ public class GraphqlController {
      * @return response
      */
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> post(@RequestBody String graphQLDocument, Authentication principal) {
+    public ResponseEntity<String> post(@RequestParam Map<String, String> allRequestParams,
+                                       @RequestBody String graphQLDocument, Authentication principal) {
         User user = new AuthenticationUser(principal);
 
-        ElideResponse response = runner.run(graphQLDocument, user, "");
+        String apiVersion = Util.getApiVersion(allRequestParams);
+        QueryRunner runner = runners.get(apiVersion);
+
+        ElideResponse response;
+        if (runner == null) {
+            response = runner.buildErrorResponse(new InvalidOperationException("Invalid API Header"), false);
+        } else {
+            response = runner.run(graphQLDocument, user);
+        }
+
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 }

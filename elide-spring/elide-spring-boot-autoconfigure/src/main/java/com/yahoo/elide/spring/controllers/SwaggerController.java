@@ -7,6 +7,7 @@ package com.yahoo.elide.spring.controllers;
 
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -16,12 +17,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.models.Swagger;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -34,21 +39,34 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "${elide.swagger.path}")
 @ConditionalOnExpression("${elide.swagger.enabled:false}")
 public class SwaggerController {
-    protected Map<String, String> documents;
+
+    @Data
+    @AllArgsConstructor
+    public static class SwaggerRegistration {
+        private String path;
+        private Swagger document;
+    }
+
+    //Maps api version & path to swagger document.
+    protected Map<Pair<String, String>, String> documents;
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     /**
      * Constructs the resource.
      *
-     * @param docs Map of path parameter name to swagger document.
+     * @param docs A list of documents to register.
      */
     @Autowired(required = false)
-    public SwaggerController(Map<String, Swagger> docs) {
+    public SwaggerController(List<SwaggerRegistration> docs) {
         log.debug("Started ~~");
         documents = new HashMap<>();
 
-        docs.forEach((key, value) -> {
-            documents.put(key, SwaggerBuilder.getDocument(value));
+        docs.forEach((doc) -> {
+            String apiVersion = doc.document.getInfo().getVersion();
+            apiVersion = apiVersion == null ? "" : apiVersion;
+            String apiPath = doc.path;
+
+            documents.put(Pair.of(apiVersion, apiPath), SwaggerBuilder.getDocument(doc.document));
         });
     }
 
@@ -56,11 +74,13 @@ public class SwaggerController {
     public SwaggerController(Swagger doc) {
         log.debug("Started ~~");
         documents = new HashMap<>();
-        documents.put("", SwaggerBuilder.getDocument(doc));
+
+        documents.put(Pair.of("", ""), SwaggerBuilder.getDocument(doc));
     }
 
     @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> list() {
+    public ResponseEntity<String> list(@RequestParam Map<String, String> allRequestParams) {
+        String apiVersion = Util.getApiVersion(allRequestParams);
 
         if (documents.size() == 1) {
             return ResponseEntity
@@ -68,7 +88,12 @@ public class SwaggerController {
                     .body(documents.values().stream().findFirst().get());
         }
 
-        String body = "[" + documents.keySet().stream()
+        List<String> documentPaths = documents.keySet().stream()
+                .filter(key -> key.getLeft().equals(apiVersion))
+                .map(key -> key.getRight())
+                .collect(Collectors.toList());
+
+        String body = "[" + documentPaths.stream()
                 .map(key -> '"' + key + '"')
                 .collect(Collectors.joining(",")) + "]";
 
@@ -82,11 +107,15 @@ public class SwaggerController {
      * @return response The Swagger JSON document
      */
     @GetMapping(value = "/{name}", produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> list(@PathVariable("name") String name) {
+    public ResponseEntity<String> list(@RequestParam Map<String, String> allRequestParams,
+                                       @PathVariable("name") String name) {
+
+        String apiVersion = Util.getApiVersion(allRequestParams);
         String encodedName = Encode.forHtml(name);
 
-        if (documents.containsKey(encodedName)) {
-            return ResponseEntity.status(HttpStatus.OK).body(documents.get(encodedName));
+        Pair<String, String> lookupKey = Pair.of(apiVersion, encodedName);
+        if (documents.containsKey(lookupKey)) {
+            return ResponseEntity.status(HttpStatus.OK).body(documents.get(lookupKey));
         }
         return ResponseEntity.status(404).body("Unknown document: " + encodedName);
     }

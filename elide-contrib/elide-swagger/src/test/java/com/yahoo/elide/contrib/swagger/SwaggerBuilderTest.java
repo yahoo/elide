@@ -66,7 +66,7 @@ public class SwaggerBuilderTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
-        Info info = new Info().title("Test Service").version("1.0");
+        Info info = new Info().title("Test Service").version("");
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
         swagger = builder.build();
@@ -533,7 +533,7 @@ public class SwaggerBuilderTest {
     public void testGlobalErrorResponses() throws Exception {
         Info info = new Info()
                 .title("Test Service")
-                .version("1.0");
+                .version("");
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
 
@@ -582,7 +582,7 @@ public class SwaggerBuilderTest {
         EntityDictionary entityDictionary = new EntityDictionary(Maps.newHashMap());
 
         entityDictionary.bindEntity(NothingToSort.class);
-        Info info = new Info().title("Test Service").version("1.0");
+        Info info = new Info().title("Test Service").version("");
 
         SwaggerBuilder builder = new SwaggerBuilder(entityDictionary, info);
         Swagger testSwagger = builder.build();

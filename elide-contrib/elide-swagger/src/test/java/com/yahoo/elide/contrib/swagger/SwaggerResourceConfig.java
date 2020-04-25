@@ -8,6 +8,7 @@ package com.yahoo.elide.contrib.swagger;
 import com.yahoo.elide.contrib.swagger.models.Author;
 import com.yahoo.elide.contrib.swagger.models.Book;
 import com.yahoo.elide.contrib.swagger.models.Publisher;
+import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.Maps;
@@ -20,8 +21,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SwaggerResourceConfig extends ResourceConfig {
 
@@ -29,30 +30,30 @@ public class SwaggerResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                bindFactory(new Factory<Map<String, Swagger>>() {
+                bindFactory(new Factory<List<DocEndpoint.SwaggerRegistration>>() {
 
                     @Override
-                    public Map<String, Swagger> provide() {
+                    public List<DocEndpoint.SwaggerRegistration> provide() {
                         EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
 
                         dictionary.bindEntity(Book.class);
                         dictionary.bindEntity(Author.class);
                         dictionary.bindEntity(Publisher.class);
-                        Info info = new Info().title("Test Service").version("1.0");
+                        Info info = new Info().title("Test Service");
 
                         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
                         Swagger swagger = builder.build();
 
-                        Map<String, Swagger> docs = new HashMap<>();
-                        docs.put("test", swagger);
+                        List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
+                        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger));
                         return docs;
                     }
 
                     @Override
-                    public void dispose(Map<String, Swagger> instance) {
+                    public void dispose(List<DocEndpoint.SwaggerRegistration> instance) {
                         //NOP
                     }
-                }).to(new TypeLiteral<Map<String, Swagger>>() {
+                }).to(new TypeLiteral<List<DocEndpoint.SwaggerRegistration>>() {
                 }).named("swagger");
             }
         });

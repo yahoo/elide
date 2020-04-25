@@ -676,10 +676,15 @@ public class SwaggerBuilder {
         ModelConverters converters = ModelConverters.getInstance();
         converters.addConverter(new JsonApiModelResolver(dictionary));
 
+        String apiVersion = swagger.getInfo().getVersion();
+        if (apiVersion == null) {
+            apiVersion = "";
+        }
+
         if (allClasses.isEmpty()) {
-            allClasses = dictionary.getBoundClasses();
+            allClasses = dictionary.getBoundClassesByVersion(apiVersion);
         } else {
-            allClasses = Sets.intersection(dictionary.getBoundClasses(), allClasses);
+            allClasses = Sets.intersection(dictionary.getBoundClassesByVersion(apiVersion), allClasses);
             if (allClasses.isEmpty()) {
                 throw new IllegalArgumentException("None of the provided classes are exported by Elide");
             }

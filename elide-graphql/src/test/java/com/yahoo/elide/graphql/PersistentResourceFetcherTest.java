@@ -85,7 +85,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         inMemoryDataStore.populateEntityDictionary(dictionary);
 
-        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher());
+        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(), "");
 
         api = new GraphQL(builder.build());
 

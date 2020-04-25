@@ -60,54 +60,64 @@ public class JsonApiController {
     @GetMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
     public ResponseEntity<String> elideGet(@RequestParam Map<String, String> allRequestParams,
                                            HttpServletRequest request, Authentication authentication) {
+
+        String apiVersion = Util.getApiVersion(allRequestParams);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
-        ElideResponse response = elide.get(pathname, new MultivaluedHashMap<>(allRequestParams), user, "");
+        ElideResponse response = elide.get(pathname, new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elidePost(@RequestBody String body,
+    public ResponseEntity<String> elidePost(@RequestParam Map<String, String> allRequestParams,
+                                            @RequestBody String body,
                                             HttpServletRequest request, Authentication authentication) {
+        String apiVersion = Util.getApiVersion(allRequestParams);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .post(pathname, body, user, "");
+                .post(pathname, body, user, apiVersion);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
-    public ResponseEntity<String> elidePatch(@RequestBody String body,
+    public ResponseEntity<String> elidePatch(@RequestParam Map<String, String> allRequestParams,
+                                             @RequestBody String body,
                                              HttpServletRequest request, Authentication authentication) {
+        String apiVersion = Util.getApiVersion(allRequestParams);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .patch(request.getContentType(), request.getContentType(), pathname, body, user, "");
+                .patch(request.getContentType(), request.getContentType(), pathname, body, user, apiVersion);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @DeleteMapping(value = "/**")
-    public ResponseEntity<String> elideDelete(HttpServletRequest request,
+    public ResponseEntity<String> elideDelete(@RequestParam Map<String, String> allRequestParams,
+                                              HttpServletRequest request,
                                               Authentication authentication) {
+        String apiVersion = Util.getApiVersion(allRequestParams);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .delete(pathname, null, user, "");
+                .delete(pathname, null, user, apiVersion);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elideDeleteRelationship(@RequestBody String body,
+    public ResponseEntity<String> elideDeleteRelationship(@RequestParam Map<String, String> allRequestParams,
+                                                          @RequestBody String body,
                                                           HttpServletRequest request, Authentication authentication) {
+        String apiVersion = Util.getApiVersion(allRequestParams);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
         ElideResponse response = elide
-                .delete(pathname, body, user, "");
+                .delete(pathname, body, user, apiVersion);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
