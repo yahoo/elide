@@ -38,24 +38,27 @@ public class MultipleFilterDialect implements JoinFilterDialect, SubqueryFilterD
 
     @Override
     public FilterExpression parseGlobalExpression(String path,
-                                                  MultivaluedMap<String, String> queryParams) throws ParseException {
+                                                  MultivaluedMap<String, String> queryParams,
+                                                  String apiVersion) throws ParseException {
         if (joinDialects.isEmpty()) {
             throw new ParseException("Heterogeneous type filtering not supported");
         }
 
-        return parseExpression(joinDialects, (dialect) -> dialect.parseGlobalExpression(path, queryParams));
+        return parseExpression(joinDialects, (dialect) -> dialect.parseGlobalExpression(path, queryParams, apiVersion));
     }
 
     @Override
     public Map<String, FilterExpression> parseTypedExpression(String path,
-                                                              MultivaluedMap<String, String> queryParams)
+                                                              MultivaluedMap<String, String> queryParams,
+                                                              String apiVersion)
             throws ParseException {
 
         if (subqueryDialects.isEmpty()) {
             throw new ParseException("Type filtering not supported");
         }
 
-        return parseExpression(subqueryDialects, (dialect) -> dialect.parseTypedExpression(path, queryParams));
+        return parseExpression(subqueryDialects, (dialect) -> dialect.parseTypedExpression(path,
+                queryParams, apiVersion));
     }
 
     private static <T, R> R parseExpression(List<T> dialects, ParseFunction<T, R> parseFunction) throws ParseException {

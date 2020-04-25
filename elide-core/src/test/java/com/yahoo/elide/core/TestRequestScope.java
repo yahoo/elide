@@ -23,7 +23,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary) {
-        super(null, new JsonApiDocument(), transaction, user, null,
+        super(null, "", new JsonApiDocument(), transaction, user, null,
                 new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build());
@@ -32,7 +32,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(EntityDictionary dictionary,
                             String path,
                             MultivaluedMap<String, String> queryParams) {
-        super(path, new JsonApiDocument(), null, null, queryParams,
+        super(path, "", new JsonApiDocument(), null, null, queryParams,
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());

@@ -172,7 +172,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo =
-                new GraphQLEntityProjectionMaker(settings, variables).make(graphQLRequest);
+                new GraphQLEntityProjectionMaker(settings, variables, "").make(graphQLRequest);
         GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);

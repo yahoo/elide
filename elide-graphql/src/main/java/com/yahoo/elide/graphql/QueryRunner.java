@@ -157,8 +157,9 @@ public class QueryRunner {
                 variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
             }
 
+            //TODO - get API version.
             GraphQLProjectionInfo projectionInfo =
-                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables).make(query);
+                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, "").make(query);
             GraphQLRequestScope requestScope =
                     new GraphQLRequestScope(tx, principal, elide.getElideSettings(), projectionInfo);
 

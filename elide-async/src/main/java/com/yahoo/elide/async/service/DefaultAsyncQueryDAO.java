@@ -189,7 +189,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-            RequestScope scope = new RequestScope("query", jsonApiDoc, tx, null, queryParams, elide.getElideSettings());
+            RequestScope scope = new RequestScope("query", "", jsonApiDoc,
+                    tx, null, queryParams, elide.getElideSettings());
             result = action.execute(tx, scope);
             tx.commit(scope);
             tx.flush(scope);

@@ -53,13 +53,13 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(dialect2.parseGlobalExpression("/author", queryParams)).thenReturn(filterExpression);
+        when(dialect1.parseGlobalExpression("/author", queryParams, "")).thenThrow(new ParseException(""));
+        when(dialect2.parseGlobalExpression("/author", queryParams, "")).thenReturn(filterExpression);
 
-        FilterExpression returnExpression = dialect.parseGlobalExpression("/author", queryParams);
+        FilterExpression returnExpression = dialect.parseGlobalExpression("/author", queryParams, "");
 
-        verify(dialect1, times(1)).parseGlobalExpression("/author", queryParams);
-        verify(dialect2, times(1)).parseGlobalExpression("/author", queryParams);
+        verify(dialect1, times(1)).parseGlobalExpression("/author", queryParams, "");
+        verify(dialect2, times(1)).parseGlobalExpression("/author", queryParams, "");
 
         assertEquals(returnExpression, filterExpression);
     }
@@ -90,13 +90,13 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(dialect2.parseTypedExpression("/author", queryParams)).thenReturn(expressionMap);
+        when(dialect1.parseTypedExpression("/author", queryParams, "")).thenThrow(new ParseException(""));
+        when(dialect2.parseTypedExpression("/author", queryParams, "")).thenReturn(expressionMap);
 
-        Map<String, FilterExpression> returnMap = dialect.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> returnMap = dialect.parseTypedExpression("/author", queryParams, "");
 
-        verify(dialect1, times(1)).parseTypedExpression("/author", queryParams);
-        verify(dialect2, times(1)).parseTypedExpression("/author", queryParams);
+        verify(dialect1, times(1)).parseTypedExpression("/author", queryParams, "");
+        verify(dialect2, times(1)).parseTypedExpression("/author", queryParams, "");
 
         assertEquals(returnMap, expressionMap);
     }
@@ -124,7 +124,7 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/author", queryParams));
+        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/author", queryParams, ""));
     }
 
     /**
@@ -150,7 +150,7 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        assertThrows(ParseException.class, () -> dialect.parseGlobalExpression("/author", queryParams));
+        assertThrows(ParseException.class, () -> dialect.parseGlobalExpression("/author", queryParams, ""));
     }
 
     /**
@@ -178,11 +178,11 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("one"));
-        when(dialect2.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("two"));
+        when(dialect1.parseGlobalExpression("/author", queryParams, "")).thenThrow(new ParseException("one"));
+        when(dialect2.parseGlobalExpression("/author", queryParams, "")).thenThrow(new ParseException("two"));
 
         try {
-            dialect.parseGlobalExpression("/author", queryParams);
+            dialect.parseGlobalExpression("/author", queryParams, "");
         } catch (ParseException e) {
             assertEquals("two\none", e.getMessage());
         }
@@ -213,11 +213,11 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("one"));
-        when(dialect2.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("two"));
+        when(dialect1.parseTypedExpression("/author", queryParams, "")).thenThrow(new ParseException("one"));
+        when(dialect2.parseTypedExpression("/author", queryParams, "")).thenThrow(new ParseException("two"));
 
         try {
-            dialect.parseTypedExpression("/author", queryParams);
+            dialect.parseTypedExpression("/author", queryParams, "");
         } catch (ParseException e) {
             assertEquals("two\none", e.getMessage());
         }

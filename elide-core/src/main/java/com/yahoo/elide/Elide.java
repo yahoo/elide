@@ -162,7 +162,7 @@ public class Elide {
     public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, User opaqueUser) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
+            RequestScope requestScope = new RequestScope(path, "", jsonApiDoc, tx, user, queryParams, elideSettings);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new GetVisitor(requestScope);
@@ -182,7 +182,7 @@ public class Elide {
     public ElideResponse post(String path, String jsonApiDocument, User opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+            RequestScope requestScope = new RequestScope(path, "", jsonApiDoc, tx, user, null, elideSettings);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new PostVisitor(requestScope);
@@ -206,7 +206,7 @@ public class Elide {
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
             handler = (tx, user) -> {
-                PatchRequestScope requestScope = new PatchRequestScope(path, tx, user, elideSettings);
+                PatchRequestScope requestScope = new PatchRequestScope(path, "", tx, user, elideSettings);
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
@@ -218,7 +218,7 @@ public class Elide {
         } else {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+                RequestScope requestScope = new RequestScope(path, "", jsonApiDoc, tx, user, null, elideSettings);
                 requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                         requestScope).parsePath(path));
                 BaseVisitor visitor = new PatchVisitor(requestScope);
@@ -242,7 +242,7 @@ public class Elide {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+            RequestScope requestScope = new RequestScope(path, "", jsonApiDoc, tx, user, null, elideSettings);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new DeleteVisitor(requestScope);

@@ -67,7 +67,7 @@ public class FilterPredicateTest {
 
         Map<String, FilterExpression> expressionMap;
         try {
-            expressionMap = strategy.parseTypedExpression("/book", queryParams);
+            expressionMap = strategy.parseTypedExpression("/book", queryParams, "");
         } catch (ParseException e) {
             throw new InvalidPredicateException(e.getMessage());
         }

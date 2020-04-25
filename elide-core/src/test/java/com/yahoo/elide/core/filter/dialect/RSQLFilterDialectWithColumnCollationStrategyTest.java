@@ -44,7 +44,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title==*foo*;title!=bar*;(genre=in=(sci-fi,action),publishDate>123)"
         );
 
-        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, "");
 
         assertEquals(1, expressionMap.size());
         assertEquals(
@@ -63,7 +63,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title==*foo*;authors.name==Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("(book.title INFIX [foo] AND book.authors.name IN [Hemingway])", expression.toString());
     }
@@ -77,7 +77,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title==Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("book.title IN [Hemingway]", expression.toString());
     }
@@ -91,7 +91,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title!=Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("NOT (book.title IN [Hemingway])", expression.toString());
     }
@@ -105,7 +105,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title=in=Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("book.title IN [Hemingway]", expression.toString());
     }
@@ -119,7 +119,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title=out=Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("NOT (book.title IN [Hemingway])", expression.toString());
     }
@@ -135,7 +135,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals(
                 "((((book.publishDate GT [5] OR book.publishDate GE [5]) "
@@ -155,7 +155,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title==*Hemingway*,title==*Hemingway,title==Hemingway*"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals(
                 "((book.title INFIX [Hemingway] OR book.title POSTFIX [Hemingway]) OR book.title PREFIX [Hemingway])",
@@ -172,7 +172,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title==foo;(title==bar;title==baz)"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("(book.title IN [foo] AND (book.title IN [bar] AND book.title IN [baz]))", expression.toString());
     }
@@ -186,7 +186,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title=isnull=true"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("book.title ISNULL []", expression.toString());
     }
@@ -200,7 +200,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title=isnull=1"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("book.title ISNULL []", expression.toString());
     }
@@ -214,7 +214,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title=isnull=false"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("book.title NOTNULL []", expression.toString());
     }
@@ -228,7 +228,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
                 "title=isnull=0"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, "");
 
         assertEquals("book.title NOTNULL []", expression.toString());
     }
