@@ -81,6 +81,9 @@ import javax.ws.rs.WebApplicationException;
 @SuppressWarnings("static-method")
 public class EntityDictionary {
 
+    public static final String ASYNC_QUERY = "asyncQuery";
+    public static final String ASYNC_QUERY_RESULT = "asyncQueryResult";
+
     protected final ConcurrentHashMap<Pair<String, String>, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
@@ -238,6 +241,15 @@ public class EntityDictionary {
      * @return binding class
      */
     public Class<?> getEntityClass(String entityName, String version) {
+
+        //Elide standard models transcend API versions.
+        if (entityName.equals(ASYNC_QUERY) || entityName.equals(ASYNC_QUERY_RESULT)) {
+            return entityBindings.values().stream()
+                    .filter(binding -> binding.entityName.equals(entityName))
+                    .map(EntityBinding::getEntityClass)
+                    .findFirst()
+                    .orElse(null);
+        }
         return bindJsonApiToEntity.get(Pair.of(entityName, version));
     }
 

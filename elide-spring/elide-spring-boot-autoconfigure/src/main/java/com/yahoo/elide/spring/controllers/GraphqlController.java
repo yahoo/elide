@@ -71,7 +71,7 @@ public class GraphqlController {
 
         ElideResponse response;
         if (runner == null) {
-            response = runner.buildErrorResponse(new InvalidOperationException("Invalid API Header"), false);
+            response = runner.buildErrorResponse(new InvalidOperationException("Invalid API Version"), false);
         } else {
             response = runner.run(graphQLDocument, user);
         }

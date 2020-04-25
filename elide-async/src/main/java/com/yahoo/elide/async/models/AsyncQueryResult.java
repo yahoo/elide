@@ -21,11 +21,13 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
+import static com.yahoo.elide.core.EntityDictionary.ASYNC_QUERY_RESULT;
+
 /**
  * Model for Async Query Result.
  */
 @Entity
-@Include(type = "asyncQueryResult")
+@Include(type = ASYNC_QUERY_RESULT)
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @CreatePermission(expression = "Prefab.Role.None")

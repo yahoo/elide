@@ -39,7 +39,7 @@ public class AsyncQueryThread implements Runnable {
     private AsyncQuery queryObj;
     private User user;
     private Elide elide;
-    private QueryRunner runner;
+    private final QueryRunner runner;
     private AsyncQueryDAO asyncQueryDao;
     private String apiVersion;
 
