@@ -55,7 +55,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
                 getFieldAlias(
                         tableAliases.peek(),
                         dictionary.getAnnotatedColumnName(
-                                dictionary.getEntityClass(table.getId(), table.getVersion()),
+                                dictionary.getEntityClass(table.getName(), table.getVersion()),
                                 metric.getName())));
     }
 
@@ -76,7 +76,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         return getFieldAlias(
                 tableAliases.peek(),
                 dictionary.getAnnotatedColumnName(
-                        dictionary.getEntityClass(table.getId(), table.getVersion()),
+                        dictionary.getEntityClass(table.getName(), table.getVersion()),
                         dimension.getName()));
     }
 
@@ -91,7 +91,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     protected String visitReferenceDimension(Dimension dimension) {
         Table table = dimension.getTable();
         return visitTableJoinToReference(
-                dictionary.getEntityClass(table.getId(), table.getVersion()),
+                dictionary.getEntityClass(table.getName(), table.getVersion()),
                 dimension.getExpression());
     }
 
@@ -108,7 +108,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      */
     private String visitFormulaColumn(Column column) {
         Table table = column.getTable();
-        Class<?> tableClass = dictionary.getEntityClass(table.getId(), table.getVersion());
+        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
         String expr = column.getExpression();
 

@@ -73,7 +73,7 @@ public class FormulaValidator extends ColumnVisitor<Void> {
         }
 
         Table table = dimension.getTable();
-        Class<?> tableClass = dictionary.getEntityClass(table.getId(), table.getVersion());
+        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
         JoinPath joinToPath = new JoinPath(
                 tableClass,
@@ -99,7 +99,7 @@ public class FormulaValidator extends ColumnVisitor<Void> {
         }
 
         Table table = column.getTable();
-        Class<?> tableClass = dictionary.getEntityClass(table.getId(), table.getVersion());
+        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
         visited.add(column);
         for (String reference : resolveFormulaReferences(column.getExpression())) {

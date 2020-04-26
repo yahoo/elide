@@ -38,7 +38,7 @@ public class TimeDimension extends Dimension {
         super(table, fieldName, dictionary);
 
         Temporal temporal = dictionary.getAttributeOrRelationAnnotation(
-                dictionary.getEntityClass(table.getId(), table.getVersion()),
+                dictionary.getEntityClass(table.getName(), table.getVersion()),
                 Temporal.class,
                 fieldName);
 

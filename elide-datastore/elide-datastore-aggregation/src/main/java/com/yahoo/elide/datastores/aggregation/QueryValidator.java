@@ -72,7 +72,7 @@ public class QueryValidator {
             Class<?> cls = last.getType();
             String fieldName = last.getFieldName();
 
-            Class<?> tableClass = dictionary.getEntityClass(queriedTable.getId(), queriedTable.getVersion());
+            Class<?> tableClass = dictionary.getEntityClass(queriedTable.getName(), queriedTable.getVersion());
 
             if (cls != tableClass) {
                 throw new InvalidOperationException(
