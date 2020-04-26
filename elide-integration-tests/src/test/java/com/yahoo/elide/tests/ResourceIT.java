@@ -2708,4 +2708,69 @@ public class ResourceIT extends IntegrationTest {
     public void badChildCollectionId() {
         given().when().get("/user/1/oops/1").then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+                         //broken out by class instead of a common table.
+    public void testVersionedBook() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .get("/book?fields[book]=name")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("1"),
+                                        attributes(
+                                                attr("name", "titlewith%percentage")
+                                        )
+                                ),
+                                resource(
+                                        type("book"),
+                                        id("2"),
+                                        attributes(
+                                                attr("name", "titlewithoutpercentage")
+                                        )
+                                )
+                        ).toJSON()
+                ));
+
+        given()
+                .header("ApiVersion", "")
+                .when()
+                .get("/book?fields[book]=title")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("1"),
+                                        attributes(
+                                                attr("title", "titlewith%percentage")
+                                        )
+                                ),
+                                resource(
+                                        type("book"),
+                                        id("2"),
+                                        attributes(
+                                                attr("title", "titlewithoutpercentage")
+                                        )
+                                )
+                        ).toJSON()
+                ));
+    }
+
+    @Test
+    public void testMissingVersionedModels() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .get("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
 }

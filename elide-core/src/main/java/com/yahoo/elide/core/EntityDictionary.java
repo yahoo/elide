@@ -81,8 +81,7 @@ import javax.ws.rs.WebApplicationException;
 @SuppressWarnings("static-method")
 public class EntityDictionary {
 
-    public static final String ASYNC_QUERY = "asyncQuery";
-    public static final String ASYNC_QUERY_RESULT = "asyncQueryResult";
+    public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
 
     protected final ConcurrentHashMap<Pair<String, String>, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
@@ -241,16 +240,18 @@ public class EntityDictionary {
      * @return binding class
      */
     public Class<?> getEntityClass(String entityName, String version) {
+        Class<?> lookup = bindJsonApiToEntity.getOrDefault(Pair.of(entityName, version), null);
 
-        //Elide standard models transcend API versions.
-        if (entityName.equals(ASYNC_QUERY) || entityName.equals(ASYNC_QUERY_RESULT)) {
+        if (lookup == null) {
+            //Elide standard models transcend API versions.
             return entityBindings.values().stream()
+                    .filter(binding -> binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX))
                     .filter(binding -> binding.entityName.equals(entityName))
                     .map(EntityBinding::getEntityClass)
                     .findFirst()
                     .orElse(null);
         }
-        return bindJsonApiToEntity.get(Pair.of(entityName, version));
+        return lookup;
     }
 
     /**
@@ -409,7 +410,10 @@ public class EntityDictionary {
      */
     public Set<Class<?>> getBoundClassesByVersion(String apiVersion) {
         return entityBindings.values().stream()
-                .filter(binding -> binding.getApiVersion().equals(apiVersion))
+                .filter(binding ->
+                        binding.getApiVersion().equals(apiVersion)
+                                || binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX)
+                )
                 .map(EntityBinding::getEntityClass)
                 .collect(Collectors.toSet());
     }

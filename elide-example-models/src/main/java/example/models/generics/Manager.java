@@ -4,16 +4,16 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.models.generics;
+package example.models.generics;
 
 import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
 
 /**
- * Helper class to test parameterized subclass/superclass hierarchies.
+ * Tests a parameterized superclass.
  */
 @Include(rootLevel = true)
 @Entity
-public class Employee extends Peon<Manager> {
+public class Manager extends Overlord<Employee> {
 }

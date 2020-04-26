@@ -68,8 +68,10 @@ public class MetaDataStore extends HashMapDataStore {
         // bind meta data models to dictionary
         ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(dictionary::bindEntity);
 
-        // bind external data models in the package
-        this.modelsToBind = modelsToBind;
+        // bind external data models in the package.  Versioned models are not currently supported.
+        this.modelsToBind = modelsToBind.stream()
+                .filter(model -> EntityDictionary.getModelVersion(model).equals(""))
+                .collect(Collectors.toSet());
         this.modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 

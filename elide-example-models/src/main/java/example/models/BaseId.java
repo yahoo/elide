@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.models;
+package example.models;
 
 import com.yahoo.elide.annotation.Exclude;
 
@@ -23,6 +23,8 @@ public abstract class BaseId {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected long id;
+
+    @Exclude
     protected String naturalKey = UUID.randomUUID().toString();
 
     @Exclude

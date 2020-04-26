@@ -26,8 +26,6 @@ import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.functions.LifeCycleHook;
-import com.yahoo.elide.models.generics.Employee;
-import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
@@ -50,6 +48,9 @@ import example.Parent;
 import example.Right;
 import example.StringId;
 import example.User;
+import example.models.generics.Employee;
+import example.models.generics.Manager;
+import example.models.versioned.BookV2;
 
 import org.junit.jupiter.api.Test;
 
@@ -74,7 +75,8 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     //Test class to validate inheritance logic
     @Include(rootLevel = true, type = "friend")
-    private class Friend extends Child { }
+    private class Friend extends Child {
+    }
 
     public EntityDictionaryTest() {
         super(Collections.EMPTY_MAP, mock(Injector.class));
@@ -95,6 +97,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(Employee.class);
         bindEntity(Job.class);
         bindEntity(NoId.class);
+        bindEntity(BookV2.class);
+        bindEntity(Book.class);
 
         checkNames.forcePut("user has all access", Role.ALL.class);
     }
@@ -161,7 +165,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testGetAttributeOrRelationAnnotation() {
-        String[] fields = { "field1", "field2", "field3", "relation1", "relation2" };
+        String[] fields = {"field1", "field2", "field3", "relation1", "relation2"};
         Annotation annotation;
         for (String field : fields) {
             annotation = getAttributeOrRelationAnnotation(FunWithPermissions.class, ReadPermission.class, field);
@@ -371,7 +375,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetIdAnnotations() throws Exception {
 
-        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[] { Id.class, GeneratedValue.class });
+        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[]{Id.class, GeneratedValue.class});
         Collection<Class> actualAnnotationsClasses = getIdAnnotations(new Parent()).stream()
                 .map(Annotation::annotationType)
                 .collect(Collectors.toList());
@@ -398,7 +402,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetIdAnnotationsSubClass() throws Exception {
 
-        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[] { Id.class, GeneratedValue.class });
+        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[]{Id.class, GeneratedValue.class});
         Collection<Class> actualAnnotationsClasses = getIdAnnotations(new Friend()).stream()
                 .map(Annotation::annotationType)
                 .collect(Collectors.toList());
@@ -502,15 +506,17 @@ public class EntityDictionaryTest extends EntityDictionary {
         List<String> attrs = getAttributes(Child.class);
         List<String> rels = getRelationships(Child.class);
         assertTrue(!attrs.contains("excludedEntity") && !attrs.contains("excludedRelationship")
-            && !attrs.contains("excludedEntityList"));
+                && !attrs.contains("excludedEntityList"));
         assertTrue(!rels.contains("excludedEntity") && !rels.contains("excludedRelationship")
-            && !rels.contains("excludedEntityList"));
+                && !rels.contains("excludedEntityList"));
     }
 
     @MappedInterface
-    public interface SuitableInterface { }
+    public interface SuitableInterface {
+    }
 
-    public interface BadInterface { }
+    public interface BadInterface {
+    }
 
     @Test
     public void testMappedInterface() {
@@ -688,7 +694,8 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetFirstAnnotation() {
         @Exclude
-        class Foo { }
+        class Foo {
+        }
 
         @Include
         class Bar extends Foo {
@@ -707,7 +714,8 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testGetFirstAnnotationConflict() {
         @Exclude
         @Include
-        class Foo { }
+        class Foo {
+        }
 
         Annotation first = getFirstAnnotation(Foo.class, Arrays.asList(Exclude.class, Include.class));
         assertTrue(first instanceof Exclude);
@@ -850,5 +858,31 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testIsValidField() {
         assertTrue(isValidField(Job.class, "title"));
         assertFalse(isValidField(Job.class, "foo"));
+    }
+
+    @Test
+    public void testGetBoundByVersion() {
+        Set<Class<?>> models = getBoundClassesByVersion("1.0");
+        assertEquals(3, models.size());  //Also includes com.yahoo.elide inner classes from this file.
+        assertTrue(models.contains(BookV2.class));
+
+
+        models = getBoundClassesByVersion("");
+        assertEquals(14, models.size());
+    }
+
+    @Test
+    public void testGetEntityClassByVersion() {
+        Class<?> model = getEntityClass("book", "");
+        assertEquals(Book.class, model);
+
+        model = getEntityClass("book", "1.0");
+        assertEquals(BookV2.class, model);
+    }
+
+    @Test
+    public void tetGetModelVersion() {
+        assertEquals("1.0", getModelVersion(BookV2.class));
+        assertEquals("", getModelVersion(Book.class));
     }
 }

@@ -4,21 +4,23 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.models.generics;
+package example.models.generics;
 
-import com.yahoo.elide.models.BaseId;
+import example.models.BaseId;
+
+import java.util.Set;
 
 import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 
 
 /**
  * Parameterized base class for testing.
- * @param <T> Boss Type
+ * @param <T> Minion type
  */
 @MappedSuperclass
-public class Peon<T> extends BaseId {
+public class Overlord<T> extends BaseId {
 
-    @OneToOne
-    private T boss;
+    @OneToMany
+    private Set<T> minions;
 }

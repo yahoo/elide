@@ -8,7 +8,6 @@ package com.yahoo.elide.async.models;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
-import static com.yahoo.elide.core.EntityDictionary.ASYNC_QUERY;
 
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
@@ -33,7 +32,7 @@ import javax.persistence.PrePersist;
  * Model for Async Query.
  */
 @Entity
-@Include(type = ASYNC_QUERY, rootLevel = true)
+@Include(type = "asyncQuery", rootLevel = true)
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")

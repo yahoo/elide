@@ -4,9 +4,9 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.models.triggers.services;
+package example.models.triggers.services;
 
-import com.yahoo.elide.models.triggers.Invoice;
+import example.models.triggers.Invoice;
 
 /**
  * Interface to make a financial transaction based on an Invoice.

@@ -4,13 +4,13 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.models.triggers;
+package example.models.triggers;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.models.BaseId;
-import com.yahoo.elide.models.triggers.services.BillingService;
+import example.models.BaseId;
+import example.models.triggers.services.BillingService;
 
 import lombok.Data;
 

@@ -4,13 +4,14 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.models.triggers;
+package example.models.triggers;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.functions.LifeCycleHook;
-import com.yahoo.elide.models.triggers.services.BillingService;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
+
+import example.models.triggers.services.BillingService;
 
 import java.util.Optional;
 import javax.inject.Inject;
