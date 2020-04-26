@@ -71,6 +71,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.owasp.encoder.Encode;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
@@ -1407,7 +1408,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body("errors[0].detail", equalTo(detail));
+                .body("errors[0].detail[0]", equalTo(Encode.forHtml(detail)));
     }
 
     @Test
