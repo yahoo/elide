@@ -5,13 +5,16 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
-import com.yahoo.elide.contrib.swagger.models.Author;
-import com.yahoo.elide.contrib.swagger.models.Book;
-import com.yahoo.elide.contrib.swagger.models.Publisher;
+
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.Maps;
+
+import example.models.Author;
+import example.models.Book;
+import example.models.Publisher;
+import example.models.versioned.BookV2;
 
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.TypeLiteral;
@@ -37,15 +40,21 @@ public class SwaggerResourceConfig extends ResourceConfig {
                         EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
 
                         dictionary.bindEntity(Book.class);
+                        dictionary.bindEntity(BookV2.class);
                         dictionary.bindEntity(Author.class);
                         dictionary.bindEntity(Publisher.class);
-                        Info info = new Info().title("Test Service");
+                        Info info1 = new Info().title("Test Service");
 
-                        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
-                        Swagger swagger = builder.build();
+                        SwaggerBuilder builder1 = new SwaggerBuilder(dictionary, info1);
+                        Swagger swagger1 = builder1.build();
+
+                        Info info2 = new Info().title("Test Service").version("1.0");
+                        SwaggerBuilder builder2 = new SwaggerBuilder(dictionary, info2);
+                        Swagger swagger2 = builder2.build();
 
                         List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
-                        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger));
+                        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger1));
+                        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger2));
                         return docs;
                     }
 

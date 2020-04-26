@@ -13,15 +13,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.swagger.model.Resource;
-import com.yahoo.elide.contrib.swagger.models.Author;
-import com.yahoo.elide.contrib.swagger.models.Book;
-import com.yahoo.elide.contrib.swagger.models.Publisher;
 import com.yahoo.elide.contrib.swagger.property.Data;
 import com.yahoo.elide.contrib.swagger.property.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.Maps;
+import example.models.Author;
+import example.models.Book;
+import example.models.Publisher;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
