@@ -219,8 +219,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             RequestScope scope = new RequestScope("query", NO_VERSION, jsonApiDoc,
                     tx, null, queryParams, elide.getElideSettings());
             result = action.execute(tx, scope);
-            tx.commit(scope);
             tx.flush(scope);
+            tx.commit(scope);
         } catch (IOException e) {
             log.error("IOException: {}", e);
         } catch (Exception e) {
