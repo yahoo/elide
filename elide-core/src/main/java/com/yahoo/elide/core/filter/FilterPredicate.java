@@ -59,6 +59,12 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
                 .anyMatch(RelationshipType::isToMany);
     }
 
+    public static boolean checkLastPathElementType(EntityDictionary dictionary, Path path, Class<?> clz) {
+        int pathLength = path.getPathElements().size();
+        PathElement lastPathElement = path.getPathElements().get(pathLength - 1);
+        return clz.isAssignableFrom(dictionary.getType(lastPathElement.getType(), lastPathElement.getFieldName()));
+    }
+
     public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
         this(new Path(Collections.singletonList(pathElement)), op, values);
     }

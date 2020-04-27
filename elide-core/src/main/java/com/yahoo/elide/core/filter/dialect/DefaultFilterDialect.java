@@ -15,6 +15,7 @@ import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -111,12 +112,19 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
                 throw new ParseException(String.format("Invalid predicate: %s", filterPredicate));
             }
 
+            if ((filterPredicate.getOperator().equals(Operator.HASMEMBER)
+                    || filterPredicate.getOperator().equals(Operator.HASNOMEMBER))
+                && !FilterPredicate.checkLastPathElementType(dictionary, filterPredicate.getPath(), Collection.class)) {
+                throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
+            }
+
             if (joinedExpression == null) {
                 joinedExpression = filterPredicate;
             } else {
                 joinedExpression = new AndFilterExpression(joinedExpression, filterPredicate);
             }
         }
+
         return joinedExpression;
     }
 
@@ -201,6 +209,10 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             case NOTEMPTY:
                 emptyOperatorConditions(filterPredicate);
                 break;
+            case HASMEMBER:
+            case HASNOMEMBER:
+                memberOfOperatorConditions(filterPredicate);
+                break;
             default:
                 if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
                     throw new ParseException("Invalid toMany join: " + filterPredicate);
@@ -219,6 +231,16 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             throw new ParseException(
                     "Invalid toMany join. toMany association has to be the target collection."
                     + filterPredicate);
+        }
+    }
+
+    private void memberOfOperatorConditions(FilterPredicate filterPredicate) throws ParseException {
+        if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
+            throw new ParseException("Invalid toMany join: member of operator cannot be used for toMany relationships");
+        }
+
+        if (!FilterPredicate.checkLastPathElementType(dictionary, filterPredicate.getPath(), Collection.class)) {
+            throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
         }
     }
 }

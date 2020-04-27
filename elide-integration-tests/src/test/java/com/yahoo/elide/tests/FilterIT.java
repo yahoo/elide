@@ -1670,7 +1670,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
-    @Tag("memberOfAttributeCollection")
+    @Tag("memberOfOperation")
     void testMemberOfOnAttributes() throws IOException {
         JsonNode result;
         String filterString = "Booker Prize";
@@ -1727,58 +1727,86 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("memberOfOperation")
     void testMemberOfOnRelationships() throws IOException {
         JsonNode result;
-        int filterId = 1;
-        Set<JsonNode> author1Book = new HashSet<>();
+        String phoneNumber = "987-654-3210";
+        Set<JsonNode> publisherBook = new HashSet<>();
 
 
         // * Filter On Root Entity *
         for (JsonNode book : books.get("data")) {
-            Iterator<JsonNode> bookAuthors = book.get("relationships").get("authors").get("data").elements();
-            while (bookAuthors.hasNext()) {
-                if (bookAuthors.next().get("id").asInt() == filterId) {
-                    author1Book.add(book.get("id"));
-                    break;
-                }
+            int publisherId = book.get("relationships").get("publisher").get("data").get("id").asInt();
+            if (publisherId == 1) {
+                publisherBook.add(book.get("id"));
+                break;
             }
         }
         // Test Default filter type on Root Entity
-        result = getAsNode(String.format("/book?filter[book.authors.id][hasmember]=%d", filterId));
-        assertEquals(author1Book.size(), result.get("data").size());
+        result = getAsNode(String.format("/book?filter[book.publisher.phoneNumbers][hasmember]=%s", phoneNumber));
+        assertEquals(publisherBook.size(), result.get("data").size());
         for (JsonNode book : result.get("data")) {
-            assertTrue(author1Book.contains(book.get("id")));
+            assertTrue(publisherBook.contains(book.get("id")));
         }
         // Test RSQL type filter on Root Entity
-        result = getAsNode(String.format("/book?filter[book]=authors=hasmember=\"%d\"", filterId));
-        assertEquals(author1Book.size(), result.get("data").size());
+        result = getAsNode(String.format("/book?filter[book]=publisher.phoneNumbers=hasmember=\"%s\"", phoneNumber));
+        assertEquals(publisherBook.size(), result.get("data").size());
         for (JsonNode book : result.get("data")) {
-            assertTrue(author1Book.contains(book.get("id")));
+            assertTrue(publisherBook.contains(book.get("id")));
         }
 
+    }
 
-//        // * Filter On Non Root Entity *
-//        for (JsonNode book : nullNedBooks.get("data")) {
-//            Iterator<JsonNode> awards = book.get("attributes").get("awards").elements();
-//            while (awards.hasNext()) {
-//                if (awards.next().asText().equals(filterId)) {
-//                    nullNedAwardBook.add(book.get("id"));
-//                    break;
-//                }
-//            }
-//        }
-//        // Test Default filter type on NonRoot Entity
-//        result = getAsNode(String.format("/author/%s/books?filter[book.authors][hasmember]=%s", nullNedId, filterId));
-//        assertEquals(nullNedAwardBook.size(), result.get("data").size());
-//        for (JsonNode book : result.get("data")) {
-//            assertTrue(nullNedAwardBook.contains(book.get("id")));
-//        }
-//        // Test RSQL type filter on NonRoot Entity
-//        result = getAsNode(String.format("/author/%s/books?filter[book]=awards=hasmember=\"%s\"", nullNedId, filterId));
-//        assertEquals(result.get("data").size(), nullNedAwardBook.size());
-//        for (JsonNode book : result.get("data")) {
-//            assertTrue(nullNedAwardBook.contains(book.get("id")));
-//        }
+    @Test
+    @Tag("memberOfOperation")
+    void testExceptionOnMemberOfOperator() throws IOException {
+        JsonNode result;
+        // Typed Expression
+        result = getAsNode(String.format("/author/%s/books?filter[book.authors.name][hasmember]", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid predicate: book.authors.name HASMEMBER []\n"
+                        + "Invalid query parameter: filter[book.authors.name][hasmember]\n"
+                        + "Invalid toMany join: member of operator cannot be used for toMany relationships\n"
+                        + "Invalid query parameter: filter[book.authors.name][hasmember]",
+                result.get("errors").get(0).asText()
+        );
+
+        //RSQL
+        result = getAsNode(String.format("/author/%s/books?filter[book]=authors.name=hasmember=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid toMany join: member of operator cannot be used for toMany relationships",
+                result.get("errors").get(0).asText()
+        );
+
+
+        // Test RSQL type filter on Root Entity
+        result = getAsNode(String.format("/book?filter[book]=publisher.name=hasmember=\"%s\"", "Default publisher"), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid Path: Last Path Element has to be a collection type",
+                result.get("errors").get(0).asText()
+        );
+        result = getAsNode(String.format("/book?filter[book]=title=hasnomember=\"%s\"", "*The*"), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid Path: Last Path Element has to be a collection type",
+                result.get("errors").get(0).asText()
+        );
+        result = getAsNode(String.format("/book?filter[book.title][hasmember]=\"%s\"", "*The*"), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid Path: Last Path Element has to be a collection type\n"
+                        + "Invalid query parameter: filter[book.title][hasmember]",
+                result.get("errors").get(0).asText()
+        );
+
+
     }
 
     @AfterAll

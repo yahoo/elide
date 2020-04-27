@@ -40,6 +40,7 @@ import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -306,6 +307,16 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                                     relationship));
                 }
                 return buildIsEmptyOperator(path, arguments);
+            }
+
+            if (op.equals(HASMEMBER_OP) || op.equals(HASNOMEMBER_OP)) {
+                if (FilterPredicate.toManyInPath(dictionary, path)) {
+                    throw new RSQLParseException(
+                            "Invalid toMany join: member of operator cannot be used for toMany relationships");
+                }
+                if (!FilterPredicate.checkLastPathElementType(dictionary, path, Collection.class)) {
+                    throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                }
             }
 
             if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
