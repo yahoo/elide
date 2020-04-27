@@ -881,8 +881,27 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
-    public void tetGetModelVersion() {
+    public void testGetModelVersion() {
         assertEquals("1.0", getModelVersion(BookV2.class));
         assertEquals(NO_VERSION, getModelVersion(Book.class));
+    }
+
+    @Test
+    public void testHasBinding() {
+        assertTrue(hasBinding(FunWithPermissions.class));
+        assertTrue(hasBinding(Parent.class));
+        assertTrue(hasBinding(Child.class));
+        assertTrue(hasBinding(User.class));
+        assertTrue(hasBinding(Left.class));
+        assertTrue(hasBinding(Right.class));
+        assertTrue(hasBinding(StringId.class));
+        assertTrue(hasBinding(Friend.class));
+        assertTrue(hasBinding(FieldAnnotations.class));
+        assertTrue(hasBinding(Manager.class));
+        assertTrue(hasBinding(Employee.class));
+        assertTrue(hasBinding(Job.class));
+        assertTrue(hasBinding(NoId.class));
+        assertTrue(hasBinding(BookV2.class));
+        assertTrue(hasBinding(Book.class));
     }
 }

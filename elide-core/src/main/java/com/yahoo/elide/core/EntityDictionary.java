@@ -1367,9 +1367,9 @@ public class EntityDictionary {
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
-        String version = getModelVersion(cls);
-        String name = StringUtils.uncapitalize(cls.getSimpleName());
-        return bindJsonApiToEntity.containsKey(Pair.of(name, version));
+        return entityBindings.values().stream()
+                .filter(binding -> binding.entityClass.equals(cls))
+                .findFirst().orElse(null) != null;
     }
 
     /**

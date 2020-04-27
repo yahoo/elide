@@ -16,6 +16,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
@@ -403,6 +404,57 @@ public class GraphQLIT extends IntegrationTest {
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void testTypeIntrospection() throws Exception {
+        String graphQLRequest = "{"
+                + "__type(name: \"Book\") {"
+                + "   name"
+                + "   fields {"
+                + "     name"
+                + "   }"
+                + "}"
+                + "}";
+
+        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(query)
+            .post("/graphQL")
+            .then()
+            .log().all()
+            .statusCode(HttpStatus.SC_OK)
+            .body("data.__type.fields.name", containsInAnyOrder("id", "awards", "chapterCount",
+                    "editorName", "genre", "language", "publishDate", "title", "authors", "chapters",
+                    "editor", "publisher"));
+    }
+
+    @Test
+    public void testVersionedTypeIntrospection() throws Exception {
+        String graphQLRequest = "{"
+                + "__type(name: \"Book\") {"
+                + "   name"
+                + "   fields {"
+                + "     name"
+                + "   }"
+                + "}"
+                + "}";
+
+        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("ApiVersion", "1.0")
+                .body(query)
+                .post("/graphQL")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.__type.fields.name", containsInAnyOrder("id", "name"));
     }
 
     private void create(String query, Map<String, Object> variables) throws IOException {
