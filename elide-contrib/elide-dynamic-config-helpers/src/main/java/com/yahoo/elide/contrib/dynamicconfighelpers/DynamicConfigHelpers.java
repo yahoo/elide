@@ -35,7 +35,7 @@ import java.util.Map;
 /**
  * Util class for Dynamic config helper module.
  */
-public class DynamicConfigHelpersUtil {
+public class DynamicConfigHelpers {
 
     public static final String SCHEMA_TYPE_TABLE = "table";
     public static final String SCHEMA_TYPE_SECURITY = "security";
@@ -58,7 +58,7 @@ public class DynamicConfigHelpersUtil {
      * @param hjson : input config in hjson format
      * @return valid json string
      */
-    public String hjsonToJson(String hjson) {
+    public static String hjsonToJson(String hjson) {
         return JsonValue.readHjson(hjson).toString();
     }
 
@@ -76,7 +76,6 @@ public class DynamicConfigHelpersUtil {
             schema.validate(data);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
             log.error(e.getMessage());
             return false;
         }
