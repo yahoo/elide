@@ -6,6 +6,7 @@
 package com.yahoo.elide.resources;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -61,7 +62,7 @@ public class JsonApiEndpoint {
         @HeaderParam("ApiVersion") String apiVersion,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        String safeApiVersion = apiVersion == null ? "" : apiVersion;
+        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
         return build(elide.post(path, jsonapiDocument, user, safeApiVersion));
     }
@@ -82,7 +83,7 @@ public class JsonApiEndpoint {
         @HeaderParam("ApiVersion") String apiVersion,
         @Context UriInfo uriInfo,
         @Context SecurityContext securityContext) {
-        String safeApiVersion = apiVersion == null ? "" : apiVersion;
+        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         User user = new SecurityContextUser(securityContext);
         return build(elide.get(path, queryParams, user, safeApiVersion));
@@ -109,7 +110,7 @@ public class JsonApiEndpoint {
         @PathParam("path") String path,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        String safeApiVersion = apiVersion == null ? "" : apiVersion;
+        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
         return build(elide.patch(contentType, accept, path, jsonapiDocument, user, safeApiVersion));
     }
@@ -131,7 +132,7 @@ public class JsonApiEndpoint {
         @HeaderParam("ApiVersion") String apiVersion,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
-        String safeApiVersion = apiVersion == null ? "" : apiVersion;
+        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
         return build(elide.delete(path, jsonApiDocument, user, safeApiVersion));
     }

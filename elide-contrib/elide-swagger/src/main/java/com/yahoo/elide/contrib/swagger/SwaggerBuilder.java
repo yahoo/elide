@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.contrib.swagger.model.Data;
 import com.yahoo.elide.contrib.swagger.model.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
@@ -678,7 +680,7 @@ public class SwaggerBuilder {
 
         String apiVersion = swagger.getInfo().getVersion();
         if (apiVersion == null) {
-            apiVersion = "";
+            apiVersion = NO_VERSION;
         }
 
         if (allClasses.isEmpty()) {

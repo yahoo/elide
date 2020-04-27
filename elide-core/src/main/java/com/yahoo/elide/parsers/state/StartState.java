@@ -25,8 +25,7 @@ public class StartState extends BaseState {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
 
-        //TODO - this needs to come from the API
-        Class<?> entityClass = dictionary.getEntityClass(entityName, "");
+        Class<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
 
         state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
                 state.getRequestScope().getEntityProjection()));

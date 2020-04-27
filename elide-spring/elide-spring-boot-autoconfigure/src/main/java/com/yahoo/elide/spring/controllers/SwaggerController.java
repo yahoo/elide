@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.spring.controllers;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -63,7 +65,7 @@ public class SwaggerController {
 
         docs.forEach((doc) -> {
             String apiVersion = doc.document.getInfo().getVersion();
-            apiVersion = apiVersion == null ? "" : apiVersion;
+            apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
             documents.put(Pair.of(apiVersion, apiPath), SwaggerBuilder.getDocument(doc.document));
@@ -75,7 +77,7 @@ public class SwaggerController {
         log.debug("Started ~~");
         documents = new HashMap<>();
 
-        documents.put(Pair.of("", ""), SwaggerBuilder.getDocument(doc));
+        documents.put(Pair.of(NO_VERSION, ""), SwaggerBuilder.getDocument(doc));
     }
 
     @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)

@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.User;
@@ -23,7 +24,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary) {
-        super(null, "", new JsonApiDocument(), transaction, user, null,
+        super(null, NO_VERSION, new JsonApiDocument(), transaction, user, null,
                 new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build());
@@ -32,7 +33,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(EntityDictionary dictionary,
                             String path,
                             MultivaluedMap<String, String> queryParams) {
-        super(path, "", new JsonApiDocument(), null, null, queryParams,
+        super(path, NO_VERSION, new JsonApiDocument(), null, null, queryParams,
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());

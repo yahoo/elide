@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
 
 import com.yahoo.elide.Injector;
@@ -123,7 +124,7 @@ public class EntityBinding {
     private EntityBinding() {
         jsonApiType = null;
         entityName = null;
-        apiVersion = "";
+        apiVersion = NO_VERSION;
         apiAttributes = new ArrayList<>();
         apiRelationships = new ArrayList<>();
         inheritedTypes = new ArrayList<>();
@@ -147,7 +148,7 @@ public class EntityBinding {
                          Class<?> cls,
                          String type,
                          String name) {
-        this(dictionary, cls, type, name, "", new HashSet<>());
+        this(dictionary, cls, type, name, NO_VERSION, new HashSet<>());
     }
 
     /**

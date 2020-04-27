@@ -557,8 +557,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("superclassBinding", getEntityFor(SubclassBinding.class));
         assertEquals("superclassBinding", getEntityFor(SuperclassBinding.class));
 
-        assertNull(getEntityClass("subclassBinding", ""));
-        assertEquals(SuperclassBinding.class, getEntityClass("superclassBinding", ""));
+        assertNull(getEntityClass("subclassBinding", NO_VERSION));
+        assertEquals(SuperclassBinding.class, getEntityClass("superclassBinding", NO_VERSION));
 
         assertEquals("superclassBinding", getJsonAliasFor(SubclassBinding.class));
         assertEquals("superclassBinding", getJsonAliasFor(SuperclassBinding.class));
@@ -867,13 +867,13 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(BookV2.class));
 
 
-        models = getBoundClassesByVersion("");
+        models = getBoundClassesByVersion(NO_VERSION);
         assertEquals(14, models.size());
     }
 
     @Test
     public void testGetEntityClassByVersion() {
-        Class<?> model = getEntityClass("book", "");
+        Class<?> model = getEntityClass("book", NO_VERSION);
         assertEquals(Book.class, model);
 
         model = getEntityClass("book", "1.0");
@@ -883,6 +883,6 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void tetGetModelVersion() {
         assertEquals("1.0", getModelVersion(BookV2.class));
-        assertEquals("", getModelVersion(Book.class));
+        assertEquals(NO_VERSION, getModelVersion(Book.class));
     }
 }

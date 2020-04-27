@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -66,7 +67,7 @@ public class SwaggerBuilderTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
-        Info info = new Info().title("Test Service").version("");
+        Info info = new Info().title("Test Service").version(NO_VERSION);
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
         swagger = builder.build();
@@ -533,7 +534,7 @@ public class SwaggerBuilderTest {
     public void testGlobalErrorResponses() throws Exception {
         Info info = new Info()
                 .title("Test Service")
-                .version("");
+                .version(NO_VERSION);
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
 
@@ -582,7 +583,7 @@ public class SwaggerBuilderTest {
         EntityDictionary entityDictionary = new EntityDictionary(Maps.newHashMap());
 
         entityDictionary.bindEntity(NothingToSort.class);
-        Info info = new Info().title("Test Service").version("");
+        Info info = new Info().title("Test Service").version(NO_VERSION);
 
         SwaggerBuilder builder = new SwaggerBuilder(entityDictionary, info);
         Swagger testSwagger = builder.build();

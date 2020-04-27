@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static graphql.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -96,7 +97,7 @@ public class ModelBuilderTest {
     @Test
     public void testPageInfoObject() {
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, "");
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
@@ -107,7 +108,7 @@ public class ModelBuilderTest {
     @Test
     public void testRelationshipParameters() {
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, "");
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
         GraphQLObjectType root = schema.getQueryType();
@@ -143,7 +144,7 @@ public class ModelBuilderTest {
     @Test
     public void testBuild() {
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, "");
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
@@ -206,7 +207,7 @@ public class ModelBuilderTest {
         dictionary.addArgumentsToAttribute(Book.class, FIELD_PUBLISH_DATE, arguments);
 
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, "");
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 

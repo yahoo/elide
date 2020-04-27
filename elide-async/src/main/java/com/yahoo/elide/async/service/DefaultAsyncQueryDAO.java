@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.async.service;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
@@ -189,7 +191,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-            RequestScope scope = new RequestScope("query", "", jsonApiDoc,
+            RequestScope scope = new RequestScope("query", NO_VERSION, jsonApiDoc,
                     tx, null, queryParams, elide.getElideSettings());
             result = action.execute(tx, scope);
             tx.commit(scope);

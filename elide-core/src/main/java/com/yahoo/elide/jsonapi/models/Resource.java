@@ -151,8 +151,7 @@ public class Resource {
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
         EntityDictionary dictionary = requestScope.getDictionary();
 
-        //Version needs to come from the request scope.
-        Class<?> cls = dictionary.getEntityClass(type, "");
+        Class<?> cls = dictionary.getEntityClass(type, requestScope.getApiVersion());
 
         if (cls == null) {
             throw new UnknownEntityException(type);

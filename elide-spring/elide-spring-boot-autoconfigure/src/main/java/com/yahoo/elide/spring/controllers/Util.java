@@ -6,10 +6,11 @@
 
 package com.yahoo.elide.spring.controllers;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import java.util.Map;
 
 public class Util {
     public static String getApiVersion(Map<String, String> requestHeaders) {
-        return requestHeaders.getOrDefault("ApiVersion", "");
+        return requestHeaders.getOrDefault("ApiVersion", NO_VERSION);
     }
 }

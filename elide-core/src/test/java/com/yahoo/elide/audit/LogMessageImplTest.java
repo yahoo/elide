@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.audit;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,7 +53,7 @@ public class LogMessageImplTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, "", null, null,
+        final RequestScope requestScope = new RequestScope(null, NO_VERSION, null, null,
                 new TestUser("aaron"), null,
                 new ElideSettingsBuilder(null)
                         .withAuditLogger(new TestAuditLogger())

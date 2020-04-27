@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql.parser;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.graphql.KeyWord.EDGES;
 import static com.yahoo.elide.graphql.KeyWord.NODE;
 import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO;
@@ -102,7 +103,7 @@ public class GraphQLEntityProjectionMaker {
      * @param elideSettings settings of current Elide instance
      */
     public GraphQLEntityProjectionMaker(ElideSettings elideSettings) {
-        this(elideSettings, new HashMap<>(), "");
+        this(elideSettings, new HashMap<>(), NO_VERSION);
     }
 
     /**

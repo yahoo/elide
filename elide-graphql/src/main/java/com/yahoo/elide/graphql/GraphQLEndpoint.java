@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.graphql;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -59,7 +61,7 @@ public class GraphQLEndpoint {
     public Response post(
             @HeaderParam("ApiVersion") String apiVersion,
             @Context SecurityContext securityContext, String graphQLDocument) {
-        String safeApiVersion = apiVersion == null ? "" : apiVersion;
+        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
         QueryRunner runner = runners.getOrDefault(safeApiVersion, null);
 

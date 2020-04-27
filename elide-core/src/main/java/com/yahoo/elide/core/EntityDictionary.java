@@ -82,6 +82,7 @@ import javax.ws.rs.WebApplicationException;
 public class EntityDictionary {
 
     public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
+    public static final String NO_VERSION = "";
 
     protected final ConcurrentHashMap<Pair<String, String>, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
@@ -1642,6 +1643,6 @@ public class EntityDictionary {
         ApiVersion apiVersionAnnotation =
                 (ApiVersion) getFirstPackageAnnotation(modelClass, Arrays.asList(ApiVersion.class));
 
-        return (apiVersionAnnotation == null) ? "" : apiVersionAnnotation.version();
+        return (apiVersionAnnotation == null) ? NO_VERSION : apiVersionAnnotation.version();
     }
 }

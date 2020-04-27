@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.contrib.swagger.resources;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -56,7 +58,7 @@ public class DocEndpoint {
 
         docs.forEach((doc) -> {
             String apiVersion = doc.document.getInfo().getVersion();
-            apiVersion = apiVersion == null ? "" : apiVersion;
+            apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
             String apiPath = doc.path;
 
             documents.put(Pair.of(apiVersion, apiPath), SwaggerBuilder.getDocument(doc.document));
@@ -66,7 +68,7 @@ public class DocEndpoint {
     @GET
     @Path("/")
     public Response list(@HeaderParam("ApiVersion") String apiVersion) {
-        String safeApiVersion = apiVersion == null ? "" : apiVersion;
+        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
 
         List<String> documentPaths = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(safeApiVersion))
@@ -89,7 +91,7 @@ public class DocEndpoint {
     @GET
     @Path("/{name}")
     public Response get(@HeaderParam("ApiVersion") String apiVersion, @PathParam("name") String name) {
-        String safeApiVersion = apiVersion == null ? "" : apiVersion;
+        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         Pair<String, String> lookupKey = Pair.of(safeApiVersion, name);
         if (documents.containsKey(lookupKey)) {
             return Response.ok(documents.get(lookupKey)).build();

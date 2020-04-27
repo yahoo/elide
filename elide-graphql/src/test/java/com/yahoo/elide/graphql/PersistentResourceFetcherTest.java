@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.graphql;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -85,7 +86,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         inMemoryDataStore.populateEntityDictionary(dictionary);
 
-        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(), "");
+        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(), NO_VERSION);
 
         api = new GraphQL(builder.build());
 
@@ -172,8 +173,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo =
-                new GraphQLEntityProjectionMaker(settings, variables, "").make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, "", settings, projectionInfo);
+                new GraphQLEntityProjectionMaker(settings, variables, NO_VERSION).make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
@@ -199,7 +200,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, "", settings, projectionInfo);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         if (isMutation) {
@@ -232,7 +233,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected ExecutionResult runGraphQLRequest(String graphQLRequest, Map<String, Object> variables) {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, "", settings, projectionInfo);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo);
 
         return api.execute(graphQLRequest, requestScope, variables);
     }

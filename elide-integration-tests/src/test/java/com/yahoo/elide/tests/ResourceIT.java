@@ -20,6 +20,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationshi
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
@@ -2479,7 +2480,7 @@ public class ResourceIT extends IntegrationTest {
                 .build());
 
         com.yahoo.elide.security.User user = new com.yahoo.elide.security.User(() -> "-1");
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user, "");
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }
@@ -2739,7 +2740,7 @@ public class ResourceIT extends IntegrationTest {
                 ));
 
         given()
-                .header("ApiVersion", "")
+                .header("ApiVersion", NO_VERSION)
                 .when()
                 .get("/book?fields[book]=title")
                 .then()
