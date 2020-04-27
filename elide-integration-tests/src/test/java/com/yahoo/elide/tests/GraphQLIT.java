@@ -15,6 +15,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ValidatableResponse;
@@ -355,7 +357,7 @@ public class GraphQLIT extends IntegrationTest {
         ).toResponse();
 
         compareJsonObject(
-                runQuery(toJsonArray(toJsonNode(graphQLRequest1), toJsonNode(graphQLRequest2))),
+                runQuery(toJsonArray(toJsonNode(graphQLRequest1), toJsonNode(graphQLRequest2)), NO_VERSION),
                 expectedResponse
         );
     }
@@ -457,9 +459,57 @@ public class GraphQLIT extends IntegrationTest {
                 .body("data.__type.fields.name", containsInAnyOrder("id", "name"));
     }
 
-    private void create(String query, Map<String, Object> variables) throws IOException {
-        runQuery(toJsonQuery(query, variables));
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common underlying database table.
+    public void fetchCollectionVersioned() throws IOException {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "1984")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
     }
+
+    @Test
+    public void testMissingVersionedModel() throws IOException {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "parent",
+                                selections(
+                                        field("id")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "{\"errors\":[{\"message\":\"Bad Request Body&#39;Unknown entity {parent}.&#39;\"}]}";
+
+        runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
+    }
+
 
     private void runQueryWithExpectedResult(
             String graphQLQuery,
@@ -467,6 +517,15 @@ public class GraphQLIT extends IntegrationTest {
             String expected
     ) throws IOException {
         compareJsonObject(runQuery(graphQLQuery, variables), expected);
+    }
+
+    private void runQueryWithExpectedResult(
+            String graphQLQuery,
+            Map<String, Object> variables,
+            String expected,
+            String apiVersion
+    ) throws IOException {
+        compareJsonObject(runQuery(graphQLQuery, variables, apiVersion), expected);
     }
 
     private void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
@@ -480,13 +539,19 @@ public class GraphQLIT extends IntegrationTest {
     }
 
     private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
-        return runQuery(toJsonQuery(query, variables));
+        return runQuery(toJsonQuery(query, variables), NO_VERSION);
     }
 
-    private ValidatableResponse runQuery(String query) {
+    private ValidatableResponse runQuery(String query, Map<String, Object> variables, String apiVersion)
+            throws IOException {
+        return runQuery(toJsonQuery(query, variables), apiVersion);
+    }
+
+    private ValidatableResponse runQuery(String query, String apiVersion) {
         return given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
+                .header("ApiVersion", apiVersion)
                 .body(query)
                 .post("/graphQL")
                 .then()
