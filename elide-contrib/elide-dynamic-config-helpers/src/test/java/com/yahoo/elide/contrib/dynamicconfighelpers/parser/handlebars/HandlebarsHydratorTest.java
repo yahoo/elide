@@ -34,20 +34,20 @@ public class HandlebarsHydratorTest {
             + "      hidden : false\n"
             + "      readAccess : A user is admin or is a player in the game\n"
             + "      joins: [\n"
-            + "          {  \n"
+            + "          {\n"
             + "             name: playerCountry\n"
             + "             to: country\n"
             + "             type: toOne\n"
             + "             definition: '${to}.id = ${from}.country_id'\n"
             + "          },\n"
-            + "          {  \n"
+            + "          {\n"
             + "             name: playerTeam\n"
             + "             to: team\n"
             + "             type: toMany\n"
             + "             definition: '${to}.id = ${from}.team_id'\n"
             + "          }\n"
             + "      ]\n"
-            + "    \n"
+            + "\n"
             + "      measures : [\n"
             + "          {\n"
             + "          name : highScore\n"
@@ -233,11 +233,11 @@ public class HandlebarsHydratorTest {
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
         String hjsonPath = absolutePath + "/tables/table1.hjson";
-        
+
         testClass.parseConfigPath(absolutePath);
         Map<String, Object> map = testClass.getVariables();
-        
-        String content = new String (Files.readAllBytes( Paths.get(hjsonPath)));
+
+        String content = new String (Files.readAllBytes(Paths.get(hjsonPath)));
 
         assertEquals(content, obj.hydrateConfigTemplate(VALID_TABLE_WITH_VARIABLES, map));
     }

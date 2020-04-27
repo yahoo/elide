@@ -39,27 +39,27 @@ public class ElideConfigParser {
      */
     public void parseConfigPath(String localFilePath) {
         try {
-      if (util.isNullOrEmpty(localFilePath)) {
-    throw new NullPointerException("Config path is null");
-      }
-      parse(localFilePath);
+            if (util.isNullOrEmpty(localFilePath)) {
+                throw new NullPointerException("Config path is null");
+            }
+            parse(localFilePath);
         } catch (Exception e) {
-      e.printStackTrace();
-      log.error(e.getMessage());
+            e.printStackTrace();
+            log.error(e.getMessage());
         }
     }
 
     private void parse(String localConfigPath) throws Exception {
-        //variables
+        // variables
         String varibleJson = util.getJsonConfig(localConfigPath, DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE).get(0);
         populatePojo(varibleJson, DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE);
 
-        //security
+        // security
         String securityJson = util.getJsonConfig(localConfigPath, DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY).get(0);
         populatePojo(util.resolveVariables(securityJson, this.variables),
                 DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY);
 
-        //table
+        // table
         populateTablesPojo(util.getJsonConfig(localConfigPath, DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE));
     }
 
@@ -67,23 +67,23 @@ public class ElideConfigParser {
     private void populatePojo(String jsonConfig, String configType) throws Exception {
         switch (configType) {
         case DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE:
-      this.variables = (Map<String, Object>) parseJsonConfig(jsonConfig,
-        DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE);
-      break;
+            this.variables = (Map<String, Object>) parseJsonConfig(jsonConfig,
+                    DynamicConfigHelpersUtil.SCHEMA_TYPE_VARIABLE);
+            break;
 
         case DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY:
-      this.elideSecurityConfig = (ElideSecurityConfig) parseJsonConfig(jsonConfig,
-        DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY);
-      break;
+            this.elideSecurityConfig = (ElideSecurityConfig) parseJsonConfig(jsonConfig,
+                    DynamicConfigHelpersUtil.SCHEMA_TYPE_SECURITY);
+            break;
         }
     }
 
     private void populateTablesPojo(List<String> tablesJson) throws Exception {
         Set<Table> tables = new HashSet<>();
         for (String tableJson : tablesJson) {
-      ElideTableConfig table = (ElideTableConfig) parseJsonConfig(util.resolveVariables(tableJson, this.variables),
-              DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE);
-      tables.addAll(table.getTables());
+            ElideTableConfig table = (ElideTableConfig) parseJsonConfig(
+                    util.resolveVariables(tableJson, this.variables), DynamicConfigHelpersUtil.SCHEMA_TYPE_TABLE);
+            tables.addAll(table.getTables());
         }
         this.elideTableConfig = new ElideTableConfig();
         this.elideTableConfig.setTables(tables);
@@ -94,11 +94,10 @@ public class ElideConfigParser {
         JSONObject configType = util.schemaToJsonObject(inputConfigType);
 
         if (configType != null && util.isConfigValid(configType, jsonConfig)) {
-      return util.getModelPojo(inputConfigType, jsonConfig);
-        }
-        else {
-      log.error(DynamicConfigHelpersUtil.INVALID_ERROR_MSG);
-      return null;
+            return util.getModelPojo(inputConfigType, jsonConfig);
+        } else {
+            log.error(DynamicConfigHelpersUtil.INVALID_ERROR_MSG);
+            return null;
         }
     }
 }

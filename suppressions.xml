@@ -9,19 +9,4 @@
        <cve>CVE-2019-16335</cve>
        <cve>CVE-2019-14540</cve>
    </suppress>
-   <suppress>
-       <notes><![CDATA[file name: handlebars-4.1.2.jar: handlebars-v4.0.4.js]]></notes>
-       <packageUrl regex="true">^pkg:javascript/handlebars@.*$</packageUrl>
-       <vulnerabilityName>Disallow calling helperMissing and blockHelperMissing directly</vulnerabilityName>
-   </suppress>
-   <suppress>
-       <notes><![CDATA[file name: handlebars-4.1.2.jar: handlebars-v4.0.4.js]]></notes>
-       <packageUrl regex="true">^pkg:javascript/handlebars@.*$</packageUrl>
-       <vulnerabilityName>A prototype pollution vulnerability in handlebars is exploitable if an attacker can control the template</vulnerabilityName>
-   </suppress>
-   <suppress>
-       <notes><![CDATA[file name: handlebars-4.1.2.jar: handlebars-v4.0.4.js]]></notes>
-       <packageUrl regex="true">^pkg:javascript/handlebars@.*$</packageUrl>
-       <vulnerabilityName>Prototype pollution</vulnerabilityName>
-   </suppress>
 </suppressions>
