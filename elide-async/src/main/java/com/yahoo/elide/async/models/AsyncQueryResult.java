@@ -38,6 +38,7 @@ public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
 
     private Integer contentLength;
 
+    @Column(columnDefinition = "varchar(1024)")
     private String responseBody; //success or errors
 
     private Integer status; // HTTP Status
