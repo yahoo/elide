@@ -18,16 +18,14 @@ import java.util.Map;
 
 public class ElideConfigParserTest {
 
-    private ElideConfigParser testClass = new ElideConfigParser();
-
     @Test
     public void testValidateVariablePath() throws Exception {
 
         String path = "src/test/resources/models";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
+        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
 
-        testClass.parseConfigPath(absolutePath);
         Map<String, Object> variable = testClass.getVariables();
         assertEquals(2, variable.size());
         assertEquals("blah", variable.get("bar"));
@@ -47,9 +45,9 @@ public class ElideConfigParserTest {
     @Test
     public void testNullConfig() {
         try {
-            testClass.parseConfigPath(null);
-        } catch (NullPointerException npe) {
-            assertEquals("Config path is null", npe.getMessage());
+            ElideConfigParser testClass = new ElideConfigParser(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("Config path is null", e.getMessage());
         }
     }
 }
