@@ -84,6 +84,8 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
                     .forEach(metadataSources::addAnnotatedClass);
             ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
+            ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
