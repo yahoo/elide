@@ -11,6 +11,7 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
@@ -21,14 +22,6 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
-import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.graphql.QueryRunner;
-import com.yahoo.elide.security.User;
-
-import lombok.Getter;
-
 /**
  * Service to execute Async queries.
  * It will schedule task to track long running queries and kills them.
@@ -36,6 +29,7 @@ import lombok.Getter;
  * host/app crash or restart.
  */
 @Getter
+@Slf4j
 public class AsyncExecutorService {
 
     private final int defaultThreadpoolSize = 6;
