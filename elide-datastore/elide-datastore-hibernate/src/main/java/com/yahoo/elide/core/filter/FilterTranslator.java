@@ -174,10 +174,9 @@ public class FilterTranslator implements FilterOperation<String> {
 
         operatorGenerators.put(HASMEMBER, (columnAlias, params) -> {
             Preconditions.checkArgument(params.size() == 1);
-            String x =  String.format("%s MEMBER OF %s",
+            return String.format("%s MEMBER OF %s",
                     params.get(0).getPlaceholder(),
                     columnAlias);
-            return x;
         });
 
         operatorGenerators.put(HASNOMEMBER, (columnAlias, params) -> {

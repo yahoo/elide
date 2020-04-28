@@ -38,7 +38,7 @@
         <tag>HEAD</tag>
     </scm>
     <properties>
-        <excludeTags>emptyOnAttributeCollection</excludeTags>
+        <excludeTags>excludeOnHibernate5</excludeTags>
     </properties>
 
 

@@ -25,6 +25,7 @@ import lombok.NonNull;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -60,9 +61,12 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public static boolean checkLastPathElementType(EntityDictionary dictionary, Path path, Class<?> clz) {
-        int pathLength = path.getPathElements().size();
-        PathElement lastPathElement = path.getPathElements().get(pathLength - 1);
-        return clz.isAssignableFrom(dictionary.getType(lastPathElement.getType(), lastPathElement.getFieldName()));
+        return path.lastElement()
+                .map(last ->
+                        clz.isAssignableFrom(
+                                dictionary.getType(last.getType(), last.getFieldName())
+                        ))
+                .orElse(false);
     }
 
     public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
