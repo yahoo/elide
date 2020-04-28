@@ -18,8 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.models.Swagger;
@@ -81,8 +81,8 @@ public class SwaggerController {
     }
 
     @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> list(@RequestParam Map<String, String> allRequestParams) {
-        String apiVersion = Util.getApiVersion(allRequestParams);
+    public ResponseEntity<String> list(@RequestHeader Map<String, String> requestHeaders) {
+        String apiVersion = Util.getApiVersion(requestHeaders);
 
         if (documents.size() == 1) {
             return ResponseEntity
@@ -109,10 +109,10 @@ public class SwaggerController {
      * @return response The Swagger JSON document
      */
     @GetMapping(value = "/{name}", produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> list(@RequestParam Map<String, String> allRequestParams,
+    public ResponseEntity<String> list(@RequestHeader Map<String, String> requestHeaders,
                                        @PathVariable("name") String name) {
 
-        String apiVersion = Util.getApiVersion(allRequestParams);
+        String apiVersion = Util.getApiVersion(requestHeaders);
         String encodedName = Encode.forHtml(name);
 
         Pair<String, String> lookupKey = Pair.of(apiVersion, encodedName);

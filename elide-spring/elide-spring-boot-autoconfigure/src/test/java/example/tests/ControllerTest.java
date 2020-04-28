@@ -287,6 +287,45 @@ public class ControllerTest extends IntegrationTest {
             .statusCode(HttpStatus.SC_OK);
     }
 
+    /**
+     * This test demonstrates an example test using the GraphQL DSL.
+     */
+    @Test
+    public void versionedGraphqlTest() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("ApiVersion", "1.0")
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        query(
+                                selection(
+                                        field("group",
+                                                selections(
+                                                        field("name"),
+                                                        field("title")
+                                                )
+                                        )
+                                )
+                        )
+                        ).toQuery() + "\" }"
+                )
+                .when()
+                .post("/graphql")
+                .then()
+                .body(equalTo(GraphQLDSL.document(
+                        selection(
+                                field(
+                                        "group",
+                                        selections(
+                                                field("name", "com.example.repository"),
+                                                field("title", "Example Repository")
+                                        )
+                                )
+                        )
+                ).toResponse()))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
     @Test
     public void swaggerDocumentTest() {
         when()
