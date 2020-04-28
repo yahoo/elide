@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,10 +59,11 @@ public class JsonApiController {
     }
 
     @GetMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elideGet(@RequestParam Map<String, String> allRequestParams,
+    public ResponseEntity<String> elideGet(@RequestHeader Map<String, String> requestHeaders,
+                                           @RequestParam Map<String, String> allRequestParams,
                                            HttpServletRequest request, Authentication authentication) {
 
-        String apiVersion = Util.getApiVersion(allRequestParams);
+        String apiVersion = Util.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
@@ -70,10 +72,10 @@ public class JsonApiController {
     }
 
     @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elidePost(@RequestParam Map<String, String> allRequestParams,
+    public ResponseEntity<String> elidePost(@RequestHeader Map<String, String> requestHeaders,
                                             @RequestBody String body,
                                             HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Util.getApiVersion(allRequestParams);
+        String apiVersion = Util.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
@@ -83,10 +85,10 @@ public class JsonApiController {
     }
 
     @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
-    public ResponseEntity<String> elidePatch(@RequestParam Map<String, String> allRequestParams,
+    public ResponseEntity<String> elidePatch(@RequestHeader Map<String, String> requestHeaders,
                                              @RequestBody String body,
                                              HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Util.getApiVersion(allRequestParams);
+        String apiVersion = Util.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
@@ -96,10 +98,10 @@ public class JsonApiController {
     }
 
     @DeleteMapping(value = "/**")
-    public ResponseEntity<String> elideDelete(@RequestParam Map<String, String> allRequestParams,
+    public ResponseEntity<String> elideDelete(@RequestHeader Map<String, String> requestHeaders,
                                               HttpServletRequest request,
                                               Authentication authentication) {
-        String apiVersion = Util.getApiVersion(allRequestParams);
+        String apiVersion = Util.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
@@ -109,10 +111,10 @@ public class JsonApiController {
     }
 
     @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elideDeleteRelationship(@RequestParam Map<String, String> allRequestParams,
+    public ResponseEntity<String> elideDeleteRelationship(@RequestHeader Map<String, String> requestHeaders,
                                                           @RequestBody String body,
                                                           HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Util.getApiVersion(allRequestParams);
+        String apiVersion = Util.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);

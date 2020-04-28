@@ -3,12 +3,12 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.spring.models.jpa;
+package example.models.jpa;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.spring.checks.AdminCheck;
+import example.checks.AdminCheck;
 import lombok.Data;
 
 import java.util.ArrayList;

@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class Util {
     public static String getApiVersion(Map<String, String> requestHeaders) {
-        return requestHeaders.getOrDefault("ApiVersion", NO_VERSION);
+        return requestHeaders.getOrDefault("ApiVersion",
+                requestHeaders.getOrDefault("apiversion", NO_VERSION));  //For tomcat
     }
 }

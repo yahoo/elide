@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.spring.tests;
+package example.tests;
 
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
-import com.yahoo.elide.spring.models.jpa.ArtifactGroup;
+import example.models.jpa.ArtifactGroup;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
@@ -70,6 +70,27 @@ public class ControllerTest extends IntegrationTest {
                                         ),
                                         relationships(
                                                 relation("products")
+                                        )
+                                )
+                        ).toJSON())
+                )
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void versionedJsonApiGetTest() {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .get("/json/group")
+                .then()
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("group"),
+                                        id("com.example.repository"),
+                                        attributes(
+                                                attr("title", "Example Repository")
                                         )
                                 )
                         ).toJSON())
