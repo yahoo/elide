@@ -16,7 +16,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -737,8 +736,9 @@ public class LifeCycleTest {
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
         ElideResponse response = elide.patch(contentType, contentType, "/", body, null);
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
-        assertTrue(response.getBody().startsWith(
-                "[{\"errors\":[{\"detail\":\"Invalid value: Resource(type=testModel, id=null, attributes={field=null}, relationships={models=com.yahoo.elide.jsonapi.models.Relationship@"));
+        assertEquals(
+                "[{\"errors\":[{\"detail\":\"Bad Request Body&#39;Patch extension requires all objects to have an assigned ID (temporary or permanent) when assigning relationships.&#39;\",\"status\":\"400\"}]}]",
+                response.getBody());
 
         verify(tx, never()).preCommit();
         verify(tx, never()).flush(isA(RequestScope.class));
