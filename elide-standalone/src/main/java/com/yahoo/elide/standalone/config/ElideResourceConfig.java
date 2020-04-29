@@ -133,6 +133,12 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
 
                     bind(swaggerDocs).named("swagger").to(new TypeLiteral<Map<String, Swagger>>() { });
+
+                    if(settings.enableAsync()) {
+                        injector.getService(ElideSettings.class).getDictionary().bindEntity(AsyncQuery.class);
+                        injector.getService(ElideSettings.class).getDictionary().bindEntity(AsyncQueryResult.class);
+                    }
+ 
                 }
             }
         });

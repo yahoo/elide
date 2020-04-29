@@ -89,4 +89,16 @@ public class Util {
                 .map(Class::getName)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Get all the entities in a package.
+     *
+     * @param packageName Package name
+     * @return All entities found in package.
+     */
+    public static List<Class<?>> getAllEntityClasses(String packageName) {
+        return ClassScanner.getAnnotatedClasses(packageName, Entity.class).stream()
+                //.map(Class::getName)
+                .collect(Collectors.toList());
+    }
 }
