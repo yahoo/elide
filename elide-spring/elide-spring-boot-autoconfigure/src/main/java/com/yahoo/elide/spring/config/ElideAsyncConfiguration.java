@@ -44,21 +44,6 @@ public class ElideAsyncConfiguration implements InitializingBean {
     EntityDictionary entityDictionary;
 
     /**
-     * Configure the AsyncExecutorService used for submitting async query requests.
-     * @param elide elideObject.
-     * @param settings Elide settings.
-     * @return a AsyncExecutorService.
-     */
-    /*@Bean
-    @ConditionalOnMissingBean
-    public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
-            AsyncQueryDAO asyncQueryDao) {
-        AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao);
-        return AsyncExecutorService.getInstance();
-    }*/
-
-    /**
      * Configure the AsyncCleanerService used for cleaning up async query requests.
      * @param elide elideObject.
      * @param settings Elide settings.
