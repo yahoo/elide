@@ -44,9 +44,5 @@
             }
         }
     },
-    "required": [
-        "roles",
-        "rules"
-    ],
     "additionalProperties": false
 }
