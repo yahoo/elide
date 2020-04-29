@@ -7,6 +7,7 @@ package example.tests;
 
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
@@ -40,6 +41,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 
 /**
  * Example functional test.
@@ -286,6 +288,33 @@ public class ControllerTest extends IntegrationTest {
                 )
             ).toResponse()))
             .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testInvalidApiVersion() throws IOException {
+
+        String graphQLRequest = GraphQLDSL.document(
+                selection(
+                        field(
+                                "group",
+                                selections(
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "{\"errors\":[{\"message\":\"Invalid operation: Invalid API Version\"}]}";
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("ApiVersion", "2.0")
+                .body("{ \"query\" : \"" + graphQLRequest + "\" }")
+                .post("/graphql")
+                .then()
+                .body(equalTo(expected))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     /**
