@@ -8,6 +8,8 @@ package com.yahoo.elide.spring.config;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
+import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
@@ -23,6 +25,7 @@ import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -143,5 +146,21 @@ public class ElideAutoConfiguration {
         Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
 
         return swagger;
+    }
+
+    /**
+     * Configure the AsyncExecutorService used for submitting async query requests.
+     * @param elide elideObject.
+     * @param settings Elide settings.
+     * @return a AsyncExecutorService.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "elide.async", name = "enabled", matchIfMissing = false)
+    public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
+            AsyncQueryDAO asyncQueryDao) {
+        AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
+                settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao);
+        return AsyncExecutorService.getInstance();
     }
 }

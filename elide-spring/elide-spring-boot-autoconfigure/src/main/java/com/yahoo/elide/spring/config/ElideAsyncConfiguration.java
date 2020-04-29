@@ -5,13 +5,20 @@
  */
 package com.yahoo.elide.spring.config;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.core.EntityDictionary;
 
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,7 +35,13 @@ import org.springframework.context.annotation.Configuration;
 @EntityScan(basePackageClasses = AsyncQuery.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @ConditionalOnExpression("${elide.async.enabled:false}")
-public class ElideAsyncConfiguration {
+public class ElideAsyncConfiguration implements InitializingBean {
+
+    @Autowired
+    AsyncExecutorService asyncExecutorService;
+
+    @Autowired
+    EntityDictionary entityDictionary;
 
     /**
      * Configure the AsyncExecutorService used for submitting async query requests.
@@ -36,14 +49,14 @@ public class ElideAsyncConfiguration {
      * @param settings Elide settings.
      * @return a AsyncExecutorService.
      */
-    @Bean
+    /*@Bean
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDao) {
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
                 settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao);
         return AsyncExecutorService.getInstance();
-    }
+    }*/
 
     /**
      * Configure the AsyncCleanerService used for cleaning up async query requests.
@@ -71,5 +84,11 @@ public class ElideAsyncConfiguration {
     @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncQueryDAO", matchIfMissing = true)
     public AsyncQueryDAO buildAsyncQueryDAO(Elide elide) {
         return new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(asyncExecutorService);
+        entityDictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
     }
 }
