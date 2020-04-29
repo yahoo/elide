@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import java.util.Stack;
 
@@ -48,12 +49,13 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      */
     @Override
     protected String visitFieldMetric(Metric metric) {
+        Table table = metric.getTable();
         return String.format(
                 metric.getMetricFunction().getExpression(),
                 getFieldAlias(
                         tableAliases.peek(),
                         dictionary.getAnnotatedColumnName(
-                                dictionary.getEntityClass(metric.getTable().getId()),
+                                dictionary.getEntityClass(table.getName(), table.getVersion()),
                                 metric.getName())));
     }
 
@@ -70,10 +72,11 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      */
     @Override
     protected String visitFieldDimension(Dimension dimension) {
+        Table table = dimension.getTable();
         return getFieldAlias(
                 tableAliases.peek(),
                 dictionary.getAnnotatedColumnName(
-                        dictionary.getEntityClass(dimension.getTable().getId()),
+                        dictionary.getEntityClass(table.getName(), table.getVersion()),
                         dimension.getName()));
     }
 
@@ -86,8 +89,9 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      */
     @Override
     protected String visitReferenceDimension(Dimension dimension) {
+        Table table = dimension.getTable();
         return visitTableJoinToReference(
-                dictionary.getEntityClass(dimension.getTable().getId()),
+                dictionary.getEntityClass(table.getName(), table.getVersion()),
                 dimension.getExpression());
     }
 
@@ -103,7 +107,8 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @return
      */
     private String visitFormulaColumn(Column column) {
-        Class<?> tableClass = dictionary.getEntityClass(column.getTable().getId());
+        Table table = column.getTable();
+        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
         String expr = column.getExpression();
 

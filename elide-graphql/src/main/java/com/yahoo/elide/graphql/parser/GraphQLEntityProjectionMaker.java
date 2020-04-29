@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql.parser;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.graphql.KeyWord.EDGES;
 import static com.yahoo.elide.graphql.KeyWord.NODE;
 import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO;
@@ -74,14 +75,16 @@ public class GraphQLEntityProjectionMaker {
     private final Map<SourceLocation, Attribute> attributeMap = new HashMap<>();
 
     private final GraphQLNameUtils nameUtils;
+    private final String apiVersion;
 
     /**
      * Constructor.
      *
      * @param elideSettings settings of current Elide instance
      * @param variables variables provided in the request
+     * @param apiVersion The client requested API version.
      */
-    public GraphQLEntityProjectionMaker(ElideSettings elideSettings, Map<String, Object> variables) {
+    public GraphQLEntityProjectionMaker(ElideSettings elideSettings, Map<String, Object> variables, String apiVersion) {
         this.elideSettings = elideSettings;
         this.entityDictionary = elideSettings.getDictionary();
         this.filterDialect = new MultipleFilterDialect(
@@ -91,6 +94,7 @@ public class GraphQLEntityProjectionMaker {
         this.variableResolver = new VariableResolver(variables);
         this.fragmentResolver = new FragmentResolver();
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
+        this.apiVersion = apiVersion;
     }
 
     /**
@@ -99,7 +103,7 @@ public class GraphQLEntityProjectionMaker {
      * @param elideSettings settings of current Elide instance
      */
     public GraphQLEntityProjectionMaker(ElideSettings elideSettings) {
-        this(elideSettings, new HashMap<>());
+        this(elideSettings, new HashMap<>(), NO_VERSION);
     }
 
     /**
@@ -163,7 +167,7 @@ public class GraphQLEntityProjectionMaker {
                 // '__schema' and '__type' would not be handled by entity projection
                 return;
             }
-            Class<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName());
+            Class<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName(), apiVersion);
             if (entityType == null) {
                 throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
                         rootSelectionField.getName()));
@@ -506,7 +510,8 @@ public class GraphQLEntityProjectionMaker {
         }
 
         try {
-            return filterDialect.parseTypedExpression(typeName, toQueryParams(typeName, filterString)).get(typeName);
+            return filterDialect.parseTypedExpression(typeName,
+                    toQueryParams(typeName, filterString), apiVersion).get(typeName);
         } catch (ParseException e) {
             log.debug("Filter parse exception caught", e);
             throw new InvalidPredicateException("Could not parse filter " + filterString + " for type: " + typeName);

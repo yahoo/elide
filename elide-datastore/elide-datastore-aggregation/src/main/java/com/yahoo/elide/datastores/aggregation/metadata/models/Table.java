@@ -39,6 +39,9 @@ public class Table {
 
     private String name;
 
+    @Exclude
+    private String version;
+
     private String description;
 
     private String category;
@@ -74,7 +77,14 @@ public class Table {
                     String.format("Table class {%s} is not defined in dictionary.", cls));
         }
 
-        this.id = dictionary.getJsonAliasFor(cls);
+        this.name = dictionary.getJsonAliasFor(cls);
+        this.id = this.name;
+        this.version = EntityDictionary.getModelVersion(cls);
+
+        if (this.version != null && ! this.version.isEmpty()) {
+            this.id = this.name + "." + this.version;
+        }
+
         this.tableTags = new HashSet<>();
 
         this.columns = constructColumns(cls, dictionary);
@@ -95,7 +105,6 @@ public class Table {
 
         Meta meta = cls.getAnnotation(Meta.class);
         if (meta != null) {
-            this.name = meta.longName();
             this.description = meta.description();
         }
 

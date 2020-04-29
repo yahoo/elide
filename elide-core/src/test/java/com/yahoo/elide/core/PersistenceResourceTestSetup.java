@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.ElideSettings;
@@ -116,7 +117,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
                 new Child(),
                 null,
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
-                new RequestScope(null, null, null, null, null,
+                new RequestScope(null, NO_VERSION, null, null, null, null,
                         initSettings()
                 )
         );
@@ -143,7 +144,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, MultivaluedMap<String, String> queryParams) {
-        return new RequestScope(path, null, tx, user, queryParams, elideSettings);
+        return new RequestScope(path, NO_VERSION, null, tx, user, queryParams, elideSettings);
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
@@ -152,12 +153,12 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         User goodUser = new TestUser("1");
-        RequestScope requestScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        RequestScope requestScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, elideSettings);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
-        return new RequestScope(null, new JsonApiDocument(), null, user, null,
+        return new RequestScope(null, NO_VERSION, new JsonApiDocument(), null, user, null,
                 new ElideSettingsBuilder(null)
                     .withEntityDictionary(dictionary)
                     .withAuditLogger(auditLogger)

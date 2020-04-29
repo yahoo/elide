@@ -62,6 +62,7 @@ public class ModelBuilder {
     private GraphQLConversionUtils generator;
     private GraphQLNameUtils nameUtils;
     private GraphQLObjectType pageInfoObject;
+    private final String apiVersion;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
@@ -75,11 +76,12 @@ public class ModelBuilder {
      * @param dictionary elide entity dictionary
      * @param dataFetcher graphQL data fetcher
      */
-    public ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
+    public ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher, String apiVersion) {
         this.generator = new GraphQLConversionUtils(dictionary);
         this.nameUtils = new GraphQLNameUtils(dictionary);
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
+        this.apiVersion = apiVersion;
 
         relationshipOpArg = newArgument()
                 .name(ARGUMENT_OPERATION)
@@ -147,7 +149,7 @@ public class ModelBuilder {
      * @return The built schema.
      */
     public GraphQLSchema build() {
-        Set<Class<?>> allClasses = dictionary.getBoundClasses();
+        Set<Class<?>> allClasses = dictionary.getBoundClassesByVersion(apiVersion);
 
         if (allClasses.isEmpty()) {
             throw new IllegalArgumentException("None of the provided classes are exported by Elide");

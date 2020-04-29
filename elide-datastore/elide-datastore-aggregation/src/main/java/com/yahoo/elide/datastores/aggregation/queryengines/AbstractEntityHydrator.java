@@ -9,6 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -151,7 +152,8 @@ public abstract class AbstractEntityHydrator {
      * @return A hydrated entity object.
      */
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
-        Class<?> entityClass = entityDictionary.getEntityClass(query.getTable().getId());
+        Table table = query.getTable();
+        Class<?> entityClass = entityDictionary.getEntityClass(table.getName(), table.getVersion());
 
         //Construct the object.
         Object entityInstance;
@@ -193,8 +195,9 @@ public abstract class AbstractEntityHydrator {
         for (Map.Entry<String, List<Object>> entry : hydrationIdsByRelationship.entrySet()) {
             String joinField = entry.getKey();
             List<Object> joinFieldIds = entry.getValue();
+            Table table = getQuery().getTable();
             Class<?> relationshipType = getEntityDictionary().getParameterizedType(
-                    entityDictionary.getEntityClass(getQuery().getTable().getId()),
+                    entityDictionary.getEntityClass(table.getName(), table.getVersion()),
                     joinField);
 
             getStitchList().populateLookup(relationshipType, getRelationshipValues(relationshipType, joinFieldIds));

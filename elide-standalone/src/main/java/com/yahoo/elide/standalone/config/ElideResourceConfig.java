@@ -7,6 +7,7 @@ package com.yahoo.elide.standalone.config;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.standalone.Util;
@@ -112,7 +113,7 @@ public class ElideResourceConfig extends ResourceConfig {
         register(new org.glassfish.hk2.utilities.binding.AbstractBinder() {
             @Override
             protected void configure() {
-                Map<String, Swagger> swaggerDocs = settings.enableSwagger();
+                List<DocEndpoint.SwaggerRegistration> swaggerDocs = settings.enableSwagger();
                 if (!swaggerDocs.isEmpty()) {
                     // Include the async models in swagger docs
                     if(settings.enableAsync()) {
@@ -120,7 +121,7 @@ public class ElideResourceConfig extends ResourceConfig {
                         dictionary.bindEntity(AsyncQuery.class);
                         dictionary.bindEntity(AsyncQueryResult.class);
                          
-                        Info info = new Info().title("Async Service").version("1.0");
+                        Info info = new Info().title("Async Service");
 
                         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
                         
@@ -129,10 +130,10 @@ public class ElideResourceConfig extends ResourceConfig {
 
                         Swagger swagger = builder.build().basePath(asyncBasePath);
 
-                        swaggerDocs.put("async", swagger);
+                        swaggerDocs.add(new DocEndpoint.SwaggerRegistration("async", swagger));
                     }
 
-                    bind(swaggerDocs).named("swagger").to(new TypeLiteral<Map<String, Swagger>>() { });
+                    bind(swaggerDocs).named("swagger").to(new TypeLiteral<List<DocEndpoint.SwaggerRegistration>>() { });
                 }
             }
         });

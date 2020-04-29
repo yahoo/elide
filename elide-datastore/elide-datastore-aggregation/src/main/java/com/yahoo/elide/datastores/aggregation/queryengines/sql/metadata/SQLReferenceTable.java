@@ -47,7 +47,7 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public String getResolvedReference(Table table, String fieldName) {
-        return resolvedReferences.get(dictionary.getEntityClass(table.getId())).get(fieldName);
+        return resolvedReferences.get(dictionary.getEntityClass(table.getName(), table.getVersion())).get(fieldName);
     }
 
     /**
@@ -58,7 +58,7 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public Set<JoinPath> getResolvedJoinPaths(Table table, String fieldName) {
-        return resolvedJoinPaths.get(dictionary.getEntityClass(table.getId())).get(fieldName);
+        return resolvedJoinPaths.get(dictionary.getEntityClass(table.getName(), table.getVersion())).get(fieldName);
     }
 
     /**
@@ -67,7 +67,7 @@ public class SQLReferenceTable {
      * @param table meta data table
      */
     private void resolveAndStoreAllReferencesAndJoins(Table table) {
-        Class<?> tableClass = dictionary.getEntityClass(table.getId());
+        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
         if (!resolvedReferences.containsKey(tableClass)) {
             resolvedReferences.put(tableClass, new HashMap<>());
         }

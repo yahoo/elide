@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,15 +14,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.swagger.model.Resource;
-import com.yahoo.elide.contrib.swagger.models.Author;
-import com.yahoo.elide.contrib.swagger.models.Book;
-import com.yahoo.elide.contrib.swagger.models.Publisher;
 import com.yahoo.elide.contrib.swagger.property.Data;
 import com.yahoo.elide.contrib.swagger.property.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.Maps;
+import example.models.Author;
+import example.models.Book;
+import example.models.Publisher;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,7 @@ public class SwaggerBuilderTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
-        Info info = new Info().title("Test Service").version("1.0");
+        Info info = new Info().title("Test Service").version(NO_VERSION);
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
         swagger = builder.build();
@@ -533,7 +534,7 @@ public class SwaggerBuilderTest {
     public void testGlobalErrorResponses() throws Exception {
         Info info = new Info()
                 .title("Test Service")
-                .version("1.0");
+                .version(NO_VERSION);
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
 
@@ -582,7 +583,7 @@ public class SwaggerBuilderTest {
         EntityDictionary entityDictionary = new EntityDictionary(Maps.newHashMap());
 
         entityDictionary.bindEntity(NothingToSort.class);
-        Info info = new Info().title("Test Service").version("1.0");
+        Info info = new Info().title("Test Service").version(NO_VERSION);
 
         SwaggerBuilder builder = new SwaggerBuilder(entityDictionary, info);
         Swagger testSwagger = builder.build();

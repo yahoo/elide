@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -704,7 +705,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         @SuppressWarnings("resource")
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        RequestScope goodScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, elideSettings);
 
         // null resource in toMany relationship is not valid
         List<Resource> idList = new ArrayList<>();
@@ -2219,7 +2220,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        PatchRequestScope parentScope = new PatchRequestScope("/book", tx, new TestUser("1"), elideSettings);
+        PatchRequestScope parentScope = new PatchRequestScope("/book", NO_VERSION, tx, new TestUser("1"), elideSettings);
         PatchRequestScope scope = new PatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works

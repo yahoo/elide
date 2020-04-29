@@ -39,8 +39,9 @@ public class AsyncQueryThread implements Runnable {
     private AsyncQuery queryObj;
     private User user;
     private Elide elide;
-    private QueryRunner runner;
+    private final QueryRunner runner;
     private AsyncQueryDAO asyncQueryDao;
+    private String apiVersion;
 
     @Override
     public void run() {
@@ -60,7 +61,7 @@ public class AsyncQueryThread implements Runnable {
             if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
                 MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
                 log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
-                response = elide.get(getPath(queryObj.getQuery()), queryParams, user);
+                response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion);
                 log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
             }

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
 
 import com.yahoo.elide.Injector;
@@ -73,6 +74,7 @@ public class EntityBinding {
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
 
+    @Getter
     public final Class<?> entityClass;
     public final String jsonApiType;
     public final String entityName;
@@ -88,6 +90,9 @@ public class EntityBinding {
     private AccessType accessType;
 
     private EntityDictionary dictionary;
+
+    @Getter
+    private String apiVersion;
 
     public final EntityPermissions entityPermissions;
     public final List<String> apiAttributes;
@@ -119,6 +124,7 @@ public class EntityBinding {
     private EntityBinding() {
         jsonApiType = null;
         entityName = null;
+        apiVersion = NO_VERSION;
         apiAttributes = new ArrayList<>();
         apiRelationships = new ArrayList<>();
         inheritedTypes = new ArrayList<>();
@@ -142,7 +148,7 @@ public class EntityBinding {
                          Class<?> cls,
                          String type,
                          String name) {
-        this(dictionary, cls, type, name, new HashSet<>());
+        this(dictionary, cls, type, name, NO_VERSION, new HashSet<>());
     }
 
     /**
@@ -158,10 +164,12 @@ public class EntityBinding {
                          Class<?> cls,
                          String type,
                          String name,
+                         String apiVersion,
                          Set<Class<? extends Annotation>> hiddenAnnotations) {
         this.dictionary = dictionary;
         entityClass = cls;
         jsonApiType = type;
+        this.apiVersion = apiVersion;
         entityName = name;
         inheritedTypes = getInheritedTypes(cls);
 

@@ -5,16 +5,24 @@
  */
 package com.yahoo.elide.graphql;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.resources.SecurityContextUser;
 import com.yahoo.elide.security.User;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -31,12 +39,17 @@ import javax.ws.rs.core.SecurityContext;
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/")
 public class GraphQLEndpoint {
-    private final QueryRunner runner;
+    private final Map<String, QueryRunner> runners;
+    private final Elide elide;
 
     @Inject
     public GraphQLEndpoint(@Named("elide") Elide elide) {
         log.debug("Started ~~");
-        this.runner = new QueryRunner(elide);
+        this.elide = elide;
+        this.runners = new HashMap<>();
+        for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
+            runners.put(apiVersion, new QueryRunner(elide, apiVersion));
+        }
     }
 
     /**
@@ -49,10 +62,18 @@ public class GraphQLEndpoint {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response post(
-            @Context SecurityContext securityContext,
-            String graphQLDocument) {
+            @HeaderParam("ApiVersion") String apiVersion,
+            @Context SecurityContext securityContext, String graphQLDocument) {
+        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
-        ElideResponse response = runner.run(graphQLDocument, user);
+        QueryRunner runner = runners.getOrDefault(safeApiVersion, null);
+
+        ElideResponse response;
+        if (runner == null) {
+            response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
+        } else {
+            response = runner.run(graphQLDocument, user);
+        }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }
 }

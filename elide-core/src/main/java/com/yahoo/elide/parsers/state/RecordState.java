@@ -52,7 +52,8 @@ public class RecordState extends BaseState {
             entityClass = paramType;
         } else {
             entityName = dictionary.getJsonAliasFor(paramType);
-            entityClass = dictionary.getEntityClass(entityName);
+
+            entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
         }
         if (entityClass == null) {
             throw new IllegalArgumentException("Unknown type " + entityName);

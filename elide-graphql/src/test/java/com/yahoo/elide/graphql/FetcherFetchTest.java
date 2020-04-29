@@ -228,7 +228,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testTypeIntrospection() {
         String graphQLRequest = "{"
-            + "__type(name: \"author\") {"
+            + "__type(name: \"Author\") {"
             + "   name"
             + "   fields {"
             + "     name"

@@ -7,12 +7,15 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -30,7 +33,7 @@ public class AsyncExecutorService {
     private final int defaultThreadpoolSize = 6;
 
     private Elide elide;
-    private QueryRunner runner;
+    private Map<String, QueryRunner> runners;
     private ExecutorService executor;
     private ExecutorService interruptor;
     private int maxRunTime;
@@ -40,7 +43,12 @@ public class AsyncExecutorService {
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
         this.elide = elide;
-        this.runner = new QueryRunner(elide);
+        runners = new HashMap();
+
+        for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
+            runners.put(apiVersion, new QueryRunner(elide, apiVersion));
+        }
+
         this.maxRunTime = maxRunTime;
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
@@ -76,8 +84,13 @@ public class AsyncExecutorService {
      * @param queryObj Query Object
      * @param user User
      */
-    public void executeQuery(AsyncQuery queryObj, User user) {
-        AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao);
+    public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
+        QueryRunner runner = runners.get(apiVersion);
+        if (runner == null) {
+            throw new InvalidOperationException("Invalid API Version");
+        }
+
+        AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
 
         AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide,
                executor.submit(queryWorker), queryObj, new Date(), maxRunTime, asyncQueryDao);

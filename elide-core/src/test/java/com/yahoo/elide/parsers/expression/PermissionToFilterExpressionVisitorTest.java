@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.parsers.expression;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
@@ -230,7 +231,7 @@ public class PermissionToFilterExpressionVisitorTest {
     //
     public RequestScope newRequestScope() {
         User john = new TestUser("John");
-        return requestScope = new RequestScope(null, null, null, john, null, elideSettings);
+        return requestScope = new RequestScope(null, NO_VERSION, null, null, john, null, elideSettings);
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

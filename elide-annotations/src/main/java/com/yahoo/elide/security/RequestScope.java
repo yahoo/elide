@@ -10,4 +10,5 @@ package com.yahoo.elide.security;
  */
 public interface RequestScope {
     User getUser();
+    String getApiVersion();
 }

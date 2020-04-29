@@ -9,6 +9,7 @@ package com.yahoo.elide.core;
 import static com.yahoo.elide.core.EntityBinding.EMPTY_BINDING;
 
 import com.yahoo.elide.Injector;
+import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
@@ -35,6 +36,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -79,11 +81,17 @@ import javax.ws.rs.WebApplicationException;
 @SuppressWarnings("static-method")
 public class EntityDictionary {
 
-    protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
+    public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
+    public static final String NO_VERSION = "";
+
+    protected final ConcurrentHashMap<Pair<String, String>, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Class<?>, List<Class<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+
+    @Getter
+    protected final Set<String> apiVersions;
 
     @Getter
     protected final Injector injector;
@@ -101,6 +109,7 @@ public class EntityDictionary {
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.apiVersions = new HashSet<>();
         initializeChecks();
 
         //Default injector only injects Elide internals.
@@ -132,6 +141,7 @@ public class EntityDictionary {
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
     }
@@ -230,8 +240,19 @@ public class EntityDictionary {
      * @param entityName entity name
      * @return binding class
      */
-    public Class<?> getEntityClass(String entityName) {
-        return bindJsonApiToEntity.get(entityName);
+    public Class<?> getEntityClass(String entityName, String version) {
+        Class<?> lookup = bindJsonApiToEntity.getOrDefault(Pair.of(entityName, version), null);
+
+        if (lookup == null) {
+            //Elide standard models transcend API versions.
+            return entityBindings.values().stream()
+                    .filter(binding -> binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX))
+                    .filter(binding -> binding.entityName.equals(entityName))
+                    .map(EntityBinding::getEntityClass)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return lookup;
     }
 
     /**
@@ -315,98 +336,31 @@ public class EntityDictionary {
     }
 
     /**
-     * Get inherited entity names for a particular entity.
-     *
-     * @param entityName Json alias name for entity
-     * @return  List of all inherited entity type names
-     */
-    public List<String> getSubclassingEntityNames(String entityName) {
-        return getSubclassingEntityNames(getEntityClass(entityName));
-    }
-
-    /**
-     * Get inherited entity names for a particular entity.
-     *
-     * @param entityClass Entity class
-     * @return  List of all inherited entity type names
-     */
-    public List<String> getSubclassingEntityNames(Class entityClass) {
-        List<Class<?>> entities = getSubclassingEntities(entityClass);
-        return entities.stream().map(this::getJsonAliasFor).collect(Collectors.toList());
-    }
-
-    /**
-     * Get a list of inherited entities from a particular entity.
-     * Namely, the list of entities inheriting from the provided class.
-     *
-     * @param entityName Json alias name for entity
-     * @return  List of all inherited entity types
-     */
-    public List<Class<?>> getSubclassingEntities(String entityName) {
-        return getSubclassingEntities(getEntityClass(entityName));
-    }
-
-    /**
-     * Get a list of inherited entities from a particular entity.
-     * Namely, the list of entities inheriting from the provided class.
-     *
-     * @param entityClass Entity class
-     * @return  List of all inherited entity types
-     */
-    public List<Class<?>> getSubclassingEntities(Class entityClass) {
-        return subclassingEntities.computeIfAbsent(entityClass, unused -> entityBindings
-                .keySet().stream()
-                .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
-                .collect(Collectors.toList()));
-    }
-
-    /**
-     * Fetch all entity names that the provided entity inherits from (i.e. all superclass entities down to,
-     * but excluding Object).
-     *
-     * @param entityName Json alias name for entity
-     * @return  List of all super class entity json names
-     */
-    public List<String> getSuperClassEntityNames(String entityName) {
-        return getSuperClassEntityNames(getEntityClass(entityName));
-    }
-
-    /**
-     * Fetch all entity names that the provided entity inherits from (i.e. all superclass entities down to,
-     * but excluding Object).
-     *
-     * @param entityClass Entity class
-     * @return  List of all super class entity json names
-     */
-    public List<String> getSuperClassEntityNames(Class entityClass) {
-        return getSuperClassEntities(entityClass).stream()
-                .map(this::getJsonAliasFor)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Fetch all entity classes that the provided entity inherits from (i.e. all superclass entities down to,
-     * but excluding Object).
-     *
-     * @param entityName Json alias name for entity
-     * @return  List of all super class entity classes
-     */
-    public List<Class<?>> getSuperClassEntities(String entityName) {
-        return getSuperClassEntities(getEntityClass(entityName));
-    }
-
-    /**
      * Fetch all entity classes that provided entity inherits from (i.e. all superclass entities down to,
      * but excluding Object).
      *
      * @param entityClass Entity class
      * @return  List of all super class entity classes
      */
-    public List<Class<?>> getSuperClassEntities(Class entityClass) {
+    public List<Class<?>> getSuperClassEntities(Class<?> entityClass) {
         return getEntityBinding(entityClass).inheritedTypes.stream()
                 .filter(entityBindings::containsKey)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Get a list of inherited entities from a particular entity.
+     * Namely, the list of entities inheriting from the provided class.
+     *
+     * @param entityClass Entity class
+     * @return  List of all inherited entity types
+     */
+     public List<Class<?>> getSubclassingEntities(Class entityClass) {
+         return subclassingEntities.computeIfAbsent(entityClass, unused -> entityBindings
+                            .keySet().stream()
+                            .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
+                            .collect(Collectors.toList()));
+     }
 
     /**
      * Returns the friendly named mapped to this given check.
@@ -448,6 +402,21 @@ public class EntityDictionary {
      */
     public Set<Class<?>> getBoundClasses() {
         return entityBindings.keySet();
+    }
+
+    /**
+     * Get all bound classes for a particular API version.
+     *
+     * @return the bound classes
+     */
+    public Set<Class<?>> getBoundClassesByVersion(String apiVersion) {
+        return entityBindings.values().stream()
+                .filter(binding ->
+                        binding.getApiVersion().equals(apiVersion)
+                                || binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX)
+                )
+                .map(EntityBinding::getEntityClass)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -873,8 +842,11 @@ public class EntityDictionary {
             type = include.type();
         }
 
-        bindJsonApiToEntity.put(type, declaredClass);
-        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass, type, name, hiddenAnnotations));
+        String version = getModelVersion(cls);
+        bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
+        apiVersions.add(version);
+        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass,
+                type, name, version, hiddenAnnotations));
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -895,8 +867,10 @@ public class EntityDictionary {
 
         Include include = (Include) getFirstAnnotation(declaredClass, Collections.singletonList(Include.class));
 
-        bindJsonApiToEntity.put(entityBinding.jsonApiType, declaredClass);
+        String version = getModelVersion(declaredClass);
+        bindJsonApiToEntity.put(Pair.of(entityBinding.jsonApiType, version), declaredClass);
         entityBindings.put(declaredClass, entityBinding);
+        apiVersions.add(version);
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -1003,10 +977,24 @@ public class EntityDictionary {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
                 annotation = cls.getDeclaredAnnotation(annotationClass);
                 if (annotation != null) {
-                    break;
+                    return annotation;
                 }
             }
         }
+
+        return getFirstPackageAnnotation(entityClass, annotationClassList);
+    }
+
+    /**
+     * Return first matching annotation from a package or parent package.
+     *
+     * @param entityClass         Entity class type
+     * @param annotationClassList List of sought annotations
+     * @return annotation found
+     */
+    public static Annotation getFirstPackageAnnotation(Class<?> entityClass,
+                                                       List<Class<? extends Annotation>> annotationClassList) {
+        Annotation annotation = null;
         // no class annotation, try packages
         for (Package pkg = entityClass.getPackage(); annotation == null && pkg != null; pkg = getParentPackage(pkg)) {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
@@ -1379,7 +1367,9 @@ public class EntityDictionary {
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
-        return bindJsonApiToEntity.contains(cls);
+        return entityBindings.values().stream()
+                .filter(binding -> binding.entityClass.equals(cls))
+                .findFirst().orElse(null) != null;
     }
 
     /**
@@ -1642,5 +1632,17 @@ public class EntityDictionary {
         } else {
             return column[0].name();
         }
+    }
+
+    /**
+     * Returns the api version bound to a particular model class.
+     * @param modelClass The model class to lookup.
+     * @return The api version associated with the model or empty string if there is no association.
+     */
+    public static String getModelVersion(Class<?> modelClass) {
+        ApiVersion apiVersionAnnotation =
+                (ApiVersion) getFirstPackageAnnotation(modelClass, Arrays.asList(ApiVersion.class));
+
+        return (apiVersionAnnotation == null) ? NO_VERSION : apiVersionAnnotation.version();
     }
 }

@@ -20,6 +20,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationshi
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
@@ -2497,7 +2498,7 @@ public class ResourceIT extends IntegrationTest {
                 .build());
 
         com.yahoo.elide.security.User user = new com.yahoo.elide.security.User(() -> "-1");
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user);
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }
@@ -2725,5 +2726,163 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void badChildCollectionId() {
         given().when().get("/user/1/oops/1").then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+                         //broken out by class instead of a common table.
+    public void testVersionedBookFetch() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .get("/book?fields[book]=name")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("1"),
+                                        attributes(
+                                                attr("name", "titlewith%percentage")
+                                        )
+                                ),
+                                resource(
+                                        type("book"),
+                                        id("2"),
+                                        attributes(
+                                                attr("name", "titlewithoutpercentage")
+                                        )
+                                )
+                        ).toJSON()
+                ));
+
+        given()
+                .header("ApiVersion", NO_VERSION)
+                .when()
+                .get("/book?fields[book]=title")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("1"),
+                                        attributes(
+                                                attr("title", "titlewith%percentage")
+                                        )
+                                ),
+                                resource(
+                                        type("book"),
+                                        id("2"),
+                                        attributes(
+                                                attr("title", "titlewithoutpercentage")
+                                        )
+                                )
+                        ).toJSON()
+                ));
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
+    public void testVersionedBookCreate() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("book"),
+                                        attributes(
+                                                attr("name", "A new book."),
+                                                attr("publishDate", 1123)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/book")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("book"),
+                                        id("3"),
+                                        attributes(
+                                                attr("name", "A new book."),
+                                                attr("publishDate", 1123)
+                                        )
+                                )
+                        ).toJSON()
+                ));
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
+    public void testVersionedBookPatch() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("book"),
+                                        id("2"),
+                                        attributes(
+                                                attr("name", "A new book.")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/book/2")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
+    public void testVersionedPatchExtension() {
+        String req = jsonParser.getJson("/ResourceIT/versionedPatchExtension.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/versionedPatchExtension.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .header("ApiVersion", "1.0")
+                .body(req)
+                .patch("/book")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
+    public void testVersionedBookDelete() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .delete("/book/2")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+
+    @Test
+    public void testMissingVersionedModels() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .get("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }

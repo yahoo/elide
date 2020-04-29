@@ -153,8 +153,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         requestScope.publishLifecycleEvent(newResource, CREATE);
 
-        String type = newResource.getType();
-        requestScope.setUUIDForObject(type, id, newResource.getObject());
+        requestScope.setUUIDForObject(newResource.getResourceClass(), id, newResource.getObject());
 
         // Initialize null ToMany collections
         requestScope.getDictionary().getRelationships(entityClass).stream()
@@ -234,7 +233,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Class<?> loadClass = projection.getType();
 
         // Check the resource cache if exists
-        Object obj = requestScope.getObjectById(dictionary.getJsonAliasFor(loadClass), id);
+        Object obj = requestScope.getObjectById(loadClass, id);
         if (obj == null) {
             // try to load object
             Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass,
@@ -934,10 +933,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             RequestScope scope) {
         Class<?> idType = dictionary.getIdType(entityType);
         String idField = dictionary.getIdFieldName(entityType);
-        String typeAlias = dictionary.getJsonAliasFor(entityType);
 
         List<Object> coercedIds = ids.stream()
-                .filter(id -> scope.getObjectById(typeAlias, id) == null) // these don't exist yet
+                .filter(id -> scope.getObjectById(entityType, id) == null) // these don't exist yet
                 .map(id -> CoerceUtil.coerce(id, idType))
                 .collect(Collectors.toList());
 

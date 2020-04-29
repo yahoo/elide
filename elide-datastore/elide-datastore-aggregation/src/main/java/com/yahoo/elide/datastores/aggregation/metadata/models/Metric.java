@@ -35,7 +35,7 @@ public class Metric extends Column {
 
     public Metric(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
-        Class<?> tableClass = dictionary.getEntityClass(table.getId());
+        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
         MetricAggregation aggregation = dictionary.getAttributeOrRelationAnnotation(
                 tableClass,

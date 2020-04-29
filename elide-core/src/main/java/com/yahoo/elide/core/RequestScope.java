@@ -62,6 +62,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final ElideSettings elideSettings;
     @Getter private final int updateStatusCode;
     @Getter private final MultipleFilterDialect filterDialect;
+    @Getter private final String apiVersion;
 
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
@@ -79,6 +80,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * Create a new RequestScope with specified update status code.
      *
      * @param path the URL path
+     * @param apiVersion the API version.
      * @param jsonApiDocument the document for this request
      * @param transaction the transaction for this request
      * @param user the user making this request
@@ -86,11 +88,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param elideSettings Elide settings object
      */
     public RequestScope(String path,
+                        String apiVersion,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
                         MultivaluedMap<String, String> queryParams,
                         ElideSettings elideSettings) {
+        this.apiVersion = apiVersion;
         this.lifecycleEvents = PublishSubject.create();
         this.distinctLifecycleEvents = lifecycleEvents.distinct();
         this.queuedLifecycleEvents = ReplaySubject.create();
@@ -136,14 +140,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
                 /* First check to see if there is a global, cross-type filter */
                 try {
-                    globalFilterExpression = filterDialect.parseGlobalExpression(path, filterParams);
+                    globalFilterExpression = filterDialect.parseGlobalExpression(path, filterParams, apiVersion);
                 } catch (ParseException e) {
                     errorMessage = e.getMessage();
                 }
 
                 /* Next check to see if there is are type specific filters */
                 try {
-                    expressionsByType.putAll(filterDialect.parseTypedExpression(path, filterParams));
+                    expressionsByType.putAll(filterDialect.parseTypedExpression(path, filterParams, apiVersion));
                 } catch (ParseException e) {
 
                     /* If neither dialect parsed, report the last error found */
@@ -172,11 +176,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * Special copy constructor for use by PatchRequestScope.
      *
      * @param path the URL path
+     * @param apiVersion the API version
      * @param jsonApiDocument   the json api document
      * @param outerRequestScope the outer request scope
      */
-    protected RequestScope(String path, JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
+    protected RequestScope(String path, String apiVersion,
+                           JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
         this.jsonApiDocument = jsonApiDocument;
+        this.apiVersion = apiVersion;
         this.path = path;
         this.transaction = outerRequestScope.transaction;
         this.user = outerRequestScope.user;
@@ -294,7 +301,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      */
     private boolean interfaceHasFilterExpression(Class<?> entityInterface) {
         for (String filterType : expressionsByType.keySet()) {
-            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType);
+            String version = EntityDictionary.getModelVersion(entityInterface);
+            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType, version);
             if (entityInterface.isAssignableFrom(polyMorphicClass)) {
                 return true;
             }
@@ -442,25 +450,29 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         return objectEntityCache.getUUID(o);
     }
 
-    public Object getObjectById(String type, String id) {
-        Object result = objectEntityCache.get(type, id);
+    public Object getObjectById(Class<?> type, String id) {
+        Class<?> boundType = dictionary.lookupBoundClass(type);
+
+        Object result = objectEntityCache.get(boundType.getName(), id);
 
         // Check inheritance too
-        Iterator<String> it = dictionary.getSubclassingEntityNames(type).iterator();
+        Iterator<Class<?>> it = dictionary.getSubclassingEntities(boundType).iterator();
         while (result == null && it.hasNext()) {
-            String newType = getInheritanceKey(it.next(), type);
+            String newType = getInheritanceKey(it.next().getName(), boundType.getName());
             result = objectEntityCache.get(newType, id);
         }
 
         return result;
     }
 
-    public void setUUIDForObject(String type, String id, Object object) {
-        objectEntityCache.put(type, id, object);
+    public void setUUIDForObject(Class<?> type, String id, Object object) {
+        Class<?> boundType = dictionary.lookupBoundClass(type);
+
+        objectEntityCache.put(boundType.getName(), id, object);
 
         // Insert for all inherited entities as well
-        dictionary.getSuperClassEntityNames(type).stream()
-                .map(i -> getInheritanceKey(type, i))
+        dictionary.getSuperClassEntities(type).stream()
+                .map(i -> getInheritanceKey(boundType.getName(), i.getName()))
                 .forEach((newType) -> objectEntityCache.put(newType, id, object));
     }
 

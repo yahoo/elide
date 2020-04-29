@@ -24,7 +24,8 @@ public class StartState extends BaseState {
     public void handle(StateContext state, RootCollectionLoadEntitiesContext ctx) {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
-        Class<?> entityClass = dictionary.getEntityClass(entityName);
+
+        Class<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
 
         state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
                 state.getRequestScope().getEntityProjection()));

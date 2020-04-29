@@ -23,6 +23,6 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, AsyncQuery query,
                         RequestScope requestScope, Optional<ChangeSpec> changes) {
-        asyncExecutorService.executeQuery(query, requestScope.getUser());
+        asyncExecutorService.executeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
     }
 }

@@ -53,6 +53,7 @@ import javax.ws.rs.core.Response;
 public class QueryRunner {
     private final Elide elide;
     private GraphQL api;
+    private String apiVersion;
 
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
@@ -63,11 +64,12 @@ public class QueryRunner {
      * Builds a new query runner.
      * @param elide The singular elide instance for this service.
      */
-    public QueryRunner(Elide elide) {
+    public QueryRunner(Elide elide, String apiVersion) {
         this.elide = elide;
+        this.apiVersion = apiVersion;
 
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
-        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
+        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher, apiVersion);
 
         this.api = new GraphQL(builder.build());
 
@@ -96,7 +98,7 @@ public class QueryRunner {
             log.debug("Invalid json body provided to GraphQL", e);
             // NOTE: Can't get at isVerbose setting here for hardcoding to false. If necessary, we can refactor
             // so this can be set appropriately.
-            return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), false);
+            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), false);
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
@@ -157,10 +159,11 @@ public class QueryRunner {
                 variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
             }
 
+            //TODO - get API version.
             GraphQLProjectionInfo projectionInfo =
-                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables).make(query);
+                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion).make(query);
             GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope(tx, principal, elide.getElideSettings(), projectionInfo);
+                    new GraphQLRequestScope(tx, principal, apiVersion, elide.getElideSettings(), projectionInfo);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
@@ -214,10 +217,10 @@ public class QueryRunner {
                     .build();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
-            return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
+            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
-            return buildErrorResponse(new TransactionException(e), isVerbose);
+            return buildErrorResponse(elide, new TransactionException(e), isVerbose);
         } catch (WebApplicationException e) {
             log.debug("WebApplicationException", e);
             return ElideResponse.builder()
@@ -231,7 +234,7 @@ public class QueryRunner {
             } else {
                 log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             }
-            return buildErrorResponse(new HttpStatusException(200, e.getMessage()) {
+            return buildErrorResponse(elide, new HttpStatusException(200, e.getMessage()) {
                 @Override
                 public int getStatus() {
                     return 200;
@@ -265,7 +268,7 @@ public class QueryRunner {
         }
     }
 
-    private ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
+    public static ElideResponse buildErrorResponse(Elide elide, HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
         JsonNode errorNode;
         if (!(error instanceof CustomErrorException)) {

@@ -15,9 +15,9 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 
-import com.yahoo.elide.models.triggers.Invoice;
-import com.yahoo.elide.models.triggers.services.BillingService;
 import example.TestCheckMappings;
+import example.models.triggers.Invoice;
+import example.models.triggers.services.BillingService;
 
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;

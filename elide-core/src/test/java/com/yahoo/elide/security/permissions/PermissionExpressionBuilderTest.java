@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.ElideSettings;
@@ -128,7 +129,7 @@ public class PermissionExpressionBuilderTest {
      }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, null, null, null, elideSettings);
+        RequestScope requestScope = new RequestScope(null, NO_VERSION, null, null, null, null, elideSettings);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 }
