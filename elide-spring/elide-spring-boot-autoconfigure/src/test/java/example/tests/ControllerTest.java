@@ -7,7 +7,6 @@ package example.tests;
 
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
@@ -40,8 +39,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Example functional test.

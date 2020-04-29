@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.spring.controllers;
 
+import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -29,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
 
 /**
  * Spring rest controller for Elide GraphQL.
