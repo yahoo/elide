@@ -22,4 +22,6 @@ public class BookV2 extends BaseId {
 
     @Column(name = "title")
     private String name;
+
+    private long publishDate = 0;
 }
