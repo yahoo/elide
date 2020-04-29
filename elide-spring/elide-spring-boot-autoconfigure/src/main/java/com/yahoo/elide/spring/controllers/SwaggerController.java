@@ -42,16 +42,16 @@ import java.util.stream.Collectors;
 @ConditionalOnExpression("${elide.swagger.enabled:false}")
 public class SwaggerController {
 
+    //Maps api version & path to swagger document.
+    protected Map<Pair<String, String>, String> documents;
+    private static final String JSON_CONTENT_TYPE = "application/json";
+
     @Data
     @AllArgsConstructor
     public static class SwaggerRegistration {
         private String path;
         private Swagger document;
     }
-
-    //Maps api version & path to swagger document.
-    protected Map<Pair<String, String>, String> documents;
-    private static final String JSON_CONTENT_TYPE = "application/json";
 
     /**
      * Constructs the resource.
@@ -82,7 +82,7 @@ public class SwaggerController {
 
     @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)
     public ResponseEntity<String> list(@RequestHeader Map<String, String> requestHeaders) {
-        String apiVersion = Util.getApiVersion(requestHeaders);
+        String apiVersion = Utils.getApiVersion(requestHeaders);
 
         List<String> documentPaths = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(apiVersion))
@@ -112,7 +112,7 @@ public class SwaggerController {
     public ResponseEntity<String> list(@RequestHeader Map<String, String> requestHeaders,
                                        @PathVariable("name") String name) {
 
-        String apiVersion = Util.getApiVersion(requestHeaders);
+        String apiVersion = Utils.getApiVersion(requestHeaders);
         String encodedName = Encode.forHtml(name);
 
         Pair<String, String> lookupKey = Pair.of(apiVersion, encodedName);

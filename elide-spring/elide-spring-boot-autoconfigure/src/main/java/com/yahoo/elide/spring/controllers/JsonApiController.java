@@ -63,7 +63,7 @@ public class JsonApiController {
                                            @RequestParam Map<String, String> allRequestParams,
                                            HttpServletRequest request, Authentication authentication) {
 
-        String apiVersion = Util.getApiVersion(requestHeaders);
+        String apiVersion = Utils.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
@@ -75,7 +75,7 @@ public class JsonApiController {
     public ResponseEntity<String> elidePost(@RequestHeader Map<String, String> requestHeaders,
                                             @RequestBody String body,
                                             HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Util.getApiVersion(requestHeaders);
+        String apiVersion = Utils.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
@@ -88,7 +88,7 @@ public class JsonApiController {
     public ResponseEntity<String> elidePatch(@RequestHeader Map<String, String> requestHeaders,
                                              @RequestBody String body,
                                              HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Util.getApiVersion(requestHeaders);
+        String apiVersion = Utils.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
@@ -101,7 +101,7 @@ public class JsonApiController {
     public ResponseEntity<String> elideDelete(@RequestHeader Map<String, String> requestHeaders,
                                               HttpServletRequest request,
                                               Authentication authentication) {
-        String apiVersion = Util.getApiVersion(requestHeaders);
+        String apiVersion = Utils.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);
@@ -114,7 +114,7 @@ public class JsonApiController {
     public ResponseEntity<String> elideDeleteRelationship(@RequestHeader Map<String, String> requestHeaders,
                                                           @RequestBody String body,
                                                           HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Util.getApiVersion(requestHeaders);
+        String apiVersion = Utils.getApiVersion(requestHeaders);
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         User user = new AuthenticationUser(authentication);

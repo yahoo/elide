@@ -9,7 +9,7 @@ package com.yahoo.elide.spring.controllers;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import java.util.Map;
 
-public class Util {
+public class Utils {
     public static String getApiVersion(Map<String, String> requestHeaders) {
         return requestHeaders.getOrDefault("ApiVersion",
                 requestHeaders.getOrDefault("apiversion", NO_VERSION));  //For tomcat

@@ -36,6 +36,8 @@ import javax.ws.rs.core.Response;
 @Path("/doc")
 @Produces("application/json")
 public class DocEndpoint {
+    //Maps api version & path to a swagger document.
+    protected Map<Pair<String, String>, String> documents;
 
     @Data
     @AllArgsConstructor
@@ -43,9 +45,6 @@ public class DocEndpoint {
         private String path;
         private Swagger document;
     }
-
-    //Maps api version & path to a swagger document.
-    protected Map<Pair<String, String>, String> documents;
 
     /**
      * Constructs the resource.

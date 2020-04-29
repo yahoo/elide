@@ -70,7 +70,7 @@ public class GraphqlController {
                                        @RequestBody String graphQLDocument, Authentication principal) {
         User user = new AuthenticationUser(principal);
 
-        String apiVersion = Util.getApiVersion(requestHeaders);
+        String apiVersion = Utils.getApiVersion(requestHeaders);
         QueryRunner runner = runners.get(apiVersion);
 
         ElideResponse response;

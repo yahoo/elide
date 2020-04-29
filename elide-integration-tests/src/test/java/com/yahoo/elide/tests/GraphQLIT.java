@@ -18,6 +18,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDef
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
@@ -504,13 +505,7 @@ public class GraphQLIT extends IntegrationTest {
                 )
         ).toQuery();
 
-        String expected = "{\n"
-                + "    \"errors\": [\n"
-                + "        {\n"
-                + "            \"message\": \"Invalid operation: Invalid API Version\"\n"
-                + "        }\n"
-                + "    ]\n"
-                + "}";
+        String expected = "{\"errors\":[{\"message\":\"Invalid operation: Invalid API Version\"}]}";
 
         String query = toJsonQuery(graphQLRequest, new HashMap<>());
 
@@ -521,6 +516,7 @@ public class GraphQLIT extends IntegrationTest {
                 .body(query)
                 .post("/graphQL")
                 .then()
+                .body(equalTo(expected))
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 

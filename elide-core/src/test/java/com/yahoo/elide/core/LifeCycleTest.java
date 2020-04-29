@@ -681,7 +681,7 @@ public class LifeCycleTest {
         when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(contentType, contentType, "/", body, null);
+        ElideResponse response = elide.patch(contentType, contentType, "/", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
@@ -736,7 +736,7 @@ public class LifeCycleTest {
         when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(contentType, contentType, "/", body, null);
+        ElideResponse response = elide.patch(contentType, contentType, "/", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
         assertEquals(
                 "[{\"errors\":[{\"detail\":\"Bad Request Body&#39;Patch extension requires all objects to have an assigned ID (temporary or permanent) when assigning relationships.&#39;\",\"status\":\"400\"}]}]",
@@ -764,7 +764,7 @@ public class LifeCycleTest {
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(contentType, contentType, "/", body, null);
+        ElideResponse response = elide.patch(contentType, contentType, "/", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
@@ -811,7 +811,7 @@ public class LifeCycleTest {
                 + "\"type\":\"testModel\",\"id\":\"1\"}}]";
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(contentType, contentType, "/", body, null);
+        ElideResponse response = elide.patch(contentType, contentType, "/", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
