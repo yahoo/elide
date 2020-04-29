@@ -2830,6 +2830,24 @@ public class ResourceIT extends IntegrationTest {
     @Test
     @Tag("skipInMemory") //Skipping because storage for in-memory store is
     //broken out by class instead of a common table.
+    public void testVersionedPatchExtension() {
+        String req = jsonParser.getJson("/ResourceIT/versionedPatchExtension.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/versionedPatchExtension.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .header("ApiVersion", "1.0")
+                .body(req)
+                .patch("/book")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
     public void testVersionedBookDelete() throws Exception {
         given()
                 .header("ApiVersion", "1.0")

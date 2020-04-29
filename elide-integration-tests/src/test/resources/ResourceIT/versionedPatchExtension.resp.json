@@ -1,0 +1,12 @@
+[
+  {
+    "data": {
+      "type": "book",
+      "id": "3",
+      "attributes": {
+        "name": "A new book.",
+        "publishDate": 1234
+      }
+    }
+  }
+]

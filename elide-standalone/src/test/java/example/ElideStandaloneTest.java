@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.standalone;
+package example;
 
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
@@ -19,8 +19,9 @@ import com.google.common.collect.Maps;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-import com.yahoo.elide.standalone.models.Post;
+import example.models.Post;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 import org.apache.http.HttpStatus;
@@ -111,6 +112,30 @@ public class ElideStandaloneTest {
             .then()
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
+    }
+
+    @Test
+    public void testVersionedJsonAPIPost() {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .header("ApiVersion", "1.0")
+                .body(
+                        datum(
+                                resource(
+                                        type("post"),
+                                        id("2"),
+                                        attributes(
+                                                attr("text", "This is my first post. woot."),
+                                                attr("date", "2019-01-01T00:00Z")
+                                        )
+                                )
+                        )
+                )
+                .post("/api/v1/post")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract().body().asString();
     }
 
     @Test

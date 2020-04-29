@@ -4,12 +4,12 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.standalone.models;
+package example.models;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.standalone.checks.AdminCheck;
+import example.checks.AdminCheck;
 import lombok.Data;
 
 import java.util.Date;

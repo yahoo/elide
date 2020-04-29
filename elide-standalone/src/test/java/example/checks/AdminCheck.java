@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.standalone.checks;
+package example.checks;
 
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.security.RequestScope;
