@@ -456,7 +456,7 @@ public class GraphQLIT extends IntegrationTest {
                 .then()
                 .log().all()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.__type.fields.name", containsInAnyOrder("id", "name"));
+                .body("data.__type.fields.name", containsInAnyOrder("id", "name", "publishDate"));
     }
 
     @Test
