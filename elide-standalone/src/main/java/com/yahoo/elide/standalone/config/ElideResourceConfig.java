@@ -7,6 +7,7 @@ package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
@@ -15,6 +16,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
+import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -86,9 +88,11 @@ public class ElideResourceConfig extends ResourceConfig {
                 // Bind elide instance for injection into endpoint
                 bind(elide).to(Elide.class).named("elide");
 
+                EntityDictionary dictionary = elideSettings.getDictionary();
+
                 // Bind additional elements
                 bind(elideSettings).to(ElideSettings.class);
-                bind(elideSettings.getDictionary()).to(EntityDictionary.class);
+                bind(dictionary).to(EntityDictionary.class);
                 bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
 
                 // Binding async service
@@ -103,10 +107,12 @@ public class ElideResourceConfig extends ResourceConfig {
                             settings.getAsyncMaxRunTimeMinutes(), asyncQueryDao);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
-                    // Binding ExecuteQueryHook
+                    // Binding AsyncQuery LifeCycleHook
                     ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
+                    UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
 
-                    elideSettings.getDictionary().bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
+                    dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
+                    dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
 
                     // Binding async cleanup service
                     if(settings.enableAsyncCleanup()) {
