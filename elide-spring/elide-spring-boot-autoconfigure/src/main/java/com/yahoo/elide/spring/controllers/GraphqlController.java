@@ -30,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
+
 /**
  * Spring rest controller for Elide GraphQL.
  */
@@ -42,12 +44,14 @@ import java.util.Map;
 public class GraphqlController {
 
     private final Map<String, QueryRunner> runners;
+    private final Elide elide;
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     @Autowired
     public GraphqlController(Elide elide) {
         log.debug("Started ~~");
+        this.elide = elide;
         this.runners = new HashMap<>();
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));
@@ -71,7 +75,7 @@ public class GraphqlController {
 
         ElideResponse response;
         if (runner == null) {
-            response = runner.buildErrorResponse(new InvalidOperationException("Invalid API Version"), false);
+            response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
             response = runner.run(graphQLDocument, user);
         }

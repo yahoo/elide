@@ -98,7 +98,7 @@ public class QueryRunner {
             log.debug("Invalid json body provided to GraphQL", e);
             // NOTE: Can't get at isVerbose setting here for hardcoding to false. If necessary, we can refactor
             // so this can be set appropriately.
-            return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), false);
+            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), false);
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
@@ -217,10 +217,10 @@ public class QueryRunner {
                     .build();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
-            return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
+            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
-            return buildErrorResponse(new TransactionException(e), isVerbose);
+            return buildErrorResponse(elide, new TransactionException(e), isVerbose);
         } catch (WebApplicationException e) {
             log.debug("WebApplicationException", e);
             return ElideResponse.builder()
@@ -234,7 +234,7 @@ public class QueryRunner {
             } else {
                 log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             }
-            return buildErrorResponse(new HttpStatusException(200, e.getMessage()) {
+            return buildErrorResponse(elide, new HttpStatusException(200, e.getMessage()) {
                 @Override
                 public int getStatus() {
                     return 200;
@@ -268,7 +268,7 @@ public class QueryRunner {
         }
     }
 
-    public ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
+    public static ElideResponse buildErrorResponse(Elide elide, HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
         JsonNode errorNode;
         if (!(error instanceof CustomErrorException)) {

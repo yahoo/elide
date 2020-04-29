@@ -427,7 +427,6 @@ public class GraphQLIT extends IntegrationTest {
             .body(query)
             .post("/graphQL")
             .then()
-            .log().all()
             .statusCode(HttpStatus.SC_OK)
             .body("data.__type.fields.name", containsInAnyOrder("id", "awards", "chapterCount",
                     "editorName", "genre", "language", "publishDate", "title", "authors", "chapters",
@@ -454,7 +453,6 @@ public class GraphQLIT extends IntegrationTest {
                 .body(query)
                 .post("/graphQL")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.__type.fields.name", containsInAnyOrder("id", "name", "publishDate"));
     }
@@ -489,6 +487,41 @@ public class GraphQLIT extends IntegrationTest {
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
+    }
+
+    @Test
+    public void testInvalidApiVersion() throws IOException {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "{\n"
+                + "    \"errors\": [\n"
+                + "        {\n"
+                + "            \"message\": \"Invalid operation: Invalid API Version\"\n"
+                + "        }\n"
+                + "    ]\n"
+                + "}";
+
+        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("ApiVersion", "2.0")
+                .body(query)
+                .post("/graphQL")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test

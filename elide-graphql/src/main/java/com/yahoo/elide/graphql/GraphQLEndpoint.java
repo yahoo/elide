@@ -6,6 +6,7 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -39,10 +40,12 @@ import javax.ws.rs.core.SecurityContext;
 @Path("/")
 public class GraphQLEndpoint {
     private final Map<String, QueryRunner> runners;
+    private final Elide elide;
 
     @Inject
     public GraphQLEndpoint(@Named("elide") Elide elide) {
         log.debug("Started ~~");
+        this.elide = elide;
         this.runners = new HashMap<>();
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));
@@ -67,7 +70,7 @@ public class GraphQLEndpoint {
 
         ElideResponse response;
         if (runner == null) {
-            response = runner.buildErrorResponse(new InvalidOperationException("Invalid API Version"), false);
+            response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
             response = runner.run(graphQLDocument, user);
         }
