@@ -200,9 +200,15 @@ public class JsonApiPatch {
             if (data == null || data.get() == null) {
                 throw new InvalidEntityBodyException("Expected an entity body but received none.");
             }
+
             Collection<Resource> resources = data.get();
             if (!path.contains("relationships")) { // Reserved key for relationships
                 String id = getSingleResource(resources).getId();
+
+                if (id == null || id.isEmpty()) {
+                    throw new InvalidEntityBodyException("Patch extension requires all objects to have an assigned "
+                            + "ID (temporary or permanent) when assigning relationships.");
+                }
                 String fullPath = path + "/" + id;
                 // Defer relationship updating until the end
                 getSingleResource(resources).setRelationships(null);
