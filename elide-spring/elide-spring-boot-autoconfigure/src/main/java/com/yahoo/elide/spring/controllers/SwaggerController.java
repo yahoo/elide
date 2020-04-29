@@ -84,16 +84,16 @@ public class SwaggerController {
     public ResponseEntity<String> list(@RequestHeader Map<String, String> requestHeaders) {
         String apiVersion = Util.getApiVersion(requestHeaders);
 
-        if (documents.size() == 1) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(documents.values().stream().findFirst().get());
-        }
-
         List<String> documentPaths = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(apiVersion))
                 .map(key -> key.getRight())
                 .collect(Collectors.toList());
+
+        if (documentPaths.size() == 1) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(documents.values().iterator().next());
+        }
 
         String body = "[" + documentPaths.stream()
                 .map(key -> '"' + key + '"')

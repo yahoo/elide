@@ -27,6 +27,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperatio
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
@@ -331,7 +332,21 @@ public class ControllerTest extends IntegrationTest {
         when()
                 .get("/doc")
                 .then()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body("tags.name", containsInAnyOrder("group", "functionArgument", "metric",
+                        "metricFunction", "dimension", "column", "table", "asyncQuery", "asyncQueryResult",
+                        "timeDimensionGrain", "timeDimension"));
+    }
+
+    @Test
+    public void versionedSwaggerDocumentTest() {
+        given()
+                .header("ApiVersion", "1.0")
+        .when()
+                .get("/doc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo("[]"));
     }
 
     @Test
