@@ -26,7 +26,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import io.swagger.models.Swagger;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -65,19 +64,9 @@ public interface ElideStandaloneSettings {
     default ElideSettings getElideSettings(ServiceLocator injector) {
         EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
                 enableAsync(), getDatabaseProperties());
-        DataStore dataStore = null;
-
-        ArrayList<Class<?>> list =  (ArrayList) Util.getAllEntityClasses(getModelPackageName());
-        if(list.size() != 0) {
-            Class<?>[] arr = new Class<?>[list.size()]; 
-            dataStore = new JpaDataStore(
-                    () -> { return entityManagerFactory.createEntityManager(); },
-                    (em -> { return new NonJtaTransaction(em); }), list.toArray(arr));
-        } else {
-            dataStore = new JpaDataStore(
-                    () -> { return entityManagerFactory.createEntityManager(); },
-                    (em -> { return new NonJtaTransaction(em); }));
-        }
+        DataStore dataStore = new JpaDataStore(
+                () -> { return entityManagerFactory.createEntityManager(); },
+                (em -> { return new NonJtaTransaction(em); }));
 
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
                 new Injector() {

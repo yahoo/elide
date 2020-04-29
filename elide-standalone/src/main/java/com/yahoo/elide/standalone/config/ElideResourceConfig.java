@@ -5,11 +5,15 @@
  */
 package com.yahoo.elide.standalone.config;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.standalone.Util;
+import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -98,6 +102,11 @@ public class ElideResourceConfig extends ResourceConfig {
                             settings.getAsyncMaxRunTimeMinutes(), asyncQueryDao);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
+                    // Binding ExecuteQueryHook
+                    ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
+
+                    elideSettings.getDictionary().bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
+
                     // Binding async cleanup service
                     if(settings.enableAsyncCleanup()) {
                         AsyncCleanerService.init(elide, settings.getAsyncMaxRunTimeMinutes(),
@@ -133,11 +142,6 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
 
                     bind(swaggerDocs).named("swagger").to(new TypeLiteral<Map<String, Swagger>>() { });
-
-                    if(settings.enableAsync()) {
-                        injector.getService(ElideSettings.class).getDictionary().bindEntity(AsyncQuery.class);
-                        injector.getService(ElideSettings.class).getDictionary().bindEntity(AsyncQueryResult.class);
-                    }
  
                 }
             }
