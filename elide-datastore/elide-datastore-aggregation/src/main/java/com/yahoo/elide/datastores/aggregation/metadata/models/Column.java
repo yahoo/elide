@@ -19,8 +19,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Date;
@@ -32,33 +32,32 @@ import javax.persistence.Id;
  * Column is the super class of a field in a table, it can be either dimension or metric.
  */
 @Include(type = "column")
-@Data
+@Getter
+@EqualsAndHashCode
 @ToString
 public abstract class Column {
     @Id
-    private String id;
+    private final String id;
 
-    private String name;
+    private final String name;
 
-    private String longName;
+    private final String longName;
 
-    private String description;
-
-    private String category;
+    private final String description;
 
     @ToOne
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Table table;
+    private final Table table;
 
-    private ValueType valueType;
+    private final ValueType valueType;
 
-    private ColumnType columnType;
+    private final ColumnType columnType;
 
-    private String expression;
+    private final String expression;
 
     @ToString.Exclude
-    private Set<String> columnTags;
+    private final Set<String> columnTags;
 
     protected Column(Table table, String fieldName, EntityDictionary dictionary) {
         this.table = table;
@@ -72,6 +71,9 @@ public abstract class Column {
         if (meta != null) {
             this.longName = meta.longName();
             this.description = meta.description();
+        } else {
+            this.longName = null;
+            this.description = null;
         }
 
         valueType = getValueType(tableClass, fieldName, dictionary);

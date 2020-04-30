@@ -8,15 +8,13 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * Regular field in tables, can be grouped by.
  */
-@EqualsAndHashCode(callSuper = true)
 @Include(type = "dimension")
-@Data
+@EqualsAndHashCode(callSuper = true)
 public class Dimension extends Column {
     public Dimension(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
