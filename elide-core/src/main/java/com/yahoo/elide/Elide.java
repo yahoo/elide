@@ -17,6 +17,7 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidConstraintException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
+import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.exceptions.UnableToAddSerdeException;
 import com.yahoo.elide.extensions.JsonApiPatch;
@@ -337,8 +338,11 @@ public class Elide {
                 message = IterableUtils.first(e.getConstraintViolations()).getMessage();
             }
             return buildErrorResponse(new InvalidConstraintException(message), isVerbose);
-
         } catch (Exception | Error e) {
+            if (e instanceof InterruptedException) {
+                log.debug("Request Thread interrupted.", e);
+                return buildErrorResponse(new TimeoutException(e), isVerbose);
+            }
             log.error("Error or exception uncaught by Elide", e);
             throw e;
 

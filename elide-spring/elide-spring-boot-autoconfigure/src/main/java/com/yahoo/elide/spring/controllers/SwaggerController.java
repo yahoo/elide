@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
@@ -81,25 +82,30 @@ public class SwaggerController {
     }
 
     @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> list(@RequestHeader Map<String, String> requestHeaders) {
-        String apiVersion = Utils.getApiVersion(requestHeaders);
+    public Callable<ResponseEntity<String>> list(@RequestHeader Map<String, String> requestHeaders) {
+        final String apiVersion = Utils.getApiVersion(requestHeaders);
 
-        List<String> documentPaths = documents.keySet().stream()
+        final List<String> documentPaths = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(apiVersion))
                 .map(key -> key.getRight())
                 .collect(Collectors.toList());
 
-        if (documentPaths.size() == 1) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(documents.values().iterator().next());
-        }
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                if (documentPaths.size() == 1) {
+                    return ResponseEntity
+                            .status(HttpStatus.OK)
+                            .body(documents.values().iterator().next());
+                }
 
-        String body = "[" + documentPaths.stream()
-                .map(key -> '"' + key + '"')
-                .collect(Collectors.joining(",")) + "]";
+                String body = "[" + documentPaths.stream()
+                        .map(key -> '"' + key + '"')
+                        .collect(Collectors.joining(",")) + "]";
 
-        return ResponseEntity.status(HttpStatus.OK).body(body);
+                return ResponseEntity.status(HttpStatus.OK).body(body);
+            }
+        };
     }
 
     /**
@@ -109,16 +115,21 @@ public class SwaggerController {
      * @return response The Swagger JSON document
      */
     @GetMapping(value = "/{name}", produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> list(@RequestHeader Map<String, String> requestHeaders,
-                                       @PathVariable("name") String name) {
+    public Callable<ResponseEntity<String>> list(@RequestHeader Map<String, String> requestHeaders,
+                                                 @PathVariable("name") String name) {
 
-        String apiVersion = Utils.getApiVersion(requestHeaders);
-        String encodedName = Encode.forHtml(name);
+        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final String encodedName = Encode.forHtml(name);
 
-        Pair<String, String> lookupKey = Pair.of(apiVersion, encodedName);
-        if (documents.containsKey(lookupKey)) {
-            return ResponseEntity.status(HttpStatus.OK).body(documents.get(lookupKey));
-        }
-        return ResponseEntity.status(404).body("Unknown document: " + encodedName);
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                Pair<String, String> lookupKey = Pair.of(apiVersion, encodedName);
+                if (documents.containsKey(lookupKey)) {
+                    return ResponseEntity.status(HttpStatus.OK).body(documents.get(lookupKey));
+                }
+                return ResponseEntity.status(404).body("Unknown document: " + encodedName);
+            }
+        };
     }
 }
