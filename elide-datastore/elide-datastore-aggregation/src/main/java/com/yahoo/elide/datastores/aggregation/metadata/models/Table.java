@@ -16,7 +16,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 import java.util.HashSet;
@@ -31,41 +32,40 @@ import javax.persistence.OneToMany;
  * Super class of all logical or physical tables.
  */
 @Include(rootLevel = true, type = "table")
-@Data
+@Getter
+@EqualsAndHashCode
 @ToString
 public class Table {
     @Id
-    private String id;
+    private final String id;
 
-    private String name;
+    private final String name;
 
     @Exclude
-    private String version;
+    private final String version;
 
-    private String description;
+    private final String description;
 
-    private String category;
-
-    private CardinalitySize cardinality;
+    private final CardinalitySize cardinality;
 
     @OneToMany
     @ToString.Exclude
-    private Set<Column> columns;
+    private final Set<Column> columns;
 
     @OneToMany
     @ToString.Exclude
-    private Set<Metric> metrics;
+    private final Set<Metric> metrics;
 
     @OneToMany
     @ToString.Exclude
-    private Set<Dimension> dimensions;
+    private final Set<Dimension> dimensions;
 
     @OneToMany
     @ToString.Exclude
-    private Set<TimeDimension> timeDimensions;
+    private final Set<TimeDimension> timeDimensions;
 
     @ToString.Exclude
-    private Set<String> tableTags;
+    private final Set<String> tableTags;
 
     @Exclude
     @ToString.Exclude
@@ -78,11 +78,12 @@ public class Table {
         }
 
         this.name = dictionary.getJsonAliasFor(cls);
-        this.id = this.name;
         this.version = EntityDictionary.getModelVersion(cls);
 
         if (this.version != null && ! this.version.isEmpty()) {
             this.id = this.name + "." + this.version;
+        } else {
+            this.id = this.name;
         }
 
         this.tableTags = new HashSet<>();
@@ -106,11 +107,15 @@ public class Table {
         Meta meta = cls.getAnnotation(Meta.class);
         if (meta != null) {
             this.description = meta.description();
+        } else {
+            this.description = null;
         }
 
         Cardinality cardinality = dictionary.getAnnotation(cls, Cardinality.class);
         if (cardinality != null) {
             this.cardinality = cardinality.size();
+        } else {
+            this.cardinality = null;
         }
     }
 
