@@ -3,10 +3,4 @@
    <suppress until="2021-01-01Z">
       <cve>CVE-2018-1258</cve>
    </suppress>
-   <suppress until="2019-12-01Z">
-       <notes><![CDATA[file name: jackson-databind-2.9.9.3.jar]]></notes>
-       <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-databind.*$</gav>
-       <cve>CVE-2019-16335</cve>
-       <cve>CVE-2019-14540</cve>
-   </suppress>
 </suppressions>

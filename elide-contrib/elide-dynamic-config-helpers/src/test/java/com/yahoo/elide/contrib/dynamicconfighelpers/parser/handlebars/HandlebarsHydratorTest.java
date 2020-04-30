@@ -19,8 +19,6 @@ import java.util.Map;
 
 public class HandlebarsHydratorTest {
 
-    private ElideConfigParser testClass = new ElideConfigParser();
-
     private static final String VALID_TABLE_WITH_VARIABLES = "{\n"
             + "  tables: [{\n"
             + "      name: {{ name }}\n"
@@ -234,7 +232,8 @@ public class HandlebarsHydratorTest {
         String absolutePath = file.getAbsolutePath();
         String hjsonPath = absolutePath + "/tables/table1.hjson";
 
-        testClass.parseConfigPath(absolutePath);
+        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
+
         Map<String, Object> map = testClass.getVariables();
 
         String content = new String (Files.readAllBytes(Paths.get(hjsonPath)));
@@ -250,7 +249,8 @@ public class HandlebarsHydratorTest {
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
 
-        testClass.parseConfigPath(absolutePath);
+        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
+
         Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
@@ -264,7 +264,8 @@ public class HandlebarsHydratorTest {
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
 
-        testClass.parseConfigPath(absolutePath);
+        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
+
         Map<String, String> securityClasses = obj.hydrateSecurityTemplate(testClass.getElideSecurityConfig());
 
         assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_ADMIN_JAVA_NAME));
