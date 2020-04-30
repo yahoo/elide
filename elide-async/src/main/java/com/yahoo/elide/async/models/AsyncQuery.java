@@ -23,7 +23,7 @@ import javax.persistence.PrePersist;
 
 /**
  * Model for Async Query.
- * ExecuteQueryHook & UpdatePrincipalNameHook is binded manually during the elide startup,
+ * ExecuteQueryHook and UpdatePrincipalNameHook is binded manually during the elide startup,
  * after asyncexecutorservice is initialized.
  */
 @Entity
