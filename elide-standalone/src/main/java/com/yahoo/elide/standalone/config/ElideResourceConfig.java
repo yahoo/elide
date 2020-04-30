@@ -149,7 +149,6 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
 
                     bind(swaggerDocs).named("swagger").to(new TypeLiteral<List<DocEndpoint.SwaggerRegistration>>() { });
-
                 }
             }
         });
