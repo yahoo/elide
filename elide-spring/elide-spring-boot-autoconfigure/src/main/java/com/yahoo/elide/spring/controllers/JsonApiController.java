@@ -32,6 +32,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedHashMap;
 
@@ -59,68 +60,92 @@ public class JsonApiController {
     }
 
     @GetMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elideGet(@RequestHeader Map<String, String> requestHeaders,
-                                           @RequestParam Map<String, String> allRequestParams,
-                                           HttpServletRequest request, Authentication authentication) {
+    public Callable<ResponseEntity<String>> elideGet(@RequestHeader Map<String, String> requestHeaders,
+                                                     @RequestParam Map<String, String> allRequestParams,
+                                                     HttpServletRequest request, Authentication authentication) {
+        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
 
-        String apiVersion = Utils.getApiVersion(requestHeaders);
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-
-        User user = new AuthenticationUser(authentication);
-        ElideResponse response = elide.get(pathname, new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide.get(pathname,
+                        new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elidePost(@RequestHeader Map<String, String> requestHeaders,
-                                            @RequestBody String body,
-                                            HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Utils.getApiVersion(requestHeaders);
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+    public Callable<ResponseEntity<String>> elidePost(@RequestHeader Map<String, String> requestHeaders,
+                                                      @RequestBody String body,
+                                                      HttpServletRequest request, Authentication authentication) {
+        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
 
-        User user = new AuthenticationUser(authentication);
-        ElideResponse response = elide
-                .post(pathname, body, user, apiVersion);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide.post(pathname, body, user, apiVersion);
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
-    public ResponseEntity<String> elidePatch(@RequestHeader Map<String, String> requestHeaders,
-                                             @RequestBody String body,
-                                             HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Utils.getApiVersion(requestHeaders);
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+    public Callable<ResponseEntity<String>> elidePatch(@RequestHeader Map<String, String> requestHeaders,
+                                                       @RequestBody String body,
+                                                       HttpServletRequest request, Authentication authentication) {
+        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
 
-        User user = new AuthenticationUser(authentication);
-        ElideResponse response = elide
-                .patch(request.getContentType(), request.getContentType(), pathname, body, user, apiVersion);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide
+                        .patch(request.getContentType(), request.getContentType(), pathname, body, user, apiVersion);
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     @DeleteMapping(value = "/**")
-    public ResponseEntity<String> elideDelete(@RequestHeader Map<String, String> requestHeaders,
-                                              HttpServletRequest request,
-                                              Authentication authentication) {
-        String apiVersion = Utils.getApiVersion(requestHeaders);
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+    public Callable<ResponseEntity<String>> elideDelete(@RequestHeader Map<String, String> requestHeaders,
+                                                        HttpServletRequest request,
+                                                        Authentication authentication) {
+        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
 
-        User user = new AuthenticationUser(authentication);
-        ElideResponse response = elide
-                .delete(pathname, null, user, apiVersion);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide.delete(pathname, null, user, apiVersion);
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elideDeleteRelationship(@RequestHeader Map<String, String> requestHeaders,
-                                                          @RequestBody String body,
-                                                          HttpServletRequest request, Authentication authentication) {
-        String apiVersion = Utils.getApiVersion(requestHeaders);
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+    public Callable<ResponseEntity<String>> elideDeleteRelationship(@RequestHeader Map<String, String> requestHeaders,
+                                                                    @RequestBody String body,
+                                                                    HttpServletRequest request,
+                                                                    Authentication authentication) {
+        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
 
-        User user = new AuthenticationUser(authentication);
-        ElideResponse response = elide
-                .delete(pathname, body, user, apiVersion);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide
+                        .delete(pathname, body, user, apiVersion);
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     private String getJsonApiPath(HttpServletRequest request, String prefix) {

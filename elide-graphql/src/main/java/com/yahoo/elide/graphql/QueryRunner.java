@@ -14,6 +14,7 @@ import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
+import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
@@ -261,7 +262,11 @@ public class QueryRunner {
                 }
             }, isVerbose);
         } catch (Exception | Error e) {
-            log.debug("Unhandled error or exception.", e);
+            if (e instanceof InterruptedException) {
+                log.debug("Request Thread interrupted.", e);
+                return buildErrorResponse(elide, new TimeoutException(e), isVerbose);
+            }
+            log.error("Unhandled error or exception.", e);
             throw e;
         } finally {
             elide.getAuditLogger().clear();

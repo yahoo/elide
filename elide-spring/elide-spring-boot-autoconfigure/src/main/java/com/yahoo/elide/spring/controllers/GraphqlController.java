@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * Spring rest controller for Elide GraphQL.
@@ -66,20 +67,24 @@ public class GraphqlController {
      * @return response
      */
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
-    public ResponseEntity<String> post(@RequestHeader Map<String, String> requestHeaders,
-                                       @RequestBody String graphQLDocument, Authentication principal) {
-        User user = new AuthenticationUser(principal);
+    public Callable<ResponseEntity<String>> post(@RequestHeader Map<String, String> requestHeaders,
+                                                 @RequestBody String graphQLDocument, Authentication principal) {
+        final User user = new AuthenticationUser(principal);
+        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final QueryRunner runner = runners.get(apiVersion);
 
-        String apiVersion = Utils.getApiVersion(requestHeaders);
-        QueryRunner runner = runners.get(apiVersion);
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response;
+                if (runner == null) {
+                    response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
+                } else {
+                    response = runner.run(graphQLDocument, user);
+                }
 
-        ElideResponse response;
-        if (runner == null) {
-            response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
-        } else {
-            response = runner.run(graphQLDocument, user);
-        }
-
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 }
