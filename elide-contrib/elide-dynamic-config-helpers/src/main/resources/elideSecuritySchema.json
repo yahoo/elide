@@ -28,7 +28,10 @@
                     "filter": {
                         "title": "Rule Filter",
                         "description": "Rule filter expression",
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "filter"
+                        ]
                     },
                     "name": {
                         "title": "Rule Name",
@@ -44,9 +47,5 @@
             }
         }
     },
-    "required": [
-        "roles",
-        "rules"
-    ],
     "additionalProperties": false
 }

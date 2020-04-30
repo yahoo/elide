@@ -19,16 +19,14 @@ import java.util.Map;
 
 public class ElideConfigParserTest {
 
-    private ElideConfigParser testClass = new ElideConfigParser();
-
     @Test
     public void testValidateVariablePath() throws Exception {
 
         String path = "src/test/resources/models";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
+        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
 
-        testClass.parseConfigPath(absolutePath);
         Map<String, Object> variable = testClass.getVariables();
         assertEquals(6, variable.size());
         assertEquals("blah", variable.get("bar"));
@@ -50,9 +48,26 @@ public class ElideConfigParserTest {
     @Test
     public void testNullConfig() {
         try {
-//            testClass.parseConfigPath(null);
-        } catch (NullPointerException npe) {
-            assertEquals("Config path is null", npe.getMessage());
+            ElideConfigParser testClass = new ElideConfigParser(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("Config path is null", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testMissingConfig() {
+        try {
+            String path = "src/test/resources/models_missing";
+            File file = new File(path);
+            String absolutePath = file.getAbsolutePath();
+            ElideConfigParser testClass = new ElideConfigParser(absolutePath);
+
+            assertEquals(0, testClass.getVariables().size());
+            assertEquals(0, testClass.getElideSecurityConfig().getRoles().size());
+            assertEquals(0, testClass.getElideSecurityConfig().getRules().size());
+
+        } catch (IllegalArgumentException e) {
+            assertEquals("Config path is null", e.getMessage());
         }
     }
 }
