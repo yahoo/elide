@@ -74,14 +74,15 @@ public class DynamicConfigHelpers {
      * converts all avaiable table config to ElideTableConfig Pojo.
      * @param basePath : root path to model dir
      * @return ElideTableConfig pojo
-     * @throws JsonProcessingException
+     * @throws IOException
      */
-    public static ElideTableConfig getElideTablePojo(String basePath) throws JsonProcessingException {
+    public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables)
+            throws IOException {
         Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + TABLE_CONFIG_PATH),
                 new String[] {"hjson", "json"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {
-            String jsonConfig = hjsonToJson(readConfigFile(tableConfig));
+            String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(tableConfig), variables));
             ElideTableConfig table = getModelPojo(jsonConfig, ElideTableConfig.class);
             tables.addAll(table.getTables());
         }
@@ -94,10 +95,12 @@ public class DynamicConfigHelpers {
      * converts security.hjson to ElideSecurityConfig Pojo.
      * @param basePath : root path to model dir.
      * @return ElideSecurityConfig Pojo
-     * @throws JsonProcessingException
+     * @throws IOException
      */
-    public static ElideSecurityConfig getElideSecurityPojo(String basePath) throws JsonProcessingException {
-        String jsonConfig = hjsonToJson(readConfigFile(new File(basePath + SECURITY_CONFIG_PATH)));
+    public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
+            throws IOException {
+        String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(new File(basePath + SECURITY_CONFIG_PATH)),
+                variables));
         return getModelPojo(jsonConfig, ElideSecurityConfig.class);
     }
 
@@ -108,7 +111,7 @@ public class DynamicConfigHelpers {
      * @return json string with resolved variables
      * @throws IOException
      */
-    public String resolveVariables(String jsonConfig, Map<String, Object> variables) throws IOException {
+    public static String resolveVariables(String jsonConfig, Map<String, Object> variables) throws IOException {
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
         return hydrator.hydrateConfigTemplate(jsonConfig, variables);
     }
