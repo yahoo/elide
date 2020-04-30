@@ -25,11 +25,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import io.swagger.models.Swagger;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;

@@ -13,12 +13,14 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 
 import java.util.Optional;
-import javax.inject.Inject;
 
 public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
 
-    @Inject
     private AsyncExecutorService asyncExecutorService;
+
+    public ExecuteQueryHook (AsyncExecutorService asyncExecutorService) {
+        this.asyncExecutorService = asyncExecutorService;
+    }
 
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, AsyncQuery query,

@@ -5,18 +5,11 @@
  */
 package com.yahoo.elide.async.models;
 
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
-
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.async.hooks.ExecuteQueryHook;
-import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 
 import lombok.Data;
 
@@ -30,14 +23,14 @@ import javax.persistence.PrePersist;
 
 /**
  * Model for Async Query.
+ * ExecuteQueryHook and UpdatePrincipalNameHook is binded manually during the elide startup,
+ * after asyncexecutorservice is initialized.
  */
 @Entity
 @Include(type = "asyncQuery", rootLevel = true)
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
-@LifeCycleHookBinding(hook = UpdatePrincipalNameHook.class, operation = CREATE, phase = PRESECURITY)
-@LifeCycleHookBinding(hook = ExecuteQueryHook.class, operation = CREATE, phase = POSTCOMMIT)
 @Data
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
