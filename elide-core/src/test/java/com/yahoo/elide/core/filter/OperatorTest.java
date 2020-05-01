@@ -32,6 +32,11 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class OperatorTest {
+    private EntityDictionary dictionary;
+    private final RequestScope requestScope;
+    private Author author;
+    private Predicate fn;
+
     public class TestEntityDictionary extends EntityDictionary {
         public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
             super(checks);
@@ -47,10 +52,6 @@ public class OperatorTest {
         }
     }
 
-    EntityDictionary dictionary;
-    private final RequestScope requestScope;
-    private Author author;
-    private Predicate fn;
 
     OperatorTest() {
         dictionary = new TestEntityDictionary(new HashMap<>());
