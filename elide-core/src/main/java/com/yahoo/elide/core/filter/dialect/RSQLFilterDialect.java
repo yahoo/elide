@@ -314,7 +314,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     throw new RSQLParseException(
                             "Invalid toMany join: member of operator cannot be used for toMany relationships");
                 }
-                if (!FilterPredicate.checkLastPathElementType(dictionary, path, Collection.class)) {
+                if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, Collection.class)) {
                     throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
                 }
             }

@@ -1677,7 +1677,6 @@ public class FilterIT extends IntegrationTest {
     @Test
     @Tag("excludeOnHibernate3")
     void testMemberOfOnAttributes() throws IOException {
-        JsonNode result;
         String filterString = "Booker Prize";
         Set<String> awardBook = new HashSet<>();
         Set<String> nullNedAwardBook = new HashSet<>();
@@ -1743,7 +1742,6 @@ public class FilterIT extends IntegrationTest {
     @Test
     @Tag("excludeOnHibernate3")
     void testMemberOfOnRelationships() throws IOException {
-        JsonNode result;
         String phoneNumber = "987-654-3210";
         Set<String> publisherBook = new HashSet<>();
 

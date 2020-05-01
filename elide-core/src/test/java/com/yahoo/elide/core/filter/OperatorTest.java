@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -21,9 +22,12 @@ import example.Book;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -43,15 +47,30 @@ public class OperatorTest {
         }
     }
 
+    EntityDictionary dictionary;
     private final RequestScope requestScope;
     private Author author;
     private Predicate fn;
 
     OperatorTest() {
-        EntityDictionary dictionary = new TestEntityDictionary(new HashMap<>());
+        dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Author.class);
         requestScope = Mockito.mock(RequestScope.class);
         when(requestScope.getDictionary()).thenReturn(dictionary);
+    }
+
+    private Path constructPath(Class<?> rootEntity, String pathString) {
+        List<Path.PathElement> pathElementsList = new ArrayList<>();
+        Class prevEntity = rootEntity;
+        for (String field : pathString.split("\\.")) {
+            Class<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
+                    ? dictionary.getIdType(prevEntity)
+                    : dictionary.getParameterizedType(prevEntity, field);
+            Path.PathElement pathElement = new Path.PathElement(prevEntity, fieldType, field);
+            pathElementsList.add(pathElement);
+            prevEntity = fieldType;
+        }
+        return new Path(pathElementsList);
     }
 
     @Test
@@ -61,40 +80,40 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // Test exact match
-        fn = Operator.IN.contextualize("id", Collections.singletonList(1), requestScope);
+        fn = Operator.IN.contextualize(constructPath(Author.class, "id"), Collections.singletonList(1), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.singletonList(1), requestScope);
+        fn = Operator.NOT.contextualize(constructPath(Author.class, "id"), Collections.singletonList(1), requestScope);
         assertFalse(fn.test(author));
 
         // Test contains works
-        fn = Operator.IN.contextualize("id", Arrays.asList(1, 2), requestScope);
+        fn = Operator.IN.contextualize(constructPath(Author.class, "id"), Arrays.asList(1, 2), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Arrays.asList(1, 2), requestScope);
+        fn = Operator.NOT.contextualize(constructPath(Author.class, "id"), Arrays.asList(1, 2), requestScope);
         assertFalse(fn.test(author));
 
         // Test type
-        fn = Operator.IN.contextualize("id", Collections.singletonList("1"), requestScope);
+        fn = Operator.IN.contextualize(constructPath(Author.class, "id"), Collections.singletonList("1"), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.singletonList("1"), requestScope);
+        fn = Operator.NOT.contextualize(constructPath(Author.class, "id"), Collections.singletonList("1"), requestScope);
         assertFalse(fn.test(author));
 
         // Test not in
-        fn = Operator.IN.contextualize("id", Collections.singletonList(3), requestScope);
+        fn = Operator.IN.contextualize(constructPath(Author.class, "id"), Collections.singletonList(3), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.singletonList(3), requestScope);
+        fn = Operator.NOT.contextualize(constructPath(Author.class, "id"), Collections.singletonList(3), requestScope);
         assertTrue(fn.test(author));
 
         // Test empty
-        fn = Operator.IN.contextualize("id", Collections.emptyList(), requestScope);
+        fn = Operator.IN.contextualize(constructPath(Author.class, "id"), Collections.emptyList(), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.emptyList(), requestScope);
+        fn = Operator.NOT.contextualize(constructPath(Author.class, "id"), Collections.emptyList(), requestScope);
         assertTrue(fn.test(author));
 
         // Test null
         author.setId(null);
-        fn = Operator.IN.contextualize("id", Collections.singletonList(1), requestScope);
+        fn = Operator.IN.contextualize(constructPath(Author.class, "id"), Collections.singletonList(1), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.singletonList(1), requestScope);
+        fn = Operator.NOT.contextualize(constructPath(Author.class, "id"), Collections.singletonList(1), requestScope);
         assertTrue(fn.test(author));
     }
 
@@ -105,16 +124,16 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // When name is not null
-        fn = Operator.ISNULL.contextualize("name", null, requestScope);
+        fn = Operator.ISNULL.contextualize(constructPath(Author.class, "name"), null, requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.NOTNULL.contextualize("name", null, requestScope);
+        fn = Operator.NOTNULL.contextualize(constructPath(Author.class, "name"), null, requestScope);
         assertTrue(fn.test(author));
 
         // When name is null
         author.setName(null);
-        fn = Operator.ISNULL.contextualize("name", null, requestScope);
+        fn = Operator.ISNULL.contextualize(constructPath(Author.class, "name"), null, requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.NOTNULL.contextualize("name", null, requestScope);
+        fn = Operator.NOTNULL.contextualize(constructPath(Author.class, "name"), null, requestScope);
         assertFalse(fn.test(author));
     }
 
@@ -125,26 +144,26 @@ public class OperatorTest {
         author.setAwards(Arrays.asList("Booker Prize", "National Book Awards"));
         author.getBooks().add(new Book());
 
-        fn = Operator.ISEMPTY.contextualize("awards", null, requestScope);
+        fn = Operator.ISEMPTY.contextualize(constructPath(Author.class, "awards"), null, requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.ISEMPTY.contextualize("books", null, requestScope);
+        fn = Operator.ISEMPTY.contextualize(constructPath(Author.class, "books"), null, requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.NOTEMPTY.contextualize("awards", null, requestScope);
+        fn = Operator.NOTEMPTY.contextualize(constructPath(Author.class, "awards"), null, requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.NOTEMPTY.contextualize("books", null, requestScope);
+        fn = Operator.NOTEMPTY.contextualize(constructPath(Author.class, "books"), null, requestScope);
         assertTrue(fn.test(author));
 
 
         //name is null and books are null
         author.setBooks(null);
         author.setAwards(Arrays.asList());
-        fn = Operator.ISEMPTY.contextualize("awards", null, requestScope);
+        fn = Operator.ISEMPTY.contextualize(constructPath(Author.class, "awards"), null, requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.ISEMPTY.contextualize("books", null, requestScope);
+        fn = Operator.ISEMPTY.contextualize(constructPath(Author.class, "books"), null, requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.NOTEMPTY.contextualize("awards", null, requestScope);
+        fn = Operator.NOTEMPTY.contextualize(constructPath(Author.class, "awards"), null, requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.NOTEMPTY.contextualize("books", null, requestScope);
+        fn = Operator.NOTEMPTY.contextualize(constructPath(Author.class, "books"), null, requestScope);
         assertTrue(fn.test(author));
 
     }
@@ -156,36 +175,36 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // When prefix, infix, postfix are correctly matched
-        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("Author"), requestScope);
+        fn = Operator.PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("Author"), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.INFIX.contextualize("name", Collections.singletonList("For"), requestScope);
+        fn = Operator.INFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("For"), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("Test"), requestScope);
+        fn = Operator.POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("Test"), requestScope);
         assertTrue(fn.test(author));
 
         // When prefix, infix, postfix are correctly matched if case-insensitive
-        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("author"), requestScope);
+        fn = Operator.PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("author"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.INFIX.contextualize("name", Collections.singletonList("for"), requestScope);
+        fn = Operator.INFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("for"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("test"), requestScope);
+        fn = Operator.POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("test"), requestScope);
         assertFalse(fn.test(author));
 
         // When prefix, infix, postfix are not matched
-        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("error"), requestScope);
+        fn = Operator.PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("error"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.INFIX.contextualize("name", Collections.singletonList("error"), requestScope);
+        fn = Operator.INFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("error"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("error"), requestScope);
+        fn = Operator.POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("error"), requestScope);
         assertFalse(fn.test(author));
 
         // When values is null
         author.setName(null);
-        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("Author"), requestScope);
+        fn = Operator.PREFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("Author"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.INFIX.contextualize("name", Collections.singletonList("For"), requestScope);
+        fn = Operator.INFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("For"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("Test"), requestScope);
+        fn = Operator.POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.singletonList("Test"), requestScope);
         assertFalse(fn.test(author));
     }
 
@@ -195,34 +214,34 @@ public class OperatorTest {
         author.setId(10L);
 
         // single value
-        fn = Operator.LT.contextualize("id", Collections.singletonList("11"), requestScope);
+        fn = Operator.LT.contextualize(constructPath(Author.class, "id"), Collections.singletonList("11"), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.LE.contextualize("id", Collections.singletonList("10"), requestScope);
+        fn = Operator.LE.contextualize(constructPath(Author.class, "id"), Collections.singletonList("10"), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.GT.contextualize("id", Collections.singletonList("9"), requestScope);
+        fn = Operator.GT.contextualize(constructPath(Author.class, "id"), Collections.singletonList("9"), requestScope);
         assertTrue(fn.test(author));
-        fn = Operator.GE.contextualize("id", Collections.singletonList("10"), requestScope);
+        fn = Operator.GE.contextualize(constructPath(Author.class, "id"), Collections.singletonList("10"), requestScope);
         assertTrue(fn.test(author));
 
         // multiple values
-        fn = Operator.LT.contextualize("id", Arrays.asList("10", "9"), requestScope);
+        fn = Operator.LT.contextualize(constructPath(Author.class, "id"), Arrays.asList("10", "9"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.LE.contextualize("id", Arrays.asList("9", "8"), requestScope);
+        fn = Operator.LE.contextualize(constructPath(Author.class, "id"), Arrays.asList("9", "8"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.GT.contextualize("id", Arrays.asList("10", "11"), requestScope);
+        fn = Operator.GT.contextualize(constructPath(Author.class, "id"), Arrays.asList("10", "11"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.GE.contextualize("id", Arrays.asList("11", "12"), requestScope);
+        fn = Operator.GE.contextualize(constructPath(Author.class, "id"), Arrays.asList("11", "12"), requestScope);
         assertFalse(fn.test(author));
 
         // when val is null
         author.setId(null);
-        fn = Operator.LT.contextualize("id", Collections.singletonList("10"), requestScope);
+        fn = Operator.LT.contextualize(constructPath(Author.class, "id"), Collections.singletonList("10"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.LE.contextualize("id", Collections.singletonList("10"), requestScope);
+        fn = Operator.LE.contextualize(constructPath(Author.class, "id"), Collections.singletonList("10"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.GT.contextualize("id", Collections.singletonList("10"), requestScope);
+        fn = Operator.GT.contextualize(constructPath(Author.class, "id"), Collections.singletonList("10"), requestScope);
         assertFalse(fn.test(author));
-        fn = Operator.GE.contextualize("id", Collections.singletonList("10"), requestScope);
+        fn = Operator.GE.contextualize(constructPath(Author.class, "id"), Collections.singletonList("10"), requestScope);
         assertFalse(fn.test(author));
     }
 
@@ -235,11 +254,11 @@ public class OperatorTest {
 
         assertThrows(
                 InvalidValueException.class,
-                () -> Operator.IN.contextualize("id", Collections.singletonList("a"), requestScope).test(author));
+                () -> Operator.IN.contextualize(constructPath(Author.class, "id"), Collections.singletonList("a"), requestScope).test(author));
 
         assertThrows(
                 InvalidValueException.class,
-                () -> Operator.NOT.contextualize("id", Collections.singletonList("a"), requestScope).test(author));
+                () -> Operator.NOT.contextualize(constructPath(Author.class, "id"), Collections.singletonList("a"), requestScope).test(author));
     }
 
     @Test
@@ -251,33 +270,33 @@ public class OperatorTest {
 
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.PREFIX.contextualize("name", Arrays.asList("Author", "Author"), requestScope).test(author));
+                () -> Operator.PREFIX.contextualize(constructPath(Author.class, "name"), Arrays.asList("Author", "Author"), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.INFIX.contextualize("name", Arrays.asList("For", "For"), requestScope).test(author));
+                () -> Operator.INFIX.contextualize(constructPath(Author.class, "name"), Arrays.asList("For", "For"), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.POSTFIX.contextualize("name", Arrays.asList("Test", "Test"), requestScope).test(author));
+                () -> Operator.POSTFIX.contextualize(constructPath(Author.class, "name"), Arrays.asList("Test", "Test"), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.PREFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
+                () -> Operator.PREFIX.contextualize(constructPath(Author.class, "name"), Collections.emptyList(), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.INFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
+                () -> Operator.INFIX.contextualize(constructPath(Author.class, "name"), Collections.emptyList(), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.POSTFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
+                () -> Operator.POSTFIX.contextualize(constructPath(Author.class, "name"), Collections.emptyList(), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.LT.contextualize("id", Collections.emptyList(), requestScope).test(author));
+                () -> Operator.LT.contextualize(constructPath(Author.class, "id"), Collections.emptyList(), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.LE.contextualize("id", Collections.emptyList(), requestScope).test(author));
+                () -> Operator.LE.contextualize(constructPath(Author.class, "id"), Collections.emptyList(), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.GT.contextualize("id", Collections.emptyList(), requestScope).test(author));
+                () -> Operator.GT.contextualize(constructPath(Author.class, "id"), Collections.emptyList(), requestScope).test(author));
         assertThrows(
                 BadRequestException.class,
-                () -> Operator.GE.contextualize("id", Collections.emptyList(), requestScope).test(author));
+                () -> Operator.GE.contextualize(constructPath(Author.class, "id"), Collections.emptyList(), requestScope).test(author));
     }
 }

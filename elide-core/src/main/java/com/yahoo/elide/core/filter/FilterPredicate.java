@@ -59,7 +59,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
                 .anyMatch(RelationshipType::isToMany);
     }
 
-    public static boolean checkLastPathElementType(EntityDictionary dictionary, Path path, Class<?> clz) {
+    public static boolean isLastPathElementAssignableFrom(EntityDictionary dictionary, Path path, Class<?> clz) {
         return path.lastElement()
                 .map(last ->
                         clz.isAssignableFrom(
@@ -154,7 +154,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
     @Override
     public Predicate apply(RequestScope dictionary) {
-        return operator.contextualize(getFieldPath(), values, dictionary);
+        return operator.contextualize(path, values, dictionary);
     }
 
     public boolean isMatchingOperator() {
