@@ -21,18 +21,28 @@ import javax.persistence.metamodel.EntityType;
  */
 public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
-    protected final JpaTransactionSupplier transactionSupplier;
+    protected final JpaTransactionSupplier readTransactionSupplier;
+    protected final JpaTransactionSupplier writeTransactionSupplier;
     protected final Set<Class<?>> modelsToBind;
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
-                        JpaTransactionSupplier transactionSupplier,
+                        JpaTransactionSupplier readTransactionSupplier,
+                        JpaTransactionSupplier writeTransactionSupplier,
                         Class<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
-        this.transactionSupplier = transactionSupplier;
+        this.readTransactionSupplier = readTransactionSupplier;
+        this.writeTransactionSupplier = writeTransactionSupplier;
         this.modelsToBind = new HashSet<>();
         for (Class<?> model : models) {
             modelsToBind.add(model);
         }
+    }
+
+
+    public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
+                        JpaTransactionSupplier transactionSupplier,
+                        Class<?> ... models) {
+        this(entityManagerSupplier, transactionSupplier, transactionSupplier, models);
     }
 
     @Override
@@ -61,9 +71,17 @@ public class JpaDataStore implements JPQLDataStore {
     }
 
     @Override
+    public DataStoreTransaction beginReadTransaction() {
+        EntityManager entityManager = entityManagerSupplier.get();
+        JpaTransaction transaction = readTransactionSupplier.get(entityManager);
+        transaction.begin();
+        return transaction;
+    }
+
+    @Override
     public DataStoreTransaction beginTransaction() {
         EntityManager entityManager = entityManagerSupplier.get();
-        JpaTransaction transaction = transactionSupplier.get(entityManager);
+        JpaTransaction transaction = writeTransactionSupplier.get(entityManager);
         transaction.begin();
         return transaction;
     }
