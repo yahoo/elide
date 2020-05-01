@@ -781,7 +781,11 @@ public class EntityDictionary {
      */
     public <T> void initializeEntity(T entity) {
         if (entity != null) {
-            injector.inject(entity);
+            EntityBinding binding = getEntityBinding(entity.getClass());
+
+            if (binding.isInjected()) {
+                injector.inject(entity);
+            }
         }
     }
 
