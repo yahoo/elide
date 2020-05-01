@@ -373,7 +373,10 @@ public enum Operator {
                 throw new InvalidPredicateException("HasMember can only take one argument");
             }
             Object val = getFieldValue(entity, fieldPath, requestScope);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+            Object filterStr = fieldPath.lastElement()
+                    .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
+                    .orElse(CoerceUtil.coerce(values.get(0), String.class));
+
             if (val == null) { return false; }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).contains(filterStr);
