@@ -50,6 +50,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -89,6 +90,9 @@ public class EntityBinding {
     @Getter
     private AccessType accessType;
 
+    @Getter
+    private final boolean injected;
+
     private EntityDictionary dictionary;
 
     @Getter
@@ -122,6 +126,7 @@ public class EntityBinding {
 
     /* empty binding constructor */
     private EntityBinding() {
+        injected = false;
         jsonApiType = null;
         entityName = null;
         apiVersion = NO_VERSION;
@@ -175,6 +180,7 @@ public class EntityBinding {
 
         // Map id's, attributes, and relationships
         List<AccessibleObject> fieldOrMethodList = getAllFields();
+        injected = shouldInject();
 
         if (fieldOrMethodList.stream().anyMatch(field -> field.isAnnotationPresent(Id.class))) {
             accessType = AccessType.FIELD;
@@ -250,6 +256,17 @@ public class EntityBinding {
         }
 
         return fields;
+    }
+
+    private List<AccessibleObject> getAllMethods() {
+        List<AccessibleObject> methods = new ArrayList<>();
+
+        methods.addAll(getInstanceMembers(entityClass.getDeclaredMethods(), (method) -> !method.isSynthetic()));
+        for (Class<?> type : inheritedTypes) {
+            methods.addAll(getInstanceMembers(type.getDeclaredMethods(), (method) -> !method.isSynthetic()));
+        }
+
+        return methods;
     }
 
     /**
@@ -632,6 +649,27 @@ public class EntityBinding {
             }
         });
         return annotation == NO_ANNOTATION ? null : annotationClass.cast(annotation);
+    }
+
+    private boolean shouldInject() {
+        boolean hasField = getAllFields().stream()
+                .anyMatch(accessibleObject -> accessibleObject.isAnnotationPresent(Inject.class));
+
+        if (hasField) {
+            return true;
+        }
+
+        boolean hasMethod = getAllMethods().stream()
+                .anyMatch(accessibleObject -> accessibleObject.isAnnotationPresent(Inject.class));
+
+        if (hasMethod) {
+            return true;
+        }
+
+        boolean hasConstructor = Arrays.stream(entityClass.getConstructors())
+                .anyMatch(ctor -> ctor.getAnnotation(Inject.class) != null);
+
+        return hasConstructor;
     }
 
     private List<Class<?>> getInheritedTypes(Class<?> entityClass) {

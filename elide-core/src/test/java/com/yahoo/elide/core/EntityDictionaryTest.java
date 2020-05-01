@@ -744,6 +744,93 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
+    public void testFieldIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+
+        @Include
+        class FieldInject {
+            @Inject
+            private String field;
+        }
+
+        testDictionary.bindEntity(FieldInject.class);
+
+        assertTrue(testDictionary.getEntityBinding(FieldInject.class).isInjected());
+    }
+
+    @Test
+    public void testInheritedFieldIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        class BaseClass {
+            @Inject
+            private String field;
+        }
+
+        @Include
+        class SubClass extends BaseClass {
+            private String anotherField;
+        }
+
+        testDictionary.bindEntity(SubClass.class);
+
+        assertTrue(testDictionary.getEntityBinding(SubClass.class).isInjected());
+    }
+
+    @Test
+    public void testMethodIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+
+        @Include
+        class MethodInject {
+            @Inject
+            private void setField(String field) {
+                //NOOP
+            }
+        }
+
+        testDictionary.bindEntity(MethodInject.class);
+
+        assertTrue(testDictionary.getEntityBinding(MethodInject.class).isInjected());
+    }
+
+    @Test
+    public void testInhertedMethodIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        class BaseClass {
+            @Inject
+            private void setField(String field) {
+                //NOOP
+            }
+        }
+
+        @Include
+        class SubClass extends BaseClass {
+            private String anotherField;
+        }
+
+        testDictionary.bindEntity(SubClass.class);
+
+        assertTrue(testDictionary.getEntityBinding(SubClass.class).isInjected());
+    }
+
+    @Test
+    public void testConstructorIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+
+        @Include
+        class ConstructorInject {
+            @Inject
+            public ConstructorInject(String field) {
+                //NOOP
+            }
+        }
+
+        testDictionary.bindEntity(ConstructorInject.class);
+
+        assertTrue(testDictionary.getEntityBinding(ConstructorInject.class).isInjected());
+    }
+
+    @Test
     public void testFieldLookup() throws Exception {
         bindEntity(Book.class);
         bindEntity(Editor.class);
