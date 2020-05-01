@@ -7,13 +7,13 @@
 package com.yahoo.elide.request;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.NonNull;
+import lombok.Value;
 
 /**
  * Represents an argument passed to an attribute.
  */
-@Data
+@Value
 @Builder
 public class Argument {
 

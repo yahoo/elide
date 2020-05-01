@@ -9,9 +9,9 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.Value;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -26,16 +26,17 @@ import javax.persistence.ManyToMany;
  */
 @EqualsAndHashCode(callSuper = true)
 @Include(type = "timeDimension")
-@Data
+@Value
 public class TimeDimension extends Dimension {
     @ManyToMany
     @ToString.Exclude
     Set<TimeDimensionGrain> supportedGrains;
 
-    private TimeZone timezone;
+    TimeZone timezone;
 
     public TimeDimension(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
+        timezone = null;
 
         Temporal temporal = dictionary.getAttributeOrRelationAnnotation(
                 dictionary.getEntityClass(table.getName(), table.getVersion()),

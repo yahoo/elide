@@ -10,10 +10,9 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.Format;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 import java.util.HashSet;
@@ -23,15 +22,14 @@ import javax.persistence.ManyToOne;
 /**
  * Column which supports aggregation.
  */
-@EqualsAndHashCode(callSuper = true)
 @Include(type = "metric")
-@Data
+@Getter
+@EqualsAndHashCode(callSuper = true)
+@ToString
 public class Metric extends Column {
-    private Format defaultFormat;
-
     @ManyToOne
     @ToString.Exclude
-    private MetricFunction metricFunction;
+    private final MetricFunction metricFunction;
 
     public Metric(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);

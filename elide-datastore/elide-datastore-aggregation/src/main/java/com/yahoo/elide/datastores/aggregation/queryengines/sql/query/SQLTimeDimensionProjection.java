@@ -14,6 +14,8 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.request.Argument;
 
+import lombok.Value;
+
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -22,26 +24,27 @@ import java.util.TimeZone;
 /**
  * Column projection that can expand the column into a SQL projection fragment.
  */
+@Value
 public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimension>, TimeDimensionProjection {
 
-    private final TimeDimension column;
-    private final TimeDimensionGrain grain;
-    private final TimeZone timezone;
-    private final SQLReferenceTable sqlReferenceTable;
-    private final String alias;
-    private final Map<String, Argument> arguments;
+    TimeDimension column;
+    TimeDimensionGrain grain;
+    TimeZone timeZone;
+    SQLReferenceTable referenceTable;
+    String alias;
+    Map<String, Argument> arguments;
 
     /**
      * Default constructor for columns that are projected in filter and sorting clauses.
      * @param column The column in the filter/sorting clause.
-     * @param sqlReferenceTable The reference table.
+     * @param referenceTable The reference table.
      */
     public SQLTimeDimensionProjection(TimeDimension column,
-                                      SQLReferenceTable sqlReferenceTable) {
+                                      SQLReferenceTable referenceTable) {
         this(
                 column,
                 column.getTimezone(),
-                sqlReferenceTable,
+                referenceTable,
                 column.getName(),
                 new LinkedHashMap<>()
         );
@@ -50,14 +53,14 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     /**
      * All argument constructor.
      * @param column The column being projected.
-     * @param timezone The selected time zone.
-     * @param sqlReferenceTable The reference table.
+     * @param timeZone The selected time zone.
+     * @param referenceTable The reference table.
      * @param alias The client provided alias.
      * @param arguments List of client provided arguments.
      */
     public SQLTimeDimensionProjection(TimeDimension column,
-                                      TimeZone timezone,
-                                      SQLReferenceTable sqlReferenceTable,
+                                      TimeZone timeZone,
+                                      SQLReferenceTable referenceTable,
                                       String alias,
                                       Map<String, Argument> arguments) {
 
@@ -83,21 +86,11 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
         }
 
         this.column = column;
-        this.sqlReferenceTable = sqlReferenceTable;
+        this.referenceTable = referenceTable;
         this.arguments = arguments;
         this.alias = alias;
         this.grain = resolvedGrain;
-        this.timezone = timezone;
-    }
-
-    @Override
-    public SQLReferenceTable getReferenceTable() {
-        return sqlReferenceTable;
-    }
-
-    @Override
-    public TimeDimension getColumn() {
-        return column;
+        this.timeZone = timeZone;
     }
 
     @Override
@@ -105,26 +98,11 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return String.format(
                 grain.getExpression(),
-                sqlReferenceTable.getResolvedReference(column.getTable(), column.getName()));
-    }
-
-    @Override
-    public String getAlias() {
-        return alias;
+                referenceTable.getResolvedReference(column.getTable(), column.getName()));
     }
 
     @Override
     public TimeGrain getGrain() {
         return grain.getGrain();
-    }
-
-    @Override
-    public TimeZone getTimeZone() {
-        return timezone;
-    }
-
-    @Override
-    public Map<String, Argument> getArguments() {
-        return arguments;
     }
 }

@@ -12,8 +12,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Singular;
+import lombok.Value;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,25 +24,25 @@ import java.util.stream.Stream;
 /**
  * A {@link Query} is an object representing a query executed by {@link QueryEngine}.
  */
-@Data
+@Value
 @Builder
 public class Query {
-    private final Table table;
+    Table table;
 
     @Singular
-    private final List<MetricProjection> metrics;
+    List<MetricProjection> metrics;
 
     @Singular
-    private final Set<ColumnProjection> groupByDimensions;
+    Set<ColumnProjection> groupByDimensions;
 
     @Singular
-    private final Set<TimeDimensionProjection> timeDimensions;
+    Set<TimeDimensionProjection> timeDimensions;
 
-    private final FilterExpression whereFilter;
-    private final FilterExpression havingFilter;
-    private final Sorting sorting;
-    private final Pagination pagination;
-    private final RequestScope scope;
+    FilterExpression whereFilter;
+    FilterExpression havingFilter;
+    Sorting sorting;
+    Pagination pagination;
+    RequestScope scope;
 
     /**
      * Returns all the dimensions regardless of type.
