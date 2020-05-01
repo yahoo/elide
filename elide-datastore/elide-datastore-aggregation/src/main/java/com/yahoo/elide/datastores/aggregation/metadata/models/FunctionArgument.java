@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.FunctionArgumentType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.AllArgsConstructor;
@@ -31,13 +32,16 @@ public class FunctionArgument {
 
     private ValueType type;
 
-    private String subType;
+    private FunctionArgumentType functionArgumentType;
+
+    private String expression;
 
     public FunctionArgument(String functionName, FunctionArgument argument) {
         this.id = functionName + "." + argument.getName();
         this.name = argument.getName();
         this.description = argument.getDescription();
         this.type = argument.getType();
-        this.subType = argument.getSubType();
+        this.functionArgumentType = argument.getFunctionArgumentType();
+        this.expression = argument.getExpression();
     }
 }

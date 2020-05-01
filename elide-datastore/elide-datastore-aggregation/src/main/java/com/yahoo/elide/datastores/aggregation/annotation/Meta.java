@@ -19,7 +19,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Meta {
 
-    String longName() default "";
-
     String description() default "";
 }

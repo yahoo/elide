@@ -14,6 +14,6 @@ import java.util.Collections;
  */
 public class SqlMax extends SQLMetricFunction {
     public SqlMax() {
-        super("max", "max", "sql max function", "MAX(%s)", Collections.emptySet());
+        super("max", "sql max function", "MAX(%s)", Collections.emptySet());
     }
 }

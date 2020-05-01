@@ -14,6 +14,6 @@ import java.util.Collections;
  */
 public class SqlAvg extends SQLMetricFunction {
     public SqlAvg() {
-        super("avg", "average", "sql average function", "AVG(%s)", Collections.emptySet());
+        super("avg", "sql average function", "AVG(%s)", Collections.emptySet());
     }
 }
