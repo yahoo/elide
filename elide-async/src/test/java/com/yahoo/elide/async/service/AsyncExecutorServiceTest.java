@@ -49,9 +49,13 @@ public class AsyncExecutorServiceTest {
         boundclasses.add(AsyncQuery.class);
         boundclasses.add(AsyncQueryResult.class);
 
+        Set<String> apiCollection = new HashSet<String>();
+        apiCollection.add("v1");
+
         when(elide.getElideSettings()).thenReturn(elideSettings);
         when(elideSettings.getDictionary()).thenReturn(dictionary);
-        when(dictionary.getBoundClasses()).thenReturn(boundclasses);
+        when(dictionary.getBoundClassesByVersion("v1")).thenReturn(boundclasses);
+        when(dictionary.getApiVersions()).thenReturn(apiCollection);
         when(elideSettings.getMapper()).thenReturn(mapper);
         when(mapper.getObjectMapper()).thenReturn(objectMapper);
 
@@ -63,7 +67,7 @@ public class AsyncExecutorServiceTest {
     @Test
     public void testAsyncExecutorServiceSet() {
         assertEquals(elide, service.getElide());
-        assertNotNull(service.getRunner());
+        assertNotNull(service.getRunners());
         assertEquals(60, service.getMaxRunTime());
         assertNotNull(service.getExecutor());
         assertNotNull(service.getInterruptor());
@@ -75,7 +79,7 @@ public class AsyncExecutorServiceTest {
         AsyncQuery queryObj = mock(AsyncQuery.class);
         User testUser = mock(User.class);
 
-        service.executeQuery(queryObj, testUser);
+        service.executeQuery(queryObj, testUser, "v1");
 
         verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
     }

@@ -41,7 +41,7 @@ public class AsyncQueryThreadTest {
         runner = mock(QueryRunner.class);
         queryObj = mock(AsyncQuery.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
-        queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao);
+        queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
     }
 
     @Test
@@ -60,7 +60,7 @@ public class AsyncQueryThreadTest {
 
         when(queryObj.getQuery()).thenReturn(query);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
-        when(elide.get(anyString(), any(), any())).thenReturn(response);
+        when(elide.get(anyString(), any(), any(), anyString())).thenReturn(response);
         when(response.getResponseCode()).thenReturn(200);
         when(response.getBody()).thenReturn("ResponseBody");
 
