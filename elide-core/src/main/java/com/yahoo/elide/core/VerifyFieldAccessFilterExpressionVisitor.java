@@ -97,9 +97,20 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         return resource.getRelationChecked(fieldName, Optional.empty(), Optional.empty(), Optional.empty()).stream();
     }
 
+    /**
+     * Scan the Path for user checks.
+     * <ol>
+     * <li>If all are PASS, return PASS
+     * <li>If any FAIL, return FAIL
+     * <li>Otherwise return DEFERRED
+     * </ol>
+     * @param filterPredicate
+     * @return ExpressionResult
+     */
     private ExpressionResult evaluateUserChecks(FilterPredicate filterPredicate) {
         PermissionExecutor executor = resource.getRequestScope().getPermissionExecutor();
 
+        ExpressionResult ret = ExpressionResult.PASS;
         for (PathElement element : filterPredicate.getPath().getPathElements()) {
             ExpressionResult result;
             try {
@@ -111,11 +122,15 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 return ExpressionResult.FAIL;
             }
 
+            if (result == ExpressionResult.FAIL) {
+                return ExpressionResult.FAIL;
+            }
+
             if (result != ExpressionResult.PASS) {
-                return result;
+                ret = ExpressionResult.DEFERRED;
             }
         }
-        return ExpressionResult.PASS;
+        return ret;
     }
 
     @Override
