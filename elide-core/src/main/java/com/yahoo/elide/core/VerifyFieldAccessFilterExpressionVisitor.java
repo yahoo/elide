@@ -6,6 +6,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -43,15 +44,21 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         RequestScope requestScope = resource.getRequestScope();
         Set<PersistentResource> val = Collections.singleton(resource);
 
-        ExpressionResult result = evaluateUserChecks(filterPredicate.getPath());
+        PermissionExecutor permissionExecutor = requestScope.getPermissionExecutor();
 
+        ExpressionResult result = permissionExecutor.evaluateFilterJoinUserChecks(resource, filterPredicate);
+
+        if (result == ExpressionResult.UNEVALUATED) {
+            result = evaluateUserChecks(filterPredicate);
+        }
         if (result == ExpressionResult.PASS) {
             return true;
-        } else if (result == ExpressionResult.FAIL) {
+        }
+        if (result == ExpressionResult.FAIL) {
             return false;
         }
 
-        for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
+        for (PathElement pathElement : filterPredicate.getPath().getPathElements()) {
             String fieldName = pathElement.getFieldName();
 
             if ("this".equals(fieldName)) {
@@ -65,7 +72,12 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
             } catch (ForbiddenAccessException e) {
-                return false;
+                result = permissionExecutor.handleFilterJoinReject(filterPredicate, pathElement, e);
+                if (result == ExpressionResult.DEFERRED) {
+                    continue;
+                }
+                // pass or fail
+                return result == ExpressionResult.PASS;
             }
         }
         return true;
@@ -85,12 +97,11 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         return resource.getRelationChecked(fieldName, Optional.empty(), Optional.empty(), Optional.empty()).stream();
     }
 
-    private ExpressionResult evaluateUserChecks(Path path) {
+    private ExpressionResult evaluateUserChecks(FilterPredicate filterPredicate) {
         PermissionExecutor executor = resource.getRequestScope().getPermissionExecutor();
 
-        ExpressionResult result = ExpressionResult.PASS;
-
-        for (Path.PathElement element : path.getPathElements()) {
+        for (PathElement element : filterPredicate.getPath().getPathElements()) {
+            ExpressionResult result;
             try {
                 result = executor.checkUserPermissions(
                         element.getType(),
@@ -104,7 +115,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 return result;
             }
         }
-        return result;
+        return ExpressionResult.PASS;
     }
 
     @Override

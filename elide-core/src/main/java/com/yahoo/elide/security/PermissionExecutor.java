@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.core.Path.PathElement;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
@@ -45,8 +48,8 @@ public interface PermissionExecutor {
      * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                            PersistentResource resource,
-                                                            ChangeSpec changeSpec);
+            PersistentResource resource,
+            ChangeSpec changeSpec);
 
     /**
      * Check for permissions on a specific field.
@@ -59,9 +62,9 @@ public interface PermissionExecutor {
      * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource,
-                                                                          ChangeSpec changeSpec,
-                                                                          Class<A> annotationClass,
-                                                                          String field);
+            ChangeSpec changeSpec,
+            Class<A> annotationClass,
+            String field);
 
     /**
      * Check for permissions on a specific field deferring all checks.
@@ -74,9 +77,9 @@ public interface PermissionExecutor {
      * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
-                                                                                  ChangeSpec changeSpec,
-                                                                                  Class<A> annotationClass,
-                                                                                  String field);
+            ChangeSpec changeSpec,
+            Class<A> annotationClass,
+            String field);
 
     /**
      * Check strictly user permissions on an entity.
@@ -97,8 +100,9 @@ public interface PermissionExecutor {
      * @param field The entity field
      */
     public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
-                                                                        Class<A> annotationClass,
-                                                                        String field);
+            Class<A> annotationClass,
+            String field);
+
     /**
      * Get the read filter, if defined.
      *
@@ -128,5 +132,39 @@ public interface PermissionExecutor {
      */
     default boolean isVerbose() {
         return false;
+    }
+
+    /**
+     * Evaluate filterPredicate for a provided resource, or return PASS or FAIL.
+     * Return UNEVALUATED for default handling.
+     * Return DEFERRED to skip default user check handling.
+     * @see com.yahoo.elide.core.VerifyFieldAccessFilterExpressionVisitor#visitPredicate
+     *
+     * @param resource resource
+     * @param filterPredicate filterPredicate
+     * @return PASS, FAIL or UNEVALUATED
+     */
+    default ExpressionResult evaluateFilterJoinUserChecks(PersistentResource<?> resource,
+            FilterPredicate filterPredicate) {
+        return ExpressionResult.UNEVALUATED;
+    }
+
+    /**
+     * Allow customized enforcement of ReadPermission for filter joins in VerifyFieldAccessFilterExpressionVisitor
+     * Return PASS to allow filtering on the unreadable element and stop evaluating the path.
+     * Return DEFERRED to allow filtering on the the unreadable element and continue checking the path.
+     * Return FAILED to reject filtering on the unreadable field.  This is the default.
+     * @see com.yahoo.elide.core.VerifyFieldAccessFilterExpressionVisitor#visitPredicate
+     *
+     * @param filterPredicate filterPredicate
+     * @param pathElement pathElement
+     * @param reason ForbiddenAccessException
+     * @return PASS, FAIL or DEFERRED
+     */
+    default ExpressionResult handleFilterJoinReject(
+            FilterPredicate filterPredicate,
+            PathElement pathElement,
+            ForbiddenAccessException reason) {
+        return ExpressionResult.FAIL;
     }
 }

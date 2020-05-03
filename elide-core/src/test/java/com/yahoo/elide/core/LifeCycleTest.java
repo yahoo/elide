@@ -78,7 +78,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.
+ * Tests the invocation &amp; sequencing of DataStoreTransaction method invocations and life cycle events.
  */
 public class LifeCycleTest {
 
