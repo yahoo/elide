@@ -49,7 +49,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         ExpressionResult result = permissionExecutor.evaluateFilterJoinUserChecks(resource, filterPredicate);
 
         if (result == ExpressionResult.UNEVALUATED) {
-            result = evaluateUserChecks(filterPredicate);
+            result = evaluateUserChecks(filterPredicate, permissionExecutor);
         }
         if (result == ExpressionResult.PASS) {
             return true;
@@ -58,8 +58,8 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
             return false;
         }
 
-        for (PathElement pathElement : filterPredicate.getPath().getPathElements()) {
-            String fieldName = pathElement.getFieldName();
+        for (PathElement element : filterPredicate.getPath().getPathElements()) {
+            String fieldName = element.getFieldName();
 
             if ("this".equals(fieldName)) {
                 continue;
@@ -72,7 +72,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
             } catch (ForbiddenAccessException e) {
-                result = permissionExecutor.handleFilterJoinReject(filterPredicate, pathElement, e);
+                result = permissionExecutor.handleFilterJoinReject(filterPredicate, element, e);
                 if (result == ExpressionResult.DEFERRED) {
                     continue;
                 }
@@ -104,10 +104,12 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
      * <li>If any FAIL, return FAIL
      * <li>Otherwise return DEFERRED
      * </ol>
-     * @param filterPredicate
+     * @param filterPredicate filterPredicate
+     * @param permissionExecutor permissionExecutor
      * @return ExpressionResult
      */
-    private ExpressionResult evaluateUserChecks(FilterPredicate filterPredicate) {
+    private ExpressionResult evaluateUserChecks(FilterPredicate filterPredicate,
+            PermissionExecutor permissionExecutor) {
         PermissionExecutor executor = resource.getRequestScope().getPermissionExecutor();
 
         ExpressionResult ret = ExpressionResult.PASS;
@@ -119,7 +121,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                         ReadPermission.class,
                         element.getFieldName());
             } catch (ForbiddenAccessException e) {
-                return ExpressionResult.FAIL;
+                result = permissionExecutor.handleFilterJoinReject(filterPredicate, element, e);
             }
 
             if (result == ExpressionResult.FAIL) {
