@@ -754,8 +754,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
                 .body("included.attributes.description", hasItem("sql min function"))
-                .body("included.attributes.expression", hasItem("MIN(%s)"))
-                .body("included.attributes.longName", hasItem("min"));
+                .body("included.attributes.expression", hasItem("MIN(%s)"));
 
         given()
                 .accept("application/vnd.api+json")

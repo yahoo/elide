@@ -103,7 +103,7 @@ public class PlayerStatsWithView {
     }
 
     @MetricAggregation(function = SqlMax.class)
-    @Meta(longName = "awesome score", description = "very awesome score")
+    @Meta(description = "very awesome score")
     public long getHighScore() {
         return highScore;
     }

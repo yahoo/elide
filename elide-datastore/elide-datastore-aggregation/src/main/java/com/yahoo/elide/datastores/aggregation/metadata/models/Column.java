@@ -41,8 +41,6 @@ public abstract class Column {
 
     private final String name;
 
-    private final String longName;
-
     private final String description;
 
     @ToOne
@@ -69,10 +67,8 @@ public abstract class Column {
 
         Meta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, Meta.class, fieldName);
         if (meta != null) {
-            this.longName = meta.longName();
             this.description = meta.description();
         } else {
-            this.longName = null;
             this.description = null;
         }
 

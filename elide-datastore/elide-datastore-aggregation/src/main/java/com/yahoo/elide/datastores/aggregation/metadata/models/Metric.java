@@ -56,7 +56,6 @@ public class Metric extends Column {
             if (formula != null) {
                 this.metricFunction = constructMetricFunction(
                         constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
-                        meta == null ? null : meta.longName(),
                         meta == null ? null : meta.description(),
                         formula.value(),
                         new HashSet<>());
@@ -89,7 +88,6 @@ public class Metric extends Column {
             metricFunction.setName(columnName + "[" + metricFunction.getName() + "]");
 
             if (meta != null) {
-                metricFunction.setLongName(meta.longName());
                 metricFunction.setDescription(meta.description());
             }
 
@@ -103,17 +101,15 @@ public class Metric extends Column {
      * Dynamically construct a metric function
      *
      * @param id metric function id
-     * @param longName meta long name
      * @param description meta description
      * @param expression expression string
      * @param arguments function arguments
      * @return a metric function instance
      */
     protected MetricFunction constructMetricFunction(String id,
-                                                     String longName,
                                                      String description,
                                                      String expression,
                                                      Set<FunctionArgument> arguments) {
-        return new MetricFunction(id, longName, description, expression, arguments);
+        return new MetricFunction(id, description, expression, arguments);
     }
 }

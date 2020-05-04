@@ -28,8 +28,6 @@ public class MetricFunction {
     @Id
     private String name;
 
-    private String longName;
-
     private String description;
 
     private String expression;
