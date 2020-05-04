@@ -16,6 +16,7 @@ import com.google.common.collect.Sets;
 
 import example.Parent;
 import example.models.generics.Manager;
+import example.models.inheritance.Droid;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
 
@@ -35,6 +36,7 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
                 Manager.class.getPackage(),
                 BookV2.class.getPackage(),
                 AsyncQuery.class.getPackage()
+                Droid.class.getPackage(),
         );
 
         mapStore = new HashMapDataStore(beanPackages);

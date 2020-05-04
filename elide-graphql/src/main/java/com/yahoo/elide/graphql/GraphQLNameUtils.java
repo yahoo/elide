@@ -10,6 +10,9 @@ import com.yahoo.elide.core.EntityDictionary;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class GraphQLNameUtils {
     private static final String MAP_SUFFIX = "Map";
     private static final String INPUT_SUFFIX = "Input";
@@ -17,9 +20,18 @@ public class GraphQLNameUtils {
     private static final String EDGE_SUFFIX = "Edge";
 
     private final EntityDictionary dictionary;
+    private Map<String, String> apiToDictionaryNameMapping = new HashMap<>();
 
     public GraphQLNameUtils(EntityDictionary dictionary) {
         this.dictionary = dictionary;
+
+        dictionary.getBindings().stream().forEach(binding -> {
+            apiToDictionaryNameMapping.put(toOutputTypeName(binding.entityClass), binding.entityName);
+        });
+    }
+
+    public String toBoundName(String outputTypeName) {
+        return apiToDictionaryNameMapping.get(outputTypeName);
     }
 
     public String toOutputTypeName(Class<?> clazz) {

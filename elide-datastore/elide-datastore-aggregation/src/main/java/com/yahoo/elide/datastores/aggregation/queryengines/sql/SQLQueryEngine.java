@@ -9,7 +9,7 @@ import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -190,7 +190,7 @@ public class SQLQueryEngine extends QueryEngine {
         SQLQueryTemplate queryTemplate = query.getMetrics().stream()
                 .map(metricProjection -> {
                     if (!(metricProjection.getColumn().getMetricFunction() instanceof SQLMetricFunction)) {
-                        throw new InvalidPredicateException(
+                        throw new BadRequestException(
                                 "Non-SQL metric function on " + metricProjection.getAlias());
                     }
 

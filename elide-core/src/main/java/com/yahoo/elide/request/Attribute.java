@@ -30,12 +30,27 @@ public class Attribute {
     @ToString.Exclude
     private String alias;
 
+    @ToString.Exclude
+    //If null, the parentType is the same as the entity projection to which this attribute belongs.
+    //If not null, this represents the model type where this attribute can be found.
+    private Class<?> parentType;
+
     @Singular
     @ToString.Exclude
     private Set<Argument> arguments;
 
+    private Attribute(@NonNull Class<?> type, @NonNull String name, String alias, Class<?> parentType,
+                      Set<Argument> arguments) {
+        this.type = type;
+        this.parentType = parentType;
+        this.name = name;
+        this.alias = alias == null ? name : alias;
+        this.arguments = arguments;
+    }
+
     private Attribute(@NonNull Class<?> type, @NonNull String name, String alias, Set<Argument> arguments) {
         this.type = type;
+        this.parentType = null;
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.arguments = arguments;
