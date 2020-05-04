@@ -35,8 +35,9 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @Data
-{{#if table}}@FromTable(name = "{{#if schema}}{{schema}}.{{/if}}{{table}}"){{/if}}
-{{#if sql}}@FromSubquery(sql = "{{sql}}"){{/if}}
+{{#if table}}@FromTable(name = "{{#if schema}}{{schema}}.{{/if}}{{table}}")
+{{else if sql}}@FromSubquery(sql = "{{sql}}")
+{{/if}}
 {{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
 {{#if description}}@Meta(description = "{{description}}"){{/if}}
 {{#if hidden}}@Exclude{{else}}@Include(rootLevel = true){{/if}}
