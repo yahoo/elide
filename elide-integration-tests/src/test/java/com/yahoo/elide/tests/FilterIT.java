@@ -1741,7 +1741,7 @@ public class FilterIT extends IntegrationTest {
 
     @Test
     @Tag("excludeOnHibernate3")
-    void testMemberOfOnRelationships() throws IOException {
+    void testMembertoOneRelationships() throws IOException {
         String phoneNumber = "987-654-3210";
         Set<String> publisherBook = new HashSet<>();
 
@@ -1821,6 +1821,25 @@ public class FilterIT extends IntegrationTest {
                 result.get("errors").get(0).asText()
         );
 
+
+        // Member of one Relationships
+        result = getAsNode("/books?filter[book.authors][hasmember]=1", HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid predicate: book.authors HASMEMBER [1]\n"
+                        + "Invalid query parameter: filter[book.authors][hasmember]\n"
+                        + "Invalid toMany join: member of operator cannot be used for toMany relationships\n"
+                        + "Invalid query parameter: filter[book.authors][hasmember]",
+                result.get("errors").get(0).asText()
+        );
+        //RSQL
+        result = getAsNode("/books?filter[book]=publisher=hasmember=1", HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid Path: Last Path Element has to be a collection type",
+                result.get("errors").get(0).asText()
+        );
 
     }
 
