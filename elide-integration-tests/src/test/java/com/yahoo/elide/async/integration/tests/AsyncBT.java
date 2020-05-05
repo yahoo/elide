@@ -436,4 +436,100 @@ public class AsyncBT extends IntegrationTest {
                 .body("errors[0].message", equalTo("Exception while fetching data (/asyncQuery) : Unknown identifier "
                         + "[ba31ca4e-ed8f-4be0-a0f3-12088fa9263a] for asyncQuery"));
     }
+
+    /**
+     * Various tests for making a Async request to a model to which the user does not have permissions.
+     */
+    @Test
+    public void noReadEntityTests() throws InterruptedException {
+        //Create Async Request
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("asyncQuery"),
+                                        id("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"),
+                                        attributes(
+                                                attr("query", "/noread"),
+                                                attr("queryType", "JSONAPI_V1_0"),
+                                                attr("status", "QUEUED")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/asyncQuery")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED);
+
+        int i = 0;
+        while (i < 1000) {
+            Thread.sleep(100);
+            Response response = given()
+                    .accept("application/vnd.api+json")
+                    .get("/asyncQuery/0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
+
+            // If Async Query is created and completed
+            if (response.jsonPath().getString("data.attributes.status").equals("COMPLETE")) {
+                // Validate AsyncQuery Response
+                response
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .body("data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"))
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                        .body("data.attributes.status", equalTo("COMPLETE"))
+                        .body("data.relationships.result.data.type", equalTo("asyncQueryResult"))
+                        .body("data.relationships.result.data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"));
+
+                // Validate AsyncQueryResult Response
+                given()
+                        .accept("application/vnd.api+json")
+                        .get("/asyncQuery/0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e/result")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .body("data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"))
+                        .body("data.type", equalTo("asyncQueryResult"))
+                        .body("data.attributes.contentLength", notNullValue())
+                        .body("data.attributes.responseBody", equalTo("{\"data\":[]}"))
+                        .body("data.attributes.status", equalTo(200))
+                        .body("data.relationships.query.data.type", equalTo("asyncQuery"))
+                        .body("data.relationships.query.data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"));
+
+                // Validate GraphQL Response
+                String responseGraphQL = given()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .body("{\"query\":\"{ asyncQuery(ids: [\\\"0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e\\\"]) "
+                                + "{ edges { node { id queryType status result "
+                                + "{ edges { node { id responseBody status} } } } } } }\""
+                                + ",\"variables\":null}")
+                        .post("/graphQL")
+                        .asString();
+
+                String expectedResponse = document(
+                        selections(
+                                field(
+                                        "asyncQuery",
+                                        selections(
+                                                field("id", "0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"),
+                                                field("queryType", "JSONAPI_V1_0"),
+                                                field("status", "COMPLETE"),
+                                                field("result",
+                                                        selections(
+                                                                field("id", "0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"),
+                                                                field("responseBody", "{\\\"data\\\":[]}"),
+                                                                field("status", 200)
+                                                        ))
+                                        )
+                                )
+                        )
+                ).toResponse();
+
+                assertEquals(expectedResponse, responseGraphQL);
+
+                break;
+            }
+        }
+    }
 }
