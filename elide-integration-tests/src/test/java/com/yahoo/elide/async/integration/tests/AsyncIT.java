@@ -27,9 +27,9 @@ import org.junit.jupiter.api.TestInstance;
 import io.restassured.response.Response;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AsyncBT extends IntegrationTest {
+public class AsyncIT extends IntegrationTest {
 
-    public AsyncBT() {
+    public AsyncIT() {
         super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
     }
 

@@ -103,7 +103,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>5.0.0-pr7-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
@@ -149,7 +149,7 @@
                             <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
                         </systemPropertyVariables>
                         <includes>
-                            <include>%regex[.*BT.*]</include>
+                            <include>%regex[.*IT.*]</include>
                         </includes>
                         <dependenciesToScan>com.yahoo.elide:elide-integration-tests</dependenciesToScan>
                     </configuration>
