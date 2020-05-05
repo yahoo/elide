@@ -11,7 +11,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
@@ -22,7 +21,6 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
@@ -95,6 +93,42 @@ public class AsyncTestBinder extends AbstractBinder {
             }
         }).to(Elide.class).named("elide");
 
+        bindFactory(new Factory<AsyncQueryDAO>() {
+            @Override
+            public AsyncQueryDAO provide() {
+                Elide elide = injector.getService(Elide.class);
+                AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+                return asyncQueryDao;
+            }
+
+            @Override
+            public void dispose(AsyncQueryDAO asyncQueryDAO) {
+
+            }
+        }).to(AsyncQueryDAO.class);
+
+
+        bindFactory(new Factory<AsyncExecutorService>() {
+            @Override
+            public AsyncExecutorService provide() {
+                Elide elide = injector.getService(Elide.class);
+                AsyncQueryDAO asyncQueryDao = injector.getService(AsyncQueryDAO.class);
+                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
+
+                ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
+                UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
+                dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
+                dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
+
+                return AsyncExecutorService.getInstance();
+            }
+
+            @Override
+            public void dispose(AsyncExecutorService executorService) {
+
+            }
+        }).to(AsyncExecutorService.class);
+
         bind(new BillingService() {
                  @Override
                  public long purchase(Invoice invoice) {
@@ -103,21 +137,21 @@ public class AsyncTestBinder extends AbstractBinder {
              }
         ).to(BillingService.class);
 
-        Elide elide = injector.getService(Elide.class);
-        AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
-        bind(asyncQueryDao).to(AsyncQueryDAO.class);
-        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
-        bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
+//        Elide elide = injector.getService(Elide.class);
+//        AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+//        bind(asyncQueryDao).to(AsyncQueryDAO.class);
+//        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
+//        bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
         // Binding AsyncQuery LifeCycleHook
-        ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
-        UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
-        dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
-        dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
+//        ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
+//        UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
+//        dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
+//        dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
 
         // Bind additional elements
-        bind(elide.getElideSettings()).to(ElideSettings.class);
-        bind(elide.getElideSettings().getDictionary()).to(EntityDictionary.class);
-        bind(elide.getElideSettings().getDataStore()).to(DataStore.class).named("elideDataStore");
+//        bind(elide.getElideSettings()).to(ElideSettings.class);
+//        bind(elide.getElideSettings().getDictionary()).to(EntityDictionary.class);
+//        bind(elide.getElideSettings().getDataStore()).to(DataStore.class).named("elideDataStore");
 
     }
 }
