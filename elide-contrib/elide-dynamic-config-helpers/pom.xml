@@ -49,7 +49,6 @@
         <lombok.version>1.18.10</lombok.version>
         <handlebars.version>4.2.0</handlebars.version>
         <json-schema-validator.version>2.2.12</json-schema-validator.version>
-        <junit.jupiter.version>5.6.0</junit.jupiter.version>
         <junit.platform.version>1.6.0</junit.platform.version>
     </properties>
 
