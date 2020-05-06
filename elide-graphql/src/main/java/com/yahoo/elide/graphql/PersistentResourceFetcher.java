@@ -570,7 +570,6 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                     filterKey += "[" + typeName + "]";
                 }
                 put(filterKey, Arrays.asList(filterStr));
-
             }
         };
     }
@@ -581,11 +580,12 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         // TODO: Refactor FilterDialect interfaces to accept string or List<String> instead of (or in addition to?)
         // query params.
         return filter.map(filterStr -> {
+            String errorMessage = "";
             try {
                 return requestScope.getFilterDialect()
                         .parseGlobalExpression(typeName, getQueryParams(Optional.empty(), filterStr));
             } catch (ParseException e) {
-                log.debug(e.getMessage());
+                errorMessage = e.getMessage();
             }
 
             try {
@@ -593,8 +593,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                         .parseTypedExpression(typeName, getQueryParams(Optional.of(typeName), filterStr))
                         .get(typeName);
             } catch (ParseException e) {
-                log.debug("Filter parse exception caught", e);
-                throw new InvalidPredicateException("Could not parse filter for type: " + typeName);
+                throw new InvalidPredicateException(errorMessage + "\n" + e.getMessage());
             }
         });
     }
