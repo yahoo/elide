@@ -5,12 +5,11 @@
  */
 package com.yahoo.elide.graphql.containers;
 
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 import java.util.Map;
-
-import javax.ws.rs.BadRequestException;
 
 /**
  * Return values for a Map (i.e. entry set).

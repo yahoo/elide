@@ -6,13 +6,12 @@
 package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import javax.ws.rs.BadRequestException;
 
 /**
  * Container for edges.

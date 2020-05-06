@@ -213,9 +213,10 @@ public class QueryRunner {
             return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (WebApplicationException e) {
             log.debug("WebApplicationException", e);
+            String body = e.getResponse().getEntity() != null ? e.getResponse().getEntity().toString() : e.getMessage();
             return ElideResponse.builder()
                     .responseCode(e.getResponse().getStatus())
-                    .body(e.getResponse().getEntity().toString()).build();
+                    .body(body).build();
         } catch (HttpStatusException e) {
             if (e instanceof ForbiddenAccessException) {
                 if (log.isDebugEnabled()) {

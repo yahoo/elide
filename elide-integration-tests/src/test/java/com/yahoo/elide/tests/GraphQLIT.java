@@ -267,6 +267,33 @@ public class GraphQLIT extends IntegrationTest {
     }
 
     @Test
+    public void testInvalidFetch() throws IOException {
+        Book book = new Book();
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("op", "FETCH"),
+                                        argument("data", book)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "{\"data\":{\"book\":null},\"errors\":[{\"message\":\"Exception while fetching data "
+                + "(/book) : FETCH must not include data\","
+                + "\"locations\":[{\"line\":1,\"column\":2}],\"path\":[\"book\"]}]}";
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void fetchRootSingle() throws IOException {
         String graphQLRequest = document(
                 selection(

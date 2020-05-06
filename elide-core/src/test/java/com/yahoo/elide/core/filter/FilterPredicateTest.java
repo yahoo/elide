@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -69,7 +69,7 @@ public class FilterPredicateTest {
         try {
             expressionMap = strategy.parseTypedExpression("/book", queryParams);
         } catch (ParseException e) {
-            throw new InvalidPredicateException(e.getMessage());
+            throw new BadRequestException(e.getMessage());
         }
 
         Map<String, Set<FilterPredicate>> returnMap = new HashMap<>();
@@ -214,7 +214,7 @@ public class FilterPredicateTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("filter[title]", "abc,def");
 
-        assertThrows(InvalidPredicateException.class, () -> parse(queryParams));
+        assertThrows(BadRequestException.class, () -> parse(queryParams));
     }
 
     @Test
