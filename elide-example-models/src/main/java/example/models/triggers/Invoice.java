@@ -8,7 +8,6 @@ package example.models.triggers;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import example.models.BaseId;
 import example.models.triggers.services.BillingService;
 
@@ -30,10 +29,6 @@ public class Invoice extends BaseId {
     @Inject
     private BillingService billingService;
 
-    @LifeCycleHookBinding(operation = LifeCycleHookBinding.Operation.CREATE, hook = InvoiceCompletionHook.class,
-            phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT)
-    @LifeCycleHookBinding(operation = LifeCycleHookBinding.Operation.UPDATE, hook = InvoiceCompletionHook.class,
-            phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT)
     private boolean complete = false;
     private long total = 0;
 }
