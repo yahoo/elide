@@ -139,7 +139,7 @@ public class AsyncIT extends IntegrationTest {
 
         int i = 0;
         while (i < 1000) {
-            Thread.sleep(100);
+            Thread.sleep(10);
             Response response = given()
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");
@@ -241,7 +241,7 @@ public class AsyncIT extends IntegrationTest {
 
         int i = 0;
         while (i < 1000) {
-            Thread.sleep(100);
+            Thread.sleep(10);
             Response response = given()
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263c");
@@ -342,7 +342,7 @@ public class AsyncIT extends IntegrationTest {
 
         int i = 0;
         while (i < 1000) {
-            Thread.sleep(100);
+            Thread.sleep(10);
             Response response = given()
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263b");
@@ -470,7 +470,7 @@ public class AsyncIT extends IntegrationTest {
 
         int i = 0;
         while (i < 1000) {
-            Thread.sleep(100);
+            Thread.sleep(10);
             Response response = given()
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
