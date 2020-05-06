@@ -34,6 +34,9 @@ import org.junit.jupiter.api.Test;
 import io.restassured.response.ValidatableResponse;
 import lombok.Getter;
 import lombok.Setter;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -551,15 +554,19 @@ public class GraphQLIT extends IntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
-    @Test
-    public void runManyToManyFilter() throws IOException {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "\"books.title==\\\"1984\\\"\"",
+            "\"books.id=isnull=false\"",
+            "\"books.title=in=(\\\"1984\\\")\""})
+    public void runManyToManyFilter(String filter) throws IOException {
         String graphQLRequest = document(
             query(
                 selections(
                         field(
                                 "author",
                                 arguments(
-                                        argument("filter", "\"books.title==\\\"1984\\\"\"")
+                                        argument("filter", filter)
                                 ),
                                 selections(
                                         field("id"),
