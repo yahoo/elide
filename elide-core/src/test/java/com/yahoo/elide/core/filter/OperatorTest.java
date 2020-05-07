@@ -170,6 +170,26 @@ public class OperatorTest {
     }
 
     @Test
+    public void memberOfTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        author.setAwards(Arrays.asList("Booker Prize", "National Book Awards"));
+        author.getBooks().add(new Book());
+
+        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList("Booker Prize"), requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.HASMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList(""), requestScope);
+        assertFalse(fn.test(author));
+
+        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList("National Book Awards"), requestScope);
+        assertFalse(fn.test(author));
+        fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList("1"), requestScope);
+        assertTrue(fn.test(author));
+
+
+    }
+
+    @Test
     public void prefixAndPostfixAndInfixTest() throws Exception {
         author = new Author();
         author.setId(1L);

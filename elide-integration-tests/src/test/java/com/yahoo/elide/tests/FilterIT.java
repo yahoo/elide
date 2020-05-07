@@ -1720,7 +1720,7 @@ public class FilterIT extends IntegrationTest {
                 }
             }
         }
-// Disabled for bug in Hibernate - https://hibernate.atlassian.net/browse/HHH-13990        
+// Disabled for bug in Hibernate - https://hibernate.atlassian.net/browse/HHH-13990
 //        // Test Default filter type on NonRoot Entity
 //        when()
 //                .get(String.format("/author/%s/books?filter[book.awards][hasmember]=%s", nullNedId, filterString))
