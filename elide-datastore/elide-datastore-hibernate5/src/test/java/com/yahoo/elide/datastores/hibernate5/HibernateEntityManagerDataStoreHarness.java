@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -70,7 +69,6 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
-        EntityManager em = emf.createEntityManager();
 
         // method to force class initialization
         MetadataSources metadataSources = new MetadataSources(
@@ -102,7 +100,7 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
             throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
 
-        store = new AbstractHibernateStore.Builder(em)
+        store = new AbstractHibernateStore.Builder(emf)
                 .withScrollEnabled(true)
                 .withScrollMode(ScrollMode.FORWARD_ONLY)
                 .build();
