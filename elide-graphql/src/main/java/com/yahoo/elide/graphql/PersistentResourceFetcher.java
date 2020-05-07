@@ -12,8 +12,8 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -44,7 +44,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
@@ -593,7 +592,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                         .parseTypedExpression(typeName, getQueryParams(Optional.of(typeName), filterStr))
                         .get(typeName);
             } catch (ParseException e) {
-                throw new InvalidPredicateException(errorMessage + "\n" + e.getMessage());
+                throw new BadRequestException(errorMessage + "\n" + e.getMessage());
             }
         });
     }

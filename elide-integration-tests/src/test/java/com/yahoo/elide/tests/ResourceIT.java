@@ -874,9 +874,6 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
-        System.out.println("ACTUAL: " + actual);
-        System.out.println("EXPECTED: " + expected);
-
         JSONAssert.assertEquals(expected, actual, false);
     }
 

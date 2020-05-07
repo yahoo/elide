@@ -1178,14 +1178,14 @@ public class FilterIT extends IntegrationTest {
                 "book?filter[book.author12.name]=Null Ned", HttpStatus.SC_BAD_REQUEST);
 
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown field in filter: author12\n"
+                "BadRequestException: Unknown field in filter: author12\n"
                         + "Invalid query parameter: filter[book.author12.name]");
 
         /* Test RSQL Global */
         result = getAsNode("book?filter=author12.name=='Null Ned'", HttpStatus.SC_BAD_REQUEST);
 
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Invalid filter format: filter\n"
+                "BadRequestException: Invalid filter format: filter\n"
                         + "No such association author12 for type book\n"
                         + "Invalid filter format: filter\n"
                         + "Invalid query parameter: filter");
@@ -1383,7 +1383,7 @@ public class FilterIT extends IntegrationTest {
                 "/author?filter[idontexist.books.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!",
                 HttpStatus.SC_BAD_REQUEST);
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown entity in filter: idontexist\n"
+                "BadRequestException: Unknown entity in filter: idontexist\n"
                         + "Invalid query parameter: filter[idontexist.books.title][in]");
 
         /* Test RSQL Global */
@@ -1391,7 +1391,7 @@ public class FilterIT extends IntegrationTest {
                 "/author?filter=idontexist.books.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')",
                 HttpStatus.SC_BAD_REQUEST);
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Invalid filter format: filter\n"
+                "BadRequestException: Invalid filter format: filter\n"
                         + "No such association idontexist for type author\n"
                         + "Invalid filter format: filter\n"
                         + "Invalid query parameter: filter");
@@ -1404,7 +1404,7 @@ public class FilterIT extends IntegrationTest {
                 "/author?filter[author.idontexist.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!",
                 HttpStatus.SC_BAD_REQUEST);
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown field in filter: idontexist\n"
+                "BadRequestException: Unknown field in filter: idontexist\n"
                         + "Invalid query parameter: filter[author.idontexist.title][in]");
 
         /* Test RSQL Global */
@@ -1412,7 +1412,7 @@ public class FilterIT extends IntegrationTest {
                 "/author?filter=idontexist.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')",
                 HttpStatus.SC_BAD_REQUEST);
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Invalid filter format: filter\n"
+                "BadRequestException: Invalid filter format: filter\n"
                         + "No such association idontexist for type author\n"
                         + "Invalid filter format: filter\n"
                         + "Invalid query parameter: filter");
@@ -1425,7 +1425,7 @@ public class FilterIT extends IntegrationTest {
                 "/author?filter[author.books.idontexist][in]=Viva la Roma!,Mamma mia I wantz some pizza!",
                 HttpStatus.SC_BAD_REQUEST);
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown field in filter: idontexist\n"
+                "BadRequestException: Unknown field in filter: idontexist\n"
                         + "Invalid query parameter: filter[author.books.idontexist][in]");
 
         /* Test RSQL Global */
@@ -1433,7 +1433,7 @@ public class FilterIT extends IntegrationTest {
                 "/author?filter=books.idontexist=in=('Viva la Roma!','Mamma mia I wantz some pizza!')",
                 HttpStatus.SC_BAD_REQUEST);
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Invalid filter format: filter\n"
+                "BadRequestException: Invalid filter format: filter\n"
                         + "No such association idontexist for type book\n"
                         + "Invalid filter format: filter\n"
                         + "Invalid query parameter: filter");
@@ -1649,7 +1649,7 @@ public class FilterIT extends IntegrationTest {
         // Typed Expression
         result = getAsNode(String.format("/author/%s/books?filter[book.authors.name][notempty]", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid predicate: book.authors.name NOTEMPTY []\n"
+                "BadRequestException: Invalid predicate: book.authors.name NOTEMPTY []\n"
                         + "Invalid query parameter: filter[book.authors.name][notempty]\n"
                         + "Invalid toMany join. toMany association has to be the target collection.book.authors.name NOTEMPTY []\n"
                         + "Invalid query parameter: filter[book.authors.name][notempty]",
@@ -1659,7 +1659,7 @@ public class FilterIT extends IntegrationTest {
         //RSQL
         result = getAsNode(String.format("/author/%s/books?filter[book]=authors.name=isempty=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                "BadRequestException: Invalid filter format: filter[book]\n"
                         + "Invalid query parameter: filter[book]\n"
                         + "Invalid filter format: filter[book]\n"
                         + "Invalid association authors.name. toMany association has to be the target collection.",

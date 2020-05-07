@@ -617,7 +617,7 @@ class PaginateIT extends IntegrationTest {
             .get(url)
         .then()
             .body("errors", hasSize(1),
-                "errors[0]", containsString("InvalidPredicateException: Cannot paginate child")
+                "errors[0]", containsString("BadRequestException: Cannot paginate child")
             ).statusCode(BAD_REQUEST_400);
     }
 
@@ -628,7 +628,7 @@ class PaginateIT extends IntegrationTest {
             .get(url)
         .then()
             .body("errors", hasSize(1),
-                "errors[0]", containsString("InvalidPredicateException: Cannot paginate child")
+                "errors[0]", containsString("BadRequestException: Cannot paginate child")
             );
     }
 }
