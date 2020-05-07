@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
@@ -563,22 +562,38 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         return sort.map(Sorting::parseSortRule);
     }
 
+    private MultivaluedHashMap<String, String> getQueryParams(Optional<String> typeName, String filterStr) {
+        return new MultivaluedHashMap<String, String>() {
+            {
+                String filterKey = "filter";
+                if (typeName.isPresent()) {
+                    filterKey += "[" + typeName + "]";
+                }
+                put(filterKey, Arrays.asList(filterStr));
+            }
+        };
+    }
+
     private Optional<FilterExpression> buildFilter(String typeName,
                                                    Optional<String> filter,
                                                    RequestScope requestScope) {
         // TODO: Refactor FilterDialect interfaces to accept string or List<String> instead of (or in addition to?)
         // query params.
         return filter.map(filterStr -> {
-            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>() {
-                {
-                    put("filter[" + typeName + "]", Arrays.asList(filterStr));
-                }
-            };
+            String errorMessage = "";
             try {
-                return requestScope.getFilterDialect().parseTypedExpression(typeName, queryParams).get(typeName);
+                return requestScope.getFilterDialect()
+                        .parseGlobalExpression(typeName, getQueryParams(Optional.empty(), filterStr));
             } catch (ParseException e) {
-                log.debug("Filter parse exception caught", e);
-                throw new InvalidPredicateException("Could not parse filter for type: " + typeName);
+                errorMessage = e.getMessage();
+            }
+
+            try {
+                return requestScope.getFilterDialect()
+                        .parseTypedExpression(typeName, getQueryParams(Optional.of(typeName), filterStr))
+                        .get(typeName);
+            } catch (ParseException e) {
+                throw new InvalidPredicateException(errorMessage + "\n" + e.getMessage());
             }
         });
     }

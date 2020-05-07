@@ -11,6 +11,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.mutation;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
@@ -29,10 +30,14 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import io.restassured.response.ValidatableResponse;
 import lombok.Getter;
 import lombok.Setter;
+
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -545,6 +550,58 @@ public class GraphQLIT extends IntegrationTest {
                                 )
                         )
                 )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "\"books.title==\\\"1984\\\"\"",
+            "\"books.id=isnull=false\"",
+            "\"books.title=in=(\\\"1984\\\")\""})
+    public void runManyToManyFilter(String filter) throws IOException {
+        String graphQLRequest = document(
+            query(
+                selections(
+                        field(
+                                "author",
+                                arguments(
+                                        argument("filter", filter)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("name"),
+                                        field(
+                                                "books",
+                                                selections(
+                                                        field("id"),
+                                                        field("title")
+                                                )
+                                        )
+                                        )
+                        )
+                )
+            )
+        ).toQuery();
+
+        String expectedResponse = document(
+            selection(
+                    field(
+                            "author",
+                            selections(
+                                    field("id", "1"),
+                                    field("name", "George Orwell"),
+                                    field(
+                                            "books",
+                                            selections(
+                                                    field("id", "1"),
+                                                    field("title", "1984")
+                                            )
+                                    )
+                            )
+                    )
+            )
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expectedResponse);
