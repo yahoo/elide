@@ -1780,7 +1780,7 @@ public class FilterIT extends IntegrationTest {
         // Typed Expression
         result = getAsNode(String.format("/author/%s/books?filter[book.authors.name][hasmember]", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid predicate: book.authors.name HASMEMBER []\n"
+                "BadRequestException: Invalid predicate: book.authors.name HASMEMBER []\n"
                         + "Invalid query parameter: filter[book.authors.name][hasmember]\n"
                         + "Invalid toMany join: member of operator cannot be used for toMany relationships\n"
                         + "Invalid query parameter: filter[book.authors.name][hasmember]",
@@ -1790,7 +1790,7 @@ public class FilterIT extends IntegrationTest {
         //RSQL
         result = getAsNode(String.format("/author/%s/books?filter[book]=authors.name=hasmember=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                "BadRequestException: Invalid filter format: filter[book]\n"
                         + "Invalid query parameter: filter[book]\n"
                         + "Invalid filter format: filter[book]\n"
                         + "Invalid toMany join: member of operator cannot be used for toMany relationships",
@@ -1801,7 +1801,7 @@ public class FilterIT extends IntegrationTest {
         // Test RSQL type filter on Root Entity
         result = getAsNode(String.format("/book?filter[book]=publisher.name=hasmember=\"%s\"", "Default publisher"), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                "BadRequestException: Invalid filter format: filter[book]\n"
                         + "Invalid query parameter: filter[book]\n"
                         + "Invalid filter format: filter[book]\n"
                         + "Invalid Path: Last Path Element has to be a collection type",
@@ -1809,7 +1809,7 @@ public class FilterIT extends IntegrationTest {
         );
         result = getAsNode(String.format("/book?filter[book]=title=hasnomember=\"%s\"", "*The*"), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                "BadRequestException: Invalid filter format: filter[book]\n"
                         + "Invalid query parameter: filter[book]\n"
                         + "Invalid filter format: filter[book]\n"
                         + "Invalid Path: Last Path Element has to be a collection type",
@@ -1817,7 +1817,7 @@ public class FilterIT extends IntegrationTest {
         );
         result = getAsNode(String.format("/book?filter[book.title][hasmember]=\"%s\"", "*The*"), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid Path: Last Path Element has to be a collection type\n"
+                "BadRequestException: Invalid Path: Last Path Element has to be a collection type\n"
                         + "Invalid query parameter: filter[book.title][hasmember]",
                 result.get("errors").get(0).asText()
         );
@@ -1826,7 +1826,7 @@ public class FilterIT extends IntegrationTest {
         // Member of one Relationships
         result = getAsNode("/books?filter[book.authors][hasmember]=1", HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid predicate: book.authors HASMEMBER [1]\n"
+                "BadRequestException: Invalid predicate: book.authors HASMEMBER [1]\n"
                         + "Invalid query parameter: filter[book.authors][hasmember]\n"
                         + "Invalid toMany join: member of operator cannot be used for toMany relationships\n"
                         + "Invalid query parameter: filter[book.authors][hasmember]",
@@ -1835,7 +1835,7 @@ public class FilterIT extends IntegrationTest {
         //RSQL
         result = getAsNode("/books?filter[book]=publisher=hasmember=1", HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "InvalidPredicateException: Invalid filter format: filter[book]\n"
+                "BadRequestException: Invalid filter format: filter[book]\n"
                         + "Invalid query parameter: filter[book]\n"
                         + "Invalid filter format: filter[book]\n"
                         + "Invalid Path: Last Path Element has to be a collection type",

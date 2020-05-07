@@ -186,7 +186,9 @@ public class OperatorTest {
         fn = Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "awards"), Arrays.asList("1"), requestScope);
         assertTrue(fn.test(author));
 
-
+        assertThrows(
+                BadRequestException.class,
+                () -> Operator.HASNOMEMBER.contextualize(constructPath(Author.class, "id"), Collections.emptyList(), requestScope).test(author));
     }
 
     @Test

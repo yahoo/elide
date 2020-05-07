@@ -370,7 +370,7 @@ public enum Operator {
     private static <T> Predicate<T> hasMember(Path fieldPath, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
             if (values.size() != 1) {
-                throw new InvalidPredicateException("HasMember can only take one argument");
+                throw new BadRequestException("HasMember can only take one argument");
             }
             Object val = getFieldValue(entity, fieldPath, requestScope);
             Object filterStr = fieldPath.lastElement()
