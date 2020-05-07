@@ -27,7 +27,7 @@ import static com.yahoo.elide.core.filter.Operator.PREFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.TRUE;
 
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -257,7 +257,7 @@ public class FilterTranslator implements FilterOperation<String> {
         }
 
         if (generator == null) {
-            throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
+            throw new BadRequestException("Operator not implemented: " + filterPredicate.getOperator());
         }
 
         return generator.generate(fieldPath, params);

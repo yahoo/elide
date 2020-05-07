@@ -12,8 +12,8 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -44,9 +44,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
@@ -563,22 +561,38 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         return sort.map(Sorting::parseSortRule);
     }
 
+    private MultivaluedHashMap<String, String> getQueryParams(Optional<String> typeName, String filterStr) {
+        return new MultivaluedHashMap<String, String>() {
+            {
+                String filterKey = "filter";
+                if (typeName.isPresent()) {
+                    filterKey += "[" + typeName + "]";
+                }
+                put(filterKey, Arrays.asList(filterStr));
+            }
+        };
+    }
+
     private Optional<FilterExpression> buildFilter(String typeName,
                                                    Optional<String> filter,
                                                    RequestScope requestScope) {
         // TODO: Refactor FilterDialect interfaces to accept string or List<String> instead of (or in addition to?)
         // query params.
         return filter.map(filterStr -> {
-            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>() {
-                {
-                    put("filter[" + typeName + "]", Arrays.asList(filterStr));
-                }
-            };
+            String errorMessage = "";
             try {
-                return requestScope.getFilterDialect().parseTypedExpression(typeName, queryParams).get(typeName);
+                return requestScope.getFilterDialect()
+                        .parseGlobalExpression(typeName, getQueryParams(Optional.empty(), filterStr));
             } catch (ParseException e) {
-                log.debug("Filter parse exception caught", e);
-                throw new InvalidPredicateException("Could not parse filter for type: " + typeName);
+                errorMessage = e.getMessage();
+            }
+
+            try {
+                return requestScope.getFilterDialect()
+                        .parseTypedExpression(typeName, getQueryParams(Optional.of(typeName), filterStr))
+                        .get(typeName);
+            } catch (ParseException e) {
+                throw new BadRequestException(errorMessage + "\n" + e.getMessage());
             }
         });
     }

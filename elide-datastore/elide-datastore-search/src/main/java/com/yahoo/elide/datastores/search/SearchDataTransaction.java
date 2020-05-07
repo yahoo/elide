@@ -14,8 +14,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -241,7 +241,7 @@ public class SearchDataTransaction extends TransactionWrapper {
             try {
                 query = filterExpression.accept(new FilterExpressionToLuceneQuery(em, entityClass));
             } catch (IllegalArgumentException e) {
-                throw new InvalidPredicateException(e.getMessage());
+                throw new BadRequestException(e.getMessage());
             }
 
             FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);

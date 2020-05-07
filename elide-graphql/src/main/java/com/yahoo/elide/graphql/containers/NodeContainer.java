@@ -9,6 +9,7 @@ import static com.yahoo.elide.graphql.containers.RootContainer.requestContainsPa
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
@@ -19,8 +20,6 @@ import lombok.Getter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.BadRequestException;
 
 /**
  * Container for nodes.

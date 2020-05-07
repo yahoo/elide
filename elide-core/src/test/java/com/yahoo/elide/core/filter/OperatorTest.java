@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.security.checks.Check;
 import example.Author;
@@ -250,34 +250,34 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.PREFIX.contextualize("name", Arrays.asList("Author", "Author"), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.INFIX.contextualize("name", Arrays.asList("For", "For"), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.POSTFIX.contextualize("name", Arrays.asList("Test", "Test"), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.PREFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.INFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.POSTFIX.contextualize("name", Collections.emptyList(), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.LT.contextualize("id", Collections.emptyList(), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.LE.contextualize("id", Collections.emptyList(), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.GT.contextualize("id", Collections.emptyList(), requestScope).test(author));
         assertThrows(
-                InvalidPredicateException.class,
+                BadRequestException.class,
                 () -> Operator.GE.contextualize("id", Collections.emptyList(), requestScope).test(author));
     }
 }

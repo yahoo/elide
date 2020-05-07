@@ -7,8 +7,8 @@ package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import lombok.Getter;
@@ -204,7 +204,7 @@ public enum Operator {
             }
         }
 
-        throw new InvalidPredicateException("Unknown operator in filter: " + string);
+        throw new BadRequestException("Unknown operator in filter: " + string);
     }
 
     public abstract <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope);
@@ -253,7 +253,7 @@ public enum Operator {
                                            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
-                throw new InvalidPredicateException("PREFIX can only take one argument");
+                throw new BadRequestException("PREFIX can only take one argument");
             }
 
             Object val = getFieldValue(entity, field, requestScope);
@@ -272,7 +272,7 @@ public enum Operator {
                                             RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
-                throw new InvalidPredicateException("POSTFIX can only take one argument");
+                throw new BadRequestException("POSTFIX can only take one argument");
             }
 
             Object val = getFieldValue(entity, field, requestScope);
@@ -291,7 +291,7 @@ public enum Operator {
                                           RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
-                throw new InvalidPredicateException("INFIX can only take one argument");
+                throw new BadRequestException("INFIX can only take one argument");
             }
 
             Object val = getFieldValue(entity, field, requestScope);
@@ -377,7 +377,7 @@ public enum Operator {
                                                   RequestScope requestScope, Predicate<Integer> condition) {
         return (T entity) -> {
             if (values.size() == 0) {
-                throw new InvalidPredicateException("No value to compare");
+                throw new BadRequestException("No value to compare");
             }
             Object fieldVal = getFieldValue(entity, field, requestScope);
             return fieldVal != null
