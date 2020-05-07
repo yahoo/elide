@@ -12,9 +12,9 @@ import com.yahoo.elide.core.datastore.JPQLDataStore;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.jpa.HibernateEntityManager;
+import org.hibernate.jpa.HibernateEntityManagerFactory;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.EntityType;
 
 /**
@@ -63,30 +63,30 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
      */
     public static class Builder {
         private final SessionFactory sessionFactory;
-        private final EntityManager entityManager;
         private boolean isScrollEnabled;
         private ScrollMode scrollMode;
+        private EntityManagerFactory emf;
 
         public Builder(final SessionFactory sessionFactory) {
             this.sessionFactory = sessionFactory;
             this.isScrollEnabled = true;
             this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.entityManager = null;
+            this.emf = null;
         }
 
-        public Builder(final EntityManager entityManager) {
+        public Builder(final EntityManagerFactory entityManagerFactory) {
             this.sessionFactory = null;
             this.isScrollEnabled = true;
             this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.entityManager = entityManager;
+            this.emf = entityManagerFactory;
         }
 
         @Deprecated
-        public Builder(final HibernateEntityManager entityManager) {
+        public Builder(final HibernateEntityManagerFactory entityManagerFactory) {
             this.sessionFactory = null;
             this.isScrollEnabled = true;
             this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.entityManager = entityManager;
+            this.emf = entityManagerFactory;
         }
 
         public Builder withScrollEnabled(final boolean isScrollEnabled) {
@@ -102,8 +102,8 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
         public AbstractHibernateStore build() {
             if (sessionFactory != null) {
                 return new HibernateSessionFactoryStore(sessionFactory, isScrollEnabled, scrollMode);
-            } else if (entityManager != null) {
-                return new HibernateEntityManagerStore(entityManager, isScrollEnabled, scrollMode);
+            } else if (emf != null) {
+                return new HibernateEntityManagerStore(emf, isScrollEnabled, scrollMode);
             }
             throw new IllegalStateException("Either an EntityManager or SessionFactory is required!");
         }
@@ -122,13 +122,6 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
 
         bindEntityClass(mappedClass, dictionary);
     }
-
-    /**
-     * Get current Hibernate session.
-     *
-     * @return session
-     */
-    abstract public Session getSession();
 
     /**
      * Start Hibernate transaction.
