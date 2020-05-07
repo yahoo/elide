@@ -27,7 +27,7 @@ public class FetcherReplaceTest extends PersistentResourceFetcherTest {
     @Test
     public void testReplaceWithIdsFails() throws Exception {
         String expectedMessage = "Exception while fetching data (/book) : REPLACE must not include ids argument";
-        runErrorComparisonTest("replaceWithIdsFails", expectedMessage);
+        runErrorComparisonTest("replaceWithidsFails", expectedMessage);
     }
 
     @Override
