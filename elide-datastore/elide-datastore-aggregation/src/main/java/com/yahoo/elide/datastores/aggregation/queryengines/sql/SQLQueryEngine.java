@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -61,8 +62,8 @@ public class SQLQueryEngine extends QueryEngine {
 
     private final SQLReferenceTable referenceTable;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        super(metaDataStore);
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory, Cache cache) {
+        super(metaDataStore, cache);
         this.entityManagerFactory = entityManagerFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
     }
@@ -114,7 +115,7 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public Iterable<Object> executeQuery(Query query) {
+    public Iterable<Object> executeQuery(Query query, boolean useCache) {
         EntityManager entityManager = null;
         EntityTransaction transaction = null;
         try {

@@ -103,7 +103,7 @@ public class ElideAutoConfiguration {
     public QueryEngine buildQueryEngine(EntityManagerFactory entityManagerFactory) {
         MetaDataStore metaDataStore = new MetaDataStore();
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
     }
 
     /**

@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -65,8 +66,6 @@ import java.util.stream.Collectors;
  * </pre>
  * Implementor must assume that {@link DataStoreTransaction} will never keep reference to any internal state of a
  * {@link QueryEngine} object. This ensures the plugability of various {@link QueryEngine} implementations.
- * <p>
- * This is a {@link java.util.function functional interface} whose functional method is {@link #executeQuery(Query)}.
  */
 public abstract class QueryEngine {
     @Getter
@@ -77,18 +76,26 @@ public abstract class QueryEngine {
 
     private final Map<String, Table> tables;
 
+    protected final Cache cache;
+
     /**
      * QueryEngine is constructed with a metadata store and is responsible for constructing all Tables and Entities
      * metadata in this metadata store.
      *
      * @param metaDataStore a metadata store
+     * @param cache the cache for query results, or null
      */
-    public QueryEngine(MetaDataStore metaDataStore) {
+    public QueryEngine(MetaDataStore metaDataStore, Cache cache) {
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getDictionary();
         populateMetaData(metaDataStore);
         this.tables = metaDataStore.getMetaData(Table.class).stream()
                 .collect(Collectors.toMap(Table::getId, Functions.identity()));
+        if (cache != null) {
+            this.cache = cache;
+        } else {
+            this.cache = new NoCache();
+        }
     }
 
     /**
@@ -154,13 +161,13 @@ public abstract class QueryEngine {
 
     /**
      * Executes the specified {@link Query} against a specific persistent storage, which understand the provided
-     * {@link Query}.
+     * {@link Query}. Results may be taken from a cache, if configured.
      *
-     * @param query  The query customized for a particular persistent storage or storage client
-     *
+     * @param query    The query customized for a particular persistent storage or storage client
+     * @param useCache Whether to use the cache, if configured
      * @return query results
      */
-    public abstract Iterable<Object> executeQuery(Query query);
+    public abstract Iterable<Object> executeQuery(Query query, boolean useCache);
 
     /**
      * Returns the schema for a given entity class.
@@ -169,5 +176,17 @@ public abstract class QueryEngine {
      */
     public Table getTable(String classAlias) {
         return tables.get(classAlias);
+    }
+
+    private static class NoCache implements Cache {
+        @Override
+        public Iterable<Object> get(Object key) {
+            return null;
+        }
+
+        @Override
+        public void put(Object key, Iterable<Object> result) {
+            // Do nothing
+        }
     }
 }
