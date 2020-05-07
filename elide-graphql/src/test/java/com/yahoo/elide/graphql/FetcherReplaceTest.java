@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.graphql;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class FetcherReplaceTest extends PersistentResourceFetcherTest {
@@ -25,12 +24,10 @@ public class FetcherReplaceTest extends PersistentResourceFetcherTest {
         runComparisonTest("replaceEmptyCollections");
     }
 
-    // FIXME: Remove stack traces from error handler...
-    @Disabled
+    @Test
     public void testReplaceWithIdsFails() throws Exception {
-        String expectedMessage = "Exception while fetching data: javax.ws.rs.BadRequestException: REPLACE "
-                + "must not include ids argument";
-        runErrorComparisonTest("replaceWithIdsFails", expectedMessage);
+        String expectedMessage = "Exception while fetching data (/book) : REPLACE must not include ids argument";
+        runErrorComparisonTest("replaceWithidsFails", expectedMessage);
     }
 
     @Override

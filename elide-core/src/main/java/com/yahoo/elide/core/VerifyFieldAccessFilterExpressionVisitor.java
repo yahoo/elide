@@ -6,6 +6,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -43,16 +44,22 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         RequestScope requestScope = resource.getRequestScope();
         Set<PersistentResource> val = Collections.singleton(resource);
 
-        ExpressionResult result = evaluateUserChecks(filterPredicate.getPath());
+        PermissionExecutor permissionExecutor = requestScope.getPermissionExecutor();
 
+        ExpressionResult result = permissionExecutor.evaluateFilterJoinUserChecks(resource, filterPredicate);
+
+        if (result == ExpressionResult.UNEVALUATED) {
+            result = evaluateUserChecks(filterPredicate, permissionExecutor);
+        }
         if (result == ExpressionResult.PASS) {
             return true;
-        } else if (result == ExpressionResult.FAIL) {
+        }
+        if (result == ExpressionResult.FAIL) {
             return false;
         }
 
-        for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
-            String fieldName = pathElement.getFieldName();
+        for (PathElement element : filterPredicate.getPath().getPathElements()) {
+            String fieldName = element.getFieldName();
 
             if ("this".equals(fieldName)) {
                 continue;
@@ -65,7 +72,12 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
             } catch (ForbiddenAccessException e) {
-                return false;
+                result = permissionExecutor.handleFilterJoinReject(filterPredicate, element, e);
+                if (result == ExpressionResult.DEFERRED) {
+                    continue;
+                }
+                // pass or fail
+                return result == ExpressionResult.PASS;
             }
         }
         return true;
@@ -85,26 +97,42 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         return resource.getRelationChecked(fieldName, Optional.empty(), Optional.empty(), Optional.empty()).stream();
     }
 
-    private ExpressionResult evaluateUserChecks(Path path) {
+    /**
+     * Scan the Path for user checks.
+     * <ol>
+     * <li>If all are PASS, return PASS
+     * <li>If any FAIL, return FAIL
+     * <li>Otherwise return DEFERRED
+     * </ol>
+     * @param filterPredicate filterPredicate
+     * @param permissionExecutor permissionExecutor
+     * @return ExpressionResult
+     */
+    private ExpressionResult evaluateUserChecks(FilterPredicate filterPredicate,
+            PermissionExecutor permissionExecutor) {
         PermissionExecutor executor = resource.getRequestScope().getPermissionExecutor();
 
-        ExpressionResult result = ExpressionResult.PASS;
-
-        for (Path.PathElement element : path.getPathElements()) {
+        ExpressionResult ret = ExpressionResult.PASS;
+        for (PathElement element : filterPredicate.getPath().getPathElements()) {
+            ExpressionResult result;
             try {
                 result = executor.checkUserPermissions(
                         element.getType(),
                         ReadPermission.class,
                         element.getFieldName());
             } catch (ForbiddenAccessException e) {
+                result = permissionExecutor.handleFilterJoinReject(filterPredicate, element, e);
+            }
+
+            if (result == ExpressionResult.FAIL) {
                 return ExpressionResult.FAIL;
             }
 
             if (result != ExpressionResult.PASS) {
-                return result;
+                ret = ExpressionResult.DEFERRED;
             }
         }
-        return result;
+        return ret;
     }
 
     @Override

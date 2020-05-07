@@ -5,13 +5,12 @@
  */
 package com.yahoo.elide.core.exceptions;
 
-import com.yahoo.elide.core.HttpStatus;
-
 /**
  * Invalid predicate exception.
  */
-public class InvalidPredicateException extends HttpStatusException {
+@Deprecated
+public class InvalidPredicateException extends BadRequestException {
     public InvalidPredicateException(String message) {
-        super(HttpStatus.SC_BAD_REQUEST, message);
+        super(message);
     }
 }
