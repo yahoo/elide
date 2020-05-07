@@ -6,6 +6,7 @@
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
@@ -53,18 +54,12 @@ public class ElideConfigParserTest {
 
     @Test
     public void testMissingConfig() {
-        try {
-            String path = "src/test/resources/models_missing";
-            File file = new File(path);
-            String absolutePath = file.getAbsolutePath();
-            ElideConfigParser testClass = new ElideConfigParser(absolutePath);
+        String path = "src/test/resources/models_missing";
+        File file = new File(path);
+        String absolutePath = file.getAbsolutePath();
+        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
 
-            assertEquals(0, testClass.getVariables().size());
-            assertEquals(0, testClass.getElideSecurityConfig().getRoles().size());
-            assertEquals(0, testClass.getElideSecurityConfig().getRules().size());
-
-        } catch (IllegalArgumentException e) {
-            assertEquals("Config path is null", e.getMessage());
-        }
+        assertNull(testClass.getVariables());
+        assertNull(testClass.getElideSecurityConfig());
     }
 }

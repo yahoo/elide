@@ -52,8 +52,8 @@ public class DynamicConfigHelpers {
      * @return formatted file path.
      */
     public static String formatFilePath(String basePath) {
-        if (!basePath.endsWith("/")) {
-            basePath += '/';
+        if (!basePath.endsWith(File.separator)) {
+            basePath += File.separator;
         }
         return basePath;
     }
@@ -64,9 +64,17 @@ public class DynamicConfigHelpers {
      * @return Map of variables
      * @throws JsonProcessingException
      */
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> getVaribalesPojo(String basePath) throws JsonProcessingException {
-        String jsonConfig = hjsonToJson(readConfigFile(new File(basePath + VARIABLE_CONFIG_PATH)));
-        return getModelPojo(jsonConfig, Map.class);
+        String filePath = basePath + VARIABLE_CONFIG_PATH;
+        File variableFile = new File(filePath);
+        if (variableFile.exists()) {
+            String jsonConfig = hjsonToJson(readConfigFile(variableFile));
+            return getModelPojo(jsonConfig, Map.class);
+        } else {
+            log.info("Variables config file not found at " + filePath);
+            return null;
+        }
     }
 
     /**
@@ -96,8 +104,15 @@ public class DynamicConfigHelpers {
      * @throws JsonProcessingException
      */
     public static ElideSecurityConfig getElideSecurityPojo(String basePath) throws JsonProcessingException {
-        String jsonConfig = hjsonToJson(readConfigFile(new File(basePath + SECURITY_CONFIG_PATH)));
-        return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+        String filePath = basePath + SECURITY_CONFIG_PATH;
+        File securityFile = new File(filePath);
+        if (securityFile.exists()) {
+            String jsonConfig = hjsonToJson(readConfigFile(securityFile));
+            return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+        } else {
+            log.info("Security config file not found at " + filePath);
+            return null;
+        }
     }
 
     private static String hjsonToJson(String hjson) {
