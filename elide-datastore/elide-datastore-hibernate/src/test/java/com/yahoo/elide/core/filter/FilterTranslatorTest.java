@@ -58,9 +58,15 @@ public class FilterTranslatorTest {
         );
         FilterPredicate p3 = new InPredicate(new Path(p3Path), "scifi");
 
-        OrFilterExpression or = new OrFilterExpression(p2, p3);
+        List<Path.PathElement> p4Path = Arrays.asList(
+                new Path.PathElement(Book.class, String.class, "awards")
+        );
+        FilterPredicate p4 = new FilterPredicate(new Path(p4Path), Operator.HASMEMBER, Arrays.asList("award1"));
+
+        OrFilterExpression or1 = new OrFilterExpression(p2, p3);
+        OrFilterExpression or2 = new OrFilterExpression(or1, p4);
         AndFilterExpression and1 = new AndFilterExpression(p0, p1);
-        AndFilterExpression and2 = new AndFilterExpression(or, and1);
+        AndFilterExpression and2 = new AndFilterExpression(or2, and1);
         NotFilterExpression not = new NotFilterExpression(and2);
 
         FilterTranslator filterOp = new FilterTranslator();
@@ -72,7 +78,10 @@ public class FilterTranslatorTest {
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
         String p3Params = p3.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
-        String expected = "WHERE NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
+        String p4Params = p4.getParameters().stream()
+                .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
+        String expected = "WHERE NOT ((((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
+                + "OR " + p4Params + " MEMBER OF awards) "
                 + "AND (authors IS NOT EMPTY AND authors.name IN (" + p1Params + "))))";
         assertEquals(expected, query);
     }

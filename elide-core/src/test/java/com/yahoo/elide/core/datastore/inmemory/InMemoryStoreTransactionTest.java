@@ -38,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,7 +92,8 @@ public class InMemoryStoreTransactionTest {
                 "English",
                 System.currentTimeMillis(),
                 Sets.newHashSet(author),
-                publisher1);
+                publisher1,
+                Arrays.asList("Prize1"));
 
         book2 = new Book(2,
                 "Book 2",
@@ -99,7 +101,8 @@ public class InMemoryStoreTransactionTest {
                 "English",
                 System.currentTimeMillis(),
                 Sets.newHashSet(author),
-                publisher1);
+                publisher1,
+                Arrays.asList("Prize1", "Prize2"));
 
         book3 = new Book(3,
                 "Book 3",
@@ -107,7 +110,8 @@ public class InMemoryStoreTransactionTest {
                 "English",
                 System.currentTimeMillis(),
                 Sets.newHashSet(author),
-                publisher2);
+                publisher2,
+                Arrays.asList());
 
         books.add(book1);
         books.add(book2);

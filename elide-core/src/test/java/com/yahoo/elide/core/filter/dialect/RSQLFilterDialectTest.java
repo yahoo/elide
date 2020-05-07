@@ -381,4 +381,40 @@ public class RSQLFilterDialectTest {
         assertThrows(ParseException.class,
                 () -> dialect.parseTypedExpression("/book", queryParams));
     }
+
+    @Test
+    public void testMemberOfOperatorInt() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "awards=hasmember=title1"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        assertEquals("book.awards HASMEMBER [title1]", expression.toString());
+    }
+
+    @Test
+    public void testMemberOfOperatorException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "authors.name=hasmember=0"
+        );
+
+        assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams));
+
+        queryParams.clear();
+        queryParams.add(
+                "filter",
+                "title=hasmember=title11"
+        );
+
+        assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams));
+    }
 }
