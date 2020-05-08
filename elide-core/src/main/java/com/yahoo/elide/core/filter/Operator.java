@@ -401,7 +401,7 @@ public enum Operator {
     private static <T> Object getFieldValue(T entity, Path fieldPath, RequestScope requestScope) {
         Object val = entity;
         for (Path.PathElement field : fieldPath.getPathElements()) {
-            if ("this".equals(field)) {
+            if ("this".equals(field.getFieldName())) {
                 continue;
             }
             if (val == null) {
