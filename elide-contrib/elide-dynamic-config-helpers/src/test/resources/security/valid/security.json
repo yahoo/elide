@@ -3,15 +3,11 @@
     "rules": [
         {
             "type": "filter",
-            "filter": "company_id=in=${principal.companies}",
+            "filter": "filter",
             "name": "User belongs to company"
         },
         {
-            "filter": "id==${principal.id}",
-            "name": "Principal is owner"
-        },
-        {
-            "filter": "jid==${principal.id}",
+            "filter": "filter",
             "name": "Principal is owner"
         }
     ]

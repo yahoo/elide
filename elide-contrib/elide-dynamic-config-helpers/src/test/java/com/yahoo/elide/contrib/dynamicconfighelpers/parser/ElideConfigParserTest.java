@@ -46,7 +46,7 @@ public class ElideConfigParserTest {
     @Test
     public void testNullConfig() {
         try {
-            ElideConfigParser testClass = new ElideConfigParser(null);
+            new ElideConfigParser(null);
         } catch (IllegalArgumentException e) {
             assertEquals("Config path is null", e.getMessage());
         }

@@ -28,29 +28,36 @@ public class SecuritySchemaValidationTest extends SchemaTest {
 
     @Test
     public void testValidSecuritySchema() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/security/valid_security.json");
+        JsonNode testNode = loadJsonFromClasspath("/security/valid/security.json");
         ProcessingReport results = schema.validate(testNode);
         assertTrue(results.isSuccess());
     }
 
     @Test
     public void testInValidSecuritySchema() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/security/invalid_security.json");
+        JsonNode testNode = loadJsonFromClasspath("/security/invalid/security.json");
         ProcessingReport results = schema.validate(testNode);
         assertFalse(results.isSuccess());
     }
 
     @Test
     public void testValidSecurityHJson() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/security/valid_security.hjson", true);
+        JsonNode testNode = loadJsonFromClasspath("/security/valid/security.hjson", true);
         ProcessingReport results = schema.validate(testNode);
         assertTrue(results.isSuccess());
     }
 
     @Test
     public void testInvalidSecurityHJson() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/security/invalid_security.hjson", true);
+        JsonNode testNode = loadJsonFromClasspath("/security/invalid/security.hjson", true);
         ProcessingReport results = schema.validate(testNode);
         assertFalse(results.isSuccess());
+    }
+
+    @Test
+    public void testModelecurityHJson() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/models/security.hjson", true);
+        ProcessingReport results = schema.validate(testNode);
+        assertTrue(results.isSuccess());
     }
 }

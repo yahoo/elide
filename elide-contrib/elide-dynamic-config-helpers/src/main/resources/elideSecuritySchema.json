@@ -23,7 +23,10 @@
                     "type": {
                         "title": "Rule Type",
                         "description": "Type of security rule",
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "filter"
+                        ]
                     },
                     "filter": {
                         "title": "Rule Filter",

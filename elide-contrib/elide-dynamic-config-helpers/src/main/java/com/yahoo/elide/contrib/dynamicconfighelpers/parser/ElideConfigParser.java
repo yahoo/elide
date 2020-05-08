@@ -40,7 +40,7 @@ public class ElideConfigParser {
         try {
             String basePath = DynamicConfigHelpers.formatFilePath(localFilePath);
 
-            this.variables = DynamicConfigHelpers.getVaribalesPojo(basePath);
+            this.variables = DynamicConfigHelpers.getVariablesPojo(basePath);
             this.elideTableConfig = DynamicConfigHelpers.getElideTablePojo(basePath);
             this.elideSecurityConfig = DynamicConfigHelpers.getElideSecurityPojo(basePath);
 
