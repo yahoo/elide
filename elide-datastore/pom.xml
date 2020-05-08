@@ -64,17 +64,7 @@
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
-                <version>5.3.3.Final</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>slf4j-api</artifactId>
-                        <groupId>org.slf4j</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>validation-api</artifactId>
-                        <groupId>javax.validation</groupId>
-                    </exclusion>
-                </exclusions>
+                <version>5.4.3.Final</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
