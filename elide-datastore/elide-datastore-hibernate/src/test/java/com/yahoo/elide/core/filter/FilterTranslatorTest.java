@@ -78,6 +78,28 @@ public class FilterTranslatorTest {
     }
 
     @Test
+    public void testMemberOfOperator() throws Exception {
+        List<Path.PathElement> path = Arrays.asList(
+                new Path.PathElement(Book.class, String.class, "awards")
+        );
+        FilterPredicate p1 = new FilterPredicate(new Path(path), Operator.HASMEMBER, Arrays.asList("awards1"));
+        FilterPredicate p2 = new FilterPredicate(new Path(path), Operator.HASNOMEMBER, Arrays.asList("awards2"));
+
+        AndFilterExpression and = new AndFilterExpression(p1, p2);
+
+        FilterTranslator filterOp = new FilterTranslator();
+        String query = filterOp.apply(and, false);
+
+        String p1Params = p1.getParameters().stream()
+                .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
+        String p2Params = p2.getParameters().stream()
+                .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
+        String expected = "WHERE (" + p1Params + " MEMBER OF awards "
+                + "AND " + p2Params + " NOT MEMBER OF awards)";
+        assertEquals(expected, query);
+    }
+
+    @Test
     public void testEmptyFieldOnPrefix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.PREFIX_CASE_INSENSITIVE, Arrays.asList("value"));

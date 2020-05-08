@@ -13,6 +13,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FalsePredicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.GEPredicate;
 import com.yahoo.elide.core.filter.GTPredicate;
 import com.yahoo.elide.core.filter.InInsensitivePredicate;
@@ -27,6 +28,7 @@ import com.yahoo.elide.core.filter.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.NotInInsensitivePredicate;
 import com.yahoo.elide.core.filter.NotInPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.PostfixInsensitivePredicate;
 import com.yahoo.elide.core.filter.PostfixPredicate;
 import com.yahoo.elide.core.filter.PrefixInsensitivePredicate;
@@ -224,6 +226,33 @@ public class InMemoryFilterExecutorTest {
         expression = new NotEmptyPredicate(authorBooksElement);
         fn = expression.accept(visitor);
         assertTrue(fn.test(author));
+    }
+
+    @Test
+    public void hasMemberPredicateTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        // When name is empty and books are empty
+        author.setAwards(new HashSet<>());
+
+        expression = new FilterPredicate(authorAwardsElement, Operator.HASMEMBER, Arrays.asList(""));
+        fn = expression.accept(visitor);
+        assertFalse(fn.test(author));
+        expression = new FilterPredicate(authorAwardsElement, Operator.HASNOMEMBER, Arrays.asList(""));
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
+
+        // When name and books are not empty
+        author.setAwards(Arrays.asList("Bookery prize"));
+
+        expression = new FilterPredicate(authorAwardsElement, Operator.HASMEMBER, Arrays.asList("Bookery prize"));
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+        expression = new FilterPredicate(authorAwardsElement, Operator.HASNOMEMBER, Arrays.asList("National Book Awards"));
+        fn = expression.accept(visitor);
+        assertTrue(fn.test(author));
+
     }
 
     @Test

@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -24,6 +25,7 @@ import javax.persistence.OneToMany;
 public class Publisher extends BaseId {
     private String name;
     private Set<Book> books = new HashSet<>();
+    private Set<String> phoneNumbers = new HashSet<>();
     private Editor editor;
 
     public String getName() {
@@ -48,6 +50,16 @@ public class Publisher extends BaseId {
     @ReadPermission(expression = "Field path editor check")
     public Editor getEditor() {
         return editor;
+    }
+
+
+    @ElementCollection(targetClass = String.class)
+    public Set<String> getPhoneNumbers() {
+        return phoneNumbers;
+    }
+
+    public void setPhoneNumbers(Set<String> phoneNumbers) {
+        this.phoneNumbers = phoneNumbers;
     }
 
     public void setEditor(Editor editor) {

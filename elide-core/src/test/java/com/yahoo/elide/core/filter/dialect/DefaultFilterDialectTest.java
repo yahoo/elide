@@ -137,4 +137,40 @@ public class DefaultFilterDialectTest {
         assertThrows(ParseException.class,
                 () -> dialect.parseTypedExpression("/book", queryParams));
     }
+
+    @Test
+    public void testMemberOfOperator() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add(
+                "filter[book.awards][hasnomember]",
+                "awards1"
+        );
+
+        assertEquals(
+                "{book=book.awards HASNOMEMBER [awards1]}",
+                dialect.parseTypedExpression("/book", queryParams).toString()
+        );
+    }
+
+    @Test
+    public void testMemberOfOperatorException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[book.authors.name][hasmember]",
+                "name"
+        );
+
+        assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams));
+
+        queryParams.clear();
+        queryParams.add(
+                "filter[book.title][hasmember]",
+                "title"
+        );
+
+        assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams));
+    }
 }
