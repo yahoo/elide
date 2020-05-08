@@ -503,7 +503,7 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>5.3.2</version>
                 <configuration>
-                    <failBuildOnCVSS>6</failBuildOnCVSS>
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     <suppressionFile>suppressions.xml</suppressionFile>
