@@ -55,4 +55,20 @@ public class Rule {
             return this.value;
         }
     }
+
+    public enum Filter {
+
+        FILTER("filter");
+        private final String value;
+
+        private Filter(String value) {
+            this.value = value;
+        }
+
+        @JsonValue
+        @Override
+        public String toString() {
+            return this.value;
+        }
+    }
 }

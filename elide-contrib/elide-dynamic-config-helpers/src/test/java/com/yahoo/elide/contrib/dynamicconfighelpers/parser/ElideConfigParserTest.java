@@ -8,16 +8,23 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.Map;
 
 public class ElideConfigParserTest {
+
+    @BeforeAll
+    public static void setup() {
+        DynamicConfigHelpers.setTableConfigPath("tables/");
+    }
 
     @Test
     public void testValidateVariablePath() throws Exception {
@@ -46,7 +53,7 @@ public class ElideConfigParserTest {
     @Test
     public void testNullConfig() {
         try {
-            ElideConfigParser testClass = new ElideConfigParser(null);
+            new ElideConfigParser(null);
         } catch (IllegalArgumentException e) {
             assertEquals("Config path is null", e.getMessage());
         }

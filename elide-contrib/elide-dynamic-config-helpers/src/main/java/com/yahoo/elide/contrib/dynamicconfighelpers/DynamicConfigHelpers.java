@@ -31,11 +31,14 @@ import java.util.Set;
  */
 public class DynamicConfigHelpers {
 
-    private static final String TABLE_CONFIG_PATH = "tables/";
+    private static String TABLE_CONFIG_PATH = "tables/";
     private static final String SECURITY_CONFIG_PATH = "security.hjson";
     private static final String VARIABLE_CONFIG_PATH = "variables.hjson";
     private static final String NEW_LINE = "\n";
 
+    public static void setTableConfigPath(String input) {
+        DynamicConfigHelpers.TABLE_CONFIG_PATH = input;
+    }
 
     /**
      * Checks whether input is null or empty.
@@ -65,7 +68,7 @@ public class DynamicConfigHelpers {
      * @throws JsonProcessingException
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> getVaribalesPojo(String basePath) throws JsonProcessingException {
+    public static Map<String, Object> getVariablesPojo(String basePath) throws JsonProcessingException {
         String filePath = basePath + VARIABLE_CONFIG_PATH;
         File variableFile = new File(filePath);
         if (variableFile.exists()) {
@@ -85,7 +88,7 @@ public class DynamicConfigHelpers {
      */
     public static ElideTableConfig getElideTablePojo(String basePath) throws JsonProcessingException {
         Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + TABLE_CONFIG_PATH),
-                new String[] {"hjson", "json"}, false);
+                new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {
             String jsonConfig = hjsonToJson(readConfigFile(tableConfig));
