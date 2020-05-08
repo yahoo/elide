@@ -36,17 +36,16 @@ public class DefaultAsyncQueryDAOTest {
     private DataStore dataStore;
     private AsyncQuery asyncQuery;
     private DataStoreTransaction tx;
-    private ElideSettings elideSettings;
     private EntityDictionary dictionary;
     private RSQLFilterDialect filterParser;
 
     @BeforeEach
     public void setupMocks() {
+        ElideSettings elideSettings = mock(ElideSettings.class);
         elide = mock(Elide.class);
         dataStore = mock(DataStore.class);
         asyncQuery = mock(AsyncQuery.class);
         tx = mock(DataStoreTransaction.class);
-        elideSettings = mock(ElideSettings.class);
         dictionary = mock(EntityDictionary.class);
         filterParser = mock(RSQLFilterDialect.class);
 
