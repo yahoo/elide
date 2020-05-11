@@ -28,29 +28,36 @@ public class VariableSchemaValidationTest extends SchemaTest {
 
     @Test
     public void testValidVariableSchema() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/variable/valid_variable.json");
+        JsonNode testNode = loadJsonFromClasspath("/variables/valid/variables.json");
         ProcessingReport results = schema.validate(testNode);
         assertTrue(results.isSuccess());
     }
 
     @Test
     public void testInValidVariableSchema() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/variable/invalid_variable.json");
+        JsonNode testNode = loadJsonFromClasspath("/variables/invalid/variables.json");
         ProcessingReport results = schema.validate(testNode);
         assertFalse(results.isSuccess());
     }
 
     @Test
     public void testValidVariableHJson() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/variable/valid_variable.hjson", true);
+        JsonNode testNode = loadJsonFromClasspath("/variables/valid/variables.hjson", true);
         ProcessingReport results = schema.validate(testNode);
         assertTrue(results.isSuccess());
     }
 
     @Test
     public void testInvalidVariableHJson() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/variable/invalid_variable.hjson", true);
+        JsonNode testNode = loadJsonFromClasspath("/variables/invalid/variables.hjson", true);
         ProcessingReport results = schema.validate(testNode);
         assertFalse(results.isSuccess());
+    }
+
+    @Test
+    public void testModelsVariableHJson() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/models/variables.hjson", true);
+        ProcessingReport results = schema.validate(testNode);
+        assertTrue(results.isSuccess());
     }
 }

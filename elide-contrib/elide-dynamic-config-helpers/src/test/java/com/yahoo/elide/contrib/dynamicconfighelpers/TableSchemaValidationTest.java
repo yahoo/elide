@@ -28,29 +28,50 @@ public class TableSchemaValidationTest extends SchemaTest {
 
     @Test
     public void testValidTableSchema() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/table/valid_table.json");
+        JsonNode testNode = loadJsonFromClasspath("/tables/valid/table.json");
         ProcessingReport results = schema.validate(testNode);
         assertTrue(results.isSuccess());
     }
 
     @Test
     public void testInvalidTableSchema() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/table/invalid_table.json");
+        JsonNode testNode = loadJsonFromClasspath("/tables/invalid/table.json");
         ProcessingReport results = schema.validate(testNode);
         assertFalse(results.isSuccess());
     }
 
     @Test
     public void testValidTableHJson() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/table/valid_table.hjson", true);
+        JsonNode testNode = loadJsonFromClasspath("/tables/valid/table.hjson", true);
         ProcessingReport results = schema.validate(testNode);
         assertTrue(results.isSuccess());
     }
 
     @Test
     public void testInvalidTableHJson() throws Exception {
-        JsonNode testNode = loadJsonFromClasspath("/table/invalid_table.hjson", true);
+        JsonNode testNode = loadJsonFromClasspath("/tables/invalid/table.hjson", true);
         ProcessingReport results = schema.validate(testNode);
         assertFalse(results.isSuccess());
+    }
+
+    @Test
+    public void testModelsTable1HJson() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/models/tables/table1.hjson", true);
+        ProcessingReport results = schema.validate(testNode);
+        assertTrue(results.isSuccess());
+    }
+
+    @Test
+    public void testModelsTable2HJson() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/models/tables/table2.hjson", true);
+        ProcessingReport results = schema.validate(testNode);
+        assertTrue(results.isSuccess());
+    }
+
+    @Test
+    public void testModelsTable3HJson() throws Exception {
+        JsonNode testNode = loadJsonFromClasspath("/models_missing/tables/table1.hjson", true);
+        ProcessingReport results = schema.validate(testNode);
+        assertTrue(results.isSuccess());
     }
 }

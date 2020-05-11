@@ -32,11 +32,14 @@ import java.util.Set;
  */
 public class DynamicConfigHelpers {
 
-    private static final String TABLE_CONFIG_PATH = "tables/";
+    private static String TABLE_CONFIG_PATH = "tables/";
     private static final String SECURITY_CONFIG_PATH = "security.hjson";
     private static final String VARIABLE_CONFIG_PATH = "variables.hjson";
     private static final String NEW_LINE = "\n";
 
+    public static void setTableConfigPath(String input) {
+        DynamicConfigHelpers.TABLE_CONFIG_PATH = input;
+    }
 
     /**
      * Checks whether input is null or empty.
@@ -53,8 +56,8 @@ public class DynamicConfigHelpers {
      * @return formatted file path.
      */
     public static String formatFilePath(String basePath) {
-        if (!basePath.endsWith("/")) {
-            basePath += '/';
+        if (!basePath.endsWith(File.separator)) {
+            basePath += File.separator;
         }
         return basePath;
     }
@@ -65,21 +68,30 @@ public class DynamicConfigHelpers {
      * @return Map of variables
      * @throws JsonProcessingException
      */
-    public static Map<String, Object> getVaribalesPojo(String basePath) throws JsonProcessingException {
-        String jsonConfig = hjsonToJson(readConfigFile(new File(basePath + VARIABLE_CONFIG_PATH)));
-        return getModelPojo(jsonConfig, Map.class);
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> getVariablesPojo(String basePath) throws JsonProcessingException {
+        String filePath = basePath + VARIABLE_CONFIG_PATH;
+        File variableFile = new File(filePath);
+        if (variableFile.exists()) {
+            String jsonConfig = hjsonToJson(readConfigFile(variableFile));
+            return getModelPojo(jsonConfig, Map.class);
+        } else {
+            log.info("Variables config file not found at " + filePath);
+            return null;
+        }
     }
 
     /**
      * converts all avaiable table config to ElideTableConfig Pojo.
      * @param basePath : root path to model dir
+     * @param variables : variables to resolve.
      * @return ElideTableConfig pojo
      * @throws IOException
      */
     public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables)
             throws IOException {
         Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + TABLE_CONFIG_PATH),
-                new String[] {"hjson", "json"}, false);
+                new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {
             String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(tableConfig), variables));
@@ -94,14 +106,21 @@ public class DynamicConfigHelpers {
     /**
      * converts security.hjson to ElideSecurityConfig Pojo.
      * @param basePath : root path to model dir.
+     * @param variables : variables to resolve.
      * @return ElideSecurityConfig Pojo
      * @throws IOException
      */
     public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
-            throws IOException {
-        String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(new File(basePath + SECURITY_CONFIG_PATH)),
-                variables));
-        return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+            throws JsonProcessingException {
+        String filePath = basePath + SECURITY_CONFIG_PATH;
+        File securityFile = new File(filePath);
+        if (securityFile.exists()) {
+            String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(securityFile), variables));
+            return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+        } else {
+            log.info("Security config file not found at " + filePath);
+            return null;
+        }
     }
 
     /**

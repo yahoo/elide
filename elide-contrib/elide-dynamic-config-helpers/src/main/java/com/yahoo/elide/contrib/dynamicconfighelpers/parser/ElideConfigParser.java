@@ -46,6 +46,7 @@ public class ElideConfigParser {
         } catch (IOException e) {
             log.error("Error while parsing dynamic config at location " + localFilePath);
             log.error(e.getMessage());
+            throw new IllegalStateException(e);
         }
     }
 }
