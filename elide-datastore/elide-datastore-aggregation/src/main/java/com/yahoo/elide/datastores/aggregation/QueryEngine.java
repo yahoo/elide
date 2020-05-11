@@ -91,11 +91,7 @@ public abstract class QueryEngine {
         populateMetaData(metaDataStore);
         this.tables = metaDataStore.getMetaData(Table.class).stream()
                 .collect(Collectors.toMap(Table::getId, Functions.identity()));
-        if (cache != null) {
-            this.cache = cache;
-        } else {
-            this.cache = new NoCache();
-        }
+        this.cache = cache;
     }
 
     /**
@@ -175,17 +171,5 @@ public abstract class QueryEngine {
      */
     public Table getTable(String classAlias) {
         return tables.get(classAlias);
-    }
-
-    private static class NoCache implements Cache {
-        @Override
-        public Iterable<Object> get(Object key) {
-            return null;
-        }
-
-        @Override
-        public void put(Object key, Iterable<Object> result) {
-            // Do nothing
-        }
     }
 }
