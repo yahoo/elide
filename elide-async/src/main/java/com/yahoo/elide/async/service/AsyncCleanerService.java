@@ -15,7 +15,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
-
 /**
  * Service to execute Async queries.
  * It will schedule task to track long running queries and kills them.
@@ -40,7 +39,7 @@ public class AsyncCleanerService {
         // Setting up query cleaner that marks long running query as TIMEDOUT.
         ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
         AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide,
-                queryCleanupDays, asyncQueryDao);
+            queryCleanupDays, asyncQueryDao);
 
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.

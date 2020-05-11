@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.utils.ClassScanner;
@@ -30,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -58,6 +58,7 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
+            bindClasses.addAll(ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -70,7 +71,6 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
-        EntityManager em = emf.createEntityManager();
 
         // method to force class initialization
         MetadataSources metadataSources = new MetadataSources(
@@ -102,7 +102,7 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
             throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
 
-        store = new AbstractHibernateStore.Builder(em)
+        store = new AbstractHibernateStore.Builder(emf)
                 .withScrollEnabled(true)
                 .withScrollMode(ScrollMode.FORWARD_ONLY)
                 .build();

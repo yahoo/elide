@@ -11,6 +11,7 @@ import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 
+import java.security.Principal;
 import java.util.Optional;
 
 public class UpdatePrincipalNameHook implements LifeCycleHook<AsyncQuery> {
@@ -18,6 +19,9 @@ public class UpdatePrincipalNameHook implements LifeCycleHook<AsyncQuery> {
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, AsyncQuery query,
                         RequestScope requestScope, Optional<ChangeSpec> changes) {
-        query.setPrincipalName(requestScope.getUser().getName());
+        Principal principal = requestScope.getUser().getPrincipal();
+        if (principal != null) {
+            query.setPrincipalName(principal.getName());
+        }
     }
 }

@@ -14,15 +14,17 @@ import com.yahoo.elide.security.RequestScope;
 import example.models.triggers.services.BillingService;
 
 import java.util.Optional;
-import javax.inject.Inject;
 
 /**
  * Test hook which runs when an Invoice is marked complete.
  */
 public class InvoiceCompletionHook implements LifeCycleHook<Invoice> {
 
-    @Inject
     private BillingService billingService;
+
+    public InvoiceCompletionHook (BillingService billingService) {
+        this.billingService = billingService;
+    }
 
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, Invoice invoice,

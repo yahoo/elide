@@ -21,6 +21,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,10 +39,13 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 @Singleton
 @Slf4j
+@Getter
 public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Setter private Elide elide;
     @Setter private DataStore dataStore;
+    private EntityDictionary dictionary;
+    private RSQLFilterDialect filterParser;
 
     // Default constructor is needed for standalone implementation for override in getAsyncQueryDao
     public DefaultAsyncQueryDAO() {
@@ -50,6 +54,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     public DefaultAsyncQueryDAO(Elide elide, DataStore dataStore) {
         this.elide = elide;
         this.dataStore = dataStore;
+        dictionary = elide.getElideSettings().getDictionary();
+        filterParser = new RSQLFilterDialect(dictionary);
     }
 
     @Override
@@ -94,8 +100,6 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     private Collection<AsyncQuery> updateAsyncQueryCollection(String filterExpression,
             UpdateQuery updateFunction) {
         log.debug("updateAsyncQueryCollection");
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
 
         Collection<AsyncQuery> asyncQueryList = null;
 
@@ -117,7 +121,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                      updateFunction.update(query);
                      tx.save(query, scope);
                  }
-                 return itr;
+                 return loaded;
              });
         } catch (ParseException e) {
             log.error("Exception: {}", e);
@@ -129,13 +133,13 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     @SuppressWarnings("unchecked")
     public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(String filterExpression) {
         log.debug("deleteAsyncQueryAndResultCollection");
-        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
-        RSQLFilterDialect filterParser = new RSQLFilterDialect(dictionary);
+
+        Collection<AsyncQuery> asyncQueryList = null;
 
         try {
             FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
                     AsyncQuery.class, false);
-            executeInTransaction(dataStore, (tx, scope) -> {
+            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
 
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
@@ -151,12 +155,12 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                         tx.delete(query, scope);
                     }
                 }
-                return null;
+                return loaded;
             });
         } catch (ParseException e) {
             log.error("Exception: {}", e);
         }
-        return null;
+        return asyncQueryList;
     }
 
     @Override
@@ -194,8 +198,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             RequestScope scope = new RequestScope("query", NO_VERSION, jsonApiDoc,
                     tx, null, queryParams, elide.getElideSettings());
             result = action.execute(tx, scope);
-            tx.commit(scope);
             tx.flush(scope);
+            tx.commit(scope);
         } catch (IOException e) {
             log.error("IOException: {}", e);
         } catch (Exception e) {
