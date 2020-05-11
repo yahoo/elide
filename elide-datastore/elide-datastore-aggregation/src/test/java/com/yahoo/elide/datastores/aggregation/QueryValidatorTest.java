@@ -32,7 +32,7 @@ import java.util.TreeMap;
 public class QueryValidatorTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init();
+        SQLUnitTest.init(null);
     }
 
     @Test
