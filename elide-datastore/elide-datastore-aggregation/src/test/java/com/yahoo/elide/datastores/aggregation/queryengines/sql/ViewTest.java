@@ -30,7 +30,7 @@ public class ViewTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init();
+        SQLUnitTest.init(null);
         playerStatsWithViewSchema = engine.getTable("playerStatsWithView");
     }
 
