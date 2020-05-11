@@ -28,7 +28,14 @@ public class AsyncQueryOperationChecks {
         @Override
         public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             Principal principal = requestScope.getUser().getPrincipal();
-            return ((PrincipalOwned) object).getPrincipalName().equals(principal.getName());
+            boolean status = false;
+            String principalName = ((PrincipalOwned) object).getPrincipalName();
+            if (principalName == null && (principal == null || principal.getName() == null)) {
+                status = true;
+            } else {
+                status = principalName.equals(principal.getName());
+            }
+            return status;
         }
     }
 

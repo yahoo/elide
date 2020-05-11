@@ -7,7 +7,6 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Random;
@@ -23,15 +22,12 @@ import javax.inject.Inject;
  * after host/app crash or restart.
  */
 @Slf4j
-@Getter
 public class AsyncCleanerService {
 
     private final int defaultCleanupDelayMinutes = 360;
     private final int maxCleanupInitialDelayMinutes = 100;
 
     private static AsyncCleanerService asyncCleanerService = null;
-
-    private ScheduledExecutorService cleaner;
 
     @Inject
     private AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays,
@@ -41,7 +37,7 @@ public class AsyncCleanerService {
         int queryRunTimeThresholdMinutes = maxRunTimeMinutes * 2;
 
         // Setting up query cleaner that marks long running query as TIMEDOUT.
-        cleaner = Executors.newSingleThreadScheduledExecutor();
+        ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
         AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide,
             queryCleanupDays, asyncQueryDao);
 

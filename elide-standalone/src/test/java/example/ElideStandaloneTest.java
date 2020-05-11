@@ -21,9 +21,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import example.filters.AsyncAuthFilter;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
@@ -45,7 +44,6 @@ import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
 
 /**
  * Tests ElideStandalone starts and works
@@ -130,11 +128,6 @@ public class ElideStandaloneTest {
             @Override
             public AsyncQueryDAO getAsyncQueryDAO() {
                 return null;
-            }
-
-            @Override
-            public List<Class<?>> getFilters() {
-                return Lists.newArrayList(AsyncAuthFilter.class);
             }
         });
         elide.start(false);
@@ -339,6 +332,11 @@ public class ElideStandaloneTest {
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
+            }
+            i++;
+
+            if (i == 1000) {
+                fail("Async Query not completed.");
             }
         }
     }

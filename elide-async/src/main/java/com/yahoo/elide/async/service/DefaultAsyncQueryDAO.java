@@ -44,8 +44,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Setter private Elide elide;
     @Setter private DataStore dataStore;
-    @Setter private EntityDictionary dictionary;
-    @Setter private RSQLFilterDialect filterParser;
+    private EntityDictionary dictionary;
+    private RSQLFilterDialect filterParser;
 
     // Default constructor is needed for standalone implementation for override in getAsyncQueryDao
     public DefaultAsyncQueryDAO() {

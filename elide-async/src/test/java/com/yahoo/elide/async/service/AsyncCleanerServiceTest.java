@@ -22,6 +22,7 @@ public class AsyncCleanerServiceTest {
     @BeforeAll
     public void setupMocks() {
         Elide elide = mock(Elide.class);
+
         AsyncQueryDAO dao = mock(DefaultAsyncQueryDAO.class);
         AsyncCleanerService.init(elide, 5, 60, dao);
         service = AsyncCleanerService.getInstance();
@@ -29,6 +30,6 @@ public class AsyncCleanerServiceTest {
 
     @Test
     public void testCleanerSet() {
-        assertNotNull(service.getCleaner());
+        assertNotNull(service);
     }
 }

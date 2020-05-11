@@ -90,12 +90,12 @@ public class AsyncQueryThreadTest {
     }
 
     @Test
-    public void testProcessQueryNoResponse() {
+    public void testProcessQueryException() {
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
 
         when(queryObj.getQuery()).thenReturn(query);
         when(queryObj.getQueryType()).thenReturn(QueryType.GRAPHQL_V1_0);
-        when(runner.run(query, user)).thenReturn(null);
+        when(runner.run(query, user)).thenThrow(RuntimeException.class);
 
         queryThread.processQuery();
 

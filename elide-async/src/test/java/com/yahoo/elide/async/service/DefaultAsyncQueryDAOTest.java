@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
@@ -22,11 +23,15 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.security.checks.Check;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
 
 public class DefaultAsyncQueryDAOTest {
@@ -37,34 +42,37 @@ public class DefaultAsyncQueryDAOTest {
     private AsyncQuery asyncQuery;
     private DataStoreTransaction tx;
     private EntityDictionary dictionary;
-    private RSQLFilterDialect filterParser;
 
     @BeforeEach
     public void setupMocks() {
-        ElideSettings elideSettings = mock(ElideSettings.class);
-        elide = mock(Elide.class);
         dataStore = mock(DataStore.class);
         asyncQuery = mock(AsyncQuery.class);
         tx = mock(DataStoreTransaction.class);
-        dictionary = mock(EntityDictionary.class);
-        filterParser = mock(RSQLFilterDialect.class);
+
+        Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
+
+        dictionary = new EntityDictionary(checkMappings);
+        dictionary.bindEntity(AsyncQuery.class);
+        dictionary.bindEntity(AsyncQueryResult.class);
+
+        ElideSettings elideSettings = new ElideSettingsBuilder(dataStore)
+                .withEntityDictionary(dictionary)
+                .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
+                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                .build();
+
+        elide = new Elide(elideSettings);
 
         when(dataStore.beginTransaction()).thenReturn(tx);
-        when(elide.getElideSettings()).thenReturn(elideSettings);
-        when(elideSettings.getDictionary()).thenReturn(dictionary);
 
         asyncQueryDAO = new DefaultAsyncQueryDAO(elide, dataStore);
-
-        asyncQueryDAO.setDictionary(dictionary);
-        asyncQueryDAO.setFilterParser(filterParser);
     }
 
     @Test
     public void testAsyncQueryCleanerThreadSet() {
         assertEquals(elide, asyncQueryDAO.getElide());
-        assertEquals(dataStore, asyncQueryDAO.getDataStore());
         assertEquals(dictionary, asyncQueryDAO.getDictionary());
-        assertEquals(filterParser, asyncQueryDAO.getFilterParser());
     }
 
     @Test
@@ -94,6 +102,8 @@ public class DefaultAsyncQueryDAOTest {
 
         asyncQueryDAO.deleteAsyncQueryAndResultCollection("createdOn=le='2020-03-23T02:02Z'");
 
+        verify(dataStore, times(1)).beginTransaction();
+        verify(tx, times(1)).loadObjects(any(), any());
         verify(tx, times(3)).delete(any(AsyncQuery.class), any(RequestScope.class));
     }
 

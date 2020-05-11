@@ -29,8 +29,6 @@ import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.security.checks.Check;
 
-import com.google.common.collect.Lists;
-
 import example.TestCheckMappings;
 import example.models.triggers.Invoice;
 import example.models.triggers.InvoiceCompletionHook;
@@ -43,7 +41,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -111,14 +108,5 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         });
-
-        registerFilters(Lists.newArrayList(AsyncAuthFilter.class));
-    }
-
-    /**
-     * Register provided JAX-RS filters.
-     */
-    private void registerFilters(List<Class<?>> filters) {
-        filters.forEach(this::register);
     }
 }

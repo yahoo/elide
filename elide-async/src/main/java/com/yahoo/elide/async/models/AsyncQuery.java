@@ -35,7 +35,7 @@ import javax.persistence.PrePersist;
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
-    private UUID id; //Can be generated or provided.
+    private UUID id; //Provided.
 
     private String query;  //JSON-API PATH or GraphQL payload.
 
