@@ -115,7 +115,7 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public Iterable<Object> executeQuery(Query query, boolean useCache) {
+    public Iterable<Object> executeQuery(Query query) {
         EntityManager entityManager = null;
         EntityTransaction transaction = null;
         try {

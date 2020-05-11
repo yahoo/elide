@@ -53,7 +53,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         Query query = buildQuery(entityProjection, scope);
-        return queryEngine.executeQuery(query, true);
+        return queryEngine.executeQuery(query);
     }
 
     @Override

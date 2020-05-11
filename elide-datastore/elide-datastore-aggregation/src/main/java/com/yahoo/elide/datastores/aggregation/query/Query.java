@@ -45,6 +45,11 @@ public class Query {
     RequestScope scope;
 
     /**
+     * Whether to bypass the {@link QueryEngine} cache for this query.
+     */
+    boolean bypassingCache;
+
+    /**
      * Returns all the dimensions regardless of type.
      * @return All the dimensions.
      */

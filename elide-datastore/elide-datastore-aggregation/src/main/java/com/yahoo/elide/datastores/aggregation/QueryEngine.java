@@ -163,11 +163,10 @@ public abstract class QueryEngine {
      * Executes the specified {@link Query} against a specific persistent storage, which understand the provided
      * {@link Query}. Results may be taken from a cache, if configured.
      *
-     * @param query    The query customized for a particular persistent storage or storage client
-     * @param useCache Whether to use the cache, if configured
+     * @param query The query customized for a particular persistent storage or storage client
      * @return query results
      */
-    public abstract Iterable<Object> executeQuery(Query query, boolean useCache);
+    public abstract Iterable<Object> executeQuery(Query query);
 
     /**
      * Returns the schema for a given entity class.
