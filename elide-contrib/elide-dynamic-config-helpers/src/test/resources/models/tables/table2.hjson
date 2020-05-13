@@ -20,8 +20,8 @@
         measures : [
             {
             name : highScore
-            type : "{{measure_type}}"
-            definition: 'MAX(score)'
+            type : "INTEGER"
+            definition: '{{measure_type}}(score)'
             }
         ]
         dimensions : [

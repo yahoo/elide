@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
@@ -29,45 +30,37 @@ public class DynamicConfigHelpersTest {
     }
 
     @Test
-    public void testValidSecuritySchema() {
+    public void testValidSecuritySchema() throws IOException {
         String path = "src/test/resources/security/valid";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
-        try {
-            ElideSecurityConfig config =  DynamicConfigHelpers.getElideSecurityPojo(
-                    DynamicConfigHelpers.formatFilePath(absolutePath));
-            assertNotNull(config);
-        } catch (JsonProcessingException e) {
-            log.error(e.getMessage());
-        }
+        Map<String, Object> vars =  DynamicConfigHelpers.getVariablesPojo(
+                DynamicConfigHelpers.formatFilePath(absolutePath));
+        ElideSecurityConfig config =  DynamicConfigHelpers.getElideSecurityPojo(
+                DynamicConfigHelpers.formatFilePath(absolutePath), vars);
+        assertNotNull(config);
     }
 
     @Test
-    public void testValidVariableSchema() {
+    public void testValidVariableSchema() throws JsonProcessingException {
         String path = "src/test/resources/variables/valid";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
-        try {
-            Map<String, Object> config =  DynamicConfigHelpers.getVariablesPojo(
-                    DynamicConfigHelpers.formatFilePath(absolutePath));
-            assertNotNull(config);
-        } catch (JsonProcessingException e) {
-            log.error(e.getMessage());
-        }
+        Map<String, Object> config =  DynamicConfigHelpers.getVariablesPojo(
+                DynamicConfigHelpers.formatFilePath(absolutePath));
+        assertNotNull(config);
     }
 
     @Test
-    public void testValidTableSchema() {
+    public void testValidTableSchema() throws IOException {
         DynamicConfigHelpers.setTableConfigPath("valid/");
         String path = "src/test/resources/tables";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
-        try {
-            ElideTableConfig config =  DynamicConfigHelpers.getElideTablePojo(
-                    DynamicConfigHelpers.formatFilePath(absolutePath));
-            assertNotNull(config);
-        } catch (JsonProcessingException e) {
-            log.error(e.getMessage());
-        }
+        Map<String, Object> vars =  DynamicConfigHelpers.getVariablesPojo(
+                DynamicConfigHelpers.formatFilePath(absolutePath));
+        ElideTableConfig config =  DynamicConfigHelpers.getElideTablePojo(
+                DynamicConfigHelpers.formatFilePath(absolutePath), vars);
+        assertNotNull(config);
     }
 }
