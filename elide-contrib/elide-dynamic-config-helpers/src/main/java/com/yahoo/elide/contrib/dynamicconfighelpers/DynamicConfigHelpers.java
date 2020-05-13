@@ -111,7 +111,7 @@ public class DynamicConfigHelpers {
      * @throws IOException
      */
     public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
-            throws JsonProcessingException {
+            throws IOException {
         String filePath = basePath + SECURITY_CONFIG_PATH;
         File securityFile = new File(filePath);
         if (securityFile.exists()) {
