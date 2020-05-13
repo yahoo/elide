@@ -1,0 +1,158 @@
+<!--
+  ~ Copyright 2020, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>elide-dynamic-config-helpers</artifactId>
+    <packaging>jar</packaging>
+    <name>Elide Dynamic Config Helpers</name>
+    <description>Dynamic config helpers</description>
+    <url>https://github.com/yahoo/elide</url>
+    <parent>
+        <artifactId>elide-contrib-parent-pom</artifactId>
+        <groupId>com.yahoo.elide</groupId>
+        <version>5.0.0-pr7-SNAPSHOT</version>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <url>https://github.com/yahoo/elide.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <hjson.version>3.0.0</hjson.version>
+        <jackson.version>2.10.2</jackson.version>
+        <handlebars.version>4.2.0</handlebars.version>
+        <json-schema-validator.version>2.2.12</json-schema-validator.version>
+        <commons-io.version>2.6</commons-io.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-aggregation</artifactId>
+            <version>5.0.0-pr7-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+		<dependency>
+		    <groupId>commons-io</groupId>
+		    <artifactId>commons-io</artifactId>
+		    <version>${commons-io.version}</version>
+		</dependency>
+        <dependency>
+        <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.java-json-tools</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${json-schema-validator.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hjson</groupId>
+            <artifactId>hjson</artifactId>
+            <version>${hjson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jknack</groupId>
+            <artifactId>handlebars</artifactId>
+            <version>${handlebars.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
