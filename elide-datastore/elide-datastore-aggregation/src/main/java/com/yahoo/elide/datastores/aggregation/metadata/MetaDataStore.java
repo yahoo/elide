@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
@@ -53,6 +54,20 @@ public class MetaDataStore extends HashMapDataStore {
 
     public MetaDataStore() {
         this(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
+    }
+
+    public MetaDataStore(ElideDynamicEntityCompiler compiler) throws ClassNotFoundException {
+        this();
+
+        Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
+        dynamicCompiledClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
+
+        if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
+            dynamicCompiledClasses.forEach(dynamicCompiledClass -> {
+                this.dictionary.bindEntity(dynamicCompiledClass, Collections.singleton(Join.class));
+                this.modelsToBind.add(dynamicCompiledClass);
+            });
+        }
     }
 
     /**

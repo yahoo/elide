@@ -1175,7 +1175,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Check whether a class is a JPA entity
+     * Check whether a class is a JPA entity.
      *
      * @param objClass class
      * @return True if it is a JPA entity
@@ -1256,7 +1256,21 @@ public class EntityDictionary {
         // /elide-spring-boot-autoconfigure/src/main/java/org/illyasviel/elide
         // /spring/boot/autoconfigure/ElideAutoConfiguration.java
 
-        for (Class<?> cls : ClassScanner.getAnnotatedClasses(SecurityCheck.class)) {
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(SecurityCheck.class);
+
+        addSecurityChecks(classes);
+    }
+
+    /**
+     * Add security checks and bind them to the dictionary.
+     */
+    public void addSecurityChecks(Set<Class<?>> classes) {
+
+        if (classes == null && classes.size() == 0) {
+            return;
+        }
+
+        for (Class<?> cls : classes) {
             if (Check.class.isAssignableFrom(cls)) {
                 SecurityCheck securityCheckMeta = cls.getAnnotation(SecurityCheck.class);
                 log.debug("Register Elide Check [{}] with expression [{}]",

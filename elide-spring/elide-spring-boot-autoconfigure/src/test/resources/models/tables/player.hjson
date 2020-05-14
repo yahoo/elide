@@ -8,11 +8,11 @@
         A long description
         '''
         cardinality : large
-        readAccess : A user is admin or is a player in the game
+        readAccess : Prefab.Role.All
         joins: [
             {
                 name: playerCountry
-                to: country
+                to: string
                 type: toOne
                 definition: '${to}.id = ${from}.country_id'
             }
@@ -20,19 +20,22 @@
         measures : [
             {
             name : highScore
-            type : "INTEGER"
-            definition: '<%measure_type%>(score)'
+            type : INTEGER
+            definition: 'MAX(score)'
+            readAccess : Prefab.Role.All
             }
         ]
         dimensions : [
             {
                 name : countryCode
                 type : TEXT
-                definition : '{{playerCountry.isoCode}}'
+                readAccess : Prefab.Role.All
+                definition : playerCountry.isoCode
             },
             {
                 name : createdOn
                 type : TIME
+                readAccess : Prefab.Role.All
                 definition : create_on
                 grains: [
                 {

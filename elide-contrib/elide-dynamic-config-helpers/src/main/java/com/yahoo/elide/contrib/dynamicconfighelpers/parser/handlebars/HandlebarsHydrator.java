@@ -27,6 +27,8 @@ import java.util.Map;
 public class HandlebarsHydrator {
 
     public static final String SECURITY_CLASS_PREFIX = "DynamicConfigOperationChecksPrincipalIs";
+    public static final String HANDLEBAR_START_DELIMITER = "<%";
+    public static final String HANDLEBAR_END_DELIMITER = "%>";
     public static final EscapingStrategy MY_ESCAPING_STRATEGY = new Hbs(new String[][]{
         {"<", "&lt;" },
         {">", "&gt;" },
@@ -50,7 +52,7 @@ public class HandlebarsHydrator {
         HandlebarsHelper helper = new HandlebarsHelper();
         handlebars.registerHelpers(ConditionalHelpers.class);
         handlebars.registerHelpers(helper);
-        Template template = handlebars.compile("table");
+        Template template = handlebars.compile("table", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
 
         for (Table t : table.getTables()) {
             tableClasses.put(helper.capitalizeFirstLetter(t.getName()), template.apply(t));
@@ -70,7 +72,7 @@ public class HandlebarsHydrator {
 
         Context context = Context.newBuilder(replacements).build();
         Handlebars handlebars = new Handlebars();
-        Template template = handlebars.compileInline(config);
+        Template template = handlebars.compileInline(config, HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
 
         return template.apply(context);
     }
@@ -90,7 +92,7 @@ public class HandlebarsHydrator {
         HandlebarsHelper helper = new HandlebarsHelper();
         handlebars.registerHelpers(ConditionalHelpers.class);
         handlebars.registerHelpers(helper);
-        Template template = handlebars.compile("security");
+        Template template = handlebars.compile("security", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
 
         for (String role : security.getRoles()) {
             securityClasses.put(SECURITY_CLASS_PREFIX + helper.titleCaseRemoveSpaces(role), template.apply(role));

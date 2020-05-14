@@ -20,12 +20,14 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
 public class AggregationDataStore implements DataStore {
     private QueryEngine queryEngine;
+    private Set<Class<?>> dynamicCompiledClasses;
 
     /**
      * These are the classes the Aggregation Store manages.
@@ -37,12 +39,23 @@ public class AggregationDataStore implements DataStore {
         this.queryEngine = queryEngine;
     }
 
+    public AggregationDataStore(QueryEngine queryEngine, Set<Class<?>> dynamicCompiledClasses) {
+        this.queryEngine = queryEngine;
+        this.dynamicCompiledClasses = dynamicCompiledClasses;
+    }
+
     /**
      * Populate an {@link EntityDictionary} and use this dictionary to construct a {@link QueryEngine}.
      * @param dictionary the dictionary
      */
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
+
+        if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
+            dynamicCompiledClasses.forEach(dynamicLoadedClass -> dictionary.bindEntity(dynamicLoadedClass,
+                    Collections.singleton(Join.class)));
+        }
+
         for (Class<? extends Annotation> annotation : AGGREGATION_STORE_CLASSES) {
             // bind non-jpa entity tables
             ClassScanner.getAnnotatedClasses(annotation)

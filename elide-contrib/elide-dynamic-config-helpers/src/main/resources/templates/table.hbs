@@ -3,11 +3,13 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.model;
+package dynamicconfig.models;
 
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -31,58 +33,58 @@ import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Cardinality(size = CardinalitySize.{{#toUpperCase cardinality}}{{/toUpperCase}})
+@Cardinality(size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>)
 @EqualsAndHashCode
 @ToString
 @Data
-{{#if table}}@FromTable(name = "{{#if schema}}{{schema}}.{{/if}}{{table}}")
-{{else if sql}}@FromSubquery(sql = "{{sql}}")
-{{/if}}
-{{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
-{{#if description}}@Meta(description = "{{description}}"){{/if}}
-{{#if hidden}}@Exclude{{else}}@Include(rootLevel = true){{/if}}
-public class {{#capitalizeFirstLetter name}}{{/capitalizeFirstLetter}} {{#if extend}}extends {{#capitalizeFirstLetter extend}}{{/capitalizeFirstLetter}}{{/if}}{
+<%#if table%>@FromTable(name = "<%#if schema%><%schema%>.<%/if%><%table%>")
+<%else if sql%>@FromSubquery(sql = "<%sql%>")
+<%/if%>
+<%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
+<%#if description%>@Meta(description = "<%description%>")<%/if%>
+<%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
+public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 
     @Id
-    private String Id;
+    private String id;
 
-{{#each dimensions}}
+<%#each dimensions%>
 
-{{#ifTypeMatches type "TIME"}}
+<%#ifTypeMatches type "TIME"%>
     @Temporal(grains = {
-    {{#each grains}}
-            @TimeGrainDefinition(grain = TimeGrain.{{grain}}, expression = "{{sql}}"){{#if @last}}{{else}}, {{/if}}
-    {{/each}}
+    <%#each grains%>
+            @TimeGrainDefinition(grain = TimeGrain.<%grain%>, expression = "<%sql%>")<%#if @last%><%else%>, <%/if%>
+    <%/each%>
     }, timeZone = "UTC")
-{{/ifTypeMatches}}
+<%/ifTypeMatches%>
 
-    {{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
-    {{#if description}}@Meta(description = "{{description}}"){{/if}}
-    {{#if hidden}}@Exclude{{/if}}
-    @DimensionFormula("{{definition}}")
-    private {{#getJavaType type}}{{/getJavaType}} {{name}};
+    <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
+    <%#if description%>@Meta(description = "<%description%>")<%/if%>
+    <%#if hidden%>@Exclude<%/if%>
+    @DimensionFormula("<%definition%>")
+    private <%#getJavaType type%><%/getJavaType%> <%name%>;
 
-{{/each}}
+<%/each%>
 
 
-{{#each joins}}
+<%#each joins%>
 
-    @Join("{{ definition }}")
-{{#ifTypeMatches type "toMany"}}
-    private Set<{{#capitalizeFirstLetter to}}{{/capitalizeFirstLetter}}> {{name}};
-{{else}}
-    private {{#capitalizeFirstLetter to}}{{/capitalizeFirstLetter}} {{name}};
-{{/ifTypeMatches}}
+    @Join("<% definition %>")
+<%#ifTypeMatches type "toMany"%>
+    private Set<<%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%>> <%name%>;
+<%else%>
+    private <%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%> <%name%>;
+<%/ifTypeMatches%>
 
-{{/each}}
+<%/each%>
 
-{{#each measures}}
+<%#each measures%>
 
-    @MetricFormula("{{definition}}")
-    {{#if readAccess}}@ReadPermission(expression = "{{readAccess}}"){{/if}}
-    {{#if description}}@Meta(description = "{{description}}"){{/if}}
-    {{#if hidden}}@Exclude{{/if}}
-    private {{#getJavaType type}}{{/getJavaType}} {{name}};
+    @MetricFormula("<%definition%>")
+    <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
+    <%#if description%>@Meta(description = "<%description%>")<%/if%>
+    <%#if hidden%>@Exclude<%/if%>
+    private <%#getJavaType type%><%/getJavaType%> <%name%>;
 
-{{/each}}
+<%/each%>
 }

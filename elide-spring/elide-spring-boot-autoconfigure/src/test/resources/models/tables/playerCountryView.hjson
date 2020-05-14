@@ -1,0 +1,20 @@
+{
+    tables: [{
+        name: PlayerCountryView
+        table: PlayerCountry
+        description:
+        '''
+        A long description
+        '''
+        cardinality : small
+        readAccess : Prefab.Role.All
+        dimensions : [
+            {
+                name : isoCode
+                type : TEXT
+                readAccess : Prefab.Role.All
+                definition : isoCode
+            }
+        ]
+    }]
+}

@@ -2,7 +2,7 @@ server:
   port: 4001
 
 elide:
-  modelPackage: 'example.models'
+  modelPackage: 'com.yahoo.elide.spring.models'
   json-api:
     path: /json
     enabled: true
@@ -20,10 +20,12 @@ elide:
     cleanupEnabled: true
     queryCleanupDays: 7
     defaultAsyncQueryDAO: true
-
+  dynamic-config:
+    path: src/test/resources/models
+    enabled: true
 spring:
   jpa:
-    show_sql: true
+    show-sql: true
     properties:
       hibernate:
         dialect: 'org.hibernate.dialect.H2Dialect'

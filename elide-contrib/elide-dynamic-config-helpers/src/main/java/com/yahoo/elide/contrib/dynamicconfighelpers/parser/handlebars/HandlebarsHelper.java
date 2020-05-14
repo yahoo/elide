@@ -38,6 +38,17 @@ public class HandlebarsHelper {
     }
 
     /**
+     * LowerCase first letter of the string.
+     * @param str string to lower case first letter
+     * @return string with first letter lower cased
+     */
+    public String lowerCaseFirstLetter(String str) {
+
+        return (str == null || str.length() == 0) ? str : str.substring(0, 1).toLowerCase(Locale.ENGLISH)
+                + str.substring(1);
+    }
+
+    /**
     * Transform string to capitalize first character of each word, change other
     * characters to lower case and remove spaces.
     * @param str String to be transformed
