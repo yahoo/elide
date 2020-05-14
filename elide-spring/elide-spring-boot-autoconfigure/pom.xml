@@ -189,10 +189,10 @@
             <version>${spring.boot.version}</version>
             <scope>test</scope>
             <exclusions>
-            	<exclusion>
-            		<groupId>com.vaadin.external.google</groupId>
-            		<artifactId>android-json</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
