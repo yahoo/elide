@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.request.Pagination;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -19,4 +20,9 @@ import lombok.Value;
 public class QueryResult {
     @NonNull
     Iterable<Object> data;
+
+    /**
+     * Total record count. Null unless Query had Pagination with {@link Pagination#returnPageTotals()} set.
+     */
+    Long pageTotals;
 }
