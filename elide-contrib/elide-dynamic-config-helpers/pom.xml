@@ -43,7 +43,6 @@
         <jackson.version>2.10.2</jackson.version>
         <handlebars.version>4.2.0</handlebars.version>
         <json-schema-validator.version>2.2.12</json-schema-validator.version>
-        <junit.platform.version>1.6.0</junit.platform.version>
         <commons-io.version>2.6</commons-io.version>
     </properties>
 
@@ -112,7 +111,6 @@
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
-            <version>${junit.platform.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

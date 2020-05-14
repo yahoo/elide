@@ -85,6 +85,7 @@
         <version.jackson>2.10.2</version.jackson>
         <version.jersey>2.30</version.jersey>
         <version.junit>5.6.0</version.junit>
+        <version.junit.platform>1.6.0</version.junit.platform>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <version.mysql>8.0.19</version.mysql>
         <hibernate5.version>5.4.2.Final</hibernate5.version>
@@ -210,6 +211,13 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
                 <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-launcher</artifactId>
+                <version>${version.junit.platform}</version>
                 <scope>test</scope>
             </dependency>
 

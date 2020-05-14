@@ -12,7 +12,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +22,6 @@ import java.util.Map;
 
 @Slf4j
 public class DynamicConfigHelpersTest {
-
-    @BeforeAll
-    public static void setup() {
-        DynamicConfigHelpers.setTableConfigPath("tables/");
-    }
 
     @Test
     public void testValidSecuritySchema() throws IOException {
@@ -60,7 +54,7 @@ public class DynamicConfigHelpersTest {
         Map<String, Object> vars =  DynamicConfigHelpers.getVariablesPojo(
                 DynamicConfigHelpers.formatFilePath(absolutePath));
         ElideTableConfig config =  DynamicConfigHelpers.getElideTablePojo(
-                DynamicConfigHelpers.formatFilePath(absolutePath), vars);
+                DynamicConfigHelpers.formatFilePath(absolutePath), vars, "valid/");
         assertNotNull(config);
     }
 }

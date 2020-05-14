@@ -32,14 +32,10 @@ import java.util.Set;
  */
 public class DynamicConfigHelpers {
 
-    private static String TABLE_CONFIG_PATH = "tables/";
+    private static final String TABLE_CONFIG_PATH = "tables" + File.separator;
     private static final String SECURITY_CONFIG_PATH = "security.hjson";
     private static final String VARIABLE_CONFIG_PATH = "variables.hjson";
     private static final String NEW_LINE = "\n";
-
-    public static void setTableConfigPath(String input) {
-        DynamicConfigHelpers.TABLE_CONFIG_PATH = input;
-    }
 
     /**
      * Checks whether input is null or empty.
@@ -56,10 +52,11 @@ public class DynamicConfigHelpers {
      * @return formatted file path.
      */
     public static String formatFilePath(String basePath) {
-        if (!basePath.endsWith(File.separator)) {
-            basePath += File.separator;
+        String path = basePath;
+        if (!path.endsWith(File.separator)) {
+            path += File.separator;
         }
-        return basePath;
+        return path;
     }
 
     /**
@@ -82,7 +79,7 @@ public class DynamicConfigHelpers {
     }
 
     /**
-     * converts all avaiable table config to ElideTableConfig Pojo.
+     * converts all available table config to ElideTableConfig Pojo.
      * @param basePath : root path to model dir
      * @param variables : variables to resolve.
      * @return ElideTableConfig pojo
@@ -90,7 +87,19 @@ public class DynamicConfigHelpers {
      */
     public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables)
             throws IOException {
-        Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + TABLE_CONFIG_PATH),
+        return getElideTablePojo(basePath, variables, TABLE_CONFIG_PATH);
+    }
+
+    /**
+     * converts all available table config to ElideTableConfig Pojo.
+     * @param basePath : root path to model dir
+     * @param tableDirName : dir name for table configs
+     * @return ElideTableConfig pojo
+     * @throws JsonProcessingException
+     */
+    public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables,
+            String tableDirName) throws JsonProcessingException {
+        Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + tableDirName),
                 new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {

@@ -8,24 +8,17 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Type;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.Map;
 
 public class ElideConfigParserTest {
-
-    @BeforeAll
-    public static void setup() {
-        DynamicConfigHelpers.setTableConfigPath("tables/");
-    }
 
     @Test
     public void testValidateVariablePath() throws Exception {
