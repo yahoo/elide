@@ -47,7 +47,6 @@ public class DynamicConfigHelpersTest {
 
     @Test
     public void testValidTableSchema() throws IOException {
-        DynamicConfigHelpers.setTableConfigPath("valid/");
         String path = "src/test/resources/tables";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
