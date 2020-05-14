@@ -93,6 +93,7 @@ public class DynamicConfigHelpers {
     /**
      * converts all available table config to ElideTableConfig Pojo.
      * @param basePath : root path to model dir
+     * @param variables : variables to resolve.
      * @param tableDirName : dir name for table configs
      * @return ElideTableConfig pojo
      * @throws IOException
