@@ -8,6 +8,7 @@ package com.yahoo.elide.contrib.dynamicconfighelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
+import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,27 +81,30 @@ public class DynamicConfigHelpers {
     /**
      * converts all available table config to ElideTableConfig Pojo.
      * @param basePath : root path to model dir
+     * @param variables : variables to resolve.
      * @return ElideTableConfig pojo
-     * @throws JsonProcessingException
+     * @throws IOException
      */
-    public static ElideTableConfig getElideTablePojo(String basePath) throws JsonProcessingException {
-        return getElideTablePojo(basePath, TABLE_CONFIG_PATH);
+    public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables)
+            throws IOException {
+        return getElideTablePojo(basePath, variables, TABLE_CONFIG_PATH);
     }
 
     /**
      * converts all available table config to ElideTableConfig Pojo.
      * @param basePath : root path to model dir
+     * @param variables : variables to resolve.
      * @param tableDirName : dir name for table configs
      * @return ElideTableConfig pojo
-     * @throws JsonProcessingException
+     * @throws IOException
      */
-    public static ElideTableConfig getElideTablePojo(String basePath, String tableDirName)
-            throws JsonProcessingException {
+    public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables,
+            String tableDirName) throws IOException {
         Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + tableDirName),
                 new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {
-            String jsonConfig = hjsonToJson(readConfigFile(tableConfig));
+            String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(tableConfig), variables));
             ElideTableConfig table = getModelPojo(jsonConfig, ElideTableConfig.class);
             tables.addAll(table.getTables());
         }
@@ -112,19 +116,33 @@ public class DynamicConfigHelpers {
     /**
      * converts security.hjson to ElideSecurityConfig Pojo.
      * @param basePath : root path to model dir.
+     * @param variables : variables to resolve.
      * @return ElideSecurityConfig Pojo
-     * @throws JsonProcessingException
+     * @throws IOException
      */
-    public static ElideSecurityConfig getElideSecurityPojo(String basePath) throws JsonProcessingException {
+    public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
+            throws IOException {
         String filePath = basePath + SECURITY_CONFIG_PATH;
         File securityFile = new File(filePath);
         if (securityFile.exists()) {
-            String jsonConfig = hjsonToJson(readConfigFile(securityFile));
+            String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(securityFile), variables));
             return getModelPojo(jsonConfig, ElideSecurityConfig.class);
         } else {
             log.info("Security config file not found at " + filePath);
             return null;
         }
+    }
+
+    /**
+     * resolves variables in table and security config.
+     * @param jsonConfig of table or security
+     * @param variables map from config
+     * @return json string with resolved variables
+     * @throws IOException
+     */
+    public static String resolveVariables(String jsonConfig, Map<String, Object> variables) throws IOException {
+        HandlebarsHydrator hydrator = new HandlebarsHydrator();
+        return hydrator.hydrateConfigTemplate(jsonConfig, variables);
     }
 
     private static String hjsonToJson(String hjson) {
