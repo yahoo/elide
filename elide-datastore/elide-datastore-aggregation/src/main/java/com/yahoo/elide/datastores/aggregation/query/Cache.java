@@ -6,16 +6,16 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 /**
- * A cache for Query results.
+ * A cache for {@link QueryResult}s.
  */
 public interface Cache {
     /**
-     * Load Query result from cache. Exceptions should be passed through.
+     * Load QueryResult from cache. Exceptions should be passed through.
      *
      * @param key    a key to look up in the cache.
      * @return query results from cache, or null if not found.
      */
-    Iterable<Object> get(Object key);
+    QueryResult get(Object key);
 
     /**
      * Insert results into cache.
@@ -23,5 +23,5 @@ public interface Cache {
      * @param key    the key to associate with the query
      * @param result the result to cache with the key
      */
-    void put(Object key, Iterable<Object> result);
+    void put(Object key, QueryResult result);
 }

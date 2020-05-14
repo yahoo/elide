@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.request.Argument;
 
@@ -162,7 +163,7 @@ public abstract class QueryEngine {
      * @param query The query customized for a particular persistent storage or storage client
      * @return query results
      */
-    public abstract Iterable<Object> executeQuery(Query query);
+    public abstract QueryResult executeQuery(Query query);
 
     /**
      * Returns the schema for a given entity class.
