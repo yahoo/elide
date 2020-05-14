@@ -87,6 +87,10 @@ public class HandlebarsHydrator {
 
         Map<String, String> securityClasses = new HashMap<>();
 
+        if (security == null) {
+            return securityClasses;
+        }
+
         TemplateLoader loader = new ClassPathTemplateLoader("/templates");
         Handlebars handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
         HandlebarsHelper helper = new HandlebarsHelper();

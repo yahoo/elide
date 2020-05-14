@@ -1,6 +1,6 @@
 {
     tables: [{
-        name: PlayerStatsView
+        name: PlayerStats
         table: PlayerStats
         description:
         '''
@@ -11,7 +11,7 @@
         joins: [
             {
                 name: playerCountry
-                to: PlayerCountryView
+                to: PlayerCountry
                 type: toOne
                 definition: '%join.id = %from.countryId'
             }
