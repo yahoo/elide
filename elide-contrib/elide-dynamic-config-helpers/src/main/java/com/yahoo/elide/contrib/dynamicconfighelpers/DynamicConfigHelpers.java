@@ -95,10 +95,10 @@ public class DynamicConfigHelpers {
      * @param basePath : root path to model dir
      * @param tableDirName : dir name for table configs
      * @return ElideTableConfig pojo
-     * @throws JsonProcessingException
+     * @throws IOException
      */
     public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables,
-            String tableDirName) throws JsonProcessingException {
+            String tableDirName) throws IOException {
         Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + tableDirName),
                 new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
