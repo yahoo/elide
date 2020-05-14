@@ -1,0 +1,18 @@
+/*
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.contrib.dynamicconfig.model;
+
+import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;
+
+@SecurityCheck(DynamicConfigOperationChecksPrincipalIs{{#titleCaseRemoveSpaces this}}{{/titleCaseRemoveSpaces}}.PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}})
+public class DynamicConfigOperationChecksPrincipalIs{{#titleCaseRemoveSpaces this}}{{/titleCaseRemoveSpaces}} extends RoleMemberCheck {
+
+    public static final String PRINCIPAL_IS_{{#toUpperCase this}}{{/toUpperCase}} = "Principal is {{this}}";
+    public DynamicConfigOperationChecksPrincipalIs{{#titleCaseRemoveSpaces this}}{{/titleCaseRemoveSpaces}}() {
+        super("{{this}}");
+    }
+}

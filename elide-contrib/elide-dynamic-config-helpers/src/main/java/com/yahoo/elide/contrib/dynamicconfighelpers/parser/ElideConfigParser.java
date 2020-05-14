@@ -9,11 +9,10 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
@@ -41,10 +40,10 @@ public class ElideConfigParser {
             String basePath = DynamicConfigHelpers.formatFilePath(localFilePath);
 
             this.variables = DynamicConfigHelpers.getVariablesPojo(basePath);
-            this.elideTableConfig = DynamicConfigHelpers.getElideTablePojo(basePath);
-            this.elideSecurityConfig = DynamicConfigHelpers.getElideSecurityPojo(basePath);
+            this.elideTableConfig = DynamicConfigHelpers.getElideTablePojo(basePath, this.variables);
+            this.elideSecurityConfig = DynamicConfigHelpers.getElideSecurityPojo(basePath, this.variables);
 
-        } catch (JsonProcessingException e) {
+        } catch (IOException e) {
             log.error("Error while parsing dynamic config at location " + localFilePath);
             log.error(e.getMessage());
             throw new IllegalStateException(e);

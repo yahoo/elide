@@ -17,18 +17,21 @@ import org.junit.jupiter.api.Test;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
 public class DynamicConfigHelpersTest {
 
     @Test
-    public void testValidSecuritySchema() throws JsonProcessingException {
+    public void testValidSecuritySchema() throws IOException {
         String path = "src/test/resources/security/valid";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
-        ElideSecurityConfig config =  DynamicConfigHelpers.getElideSecurityPojo(
+        Map<String, Object> vars =  DynamicConfigHelpers.getVariablesPojo(
                 DynamicConfigHelpers.formatFilePath(absolutePath));
+        ElideSecurityConfig config =  DynamicConfigHelpers.getElideSecurityPojo(
+                DynamicConfigHelpers.formatFilePath(absolutePath), vars);
         assertNotNull(config);
     }
 
@@ -43,12 +46,14 @@ public class DynamicConfigHelpersTest {
     }
 
     @Test
-    public void testValidTableSchema() throws JsonProcessingException {
+    public void testValidTableSchema() throws IOException {
         String path = "src/test/resources/tables";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
+        Map<String, Object> vars =  DynamicConfigHelpers.getVariablesPojo(
+                DynamicConfigHelpers.formatFilePath(absolutePath));
         ElideTableConfig config =  DynamicConfigHelpers.getElideTablePojo(
-                DynamicConfigHelpers.formatFilePath(absolutePath), "valid/");
+                DynamicConfigHelpers.formatFilePath(absolutePath), vars, "valid/");
         assertNotNull(config);
     }
 }
