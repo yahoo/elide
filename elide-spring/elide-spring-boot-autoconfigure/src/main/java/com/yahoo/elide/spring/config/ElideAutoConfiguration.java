@@ -153,7 +153,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
     }
 
     /**
