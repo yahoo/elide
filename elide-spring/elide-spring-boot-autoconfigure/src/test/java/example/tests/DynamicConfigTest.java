@@ -47,7 +47,7 @@ public class DynamicConfigTest extends IntegrationTest {
      */
 
     @Test
-    public void jsonApiGetViewTest() {
+    public void jsonApiGetTest() {
         String apiGetViewRequest = when()
                 .get("/json/playerStats")
                 .then()
@@ -75,7 +75,7 @@ public class DynamicConfigTest extends IntegrationTest {
             statements = "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
                     + "\t\t('SaniaMirza','2','2000-10-01');")
     @Test
-    public void jsonApiPostGetViewTest() {
+    public void jsonApiGetMultiTest() {
         when()
                 .get("/json/playerStats")
                 .then()
