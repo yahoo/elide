@@ -9,9 +9,9 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 @Value
 @Builder
 public class Query {
+    @NonNull
     Table table;
 
     @Singular
@@ -41,7 +42,7 @@ public class Query {
     FilterExpression whereFilter;
     FilterExpression havingFilter;
     Sorting sorting;
-    Pagination pagination;
+    ImmutablePagination pagination;
     RequestScope scope;
 
     /**

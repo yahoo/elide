@@ -156,7 +156,7 @@ public class SQLQueryEngine extends QueryEngine {
                             "Running Query: " + paginationSQL
                     ).get();
 
-                    pagination.setPageTotals(total);
+                    resultBuilder.pageTotals(total);
                 }
             }
 
