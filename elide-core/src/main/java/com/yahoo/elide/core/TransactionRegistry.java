@@ -1,16 +1,16 @@
 /*
- *  * Copyright 2015, Yahoo Inc.
- *   * Licensed under the Apache License, Version 2.0
- *    * See LICENSE file in project root for terms.
- *     */
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.core;
-
+import java.util.Set;
 /**
- *  * Database interface library.
- *   */
+ * Database interface library.
+ */
 
 public interface TransactionRegistry {
-    @Data
+
     public static class TransactionEntry {
         private RequestScope request;
         private DataStoreTransaction transaction;
