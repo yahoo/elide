@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.UUID;
 
 import javax.inject.Singleton;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -165,7 +164,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Override
     public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody,
-            AsyncQuery asyncQuery, UUID asyncQueryId) {
+            AsyncQuery asyncQuery, String asyncQueryId) {
         log.debug("createAsyncQueryResult");
         AsyncQueryResult queryResultObj = (AsyncQueryResult) executeInTransaction(dataStore, (tx, scope) -> {
             AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
