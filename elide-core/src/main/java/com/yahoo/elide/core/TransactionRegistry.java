@@ -12,8 +12,8 @@ import java.util.Set;
 public interface TransactionRegistry {
 
     public static class TransactionEntry {
-        private RequestScope request;
-        private DataStoreTransaction transaction;
+        RequestScope request;
+        DataStoreTransaction transaction;
     }
 
     Set<TransactionEntry> getRunningTransactions();
