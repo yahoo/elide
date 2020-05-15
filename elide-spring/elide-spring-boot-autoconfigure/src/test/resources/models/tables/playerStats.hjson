@@ -21,26 +21,22 @@
             name : highScore
             type : INTEGER
             definition: 'MAX(highScore)'
-            readAccess : Prefab.Role.All
             }
         ]
         dimensions : [
             {
                 name : name
                 type : TEXT
-                readAccess : Prefab.Role.All
                 definition : name
             },
             {
                 name : countryCode
                 type : TEXT
-                readAccess : Prefab.Role.All
                 definition : '{{playerCountry.isoCode}}'
             },
             {
                 name : createdOn
                 type : TIME
-                readAccess : Prefab.Role.All
                 definition : createdOn
                 grains: [
                 {

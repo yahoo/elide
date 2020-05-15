@@ -16,7 +16,6 @@ import org.mdkt.compiler.InMemoryJavaCompiler;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Compiles dynamic model pojos generated from hjson files.
@@ -45,9 +45,9 @@ public class ElideDynamicEntityCompiler {
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
-     * @throws IOException IOException thrown
+     * @throws Exception Exception thrown
      */
-    public ElideDynamicEntityCompiler(String path) throws IOException {
+    public ElideDynamicEntityCompiler(String path) throws Exception {
 
         ElideTableConfig tableConfig = new ElideTableConfig();
         ElideSecurityConfig securityConfig = new ElideSecurityConfig();
@@ -70,13 +70,14 @@ public class ElideDynamicEntityCompiler {
         compiler.useParentClassLoader(
                 new ElideDynamicInMemoryClassLoader(ClassLoader.getSystemClassLoader(),
                         Sets.newHashSet(classNames)));
+        compile();
     }
 
     /**
      * Compile table and security model pojos.
      * @throws Exception
      */
-    public void compile() throws Exception {
+    private void compile() throws Exception {
 
         for (Map.Entry<String, String> tablePojo : tableClasses.entrySet()) {
             log.debug("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());
@@ -88,12 +89,7 @@ public class ElideDynamicEntityCompiler {
             compiler.addSource(PACKAGE_NAME + secPojo.getKey(), secPojo.getValue());
         }
 
-        try {
-            compiledObjects = compiler.compileAll();
-        } catch (Exception e) {
-            log.error("Unable to compile dynamic classes in memory ");
-        }
-
+        compiledObjects = compiler.compileAll();
     }
 
     /**
@@ -127,7 +123,7 @@ public class ElideDynamicEntityCompiler {
         ArrayList<String> dynamicClasses = classNames;
 
         for (String dynamicClass : dynamicClasses) {
-            Class<?> classz = getClassLoader().loadClass(dynamicClass);
+            Class<?> classz = compiledObjects.get(dynamicClass);
             if (classz.getAnnotation(annotationClass) != null) {
                 annotatedClasses.add(classz);
             }
@@ -142,20 +138,13 @@ public class ElideDynamicEntityCompiler {
      * @return Set of Classes matching the annotation.
      * @throws ClassNotFoundException
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "rawtypes" })
     public List<String> findAnnotatedClassNames(Class annotationClass)
             throws ClassNotFoundException {
 
-        List<String> annotatedClasses = new ArrayList<String>();
-        ArrayList<String> dynamicClasses = classNames;
-
-        for (String dynamicClass : dynamicClasses) {
-            Class<?> classz = getClassLoader().loadClass(dynamicClass);
-            if (classz.getAnnotation(annotationClass) != null) {
-                annotatedClasses.add(classz.getName());
-            }
-        }
-
-        return annotatedClasses;
+        return findAnnotatedClasses(annotationClass)
+               .stream()
+               .map(Class::getName)
+               .collect(Collectors.toList());
     }
 }

@@ -52,9 +52,9 @@ public class ElideAutoConfiguration {
 
     /**
      * Creates a entity compiler for compiling dynamic config classes.
-     * @param settings
-     * @return An instance of ElideDynamicEntityCompiler
-     * @throws Exception
+     * @param settings Config Settings.
+     * @return An instance of ElideDynamicEntityCompiler.
+     * @throws Exception Exception thrown.
      */
     @Bean
     @ConditionalOnMissingBean
@@ -64,7 +64,6 @@ public class ElideAutoConfiguration {
 
         if (settings.getDynamicConfig().isEnabled()) {
             compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
-            compiler.compile();
         }
         return compiler;
     }
@@ -100,7 +99,7 @@ public class ElideAutoConfiguration {
      * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
      * @param settings Elide configuration settings.
      * @return a newly configured EntityDictionary.
-     * @throws ClassNotFoundException
+     * @throws ClassNotFoundException Exception thrown.
      */
     @Bean
     @ConditionalOnMissingBean
@@ -137,7 +136,7 @@ public class ElideAutoConfiguration {
      * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
      * @param settings Elide configuration settings.
      * @return An instance of a QueryEngine
-     * @throws ClassNotFoundException
+     * @throws ClassNotFoundException Exception thrown.
      */
     @Bean
     @ConditionalOnMissingBean
@@ -163,7 +162,7 @@ public class ElideAutoConfiguration {
      * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
      * @param settings Elide configuration settings.
      * @return An instance of a JPA DataStore.
-     * @throws ClassNotFoundException
+     * @throws ClassNotFoundException Exception thrown.
      */
     @Bean
     @ConditionalOnMissingBean

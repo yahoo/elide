@@ -12,7 +12,6 @@
             {
                 name : isoCode
                 type : TEXT
-                readAccess : Prefab.Role.All
                 definition : isoCode
             }
         ]

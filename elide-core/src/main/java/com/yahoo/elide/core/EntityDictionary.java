@@ -1263,6 +1263,7 @@ public class EntityDictionary {
 
     /**
      * Add security checks and bind them to the dictionary.
+     * @param classes Security check classes.
      */
     public void addSecurityChecks(Set<Class<?>> classes) {
 

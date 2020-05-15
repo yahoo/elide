@@ -39,7 +39,7 @@ public class ElideConfigProperties {
     /**
      * Settings for the Dynamic Configuration.
      */
-    private ControllerProperties dynamicConfig;
+    private DynamicConfigProperties dynamicConfig;
 
     /**
      * Default pagination size for collections if the client doesn't paginate.

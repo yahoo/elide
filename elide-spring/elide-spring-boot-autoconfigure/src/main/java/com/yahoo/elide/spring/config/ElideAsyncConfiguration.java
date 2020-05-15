@@ -41,6 +41,8 @@ public class ElideAsyncConfiguration {
      * Configure the AsyncExecutorService used for submitting async query requests.
      * @param elide elideObject.
      * @param settings Elide settings.
+     * @param asyncQueryDao AsyncDao object.
+     * @param dictionary EntityDictionary.
      * @return a AsyncExecutorService.
      */
     @Bean
@@ -64,6 +66,7 @@ public class ElideAsyncConfiguration {
      * Configure the AsyncCleanerService used for cleaning up async query requests.
      * @param elide elideObject.
      * @param settings Elide settings.
+     * @param asyncQueryDao AsyncDao object.
      * @return a AsyncCleanerService.
      */
     @Bean
