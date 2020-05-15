@@ -12,8 +12,8 @@ package com.yahoo.elide.core;
 public interface TransactionRegistry {
     @Data
     public static class TransactionEntry {
-        RequestScope request;
-        DataStoreTransaction transaction;
+        private RequestScope request;
+        private DataStoreTransaction transaction;
     }
 
     Set<TransactionEntry> getRunningTransactions();
