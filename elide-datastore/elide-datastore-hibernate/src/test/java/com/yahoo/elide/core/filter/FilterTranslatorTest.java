@@ -95,7 +95,7 @@ public class FilterTranslatorTest {
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
         String p2Params = p2.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
-        String expected = "WHERE (" + p1Params + " MEMBER OF awards "
+        String expected = "(" + p1Params + " MEMBER OF awards "
                 + "AND " + p2Params + " NOT MEMBER OF awards)";
         assertEquals(expected, query);
     }

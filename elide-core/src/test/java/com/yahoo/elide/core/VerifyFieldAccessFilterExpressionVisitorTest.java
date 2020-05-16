@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -234,7 +235,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, never()).checkSpecificFieldPermissionsDeferred(any(), any(), any(), any());
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
-        verify(tx, never()).getRelation(any(), any(), any(), any(), any(), any(), any());
+        verify(tx, never()).getRelation(any(), any(), any(), any());
     }
 
     @Test
@@ -289,10 +290,9 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, AUTHORS);
         verify(permissionExecutor, times(1)).checkUserPermissions(Author.class, ReadPermission.class, NAME);
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
-<<<<<<< HEAD
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
-        verify(tx, never()).getRelation(any(), any(), any(), any(), any(), any(), any());
+        verify(tx, never()).getRelation(any(), any(), any(), any());
     }
 
     @Test
@@ -323,8 +323,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         when(permissionExecutor.checkSpecificFieldPermissions(resourceAuthor, null, ReadPermission.class, HOME))
                 .thenThrow(ForbiddenAccessException.class);
 
-        when(tx.getRelation(tx, book, AUTHORS, Optional.empty(), Optional.empty(), Optional.empty(), scope))
-                .thenReturn(book.getAuthors());
+        when(tx.getRelation(eq(tx), eq(book), any(), eq(scope))).thenReturn(book.getAuthors());
 
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
         // restricted HOME field
@@ -337,7 +336,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resourceAuthor, null, ReadPermission.class, HOME);
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
-        verify(tx, times(1)).getRelation(tx, book, AUTHORS, Optional.empty(), Optional.empty(), Optional.empty(), scope);
+        verify(tx, times(1)).getRelation(eq(tx), eq(book), any(), eq(scope));
     }
 
     @Test
@@ -362,7 +361,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(any(), any(), any(), any());
         verify(permissionExecutor, never()).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
-        verify(tx, never()).getRelation(any(), any(), any(), any(), any(), any(), any());
+        verify(tx, never()).getRelation(any(), any(), any(), any());
     }
 
     @Test
@@ -380,7 +379,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         when(permissionExecutor.checkUserPermissions(Book.class, ReadPermission.class, GENRE))
                 .thenReturn(ExpressionResult.DEFERRED);
         when(permissionExecutor.checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE))
-                .thenThrow(new ForbiddenAccessException("check expression"));
+                .thenThrow(new ForbiddenAccessException(ReadPermission.class));
 
         when(permissionExecutor.evaluateFilterJoinUserChecks(any(), any())).thenReturn(ExpressionResult.DEFERRED);
         when(permissionExecutor.handleFilterJoinReject(any(), any(), any())).thenAnswer(invocation -> {
@@ -395,7 +394,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
             // custom processing
             return "Book".equals(pathElement.getType().getSimpleName())
                     && filterPredicate.toString().matches("book.genre IN_INSENSITIVE \\[\\w+\\]")
-                    && reason.getLoggedMessage().matches(".*Message=check expression.*")
+                    && reason.getLoggedMessage().matches(".*Message=ReadPermission Denied.*")
                             ? ExpressionResult.DEFERRED
                             : ExpressionResult.FAIL;
         });
@@ -408,9 +407,6 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
         verify(permissionExecutor, never()).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
-        verify(tx, never()).getRelation(any(), any(), any(), any(), any(), any(), any());
-=======
         verify(tx, never()).getRelation(any(), any(), any(), any());
->>>>>>> 4271b3c98... Fixed rebase issues
     }
 }

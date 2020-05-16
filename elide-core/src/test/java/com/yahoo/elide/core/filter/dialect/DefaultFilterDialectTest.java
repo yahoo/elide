@@ -156,7 +156,7 @@ public class DefaultFilterDialectTest {
 
         assertEquals(
                 "{book=book.awards HASNOMEMBER [awards1]}",
-                dialect.parseTypedExpression("/book", queryParams).toString()
+                dialect.parseTypedExpression("/book", queryParams, NO_VERSION).toString()
         );
     }
 
@@ -170,7 +170,7 @@ public class DefaultFilterDialectTest {
         );
 
         assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams));
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
 
         queryParams.clear();
         queryParams.add(
@@ -179,6 +179,6 @@ public class DefaultFilterDialectTest {
         );
 
         assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams));
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
     }
 }
