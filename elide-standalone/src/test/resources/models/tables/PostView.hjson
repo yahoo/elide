@@ -1,0 +1,20 @@
+{
+    tables: [{
+        name: PostView
+        table: Post
+        description:
+        '''
+        A long description
+        '''
+        cardinality : large
+        readAccess : Prefab.Role.All
+        dimensions : [
+            {
+                name : content
+                type : TEXT
+                readAccess : Prefab.Role.All
+                definition : content
+            }
+        ]
+    }]
+}
