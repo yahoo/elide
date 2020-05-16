@@ -392,7 +392,7 @@ public class RSQLFilterDialectTest {
                 "awards=hasmember=title1"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.awards HASMEMBER [title1]", expression.toString());
     }
@@ -407,7 +407,7 @@ public class RSQLFilterDialectTest {
         );
 
         assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams));
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
 
         queryParams.clear();
         queryParams.add(
@@ -416,6 +416,6 @@ public class RSQLFilterDialectTest {
         );
 
         assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams));
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
     }
 }

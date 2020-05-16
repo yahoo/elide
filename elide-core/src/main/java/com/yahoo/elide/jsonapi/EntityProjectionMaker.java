@@ -332,7 +332,7 @@ public class EntityProjectionMaker
         return Sets.intersection(allAttributes, sparseFieldsForEntity).stream()
                 .map(attributeName -> Attribute.builder()
                     .name(attributeName)
-                    .type(dictionary.getParameterizedType(entityClass, attributeName))
+                    .type(dictionary.getType(entityClass, attributeName))
                     .build())
                 .collect(Collectors.toSet());
     }

@@ -19,7 +19,6 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
@@ -48,10 +47,11 @@ import graphql.language.SourceLocation;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
@@ -509,26 +509,38 @@ public class GraphQLEntityProjectionMaker {
             throw new BadRequestException("Filter of type " + typeName + " is not StringValue.");
         }
 
+        String errorMessage = "";
+        try {
+            return filterDialect.parseGlobalExpression(typeName,
+                    toQueryParams(Optional.empty(), filterString.toString()), apiVersion);
+
+        } catch (ParseException e) {
+            errorMessage = e.getMessage();
+        }
+
         try {
             return filterDialect.parseTypedExpression(typeName,
-                    toQueryParams(typeName, filterString), apiVersion).get(typeName);
+                    toQueryParams(Optional.of(typeName), filterString.toString()), apiVersion).get(typeName);
         } catch (ParseException e) {
-            log.debug("Filter parse exception caught", e);
-            throw new InvalidPredicateException("Could not parse filter " + filterString + " for type: " + typeName);
+            throw new BadRequestException(errorMessage + "\n" + e.getMessage());
         }
     }
 
     /**
      * Convert a type name and filter string to a map that mimic query params comes from request.
      *
-     * @param typeName class type name to apply this filter
-     * @param filterString Elide filter in string format
+     * @param typeName optional model type name to apply this filter
+     * @param filterStr Elide filter in string format
      * @return constructed map
      */
-    private static MultivaluedHashMap<String, String> toQueryParams(String typeName, Object filterString) {
+    private static MultivaluedHashMap<String, String> toQueryParams(Optional<String> typeName, String filterStr) {
         return new MultivaluedHashMap<String, String>() {
             {
-                put("filter[" + typeName + "]", Collections.singletonList((String) filterString));
+                String filterKey = "filter";
+                if (typeName.isPresent()) {
+                    filterKey += "[" + typeName + "]";
+                }
+                put(filterKey, Arrays.asList(filterStr));
             }
         };
     }
