@@ -437,6 +437,7 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
+    @Tag("skipInMemory") //Elide doesn't support to-many filter joins in memory yet.
     @ParameterizedTest
     @ValueSource(strings = {
             "\"books.title==\\\"1984\\\"\"",
