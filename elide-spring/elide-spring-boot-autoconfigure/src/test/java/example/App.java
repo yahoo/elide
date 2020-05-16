@@ -11,6 +11,9 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.TimeZone;
+import javax.annotation.PostConstruct;
+
 /**
  * Example app using elide-spring.
  */
@@ -20,5 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 public class App {
     public static void main(String[] args) throws Exception {
         SpringApplication.run(App.class, args);
+    }
+
+    @PostConstruct
+    public void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
 }

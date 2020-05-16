@@ -12,6 +12,8 @@ import org.springframework.boot.web.server.LocalServerPort;
 
 import io.restassured.RestAssured;
 
+import java.util.TimeZone;
+
 /**
  * Base class for running a set of functional Elide tests.  This class
  * sets up an Elide instance with an in-memory H2 database.
@@ -25,6 +27,7 @@ public class IntegrationTest {
 
     @BeforeAll
     public void setUp() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
