@@ -7,7 +7,6 @@ package com.yahoo.elide.standalone.config;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
-
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
