@@ -119,12 +119,7 @@ public abstract class AbstractHQLQueryBuilder {
      * @return an HQL join clause
      */
     protected String getJoinClauseFromFilters(FilterExpression filterExpression) {
-        PredicateExtractionVisitor visitor = new PredicateExtractionVisitor(new ArrayList<>());
-        Collection<FilterPredicate> predicates = filterExpression.accept(visitor);
-
-        return predicates.stream()
-            .map(predicate -> extractJoinClause(predicate, false))
-            .collect(Collectors.joining(SPACE));
+        return getJoinClauseFromFilters(filterExpression, false);
     }
 
     /**
