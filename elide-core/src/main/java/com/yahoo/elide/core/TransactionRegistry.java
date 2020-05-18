@@ -12,7 +12,7 @@ import java.util.Set;
  * Transaction Registry interface to surface transaction details to other parts of Elide.
  */
 
-public interface TransactionRegistry { 
+public interface TransactionRegistry {
     /**
      * @see RequestScope
      * @see DataStoreTransaction
