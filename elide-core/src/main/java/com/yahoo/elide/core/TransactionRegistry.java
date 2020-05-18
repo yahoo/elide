@@ -18,7 +18,6 @@ public interface TransactionRegistry {
          * @see RequestScope
          * @see DataStoreTransaction 
          */
-
         public RequestScope request;
         public DataStoreTransaction transaction;
     }
