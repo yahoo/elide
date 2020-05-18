@@ -8,7 +8,6 @@ import java.util.Set;
 /**
  * Database interface library.
  */
-
 public interface TransactionRegistry {
 
     public static class TransactionEntry {
