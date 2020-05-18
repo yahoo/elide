@@ -62,7 +62,7 @@ public class ElideAutoConfiguration {
 
         ElideDynamicEntityCompiler compiler = null;
 
-        if (settings.getDynamicConfig().isEnabled()) {
+        if (isDynamicConfigEnabled(settings)) {
             compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
         }
         return compiler;
@@ -121,7 +121,7 @@ public class ElideAutoConfiguration {
 
         dictionary.scanForSecurityChecks();
 
-        if (settings.getDynamicConfig().isEnabled()) {
+        if (isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
             Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(SecurityCheck.class);
             dictionary.addSecurityChecks(annotatedClass);
@@ -146,7 +146,7 @@ public class ElideAutoConfiguration {
 
         MetaDataStore metaDataStore = null;
 
-        if (settings.getDynamicConfig().isEnabled()) {
+        if (isDynamicConfigEnabled(settings)) {
             metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
         } else {
             metaDataStore = new MetaDataStore();
@@ -171,7 +171,7 @@ public class ElideAutoConfiguration {
             throws ClassNotFoundException {
         AggregationDataStore aggregationDataStore = null;
 
-        if (settings.getDynamicConfig().isEnabled()) {
+        if (isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
             Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
             annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
@@ -206,5 +206,16 @@ public class ElideAutoConfiguration {
         Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
 
         return swagger;
+    }
+
+    private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {
+
+        boolean enabled = false;
+        if (settings.getDynamicConfig() != null) {
+            enabled = settings.getDynamicConfig().isEnabled();
+        }
+
+        return enabled;
+
     }
 }

@@ -14,8 +14,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 
 import lombok.Data;
 
-import java.util.UUID;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -34,7 +32,7 @@ import javax.persistence.OneToOne;
 public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
-    private UUID id; //Matches UUID in query.
+    private String id; //Matches id in query.
 
     private Integer contentLength;
 
