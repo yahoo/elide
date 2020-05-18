@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -77,6 +78,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final int updateStatusCode;
 
     @Getter private final MultipleFilterDialect filterDialect;
+    private String requestId;
     private final Map<String, FilterExpression> expressionsByType;
 
     private PublishSubject<CRUDEvent> lifecycleEvents;
@@ -126,6 +128,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
+        this.requestId = UUID.randomUUID().toString();
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
@@ -216,6 +219,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.lifecycleEvents = outerRequestScope.lifecycleEvents;
         this.distinctLifecycleEvents = outerRequestScope.distinctLifecycleEvents;
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
+        this.requestId = outerRequestScope.requestId;
     }
 
     @Override
