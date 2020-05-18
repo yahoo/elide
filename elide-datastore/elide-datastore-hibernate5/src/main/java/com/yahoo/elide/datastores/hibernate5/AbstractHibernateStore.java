@@ -7,8 +7,8 @@ package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-
 import com.yahoo.elide.core.datastore.JPQLDataStore;
+
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

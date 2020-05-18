@@ -15,18 +15,21 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasKey;
 
-import com.google.common.collect.Maps;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.models.Post;
-import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+
+import com.google.common.collect.Maps;
+
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
 
 import java.util.HashMap;
 import java.util.Map;
