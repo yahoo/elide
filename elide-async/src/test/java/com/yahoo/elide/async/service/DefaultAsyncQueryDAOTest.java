@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.UUID;
 
 public class DefaultAsyncQueryDAOTest {
 
@@ -111,7 +110,7 @@ public class DefaultAsyncQueryDAOTest {
     public void testCreateAsyncQueryResult() {
         Integer status = 200;
         String responseBody = "responseBody";
-        UUID uuid = UUID.fromString("ba31ca4e-ed8f-4be0-a0f3-12088fa9263e");
+        String uuid = "ba31ca4e-ed8f-4be0-a0f3-12088fa9263e";
         AsyncQueryResult result = asyncQueryDAO.createAsyncQueryResult(status, "responseBody", asyncQuery, uuid);
 
         assertEquals(status, result.getStatus());

@@ -13,13 +13,13 @@ import com.yahoo.elide.annotation.UpdatePermission;
 
 import lombok.Data;
 
-import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
+import javax.validation.constraints.Pattern;
 
 /**
  * Model for Async Query.
@@ -35,7 +35,9 @@ import javax.persistence.PrePersist;
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
-    private UUID id; //Provided.
+    @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            message = "id not of pattern UUID")
+    private String id; //Provided.
 
     private String query;  //JSON-API PATH or GraphQL payload.
 
