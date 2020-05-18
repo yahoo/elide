@@ -10,7 +10,6 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 
 import java.util.Collection;
-import java.util.UUID;
 
 /**
  * Utility interface which uses the elide datastore to modify and create AsyncQuery and AsyncQueryResult Objects.
@@ -34,7 +33,7 @@ public interface AsyncQueryDAO {
      * @return AsyncQueryResult Object
      */
     public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery,
-            UUID asyncQueryId);
+            String asyncQueryId);
 
     /**
      * This method deletes a collection of AsyncQuery and its associated AsyncQueryResult objects from database and
