@@ -5,14 +5,6 @@
  */
 package com.yahoo.elide.example;
 
-import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
-import com.yahoo.elide.core.HttpStatus;
-import org.junit.jupiter.api.Test;
-
-import javax.ws.rs.core.MediaType;
-
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
@@ -23,7 +15,15 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.equalTo;
+
+import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
+import com.yahoo.elide.core.HttpStatus;
+import org.junit.jupiter.api.Test;
+
+import javax.ws.rs.core.MediaType;
 
 /**
  * Example functional test.

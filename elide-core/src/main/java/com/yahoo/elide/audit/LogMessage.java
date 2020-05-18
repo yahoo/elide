@@ -10,8 +10,8 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.ResourceLineage;
 import com.yahoo.elide.security.ChangeSpec;
-
 import com.yahoo.elide.security.User;
+
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleContext;
 
