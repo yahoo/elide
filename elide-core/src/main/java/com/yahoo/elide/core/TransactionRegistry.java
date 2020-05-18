@@ -14,6 +14,11 @@ import lombok.Data;
 public interface TransactionRegistry {
     @Data
     public static class TransactionEntry {
+        /**
+         * @see RequestScope
+         * @see DataStoreTransaction 
+         */
+
         public RequestScope request;
         public DataStoreTransaction transaction;
     }
