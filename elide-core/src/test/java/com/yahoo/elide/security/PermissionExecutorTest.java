@@ -21,8 +21,8 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
-
 import com.yahoo.elide.security.permissions.ExpressionResult;
+
 import example.TestCheckMappings;
 
 import org.junit.jupiter.api.Test;
