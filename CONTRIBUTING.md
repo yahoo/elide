@@ -7,7 +7,8 @@ When submitting a pull request (PR), please use the following guidelines:
 - Make sure your code respects existing formatting conventions. In general, follow
   the same coding style as the code that you are modifying. If you are using
   IntelliJ, you can import our code style settings xml:
-  [elide-intellij-codestyle.xml](https://github.com/yahoo/elide/raw/master/elide-intellij-codestyle.xml).
+  [elide-intellij-codestyle.xml](https://github.com/yahoo/elide/raw/master/elide-intellij-codestyle.xml)
+  or [elide-eclipse.importorder](https://github.com/yahoo/elide/raw/master/elide-eclipse.importorder).
 - Do add/update [documentation](https://github.com/yahoo/elide-doc) appropriately for the change you are making.
 - Bugfixes should include a unit test or integration test reproducing the issue.
 - Do not use author tags/information in the code.
