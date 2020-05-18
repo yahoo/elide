@@ -78,7 +78,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final int updateStatusCode;
 
     @Getter private final MultipleFilterDialect filterDialect;
-    private String requestId;
+    private final String requestId;
     private final Map<String, FilterExpression> expressionsByType;
 
     private PublishSubject<CRUDEvent> lifecycleEvents;
