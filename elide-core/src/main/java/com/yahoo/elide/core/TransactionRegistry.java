@@ -16,10 +16,12 @@ public interface TransactionRegistry {
     public static class TransactionEntry {
         /**
          * @see RequestScope
-         * @see DataStoreTransaction 
          */
-
         public RequestScope request;
+
+        /**
+         * @see DataStoreTransaction
+         */
         public DataStoreTransaction transaction;
     }
 
