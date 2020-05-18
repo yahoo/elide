@@ -13,15 +13,12 @@ import java.util.Set;
  */
 public interface TransactionRegistry {
     @Data
+    /**
+     * @see RequestScope  
+     * @see DataStoreTransaction      
+     */
     public static class TransactionEntry {
-        /**
-         * @see RequestScope
-         */
         public RequestScope request;
-
-        /**
-         * @see DataStoreTransaction
-         */
         public DataStoreTransaction transaction;
     }
 
