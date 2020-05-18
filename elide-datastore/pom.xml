@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.6.2-SNAPSHOT</version>
+        <version>4.6.3-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -59,22 +59,12 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>4.6.2-SNAPSHOT</version>
+                <version>4.6.3-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
-                <version>5.3.3.Final</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>slf4j-api</artifactId>
-                        <groupId>org.slf4j</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>validation-api</artifactId>
-                        <groupId>javax.validation</groupId>
-                    </exclusion>
-                </exclusions>
+                <version>5.4.3.Final</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

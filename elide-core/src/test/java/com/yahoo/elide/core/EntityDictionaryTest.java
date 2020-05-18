@@ -773,7 +773,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(isComputed(Editor.class, "badfield"));
 
         assertEquals(
-                ImmutableSet.of("genre", "language", "title"),
+                ImmutableSet.of("awards", "genre", "language", "title"),
                 getFieldsOfType(Book.class, String.class));
 
         assertTrue(isRelation(Book.class, "editor"));

@@ -69,10 +69,9 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     public boolean applyPredicateToObject(T object, FilterPredicate filterPredicate, RequestScope requestScope) {
         try {
-            String fieldPath = filterPredicate.getFieldPath();
             com.yahoo.elide.core.RequestScope scope = coreScope(requestScope);
             Predicate<T> fn = filterPredicate.getOperator()
-                    .contextualize(fieldPath, filterPredicate.getValues(), scope);
+                    .contextualize(filterPredicate.getPath(), filterPredicate.getValues(), scope);
             return fn.test(object);
         } catch (Exception e) {
             log.error("Failed to apply predicate {}", filterPredicate, e);

@@ -19,9 +19,9 @@ import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -172,7 +172,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                             errorMessage = errorMessage + "\n" + e.getMessage();
                         }
 
-                        throw new InvalidPredicateException(errorMessage);
+                        throw new BadRequestException(errorMessage);
                     }
                 }
             }

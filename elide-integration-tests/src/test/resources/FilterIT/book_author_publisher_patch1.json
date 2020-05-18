@@ -67,7 +67,8 @@
       "type": "publisher",
       "id": "12345678-1234-1234-1234-1234567890ae",
       "attributes": {
-        "name": "Default publisher"
+        "name": "Default publisher",
+        "phoneNumbers": ["999-987-8394", "987-654-3210"]
       }
     }
   },

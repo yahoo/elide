@@ -33,7 +33,8 @@
       "attributes": {
         "title": "Life with Null Ned",
         "language": "English",
-        "editorName": "Ed"
+        "editorName": "Ed",
+        "awards": ["Pulitzer Prize", "Booker Prize"]
       }
     }
   },

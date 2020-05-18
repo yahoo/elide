@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-standalone</artifactId>
-    <version>4.6.2-SNAPSHOT</version>
+    <version>4.6.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Standalone</name>
     <description>Elide Standalone Application</description>
@@ -16,7 +16,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.6.2-SNAPSHOT</version>
+        <version>4.6.3-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -61,17 +61,17 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.6.2-SNAPSHOT</version>
+            <version>4.6.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.6.2-SNAPSHOT</version>
+            <version>4.6.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>4.6.2-SNAPSHOT</version>
+            <version>4.6.3-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -86,19 +86,7 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate5.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>dom4j</groupId>
-                    <artifactId>dom4j</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-hikaricp</artifactId>
@@ -201,7 +189,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>4.6.2-SNAPSHOT</version>
+            <version>4.6.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

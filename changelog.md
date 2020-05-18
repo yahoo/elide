@@ -1,5 +1,26 @@
 # Change Log
 
+## 4.6.2
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/ed6cc703f514d15ddb8eac4f90672075bc334aa6) Adding read only transaction support to JPA store (#1298) 
+   * [view commit](https://github.com/yahoo/elide/commit/04394a077ac3d23d3192cf66c325d4ad85a9d292) GraphQL to-many filter support(#1305)
+   * [view commit](https://github.com/yahoo/elide/commit/e28ade021782c5fb63cc0531e3a454dba385d5cf) Allow customizing the handling of ReadPermission for filter joins (#1301) 
+   * [view commit](https://github.com/yahoo/elide/commit/21a8332e352ae5626b9d106fbf41007092ecc630) Limited support for new memberof operator (#1291) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/10484b5bc41ee4db664f2c4347f2327be1df8c29) Better errors for missing IDs in Patch Extension Request. (#1278) 
+   * [view commit](https://github.com/yahoo/elide/commit/4f74602c7be16a63c5ef17a045fe649d910d6621) Patch Extension Lifecycle tests (#1293) 
+   * [view commit](https://github.com/yahoo/elide/commit/64987609a9aa5513f363cbedf9db64237e0936f3) Fixing GraphQL 500 errors due to client API errors (#1304) 
+   * [view commit](https://github.com/yahoo/elide/commit/e2b02ad70be80240bdff01b8c0796f0c5a908a4d) Fixing bug where legacy hibernate 5 entity manager store recycles the entity manager (#1308) 
+   * [view commit](https://github.com/yahoo/elide/commit/ba4e3019f50544c9a3a1617add04aa73c4f78688) Update pom.xml 
+   * [view commit](https://github.com/yahoo/elide/commit/c818de6e458fea6214fa10c7cef16e9a317c9214) Fixing Dom4J Owasp Build Failure (by upgrading hibernate 5) (#1309) 
+   * [view commit](https://github.com/yahoo/elide/commit/afe1bce535db091c7e664ce91ca3fbfc14bbdc90) Bump classgraph from 4.8.69 to 4.8.78 (#1302) 
+   * [view commit](https://github.com/yahoo/elide/commit/d8dd0d4567d6720e2c678558c81853e1dd5a65d1) Bump maven-javadoc-plugin from 3.1.1 to 3.2.0 (#1290) 
+   * [view commit](https://github.com/yahoo/elide/commit/81b9197caa48831b32c058e2956a6f005e309f81) Bump jackson-module-jaxb-annotations from 2.10.3 to 2.11.0 (#1288) 
+   * [view commit](https://github.com/yahoo/elide/commit/db5619f782b4ab8d5ceafcd50b615e58cc8185b2) Bump swagger-core from 1.6.0 to 1.6.1 (#1287) 
+   * [view commit](https://github.com/yahoo/elide/commit/fa4dae6a20a820d1d9f08bd957f424964bbd2229) Bump version.log4j from 2.13.1 to 2.13.2 (#1285) 
+   * [view commit](https://github.com/yahoo/elide/commit/1ce3b3cf7197f905ef8164be9229106202d5503a) Bump checkstyle from 8.30 to 8.32 (#1283) 
+
 ## 4.6.1
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/d2fefd4b998995469a3cc6fd13f76204a057ce2a) shortcut the test (#1269) 

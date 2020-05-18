@@ -8,6 +8,8 @@ package com.yahoo.elide.core.filter;
 import static com.yahoo.elide.core.filter.Operator.FALSE;
 import static com.yahoo.elide.core.filter.Operator.GE;
 import static com.yahoo.elide.core.filter.Operator.GT;
+import static com.yahoo.elide.core.filter.Operator.HASMEMBER;
+import static com.yahoo.elide.core.filter.Operator.HASNOMEMBER;
 import static com.yahoo.elide.core.filter.Operator.IN;
 import static com.yahoo.elide.core.filter.Operator.INFIX;
 import static com.yahoo.elide.core.filter.Operator.INFIX_CASE_INSENSITIVE;
@@ -27,7 +29,7 @@ import static com.yahoo.elide.core.filter.Operator.PREFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.TRUE;
 
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -170,6 +172,20 @@ public class FilterTranslator implements FilterOperation<String> {
             return String.format("%s IS NOT EMPTY", columnAlias);
         });
 
+        operatorGenerators.put(HASMEMBER, (columnAlias, params) -> {
+            Preconditions.checkArgument(params.size() == 1);
+            return String.format("%s MEMBER OF %s",
+                    params.get(0).getPlaceholder(),
+                    columnAlias);
+        });
+
+        operatorGenerators.put(HASNOMEMBER, (columnAlias, params) -> {
+            Preconditions.checkArgument(params.size() == 1);
+            return String.format("%s NOT MEMBER OF %s",
+                    params.get(0).getPlaceholder(),
+                    columnAlias);
+        });
+
     }
 
     /**
@@ -257,7 +273,7 @@ public class FilterTranslator implements FilterOperation<String> {
         }
 
         if (generator == null) {
-            throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
+            throw new BadRequestException("Operator not implemented: " + filterPredicate.getOperator());
         }
 
         return generator.generate(fieldPath, params);
