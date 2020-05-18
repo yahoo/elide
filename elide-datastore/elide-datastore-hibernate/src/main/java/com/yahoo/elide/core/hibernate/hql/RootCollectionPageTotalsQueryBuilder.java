@@ -70,7 +70,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
             filterClause = new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
 
             //Build the JOIN clause
-            joinClause =  getJoinClauseFromFilters(filterExpression.get());
+            joinClause =  getJoinClauseFromFilters(filterExpression.get(), true);
 
         } else {
             predicates = new HashSet<>();
