@@ -39,6 +39,7 @@ import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 import lombok.Getter;
 
+import java.util.UUID;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,7 +49,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
