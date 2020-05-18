@@ -14,9 +14,9 @@ import java.util.Set;
 public interface TransactionRegistry {
     @Data
     /**
-     * @see RequestScope  
-     * @see DataStoreTransaction      
-     */
+     * @see RequestScope
+     * @see DataStoreTransaction
+     * */
     public static class TransactionEntry {
         public RequestScope request;
         public DataStoreTransaction transaction;
@@ -40,7 +40,7 @@ public interface TransactionRegistry {
     void addRunningTransaction(TransactionEntry transactionEntry);
 
     /**
-     * Removes running transaction when we call cancel on it 
+     * Removes running transaction when we call cancel on it
      * @param transactionEntry TransactionEntry transactionEntry
      */
     void removeRunningTransaction(TransactionEntry transactionEntry);
