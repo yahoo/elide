@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.core;
 
-import java.util.Set;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+
+import java.util.Set;
 /**
  * Transaction Registry interface to surface transaction details to other parts of Elide.
  */
@@ -22,7 +22,7 @@ public interface TransactionRegistry {
         public RequestScope request;
         public DataStoreTransaction transaction;
     }
-    
+
     /**
      * @return all running transactions
      */
@@ -39,7 +39,7 @@ public interface TransactionRegistry {
      * @param transactionEntry TransactionEntry transactionEntry
      */
     void addRunningTransaction(TransactionEntry transactionEntry);
-    
+
     /**
      * Removes running transaction when we call cancel on it
      * @param transactionEntry TransactionEntry transactionEntry
