@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -67,7 +68,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
-
+    private final String requestId;
     private final Map<String, FilterExpression> expressionsByType;
 
     private PublishSubject<CRUDEvent> lifecycleEvents;
@@ -140,6 +141,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
+        this.requestId = UUID.randomUUID().toString();
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
@@ -227,6 +229,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.distinctLifecycleEvents = outerRequestScope.distinctLifecycleEvents;
         this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
+        this.requestId = outerRequestScope.requestId;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
