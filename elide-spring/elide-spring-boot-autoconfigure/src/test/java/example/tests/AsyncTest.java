@@ -21,6 +21,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.HttpStatus;
 
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,9 @@ public class AsyncTest extends IntegrationTest {
                                         attributes(
                                                 attr("query", "/group"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -100,6 +103,7 @@ public class AsyncTest extends IntegrationTest {
                                 + "{\"commonName\":\"Example Repository\",\"deprecated\":false,\"description\":\"The code for this project\"},"
                                 + "\"relationships\":{\"products\":{\"data\":[]}}}]}"))
                         .body("data.attributes.status", equalTo(200))
+                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()))
                         .body("data.relationships.query.data.type", equalTo("asyncQuery"))
                         .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
 
@@ -141,4 +145,5 @@ public class AsyncTest extends IntegrationTest {
             }
         }
     }
+    
 }

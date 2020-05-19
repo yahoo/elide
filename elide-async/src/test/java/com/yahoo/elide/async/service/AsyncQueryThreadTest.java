@@ -24,6 +24,7 @@ import com.yahoo.elide.security.User;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class AsyncQueryThreadTest {
 
@@ -98,7 +99,7 @@ public class AsyncQueryThreadTest {
         when(runner.run(query, user)).thenThrow(RuntimeException.class);
 
         queryThread.processQuery();
-
+        verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.FAILURE);
     }

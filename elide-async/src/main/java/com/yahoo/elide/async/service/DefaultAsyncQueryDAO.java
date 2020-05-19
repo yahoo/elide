@@ -11,6 +11,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -173,7 +174,9 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             asyncQueryResult.setContentLength(responseBody.length());
             asyncQueryResult.setQuery(asyncQuery);
             asyncQueryResult.setId(asyncQueryId);
+            asyncQueryResult.setResultType(ResultType.EMBEDDED);
             asyncQuery.setResult(asyncQueryResult);
+           
             tx.createObject(asyncQueryResult, scope);
             tx.save(asyncQuery, scope);
             return asyncQueryResult;

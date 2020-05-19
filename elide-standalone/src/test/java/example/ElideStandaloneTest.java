@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Maps;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
@@ -250,12 +251,16 @@ public class ElideStandaloneTest {
                                         attributes(
                                                 attr("query", "/post"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
                 .when()
-                .post("/api/v1/asyncQuery").asString();
+                .post("/api/v1/asyncQuery")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
         int i = 0;
         while (i < 1000) {
@@ -293,6 +298,7 @@ public class ElideStandaloneTest {
                                 + "\"content\":\"This is my first post. woot.\","
                                 + "\"date\":\"2019-01-01T00:00Z\"}}]}"))
                         .body("data.attributes.status", equalTo(200))
+                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()))
                         .body("data.relationships.query.data.type", equalTo("asyncQuery"))
                         .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
 

@@ -18,8 +18,9 @@ import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import javax.validation.constraints.Max;
+import javax.validation.constraints.Size;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 @Include(rootLevel = true)
@@ -28,7 +29,7 @@ import javax.validation.constraints.NotNull;
 @DeletePermission(expression = "Deny All")
 public class Book {
     @OneToMany
-    @Max(10)
+    @Size(max = 10)
     @UpdatePermission(expression = "Principal is author")
     @ApiModelProperty(value = "Writers", required = false, readOnly = true,
         example = "[\"author1\", \"author2\", \"author3\"]")

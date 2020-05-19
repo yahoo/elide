@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
@@ -127,7 +128,9 @@ public class AsyncIT extends IntegrationTest {
                                         attributes(
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -171,6 +174,7 @@ public class AsyncIT extends IntegrationTest {
                                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                                 + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
                         .body("data.attributes.status", equalTo(200))
+                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()))
                         .body("data.relationships.query.data.type", equalTo("asyncQuery"))
                         .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
 
@@ -185,6 +189,7 @@ public class AsyncIT extends IntegrationTest {
                         .post("/graphQL")
                         .asString();
 
+                //System.out.println(responseGraphQL);
                 String expectedResponse = document(
                         selections(
                                 field(
@@ -206,7 +211,7 @@ public class AsyncIT extends IntegrationTest {
                                 )
                         )
                 ).toResponse();
-
+                //System.out.println(expectedResponse);
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             }
@@ -233,7 +238,9 @@ public class AsyncIT extends IntegrationTest {
                                         attributes(
                                                 attr("query", "{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}"),
                                                 attr("queryType", "GRAPHQL_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -264,7 +271,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.relationships.result.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"));
 
                 // Validate AsyncQueryResult Response
-                given()
+                String responseAsyncQueryResult =  given()
                         .accept("application/vnd.api+json")
                         .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263c/result")
                         .then()
@@ -277,9 +284,11 @@ public class AsyncIT extends IntegrationTest {
                                 + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"
                                 + "{\"node\":{\"id\":\"3\",\"title\":\"For Whom the Bell Tolls\"}}]}}}"))
                         .body("data.attributes.status", equalTo(200))
+                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()))
                         .body("data.relationships.query.data.type", equalTo("asyncQuery"))
-                        .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"));
+                        .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c")).toString();
 
+                System.out.println(responseAsyncQueryResult);
                 String responseGraphQL = given()
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -338,7 +347,9 @@ public class AsyncIT extends IntegrationTest {
                                         attributes(
                                                 attr("query", "/group?sort=genre&fields%5Bgroup%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -469,7 +480,9 @@ public class AsyncIT extends IntegrationTest {
                                         attributes(
                                                 attr("query", "/noread"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -509,6 +522,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.contentLength", notNullValue())
                         .body("data.attributes.responseBody", equalTo("{\"data\":[]}"))
                         .body("data.attributes.status", equalTo(200))
+                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()))
                         .body("data.relationships.query.data.type", equalTo("asyncQuery"))
                         .body("data.relationships.query.data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"));
 

@@ -15,13 +15,17 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import lombok.Data;
 
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
 /**
  * Model for Async Query Result.
  */
+@Embeddable
 @Entity
 @Include(type = "asyncQueryResult")
 @ReadPermission(expression = "Principal is Owner")
@@ -29,6 +33,7 @@ import javax.persistence.OneToOne;
 @CreatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
 @Data
+
 public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
@@ -40,11 +45,17 @@ public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
 
     private Integer status; // HTTP Status
 
+    @Column(columnDefinition = "enum('EMBEDDED')")
+    @Enumerated(EnumType.STRING)
+    private ResultType resultType; 
+    
     @OneToOne
     private AsyncQuery query;
-
+    
     @Exclude
     public String getPrincipalName() {
         return query.getPrincipalName();
     }
 }
+
+
