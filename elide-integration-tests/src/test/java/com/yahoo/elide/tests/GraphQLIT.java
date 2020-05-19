@@ -290,7 +290,7 @@ public class GraphQLIT extends IntegrationTest {
                 + "(/book) : FETCH must not include data\","
                 + "\"locations\":[{\"line\":1,\"column\":2}],\"path\":[\"book\"]}]}";
 
-        runQueryWithExpectedResult(graphQLRequest, expected);
+        testUtils.runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test
@@ -487,7 +487,7 @@ public class GraphQLIT extends IntegrationTest {
             )
         ).toResponse();
 
-        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+        testUtils.runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
     @Test

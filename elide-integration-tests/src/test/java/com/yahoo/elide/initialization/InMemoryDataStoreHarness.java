@@ -35,8 +35,8 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
                 Invoice.class.getPackage(),
                 Manager.class.getPackage(),
                 BookV2.class.getPackage(),
-                AsyncQuery.class.getPackage()
-                Droid.class.getPackage(),
+                AsyncQuery.class.getPackage(),
+                Droid.class.getPackage()
         );
 
         mapStore = new HashMapDataStore(beanPackages);

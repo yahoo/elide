@@ -298,9 +298,9 @@ public class InheritanceIT extends IntegrationTest {
                         )
                 )).toQuery();
 
-        String expected = "{\"errors\":[{\"message\":\"Could not parse filter primaryFunction==*protocol* for "
-                + "type: character. reason: Invalid filter format: filter[character]\\nNo such association "
-                + "primaryFunction for type character\"}]}";
+        String expected = "{\"errors\":[{\"message\":\"Invalid filter format: filter\\nNo such association "
+                + "primaryFunction for type character\\nInvalid filter format: filter[Optional[character]]\\nInvalid "
+                + "query parameter: filter[Optional[character]]\"}]}";
 
         testUtils.runQueryWithExpectedResult(query, expected);
     }
