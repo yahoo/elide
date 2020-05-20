@@ -18,7 +18,8 @@ import com.yahoo.elide.core.TransactionRegistry;
 public class InMemoryDataStore implements DataStore, TransactionRegistry {
 
     private DataStore wrappedStore;
-
+    private TransactionRegistry registry;
+    
     public InMemoryDataStore(DataStore wrappedStore) {
         this.wrappedStore = wrappedStore;
     }
@@ -36,7 +37,7 @@ public class InMemoryDataStore implements DataStore, TransactionRegistry {
     @Override
     public DataStoreTransaction beginTransaction() {
         TransactionRegistry.TransactionEntry transactionEntry = new TransactionRegistry.TransactionEntry();
-        addRunningTransaction(transactionEntry);
+        registry.addRunningTransaction(transactionEntry);
         return new InMemoryStoreTransaction(wrappedStore.beginTransaction());
     }
 
