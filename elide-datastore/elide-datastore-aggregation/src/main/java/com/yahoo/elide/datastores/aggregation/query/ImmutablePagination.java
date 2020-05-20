@@ -16,10 +16,10 @@ import lombok.Value;
 @Value
 public class ImmutablePagination implements Pagination {
 
-    int offset;
-    int limit;
-    boolean defaultInstance;
-    boolean returnPageTotals;
+    private int offset;
+    private int limit;
+    private boolean defaultInstance;
+    private boolean returnPageTotals;
 
     public static ImmutablePagination from(Pagination src) {
         if (src instanceof ImmutablePagination) {

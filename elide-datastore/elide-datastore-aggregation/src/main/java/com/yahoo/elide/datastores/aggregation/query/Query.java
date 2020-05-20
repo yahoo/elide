@@ -28,27 +28,27 @@ import java.util.stream.Stream;
 @Builder
 public class Query {
     @NonNull
-    Table table;
+    private Table table;
 
     @Singular
-    List<MetricProjection> metrics;
+    private List<MetricProjection> metrics;
 
     @Singular
-    Set<ColumnProjection> groupByDimensions;
+    private Set<ColumnProjection> groupByDimensions;
 
     @Singular
-    Set<TimeDimensionProjection> timeDimensions;
+    private Set<TimeDimensionProjection> timeDimensions;
 
-    FilterExpression whereFilter;
-    FilterExpression havingFilter;
-    Sorting sorting;
-    ImmutablePagination pagination;
-    RequestScope scope;
+    private FilterExpression whereFilter;
+    private FilterExpression havingFilter;
+    private Sorting sorting;
+    private ImmutablePagination pagination;
+    private RequestScope scope;
 
     /**
      * Whether to bypass the {@link QueryEngine} cache for this query.
      */
-    boolean bypassingCache;
+    private boolean bypassingCache;
 
     /**
      * Returns all the dimensions regardless of type.
