@@ -7,7 +7,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-standalone</artifactId>
-    <version>5.0.0-pr9-SNAPSHOT</version>
+    <version>5.0.0-pr9</version>
     <packaging>jar</packaging>
     <name>Elide Standalone</name>
     <description>Elide Standalone Application</description>
@@ -15,7 +15,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.0-pr9-SNAPSHOT</version>
+        <version>5.0.0-pr9</version>
     </parent>
 
     <licenses>
@@ -41,7 +41,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>HEAD</tag>
+        <tag>5.0.0-pr9</tag>
     </scm>
 
     <properties>
@@ -60,22 +60,22 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr9-SNAPSHOT</version>
+            <version>5.0.0-pr9</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.0-pr9-SNAPSHOT</version>
+            <version>5.0.0-pr9</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>5.0.0-pr9-SNAPSHOT</version>
+            <version>5.0.0-pr9</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>5.0.0-pr9-SNAPSHOT</version>
+            <version>5.0.0-pr9</version>
         </dependency>
 
         <!-- JPA -->
@@ -193,7 +193,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>5.0.0-pr9-SNAPSHOT</version>
+            <version>5.0.0-pr9</version>
             <scope>test</scope>
         </dependency>
 
