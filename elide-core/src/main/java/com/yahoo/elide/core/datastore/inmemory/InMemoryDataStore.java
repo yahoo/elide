@@ -9,6 +9,7 @@ package com.yahoo.elide.core.datastore.inmemory;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.TransactionRegistry;
 
 /**
  * Data Store that wraps another store and provides in-memory filtering, soring, and pagination
@@ -34,6 +35,9 @@ public class InMemoryDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
+        TransactionRegistry.TransactionEntry transactionEntry = new TransactionRegistry.TransactionEntry();
+        TransactionRegistry registry = new TransactionRegistry();
+        registry.addRunningTransaction(transactionEntry);
         return new InMemoryStoreTransaction(wrappedStore.beginTransaction());
     }
 
