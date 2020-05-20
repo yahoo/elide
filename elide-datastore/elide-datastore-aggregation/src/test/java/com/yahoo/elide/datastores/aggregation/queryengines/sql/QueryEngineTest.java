@@ -10,14 +10,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.request.Sorting;
 
@@ -54,7 +55,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats0 = new PlayerStats();
@@ -91,7 +92,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsView stats2 = new PlayerStatsView();
@@ -123,7 +124,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsView stats2 = new PlayerStatsView();
@@ -151,7 +152,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
@@ -178,7 +179,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStatsView.class, false))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsView stats2 = new PlayerStatsView();
@@ -201,7 +202,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats0 = new PlayerStats();
@@ -235,7 +236,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats0 = new PlayerStats();
@@ -267,25 +268,16 @@ public class QueryEngineTest extends SQLUnitTest {
      */
     @Test
     public void testPagination() {
-        PaginationImpl pagination = new PaginationImpl(
-                PlayerStats.class,
-                0,
-                1,
-                PaginationImpl.DEFAULT_PAGE_LIMIT,
-                PaginationImpl.MAX_PAGE_LIMIT,
-                true,
-                false
-        );
-
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
-                .pagination(pagination)
+                .pagination(new ImmutablePagination(0, 1, false, true))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        QueryResult result = engine.executeQuery(query);
+        List<Object> data = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
@@ -295,9 +287,9 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        assertEquals(results.size(), 1, "Number of records returned does not match");
-        assertEquals(results.get(0), stats1, "Returned record does not match");
-        assertEquals(pagination.getPageTotals(), 3, "Page totals does not match");
+        assertEquals(data.size(), 1, "Number of records returned does not match");
+        assertEquals(data.get(0), stats1, "Returned record does not match");
+        assertEquals(result.getPageTotals(), 3, "Page totals does not match");
     }
 
     /**
@@ -315,7 +307,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         // Only "Good" rating would have total high score less than 2400
@@ -344,7 +336,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats0 = new PlayerStats();
@@ -381,7 +373,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats0 = new PlayerStats();
@@ -419,7 +411,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryIsoCode")))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
@@ -452,7 +444,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
@@ -487,7 +479,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
@@ -525,7 +517,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.MONTH))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats0 = new PlayerStats();
@@ -554,7 +546,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .whereFilter(predicate)
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats0 = new PlayerStats();
@@ -579,7 +571,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats0 = new PlayerStats();
@@ -614,7 +606,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryNickName")))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
@@ -640,7 +632,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryUnSeats")))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
