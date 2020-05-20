@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
@@ -72,7 +73,7 @@ public class EntityProjectionTranslator {
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())
-                .pagination(entityProjection.getPagination())
+                .pagination(ImmutablePagination.from(entityProjection.getPagination()))
                 .build();
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();
