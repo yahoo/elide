@@ -7,4 +7,13 @@
         <cve>CVE-2019-16335</cve>
         <cve>CVE-2019-14540</cve>
     </suppress>
+    <!-- Invalid web socket CVE (flagging wrong package) -->
+    <suppress until="2020-12-01Z">
+        <cve>CVE-2020-11050</cve>
+    </suppress>
+
+    <!-- Invalid Spring Security CVE -->
+    <suppress until="2020-12-01Z">
+        <cve>CVE-2018-1258</cve>
+    </suppress>
 </suppressions>

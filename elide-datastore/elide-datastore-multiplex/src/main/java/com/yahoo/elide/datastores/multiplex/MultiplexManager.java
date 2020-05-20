@@ -7,7 +7,11 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityBinding;
 import com.yahoo.elide.core.EntityDictionary;
+
+import lombok.AccessLevel;
+import lombok.Setter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,10 +32,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <li>Attempt to reverse DB1 commit fails
  * </ul>
  */
-public class MultiplexManager implements DataStore {
+public final class MultiplexManager implements DataStore {
 
     protected final List<DataStore> dataStores;
     protected final ConcurrentHashMap<Class<?>, DataStore> dataStoreMap = new ConcurrentHashMap<>();
+
+    @Setter(AccessLevel.PROTECTED)
     private EntityDictionary dictionary;
 
     /**
@@ -50,12 +56,12 @@ public class MultiplexManager implements DataStore {
             EntityDictionary subordinateDictionary = new EntityDictionary(dictionary.getCheckMappings());
 
             dataStore.populateEntityDictionary(subordinateDictionary);
-            for (Class<?> cls : subordinateDictionary.getBindings()) {
+            for (EntityBinding binding : subordinateDictionary.getBindings()) {
                 // route class to this database manager
-                this.dataStoreMap.put(cls, dataStore);
+                this.dataStoreMap.put(binding.entityClass, dataStore);
+
                 // bind to multiplex dictionary
-                dictionary.bindEntity(cls);
-                dictionary.bindInitializer(subordinateDictionary::initializeEntity, cls);
+                dictionary.bindEntity(binding);
             }
         }
     }

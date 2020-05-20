@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.functions.LifeCycleHook;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -20,15 +20,18 @@ import java.util.Optional;
 public class LifecycleHookInvoker implements Observer<CRUDEvent> {
 
     private EntityDictionary dictionary;
-    private Class<? extends Annotation> annotation;
+    private LifeCycleHookBinding.Operation op;
+    private LifeCycleHookBinding.TransactionPhase phase;
     private Optional<RuntimeException> exception;
     private boolean throwsExceptions;
 
     public LifecycleHookInvoker(EntityDictionary dictionary,
-                                Class<? extends Annotation> annotation,
+                                LifeCycleHookBinding.Operation op,
+                                LifeCycleHookBinding.TransactionPhase phase,
                                 boolean throwExceptions) {
         this.dictionary = dictionary;
-        this.annotation = annotation;
+        this.op = op;
+        this.phase = phase;
         this.exception = Optional.empty();
         this.throwsExceptions = throwExceptions;
     }
@@ -43,20 +46,18 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
         ArrayList<LifeCycleHook> hooks = new ArrayList<>();
 
         //Collect all the hooks that are keyed on a specific field.
-        hooks.addAll(dictionary.getTriggers(
-                event.getResource().getResourceClass(),
-                this.annotation,
-                event.getFieldName()));
+        hooks.addAll(dictionary.getTriggers(event.getResource().getResourceClass(), op, phase, event.getFieldName()));
 
         //Collect all the hooks that are keyed on any field.
         if (!event.getFieldName().isEmpty()) {
-            hooks.addAll(dictionary.getTriggers(event.getResource().getResourceClass(), this.annotation));
+            hooks.addAll(dictionary.getTriggers(event.getResource().getResourceClass(), op, phase));
         }
 
         try {
             //Invoke all the hooks
             hooks.forEach((hook) -> {
                     hook.execute(
+                            this.op,
                             event.getResource().getObject(),
                             event.getResource().getRequestScope(),
                             event.getChanges());

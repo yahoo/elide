@@ -6,18 +6,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
-import com.yahoo.elide.annotation.OnCreatePreCommit;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
-import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
-import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
@@ -25,10 +14,9 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
@@ -38,6 +26,7 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -59,13 +49,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
-    @Getter private final EntityDictionary dictionary;
+    @Getter protected final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
-    @Getter private final Pagination pagination;
-    @Getter private final Sorting sorting;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
@@ -73,10 +61,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final LinkedHashSet<PersistentResource> deletedResources;
     @Getter private final String path;
     @Getter private final ElideSettings elideSettings;
-    @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
-
     @Getter private final MultipleFilterDialect filterDialect;
+    @Getter private final String apiVersion;
+
+    //TODO - this ought to be read only and set in the constructor.
+    @Getter @Setter private EntityProjection entityProjection;
+    private final String requestId;
     private final Map<String, FilterExpression> expressionsByType;
 
     private PublishSubject<CRUDEvent> lifecycleEvents;
@@ -90,6 +81,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * Create a new RequestScope with specified update status code.
      *
      * @param path the URL path
+     * @param apiVersion the API version.
      * @param jsonApiDocument the document for this request
      * @param transaction the transaction for this request
      * @param user the user making this request
@@ -97,11 +89,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param elideSettings Elide settings object
      */
     public RequestScope(String path,
+                        String apiVersion,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
                         MultivaluedMap<String, String> queryParams,
                         ElideSettings elideSettings) {
+        this.apiVersion = apiVersion;
         this.lifecycleEvents = PublishSubject.create();
         this.distinctLifecycleEvents = lifecycleEvents.distinct();
         this.queuedLifecycleEvents = ReplaySubject.create();
@@ -117,7 +111,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.filterDialect = new MultipleFilterDialect(elideSettings.getJoinFilterDialects(),
                 elideSettings.getSubqueryFilterDialects());
         this.elideSettings = elideSettings;
-        this.useFilterExpressions = elideSettings.isUseFilterExpressions();
         this.updateStatusCode = elideSettings.getUpdateStatusCode();
 
         this.globalFilterExpression = null;
@@ -126,6 +119,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
+        this.requestId = UUID.randomUUID().toString();
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
@@ -148,14 +142,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
                 /* First check to see if there is a global, cross-type filter */
                 try {
-                    globalFilterExpression = filterDialect.parseGlobalExpression(path, filterParams);
+                    globalFilterExpression = filterDialect.parseGlobalExpression(path, filterParams, apiVersion);
                 } catch (ParseException e) {
                     errorMessage = e.getMessage();
                 }
 
                 /* Next check to see if there is are type specific filters */
                 try {
-                    expressionsByType.putAll(filterDialect.parseTypedExpression(path, filterParams));
+                    expressionsByType.putAll(filterDialect.parseTypedExpression(path, filterParams, apiVersion));
                 } catch (ParseException e) {
 
                     /* If neither dialect parsed, report the last error found */
@@ -175,12 +169,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             }
 
             this.sparseFields = parseSparseFields(queryParams);
-            this.sorting = Sorting.parseQueryParams(queryParams);
-            this.pagination = Pagination.parseQueryParams(queryParams, this.getElideSettings());
         } else {
             this.sparseFields = Collections.emptyMap();
-            this.sorting = Sorting.getDefaultEmptyInstance();
-            this.pagination = Pagination.getDefaultPagination(this.getElideSettings());
         }
     }
 
@@ -188,11 +178,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * Special copy constructor for use by PatchRequestScope.
      *
      * @param path the URL path
+     * @param apiVersion the API version
      * @param jsonApiDocument   the json api document
      * @param outerRequestScope the outer request scope
      */
-    protected RequestScope(String path, JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
+    protected RequestScope(String path, String apiVersion,
+                           JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
         this.jsonApiDocument = jsonApiDocument;
+        this.apiVersion = apiVersion;
         this.path = path;
         this.transaction = outerRequestScope.transaction;
         this.user = outerRequestScope.user;
@@ -201,8 +194,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
-        this.sorting = Sorting.getDefaultEmptyInstance();
-        this.pagination = Pagination.getDefaultPagination(outerRequestScope.getElideSettings());
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
@@ -211,14 +202,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
         this.elideSettings = outerRequestScope.elideSettings;
-        this.useFilterExpressions = outerRequestScope.useFilterExpressions;
-        this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.lifecycleEvents = outerRequestScope.lifecycleEvents;
         this.distinctLifecycleEvents = outerRequestScope.distinctLifecycleEvents;
+        this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
+        this.requestId = outerRequestScope.requestId;
     }
 
-    @Override
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
         return (Set) newPersistentResources;
     }
@@ -232,7 +222,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param queryParams The request query parameters
      * @return Parsed sparseFields map
      */
-    private static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
+    public static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
         Map<String, Set<String>> result = new HashMap<>();
 
         for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
@@ -264,6 +254,15 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
+     * Get filter expression for a specific collection type.
+     * @param entityClass The class to lookup
+     * @return The filter expression for the given type
+     */
+    public Optional<FilterExpression> getFilterExpressionByType(Class<?> entityClass) {
+        return Optional.ofNullable(expressionsByType.get(dictionary.getJsonAliasFor(entityClass)));
+    }
+
+    /**
      * Get the global/cross-type filter expression.
      * @param loadClass Entity class
      * @return The global filter expression evaluated at the first load
@@ -280,15 +279,15 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Get the filter expression for a particular relationship
-     * @param parent The object which has the relationship
+     * Get the filter expression for a particular relationship.
+     * @param parentType The parent type which has the relationship
      * @param relationName The relationship name
      * @return A type specific filter expression for the given relationship
      */
-    public Optional<FilterExpression> getExpressionForRelation(PersistentResource parent, String relationName) {
-        final Class<?> entityClass = dictionary.getParameterizedType(parent.getObject(), relationName);
+    public Optional<FilterExpression> getExpressionForRelation(Class<?> parentType, String relationName) {
+        final Class<?> entityClass = dictionary.getParameterizedType(parentType, relationName);
         if (entityClass == null) {
-            throw new InvalidAttributeException(relationName, parent.getType());
+            throw new InvalidAttributeException(relationName, dictionary.getJsonAliasFor(parentType));
         }
         if (dictionary.isMappedInterface(entityClass) && interfaceHasFilterExpression(entityClass)) {
             throw new InvalidOperationException(
@@ -305,7 +304,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      */
     private boolean interfaceHasFilterExpression(Class<?> entityInterface) {
         for (String filterType : expressionsByType.keySet()) {
-            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType);
+            String version = EntityDictionary.getModelVersion(entityInterface);
+            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType, version);
             if (entityInterface.isAssignableFrom(polyMorphicClass)) {
                 return true;
             }
@@ -332,62 +332,80 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Run queued on triggers (i.e. @OnCreatePreSecurity, @OnUpdatePreSecurity, etc.).
+     * Run queued pre-security lifecycle triggers.
      */
     public void runQueuedPreSecurityTriggers() {
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnCreatePreSecurity.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.CREATE,
+                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, false))
                 .throwOnError();
     }
 
     /**
-     * Run queued pre triggers (i.e. @OnCreatePreCommit, @OnUpdatePreCommit, etc.).
+     * Run queued pre-commit lifecycle triggers.
      */
     public void runQueuedPreCommitTriggers() {
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnCreatePreCommit.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.CREATE,
+                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
                 .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnUpdatePreCommit.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.UPDATE,
+                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
                 .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnDeletePreCommit.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.DELETE,
+                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
                 .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnReadPreCommit.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.READ,
+                        LifeCycleHookBinding.TransactionPhase.PRECOMMIT, false))
                 .throwOnError();
     }
 
     /**
-     * Run queued post triggers (i.e. @OnCreatePostCommit, @OnUpdatePostCommit, etc.).
+     * Run queued post-commit lifecycle triggers.
      */
     public void runQueuedPostCommitTriggers() {
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnCreatePostCommit.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.CREATE,
+                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
                 .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnUpdatePostCommit.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.UPDATE,
+                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
                 .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnDeletePostCommit.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.DELETE,
+                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
                 .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnReadPostCommit.class, false))
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.READ,
+                        LifeCycleHookBinding.TransactionPhase.POSTCOMMIT, false))
                 .throwOnError();
     }
 
@@ -397,7 +415,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param resource Resource on which to execute trigger
      * @param crudAction CRUD action
      */
-    protected void publishLifecycleEvent(PersistentResource<?> resource, CRUDEvent.CRUDAction crudAction) {
+    protected void publishLifecycleEvent(PersistentResource<?> resource, LifeCycleHookBinding.Operation crudAction) {
         lifecycleEvents.onNext(
                     new CRUDEvent(crudAction, resource, PersistentResource.CLASS_NO_FIELD, Optional.empty())
         );
@@ -413,7 +431,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      */
     protected void publishLifecycleEvent(PersistentResource<?> resource,
                                          String fieldName,
-                                         CRUDEvent.CRUDAction crudAction,
+                                         LifeCycleHookBinding.Operation crudAction,
                                          Optional<ChangeSpec> changeSpec) {
         lifecycleEvents.onNext(
                     new CRUDEvent(crudAction, resource, fieldName, changeSpec)
@@ -435,25 +453,29 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         return objectEntityCache.getUUID(o);
     }
 
-    public Object getObjectById(String type, String id) {
-        Object result = objectEntityCache.get(type, id);
+    public Object getObjectById(Class<?> type, String id) {
+        Class<?> boundType = dictionary.lookupBoundClass(type);
+
+        Object result = objectEntityCache.get(boundType.getName(), id);
 
         // Check inheritance too
-        Iterator<String> it = dictionary.getSubclassingEntityNames(type).iterator();
+        Iterator<Class<?>> it = dictionary.getSubclassingEntities(boundType).iterator();
         while (result == null && it.hasNext()) {
-            String newType = getInheritanceKey(it.next(), type);
+            String newType = getInheritanceKey(it.next().getName(), boundType.getName());
             result = objectEntityCache.get(newType, id);
         }
 
         return result;
     }
 
-    public void setUUIDForObject(String type, String id, Object object) {
-        objectEntityCache.put(type, id, object);
+    public void setUUIDForObject(Class<?> type, String id, Object object) {
+        Class<?> boundType = dictionary.lookupBoundClass(type);
+
+        objectEntityCache.put(boundType.getName(), id, object);
 
         // Insert for all inherited entities as well
-        dictionary.getSuperClassEntityNames(type).stream()
-                .map(i -> getInheritanceKey(type, i))
+        dictionary.getSuperClassEntities(type).stream()
+                .map(i -> getInheritanceKey(boundType.getName(), i.getName()))
                 .forEach((newType) -> objectEntityCache.put(newType, id, object));
     }
 
@@ -465,14 +487,20 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
         this.distinctLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnReadPreSecurity.class, true));
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.READ,
+                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
 
         this.distinctLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnUpdatePreSecurity.class, true));
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.UPDATE,
+                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
 
         this.distinctLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
-                .subscribeWith(new LifecycleHookInvoker(dictionary, OnDeletePreSecurity.class, true));
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.DELETE,
+                        LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
     }
 }

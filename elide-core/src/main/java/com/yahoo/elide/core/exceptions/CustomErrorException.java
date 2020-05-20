@@ -44,12 +44,12 @@ public class CustomErrorException extends HttpStatusException {
     }
 
     @Override
-    public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
+    public Pair<Integer, JsonNode> getErrorResponse() {
         return buildCustomResponse();
     }
 
     @Override
-    public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
+    public Pair<Integer, JsonNode> getVerboseErrorResponse() {
         return buildCustomResponse();
     }
 

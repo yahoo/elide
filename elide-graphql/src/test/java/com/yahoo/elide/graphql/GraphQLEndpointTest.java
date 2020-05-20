@@ -17,6 +17,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.toJson;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,7 +28,6 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,7 +46,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import graphqlEndpointTestModels.Author;
 import graphqlEndpointTestModels.Book;
-import graphqlEndpointTestModels.DisallowShare;
+import graphqlEndpointTestModels.DisallowTransfer;
 import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;
 
@@ -124,12 +124,7 @@ public class GraphQLEndpointTest {
                         .withEntityDictionary(new EntityDictionary(checkMappings))
                         .withAuditLogger(audit)
                         .build());
-        endpoint = new GraphQLEndpoint(elide, new DefaultOpaqueUserFunction() {
-            @Override
-            public Object apply(SecurityContext securityContext) {
-                return securityContext.getUserPrincipal();
-            }
-        });
+        endpoint = new GraphQLEndpoint(elide);
 
         DataStoreTransaction tx = inMemoryStore.beginTransaction();
 
@@ -137,7 +132,7 @@ public class GraphQLEndpointTest {
         Book book1 = new Book();
         Author author1 = new Author();
         Author author2 = new Author();
-        DisallowShare noShare = new DisallowShare();
+        DisallowTransfer noShare = new DisallowTransfer();
 
         book1.setId(1L);
         book1.setTitle("My first book");
@@ -214,7 +209,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -267,7 +262,7 @@ public class GraphQLEndpointTest {
 
         Map<String, String> variables = new HashMap<>();
         variables.put("bookId", "1");
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest, variables));
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest, variables));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -295,7 +290,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -312,7 +307,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
     }
 
@@ -337,22 +332,8 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String expectedData = document(
-                selection(
-                        field(
-                                "book",
-                                selections(
-                                        field("user1SecretField", "null", false),
-                                        field("id", "1"),
-                                        field("title", "My first book")
-                                )
-                        )
-                )
-        ).toResponse();
-
-        Response response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
-        assert200DataEqual(response, expectedData);
     }
 
     @Test
@@ -381,7 +362,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
 
         graphQLRequest = document(
@@ -408,13 +389,13 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post(NO_VERSION, user2, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
     @Test
     void testNonShareable() throws IOException, JSONException {
-        DisallowShare noShare = new DisallowShare();
+        DisallowTransfer noShare = new DisallowTransfer();
         noShare.setId(1L);
 
         Author author = new Author();
@@ -452,7 +433,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
 
         assertHasErrors(response);
 
@@ -499,7 +480,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -544,7 +525,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(user, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
 
         String expectedLog = "On Title Update Pre Security\nOn Title Update Pre Commit\nOn Title Update Post Commit\n";
@@ -577,10 +558,10 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
 
         Mockito.verify(audit, Mockito.times(1)).log(Mockito.any());
-        Mockito.verify(audit, Mockito.times(1)).commit(Mockito.any());
+        Mockito.verify(audit, Mockito.times(1)).commit();
         Mockito.verify(audit, Mockito.times(1)).clear();
     }
 
@@ -626,7 +607,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
 
         graphQLRequest = document(
@@ -679,7 +660,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -708,7 +689,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(user3, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user3, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
     }
 
@@ -762,7 +743,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -787,8 +768,235 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
+    }
+
+
+    @Test
+    public void testMultipleRoot() throws JSONException {
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "author",
+                                selections(
+                                        field("id"),
+                                        field("name"),
+                                        field(
+                                                "books",
+                                                selection(
+                                                        field("title")
+                                                )
+                                        )
+                                )
+                        ),
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String graphQLResponse = document(
+                selections(
+                        field(
+                                "author",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "Ricky Carmichael"),
+                                        field(
+                                                "books",
+                                                selections(
+                                                        field("title", "My first book")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("id", "2"),
+                                        field("name", "The Silent Author"),
+                                        field(
+                                                "books", "", false
+                                        )
+                                )
+                        ),
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "My first book"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name", "Ricky Carmichael")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
+        assert200EqualBody(response, graphQLResponse);
+    }
+
+    @Test
+    public void testMultipleQueryWithAlias() throws JSONException {
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "AuthorBook",
+                                "author",
+                                selections(
+                                        field("id"),
+                                        field(
+                                                "books",
+                                                selection(
+                                                        field("title")
+                                                )
+                                        )
+                                )
+                        ),
+                        field(
+                                "AuthorName",
+                                "author",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+        String graphQLResponse = document(
+                selections(
+                        field(
+                                "AuthorBook",
+                                selections(
+                                        field("id", "1"),
+                                        field(
+                                                "books",
+                                                selections(
+                                                        field("title", "My first book")
+                                                )
+                                        )
+                                ),
+                                selections(
+                                        field("id", "2"),
+                                        field(
+                                                "books", "", false
+                                        )
+                                )
+                        ),
+                        field(
+                                "AuthorName",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "Ricky Carmichael")
+                                ),
+                                selections(
+                                        field("id", "2"),
+                                        field("name", "The Silent Author")
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
+        assert200EqualBody(response, graphQLResponse);
+    }
+
+    @Test
+    public void testMultipleQueryWithAliasAndArguments() throws JSONException {
+        String graphQLRequest = document(
+                query(
+                        "myQuery",
+                        variableDefinitions(
+                                variableDefinition("author1", "[String]"),
+                                variableDefinition("author2", "[String]")
+                        ),
+                        selections(
+                                field(
+                                        "Author_1",
+                                        "author",
+                                        arguments(
+                                                argument("ids", "$author1")
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("name"),
+                                                field(
+                                                        "books",
+                                                        selection(
+                                                                field("title")
+                                                        )
+                                                )
+                                        )
+                                ),
+                                field(
+                                        "Author_2",
+                                        "author",
+                                        arguments(
+                                                argument("ids", "$author2")
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("name"),
+                                                field(
+                                                        "books",
+                                                        selection(
+                                                                field("title")
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+        String graphQLResponse = document(
+                selections(
+                        field(
+                                "Author_1",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "Ricky Carmichael"),
+                                        field(
+                                                "books",
+                                                selections(
+                                                        field("title", "My first book")
+                                                )
+                                        )
+                                )
+                        ),
+                        field(
+                                "Author_2",
+                                selections(
+                                        field("id", "2"),
+                                        field("name", "The Silent Author"),
+                                        field(
+                                                "books", "", false
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("author1", "1");
+        variables.put("author2", "2");
+
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest, variables));
+        assert200EqualBody(response, graphQLResponse);
     }
 
     private static String graphQLRequestToJSON(String request) {

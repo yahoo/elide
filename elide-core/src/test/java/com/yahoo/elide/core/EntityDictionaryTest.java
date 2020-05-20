@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -12,25 +13,23 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.MappedInterface;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.functions.LifeCycleHook;
-import com.yahoo.elide.models.generics.Employee;
-import com.yahoo.elide.models.generics.Manager;
+import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
-import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import com.google.common.collect.ImmutableList;
@@ -49,6 +48,9 @@ import example.Parent;
 import example.Right;
 import example.StringId;
 import example.User;
+import example.models.generics.Employee;
+import example.models.generics.Manager;
+import example.models.versioned.BookV2;
 
 import org.junit.jupiter.api.Test;
 
@@ -61,18 +63,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import javax.inject.Inject;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 public class EntityDictionaryTest extends EntityDictionary {
 
     //Test class to validate inheritance logic
     @Include(rootLevel = true, type = "friend")
-    private class Friend extends Child { }
+    private class Friend extends Child {
+    }
 
     public EntityDictionaryTest() {
         super(Collections.EMPTY_MAP, mock(Injector.class));
@@ -93,8 +97,17 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(Employee.class);
         bindEntity(Job.class);
         bindEntity(NoId.class);
+        bindEntity(BookV2.class);
+        bindEntity(Book.class);
 
         checkNames.forcePut("user has all access", Role.ALL.class);
+    }
+
+    @Test
+    public void testSetId() {
+        Parent parent = new Parent();
+        setId(parent, "123");
+        assertEquals(parent.getId(), 123);
     }
 
     @Test
@@ -103,11 +116,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("Prefab.Role.None", getCheckIdentifier(Role.NONE.class));
         assertEquals("Prefab.Collections.AppendOnly", getCheckIdentifier(AppendOnly.class));
         assertEquals("Prefab.Collections.RemoveOnly", getCheckIdentifier(RemoveOnly.class));
-        assertEquals("Prefab.Common.UpdateOnCreate", getCheckIdentifier(UpdateOnCreate.class));
     }
 
     @SecurityCheck("User is Admin")
-    public class Foo extends UserCheck {
+    public class Bar extends UserCheck {
 
         @Override
         public boolean ok(com.yahoo.elide.security.User user) {
@@ -121,39 +133,44 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
         testDictionary.scanForSecurityChecks();
 
-        assertEquals("User is Admin", testDictionary.getCheckIdentifier(Foo.class));
+        assertEquals("User is Admin", testDictionary.getCheckIdentifier(Bar.class));
+    }
+
+    @SecurityCheck("Filter Expression Injection Test")
+    public class Foo extends FilterExpressionCheck {
+
+        @Inject
+        Long testLong;
+
+        @Override
+        public FilterExpression getFilterExpression(Class entityClass,
+                                                    com.yahoo.elide.security.RequestScope requestScope) {
+            assertEquals(testLong, 123L);
+            return null;
+        }
+    }
+
+    @Test
+    public void testCheckInjection() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
+            @Override
+            public void inject(Object entity) {
+                ((Foo) entity).testLong = 123L;
+            }
+        });
+        testDictionary.scanForSecurityChecks();
+
+        assertEquals("Filter Expression Injection Test", testDictionary.getCheckIdentifier(Foo.class));
     }
 
     @Test
     public void testGetAttributeOrRelationAnnotation() {
-        String[] fields = { "field1", "field2", "field3", "relation1", "relation2" };
+        String[] fields = {"field1", "field2", "field3", "relation1", "relation2"};
         Annotation annotation;
         for (String field : fields) {
             annotation = getAttributeOrRelationAnnotation(FunWithPermissions.class, ReadPermission.class, field);
             assertTrue(annotation instanceof ReadPermission, "Every field should return a ReadPermission annotation");
         }
-    }
-
-    @Test
-    public void testBindingInitializerPriorToBindingEntityClass() {
-        @Entity
-        @Include
-        class Foo {
-            @Id
-            private long id;
-
-            private int bar;
-        }
-
-        Initializer<Foo> initializer = mock(Initializer.class);
-        bindInitializer(initializer, Foo.class);
-
-        assertEquals(1, getAllFields(Foo.class).size());
-
-        Foo foo = new Foo();
-        initializeEntity(foo);
-
-        verify(initializer).initialize(foo);
     }
 
     @Test
@@ -169,7 +186,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         LifeCycleHook<Foo2> trigger = mock(LifeCycleHook.class);
 
-        bindTrigger(Foo2.class, OnUpdatePreSecurity.class, "bar", trigger);
+        bindTrigger(Foo2.class, "bar", UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger);
         assertEquals(1, getAllFields(Foo2.class).size());
     }
 
@@ -186,7 +203,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         LifeCycleHook<Foo3> trigger = mock(LifeCycleHook.class);
 
-        bindTrigger(Foo3.class, OnUpdatePreSecurity.class, trigger, true);
+        bindTrigger(Foo3.class, UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger, true);
         assertEquals(1, getAllFields(Foo3.class).size());
     }
 
@@ -203,7 +220,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         LifeCycleHook<Foo4> trigger = mock(LifeCycleHook.class);
 
-        bindTrigger(Foo4.class, OnUpdatePreSecurity.class, trigger);
+        bindTrigger(Foo4.class, UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger, false);
         assertEquals(1, getAllFields(Foo4.class).size());
     }
 
@@ -358,7 +375,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetIdAnnotations() throws Exception {
 
-        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[] { Id.class, GeneratedValue.class });
+        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[]{Id.class, GeneratedValue.class});
         Collection<Class> actualAnnotationsClasses = getIdAnnotations(new Parent()).stream()
                 .map(Annotation::annotationType)
                 .collect(Collectors.toList());
@@ -385,7 +402,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetIdAnnotationsSubClass() throws Exception {
 
-        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[] { Id.class, GeneratedValue.class });
+        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[]{Id.class, GeneratedValue.class});
         Collection<Class> actualAnnotationsClasses = getIdAnnotations(new Friend()).stream()
                 .map(Annotation::annotationType)
                 .collect(Collectors.toList());
@@ -396,12 +413,12 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testIsSharableTrue() throws Exception {
-        assertTrue(isShareable(Right.class));
+        assertTrue(isTransferable(Right.class));
     }
 
     @Test
     public void testIsSharableFalse() throws Exception {
-        assertFalse(isShareable(Left.class));
+        assertFalse(isTransferable(Left.class));
     }
 
     @Test
@@ -489,15 +506,17 @@ public class EntityDictionaryTest extends EntityDictionary {
         List<String> attrs = getAttributes(Child.class);
         List<String> rels = getRelationships(Child.class);
         assertTrue(!attrs.contains("excludedEntity") && !attrs.contains("excludedRelationship")
-            && !attrs.contains("excludedEntityList"));
+                && !attrs.contains("excludedEntityList"));
         assertTrue(!rels.contains("excludedEntity") && !rels.contains("excludedRelationship")
-            && !rels.contains("excludedEntityList"));
+                && !rels.contains("excludedEntityList"));
     }
 
     @MappedInterface
-    public interface SuitableInterface { }
+    public interface SuitableInterface {
+    }
 
-    public interface BadInterface { }
+    public interface BadInterface {
+    }
 
     @Test
     public void testMappedInterface() {
@@ -528,20 +547,20 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(SubclassBinding.class);
         bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubclassBinding.class));
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubsubclassBinding.class));
 
-        assertEquals("subclassBinding", getEntityFor(SubclassBinding.class));
+        assertEquals("superclassBinding", getEntityFor(SubclassBinding.class));
         assertEquals("superclassBinding", getEntityFor(SuperclassBinding.class));
 
-        assertEquals(SubclassBinding.class, getEntityClass("subclassBinding"));
-        assertEquals(SuperclassBinding.class, getEntityClass("superclassBinding"));
+        assertNull(getEntityClass("subclassBinding", NO_VERSION));
+        assertEquals(SuperclassBinding.class, getEntityClass("superclassBinding", NO_VERSION));
 
-        assertEquals("subclassBinding", getJsonAliasFor(SubclassBinding.class));
+        assertEquals("superclassBinding", getJsonAliasFor(SubclassBinding.class));
         assertEquals("superclassBinding", getJsonAliasFor(SuperclassBinding.class));
     }
 
@@ -565,11 +584,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         bindEntity(SuperclassBinding.class);
-        bindEntity(SubclassBinding.class);
         bindEntity(SubsubclassBinding.class);
 
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SubsubclassBinding.class, getEntityBinding(SubsubclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
@@ -606,15 +624,13 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         bindEntity(SuperclassBinding.class);
-        bindEntity(SubclassBinding.class);
-        bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
-        assertEquals(SubsubclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
     }
 
     @Test
@@ -635,15 +651,14 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         bindEntity(SuperclassBinding.class);
-        bindEntity(SubclassBinding.class);
         bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
         assertEquals(SubsubclassBinding.class, getEntityBinding(SubsubclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
         assertEquals(SubsubclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
     }
 
@@ -663,24 +678,24 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         bindEntity(SuperclassBinding.class);
-        bindEntity(SubclassBinding.class);
         bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
         assertThrows(IllegalArgumentException.class, () -> {
             getEntityBinding(SubsubclassBinding.class);
         });
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
         assertEquals(null, lookupIncludeClass(SubsubclassBinding.class));
     }
 
     @Test
     public void testGetFirstAnnotation() {
         @Exclude
-        class Foo { }
+        class Foo {
+        }
 
         @Include
         class Bar extends Foo {
@@ -699,7 +714,8 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testGetFirstAnnotationConflict() {
         @Exclude
         @Include
-        class Foo { }
+        class Foo {
+        }
 
         Annotation first = getFirstAnnotation(Foo.class, Arrays.asList(Exclude.class, Include.class));
         assertTrue(first instanceof Exclude);
@@ -725,6 +741,93 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testBadLookupEntityClass() {
         assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(null));
         assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(Object.class));
+    }
+
+    @Test
+    public void testFieldIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+
+        @Include
+        class FieldInject {
+            @Inject
+            private String field;
+        }
+
+        testDictionary.bindEntity(FieldInject.class);
+
+        assertTrue(testDictionary.getEntityBinding(FieldInject.class).isInjected());
+    }
+
+    @Test
+    public void testInheritedFieldIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        class BaseClass {
+            @Inject
+            private String field;
+        }
+
+        @Include
+        class SubClass extends BaseClass {
+            private String anotherField;
+        }
+
+        testDictionary.bindEntity(SubClass.class);
+
+        assertTrue(testDictionary.getEntityBinding(SubClass.class).isInjected());
+    }
+
+    @Test
+    public void testMethodIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+
+        @Include
+        class MethodInject {
+            @Inject
+            private void setField(String field) {
+                //NOOP
+            }
+        }
+
+        testDictionary.bindEntity(MethodInject.class);
+
+        assertTrue(testDictionary.getEntityBinding(MethodInject.class).isInjected());
+    }
+
+    @Test
+    public void testInhertedMethodIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        class BaseClass {
+            @Inject
+            private void setField(String field) {
+                //NOOP
+            }
+        }
+
+        @Include
+        class SubClass extends BaseClass {
+            private String anotherField;
+        }
+
+        testDictionary.bindEntity(SubClass.class);
+
+        assertTrue(testDictionary.getEntityBinding(SubClass.class).isInjected());
+    }
+
+    @Test
+    public void testConstructorIsInjected() {
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+
+        @Include
+        class ConstructorInject {
+            @Inject
+            public ConstructorInject(String field) {
+                //NOOP
+            }
+        }
+
+        testDictionary.bindEntity(ConstructorInject.class);
+
+        assertTrue(testDictionary.getEntityBinding(ConstructorInject.class).isInjected());
     }
 
     @Test
@@ -830,5 +933,62 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertThrows(IllegalArgumentException.class, () -> this.getCheck("UnknownClassName"));
 
         assertThrows(IllegalArgumentException.class, () -> this.getCheck(String.class.getName()));
+    }
+
+    @Test
+    public void testAttributeOrRelationAnnotationExists() {
+        assertTrue(attributeOrRelationAnnotationExists(Job.class, "jobId", Id.class));
+        assertFalse(attributeOrRelationAnnotationExists(Job.class, "title", OneToOne.class));
+    }
+
+    @Test
+    public void testIsValidField() {
+        assertTrue(isValidField(Job.class, "title"));
+        assertFalse(isValidField(Job.class, "foo"));
+    }
+
+    @Test
+    public void testGetBoundByVersion() {
+        Set<Class<?>> models = getBoundClassesByVersion("1.0");
+        assertEquals(3, models.size());  //Also includes com.yahoo.elide inner classes from this file.
+        assertTrue(models.contains(BookV2.class));
+
+
+        models = getBoundClassesByVersion(NO_VERSION);
+        assertEquals(14, models.size());
+    }
+
+    @Test
+    public void testGetEntityClassByVersion() {
+        Class<?> model = getEntityClass("book", NO_VERSION);
+        assertEquals(Book.class, model);
+
+        model = getEntityClass("book", "1.0");
+        assertEquals(BookV2.class, model);
+    }
+
+    @Test
+    public void testGetModelVersion() {
+        assertEquals("1.0", getModelVersion(BookV2.class));
+        assertEquals(NO_VERSION, getModelVersion(Book.class));
+    }
+
+    @Test
+    public void testHasBinding() {
+        assertTrue(hasBinding(FunWithPermissions.class));
+        assertTrue(hasBinding(Parent.class));
+        assertTrue(hasBinding(Child.class));
+        assertTrue(hasBinding(User.class));
+        assertTrue(hasBinding(Left.class));
+        assertTrue(hasBinding(Right.class));
+        assertTrue(hasBinding(StringId.class));
+        assertTrue(hasBinding(Friend.class));
+        assertTrue(hasBinding(FieldAnnotations.class));
+        assertTrue(hasBinding(Manager.class));
+        assertTrue(hasBinding(Employee.class));
+        assertTrue(hasBinding(Job.class));
+        assertTrue(hasBinding(NoId.class));
+        assertTrue(hasBinding(BookV2.class));
+        assertTrue(hasBinding(Book.class));
     }
 }

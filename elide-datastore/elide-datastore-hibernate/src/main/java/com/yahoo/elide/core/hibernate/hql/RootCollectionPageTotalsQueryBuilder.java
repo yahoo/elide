@@ -5,14 +5,16 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -55,7 +57,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
     @Override
     public Query build() {
         String entityName = entityClass.getCanonicalName();
-        String entityAlias = FilterPredicate.getTypeAlias(entityClass);
+        String entityAlias = getTypeAlias(entityClass);
 
         Collection<FilterPredicate> predicates;
 
@@ -67,10 +69,10 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
             predicates = filterExpression.get().accept(extractor);
 
             //Build the WHERE clause
-            filterClause = new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
+            filterClause = WHERE + new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
 
             //Build the JOIN clause
-            joinClause =  getJoinClauseFromFilters(filterExpression.get());
+            joinClause = getJoinClauseFromFilters(filterExpression.get());
 
         } else {
             predicates = new HashSet<>();

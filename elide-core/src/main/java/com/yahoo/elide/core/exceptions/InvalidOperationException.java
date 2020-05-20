@@ -14,6 +14,6 @@ public class InvalidOperationException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public InvalidOperationException(String body) {
-        super(HttpStatus.SC_BAD_REQUEST, "Invalid operation: '" + body + "'");
+        super(HttpStatus.SC_BAD_REQUEST, "Invalid operation: " + body);
     }
 }

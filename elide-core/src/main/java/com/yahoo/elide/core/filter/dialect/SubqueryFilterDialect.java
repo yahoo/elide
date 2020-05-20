@@ -33,9 +33,11 @@ public interface SubqueryFilterDialect {
      *
      * @param path The URL path
      * @param filterParams The subset of queryParams that start with 'filter'
+     * @param apiVersion The version of the API requested.
      * @return The root of an expression abstract syntax tree parsed from both the path and the query parameters.
      * @throws ParseException if unable to parse
      */
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams)
+    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams,
+                                                              String apiVersion)
             throws ParseException;
 }

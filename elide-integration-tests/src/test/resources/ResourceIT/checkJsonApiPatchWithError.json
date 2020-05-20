@@ -1,11 +1,17 @@
-{
-    "errors":[
-        {
-            "detail":"Subsequent operation failed."
-        },
-        {
-            "detail":"Unknown attribute 'badAttr' in 'parent'",
-            "status":404
-        }
-    ]
-}
+[
+    {
+        "errors": [
+            {
+                "detail": "Subsequent operation failed."
+            }
+        ]
+    },
+    {
+        "errors": [
+            {
+                "detail":"Unknown attribute badAttr in parent",
+                "status":"404"
+            }
+        ]
+    }
+]

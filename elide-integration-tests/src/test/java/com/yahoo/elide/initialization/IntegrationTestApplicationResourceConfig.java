@@ -20,5 +20,6 @@ public class IntegrationTestApplicationResourceConfig extends ResourceConfig {
     @Inject
     public IntegrationTestApplicationResourceConfig(ServiceLocator injector) {
         register(new StandardTestBinder(new TestAuditLogger(), injector));
+        register(TestAuthFilter.class);
     }
 }

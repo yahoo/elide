@@ -8,21 +8,21 @@ package com.yahoo.elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.ErrorObjects;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
-import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidConstraintException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
+import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.exceptions.UnableToAddSerdeException;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
+import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.parsers.BaseVisitor;
@@ -50,7 +50,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.owasp.encoder.Encode;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -161,10 +160,14 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
+    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams,
+                             User opaqueUser, String apiVersion) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
+            RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
+                    tx, user, queryParams, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -179,10 +182,13 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse post(String path, String jsonApiDocument, Object opaqueUser) {
+    public ElideResponse post(String path, String jsonApiDocument, User opaqueUser, String apiVersion) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+            RequestScope requestScope = new RequestScope(path, apiVersion,
+                    jsonApiDoc, tx, user, null, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
             BaseVisitor visitor = new PostVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -199,12 +205,12 @@ public class Elide {
      * @return Elide response object
      */
     public ElideResponse patch(String contentType, String accept,
-                               String path, String jsonApiDocument, Object opaqueUser) {
+                               String path, String jsonApiDocument, User opaqueUser, String apiVersion) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
             handler = (tx, user) -> {
-                PatchRequestScope requestScope = new PatchRequestScope(path, tx, user, elideSettings);
+                PatchRequestScope requestScope = new PatchRequestScope(path, apiVersion, tx, user, elideSettings);
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
@@ -216,7 +222,10 @@ public class Elide {
         } else {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+                RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
+                        tx, user, null, elideSettings);
+                requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                        requestScope).parsePath(path));
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 return visit(path, requestScope, visitor);
             };
@@ -233,12 +242,15 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse delete(String path, String jsonApiDocument, Object opaqueUser) {
+    public ElideResponse delete(String path, String jsonApiDocument, User opaqueUser, String apiVersion) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+            RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
+                    tx, user, null, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -257,17 +269,16 @@ public class Elide {
      * Handle JSON API requests.
      *
      * @param isReadOnly if the transaction is read only
-     * @param opaqueUser the user object from the container
+     * @param user the user object from the container
      * @param transaction a transaction supplier
      * @param handler a function that creates the request scope and request handler
      * @return the response
      */
-    protected ElideResponse handleRequest(boolean isReadOnly, Object opaqueUser,
+    protected ElideResponse handleRequest(boolean isReadOnly, User user,
                                           Supplier<DataStoreTransaction> transaction,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = transaction.get()) {
-            final User user = tx.accessUser(opaqueUser);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -284,7 +295,7 @@ public class Elide {
 
             ElideResponse response = buildResponse(responder.get());
 
-            auditLogger.commit(requestScope);
+            auditLogger.commit();
             tx.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
 
@@ -327,8 +338,11 @@ public class Elide {
                 message = IterableUtils.first(e.getConstraintViolations()).getMessage();
             }
             return buildErrorResponse(new InvalidConstraintException(message), isVerbose);
-
         } catch (Exception | Error e) {
+            if (e instanceof InterruptedException) {
+                log.debug("Request Thread interrupted.", e);
+                return buildErrorResponse(new TimeoutException(e), isVerbose);
+            }
             log.error("Error or exception uncaught by Elide", e);
             throw e;
 
@@ -342,19 +356,8 @@ public class Elide {
             log.error("Internal Server Error", error);
         }
 
-        boolean encodeErrorResponse = elideSettings.isEncodeErrorResponses();
-        if (!(error instanceof CustomErrorException) && elideSettings.isReturnErrorObjects()) {
-            String errorDetail = isVerbose ? error.getVerboseMessage() : error.toString();
-            if (encodeErrorResponse) {
-                errorDetail = Encode.forHtml(errorDetail);
-            }
-            ErrorObjects errors = ErrorObjects.builder().addError().withDetail(errorDetail).build();
-            JsonNode responseBody = mapper.getObjectMapper().convertValue(errors, JsonNode.class);
-            return buildResponse(Pair.of(error.getStatus(), responseBody));
-        }
-
-        return buildResponse(isVerbose ? error.getVerboseErrorResponse(encodeErrorResponse)
-                : error.getErrorResponse(encodeErrorResponse));
+        return buildResponse(isVerbose ? error.getVerboseErrorResponse()
+                : error.getErrorResponse());
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

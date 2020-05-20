@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +16,6 @@ import javax.persistence.Transient;
 
 @Entity
 @Include(rootLevel = true, type = "smartphone")
-@SharePermission
 public class Smartphone extends BaseId implements Device {
     @Getter @Setter private String type;
 

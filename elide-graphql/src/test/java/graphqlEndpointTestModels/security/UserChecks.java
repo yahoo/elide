@@ -18,7 +18,7 @@ public class UserChecks {
         public static class One extends UserCheck {
             @Override
             public boolean ok(User user) {
-                Principal principal = (Principal) user.getOpaqueUser();
+                Principal principal = user.getPrincipal();
                 if (principal == null) {
                     return false;
                 }
@@ -29,7 +29,7 @@ public class UserChecks {
         public static class Two extends UserCheck {
             @Override
             public boolean ok(User user) {
-                Principal principal = (Principal) user.getOpaqueUser();
+                Principal principal = user.getPrincipal();
                 if (principal == null) {
                     return false;
                 }

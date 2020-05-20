@@ -208,14 +208,14 @@ public class CanPaginateVisitor
 
     @Override
     public PaginationStatus visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
-        Check<?> check = getCheck(dictionary, ctx.getText());
+        Check check = getCheck(dictionary, ctx.getText());
 
         //Filter expression checks can always be pushed to the DataStore so pagination is possible
         if (check instanceof FilterExpressionCheck) {
             return PaginationStatus.CAN_PAGINATE;
         }
         if (check instanceof UserCheck) {
-            if (check.ok(scope.getUser())) {
+            if (((UserCheck) check).ok(scope.getUser())) {
                 return PaginationStatus.USER_CHECK_TRUE;
             }
             return PaginationStatus.USER_CHECK_FALSE;
