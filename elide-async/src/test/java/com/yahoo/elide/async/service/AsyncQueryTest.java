@@ -15,37 +15,36 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import java.util.Set;
 
+import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import javax.validation.ConstraintViolation;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncQueryTest {
 
     private static Validator validator;
-    
+
     @BeforeAll
     public void setupMocks() {
-        
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-		validator = factory.getValidator();
+        validator = factory.getValidator();
     }
 
     @Test
     public void testMaxAsyncAfterSeconds() {
         AsyncQuery queryObj = new AsyncQuery();
         queryObj.setAsyncAfterSeconds(12);
-		Set<ConstraintViolation<AsyncQuery>> constraintViolations = validator.validate(queryObj);
-		assertEquals(1,constraintViolations.size());
-		assertEquals("must be less than or equal to 10",constraintViolations.iterator().next().getMessage());
+        Set<ConstraintViolation<AsyncQuery>> constraintViolations = validator.validate(queryObj);
+        assertEquals(1, constraintViolations.size());
+        assertEquals("must be less than or equal to 10", constraintViolations.iterator().next().getMessage());
     }
+
     @Test
     public void testUUIDGeneration() {
-    	AsyncQuery queryObj = new AsyncQuery();
-    	assertNull(queryObj.getId());
+        AsyncQuery queryObj = new AsyncQuery();
+        assertNull(queryObj.getId());
         queryObj.prePersistStatus();
         assertNotNull(queryObj.getId());
     }
-
 }

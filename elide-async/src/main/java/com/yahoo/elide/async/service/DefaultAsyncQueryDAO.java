@@ -176,7 +176,6 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             asyncQueryResult.setId(asyncQueryId);
             asyncQueryResult.setResultType(ResultType.EMBEDDED);
             asyncQuery.setResult(asyncQueryResult);
-           
             tx.createObject(asyncQueryResult, scope);
             tx.save(asyncQuery, scope);
             return asyncQueryResult;

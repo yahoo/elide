@@ -7,7 +7,6 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
@@ -89,19 +88,20 @@ public class AsyncExecutorService {
      * Execute Query asynchronously.
      * @param queryObj Query Object
      * @param user User
+     * @param apiVersion API Version
      */
     public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
-    	
+
         QueryRunner runner = runners.get(apiVersion);
         if (runner == null) {
             throw new InvalidOperationException("Invalid API Version");
         }
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
         Future<?> task = executor.submit(queryWorker);
-        
+
         try {
-			task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
+            task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
             // In case the future.get is interrupted , the underlying query may still have succeeded
             log.error("InterruptedException: {}", e);
         } catch (ExecutionException e) {
@@ -109,14 +109,6 @@ public class AsyncExecutorService {
             log.error("ExecutionException: {}", e);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-        } catch (NullPointerException e) {
-            log.error("NullPointerException: {}", e);
         }
-		/*
-		 * AsyncQueryInterruptThread queryInterruptWorker = new
-		 * AsyncQueryInterruptThread(elide, executor.submit(queryWorker), queryObj, new
-		 * Date(), maxRunTime, asyncQueryDao);
-		 * interruptor.execute(queryInterruptWorker);
-		 */
     }
 }

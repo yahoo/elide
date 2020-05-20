@@ -189,7 +189,6 @@ public class AsyncIT extends IntegrationTest {
                         .post("/graphQL")
                         .asString();
 
-                //System.out.println(responseGraphQL);
                 String expectedResponse = document(
                         selections(
                                 field(
@@ -211,7 +210,6 @@ public class AsyncIT extends IntegrationTest {
                                 )
                         )
                 ).toResponse();
-                //System.out.println(expectedResponse);
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             }
@@ -288,7 +286,6 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.relationships.query.data.type", equalTo("asyncQuery"))
                         .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c")).toString();
 
-                System.out.println(responseAsyncQueryResult);
                 String responseGraphQL = given()
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)

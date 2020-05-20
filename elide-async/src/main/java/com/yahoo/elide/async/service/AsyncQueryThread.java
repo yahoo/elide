@@ -22,7 +22,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
-import java.util.concurrent.Future;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -54,9 +53,8 @@ public class AsyncQueryThread implements Runnable {
      * values for AsyncQuery and AsyncQueryResult models accordingly.
     */
     protected void processQuery() {
-    	
+
         try {
-        	//Thread.sleep(3000);
             // Change async query to processing
             asyncQueryDao.updateStatus(queryObj, QueryStatus.PROCESSING);
             ElideResponse response = null;
@@ -76,12 +74,10 @@ public class AsyncQueryThread implements Runnable {
             if (response == null) {
                 throw new NoHttpResponseException("Response for request returned as null");
             }
-
             // Create AsyncQueryResult entry for AsyncQuery and
             // add queryResult object to query object
             asyncQueryDao.createAsyncQueryResult(response.getResponseCode(), response.getBody(),
                     queryObj, queryObj.getId());
-
             // If we receive a response update Query Status to complete
             asyncQueryDao.updateStatus(queryObj, QueryStatus.COMPLETE);
 

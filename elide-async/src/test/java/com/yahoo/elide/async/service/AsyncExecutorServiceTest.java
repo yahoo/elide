@@ -35,10 +35,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncExecutorServiceTest {
 
@@ -47,7 +43,7 @@ public class AsyncExecutorServiceTest {
     private AsyncQueryDAO asyncQueryDao;
     private AsyncQuery queryObj;
     private User testUser;
-    
+
     @BeforeAll
     public void setupMockElide() {
         HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
@@ -62,12 +58,12 @@ public class AsyncExecutorServiceTest {
     }
     @BeforeEach
     public void setupMocksService() {
-    	
+
         AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
         service = AsyncExecutorService.getInstance();
         queryObj = mock(AsyncQuery.class);
         testUser = mock(User.class);
-        
+
     }
 
     @Test
@@ -82,20 +78,20 @@ public class AsyncExecutorServiceTest {
 
     @Test
     public void testExecuteQuery() {
-        
+
         service.executeQuery(queryObj, testUser, NO_VERSION);
         verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
-   	 
+
     }
-    
+
     @Test
     public void testFutureTimeoutException() throws InterruptedException, ExecutionException, TimeoutException {
          when(queryObj.getAsyncAfterSeconds()).thenReturn(1);
          service.executeQuery(queryObj, testUser, NO_VERSION);
          Future<?> task = mock(Future.class);
-    	 when(task.get(anyLong(), any(TimeUnit.class))).thenThrow(TimeoutException.class);
-    	 verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
-    	 verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
-    	 
+         when(task.get(anyLong(), any(TimeUnit.class))).thenThrow(TimeoutException.class);
+         verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
+         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
+
     }
 }

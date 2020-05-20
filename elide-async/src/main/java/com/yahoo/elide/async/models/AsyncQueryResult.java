@@ -47,15 +47,13 @@ public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
 
     @Column(columnDefinition = "enum('EMBEDDED')")
     @Enumerated(EnumType.STRING)
-    private ResultType resultType; 
-    
+    private ResultType resultType;
+
     @OneToOne
     private AsyncQuery query;
-    
+
     @Exclude
     public String getPrincipalName() {
         return query.getPrincipalName();
     }
 }
-
-
