@@ -9,6 +9,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -53,7 +54,11 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         Query query = buildQuery(entityProjection, scope);
-        return queryEngine.executeQuery(query, true);
+        QueryResult result = queryEngine.executeQuery(query);
+        if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
+            entityProjection.getPagination().setPageTotals(result.getPageTotals());
+        }
+        return result.getData();
     }
 
     @Override
