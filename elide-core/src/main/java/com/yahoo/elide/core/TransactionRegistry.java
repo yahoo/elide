@@ -38,7 +38,7 @@ public interface TransactionRegistry {
      * Adds running transaction
      * @param transactionEntry TransactionEntry transactionEntry
      */
-    void addRunningTransaction(TransactionEntry transactionEntry);
+    static void addRunningTransaction(TransactionEntry transactionEntry);
 
     /**
      * Removes running transaction when we call cancel on it
