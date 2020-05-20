@@ -18,7 +18,7 @@ import com.yahoo.elide.core.TransactionRegistry;
 
 abstract class InMemoryTransaction implements TransactionRegistry {
     public void addRunningTransaction(TransactionEntry transactionEntry);
-    public void removeRunningTransaction(TransactionEntry transactionEntry);    
+    public void removeRunningTransaction(TransactionEntry transactionEntry);
 }
 
 public class InMemoryDataStore extends InMemoryTransaction implements DataStore {
