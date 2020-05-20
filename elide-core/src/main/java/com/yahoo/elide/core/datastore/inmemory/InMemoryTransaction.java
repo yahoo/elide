@@ -5,8 +5,6 @@
  */
 
 package com.yahoo.elide.core.datastore.inmemory;
-
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.TransactionRegistry;
 
 import java.util.Set;
@@ -27,4 +25,3 @@ public abstract class InMemoryTransaction implements TransactionRegistry {
     @Override
     public void removeRunningTransaction(TransactionEntry transactionEntry);
 }
-
