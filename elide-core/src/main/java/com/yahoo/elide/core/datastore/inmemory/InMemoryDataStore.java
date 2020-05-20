@@ -18,8 +18,7 @@ import com.yahoo.elide.core.TransactionRegistry;
 public class InMemoryDataStore implements DataStore, TransactionRegistry {
 
     private DataStore wrappedStore;
-    private TransactionRegistry registry;
-    
+    private TransactionRegistry registry; 
     public InMemoryDataStore(DataStore wrappedStore) {
         this.wrappedStore = wrappedStore;
     }
