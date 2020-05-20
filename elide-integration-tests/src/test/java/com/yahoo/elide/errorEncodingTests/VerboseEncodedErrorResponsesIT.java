@@ -145,18 +145,4 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected));
     }
-
-    @Test
-    public void graphQLFetchError() {
-        String request = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.json");
-        given()
-            .contentType(GRAPHQL_CONTENT_TYPE)
-            .accept(GRAPHQL_CONTENT_TYPE)
-            .body(request)
-            .post("/graphQL")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
-    }
 }

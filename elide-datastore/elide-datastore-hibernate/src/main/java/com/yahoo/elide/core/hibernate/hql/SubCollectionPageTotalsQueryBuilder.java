@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
+import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -16,8 +19,8 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import java.util.ArrayList;
@@ -80,8 +83,8 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
         String relationshipName = relationship.getRelationshipName();
 
         //Relationship alias is Author_books
-        String parentAlias = FilterPredicate.getTypeAlias(parentType);
-        String relationshipAlias = parentAlias + UNDERSCORE + relationshipName;
+        String parentAlias = getTypeAlias(parentType);
+        String relationshipAlias = appendAlias(parentAlias, relationshipName);
 
         if (filterExpression.isPresent()) {
             // Copy and scope the filter expression for the join clause
@@ -130,7 +133,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
                         + parentAlias
                         + SPACE
                         + joinClause
-                        + SPACE
+                        + WHERE
                         + filterClause);
 
         //Fill in the query parameters

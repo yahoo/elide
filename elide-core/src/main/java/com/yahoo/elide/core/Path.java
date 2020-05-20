@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.getSimpleName;
+import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
 import com.google.common.collect.ImmutableList;
@@ -25,7 +29,6 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 public class Path {
     private static final String PERIOD = ".";
-    private static final String UNDERSCORE = "_";
 
     @Getter private List<PathElement> pathElements;
     /**
@@ -50,15 +53,29 @@ public class Path {
     }
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
+        pathElements = resolvePathElements(entityClass, dictionary, dotSeparatedPath);
+    }
+
+    /**
+     * Resolve a dot separated path into list of path elements.
+     *
+     * @param entityClass root class e.g. "foo"
+     * @param dictionary dictionary
+     * @param dotSeparatedPath path e.g. "bar.baz"
+     * @return list of path elements e.g. ["foo.bar", "bar.baz"]
+     */
+    private List<PathElement> resolvePathElements(Class<?> entityClass,
+                                                  EntityDictionary dictionary,
+                                                  String dotSeparatedPath) {
         List<PathElement> elements = new ArrayList<>();
         String[] fieldNames = dotSeparatedPath.split("\\.");
 
         Class<?> currentClass = entityClass;
         for (String fieldName : fieldNames) {
-            if (dictionary.isRelation(currentClass, fieldName)) {
-                Class<?> relationClass = dictionary.getParameterizedType(currentClass, fieldName);
-                elements.add(new PathElement(currentClass, relationClass, fieldName));
-                currentClass = relationClass;
+            if (needNavigation(currentClass, fieldName, dictionary)) {
+                Class<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
+                elements.add(new PathElement(currentClass, joinClass, fieldName));
+                currentClass = joinClass;
             } else if (dictionary.isAttribute(currentClass, fieldName)
                     || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
                 Class<?> attributeClass = dictionary.getType(currentClass, fieldName);
@@ -67,10 +84,23 @@ public class Path {
                 elements.add(new PathElement(currentClass, null, fieldName));
             } else {
                 String alias = dictionary.getJsonAliasFor(currentClass);
-                throw new InvalidValueException(alias + " doesn't contain the field " + fieldName);
+                throw new InvalidValueException(alias + " does not contain the field " + fieldName);
             }
         }
-        pathElements = ImmutableList.copyOf(elements);
+
+        return ImmutableList.copyOf(elements);
+    }
+
+    /**
+     * Check whether a field need navigation to another entity.
+     *
+     * @param entityClass entity class
+     * @param fieldName field name
+     * @param dictionary dictionary
+     * @return True if the field requires navigation.
+     */
+    protected boolean needNavigation(Class<?> entityClass, String fieldName, EntityDictionary dictionary) {
+        return dictionary.isRelation(entityClass, fieldName);
     }
 
     public Optional<PathElement> lastElement() {
@@ -95,23 +125,14 @@ public class Path {
         }
 
         PathElement previous = pathElements.get(pathElements.size() - 2);
-        return getTypeAlias(previous.getType()) + UNDERSCORE + previous.getFieldName();
+        return appendAlias(getTypeAlias(previous.getType()), previous.getFieldName());
     }
 
     @Override
     public String toString() {
         return pathElements.size() == 0 ? "EMPTY"
                 : pathElements.stream()
-                        .map(e -> '[' + EntityDictionary.getSimpleName(e.getType()) + ']' + PERIOD + e.getFieldName())
+                        .map(e -> '[' + getSimpleName(e.getType()) + ']' + PERIOD + e.getFieldName())
                 .collect(Collectors.joining("/"));
-    }
-
-    /**
-     * Convert a class name into a hibernate friendly name.
-     * @param type The type to alias
-     * @return type name alias that will likely not conflict with other types or with reserved keywords.
-     */
-    public static String getTypeAlias(Class<?> type) {
-        return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
     }
 }

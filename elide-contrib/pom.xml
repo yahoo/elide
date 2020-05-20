@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>4.6.3-SNAPSHOT</version>
+        <version>5.0.0-pr10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -46,6 +46,7 @@
     <modules>
         <module>elide-swagger</module>
         <module>elide-test-helpers</module>
+        <module>elide-dynamic-config-helpers</module>
     </modules>
 
     <dependencyManagement>
@@ -53,7 +54,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>4.6.3-SNAPSHOT</version>
+                <version>5.0.0-pr10-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

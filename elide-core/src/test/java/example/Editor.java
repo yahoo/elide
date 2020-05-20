@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
@@ -37,7 +36,6 @@ import javax.persistence.Transient;
 @Entity
 @Table(name = "editor")
 @Include(rootLevel = true)
-@SharePermission
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

@@ -6,7 +6,10 @@
 package com.yahoo.elide.contrib.swagger;
 
 import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
@@ -25,6 +28,17 @@ public class SwaggerIT extends AbstractApiResourceInitializer {
     void testDocumentFetch() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(get("/doc/test").asString());
+        assertTrue(node.get("paths").size() > 1);
         assertNotNull(node.get("paths").get("/book"));
+        assertNotNull(node.get("paths").get("/publisher"));
+    }
+
+    @Test
+    void testVersion2DocumentFetch() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readTree(given().header("ApiVersion", "1.0").get("/doc/test").asString());
+        assertEquals(2, node.get("paths").size());
+        assertNotNull(node.get("paths").get("/book"));
+        assertNotNull(node.get("paths").get("/book/{bookId}"));
     }
 }

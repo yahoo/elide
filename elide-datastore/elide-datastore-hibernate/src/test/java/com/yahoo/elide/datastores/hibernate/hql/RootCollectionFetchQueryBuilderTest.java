@@ -6,11 +6,9 @@
 package com.yahoo.elide.datastores.hibernate.hql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.dialect.CaseSensitivityStrategy;
@@ -19,9 +17,11 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.sort.SortingImpl;
 
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -60,8 +60,9 @@ public class RootCollectionFetchQueryBuilderTest {
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher  ";
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher";
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }
@@ -75,12 +76,13 @@ public class RootCollectionFetchQueryBuilderTest {
         sorting.put(TITLE, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book  "
-                + "LEFT JOIN FETCH example_Book.publisher   order by example_Book.title asc";
+        String expected = "SELECT example_Book FROM example.Book AS example_Book "
+                + "LEFT JOIN FETCH example_Book.publisher order by example_Book.title asc";
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }
@@ -104,10 +106,10 @@ public class RootCollectionFetchQueryBuilderTest {
         String expected =
                 "SELECT example_Author FROM example.Author AS example_Author  "
                 + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  "
-                + "WHERE (example_Book_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
-                + "OR example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
+                + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters   "
+                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher   "
+                + "WHERE (example_Author_books_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
+                + "OR example_Author_books_publisher.name IN (:books_publisher_name_XXX)) ";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
@@ -119,7 +121,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
     @Test
     public void testDistinctRootFetchWithToManyJoinFilterAndPagination() throws ParseException {
-        final Pagination pagination = Pagination.fromOffsetAndLimit(10, 0, false);
+        final Pagination pagination = new PaginationImpl(Book.class, 0, 10, 10, 10, false, false);
 
         final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", Author.class, true);
         final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", Author.class, true);
@@ -137,37 +139,20 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         String expected =
-                "SELECT DISTINCT example_Author FROM example.Author AS example_Author  "
-                + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  "
-                + "WHERE (example_Book_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
-                + "OR example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
+                "SELECT DISTINCT example_Author FROM example.Author AS example_Author "
+                + "LEFT JOIN example_Author.books example_Author_books "
+                + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters "
+                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher "
+                + "WHERE (example_Author_books_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
+                + "OR example_Author_books_publisher.name IN (:books_publisher_name_XXX))";
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_publisher_name_\\w\\w\\w\\w+", ":books_publisher_name_XXX");
 
         assertEquals(expected, actual);
-    }
-
-    @Test
-    public void testDistinctRootFetchWithToManyJoinFilterAndSortOverRelationshipAndPagination() throws ParseException {
-        final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", Author.class, true);
-        final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", Author.class, true);
-        final Pagination pagination = Pagination.fromOffsetAndLimit(10, 0, false);
-        final Sorting sorting = Sorting.parseSortRule("-books.title");
-
-        OrFilterExpression expression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
-
-        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
-            Author.class, dictionary, new TestSessionWrapper());
-        builder.withPossibleFilterExpression(Optional.of(expression));
-        builder.withPossiblePagination(Optional.of(pagination));
-        builder.withPossibleSorting(Optional.of(sorting));
-
-        assertThrows(InvalidValueException.class, builder::build);
     }
 
     @Test
@@ -184,15 +169,16 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .withPossibleFilterExpression(Optional.of(idPredicate))
                 .build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher"
-                + "  WHERE example_Book.id IN (:id_XXX)  order by example_Book.title asc";
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
+                + " WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         assertEquals(expected, actual);

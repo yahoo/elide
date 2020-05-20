@@ -8,7 +8,6 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +30,6 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "author")
 @Include(rootLevel = true)
-@SharePermission
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

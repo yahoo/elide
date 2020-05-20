@@ -33,7 +33,7 @@ public class ElideResourceConfig extends Application {
                 .build());
 
         Set<Object> set = new HashSet<>();
-        set.add(new JsonApiEndpoint(elide, v -> null));
+        set.add(new JsonApiEndpoint(elide));
         return set;
     }
 }
