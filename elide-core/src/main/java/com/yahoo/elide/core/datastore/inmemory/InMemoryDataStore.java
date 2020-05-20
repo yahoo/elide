@@ -15,10 +15,15 @@ import com.yahoo.elide.core.TransactionRegistry;
  * Data Store that wraps another store and provides in-memory filtering, soring, and pagination
  * when the underlying store cannot perform the equivalent function.
  */
-public class InMemoryDataStore implements DataStore, TransactionRegistry {
+
+abstract class InMemoryTransaction implements TransactionRegistry {
+    public void addRunningTransaction(TransactionEntry transactionEntry);
+    public void removeRunningTransaction(TransactionEntry transactionEntry);    
+}
+
+public class InMemoryDataStore implements DataStore, extends InMemoryTransaction {
 
     private DataStore wrappedStore;
-    private TransactionRegistry registry; 
     public InMemoryDataStore(DataStore wrappedStore) {
         this.wrappedStore = wrappedStore;
     }
@@ -36,7 +41,7 @@ public class InMemoryDataStore implements DataStore, TransactionRegistry {
     @Override
     public DataStoreTransaction beginTransaction() {
         TransactionRegistry.TransactionEntry transactionEntry = new TransactionRegistry.TransactionEntry();
-        registry.addRunningTransaction(transactionEntry);
+        InMemoryTransaction.addRunningTransaction(transactionEntry);
         return new InMemoryStoreTransaction(wrappedStore.beginTransaction());
     }
 
