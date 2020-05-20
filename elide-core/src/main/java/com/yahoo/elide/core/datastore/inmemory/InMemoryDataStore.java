@@ -21,7 +21,7 @@ abstract class InMemoryTransaction implements TransactionRegistry {
     public void removeRunningTransaction(TransactionEntry transactionEntry);    
 }
 
-public class InMemoryDataStore implements DataStore, extends InMemoryTransaction {
+public class InMemoryDataStore extends InMemoryTransaction, implements DataStore {
 
     private DataStore wrappedStore;
     public InMemoryDataStore(DataStore wrappedStore) {
