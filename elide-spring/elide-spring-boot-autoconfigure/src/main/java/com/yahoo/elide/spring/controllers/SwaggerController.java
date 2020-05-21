@@ -77,8 +77,10 @@ public class SwaggerController {
     public SwaggerController(Swagger doc) {
         log.debug("Started ~~");
         documents = new HashMap<>();
+        String apiVersion = doc.getInfo().getVersion();
+        apiVersion = apiVersion == null ? NO_VERSION : apiVersion;
 
-        documents.put(Pair.of(NO_VERSION, ""), SwaggerBuilder.getDocument(doc));
+        documents.put(Pair.of(apiVersion, ""), SwaggerBuilder.getDocument(doc));
     }
 
     @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)
@@ -111,6 +113,7 @@ public class SwaggerController {
     /**
      * Read handler.
      *
+     * @param requestHeaders request headers
      * @param name document name
      * @return response The Swagger JSON document
      */
