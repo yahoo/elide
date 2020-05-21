@@ -282,8 +282,9 @@ public class Elide {
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
         TransactionRegistry registry = new TransactionRegistry();
-        public UUID requestId = UUID.randomUUID();
-        try (DataStoreTransaction tx = transaction.get()) { 
+        UUID requestId = null;
+        try (DataStoreTransaction tx = transaction.get()) {
+            requestId = tx.getId();
             registry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
