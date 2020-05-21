@@ -32,7 +32,7 @@ public interface DataStoreTransaction extends Closeable {
         PARTIAL,
         NONE
     }
-    public UUID TRANSACTION_ID = UUID.randomUUID();
+    UUID TRANSACTION_ID = UUID.randomUUID();
     /**
      * Save the updated object.
      *
