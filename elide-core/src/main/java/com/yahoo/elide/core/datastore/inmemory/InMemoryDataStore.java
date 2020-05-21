@@ -15,7 +15,7 @@ import com.yahoo.elide.core.TransactionRegistry;
  * when the underlying store cannot perform the equivalent function.
  */
 
-public class InMemoryDataStore  implements DataStore {
+public class InMemoryDataStore implements DataStore {
 
     private DataStore wrappedStore;
     public InMemoryDataStore(DataStore wrappedStore) {
@@ -35,7 +35,7 @@ public class InMemoryDataStore  implements DataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         TransactionRegistry.TransactionEntry transactionEntry = new TransactionRegistry.TransactionEntry();
-        new InMemoryTransaction(addRunningTransaction(transactionEntry));
+        new InMemoryTransaction.addRunningTransaction(transactionEntry);
         return new InMemoryStoreTransaction(wrappedStore.beginTransaction());
     }
 
