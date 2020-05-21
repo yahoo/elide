@@ -30,7 +30,7 @@ public class InMemoryTransaction implements TransactionRegistry {
     }
 
     @Override
-    public abstract void removeRunningTransaction(TransactionEntry transactionEntry) {
+    public void removeRunningTransaction(TransactionEntry transactionEntry) {
          registry.removeRunningTransaction(transactionEntry);
     }
 }
