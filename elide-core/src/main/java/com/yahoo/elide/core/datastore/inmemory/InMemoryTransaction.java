@@ -16,12 +16,12 @@ public class InMemoryTransaction implements TransactionRegistry {
 
     @Override
     public Set<TransactionEntry> getRunningTransactions() {
-        registry.getRunningTransactions();
+        return registry.getRunningTransactions();
     }
 
     @Override
     public Set<TransactionEntry> getRunningTransaction(String requestId) {
-        registry.getRunningTransaction(requestId);
+        return registry.getRunningTransaction(requestId);
     }
 
     @Override
