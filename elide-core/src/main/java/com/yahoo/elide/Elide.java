@@ -58,6 +58,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.UUID;
+import java.util.Map;
 
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
