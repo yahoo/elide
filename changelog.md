@@ -1,5 +1,20 @@
 # Change Log
 
+## 4.6.3
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/78c90514ea02fe290907b9318b17c4977cf5b86a) Fixing Invalid CVE Build Error (The wrong package is being flagged) (#1323) 
+   * [view commit](https://github.com/yahoo/elide/commit/a14ccfbb7b558d27799b4e7b1916850519639708) Bump version.jackson from 2.10.3 to 2.11.0 (#1282) 
+   * [view commit](https://github.com/yahoo/elide/commit/227c2dd64ea2deb8828d8fcc81bc342e0e0d4d02) Removed redundant fetch join for filters (#1326) 
+   * [view commit](https://github.com/yahoo/elide/commit/9387412f7a4fa31f3f4818933be0537ee0baa6bd) Add Eclipse import order (#1327) 
+   * [view commit](https://github.com/yahoo/elide/commit/fd9f4ee543913144193ed881472c5939cd0d9969) Bump metrics.version from 4.1.6 to 4.1.8 (#1324) 
+   * [view commit](https://github.com/yahoo/elide/commit/094512b7f853a83cbcb25455deba8830756cebd9) Bump javassist from 3.26.0-GA to 3.27.0-GA (#1318) 
+   * [view commit](https://github.com/yahoo/elide/commit/32b7da5ac3f88e72e438bb573fb542719e7f2752) Bump maven-shade-plugin from 3.2.1 to 3.2.3 (#1315) 
+   * [view commit](https://github.com/yahoo/elide/commit/31292d0c87a02db03929aa48d7d2dd18ca33e893) Bump jedis from 3.2.0 to 3.3.0 (#1317) 
+   * [view commit](https://github.com/yahoo/elide/commit/2c2f181dd524c4648b9360f938073744dcef4451) Bump mysql-connector-java from 8.0.19 to 8.0.20 (#1314) 
+   * [view commit](https://github.com/yahoo/elide/commit/5e86be3f9ee12d6a0c809996002490849c889803) Bump wagon-ssh-external from 3.3.4 to 3.4.0 (#1316) 
+   * [view commit](https://github.com/yahoo/elide/commit/665d587fbf625af11a18224b45d74f0602d7ccc0) Bump tomcat.version from 9.0.34 to 9.0.35 (#1312) 
+
+
 ## 4.6.2
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/ed6cc703f514d15ddb8eac4f90672075bc334aa6) Adding read only transaction support to JPA store (#1298) 
