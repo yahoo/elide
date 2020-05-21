@@ -13,11 +13,11 @@ import java.util.Set;
  * InMemoryTransaction implementing TransactionRegistry
  */
 public abstract class InMemoryTransaction implements TransactionRegistry {
-    public Set<TransactionEntry> getRunningTransactions();
+    public abstract Set<TransactionEntry> getRunningTransactions();
 
-    public Set<TransactionEntry> getRunningTransaction(String requestId);
+    public abstract Set<TransactionEntry> getRunningTransaction(String requestId);
 
-    public void addRunningTransaction(TransactionEntry transactionEntry);
+    public abstract void addRunningTransaction(TransactionEntry transactionEntry);
 
-    public void removeRunningTransaction(TransactionEntry transactionEntry);
+    public abstract void removeRunningTransaction(TransactionEntry transactionEntry);
 }
