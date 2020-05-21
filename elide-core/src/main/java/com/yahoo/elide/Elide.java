@@ -56,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -426,7 +427,7 @@ public class Elide {
       */
     @Getter
     private class TransactionRegistry {
-        private Map<UUID, DataStoreTransaction> transactionMap = new Map<UUID, DataStoreTransaction>();
+        private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
         /*
         private UUID requestId;
         public InMemoryDataStore(UUID requestId) {
