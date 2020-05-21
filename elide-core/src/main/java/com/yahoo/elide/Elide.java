@@ -354,7 +354,7 @@ public class Elide {
             throw e;
 
         } finally {
-            removeRunningTransaction(requestId);
+            registry.removeRunningTransaction(requestId);
             auditLogger.clear();
         }
     }
@@ -434,14 +434,14 @@ public class Elide {
         }
         */
         public Set<DataStoreTransaction> getRunningTransactions() {
-            Set<String> transactions = new HashSet<String>();
-            for (List<String> transaction : transactionMap.values()) {
+            Set<DataStoreTransaction> transactions = new HashSet<String>();
+            for (DataStoreTransaction transaction : transactionMap.values()) {
                 transactions.add(transaction);
             }
             return transactions;
         }
 
-        public Set<DataStoreTransaction> getRunningTransaction(UUID requestId) {
+        public DataStoreTransaction getRunningTransaction(UUID requestId) {
             return transactionMap.get(requestId);
         }
 

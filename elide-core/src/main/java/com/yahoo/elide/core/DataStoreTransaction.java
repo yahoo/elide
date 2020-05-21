@@ -269,7 +269,7 @@ public interface DataStoreTransaction extends Closeable {
      * @return UUID of transaction
      *
      */
-    default UUID getId(RequestScope scope) {
+    default UUID getId() {
         return UUID.randomUUID();
     }
 }
