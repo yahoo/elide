@@ -17,6 +17,7 @@ import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Wraps the Database Transaction type.
@@ -262,5 +263,13 @@ public interface DataStoreTransaction extends Closeable {
      */
     default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
+    }
+
+    /**
+     * @return UUID of transaction
+     *
+     */
+    default UUID getId(RequestScope scope) {
+        return UUID.randomUUID().toString();
     }
 }

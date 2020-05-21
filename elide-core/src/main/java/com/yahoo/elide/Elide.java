@@ -278,7 +278,10 @@ public class Elide {
                                           Supplier<DataStoreTransaction> transaction,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
+        TransactionRegistry registry = new TransactionRegistry();
+        UUID requestId = DataStoreTransaction.getId();         
         try (DataStoreTransaction tx = transaction.get()) {
+            registry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -347,7 +350,8 @@ public class Elide {
             throw e;
 
         } finally {
-            auditLogger.clear();
+            removeRunningTransaction(requestId);
+            auditLogger.clear(); 
         }
     }
 
@@ -410,6 +414,40 @@ public class Elide {
 
         public RequestScope getRequestScope() {
             return requestScope;
+        }
+    }
+
+     /**
+      * Transaction Registry class.
+      */ 
+    @Getter
+    private class TransactionRegistry { 
+        private Map<UUID, DataStoreTransaction> transactionMap;
+        /*
+        private UUID requestId;
+        public InMemoryDataStore(UUID requestId) {
+            this.requestId = requestId;
+        }
+        */
+        
+        public Set<DataStoreTransaction> getRunningTransactions() {
+            Set<String> transactions = new HashSet<String>();
+            for (List<String> transaction : transactionMap.values()) {
+                transactions.add(transaction);
+            }
+            return transactions;
+        }
+
+        public Set<DataStoreTransaction> getRunningTransaction(UUID requestId) {   
+            return transactionMap.get(requestId);
+        }
+    
+        public void addRunningTransaction(UUID requestId, DataStoreTransaction tx) {
+            transactionMap.put(requestId, tx);
+        }
+
+        public void removeRunningTransaction(UUID requestId) {
+            transactionMap.remove(requestId);
         }
     }
 }
