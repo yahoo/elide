@@ -12,7 +12,6 @@
             {
                 name : content
                 type : TEXT
-                readAccess : Prefab.Role.All
                 definition : content
             }
         ]

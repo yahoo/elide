@@ -168,14 +168,10 @@ public class ElideStandaloneTest {
             .when()
             .get("/api/v1/postView")
             .then()
-            .statusCode(200);
-
-        given()
-            .when()
-            .get("/api/v1/postView")
-            .then()
+            .statusCode(200)
             .body("data.id", hasItems("0"))
             .body("data.attributes.content", hasItems("This is my first post. woot."));
+
     }
 
     @Test

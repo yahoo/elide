@@ -22,8 +22,8 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCo
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.standalone.Util;
 
 import com.codahale.metrics.MetricRegistry;
@@ -92,10 +92,10 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 MetaDataStore metaDataStore = settings.getMetaDataStore(optionalCompiler);
 
-                SQLQueryEngine queryEngine = settings.getSQLQueryEngine(metaDataStore, entityManagerFactory);
+                QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, entityManagerFactory);
 
                 DataStore dataStore = settings.getDataStore(
-                        settings.getSQLQueryEngine(metaDataStore, entityManagerFactory),
+                        metaDataStore,
                         settings.getAggregationDataStore(queryEngine, optionalCompiler),
                         entityManagerFactory);
 

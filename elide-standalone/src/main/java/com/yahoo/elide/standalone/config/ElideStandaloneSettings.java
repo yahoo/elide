@@ -21,6 +21,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -368,19 +369,19 @@ public interface ElideStandaloneSettings {
 
     /**
      * Gets the DataStore for elide.
-     * @param queryEngine query engine object.
+     * @param metaDataStore MetaDataStore object.
      * @param aggregationDataStore AggregationDataStore object.
      * @param entityManagerFactory EntityManagerFactory object.
      * @return EntityDictionary object initialized.
      */
-    default DataStore getDataStore(SQLQueryEngine queryEngine, AggregationDataStore aggregationDataStore,
+    default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
 
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
 
-        DataStore dataStore = new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
+        DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
         return dataStore;
     }
@@ -391,7 +392,7 @@ public interface ElideStandaloneSettings {
      * @param optionalCompiler optional dynamic compiler object.
      * @return AggregationDataStore object initialized.
      */
-    default AggregationDataStore getAggregationDataStore(SQLQueryEngine queryEngine,
+    default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
             Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         AggregationDataStore aggregationDataStore = null;
 
@@ -458,12 +459,12 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Gets the SQLQueryEngine for elide.
+     * Gets the QueryEngine for elide.
      * @param metaDataStore MetaDataStore object.
      * @param entityManagerFactory EntityManagerFactory object.
-     * @return SQLQueryEngine object initialized.
+     * @return QueryEngine object initialized.
      */
-    default SQLQueryEngine getSQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
+    default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
         return new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
     }
 
