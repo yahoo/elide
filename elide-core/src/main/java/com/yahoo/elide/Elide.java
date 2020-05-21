@@ -449,6 +449,7 @@ public class Elide {
             System.out.println(requestId);
             System.out.println(tx);
             transactionMap.put(requestId, tx);
+            System.out.println(transactionMap);
         }
 
         public void removeRunningTransaction(UUID requestId) {
