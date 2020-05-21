@@ -35,7 +35,7 @@ public class InMemoryDataStore implements DataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         TransactionRegistry.TransactionEntry transactionEntry = new TransactionRegistry.TransactionEntry();
-        new InMemoryTransaction.addRunningTransaction(transactionEntry);
+        new InMemoryTransaction().addRunningTransaction(transactionEntry);
         return new InMemoryStoreTransaction(wrappedStore.beginTransaction());
     }
 
