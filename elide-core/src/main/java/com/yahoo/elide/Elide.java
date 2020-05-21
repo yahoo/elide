@@ -426,7 +426,7 @@ public class Elide {
       */
     @Getter
     private class TransactionRegistry {
-        private Map<UUID, DataStoreTransaction> transactionMap;
+        private Map<UUID, DataStoreTransaction> transactionMap = new Map<UUID, DataStoreTransaction>();
         /*
         private UUID requestId;
         public InMemoryDataStore(UUID requestId) {
