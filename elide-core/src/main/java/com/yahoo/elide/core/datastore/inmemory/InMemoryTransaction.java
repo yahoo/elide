@@ -24,12 +24,12 @@ public class InMemoryTransaction implements TransactionRegistry {
     }
 
     @Override
-    public void addRunningTransaction(Class transactionEntry) {
+    public void addRunningTransaction(TransactionRegistry.TransactionEntry transactionEntry) {
         registry.addRunningTransaction(transactionEntry);
     }
 
     @Override
-    public void removeRunningTransaction(Class transactionEntry) {
+    public void removeRunningTransaction(TransactionRegistry.TransactionEntry transactionEntry) {
          registry.removeRunningTransaction(transactionEntry);
     }
 }
