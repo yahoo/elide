@@ -434,7 +434,7 @@ public class Elide {
         }
         */
         public Set<DataStoreTransaction> getRunningTransactions() {
-            Set<DataStoreTransaction> transactions = new HashSet<String>();
+            Set<DataStoreTransaction> transactions = new HashSet<DataStoreTransaction>();
             for (DataStoreTransaction transaction : transactionMap.values()) {
                 transactions.add(transaction);
             }
