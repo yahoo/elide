@@ -12,12 +12,32 @@ import java.util.Set;
 /**
  * InMemoryTransaction implementing TransactionRegistry
  */
-public abstract class InMemoryTransaction implements TransactionRegistry {
-    public abstract Set<TransactionEntry> getRunningTransactions();
+public class InMemoryTransaction implements TransactionRegistry {
+    private TransactionRegistry registry = new TransactionRegistry();
+   
+    /** 
+    public InMemoryTransaction (TransactionRegistry registry) {
+        this.registry = registry;
+    }
+    */    
 
-    public abstract Set<TransactionEntry> getRunningTransaction(String requestId);
+    @Override
+    public Set<TransactionEntry> getRunningTransactions() {
+        registry.getRunningTransactions();
+    }
 
-    public abstract void addRunningTransaction(TransactionEntry transactionEntry);
-
-    public abstract void removeRunningTransaction(TransactionEntry transactionEntry);
+    @Override
+    public Set<TransactionEntry> getRunningTransaction(String requestId) {
+        registry.getRunningTransaction(requestId);
+    }
+        
+    @Override
+    public void addRunningTransaction(TransactionEntry transactionEntry) {
+        registry.addRunningTransaction(transactionEntry);
+    }
+    
+    @Override   
+    public abstract void removeRunningTransaction(TransactionEntry transactionEntry) {
+         registry.removeRunningTransaction(transactionEntry);
+    }
 }
