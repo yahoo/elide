@@ -270,6 +270,6 @@ public interface DataStoreTransaction extends Closeable {
      *
      */
     default UUID getId(RequestScope scope) {
-        return UUID.randomUUID().toString();
+        return UUID.randomUUID();
     }
 }
