@@ -13,7 +13,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,7 +29,6 @@ import javax.persistence.OneToOne;
 @CreatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
 @Data
-@EqualsAndHashCode(callSuper = false)
 public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")

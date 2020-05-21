@@ -6,13 +6,11 @@
 package com.yahoo.elide.spring.config;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 /**
  * Extra properties for setting up async query support.
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
 public class AsyncProperties extends ControllerProperties {
 
     /**
