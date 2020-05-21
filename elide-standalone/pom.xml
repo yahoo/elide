@@ -88,7 +88,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-dynamic-config-helpers</artifactId>
-            <version>5.0.0-pr9-SNAPSHOT</version>
+            <version>5.0.0-pr10-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
