@@ -13,7 +13,7 @@ import java.util.Set;
  */
 public class InMemoryTransaction implements TransactionRegistry {
     private TransactionRegistry registry;
-    TransactionRegistry.transactionEntry tE = new TransactionRegistry.transactionEntry();
+    TransactionRegistry.TransactionEntry tE = new TransactionRegistry.transactionEntry();
     @Override
     public Set<TransactionEntry> getRunningTransactions() {
         return registry.getRunningTransactions();
