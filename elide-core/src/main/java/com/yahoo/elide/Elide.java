@@ -284,7 +284,7 @@ public class Elide {
         TransactionRegistry registry = new TransactionRegistry();
         UUID requestId;
         try (DataStoreTransaction tx = transaction.get()) {
-            tx.getId();
+            requestId = tx.getId();
             registry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
