@@ -446,6 +446,8 @@ public class Elide {
         }
 
         public void addRunningTransaction(UUID requestId, DataStoreTransaction tx) {
+            System.out.println(requestId);
+            System.out.println(tx);
             transactionMap.put(requestId, tx);
         }
 
