@@ -80,7 +80,7 @@ public class Elide {
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
     @Getter private final JsonApiMapper mapper;
-
+    @Getter public TransactionRegistry registry;
     /**
      * Instantiates a new Elide instance.
      *
@@ -92,6 +92,7 @@ public class Elide {
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
         this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
         this.mapper = elideSettings.getMapper();
+        this.registry = new TransactionRegistry();
 
         elideSettings.getSerdes().forEach((targetType, serde) -> {
             CoerceUtil.register(targetType, serde);
@@ -282,7 +283,6 @@ public class Elide {
                                           Supplier<DataStoreTransaction> transaction,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
-        TransactionRegistry registry = new TransactionRegistry();
         UUID requestId = null;
         try (DataStoreTransaction tx = transaction.get()) {
             requestId = tx.getId();
@@ -447,10 +447,7 @@ public class Elide {
         }
 
         public void addRunningTransaction(UUID requestId, DataStoreTransaction tx) {
-            System.out.println(requestId);
-            System.out.println(tx);
             transactionMap.put(requestId, tx);
-            System.out.println(transactionMap);
         }
 
         public void removeRunningTransaction(UUID requestId) {
