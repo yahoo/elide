@@ -53,9 +53,13 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
             }
 
             if (attribute instanceof Collection) {
-                return ((Collection) attribute).stream()
-                        .map(NonEntityContainer::new)
-                        .collect(Collectors.toList());
+                Class<?> innerType = entityDictionary.getParameterizedType(parentClass, fieldName);
+
+                if (nonEntityDictionary.hasBinding(innerType)) {
+                    return ((Collection) attribute).stream()
+                            .map(NonEntityContainer::new)
+                            .collect(Collectors.toList());
+                }
             }
 
             return attribute;

@@ -12,11 +12,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Container for nodes.
+ * Container for models not managed by Elide.
  */
 @AllArgsConstructor
 public class NonEntityContainer implements GraphQLContainer {
@@ -28,16 +27,25 @@ public class NonEntityContainer implements GraphQLContainer {
 
         String fieldName = context.field.getName();
 
+        //There is no Elide security for models not managed by Elide.
         Object object = nonEntityDictionary.getValue(nonEntity, fieldName, context.requestScope);
+
+        if (object == null) {
+            return null;
+        }
 
         if (nonEntityDictionary.hasBinding(object.getClass())) {
             return new NonEntityContainer(object);
         }
 
         if (object instanceof Collection) {
-            return ((Collection) object).stream()
-                    .map(NonEntityContainer::new)
-                    .collect(Collectors.toList());
+            Class<?> innerType = nonEntityDictionary.getParameterizedType(nonEntity.getClass(), fieldName);
+
+            if (nonEntityDictionary.hasBinding(innerType)) {
+                return ((Collection) object).stream()
+                        .map(NonEntityContainer::new)
+                        .collect(Collectors.toList());
+            }
         }
 
         return object;

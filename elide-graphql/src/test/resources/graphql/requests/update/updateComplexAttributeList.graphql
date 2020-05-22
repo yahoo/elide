@@ -2,13 +2,16 @@ mutation {
   book(op:UPDATE,
   data: {
          id: "1",
-         price: { units: 124 }
+         priceHistory: [{ units: 125 }, { units: 126, currency: { currencyCode: "USD" }}]
       }) {
     edges {
       node {
         id
-        price {
-           units
+        priceHistory {
+           units,
+           currency {
+             currencyCode
+           }
         }
       }
     }
