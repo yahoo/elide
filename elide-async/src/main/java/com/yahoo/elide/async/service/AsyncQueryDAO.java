@@ -32,7 +32,7 @@ public interface AsyncQueryDAO {
      * @param asyncQueryId UUID of the AsyncQuery to be associated with the AsyncQueryResult object
      * @return AsyncQueryResult Object
      */
-    public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery,
+    public AsyncQuery createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery,
             String asyncQueryId);
 
     /**

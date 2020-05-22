@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
@@ -40,8 +41,6 @@ import javax.validation.constraints.Pattern;
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
-    @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-            message = "id not of pattern UUID")
     private String id; //Provided by client or generated if missing on create.
 
     private String query;  //JSON-API PATH or GraphQL payload.
@@ -58,7 +57,7 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
     private QueryStatus status;
 
-    @OneToOne(mappedBy = "query", cascade = CascadeType.REMOVE)
+    @Embedded
     private AsyncQueryResult result;
 
     @Exclude
@@ -67,7 +66,7 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @PrePersist
     public void prePersistStatus() {
         status = QueryStatus.QUEUED;
-        if (id == null) {
+        if (id == null || id.isEmpty() || id.equalsIgnoreCase("string")) {
             id = UUID.randomUUID().toString();
         }
     }

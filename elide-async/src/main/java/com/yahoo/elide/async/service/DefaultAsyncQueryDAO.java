@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 
 import javax.inject.Singleton;
@@ -164,23 +165,22 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody,
+    public AsyncQuery createAsyncQueryResult(Integer status, String responseBody,
             AsyncQuery asyncQuery, String asyncQueryId) {
         log.debug("createAsyncQueryResult");
-        AsyncQueryResult queryResultObj = (AsyncQueryResult) executeInTransaction(dataStore, (tx, scope) -> {
+        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
             AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
-            asyncQueryResult.setStatus(status);
+            asyncQueryResult.setHttpStatus(status);
             asyncQueryResult.setResponseBody(responseBody);
             asyncQueryResult.setContentLength(responseBody.length());
-            asyncQueryResult.setQuery(asyncQuery);
-            asyncQueryResult.setId(asyncQueryId);
             asyncQueryResult.setResultType(ResultType.EMBEDDED);
+            asyncQueryResult.setCompletedOn(new Date());
             asyncQuery.setResult(asyncQueryResult);
-            tx.createObject(asyncQueryResult, scope);
+            tx.createObject(asyncQuery, scope);
             tx.save(asyncQuery, scope);
-            return asyncQueryResult;
+            return asyncQuery;
         });
-        return queryResultObj;
+        return queryObj;
     }
 
     /**
