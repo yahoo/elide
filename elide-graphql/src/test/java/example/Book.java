@@ -73,6 +73,7 @@ public class Book {
     private Set<PublicationFormat> publicationFormats = new HashSet<>();
     private Set<Preview> previews = new HashSet<>();
     private BigDecimal weightLbs;
+    private Price price;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -97,6 +98,14 @@ public class Book {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public Price getPrice() {
+        return price;
+    }
+
+    public void setPrice(Price price) {
+        this.price = price;
     }
 
     public String getLanguage() {
