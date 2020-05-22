@@ -56,7 +56,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolationException;
@@ -76,7 +80,7 @@ public class Elide {
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
     @Getter private final JsonApiMapper mapper;
-
+    @Getter private final TransactionRegistry transactionRegistry;
     /**
      * Instantiates a new Elide instance.
      *
@@ -88,6 +92,7 @@ public class Elide {
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
         this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
         this.mapper = elideSettings.getMapper();
+        this.transactionRegistry = new TransactionRegistry();
 
         elideSettings.getSerdes().forEach((targetType, serde) -> {
             CoerceUtil.register(targetType, serde);
@@ -278,7 +283,10 @@ public class Elide {
                                           Supplier<DataStoreTransaction> transaction,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
+        UUID requestId = null;
         try (DataStoreTransaction tx = transaction.get()) {
+            requestId = tx.getId();
+            transactionRegistry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -347,6 +355,7 @@ public class Elide {
             throw e;
 
         } finally {
+            transactionRegistry.removeRunningTransaction(requestId);
             auditLogger.clear();
         }
     }
@@ -410,6 +419,39 @@ public class Elide {
 
         public RequestScope getRequestScope() {
             return requestScope;
+        }
+    }
+
+     /**
+      * Transaction Registry class.
+      */
+    @Getter
+    private class TransactionRegistry {
+        private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
+        /*
+        private UUID requestId;
+        public InMemoryDataStore(UUID requestId) {
+            this.requestId = requestId;
+        }
+        */
+        public Set<DataStoreTransaction> getRunningTransactions() {
+            Set<DataStoreTransaction> transactions = new HashSet<DataStoreTransaction>();
+            for (DataStoreTransaction transaction : transactionMap.values()) {
+                transactions.add(transaction);
+            }
+            return transactions;
+        }
+
+        public DataStoreTransaction getRunningTransaction(UUID requestId) {
+            return transactionMap.get(requestId);
+        }
+
+        public void addRunningTransaction(UUID requestId, DataStoreTransaction tx) {
+            transactionMap.put(requestId, tx);
+        }
+
+        public void removeRunningTransaction(UUID requestId) {
+            transactionMap.remove(requestId);
         }
     }
 }
