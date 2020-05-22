@@ -1,0 +1,20 @@
+mutation {
+  book(op: UPSERT, data: {
+       title: "Book Numero Tres",
+       publicationDate: "1984-12-25T00:00Z",
+       price: { units: 123, currency : { currencyCode : "USD" }}
+    }) {
+    edges {
+      node {
+        title
+        publicationDate
+        price {
+          units
+          currency {
+            currencyCode
+          }
+        }
+      }
+    }
+  }
+}
