@@ -428,12 +428,6 @@ public class Elide {
     @Getter
     public static class TransactionRegistry {
         private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
-        /*
-        private UUID requestId;
-        public InMemoryDataStore(UUID requestId) {
-            this.requestId = requestId;
-        }
-        */
         public Set<DataStoreTransaction> getRunningTransactions() {
             Set<DataStoreTransaction> transactions = new HashSet<DataStoreTransaction>();
             for (DataStoreTransaction transaction : transactionMap.values()) {
