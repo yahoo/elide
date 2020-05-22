@@ -389,4 +389,34 @@ public class Elide {
     public interface Handler<DataStoreTransaction, User, HandlerResult> {
         HandlerResult handle(DataStoreTransaction a, User b) throws IOException;
     }
+
+    /**
+    * A wrapper to return multiple values, less verbose than Pair.
+    */
+    protected static class HandlerResult {
+        protected RequestScope requestScope;
+        protected Supplier<Pair<Integer, JsonNode>> result;
+        protected RuntimeException cause;
+
+        protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, JsonNode>> result) {
+            this.requestScope = requestScope;
+            this.result = result;
+        }
+
+        public HandlerResult(RequestScope requestScope, RuntimeException cause) {
+            this.requestScope = requestScope;
+            this.cause = cause;
+        }
+
+        public Supplier<Pair<Integer, JsonNode>> getResponder() {
+            if (cause != null) {
+                throw cause;
+            }
+            return result;
+        }
+
+        public RequestScope getRequestScope() {
+            return requestScope;
+        }
+    }
 }
