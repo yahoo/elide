@@ -64,8 +64,10 @@ public class QueryRunner {
     public QueryRunner(Elide elide) {
         this.elide = elide;
 
-        PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings());
-        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
+        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+        PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings(),
+                nonEntityDictionary);
+        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), nonEntityDictionary, fetcher);
 
         this.api = new GraphQL(builder.build());
 

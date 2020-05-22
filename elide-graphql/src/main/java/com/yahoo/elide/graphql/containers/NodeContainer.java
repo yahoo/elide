@@ -12,6 +12,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
+import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 import lombok.AllArgsConstructor;
@@ -30,13 +31,20 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
 
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
-        EntityDictionary dictionary = context.requestScope.getDictionary();
+        EntityDictionary entityDictionary = context.requestScope.getDictionary();
+        NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
+
         Class parentClass = context.parentResource.getResourceClass();
         String fieldName = context.field.getName();
-        String idFieldName = dictionary.getIdFieldName(parentClass);
+        String idFieldName = entityDictionary.getIdFieldName(parentClass);
 
-        if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
+        if (entityDictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
             Object attribute = context.parentResource.getAttribute(fieldName);
+
+            if (attribute != null && nonEntityDictionary.hasBinding(attribute.getClass())) {
+                return new NonEntityContainer(attribute);
+            }
+
             if (attribute instanceof Map) {
                 return ((Map<Object, Object>) attribute).entrySet().stream()
                         .map(MapEntryContainer::new)
@@ -44,7 +52,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
             }
             return attribute;
         }
-        if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
+        if (entityDictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
             boolean generateTotals = requestContainsPageInfo(context.field);
             return fetcher.fetchRelationship(context, context.parentResource,
                     fieldName, context.ids, context.offset, context.first, context.sort, context.filters,

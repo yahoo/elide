@@ -23,6 +23,7 @@ import com.yahoo.elide.graphql.containers.ConnectionContainer;
 
 import com.google.common.collect.Sets;
 
+import lombok.Getter;
 import org.apache.commons.collections4.IterableUtils;
 
 import graphql.language.Field;
@@ -53,8 +54,12 @@ import javax.ws.rs.core.MultivaluedHashMap;
 public class PersistentResourceFetcher implements DataFetcher<Object> {
     private final ElideSettings settings;
 
-    public PersistentResourceFetcher(ElideSettings settings) {
+    @Getter
+    private final NonEntityDictionary nonEntityDictionary;
+
+    public PersistentResourceFetcher(ElideSettings settings, NonEntityDictionary nonEntityDictionary) {
         this.settings = settings;
+        this.nonEntityDictionary = nonEntityDictionary;
     }
 
     /**

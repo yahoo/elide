@@ -48,7 +48,7 @@ public class GraphQLConversionUtils {
 
     private final Map<Class<?>, GraphQLScalarType> scalarMap = new HashMap<>();
 
-    protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+    protected NonEntityDictionary nonEntityDictionary;
     protected EntityDictionary entityDictionary;
 
     private final Map<Class, GraphQLObjectType> outputConversions = new HashMap<>();
@@ -56,8 +56,9 @@ public class GraphQLConversionUtils {
     private final Map<Class, GraphQLEnumType> enumConversions = new HashMap<>();
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
 
-    public GraphQLConversionUtils(EntityDictionary dictionary) {
-        this.entityDictionary = dictionary;
+    public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
+        this.entityDictionary = entityDictionary;
+        this.nonEntityDictionary = nonEntityDictionary;
         registerCustomScalars();
     }
 
