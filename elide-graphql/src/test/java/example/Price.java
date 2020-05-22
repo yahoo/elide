@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -20,14 +21,11 @@ import java.util.Currency;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @JsonDeserialize(using = Price.PriceDeserializer.class)
 public class Price {
-    public Price() {
-
-    }
-
-    BigDecimal units;
-    Currency currency;
+    private BigDecimal units;
+    private Currency currency;
 
     public static class PriceDeserializer extends StdDeserializer<Price> {
         public PriceDeserializer() {

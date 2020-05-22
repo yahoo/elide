@@ -50,7 +50,6 @@ public class ModelBuilder {
     public static final String ARGUMENT_OPERATION = "op";
 
     private EntityDictionary entityDictionary;
-    private NonEntityDictionary nonEntityDictionary;
     private DataFetcher dataFetcher;
     private GraphQLArgument relationshipOpArg;
     private GraphQLArgument idArgument;
@@ -78,7 +77,6 @@ public class ModelBuilder {
                         DataFetcher dataFetcher) {
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
         this.entityDictionary = entityDictionary;
-        this.nonEntityDictionary = nonEntityDictionary;
         this.dataFetcher = dataFetcher;
 
         relationshipOpArg = newArgument()
