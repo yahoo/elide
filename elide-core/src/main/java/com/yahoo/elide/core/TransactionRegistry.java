@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 * Transaction Registry class.
 */
 @Getter
-public static class TransactionRegistry {
+public class TransactionRegistry {
     private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
     public Set<DataStoreTransaction> getRunningTransactions() {
         Set<DataStoreTransaction> transactions = transactionMap.values().stream().collect(Collectors.toSet());
