@@ -397,7 +397,7 @@ public interface ElideStandaloneSettings {
         AggregationDataStore aggregationDataStore = null;
 
         if (enableDynamicModelConfig()) {
-            Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);;
+            Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
             aggregationDataStore = new AggregationDataStore(queryEngine, annotatedClasses);
         } else {
