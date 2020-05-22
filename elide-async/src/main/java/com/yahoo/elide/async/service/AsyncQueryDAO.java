@@ -6,7 +6,6 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 
 import java.util.Collection;

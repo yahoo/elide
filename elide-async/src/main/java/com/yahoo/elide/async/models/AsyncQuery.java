@@ -16,16 +16,13 @@ import lombok.Data;
 
 import java.util.UUID;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.Transient;
 import javax.validation.constraints.Max;
-import javax.validation.constraints.Pattern;
 
 /**
  * Model for Async Query.

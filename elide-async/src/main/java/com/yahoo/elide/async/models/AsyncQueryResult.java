@@ -27,11 +27,11 @@ public class AsyncQueryResult {
     private String responseBody; //success or errors
 
     private Integer httpStatus; // HTTP Status
-    
+
     @Column(columnDefinition = "enum('EMBEDDED')")
     @Enumerated(EnumType.STRING)
     private ResultType resultType;
-    
-    Date completedOn = new Date(); 
+
+    Date completedOn = new Date();
 
 }

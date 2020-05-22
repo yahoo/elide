@@ -48,9 +48,9 @@ public class AsyncQueryThread implements Runnable {
         processQuery();
     }
 
-    /**
-     * This is the main method which processes the Async Query request, executes the query and updates
-     * values for AsyncQuery and AsyncQueryResult models accordingly.
+   /**
+    * This is the main method which processes the Async Query request, executes the query and updates
+    * values for AsyncQuery and AsyncQueryResult models accordingly.
     */
     protected void processQuery() {
 

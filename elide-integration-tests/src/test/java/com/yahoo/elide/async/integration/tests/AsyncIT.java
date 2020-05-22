@@ -145,34 +145,10 @@ public class AsyncIT extends IntegrationTest {
             Response response = given()
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");
-System.out.println(response.asString());
+            System.out.println(response.asString());
             // If Async Query is created and completed
             if (response.jsonPath().getString("data.attributes.status").equals("COMPLETE")) {
-
-            	/*
-            	 * {
-	"data": {
-		"type": "asyncQuery",
-		"id": "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d",
-		"attributes": {
-			"asyncAfterSeconds": 10,
-			"createdOn": null,
-			"query": "/book?sort=genre&fields%5Bbook%5D=title",
-			"queryType": "JSONAPI_V1_0",
-			"requestId": "1001",
-			"result": {
-				"contentLength": 218,
-				"responseBody": "{\"data\":[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}},{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}",
-				"httpStatus": 200,
-				"resultType": "EMBEDDED",
-				"completedOn": null
-			},
-			"status": "COMPLETE",
-			"updatedOn": null
-		}
-	}
-}*/
-            	 
+          	 
                 // Validate AsyncQuery Response
                 response
                         .then()
@@ -197,6 +173,41 @@ System.out.println(response.asString());
                                 + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
                         .body("data.attributes.result.httpStatus", equalTo(200))
                         .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
+                
+                // Validate GraphQL Response
+                String responseGraphQL = given()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
+                                + "{ edges { node { id queryType status result "
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                                + "\"variables\":null}")
+                        .post("/graphQL")
+                        .asString();
+                
+                String expectedResponse = document(
+                        selections(
+                                field(
+                                        "asyncQuery",
+                                        selections(
+                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
+                                                field("queryType", "JSONAPI_V1_0"),
+                                                field("status", "COMPLETE"),
+                                                field("result",
+                                                        selections(
+                                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
+                                                                field("responseBody", "{\\\"data\\\":"
+                                                                        + "[{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"3\\\",\\\"attributes\\\":{\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}"
+                                                                        + ",{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
+                                                                        + "{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"1\\\",\\\"attributes\\\":{\\\"title\\\":\\\"Ender's Game\\\"}}]}"),
+                                                                field("status", 200)
+                                                        ))
+                                        )
+                                )
+                        )
+                ).toResponse();
+
+                assertEquals(expectedResponse, responseGraphQL);
                 break;
             }
             i++;
@@ -268,6 +279,41 @@ System.out.println(response.asString());
                         .body("data.attributes.result.httpStatus", equalTo(200))
                         .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString())).toString();
 
+                // Validate GraphQL Response
+                String responseGraphQL = given()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263c\\\"]) "
+                                + "{ edges { node { id queryType status result "
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                                + "\"variables\":null}")
+                        .post("/graphQL")
+                        .asString();
+                
+
+                String expectedResponse = document(
+                        selections(
+                                field(
+                                        "asyncQuery",
+                                        selections(
+                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"),
+                                                field("queryType", "GRAPHQL_V1_0"),
+                                                field("status", "COMPLETE"),
+                                                field("result",
+                                                        selections(
+                                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"),
+                                                                field("responseBody", "{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":"
+                                                                        + "[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
+                                                                        + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
+                                                                        + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}"),
+                                                                field("status", 200)
+                                                        ))
+                                        )
+                                )
+                        )
+                ).toResponse();
+
+                assertEquals(expectedResponse, responseGraphQL);
                 break;
             }
             i++;
