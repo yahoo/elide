@@ -23,13 +23,13 @@ import com.yahoo.elide.graphql.containers.ConnectionContainer;
 
 import com.google.common.collect.Sets;
 
-import lombok.Getter;
 import org.apache.commons.collections4.IterableUtils;
 
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayDeque;

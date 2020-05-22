@@ -1,3 +1,9 @@
+/*
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package example;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -16,7 +22,9 @@ import java.util.Currency;
 @AllArgsConstructor
 @JsonDeserialize(using = Price.PriceDeserializer.class)
 public class Price {
-    public Price() {}
+    public Price() {
+
+    }
 
     BigDecimal units;
     Currency currency;
@@ -38,6 +46,12 @@ public class Price {
 
             if (unitNode == null) {
                 return null;
+            }
+
+            JsonNode currencyNode = node.get("currency");
+
+            if (currencyNode == null) {
+                return new Price(new BigDecimal(unitNode.asInt()), null);
             }
 
             Currency currency = Currency.getInstance(node.get("currency").get("currencyCode").asText(""));
