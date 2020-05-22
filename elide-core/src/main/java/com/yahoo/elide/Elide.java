@@ -391,8 +391,8 @@ public class Elide {
     }
 
     /**
-    * A wrapper to return multiple values, less verbose than Pair.
-    */
+     * A wrapper to return multiple values, less verbose than Pair.
+     */
     protected static class HandlerResult {
         protected RequestScope requestScope;
         protected Supplier<Pair<Integer, JsonNode>> result;
