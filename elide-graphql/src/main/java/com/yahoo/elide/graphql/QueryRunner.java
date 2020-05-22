@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -144,8 +145,10 @@ public class QueryRunner {
     private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument) {
         boolean isVerbose = false;
+        UUID requestId = null;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-
+            requestId = tx.getId();
+            elide.getTransactionRegistry().addRunningTransaction(requestId, tx); 
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
                         .responseCode(HttpStatus.SC_BAD_REQUEST)
@@ -270,6 +273,7 @@ public class QueryRunner {
             log.error("Unhandled error or exception.", e);
             throw e;
         } finally {
+            elide.getTransactionRegistry().removeRunningTransaction(requestId);
             elide.getAuditLogger().clear();
         }
     }
