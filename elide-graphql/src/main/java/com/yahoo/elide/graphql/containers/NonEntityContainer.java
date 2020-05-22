@@ -11,6 +11,10 @@ import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Container for nodes.
  */
@@ -28,6 +32,12 @@ public class NonEntityContainer implements GraphQLContainer {
 
         if (nonEntityDictionary.hasBinding(object.getClass())) {
             return new NonEntityContainer(object);
+        }
+
+        if (object instanceof Collection) {
+            return ((Collection) object).stream()
+                    .map(NonEntityContainer::new)
+                    .collect(Collectors.toList());
         }
 
         return object;

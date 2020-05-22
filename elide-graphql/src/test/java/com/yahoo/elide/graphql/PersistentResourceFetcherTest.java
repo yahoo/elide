@@ -137,6 +137,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book2.setPublisher(publisher1);
         book2.setPublicationDate(new Date(0L));
         book2.setPrice(null);
+        book2.setPriceHistory(Arrays.asList(
+                new Price(new BigDecimal(200), Currency.getInstance("USD")),
+                new Price(new BigDecimal(210), Currency.getInstance("USD"))));
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));
@@ -152,6 +155,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book3.setTitle("Doctor Zhivago");
         book3.setAuthors(new ArrayList<>(Collections.singletonList(author2)));
         book3.setPublisher(publisher2);
+        book3.setPriceHistory(new ArrayList<>());
 
         author2.setBooks(new ArrayList<>(Collections.singletonList(book3)));
 

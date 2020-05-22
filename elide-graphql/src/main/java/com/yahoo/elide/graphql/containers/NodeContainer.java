@@ -18,6 +18,7 @@ import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -50,6 +51,13 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
                         .map(MapEntryContainer::new)
                         .collect(Collectors.toList());
             }
+
+            if (attribute instanceof Collection) {
+                return ((Collection) attribute).stream()
+                        .map(NonEntityContainer::new)
+                        .collect(Collectors.toList());
+            }
+
             return attribute;
         }
         if (entityDictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
