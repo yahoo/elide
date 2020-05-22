@@ -148,7 +148,7 @@ public class QueryRunner {
         UUID requestId = null;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             requestId = tx.getId();
-            elide.getTransactionRegistry().addRunningTransaction(requestId, tx); 
+            elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
                         .responseCode(HttpStatus.SC_BAD_REQUEST)
