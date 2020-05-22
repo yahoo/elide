@@ -10,6 +10,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -390,62 +391,5 @@ public class Elide {
     @FunctionalInterface
     public interface Handler<DataStoreTransaction, User, HandlerResult> {
         HandlerResult handle(DataStoreTransaction a, User b) throws IOException;
-    }
-
-    /**
-     * A wrapper to return multiple values, less verbose than Pair.
-     */
-    protected static class HandlerResult {
-        protected RequestScope requestScope;
-        protected Supplier<Pair<Integer, JsonNode>> result;
-        protected RuntimeException cause;
-
-        protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, JsonNode>> result) {
-            this.requestScope = requestScope;
-            this.result = result;
-        }
-
-        public HandlerResult(RequestScope requestScope, RuntimeException cause) {
-            this.requestScope = requestScope;
-            this.cause = cause;
-        }
-
-        public Supplier<Pair<Integer, JsonNode>> getResponder() {
-            if (cause != null) {
-                throw cause;
-            }
-            return result;
-        }
-
-        public RequestScope getRequestScope() {
-            return requestScope;
-        }
-    }
-
-     /**
-      * Transaction Registry class.
-      */
-    @Getter
-    public static class TransactionRegistry {
-        private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
-        public Set<DataStoreTransaction> getRunningTransactions() {
-            Set<DataStoreTransaction> transactions = new HashSet<DataStoreTransaction>();
-            for (DataStoreTransaction transaction : transactionMap.values()) {
-                transactions.add(transaction);
-            }
-            return transactions;
-        }
-
-        public DataStoreTransaction getRunningTransaction(UUID requestId) {
-            return transactionMap.get(requestId);
-        }
-
-        public void addRunningTransaction(UUID requestId, DataStoreTransaction tx) {
-            transactionMap.put(requestId, tx);
-        }
-
-        public void removeRunningTransaction(UUID requestId) {
-            transactionMap.remove(requestId);
-        }
     }
 }
