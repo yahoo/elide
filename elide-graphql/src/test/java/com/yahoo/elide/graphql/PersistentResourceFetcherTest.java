@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Author;
 import example.Book;
+import example.Price;
 import example.Pseudonym;
 import example.Publisher;
 import org.apache.tools.ant.util.FileUtils;
@@ -40,9 +41,11 @@ import graphql.GraphQLError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -125,6 +128,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book1.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
         book1.setPublisher(publisher1);
         book1.setPublicationDate(new Date(1514397817135L));
+        book1.setPrice(new Price(new BigDecimal(123), Currency.getInstance("USD")));
 
         Book book2 = new Book();
         book2.setId(2L);
@@ -132,6 +136,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book2.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
         book2.setPublisher(publisher1);
         book2.setPublicationDate(new Date(0L));
+        book2.setPrice(null);
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));
