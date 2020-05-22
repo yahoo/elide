@@ -5,12 +5,11 @@
  */
 package com.yahoo.elide.core;
 
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 /**
 * Transaction Registry class.
 */
