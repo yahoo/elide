@@ -7,6 +7,7 @@ package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.Environment;
+import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 import java.util.Map;
@@ -31,14 +32,23 @@ public class MapEntryContainer implements GraphQLContainer {
 
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
+        NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
         String fieldName = context.field.getName();
 
+        Object returnObject;
         if (KEY.equalsIgnoreCase(fieldName)) {
-            return entry.getKey();
+            returnObject = entry.getKey();
+
         } else if (VALUE.equalsIgnoreCase(fieldName)) {
-            return entry.getValue();
+            returnObject = entry.getValue();
+        } else {
+            throw new BadRequestException("Invalid field: '" + fieldName
+                    + "'. Maps only contain fields 'key' and 'value'");
         }
 
-        throw new BadRequestException("Invalid field: '" + fieldName + "'. Maps only contain fields 'key' and 'value'");
+        if (nonEntityDictionary.hasBinding(returnObject.getClass())) {
+            return new NonEntityContainer(returnObject);
+        }
+        return returnObject;
     }
 }

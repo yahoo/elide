@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -137,9 +138,16 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book2.setPublisher(publisher1);
         book2.setPublicationDate(new Date(0L));
         book2.setPrice(null);
+
+        Price book2Price1 = new Price(new BigDecimal(200), Currency.getInstance("USD"));
+        Price book2Price2 = new Price(new BigDecimal(210), Currency.getInstance("USD"));
         book2.setPriceHistory(Arrays.asList(
-                new Price(new BigDecimal(200), Currency.getInstance("USD")),
-                new Price(new BigDecimal(210), Currency.getInstance("USD"))));
+                book2Price1,
+                book2Price2));
+
+        book2.setPriceRevisions(new HashMap<>());
+        book2.getPriceRevisions().put(new Date(1590187582000L), book2Price1);
+        book2.getPriceRevisions().put(new Date(1590187682000L), book2Price2);
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));

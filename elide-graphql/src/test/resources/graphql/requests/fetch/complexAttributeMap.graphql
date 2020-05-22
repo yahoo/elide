@@ -1,0 +1,19 @@
+{
+  book {
+    edges {
+      node {
+        id
+        title
+        priceRevisions {
+          key
+          value {
+            units
+            currency {
+              currencyCode
+            }
+          }
+        }
+      }
+    }
+  }
+}
