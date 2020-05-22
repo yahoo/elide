@@ -426,7 +426,7 @@ public class Elide {
       * Transaction Registry class.
       */
     @Getter
-    private class TransactionRegistry {
+    public static class TransactionRegistry {
         private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
         /*
         private UUID requestId;
