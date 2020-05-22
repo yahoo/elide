@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Oath Inc.
+ * Copyright 2020, Verizon Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */

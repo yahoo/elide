@@ -70,6 +70,7 @@ public class ModelBuilder {
     /**
      * Class constructor, constructs the custom arguments to handle mutations
      * @param entityDictionary elide entity dictionary
+     * @param nonEntityDictionary elide non-entity dictionary
      * @param dataFetcher graphQL data fetcher
      */
     public ModelBuilder(EntityDictionary entityDictionary,
