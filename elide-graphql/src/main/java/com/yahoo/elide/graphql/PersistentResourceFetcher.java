@@ -20,10 +20,10 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.MapEntryContainer;
 
 import com.google.common.collect.Sets;
 
-import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import org.apache.commons.collections4.IterableUtils;
 
 import graphql.language.Field;
