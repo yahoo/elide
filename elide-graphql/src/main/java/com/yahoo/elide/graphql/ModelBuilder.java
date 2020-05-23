@@ -393,10 +393,6 @@ public class ModelBuilder {
                 } else {
                     attributeType = convertedInputs.get(objectName);
                 }
-            } else {
-                String attributeTypeName = attributeType.getName();
-                convertedInputs.putIfAbsent(attributeTypeName, attributeType);
-                attributeType = convertedInputs.get(attributeTypeName);
             }
 
             builder.field(newInputObjectField()
