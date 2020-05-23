@@ -23,6 +23,7 @@ import com.yahoo.elide.graphql.containers.ConnectionContainer;
 
 import com.google.common.collect.Sets;
 
+import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import org.apache.commons.collections4.IterableUtils;
 
 import graphql.language.Field;
@@ -460,7 +461,14 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         /* iterate through each attribute provided */
         for (Entity.Attribute attribute : attributes) {
             if (dictionary.isAttribute(entityClass, attribute.getName())) {
-                toUpdate.updateAttribute(attribute.getName(), attribute.getValue());
+                Class<?> attributeType = dictionary.getType(entityClass, attribute.getName());
+                Object attributeValue;
+                if (Map.class.isAssignableFrom(attributeType)) {
+                    attributeValue = MapEntryContainer.translateFromGraphQLMap(attribute);
+                } else {
+                    attributeValue = attribute.getValue();
+                }
+                toUpdate.updateAttribute(attribute.getName(), attributeValue);
             } else if (!Objects.equals(attribute.getName(), idFieldName)) {
                 throw new IllegalStateException("Unrecognized attribute passed to 'data': " + attribute.getName());
             }

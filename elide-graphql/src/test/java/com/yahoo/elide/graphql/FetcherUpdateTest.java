@@ -37,7 +37,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
         runComparisonTest("updateComplexAttributeList");
     }
 
-    //@Test - Bug needs to be fixed.
+    @Test
     public void testUpdateComplexAttributeMap() throws Exception {
         //book 1 and 2 already exist, should update
         runComparisonTest("updateComplexAttributeMap");

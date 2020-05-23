@@ -6,10 +6,13 @@
 package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.graphql.Entity;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -50,5 +53,38 @@ public class MapEntryContainer implements GraphQLContainer {
             return new NonEntityContainer(returnObject);
         }
         return returnObject;
+    }
+
+    /**
+     * Converts an attribute which is a list of maps - each containing a KEY and a VALUE
+     * into a HashMap with the value of KEY as key and the value of VALUE as the value.
+     * @param attribute The attribute to convert.
+     * @return The converted map.
+     */
+    public static Map translateFromGraphQLMap(Entity.Attribute attribute) {
+        Map returnMap = new HashMap();
+        Object collection = attribute.getValue();
+
+        if (collection == null) {
+            return null;
+        }
+
+        if (! (collection instanceof Collection)) {
+            throw new BadRequestException("Invalid map format for GraphQL request");
+        }
+
+        ((Collection) collection).stream().forEach((entry -> {
+            if (! (entry instanceof Map)) {
+                throw new BadRequestException("Invalid map format for GraphQL request");
+            }
+
+            if (! ((Map) entry).containsKey(KEY) && ((Map) entry).containsKey(VALUE)) {
+                throw new BadRequestException("Invalid map format for GraphQL request");
+            }
+
+            returnMap.put(((Map) entry).get(KEY), ((Map) entry).get(VALUE));
+        }));
+
+        return returnMap;
     }
 }
