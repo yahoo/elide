@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Entity;
@@ -59,6 +61,8 @@ public class Book {
     private Set<Preview> previews = new HashSet<>();
     private BigDecimal weightLbs;
     private Price price;
+    private List<Price> priceHistory;
+    private Map<Date, Price> priceRevisions;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -89,10 +93,24 @@ public class Book {
         return price;
     }
 
+    public void setPriceHistory(List<Price> priceHistory) {
+        this.priceHistory = priceHistory;
+    }
+
+    public List<Price> getPriceHistory() {
+        return priceHistory;
+    }
+
+    public void setPriceRevisions(Map<Date, Price> priceRevisions) {
+        this.priceRevisions = priceRevisions;
+    }
+
+    public Map<Date, Price> getPriceRevisions() {
+        return priceRevisions;
+    }
     public void setPrice(Price price) {
         this.price = price;
     }
-
     public String getLanguage() {
         return language;
     }

@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class GraphQLConversionUtils {
+
     protected static final String KEY = "key";
     protected static final String VALUE = "value";
     protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
@@ -60,9 +61,11 @@ public class GraphQLConversionUtils {
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
     private final GraphQLNameUtils nameUtils;
 
-    public GraphQLConversionUtils(EntityDictionary dictionary) {
-        this.entityDictionary = dictionary;
-        this.nameUtils = new GraphQLNameUtils(dictionary);
+
+    public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
+        this.entityDictionary = entityDictionary;
+        this.nonEntityDictionary = nonEntityDictionary;
+        this.nameUtils = new GraphQLNameUtils(entityDictionary);
         registerCustomScalars();
     }
 

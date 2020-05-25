@@ -89,7 +89,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         inMemoryDataStore.populateEntityDictionary(dictionary);
 
-        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(), NO_VERSION);
+        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+        ModelBuilder builder = new ModelBuilder(dictionary, nonEntityDictionary,
+                new PersistentResourceFetcher(settings, nonEntityDictionary), NO_VERSION);
 
         api = new GraphQL(builder.build());
 
@@ -138,6 +140,16 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book2.setPublicationDate(new Date(0L));
         book2.setPrice(null);
 
+        Price book2Price1 = new Price(new BigDecimal(200), Currency.getInstance("USD"));
+        Price book2Price2 = new Price(new BigDecimal(210), Currency.getInstance("USD"));
+        book2.setPriceHistory(Arrays.asList(
+                book2Price1,
+                book2Price2));
+
+        book2.setPriceRevisions(new HashMap<>());
+        book2.getPriceRevisions().put(new Date(1590187582000L), book2Price1);
+        book2.getPriceRevisions().put(new Date(1590187682000L), book2Price2);
+
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));
         authorOne.setAuthor(author1);
@@ -152,6 +164,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book3.setTitle("Doctor Zhivago");
         book3.setAuthors(new ArrayList<>(Collections.singletonList(author2)));
         book3.setPublisher(publisher2);
+        book3.setPriceHistory(new ArrayList<>());
 
         author2.setBooks(new ArrayList<>(Collections.singletonList(book3)));
 

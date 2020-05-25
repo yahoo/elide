@@ -10,6 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
+import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.Relationship;
@@ -17,6 +18,7 @@ import com.yahoo.elide.request.Relationship;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -30,23 +32,42 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
 
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
-        EntityDictionary dictionary = context.requestScope.getDictionary();
+        EntityDictionary entityDictionary = context.requestScope.getDictionary();
+        NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
+
         Class parentClass = context.parentResource.getResourceClass();
         String fieldName = context.field.getName();
-        String idFieldName = dictionary.getIdFieldName(parentClass);
+        String idFieldName = entityDictionary.getIdFieldName(parentClass);
 
-        if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-            Attribute requested = context.requestScope.getProjectionInfo()
+        if (entityDictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
+        	Attribute requested = context.requestScope.getProjectionInfo()
                     .getAttributeMap().getOrDefault(context.field.getSourceLocation(), null);
-            Object attribute = context.parentResource.getAttribute(requested);
+        	Object attribute = context.parentResource.getAttribute(requested);
+
+            if (attribute != null && nonEntityDictionary.hasBinding(attribute.getClass())) {
+                return new NonEntityContainer(attribute);
+            }
+
             if (attribute instanceof Map) {
                 return ((Map<Object, Object>) attribute).entrySet().stream()
                         .map(MapEntryContainer::new)
                         .collect(Collectors.toList());
             }
+
+            if (attribute instanceof Collection) {
+                Class<?> innerType = entityDictionary.getParameterizedType(parentClass, fieldName);
+
+                if (nonEntityDictionary.hasBinding(innerType)) {
+                    return ((Collection) attribute).stream()
+                            .map(NonEntityContainer::new)
+                            .collect(Collectors.toList());
+                }
+            }
+
             return attribute;
         }
-        if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
+        
+        if (entityDictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
             // get the relationship from constructed projections
             Relationship relationship = context.requestScope
                     .getProjectionInfo()
@@ -59,6 +80,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
             }
 
             return fetcher.fetchRelationship(context.parentResource, relationship, context.ids);
+
         }
         if (Objects.equals(idFieldName, fieldName)) {
             return new DeferredId(context.parentResource);
