@@ -28,6 +28,11 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testCreateComplextAttribute() throws Exception {
+        runComparisonTest("createComplexAttribute");
+    }
+
+    @Test
     public void testCreateNestedSingle() throws Exception {
         runComparisonTest("createNestedSingle");
     }

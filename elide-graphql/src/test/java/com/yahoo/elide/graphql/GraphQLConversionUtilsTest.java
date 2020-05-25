@@ -25,7 +25,7 @@ public class GraphQLConversionUtilsTest {
     public void testGraphQLConversionUtilsClassToScalarType() {
         CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
         GraphQLConversionUtils graphQLConversionUtils =
-                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()));
+                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary());
         GraphQLScalarType type = graphQLConversionUtils.classToScalarType(OffsetDateTime.class);
         assertNotNull(type);
         String expected = "OffsetDateTime";
