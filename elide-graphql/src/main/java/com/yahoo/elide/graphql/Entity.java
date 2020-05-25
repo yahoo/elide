@@ -51,7 +51,7 @@ public class Entity {
     }
 
     @AllArgsConstructor
-    class Attribute {
+    public class Attribute {
         @Getter private String name;
         @Getter private Object value;
     }

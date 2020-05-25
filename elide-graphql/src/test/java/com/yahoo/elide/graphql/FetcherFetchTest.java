@@ -38,6 +38,21 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testComplexAttribute() throws Exception {
+        runComparisonTest("complexAttribute");
+    }
+
+    @Test
+    public void testComplexAttributeList() throws Exception {
+        runComparisonTest("complexAttributeList");
+    }
+
+    @Test
+    public void testComplexAttributeMap() throws Exception {
+        runComparisonTest("complexAttributeMap");
+    }
+
+    @Test
     public void testNestedSingle() throws Exception {
         runComparisonTest("nestedSingle");
     }

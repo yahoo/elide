@@ -18,7 +18,7 @@
 
     <properties>
         <mysql.data.directory>${project.build.directory}/mysql-data</mysql.data.directory>
-        <resteasy.version>3.11.2.Final</resteasy.version>
+        <resteasy.version>3.12.0.Final</resteasy.version>
     </properties>
 
     <dependencies>
