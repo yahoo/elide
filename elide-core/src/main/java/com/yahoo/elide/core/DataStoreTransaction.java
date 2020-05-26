@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * Wraps the Database Transaction type.
  */
-public abstract class DataStoreTransaction extends Closeable {
+public abstract class DataStoreTransaction implements Closeable {
 
     /**
      * The extent to which the transaction supports a particular feature.
