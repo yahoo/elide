@@ -130,11 +130,11 @@ public class SQLQueryEngine extends QueryEngine {
                 transaction.begin();
             }
 
-            int tableVersion = 0;
+            String tableVersion = null;
             String cacheKey = null;
             if (cache != null && !query.isBypassingCache()) {
                 tableVersion = getTableVersion(entityManager, query);
-                cacheKey = tableVersion + " " + QueryKeyExtractor.extractKey(query);
+                cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
                 QueryResult result = cache.get(cacheKey);
                 if (result != null) {
                     return result;
@@ -199,8 +199,8 @@ public class SQLQueryEngine extends QueryEngine {
         ).get();
     }
 
-    private int getTableVersion(EntityManager entityManager, Query query) {
-        int tableVersion = 0;
+    private String getTableVersion(EntityManager entityManager, Query query) {
+        String tableVersion = null;
         Table table = query.getTable();
         Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
@@ -210,7 +210,7 @@ public class SQLQueryEngine extends QueryEngine {
                     entityManager.createNativeQuery(versionQueryString)
                             .setHint(QueryHints.HINT_READONLY, true);
             tableVersion = new TimedFunction<>(
-                    () -> CoerceUtil.coerce(versionQuery.getSingleResult(), Integer.class),
+                    () -> CoerceUtil.coerce(versionQuery.getSingleResult(), String.class),
                     "Running Query: " + versionQueryString
             ).get();
         }
