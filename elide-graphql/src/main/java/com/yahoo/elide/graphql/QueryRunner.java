@@ -72,7 +72,8 @@ public class QueryRunner {
         NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings(),
                 nonEntityDictionary);
-        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), nonEntityDictionary, fetcher, apiVersion);
+        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), nonEntityDictionary,
+                fetcher, apiVersion);
 
         this.api = new GraphQL(builder.build());
 

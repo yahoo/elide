@@ -19,7 +19,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -69,8 +68,6 @@ public class ModelBuilder {
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Class<?>> excludedEntities;
-
-    private HashMap<String, GraphQLInputType> convertedInputs = new HashMap<>();
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations
@@ -155,7 +152,6 @@ public class ModelBuilder {
      * @return The built schema.
      */
     public GraphQLSchema build() {
-    	
         Set<Class<?>> allClasses = entityDictionary.getBoundClassesByVersion(apiVersion);
 
         if (allClasses.isEmpty()) {
@@ -393,26 +389,6 @@ public class ModelBuilder {
                     clazz.getName());
 
             GraphQLInputType attributeType = generator.attributeToInputObject(clazz, attributeClass, attribute);
-
-            if (attributeType instanceof GraphQLInputObjectType) {
-                String objectName = attributeType.getName();
-                if (!convertedInputs.containsKey(objectName)) {
-                    MutableGraphQLInputObjectType wrappedType =
-                            new MutableGraphQLInputObjectType(
-                                    objectName,
-                                    ((GraphQLInputObjectType) attributeType).getDescription(),
-                                    ((GraphQLInputObjectType) attributeType).getFields()
-                            );
-                    convertedInputs.put(objectName, wrappedType);
-                    attributeType = wrappedType;
-                } else {
-                    attributeType = convertedInputs.get(objectName);
-                }
-            } else {
-                String attributeTypeName = attributeType.getName();
-                convertedInputs.putIfAbsent(attributeTypeName, attributeType);
-                attributeType = convertedInputs.get(attributeTypeName);
-            }
 
             builder.field(newInputObjectField()
                 .name(attribute)

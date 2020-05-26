@@ -16,9 +16,9 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
-import com.yahoo.elide.graphql.containers.MapEntryContainer;
 
 import com.google.common.collect.Sets;
 
