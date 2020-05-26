@@ -1,5 +1,15 @@
 # Change Log
 
+## 4.6.4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/96d8f4c1ad42728e75b7b841c7dad6f58d006f8f) Supported embedded entities in graphql (#1339) 
+   * [view commit](https://github.com/yahoo/elide/commit/9c6c73223c643afa1afe314a205089178ba963ed) Bump version.jersey from 2.30.1 to 2.31 (#1346) 
+   * [view commit](https://github.com/yahoo/elide/commit/86b2189c0149ae09ba027bb438b826ef72ccb477) Bump jersey-container-jetty-servlet from 2.30.1 to 2.31 (#1345) 
+   * [view commit](https://github.com/yahoo/elide/commit/e914202a877c6f7375568d17087647d58bcdf866) Bump spring.boot.version from 2.2.7.RELEASE to 2.3.0.RELEASE (#1344) 
+   * [view commit](https://github.com/yahoo/elide/commit/1cffc61af0ff3e962cf3c5f5b87e35ba54c17291) Bump metrics.version from 4.1.8 to 4.1.9 (#1343) 
+   * [view commit](https://github.com/yahoo/elide/commit/ac5f89655b7f8154853b0d84bddef45438d5fd83) Bump version.jetty from 9.4.28.v20200408 to 9.4.29.v20200521 (#1341) 
+   * [view commit](https://github.com/yahoo/elide/commit/46932c7b1cb7777653c529dcc9d5f3e889390405) Bump guava from 28.2-jre to 29.0-jre (#1340) 
+
 ## 4.6.3
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/78c90514ea02fe290907b9318b17c4977cf5b86a) Fixing Invalid CVE Build Error (The wrong package is being flagged) (#1323) 
