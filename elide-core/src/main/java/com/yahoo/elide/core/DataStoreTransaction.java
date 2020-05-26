@@ -54,7 +54,7 @@ public abstract class DataStoreTransaction implements Closeable {
      *
      * @param scope the request scope for the current request
      */
-    abstract void flush(RequestScope scope);
+    abstract public void flush(RequestScope scope);
 
     /**
      * End the current transaction.
