@@ -148,7 +148,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
      */
-    Iterable<Object> loadObjects(
+    abstract Iterable<Object> loadObjects(
             EntityProjection entityProjection,
             RequestScope scope);
 
