@@ -32,7 +32,7 @@ import java.util.Set;
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
  * If any commit fails in process, reverse any commits already completed.
  */
-public abstract class MultiplexTransaction extends DataStoreTransaction {
+public abstract class MultiplexTransaction implements DataStoreTransaction {
     protected final LinkedHashMap<DataStore, DataStoreTransaction> transactions;
     protected final MultiplexManager multiplexManager;
     protected final DataStoreTransaction lastDataStoreTransaction;

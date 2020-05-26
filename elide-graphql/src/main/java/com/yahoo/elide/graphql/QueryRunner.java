@@ -145,9 +145,8 @@ public class QueryRunner {
     private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument) {
         boolean isVerbose = false;
-        UUID requestId = null;
+        UUID requestId = UUID.randomUUID()
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-            requestId = tx.getId();
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
