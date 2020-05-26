@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ModelBuilder {
     public static final String ARGUMENT_DATA = "data";
+    public static final String ARGUMENT_INPUT = "Input";//new
     public static final String ARGUMENT_IDS = "ids";
     public static final String ARGUMENT_FILTER = "filter";
     public static final String ARGUMENT_SORT = "sort";
@@ -184,7 +185,7 @@ public class ModelBuilder {
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
-                    .type(buildConnectionObject(clazz)));
+                    .type(buildConnectionObject(clazz)));//test1
         }
 
         GraphQLObjectType queryRoot = root.build();
@@ -204,6 +205,7 @@ public class ModelBuilder {
                         inputObjectRegistry.values()
                 )));
 
+        System.out.println("*"+schema.getAllTypesAsList().toString());
         return schema;
     }
 
@@ -243,7 +245,7 @@ public class ModelBuilder {
      * @return The graphQL object
      */
     private GraphQLObjectType buildQueryObject(Class<?> entityClass) {
-        if (queryObjectRegistry.containsKey(entityClass)) {
+        if (queryObjectRegistry.containsKey(entityClass)) {//test3
             return queryObjectRegistry.get(entityClass);
         }
 
@@ -275,7 +277,7 @@ public class ModelBuilder {
                     entityClass.getName());
 
             GraphQLType attributeType =
-                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher);
+                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher);//test2
 
             if (attributeType == null) {
                 continue;
@@ -394,8 +396,9 @@ public class ModelBuilder {
 
             GraphQLInputType attributeType = generator.attributeToInputObject(clazz, attributeClass, attribute);
 
+            /* If the attribute is an object, we need to change its name so it doesn't conflict with query objects */
             if (attributeType instanceof GraphQLInputObjectType) {
-                String objectName = attributeType.getName();
+                String objectName = attributeType.getName() + ARGUMENT_INPUT;//new
                 if (!convertedInputs.containsKey(objectName)) {
                     MutableGraphQLInputObjectType wrappedType =
                             new MutableGraphQLInputObjectType(
