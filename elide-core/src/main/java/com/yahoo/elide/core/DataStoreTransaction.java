@@ -199,7 +199,7 @@ public abstract class DataStoreTransaction extends Closeable {
      * @param relationshipValue - the new value of the updated one-to-one relationship
      * @param scope - contains request level metadata.
      */
-    default void updateToOneRelation(DataStoreTransaction relationTx,
+    void updateToOneRelation(DataStoreTransaction relationTx,
                                      Object entity,
                                      String relationName,
                                      Object relationshipValue,
