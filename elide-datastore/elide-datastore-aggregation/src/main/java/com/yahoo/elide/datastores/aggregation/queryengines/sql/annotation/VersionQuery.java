@@ -12,7 +12,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Provides a SQL query for getting a table version number.
+ * Provides a SQL query for getting a table version string.
  */
 @Documented
 @Target({ElementType.TYPE})
