@@ -52,7 +52,7 @@ public class GraphQLConversionUtils {
 
     private final Map<Class<?>, GraphQLScalarType> scalarMap = new HashMap<>();
 
-    protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+    protected NonEntityDictionary nonEntityDictionary;
     protected EntityDictionary entityDictionary;
 
     private final Map<Class, GraphQLObjectType> outputConversions = new HashMap<>();

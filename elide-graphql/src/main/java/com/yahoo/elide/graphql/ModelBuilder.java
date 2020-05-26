@@ -52,6 +52,7 @@ public class ModelBuilder {
     public static final String OBJECT_QUERY = "Query";
 
     private EntityDictionary entityDictionary;
+    private NonEntityDictionary nonEntityDictionary;
     private DataFetcher dataFetcher;
     private GraphQLArgument relationshipOpArg;
     private GraphQLArgument idArgument;
@@ -84,6 +85,7 @@ public class ModelBuilder {
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
         this.entityDictionary = entityDictionary;
+        this.nonEntityDictionary = nonEntityDictionary;
         this.dataFetcher = dataFetcher;
         this.apiVersion = apiVersion;
 
@@ -293,8 +295,9 @@ public class ModelBuilder {
                 continue;
             }
 
-            //String relationshipEntityName = entityDictionary.getJsonAliasFor(relationshipClass);
+            // this leads to two test case failure
             String relationshipEntityName = nameUtils.toConnectionName(relationshipClass);
+            //tests wont work//String relationshipEntityName = entityDictionary.getJsonAliasFor(relationshipClass);
             RelationshipType type = entityDictionary.getRelationshipType(entityClass, relationship);
 
             if (type.isToOne()) {
