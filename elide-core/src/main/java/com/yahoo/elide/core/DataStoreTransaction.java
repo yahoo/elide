@@ -70,7 +70,7 @@ public interface DataStoreTransaction extends Closeable {
      * 3. transaction.save(...); - Invoked for every object which changed in the transaction.
      * 4. transaction.flush();
      * 5. transaction.commit();
-     * */
+     */
     default void preCommit() {
     }
 
@@ -170,16 +170,16 @@ public interface DataStoreTransaction extends Closeable {
     }
 
     /**
- *      * Elide core will update the in memory representation of the objects to the requested state.
- *           * These functions allow a data store to optionally persist the relationship if needed.
- *                *
- *                     * @param relationTx - The datastore that governs objects of the relationhip's type.
- *                          * @param entity - The object which owns the relationship.
- *                               * @param relationName - name of the relationship.
- *                                    * @param newRelationships - the set of the added relationship to the collection.
- *                                         * @param deletedRelationships - the set of the deleted relationship to the collection.
- *                                              * @param scope - contains request level metadata.
- *                                                   */
+     * Elide core will update the in memory representation of the objects to the requested state.
+     * These functions allow a data store to optionally persist the relationship if needed.
+     *
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationName - name of the relationship.
+     * @param newRelationships - the set of the added relationship to the collection.
+     * @param deletedRelationships - the set of the deleted relationship to the collection.
+     * @param scope - contains request level metadata.
+     */
     default void updateToManyRelation(DataStoreTransaction relationTx,
                                       Object entity,
                                       String relationName,
@@ -238,7 +238,7 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Whether or not the transaction can filter the provided class with the provided expression.
      * @param entityClass The class to filter
-     * @param expression The filter expressio* @return FULL, PARTIAL, or NONE
+     * @param expression The filter expression
      * @return FULL, PARTIAL, or NONE
      */
     default FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
