@@ -39,7 +39,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param entity - the object to save.
      * @param scope - contains request level metadata.
      */
-    abstract void save(Object entity, RequestScope scope);
+    abstract public void save(Object entity, RequestScope scope);
 
     /**
      * Delete the object.
@@ -47,7 +47,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param entity - the object to delete.
      * @param scope - contains request level metadata.
      */
-    abstract void delete(Object entity, RequestScope scope);
+    abstract public void delete(Object entity, RequestScope scope);
 
     /**
      * Write any outstanding entities before processing response.
@@ -61,7 +61,7 @@ public abstract class DataStoreTransaction implements Closeable {
      *
      * @param scope the request scope for the current request
      */
-    abstract void commit(RequestScope scope);
+    abstract public void commit(RequestScope scope);
 
     /**
      * Called before commit checks are evaluated and before save, flush, and commit are called.
@@ -72,7 +72,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * 4. transaction.flush();
      * 5. transaction.commit();
      */
-    void preCommit() {
+    public void preCommit() {
     }
 
     /**
@@ -83,7 +83,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param entity - the object to create in the data store.
      * @param scope - contains request level metadata.
      */
-    abstract void createObject(Object entity, RequestScope scope);
+    abstract public void createObject(Object entity, RequestScope scope);
 
     /**
      * Create a new instance of an object.
@@ -92,7 +92,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param <T> the class to create
      * @return a new instance of type T
      */
-    <T> T createNewObject(Class<T> entityClass) {
+    public <T> T createNewObject(Class<T> entityClass) {
         T obj;
         try {
             obj = entityClass.newInstance();
@@ -112,7 +112,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
-    Object loadObject(EntityProjection entityProjection,
+    public Object loadObject(EntityProjection entityProjection,
                               Serializable id,
                               RequestScope scope) {
         Class<?> entityClass = entityProjection.getType();
@@ -148,7 +148,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
      */
-    abstract Iterable<Object> loadObjects(
+    abstract public Iterable<Object> loadObjects(
             EntityProjection entityProjection,
             RequestScope scope);
 
@@ -161,7 +161,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param scope - contains request level metadata.
      * @return the object in the relation
      */
-    Object getRelation(
+    public Object getRelation(
             DataStoreTransaction relationTx,
             Object entity,
             Relationship relationship,
@@ -181,7 +181,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param deletedRelationships - the set of the deleted relationship to the collection.
      * @param scope - contains request level metadata.
      */
-    void updateToManyRelation(DataStoreTransaction relationTx,
+    public void updateToManyRelation(DataStoreTransaction relationTx,
                                       Object entity,
                                       String relationName,
                                       Set<Object> newRelationships,
@@ -199,7 +199,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param relationshipValue - the new value of the updated one-to-one relationship
      * @param scope - contains request level metadata.
      */
-    void updateToOneRelation(DataStoreTransaction relationTx,
+    public void updateToOneRelation(DataStoreTransaction relationTx,
                                      Object entity,
                                      String relationName,
                                      Object relationshipValue,
@@ -214,7 +214,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param scope - contains request level metadata.
      * @return the value of the attribute
      */
-    Object getAttribute(Object entity,
+    public Object getAttribute(Object entity,
                                 Attribute attribute,
                                 RequestScope scope) {
         return PersistentResource.getValue(entity, attribute.getName(), scope);
@@ -231,7 +231,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param attribute - the attribute to set.
      * @param scope - contains request level metadata.
      */
-    void setAttribute(Object entity,
+    public void setAttribute(Object entity,
                               Attribute attribute,
                               RequestScope scope) {
     }
@@ -242,7 +242,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param expression The filter expression
      * @return FULL, PARTIAL, or NONE
      */
-    FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
         return FeatureSupport.FULL;
     }
 
@@ -251,7 +251,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param entityClass The entity class that is being sorted.
      * @return true if sorting is possible
      */
-        boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
+     public boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
         return true;
     }
 
@@ -261,7 +261,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @param expression The filter expression
      * @return true if pagination is possible
      */
-    boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
+    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
     }
 
@@ -269,7 +269,7 @@ public abstract class DataStoreTransaction implements Closeable {
      * @return UUID of transaction
      *
      */
-    UUID getId() {
+    public UUID getId() {
         return this.transactionID;
     }
 }
