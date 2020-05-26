@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>4.3.2.Final</version>
+            <version>6.1.5.Final</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
