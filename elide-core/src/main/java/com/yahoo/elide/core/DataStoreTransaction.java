@@ -32,7 +32,7 @@ public abstract class DataStoreTransaction extends Closeable {
         PARTIAL,
         NONE
     }
-    UUID TRANSACTION_ID = UUID.randomUUID();
+    private final UUID transactionID = UUID.randomUUID();
     /**
      * Save the updated object.
      *
@@ -270,6 +270,6 @@ public abstract class DataStoreTransaction extends Closeable {
      *
      */
     UUID getId() {
-        return this.TRANSACTION_ID;
+        return this.transactionID;
     }
 }
