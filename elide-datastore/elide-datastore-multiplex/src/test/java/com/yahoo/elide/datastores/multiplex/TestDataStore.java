@@ -18,7 +18,7 @@ import java.io.Serializable;
 
 import javax.persistence.Entity;
 
-class TestDataStore implements DataStore, DataStoreTransaction {
+class TestDataStore extends DataStoreTransaction implements DataStore {
 
     private final Package beanPackage;
 

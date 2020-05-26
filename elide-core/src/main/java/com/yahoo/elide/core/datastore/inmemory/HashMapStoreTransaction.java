@@ -27,7 +27,7 @@ import javax.persistence.GeneratedValue;
 /**
  * HashMapDataStore transaction handler.
  */
-public class HashMapStoreTransaction implements DataStoreTransaction {
+public class HashMapStoreTransaction extends DataStoreTransaction {
     private final Map<Class<?>, Map<String, Object>> dataStore;
     private final List<Operation> operations;
     private final EntityDictionary dictionary;

@@ -48,7 +48,7 @@ import java.util.Optional;
  * Hibernate Transaction implementation.
  */
 @Slf4j
-public class HibernateTransaction implements DataStoreTransaction {
+public class HibernateTransaction extends DataStoreTransaction {
 
     private final Session session;
     private final SessionWrapper sessionWrapper;

@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 
-public class DataStoreTransactionTest implements DataStoreTransaction {
+public class DataStoreTransactionTest extends DataStoreTransaction {
     private static final String NAME = "name";
     private static final Attribute NAME_ATTRIBUTE = Attribute.builder().name(NAME).type(String.class).build();
     private static final String ENTITY = "entity";

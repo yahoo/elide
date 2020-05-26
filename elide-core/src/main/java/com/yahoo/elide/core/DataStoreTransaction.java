@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * Wraps the Database Transaction type.
  */
-public interface DataStoreTransaction extends Closeable {
+public abstract class DataStoreTransaction extends Closeable {
 
     /**
      * The extent to which the transaction supports a particular feature.
@@ -32,13 +32,14 @@ public interface DataStoreTransaction extends Closeable {
         PARTIAL,
         NONE
     }
+    UUID TRANSACTION_ID = UUID.randomUUID();
     /**
      * Save the updated object.
      *
      * @param entity - the object to save.
      * @param scope - contains request level metadata.
      */
-    void save(Object entity, RequestScope scope);
+    abstract void save(Object entity, RequestScope scope);
 
     /**
      * Delete the object.
@@ -46,21 +47,21 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - the object to delete.
      * @param scope - contains request level metadata.
      */
-    void delete(Object entity, RequestScope scope);
+    abstract void delete(Object entity, RequestScope scope);
 
     /**
      * Write any outstanding entities before processing response.
      *
      * @param scope the request scope for the current request
      */
-    void flush(RequestScope scope);
+    abstract void flush(RequestScope scope);
 
     /**
      * End the current transaction.
      *
      * @param scope the request scope for the current request
      */
-    void commit(RequestScope scope);
+    abstract void commit(RequestScope scope);
 
     /**
      * Called before commit checks are evaluated and before save, flush, and commit are called.
@@ -71,7 +72,7 @@ public interface DataStoreTransaction extends Closeable {
      * 4. transaction.flush();
      * 5. transaction.commit();
      */
-    default void preCommit() {
+    void preCommit() {
     }
 
     /**
@@ -82,7 +83,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - the object to create in the data store.
      * @param scope - contains request level metadata.
      */
-    void createObject(Object entity, RequestScope scope);
+    abstract void createObject(Object entity, RequestScope scope);
 
     /**
      * Create a new instance of an object.
@@ -91,7 +92,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param <T> the class to create
      * @return a new instance of type T
      */
-    default <T> T createNewObject(Class<T> entityClass) {
+    <T> T createNewObject(Class<T> entityClass) {
         T obj;
         try {
             obj = entityClass.newInstance();
@@ -111,7 +112,7 @@ public interface DataStoreTransaction extends Closeable {
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
-    default Object loadObject(EntityProjection entityProjection,
+    Object loadObject(EntityProjection entityProjection,
                               Serializable id,
                               RequestScope scope) {
         Class<?> entityClass = entityProjection.getType();
@@ -160,7 +161,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      * @return the object in the relation
      */
-    default Object getRelation(
+    Object getRelation(
             DataStoreTransaction relationTx,
             Object entity,
             Relationship relationship,
@@ -180,7 +181,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param deletedRelationships - the set of the deleted relationship to the collection.
      * @param scope - contains request level metadata.
      */
-    default void updateToManyRelation(DataStoreTransaction relationTx,
+    void updateToManyRelation(DataStoreTransaction relationTx,
                                       Object entity,
                                       String relationName,
                                       Set<Object> newRelationships,
@@ -213,7 +214,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      * @return the value of the attribute
      */
-    default Object getAttribute(Object entity,
+    Object getAttribute(Object entity,
                                 Attribute attribute,
                                 RequestScope scope) {
         return PersistentResource.getValue(entity, attribute.getName(), scope);
@@ -230,7 +231,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param attribute - the attribute to set.
      * @param scope - contains request level metadata.
      */
-    default void setAttribute(Object entity,
+    void setAttribute(Object entity,
                               Attribute attribute,
                               RequestScope scope) {
     }
@@ -241,7 +242,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param expression The filter expression
      * @return FULL, PARTIAL, or NONE
      */
-    default FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+    FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
         return FeatureSupport.FULL;
     }
 
@@ -250,7 +251,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entityClass The entity class that is being sorted.
      * @return true if sorting is possible
      */
-    default boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
+        boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
         return true;
     }
 
@@ -260,7 +261,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param expression The filter expression
      * @return true if pagination is possible
      */
-    default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
+    boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
     }
 
@@ -268,7 +269,7 @@ public interface DataStoreTransaction extends Closeable {
      * @return UUID of transaction
      *
      */
-    default UUID getId() {
-        return UUID.randomUUID();
+    UUID getId() {
+        return this.TRANSACTION_ID;
     }
 }
