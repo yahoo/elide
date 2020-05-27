@@ -263,5 +263,5 @@ public interface DataStoreTransaction extends Closeable {
         return true;
     }
 
-    void UUID getRequestId();
+    UUID getRequestId();
 }
