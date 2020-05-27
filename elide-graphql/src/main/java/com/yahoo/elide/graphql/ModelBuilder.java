@@ -150,7 +150,7 @@ public class ModelBuilder {
      * @return The built schema.
      */
     public GraphQLSchema build() {
-    	
+
         Set<Class<?>> allClasses = entityDictionary.getBoundClassesByVersion(apiVersion);
 
         if (allClasses.isEmpty()) {
@@ -199,7 +199,6 @@ public class ModelBuilder {
                         inputObjectRegistry.values()
                 )));
 
-        System.out.println("*"+schema.getAllTypesAsList().toString());
         return schema;
     }
 
@@ -271,7 +270,7 @@ public class ModelBuilder {
                     entityClass.getName());
 
             GraphQLType attributeType =
-                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher);//test2
+                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher);
 
             if (attributeType == null) {
                 continue;

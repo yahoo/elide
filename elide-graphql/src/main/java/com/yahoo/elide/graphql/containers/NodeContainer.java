@@ -66,7 +66,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
 
             return attribute;
         }
-        
+
         if (entityDictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
             // get the relationship from constructed projections
             Relationship relationship = context.requestScope

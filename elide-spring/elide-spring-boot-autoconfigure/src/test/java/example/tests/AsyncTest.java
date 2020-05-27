@@ -18,7 +18,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.HttpStatus;
 
 import org.junit.jupiter.api.Test;
@@ -83,21 +82,21 @@ public class AsyncTest extends IntegrationTest {
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"));
-                
+
                 // Validate AsyncQueryResult Response
                 given()
                         .accept("application/vnd.api+json")
-                        .get("/json/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d/result")
+                        .get("/json/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
                         .then()
                         .statusCode(HttpStatus.SC_OK)
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.result.contentLength", notNullValue())
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":"
-                        		+ "[{\"type\":\"group\",\"id\":\"com.example.repository\",\"attributes\":"
+                                + "[{\"type\":\"group\",\"id\":\"com.example.repository\",\"attributes\":"
                                 + "{\"commonName\":\"Example Repository\",\"deprecated\":false,\"description\":\"The code for this project\"},"
                                 + "\"relationships\":{\"products\":{\"data\":[]}}}]}"));
-                
+
                 // Validate GraphQL Response
                 String responseGraphQL = given()
                         .contentType(MediaType.APPLICATION_JSON)
@@ -116,5 +115,4 @@ public class AsyncTest extends IntegrationTest {
             }
         }
     }
-    
 }
