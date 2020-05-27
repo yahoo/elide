@@ -17,37 +17,40 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+<<<<<<< HEAD
 import com.google.common.collect.Maps;
 import com.yahoo.elide.async.models.ResultType;
+=======
+>>>>>>> a2e1ef33de35f0ffe253d00adbdbecd0fa8b3867
 import com.yahoo.elide.async.service.AsyncQueryDAO;
-import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
-import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+
 import example.models.Post;
-import io.restassured.response.Response;
-import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.List;
+import io.restassured.response.Response;
+
 import java.util.Properties;
 
+import javax.ws.rs.core.MediaType;
+
 /**
- * Tests ElideStandalone starts and works
+ * Tests ElideStandalone starts and works.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneTest {
@@ -80,26 +83,20 @@ public class ElideStandaloneTest {
             }
 
             @Override
-            public List<DocEndpoint.SwaggerRegistration> enableSwagger() {
-                EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
-
-                dictionary.bindEntity(Post.class);
-                Info info = new Info().title("Test Service");
-
-                SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
-                Swagger swagger = builder.build();
-
-                List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
-                docs.add(new DocEndpoint.SwaggerRegistration("test", swagger));
-                return docs;
+            public boolean enableSwagger() {
+                return true;
             }
 
 
             @Override
-            public boolean enableGraphQL() { return true; }
+            public boolean enableGraphQL() {
+                return true;
+            }
 
             @Override
-            public boolean enableJSONAPI() { return true; }
+            public boolean enableJSONAPI() {
+                return true;
+            }
 
             @Override
             public boolean enableAsync() {
@@ -129,6 +126,16 @@ public class ElideStandaloneTest {
             @Override
             public AsyncQueryDAO getAsyncQueryDAO() {
                 return null;
+            }
+
+            @Override
+            public boolean enableDynamicModelConfig() {
+                return true;
+            }
+
+            @Override
+            public String getDynamicConfigPath() {
+                return "src/test/resources/models/";
             }
         });
         elide.start(false);
@@ -160,6 +167,16 @@ public class ElideStandaloneTest {
             .then()
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
+
+        // Test the Dynamic Generated Analytical Model is accessible
+        given()
+            .when()
+            .get("/api/v1/postView")
+            .then()
+            .statusCode(200)
+            .body("data.id", hasItems("0"))
+            .body("data.attributes.content", hasItems("This is my first post. woot."));
+
     }
 
     @Test
@@ -222,7 +239,7 @@ public class ElideStandaloneTest {
 
     @Test
     public void testHealthCheckServlet() throws Exception {
-            given()
+        given()
                 .when()
                 .get("/stats/healthcheck")
                 .then()
@@ -236,6 +253,17 @@ public class ElideStandaloneTest {
                 .get("/swagger/doc/test")
                 .then()
                 .statusCode(200);
+    }
+
+    @Test
+    public void swaggerDocumentTest() {
+        when()
+               .get("/swagger/doc/test")
+                .then()
+                .statusCode(200)
+                .body("tags.name", containsInAnyOrder("post", "functionArgument", "metric",
+                        "metricFunction", "dimension", "column", "table", "asyncQuery", "asyncQueryResult",
+                        "timeDimensionGrain", "timeDimension", "postView"));
     }
 
     @Test
@@ -322,4 +350,3 @@ public class ElideStandaloneTest {
         }
     }
 }
-

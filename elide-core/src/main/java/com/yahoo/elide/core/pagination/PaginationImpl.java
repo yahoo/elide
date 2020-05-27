@@ -64,17 +64,18 @@ public class PaginationImpl implements Pagination {
     private static final String PAGE_KEYS_CSV = PAGE_KEYS.keySet().stream().collect(Collectors.joining(", "));
 
     @Getter
-    private Integer offset;
+    private final int offset;
 
     @Getter
-    private Integer limit;
+    private final int limit;
 
-    private Boolean generateTotals;
-
-    private Boolean isDefault;
+    private final boolean generateTotals;
 
     @Getter
-    private Class<?> entityClass;
+    private final boolean defaultInstance;
+
+    @Getter
+    private final Class<?> entityClass;
 
     /**
      * Constructor.
@@ -95,7 +96,7 @@ public class PaginationImpl implements Pagination {
                            Boolean pageByPages) {
 
         this.entityClass = entityClass;
-        this.isDefault = (clientOffset == null && clientLimit == null && generateTotals == null);
+        this.defaultInstance = (clientOffset == null && clientLimit == null && generateTotals == null);
 
         Paginate paginate = entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
 
@@ -107,7 +108,7 @@ public class PaginationImpl implements Pagination {
 
         String pageSizeLabel = pageByPages ? "size" : "limit";
 
-        if (limit > maxLimit && !isDefault) {
+        if (limit > maxLimit && !defaultInstance) {
             throw new InvalidValueException("Pagination "
                     + pageSizeLabel + " must be less than or equal to " + maxLimit);
         }
@@ -138,17 +139,8 @@ public class PaginationImpl implements Pagination {
      * @return true if page totals should be returned.
      */
     @Override
-    public Boolean returnPageTotals() {
+    public boolean returnPageTotals() {
         return generateTotals;
-    }
-
-    /**
-     * Whether or not the client requested pagination or the system defaults are in effect.
-     * @return True if the system defaults are in effect.
-     */
-    @Override
-    public Boolean isDefaultInstance() {
-        return isDefault;
     }
 
     /**
