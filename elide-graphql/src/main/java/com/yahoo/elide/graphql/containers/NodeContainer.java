@@ -40,9 +40,9 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
         String idFieldName = entityDictionary.getIdFieldName(parentClass);
 
         if (entityDictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-        	Attribute requested = context.requestScope.getProjectionInfo()
+            Attribute requested = context.requestScope.getProjectionInfo()
                     .getAttributeMap().getOrDefault(context.field.getSourceLocation(), null);
-        	Object attribute = context.parentResource.getAttribute(requested);
+            Object attribute = context.parentResource.getAttribute(requested);
 
             if (attribute != null && nonEntityDictionary.hasBinding(attribute.getClass())) {
                 return new NonEntityContainer(attribute);

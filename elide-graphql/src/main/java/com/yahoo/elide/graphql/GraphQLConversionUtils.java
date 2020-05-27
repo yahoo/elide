@@ -152,7 +152,7 @@ public class GraphQLConversionUtils {
             return mapConversions.get(mapName);
         }
 
-        GraphQLOutputType keyType = fetchScalarOrObjectOutput(keyClazz, fetcher);//test8
+        GraphQLOutputType keyType = fetchScalarOrObjectOutput(keyClazz, fetcher);
         GraphQLOutputType valueType = fetchScalarOrObjectOutput(valueClazz, fetcher);
 
         GraphQLList outputMap = new GraphQLList(
@@ -271,7 +271,7 @@ public class GraphQLConversionUtils {
         /* If the attribute is a collection */
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
             /* Extract the collection type */
-            Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);//test8
+            Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
 
             // If this is a collection of a boxed type scalar, we want to unwrap it properly
             return new GraphQLList(fetchScalarOrObjectOutput(listType, fetcher));
@@ -354,7 +354,7 @@ public class GraphQLConversionUtils {
     public GraphQLObjectType classToQueryObject(
             Class<?> clazz,
             DataFetcher fetcher) {
-        log.info("Building query object for type: {}", clazz.getName());//test6
+        log.info("Building query object for type: {}", clazz.getName());
 
         if (!nonEntityDictionary.hasBinding(clazz)) {
             nonEntityDictionary.bindEntity(clazz);
@@ -375,7 +375,7 @@ public class GraphQLConversionUtils {
                     .name(attribute)
                     .dataFetcher(fetcher);
 
-            GraphQLOutputType attributeType =//test7
+            GraphQLOutputType attributeType =
                     attributeToQueryObject(clazz,
                             attributeClass, attribute, fetcher, nonEntityDictionary);
             if (attributeType == null) {
@@ -477,7 +477,7 @@ public class GraphQLConversionUtils {
     private GraphQLOutputType fetchScalarOrObjectOutput(Class<?> conversionClass,
                                                         DataFetcher fetcher) {
         /* If class is enum, provide enum type */
-        if (conversionClass.isEnum()) {//test5
+        if (conversionClass.isEnum()) {
             return classToEnumType(conversionClass);
         }
 
@@ -485,7 +485,7 @@ public class GraphQLConversionUtils {
         GraphQLOutputType outputType = classToScalarType(conversionClass);
         if (outputType == null) {
                 /* Attempt to convert an object type */
-            outputType = classToQueryObject(conversionClass, fetcher);//test4
+            outputType = classToQueryObject(conversionClass, fetcher);
         }
         return outputType;
     }

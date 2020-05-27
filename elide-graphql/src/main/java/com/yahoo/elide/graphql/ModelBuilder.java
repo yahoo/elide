@@ -19,7 +19,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -41,7 +40,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ModelBuilder {
     public static final String ARGUMENT_DATA = "data";
-    public static final String ARGUMENT_INPUT = "Input";//new
     public static final String ARGUMENT_IDS = "ids";
     public static final String ARGUMENT_FILTER = "filter";
     public static final String ARGUMENT_SORT = "sort";
@@ -53,7 +51,6 @@ public class ModelBuilder {
     public static final String OBJECT_QUERY = "Query";
 
     private EntityDictionary entityDictionary;
-    private NonEntityDictionary nonEntityDictionary;
     private DataFetcher dataFetcher;
     private GraphQLArgument relationshipOpArg;
     private GraphQLArgument idArgument;
@@ -71,10 +68,8 @@ public class ModelBuilder {
     private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
-    private HashMap<String, GraphQLInputType> convertedInputs = new HashMap<>();
-
     /**
-     * Class constructor, constructs the custom arguments to handle mutations
+     * Class constructor, constructs the custom arguments to handle mutations.
      * @param entityDictionary elide entity dictionary
      * @param nonEntityDictionary elide non-entity dictionary
      * @param dataFetcher graphQL data fetcher
@@ -86,7 +81,6 @@ public class ModelBuilder {
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
         this.entityDictionary = entityDictionary;
-        this.nonEntityDictionary = nonEntityDictionary;
         this.dataFetcher = dataFetcher;
         this.apiVersion = apiVersion;
 
@@ -185,7 +179,7 @@ public class ModelBuilder {
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
-                    .type(buildConnectionObject(clazz)));//test1
+                    .type(buildConnectionObject(clazz)));
         }
 
         GraphQLObjectType queryRoot = root.build();
@@ -245,7 +239,7 @@ public class ModelBuilder {
      * @return The graphQL object
      */
     private GraphQLObjectType buildQueryObject(Class<?> entityClass) {
-        if (queryObjectRegistry.containsKey(entityClass)) {//test3
+        if (queryObjectRegistry.containsKey(entityClass)) {
             return queryObjectRegistry.get(entityClass);
         }
 
@@ -395,27 +389,6 @@ public class ModelBuilder {
                     clazz.getName());
 
             GraphQLInputType attributeType = generator.attributeToInputObject(clazz, attributeClass, attribute);
-
-            /* If the attribute is an object, we need to change its name so it doesn't conflict with query objects */
-            if (attributeType instanceof GraphQLInputObjectType) {
-                String objectName = attributeType.getName() + ARGUMENT_INPUT;//new
-                if (!convertedInputs.containsKey(objectName)) {
-                    MutableGraphQLInputObjectType wrappedType =
-                            new MutableGraphQLInputObjectType(
-                                    objectName,
-                                    ((GraphQLInputObjectType) attributeType).getDescription(),
-                                    ((GraphQLInputObjectType) attributeType).getFields()
-                            );
-                    convertedInputs.put(objectName, wrappedType);
-                    attributeType = wrappedType;
-                } else {
-                    attributeType = convertedInputs.get(objectName);
-                }
-            } else {
-                String attributeTypeName = attributeType.getName();
-                convertedInputs.putIfAbsent(attributeTypeName, attributeType);
-                attributeType = convertedInputs.get(attributeTypeName);
-            }
 
             builder.field(newInputObjectField()
                 .name(attribute)

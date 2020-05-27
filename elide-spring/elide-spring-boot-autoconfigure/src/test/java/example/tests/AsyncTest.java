@@ -6,9 +6,6 @@
 package example.tests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
@@ -85,10 +82,8 @@ public class AsyncTest extends IntegrationTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.relationships.result.data.type", equalTo("asyncQueryResult"))
-                        .body("data.relationships.result.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
-
+                        .body("data.attributes.status", equalTo("COMPLETE"));
+                
                 // Validate AsyncQueryResult Response
                 given()
                         .accept("application/vnd.api+json")
@@ -96,49 +91,25 @@ public class AsyncTest extends IntegrationTest {
                         .then()
                         .statusCode(HttpStatus.SC_OK)
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
-                        .body("data.type", equalTo("asyncQueryResult"))
-                        .body("data.attributes.contentLength", notNullValue())
-                        .body("data.attributes.responseBody", equalTo("{\"data\":"
-                                + "[{\"type\":\"group\",\"id\":\"com.example.repository\",\"attributes\":"
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.responseBody", equalTo("{\"data\":"
+                        		+ "[{\"type\":\"group\",\"id\":\"com.example.repository\",\"attributes\":"
                                 + "{\"commonName\":\"Example Repository\",\"deprecated\":false,\"description\":\"The code for this project\"},"
-                                + "\"relationships\":{\"products\":{\"data\":[]}}}]}"))
-                        .body("data.attributes.status", equalTo(200))
-                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()))
-                        .body("data.relationships.query.data.type", equalTo("asyncQuery"))
-                        .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
-
+                                + "\"relationships\":{\"products\":{\"data\":[]}}}]}"));
+                
                 // Validate GraphQL Response
                 String responseGraphQL = given()
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
                                 + "{ edges { node { id queryType status result "
-                                + "{ edges { node { id responseBody status} } } } } } }\","
-                                + "\"variables\":null}")
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                                + "\"variables\":null }")
                         .post("/graphql")
                         .asString();
 
-                String expectedResponse = document(
-                        selections(
-                                field(
-                                        "asyncQuery",
-                                        selections(
-                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
-                                                field("queryType", "JSONAPI_V1_0"),
-                                                field("status", "COMPLETE"),
-                                                field("result",
-                                                        selections(
-                                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
-                                                                field("responseBody", "{\\\"data\\\":"
-                                                                        + "[{\\\"type\\\":\\\"group\\\",\\\"id\\\":\\\"com.example.repository\\\","
-                                                                        + "\\\"attributes\\\":{\\\"commonName\\\":\\\"Example Repository\\\",\\\"deprecated\\\":false,\\\"description\\\":\\\"The code for this project\\\"}"
-                                                                        + ",\\\"relationships\\\":{\\\"products\\\":{\\\"data\\\":[]}}}]}"),
-                                                                field("status", 200)
-                                                        ))
-                                        )
-                                )
-                        )
-                ).toResponse();
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"group\\\",\\\"id\\\":\\\"com.example.repository\\\",\\\"attributes\\\":{\\\"commonName\\\":\\\"Example Repository\\\",\\\"deprecated\\\":false,\\\"description\\\":\\\"The code for this project\\\"},\\\"relationships\\\":{\\\"products\\\":{\\\"data\\\":[]}}}]}\",\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":208}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;

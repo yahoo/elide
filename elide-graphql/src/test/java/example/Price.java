@@ -33,7 +33,6 @@ public class Price {
             super(Price.class);
         }
 
-
         @Override
         public Price deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
             JsonNode node = parser.getCodec().readTree(parser);
