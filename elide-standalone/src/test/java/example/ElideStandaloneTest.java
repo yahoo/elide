@@ -279,28 +279,24 @@ public class ElideStandaloneTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.relationships.result.data.type", equalTo("asyncQueryResult"))
-                        .body("data.relationships.result.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
+                        .body("data.attributes.status", equalTo("COMPLETE"));
 
                 // Validate AsyncQueryResult Response
                 given()
                         .accept("application/vnd.api+json")
-                        .get("/api/v1/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d/result")
+                        .get("/api/v1/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
                         .then()
                         .statusCode(com.yahoo.elide.core.HttpStatus.SC_OK)
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
-                        .body("data.type", equalTo("asyncQueryResult"))
-                        .body("data.attributes.contentLength", notNullValue())
-                        .body("data.attributes.responseBody", equalTo("{\"data\":"
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                                 + "[{\"type\":\"post\",\"id\":\"2\","
                                 + "\"attributes\":{\"abusiveContent\":false,"
                                 + "\"content\":\"This is my first post. woot.\","
                                 + "\"date\":\"2019-01-01T00:00Z\"}}]}"))
-                        .body("data.attributes.status", equalTo(200))
-                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()))
-                        .body("data.relationships.query.data.type", equalTo("asyncQuery"))
-                        .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
+                        .body("data.attributes.result.httpStatus", equalTo(200))
+                        .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
@@ -308,33 +304,12 @@ public class ElideStandaloneTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
                                 + "{ edges { node { id queryType status result "
-                                + "{ edges { node { id responseBody status} } } } } } }\","
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\","
                                 + "\"variables\":null}")
                         .post("/graphql/api/v1/")
                         .asString();
 
-                String expectedResponse = document(
-                        selections(
-                                field(
-                                        "asyncQuery",
-                                        selections(
-                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
-                                                field("queryType", "JSONAPI_V1_0"),
-                                                field("status", "COMPLETE"),
-                                                field("result",
-                                                        selections(
-                                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
-                                                                field("responseBody", "{\\\"data\\\":"
-                                                                        + "[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\","
-                                                                        + "\\\"attributes\\\":{\\\"abusiveContent\\\":false,"
-                                                                        + "\\\"content\\\":\\\"This is my first post. woot.\\\""
-                                                                        + ",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"}}]}"),
-                                                                field("status", 200)
-                                                        ))
-                                        )
-                                )
-                        )
-                ).toResponse();
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"}}]}\",\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":141}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;

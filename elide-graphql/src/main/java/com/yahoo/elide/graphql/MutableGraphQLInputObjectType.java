@@ -88,7 +88,7 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
     }
 
     /**
-     * Builder for constructing MutableGraphQLInputObjectType
+     * Builder for constructing MutableGraphQLInputObjectType.
      */
     public static class Builder {
         private String name;

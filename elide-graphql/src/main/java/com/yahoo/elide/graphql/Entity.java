@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Represents a GraphQL Input Object
+ * Represents a GraphQL Input Object.
  */
 public class Entity {
     @Getter private Optional<Entity> parentResource;
@@ -141,7 +141,7 @@ public class Entity {
     }
 
     /**
-     * Get an Attribute with name
+     * Get an Attribute with name.
      * @param name Name of attribute
      * @return Attribute
      */
