@@ -19,9 +19,12 @@ import java.io.IOException;
  * Transaction handler for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
-    private QueryEngine queryEngine;
+    private final QueryEngine queryEngine;
+    private final QueryEngine.Transaction queryEngineTransaction;
+
     public AggregationDataStoreTransaction(QueryEngine queryEngine) {
         this.queryEngine = queryEngine;
+        this.queryEngineTransaction = queryEngine.beginTransaction();
     }
 
     @Override
@@ -41,7 +44,7 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
 
     @Override
     public void commit(RequestScope scope) {
-
+        queryEngineTransaction.close();
     }
 
     @Override
@@ -52,7 +55,7 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         Query query = buildQuery(entityProjection, scope);
-        QueryResult result = queryEngine.executeQuery(query);
+        QueryResult result = queryEngine.executeQuery(query, queryEngineTransaction);
         if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
             entityProjection.getPagination().setPageTotals(result.getPageTotals());
         }
@@ -61,7 +64,7 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
 
     @Override
     public void close() throws IOException {
-
+        queryEngineTransaction.close();
     }
 
     @VisibleForTesting
