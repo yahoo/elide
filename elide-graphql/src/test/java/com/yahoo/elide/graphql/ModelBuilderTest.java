@@ -17,12 +17,15 @@ import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.EntityDictionary;
-
 import com.yahoo.elide.request.Sorting;
+
 import example.Author;
 import example.Book;
 import example.Publisher;
 
+import example.models.inheritance.Character;
+import example.models.inheritance.Droid;
+import example.models.inheritance.Hero;
 import org.junit.jupiter.api.Test;
 
 import graphql.Scalars;
@@ -30,6 +33,7 @@ import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
@@ -57,6 +61,9 @@ public class ModelBuilderTest {
     private static final String PAGE_INFO = "pageInfo";
 
     private static final String TYPE_QUERY = "Query";
+    private static final String TYPE_CHARACTER = "Character";
+    private static final String TYPE_DROID = "Droid";
+    private static final String TYPE_HERO = "Hero";
     private static final String TYPE_BOOK_CONNECTION = "BookConnection";
     private static final String TYPE_BOOK_INPUT = "BookInput";
     private static final String TYPE_BOOK = "Book";
@@ -92,6 +99,9 @@ public class ModelBuilderTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(Droid.class);
+        dictionary.bindEntity(Hero.class);
+        dictionary.bindEntity(Character.class);
     }
 
     @Test
@@ -148,11 +158,11 @@ public class ModelBuilderTest {
 
         GraphQLSchema schema = builder.build();
 
-        assertNotEquals(schema.getType(TYPE_AUTHOR_CONNECTION), null);
-        assertNotEquals(schema.getType(TYPE_BOOK_CONNECTION), null);
-        assertNotEquals(schema.getType(TYPE_AUTHOR_INPUT), null);
-        assertNotEquals(schema.getType(TYPE_BOOK_INPUT), null);
-        assertNotEquals(schema.getType(TYPE_QUERY), null);
+        assertNotEquals(null, schema.getType(TYPE_AUTHOR_CONNECTION));
+        assertNotEquals(null, schema.getType(TYPE_BOOK_CONNECTION));
+        assertNotEquals(null, schema.getType(TYPE_AUTHOR_INPUT));
+        assertNotEquals(null, schema.getType(TYPE_BOOK_INPUT));
+        assertNotEquals(null, schema.getType(TYPE_QUERY));
 
         GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(TYPE_BOOK_CONNECTION), null);
         GraphQLObjectType authorType = getConnectedType((GraphQLObjectType) schema.getType(TYPE_AUTHOR_CONNECTION), null);
@@ -197,6 +207,25 @@ public class ModelBuilderTest {
 
         GraphQLList booksInputType = (GraphQLList) authorInputType.getField(FIELD_BOOKS).getType();
         assertTrue(booksInputType.getWrappedType().equals(bookInputType));
+    }
+
+    @Test
+    public void testInterfaces() {
+        DataFetcher fetcher = mock(DataFetcher.class);
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+        assertNotEquals(null, schema.getType(TYPE_CHARACTER));
+        assertNotEquals(null, schema.getType(TYPE_DROID));
+        assertNotEquals(null, schema.getType(TYPE_HERO));
+        GraphQLInterfaceType characterType = (GraphQLInterfaceType) schema.getType(TYPE_CHARACTER);
+        assertEquals("DeferredID", characterType.getFieldDefinition("name").getType().getName());
+
+        GraphQLObjectType heroType = (GraphQLObjectType) schema.getType(TYPE_HERO);
+        assertTrue(heroType.getFieldDefinition("forceSensitive").getType().equals(Scalars.GraphQLBoolean));
+
+        GraphQLObjectType droidType = (GraphQLObjectType) schema.getType(TYPE_DROID);
+        assertTrue(droidType.getFieldDefinition("primaryFunction").getType().equals(Scalars.GraphQLString));
     }
 
     @Test

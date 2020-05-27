@@ -13,6 +13,7 @@ import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
 import example.models.generics.Manager;
+import example.models.inheritance.Droid;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
 import org.hibernate.MappingException;
@@ -56,6 +57,7 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
         try {
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
+            bindClasses.addAll(ClassScanner.getAnnotatedClasses(Droid.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));

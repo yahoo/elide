@@ -31,6 +31,7 @@ public class EdgesContainer implements PersistentResourceContainer, GraphQLConta
             return new NodeContainer(context.parentResource);
         }
 
-        throw new BadRequestException("Invalid request. Looking for field: " + fieldName + " in an edges object.");
+        throw new BadRequestException("Invalid request. Looking for field: "
+                + fieldName + " in an edges object.");
     }
 }

@@ -14,6 +14,9 @@ import example.Author;
 import example.Book;
 import example.Pseudonym;
 import example.Publisher;
+import example.models.inheritance.Character;
+import example.models.inheritance.Droid;
+import example.models.inheritance.Hero;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,5 +38,8 @@ public abstract class GraphQLTest {
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Pseudonym.class);
         dictionary.bindEntity(Address.class);
+        dictionary.bindEntity(Hero.class);
+        dictionary.bindEntity(Droid.class);
+        dictionary.bindEntity(Character.class);
     }
 }

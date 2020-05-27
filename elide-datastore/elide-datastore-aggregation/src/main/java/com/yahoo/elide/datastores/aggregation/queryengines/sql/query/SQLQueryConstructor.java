@@ -12,7 +12,7 @@ import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -143,7 +143,7 @@ public class SQLQueryConstructor {
 
         Table table = template.getTable();
         if (!lastClass.equals(dictionary.getEntityClass(table.getName(), table.getVersion()))) {
-            throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
+            throw new BadRequestException("The having clause can only reference fact table aggregations.");
         }
 
         SQLMetricProjection metric = template.getMetrics().stream()

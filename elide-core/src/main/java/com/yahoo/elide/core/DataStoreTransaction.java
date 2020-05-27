@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -96,7 +97,8 @@ public interface DataStoreTransaction extends Closeable {
         try {
             obj = entityClass.newInstance();
         } catch (java.lang.InstantiationException | IllegalAccessException e) {
-            obj = null;
+            throw new InvalidEntityBodyException("Cannot create an entity model of type: "
+                    + entityClass.getSimpleName());
         }
         return obj;
     }

@@ -388,6 +388,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 transaction.setAttribute(obj, Attribute.builder()
                         .name(fieldName)
                         .type(fieldClass)
+                        .parentType(obj.getClass())
                         .argument(Argument.builder()
                                 .name("_UNUSED_")
                                 .value(newVal).build())

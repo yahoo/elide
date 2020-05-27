@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.request;
 
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
@@ -17,8 +18,6 @@ import lombok.NonNull;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
-
-import javax.ws.rs.BadRequestException;
 
 /**
  * Represents a client data request against a subgraph of the entity relationship graph.
@@ -153,6 +152,7 @@ public class EntityProjection {
         public EntityProjectionBuilder relationship(String name, EntityProjection projection) {
             return relationship(Relationship.builder()
                     .alias(name)
+                    .parentType(projection.type)
                     .name(name)
                     .projection(projection)
                     .build());
@@ -177,6 +177,7 @@ public class EntityProjection {
             if (existing != null) {
                 relationships.remove(existing);
                 relationships.add(Relationship.builder()
+                        .parentType(relationship.getParentType())
                         .name(relationshipName)
                         .alias(relationshipAlias)
                         .projection(existing.getProjection().merge(relationship.getProjection()))
@@ -213,6 +214,7 @@ public class EntityProjection {
                 attributes.remove(existing);
                 attributes.add(Attribute.builder()
                         .type(attribute.getType())
+                        .parentType(attribute.getParentType())
                         .name(attributeName)
                         .alias(attributeAlias)
                         .arguments(Sets.union(attribute.getArguments(), existing.getArguments()))
@@ -238,6 +240,19 @@ public class EntityProjection {
         public Attribute getAttributeByAlias(String attributeAlias) {
             return attributes.stream()
                     .filter(attribute -> attribute.getAlias().equals(attributeAlias))
+                    .findAny()
+                    .orElse(null);
+        }
+
+        /**
+         * Get an relationship by alias.
+         *
+         * @param relationshipAlias alias to refer to a relationship field
+         * @return found attribute or null
+         */
+        public Relationship getRelationshipByAlias(String relationshipAlias) {
+            return relationships.stream()
+                    .filter(relationship -> relationship.getAlias().equals(relationshipAlias))
                     .findAny()
                     .orElse(null);
         }

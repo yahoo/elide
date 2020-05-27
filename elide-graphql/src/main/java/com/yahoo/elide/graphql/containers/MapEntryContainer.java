@@ -39,6 +39,7 @@ public class MapEntryContainer implements GraphQLContainer {
             return entry.getValue();
         }
 
-        throw new BadRequestException("Invalid field: '" + fieldName + "'. Maps only contain fields 'key' and 'value'");
+        throw new BadRequestException("Invalid field: '" + fieldName
+                + "'. Maps only contain fields 'key' and 'value'");
     }
 }
