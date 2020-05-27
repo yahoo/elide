@@ -36,7 +36,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     private static final Object NEWLY_CREATED_OBJECT = new Object();
     private final IdentityHashMap<Object, Object> clonedObjects = new IdentityHashMap<>();
     private final MultivaluedHashMap<DataStore, Object> dirtyObjects = new MultivaluedHashMap<>();
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
 
     public MultiplexWriteTransaction(MultiplexManager multiplexManager) {
         super(multiplexManager);

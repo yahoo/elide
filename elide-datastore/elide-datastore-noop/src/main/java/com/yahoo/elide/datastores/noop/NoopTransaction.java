@@ -23,7 +23,7 @@ import java.util.UUID;
  */
 @Slf4j
 public class NoopTransaction implements DataStoreTransaction {
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
     /**
      * No-op transaction, do nothing.
      * @param entity - the object to save.

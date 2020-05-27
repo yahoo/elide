@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Deprecated
 public class HashMapStoreTransaction extends com.yahoo.elide.core.datastore.inmemory.HashMapStoreTransaction {
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
     public HashMapStoreTransaction(Map<Class<?>, Map<String, Object>> dataStore,
                                    EntityDictionary dictionary, Map<Class<?>, AtomicLong> typeIds) {
         super(dataStore, dictionary, typeIds);

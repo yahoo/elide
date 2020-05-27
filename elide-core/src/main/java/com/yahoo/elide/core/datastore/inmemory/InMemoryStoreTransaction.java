@@ -46,7 +46,7 @@ import java.util.stream.StreamSupport;
 public class InMemoryStoreTransaction implements DataStoreTransaction {
 
     private final DataStoreTransaction tx;
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
     private static final Comparator<Object> NULL_SAFE_COMPARE = (a, b) -> {
         if (a == null && b == null) {
             return 0;

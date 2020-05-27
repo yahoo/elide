@@ -21,7 +21,7 @@ import javax.persistence.EntityTransaction;
 @Slf4j
 public class NonJtaTransaction extends AbstractJpaTransaction {
     private final EntityTransaction transaction;
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
     public NonJtaTransaction(EntityManager entityManager) {
         super(entityManager);
         this.transaction = entityManager.getTransaction();

@@ -25,7 +25,7 @@ import javax.transaction.UserTransaction;
 @Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
     public JtaTransaction(EntityManager entityManager) {
         this(entityManager, lookupUserTransaction());
     }

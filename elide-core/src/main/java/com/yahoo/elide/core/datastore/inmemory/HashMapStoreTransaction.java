@@ -22,8 +22,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.GeneratedValue;
 
@@ -36,7 +36,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     private final EntityDictionary dictionary;
     private final Map<Class<?>, AtomicLong> typeIds;
 
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
 
     public HashMapStoreTransaction(Map<Class<?>, Map<String, Object>> dataStore,
                                    EntityDictionary dictionary, Map<Class<?>, AtomicLong> typeIds) {

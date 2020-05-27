@@ -147,7 +147,7 @@ public class QueryRunner {
         boolean isVerbose = false;
         UUID requestId = null;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-            requestId = tx.getId();
+            requestId = tx.getRequestId();
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()

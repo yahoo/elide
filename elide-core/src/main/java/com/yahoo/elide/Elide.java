@@ -283,7 +283,7 @@ public class Elide {
         boolean isVerbose = false;
         UUID requestId = null;
         try (DataStoreTransaction tx = transaction.get()) {
-            requestId = tx.getId();
+            requestId = tx.getRequestId();
             transactionRegistry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();

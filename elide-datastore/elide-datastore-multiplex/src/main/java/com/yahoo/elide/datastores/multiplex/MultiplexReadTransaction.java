@@ -18,7 +18,7 @@ import java.util.UUID;
  * Multiplex transaction handler.
  */
 public class MultiplexReadTransaction extends MultiplexTransaction {
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
     public MultiplexReadTransaction(MultiplexManager multiplexManager) {
         super(multiplexManager);
     }

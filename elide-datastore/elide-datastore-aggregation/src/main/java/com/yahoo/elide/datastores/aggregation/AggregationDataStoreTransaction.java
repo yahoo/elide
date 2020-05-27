@@ -23,7 +23,7 @@ import java.util.UUID;
  */
 public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private QueryEngine queryEngine;
-    @Getter private final UUID Id = UUID.randomUUID();
+    @Getter private final UUID requestId = UUID.randomUUID();
     public AggregationDataStoreTransaction(QueryEngine queryEngine) {
         this.queryEngine = queryEngine;
     }
