@@ -17,7 +17,7 @@ import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
-
+import java.util.UUID;
 /**
  * Wraps the Database Transaction type.
  */
