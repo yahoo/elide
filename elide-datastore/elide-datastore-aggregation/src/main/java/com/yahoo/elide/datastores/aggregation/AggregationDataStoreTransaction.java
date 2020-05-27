@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -21,9 +21,8 @@ import java.util.UUID;
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
-public class AggregationDataStoreTransaction implements DataStoreTransaction {
+public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
     private QueryEngine queryEngine;
-    @Getter private final UUID requestId = UUID.randomUUID();
     public AggregationDataStoreTransaction(QueryEngine queryEngine) {
         this.queryEngine = queryEngine;
     }

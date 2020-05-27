@@ -9,6 +9,9 @@ import lombok.Getter;
 
 import java.util.UUID;
 
+/**
+ * Data Store Transaction Implementation to return transaction id
+ */
 public abstract class DataStoreTransactionImplementation implements DataStoreTransaction {
     @Getter private final UUID requestId = UUID.randomUUID();
 
