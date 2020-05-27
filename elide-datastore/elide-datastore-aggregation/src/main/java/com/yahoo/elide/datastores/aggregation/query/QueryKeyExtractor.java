@@ -26,7 +26,7 @@ import java.util.Map;
  * Generate a cache key for a given Query.
  */
 public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> {
-    private static final char DELIMITER = ';'; // separate fields
+    private static final char DELIMITER = ';'; // delimit fields
 
     // Since fields may contain a variable number of values, potentially nested,
     // we need a way to denote structure to prevent ambiguity.
@@ -74,7 +74,7 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
 
     // Query Components
     //
-    public void visit(Table table) {
+    private void visit(Table table) {
         visit(table.getId());
         // `name` and `version` are included in id field
     }
@@ -134,7 +134,7 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
         endGroup();
     }
 
-    public void visit(Pagination pagination) {
+    private void visit(Pagination pagination) {
         if (pagination == null) {
             keyBuilder.append(DELIMITER);
             return;
@@ -142,7 +142,7 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
         beginGroup();
         visit(pagination.getOffset());
         visit(pagination.getLimit());
-        visit(pagination.returnPageTotals() ? '1' : '0');
+        visit(pagination.returnPageTotals() ? "1" : "0");
         endGroup();
     }
 
@@ -158,8 +158,8 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
 
     @Override
     public Object visitPredicate(FilterPredicate filterPredicate) {
-        visit("P");
         beginGroup();
+        visit("P");
         visit(filterPredicate.getPath());
         visit(filterPredicate.getOperator().toString());
         // `values` is list - don't sort
@@ -171,8 +171,8 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
 
     @Override
     public Object visitAndExpression(AndFilterExpression expression) {
-        visit("A");
         beginGroup();
+        visit("A");
         expression.getLeft().accept(this);
         expression.getRight().accept(this);
         endGroup();
@@ -181,8 +181,8 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
 
     @Override
     public Object visitOrExpression(OrFilterExpression expression) {
-        visit("O");
         beginGroup();
+        visit("O");
         expression.getLeft().accept(this);
         expression.getRight().accept(this);
         endGroup();
@@ -191,8 +191,8 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
 
     @Override
     public Object visitNotExpression(NotFilterExpression expression) {
-        visit("N");
         beginGroup();
+        visit("N");
         expression.getNegated().accept(this);
         endGroup();
         return null;
