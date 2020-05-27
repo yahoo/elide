@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -15,14 +16,11 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
 
-import lombok.Getter;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.GeneratedValue;
@@ -30,13 +28,11 @@ import javax.persistence.GeneratedValue;
 /**
  * HashMapDataStore transaction handler.
  */
-public class HashMapStoreTransaction implements DataStoreTransaction {
+public class HashMapStoreTransaction extends DataStoreTransactionImplementation implements DataStoreTransaction {
     private final Map<Class<?>, Map<String, Object>> dataStore;
     private final List<Operation> operations;
     private final EntityDictionary dictionary;
     private final Map<Class<?>, AtomicLong> typeIds;
-
-    @Getter private final UUID requestId = UUID.randomUUID();
 
     public HashMapStoreTransaction(Map<Class<?>, Map<String, Object>> dataStore,
                                    EntityDictionary dictionary, Map<Class<?>, AtomicLong> typeIds) {

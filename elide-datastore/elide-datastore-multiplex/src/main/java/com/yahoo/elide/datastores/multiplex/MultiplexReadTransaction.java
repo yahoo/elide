@@ -9,16 +9,10 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 
-import lombok.Getter;
-
-import java.util.UUID;
-
-
 /**
  * Multiplex transaction handler.
  */
 public class MultiplexReadTransaction extends MultiplexTransaction {
-    @Getter private final UUID requestId = UUID.randomUUID();
     public MultiplexReadTransaction(MultiplexManager multiplexManager) {
         super(multiplexManager);
     }

@@ -8,10 +8,7 @@ package com.yahoo.elide.datastores.jpa.transaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.UUID;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -25,7 +22,6 @@ import javax.transaction.UserTransaction;
 @Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
-    @Getter private final UUID requestId = UUID.randomUUID();
     public JtaTransaction(EntityManager entityManager) {
         this(entityManager, lookupUserTransaction());
     }

@@ -13,8 +13,6 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
-import lombok.Getter;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -24,7 +22,6 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -36,7 +33,6 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     private static final Object NEWLY_CREATED_OBJECT = new Object();
     private final IdentityHashMap<Object, Object> clonedObjects = new IdentityHashMap<>();
     private final MultivaluedHashMap<DataStore, Object> dirtyObjects = new MultivaluedHashMap<>();
-    @Getter private final UUID requestId = UUID.randomUUID();
 
     public MultiplexWriteTransaction(MultiplexManager multiplexManager) {
         super(multiplexManager);

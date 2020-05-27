@@ -58,7 +58,6 @@ public class SearchDataTransaction extends TransactionWrapper {
     private FullTextEntityManager em;
     private int minNgram;
     private int maxNgram;
-    @Getter private final UUID requestId = UUID.randomUUID();
     public SearchDataTransaction(DataStoreTransaction tx,
                                  EntityDictionary dictionary,
                                  FullTextEntityManager em,
@@ -319,5 +318,5 @@ public class SearchDataTransaction extends TransactionWrapper {
             default:
                 return NONE;
         }
-    }
+    }   
 }

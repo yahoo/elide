@@ -262,4 +262,6 @@ public interface DataStoreTransaction extends Closeable {
     default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
     }
+
+    void UUID getRequestId();
 }

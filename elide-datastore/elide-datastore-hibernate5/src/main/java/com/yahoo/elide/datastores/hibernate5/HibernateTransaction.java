@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
@@ -34,7 +35,6 @@ import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -42,7 +42,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.UUID;
 
 import javax.persistence.PersistenceException;
 
@@ -50,13 +49,12 @@ import javax.persistence.PersistenceException;
  * Hibernate Transaction implementation.
  */
 @Slf4j
-public class HibernateTransaction implements DataStoreTransaction {
+public class HibernateTransaction extends DataStoreTransactionImplementation implements DataStoreTransaction {
 
     private final Session session;
     private final SessionWrapper sessionWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
-    @Getter private final UUID requestId = UUID.randomUUID();
     /**
      * Constructor.
      *
