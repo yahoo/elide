@@ -5,19 +5,16 @@
  */
 package com.yahoo.elide.datastores.noop;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 
 import com.yahoo.elide.request.EntityProjection;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.UUID;
 
 /**
  * Noop transaction. Specifically, this transaction does not perform any actions (i.e. no operation).
