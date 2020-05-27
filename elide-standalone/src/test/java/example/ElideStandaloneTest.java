@@ -6,9 +6,6 @@
 package example;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
@@ -26,11 +23,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-<<<<<<< HEAD
-import com.google.common.collect.Maps;
 import com.yahoo.elide.async.models.ResultType;
-=======
->>>>>>> a2e1ef33de35f0ffe253d00adbdbecd0fa8b3867
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
@@ -262,7 +255,7 @@ public class ElideStandaloneTest {
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "functionArgument", "metric",
-                        "metricFunction", "dimension", "column", "table", "asyncQuery", "asyncQueryResult",
+                        "metricFunction", "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "postView"));
     }
 
