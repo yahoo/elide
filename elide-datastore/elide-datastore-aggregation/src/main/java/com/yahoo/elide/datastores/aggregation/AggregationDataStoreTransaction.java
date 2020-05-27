@@ -14,10 +14,7 @@ import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import lombok.Getter;
-
 import java.io.IOException;
-import java.util.UUID;
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
