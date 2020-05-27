@@ -41,7 +41,7 @@ import java.util.stream.StreamSupport;
  * Data Store Transaction that wraps another transaction and provides in-memory filtering, soring, and pagination
  * when the underlying transaction cannot perform the equivalent function.
  */
-public class InMemoryStoreTransaction extends DataStoreTransactionImplementation implements DataStoreTransaction {
+public class InMemoryStoreTransaction extends DataStoreTransactionImplementation {
 
     private final DataStoreTransaction tx;
     private static final Comparator<Object> NULL_SAFE_COMPARE = (a, b) -> {

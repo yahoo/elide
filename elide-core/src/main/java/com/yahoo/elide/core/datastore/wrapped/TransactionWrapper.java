@@ -26,7 +26,7 @@ import java.util.Set;
  */
 @Data
 @AllArgsConstructor
-public abstract class TransactionWrapper extends DataStoreTransactionImplementation implements DataStoreTransaction {
+public abstract class TransactionWrapper extends DataStoreTransactionImplementation {
     protected DataStoreTransaction tx;
 
     @Override

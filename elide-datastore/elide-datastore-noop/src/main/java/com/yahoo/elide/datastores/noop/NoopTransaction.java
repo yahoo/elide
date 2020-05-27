@@ -23,7 +23,7 @@ import java.util.UUID;
  * Noop transaction. Specifically, this transaction does not perform any actions (i.e. no operation).
  */
 @Slf4j
-public class NoopTransaction extends DataStoreTransactionImplementation implements DataStoreTransaction {
+public class NoopTransaction extends DataStoreTransactionImplementation {
     /**
      * No-op transaction, do nothing.
      * @param entity - the object to save.
