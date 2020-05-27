@@ -36,6 +36,8 @@ import org.hibernate.search.jpa.FullTextQuery;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.sort.SortFieldContext;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +46,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -55,7 +58,7 @@ public class SearchDataTransaction extends TransactionWrapper {
     private FullTextEntityManager em;
     private int minNgram;
     private int maxNgram;
-
+    @Getter private final UUID Id = UUID.randomUUID();
     public SearchDataTransaction(DataStoreTransaction tx,
                                  EntityDictionary dictionary,
                                  FullTextEntityManager em,

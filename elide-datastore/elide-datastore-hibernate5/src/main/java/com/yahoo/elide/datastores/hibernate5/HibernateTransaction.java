@@ -34,6 +34,7 @@ import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.persistence.PersistenceException;
 
@@ -54,7 +56,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     private final SessionWrapper sessionWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
-
+    @Getter private final UUID Id = UUID.randomUUID();
     /**
      * Constructor.
      *

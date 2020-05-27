@@ -10,17 +10,20 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 
 import com.yahoo.elide.request.EntityProjection;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.UUID;
 
 /**
  * Noop transaction. Specifically, this transaction does not perform any actions (i.e. no operation).
  */
 @Slf4j
 public class NoopTransaction implements DataStoreTransaction {
+    @Getter private final UUID Id = UUID.randomUUID();
     /**
      * No-op transaction, do nothing.
      * @param entity - the object to save.

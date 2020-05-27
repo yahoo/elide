@@ -14,14 +14,16 @@ import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import java.io.IOException;
+import lombok.Getter;
 
+import java.io.IOException;
+import java.util.UUID;
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private QueryEngine queryEngine;
-
+    @Getter private final UUID Id = UUID.randomUUID();
     public AggregationDataStoreTransaction(QueryEngine queryEngine) {
         this.queryEngine = queryEngine;
     }

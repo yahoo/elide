@@ -15,12 +15,15 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
 
+import lombok.Getter;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.UUID;
 
 import javax.persistence.GeneratedValue;
 
@@ -32,6 +35,8 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     private final List<Operation> operations;
     private final EntityDictionary dictionary;
     private final Map<Class<?>, AtomicLong> typeIds;
+
+    @Getter private final UUID Id = UUID.randomUUID();
 
     public HashMapStoreTransaction(Map<Class<?>, Map<String, Object>> dataStore,
                                    EntityDictionary dictionary, Map<Class<?>, AtomicLong> typeIds) {
