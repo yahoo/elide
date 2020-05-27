@@ -31,12 +31,20 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.utils.ClassScanner;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 public abstract class SQLUnitTest {
+
     protected static EntityManagerFactory emf;
     protected static Table playerStatsTable;
     protected static EntityDictionary dictionary;
@@ -49,6 +57,8 @@ public abstract class SQLUnitTest {
     protected static final Continent NA = new Continent();
 
     protected static QueryEngine engine;
+
+    protected QueryEngine.Transaction transaction;
 
     public static void init(Cache cache) {
         metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
@@ -88,6 +98,16 @@ public abstract class SQLUnitTest {
         USA.setContinent(NA);
     }
 
+    @BeforeEach
+    public void begin() {
+        transaction = engine.beginTransaction();
+    }
+
+    @AfterEach
+    public void end() {
+        transaction.close();
+    }
+
     public static ColumnProjection toProjection(Dimension dimension) {
         return engine.constructDimensionProjection(dimension, dimension.getName(), Collections.emptyMap());
     }
@@ -101,5 +121,10 @@ public abstract class SQLUnitTest {
 
     public static MetricProjection invoke(Metric metric) {
         return engine.constructMetricProjection(metric, metric.getName(), Collections.emptyMap());
+    }
+
+    protected static List<Object> toList(Iterable<Object> data) {
+        return StreamSupport.stream(data.spliterator(), false)
+                .collect(Collectors.toList());
     }
 }

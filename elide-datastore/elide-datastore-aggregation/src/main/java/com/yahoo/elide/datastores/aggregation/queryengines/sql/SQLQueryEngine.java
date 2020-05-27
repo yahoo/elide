@@ -117,62 +117,21 @@ public class SQLQueryEngine extends QueryEngine {
         return new SQLMetricProjection(metric, referenceTable, alias, arguments);
     }
 
-    @Override
-    public QueryResult executeQuery(Query query) {
-        EntityManager entityManager = null;
-        EntityTransaction transaction = null;
-        try {
-            entityManager = entityManagerFactory.createEntityManager();
+    static class SqlTransaction implements QueryEngine.Transaction {
 
-            // manually begin the transaction
+        private final EntityManager entityManager;
+        private final EntityTransaction transaction;
+
+        SqlTransaction(EntityManagerFactory emf) {
+            entityManager = emf.createEntityManager();
             transaction = entityManager.getTransaction();
             if (!transaction.isActive()) {
                 transaction.begin();
             }
+        }
 
-            String tableVersion = null;
-            String cacheKey = null;
-            if (cache != null && !query.isBypassingCache()) {
-                tableVersion = getTableVersion(entityManager, query);
-                cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
-                QueryResult result = cache.get(cacheKey);
-                if (result != null) {
-                    return result;
-                }
-            }
-
-            // Translate the query into SQL.
-            SQLQuery sql = toSQL(query);
-            String queryString = sql.toString();
-            log.debug("SQL Query: " + queryString);
-            javax.persistence.Query jpaQuery = entityManager.createNativeQuery(queryString);
-
-            QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
-
-            Pagination pagination = query.getPagination();
-            if (pagination != null) {
-                jpaQuery.setFirstResult(pagination.getOffset());
-                jpaQuery.setMaxResults(pagination.getLimit());
-                if (pagination.returnPageTotals()) {
-                    resultBuilder.pageTotals(getPageTotal(query, sql, entityManager));
-                }
-            }
-
-            // Supply the query parameters to the query
-            supplyFilterQueryParameters(query, jpaQuery);
-
-            // Run the primary query and log the time spent.
-            List<Object> results = new TimedFunction<List<Object>>(
-                    () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
-                    "Running Query: " + queryString).get();
-
-            resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
-            QueryResult result = resultBuilder.build();
-            if (cacheKey != null) {
-                cache.put(cacheKey, result);
-            }
-            return result;
-        } finally {
+        @Override
+        public void close() {
             if (transaction != null && transaction.isActive()) {
                 transaction.commit();
             }
@@ -180,6 +139,58 @@ public class SQLQueryEngine extends QueryEngine {
                 entityManager.close();
             }
         }
+    }
+
+    @Override
+    public QueryEngine.Transaction beginTransaction() {
+        return new SqlTransaction(entityManagerFactory);
+    }
+
+    @Override
+    public QueryResult executeQuery(Query query, Transaction transaction) {
+        EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
+
+        String cacheKey = null;
+        if (cache != null && !query.isBypassingCache()) {
+            String tableVersion = getTableVersion(entityManager, query);
+            cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
+            QueryResult result = cache.get(cacheKey);
+            if (result != null) {
+                return result;
+            }
+        }
+
+        // Translate the query into SQL.
+        SQLQuery sql = toSQL(query);
+        String queryString = sql.toString();
+        log.debug("SQL Query: " + queryString);
+        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(queryString);
+
+        QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
+
+        Pagination pagination = query.getPagination();
+        if (pagination != null) {
+            jpaQuery.setFirstResult(pagination.getOffset());
+            jpaQuery.setMaxResults(pagination.getLimit());
+            if (pagination.returnPageTotals()) {
+                resultBuilder.pageTotals(getPageTotal(query, sql, entityManager));
+            }
+        }
+
+        // Supply the query parameters to the query
+        supplyFilterQueryParameters(query, jpaQuery);
+
+        // Run the primary query and log the time spent.
+        List<Object> results = new TimedFunction<List<Object>>(
+                () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
+                "Running Query: " + queryString).get();
+
+        resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
+        QueryResult result = resultBuilder.build();
+        if (cacheKey != null) {
+            cache.put(cacheKey, result);
+        }
+        return result;
     }
 
     private long getPageTotal(Query query, SQLQuery sql, EntityManager entityManager) {

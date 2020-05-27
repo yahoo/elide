@@ -156,14 +156,22 @@ public abstract class QueryEngine {
                 .forEach(metaDataStore::addTable);
     }
 
+    public interface Transaction extends AutoCloseable {
+        @Override
+        void close();
+    }
+
+    public abstract Transaction beginTransaction();
+
     /**
      * Executes the specified {@link Query} against a specific persistent storage, which understand the provided
      * {@link Query}. Results may be taken from a cache, if configured.
      *
      * @param query The query customized for a particular persistent storage or storage client
+     * @param transaction
      * @return query results
      */
-    public abstract QueryResult executeQuery(Query query);
+    public abstract QueryResult executeQuery(Query query, Transaction transaction);
 
     /**
      * Returns the schema for a given entity class.

@@ -59,13 +59,13 @@ public class QueryEngineWithCacheTest extends SQLUnitTest {
     public void testCacheUsed() {
         Query query = buildQuery(false);
 
-        QueryResult result = engine.executeQuery(query);
+        QueryResult result = engine.executeQuery(query, transaction);
         assertEquals(1, StreamSupport.stream(result.getData().spliterator(), false).count());
         assertEquals(1, cache.size(), "Expected cache entry for query");
         assertEquals(3, result.getPageTotals(), "Page totals does not match");
 
         query = buildQuery(false);
-        QueryResult result2 = engine.executeQuery(query);
+        QueryResult result2 = engine.executeQuery(query, transaction);
         assertSame(result, result2, "Expected results from cache");
         assertEquals(1, cache.size(), "Expected to re-use cache entry");
         assertEquals(3, result2.getPageTotals(), "Expected page total set");
@@ -75,7 +75,7 @@ public class QueryEngineWithCacheTest extends SQLUnitTest {
     public void testCacheInvalidated() {
         Query query = buildQuery(false);
 
-        QueryResult result = engine.executeQuery(query);
+        QueryResult result = engine.executeQuery(query, transaction);
         assertEquals(1, StreamSupport.stream(result.getData().spliterator(), false).count());
         assertEquals(1, cache.size(), "Expected cache entry for query");
         assertEquals(3, result.getPageTotals(), "Page totals does not match");
@@ -89,7 +89,7 @@ public class QueryEngineWithCacheTest extends SQLUnitTest {
         em.getTransaction().commit();
 
         query = buildQuery(false);
-        QueryResult result2 = engine.executeQuery(query);
+        QueryResult result2 = engine.executeQuery(query, transaction);
         assertNotSame(result, result2, "Expected different results");
         assertEquals(2, cache.size(), "Expected to add updated cache entry");
         assertEquals(4, result2.getPageTotals(), "Expected page total set");
@@ -99,11 +99,11 @@ public class QueryEngineWithCacheTest extends SQLUnitTest {
     public void testCacheBypassed() {
         Query query = buildQuery(true);
 
-        QueryResult result = engine.executeQuery(query);
+        QueryResult result = engine.executeQuery(query, transaction);
         assertEquals(1, StreamSupport.stream(result.getData().spliterator(), false).count());
         assertEquals(0, cache.size(), "Expected no cache entries added");
 
-        QueryResult result2 = engine.executeQuery(query);
+        QueryResult result2 = engine.executeQuery(query, transaction);
         assertNotSame(result, result2);
         assertEquals(1, StreamSupport.stream(result.getData().spliterator(), false).count());
         assertEquals(0, cache.size(), "Expected no cache entries added");

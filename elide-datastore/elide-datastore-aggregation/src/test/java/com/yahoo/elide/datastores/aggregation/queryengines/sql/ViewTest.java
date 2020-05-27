@@ -22,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class ViewTest extends SQLUnitTest {
     protected static Table playerStatsWithViewSchema;
@@ -46,8 +44,7 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
@@ -80,8 +77,7 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
@@ -115,8 +111,7 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
@@ -150,8 +145,7 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
@@ -185,8 +179,7 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
@@ -220,8 +213,7 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
         usa0.setId("0");
