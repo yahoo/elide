@@ -6,19 +6,12 @@
 package com.yahoo.elide.standalone;
 
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
 import com.yahoo.elide.utils.ClassScanner;
-
-import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -31,8 +24,8 @@ import javax.persistence.spi.PersistenceUnitInfo;
  */
 public class Util {
 
-    public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, boolean includeAsyncModel,
-            Optional<ElideDynamicEntityCompiler> optionalCompiler, Properties options) {
+    public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, boolean includeAsyncModel, 
+            Properties options) {
 
         // Configure default options for example service
         if (options.isEmpty()) {
@@ -60,56 +53,27 @@ public class Util {
             options.put("javax.persistence.jdbc.password", "elide123");
         }
 
-        ClassLoader classLoader = null;
-        //Bind entity classes from classpath to Persistence Unit
-        ArrayList<Class> loadedClasses = new ArrayList<>();
-
-        if (optionalCompiler.isPresent()) {
-            ElideDynamicEntityCompiler compiler = optionalCompiler.get();
-            classLoader = compiler.getClassLoader();
-            Collection<ClassLoader> classLoaders = new ArrayList<>();
-            classLoaders.add(classLoader);
-            options.put(AvailableSettings.CLASSLOADERS, classLoaders);
-
-            try {
-                loadedClasses.addAll(compiler.findAnnotatedClasses(Entity.class));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
-        }
-
         PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
-                combineModelEntities(optionalCompiler, modelPackageName, includeAsyncModel),
-                options, classLoader);
+                combineModelEntities(modelPackageName, includeAsyncModel), options);
 
         return new EntityManagerFactoryBuilderImpl(
-                new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>(), classLoader)
+                new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>())
                 .build();
     }
 
     /**
-     * Combine the model entities with Async and Dynamic models.
+     * Combine the model entities with Async model.
      *
-     * @param optionalCompiler optional dynamicCompiler
      * @param modelPackageName Package name
      * @param includeAsyncModel Include Async model package Name
      * @return All entities combined from both package.
      */
-    public static List<String> combineModelEntities(Optional<ElideDynamicEntityCompiler> optionalCompiler,
-            String modelPackageName, boolean includeAsyncModel) {
+    public static List<String> combineModelEntities(String modelPackageName, boolean includeAsyncModel) {
 
         List<String> modelEntities = getAllEntities(modelPackageName);
 
         if (includeAsyncModel) {
             modelEntities.addAll(getAllEntities(AsyncQuery.class.getPackage().getName()));
-        }
-
-        if (optionalCompiler.isPresent()) {
-            try {
-                modelEntities.addAll(optionalCompiler.get().findAnnotatedClassNames(Entity.class));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
         }
         return modelEntities;
     }

@@ -30,7 +30,7 @@ public class Post {
     @Column(nullable = false)
     private String content;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal( TemporalType.TIMESTAMP )
     private Date date;
 
     @CreatePermission(expression = AdminCheck.USER_IS_ADMIN)

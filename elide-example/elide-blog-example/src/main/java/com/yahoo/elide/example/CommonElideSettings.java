@@ -6,8 +6,19 @@
 
 package com.yahoo.elide.example;
 
+import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
+import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.example.models.Comment;
+import com.yahoo.elide.example.models.Post;
+import com.yahoo.elide.example.models.User;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -24,8 +35,20 @@ public abstract class CommonElideSettings implements ElideStandaloneSettings {
     }
 
     @Override
-    public boolean enableSwagger() {
-        return true;
+    public List<DocEndpoint.SwaggerRegistration> enableSwagger() {
+        EntityDictionary dictionary = new EntityDictionary(new HashMap());
+
+        dictionary.bindEntity(User.class);
+        dictionary.bindEntity(Post.class);
+        dictionary.bindEntity(Comment.class);
+        Info info = new Info().title("Test Service").version("1.0");
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        Swagger swagger = builder.build();
+
+        List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
+        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger));
+        return docs;
     }
 
     @Override

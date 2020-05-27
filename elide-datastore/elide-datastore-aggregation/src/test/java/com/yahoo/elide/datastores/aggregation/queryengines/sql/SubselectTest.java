@@ -54,7 +54,7 @@ public class SubselectTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
@@ -87,7 +87,7 @@ public class SubselectTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
@@ -124,7 +124,7 @@ public class SubselectTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query, true).spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();

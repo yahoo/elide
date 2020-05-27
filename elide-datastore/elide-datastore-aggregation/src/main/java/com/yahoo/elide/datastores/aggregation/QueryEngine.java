@@ -18,7 +18,6 @@ import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.request.Argument;
 
@@ -92,7 +91,11 @@ public abstract class QueryEngine {
         populateMetaData(metaDataStore);
         this.tables = metaDataStore.getMetaData(Table.class).stream()
                 .collect(Collectors.toMap(Table::getId, Functions.identity()));
-        this.cache = cache;
+        if (cache != null) {
+            this.cache = cache;
+        } else {
+            this.cache = new NoCache();
+        }
     }
 
     /**
@@ -160,10 +163,11 @@ public abstract class QueryEngine {
      * Executes the specified {@link Query} against a specific persistent storage, which understand the provided
      * {@link Query}. Results may be taken from a cache, if configured.
      *
-     * @param query The query customized for a particular persistent storage or storage client
+     * @param query    The query customized for a particular persistent storage or storage client
+     * @param useCache Whether to use the cache, if configured
      * @return query results
      */
-    public abstract QueryResult executeQuery(Query query);
+    public abstract Iterable<Object> executeQuery(Query query, boolean useCache);
 
     /**
      * Returns the schema for a given entity class.
@@ -172,5 +176,17 @@ public abstract class QueryEngine {
      */
     public Table getTable(String classAlias) {
         return tables.get(classAlias);
+    }
+
+    private static class NoCache implements Cache {
+        @Override
+        public Iterable<Object> get(Object key) {
+            return null;
+        }
+
+        @Override
+        public void put(Object key, Iterable<Object> result) {
+            // Do nothing
+        }
     }
 }

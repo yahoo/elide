@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.AbstractEntityHydrator;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
 /**
- * {@link SQLEntityHydrator} hydrates the entity loaded by {@link QueryEngine#executeQuery(Query)}.
+ * {@link SQLEntityHydrator} hydrates the entity loaded by {@link SQLQueryEngine#executeQuery(Query, boolean)}.
  */
 public class SQLEntityHydrator extends AbstractEntityHydrator {
 
@@ -33,8 +32,8 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
     /**
      * Constructor.
      *
-     * @param results The loaded objects from {@link QueryEngine#executeQuery(Query)}
-     * @param query  The query passed to {@link QueryEngine#executeQuery(Query)} to load the objects
+     * @param results The loaded objects from {@link SQLQueryEngine#executeQuery(Query, boolean)}
+     * @param query  The query passed to {@link SQLQueryEngine#executeQuery(Query, boolean)} to load the objects
      * @param entityDictionary  An object that sets entity instance values and provides entity metadata info
      * @param entityManager  An service that issues JPQL queries to load relationship objects
      */

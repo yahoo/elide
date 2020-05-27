@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * {@link AbstractEntityHydrator} hydrates the entity loaded by {@link QueryEngine#executeQuery(Query)}.
+ * {@link AbstractEntityHydrator} hydrates the entity loaded by {@link QueryEngine#executeQuery(Query, boolean)}.
  * <p>
  * {@link AbstractEntityHydrator} is not thread-safe and should be accessed by only 1 thread in this application,
  * because it uses {@link StitchList}. See {@link StitchList} for more details.
@@ -49,8 +49,8 @@ public abstract class AbstractEntityHydrator {
     /**
      * Constructor.
      *
-     * @param results The loaded objects from {@link QueryEngine#executeQuery(Query)}
-     * @param query  The query passed to {@link QueryEngine#executeQuery(Query)} to load the objects
+     * @param results The loaded objects from {@link QueryEngine#executeQuery(Query, boolean)}
+     * @param query  The query passed to {@link QueryEngine#executeQuery(Query, boolean)} to load the objects
      * @param entityDictionary  An object that sets entity instance values and provides entity metadata info
      */
     public AbstractEntityHydrator(List<Object> results, Query query, EntityDictionary entityDictionary) {

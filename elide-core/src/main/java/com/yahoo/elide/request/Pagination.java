@@ -14,35 +14,35 @@ public interface Pagination {
     /**
      * Default offset (in records) it client does not provide one.
      */
-    int DEFAULT_OFFSET = 0;
+    public static final int DEFAULT_OFFSET = 0;
 
     /**
      * Default page limit (in records) it client does not provide one.
      */
-    int DEFAULT_PAGE_LIMIT = 500;
+    public static final int DEFAULT_PAGE_LIMIT = 500;
 
     /**
      * Maximum allowable page limit (in records).
      */
-    int MAX_PAGE_LIMIT = 10000;
+    public static final int MAX_PAGE_LIMIT = 10000;
 
     /**
      * Get the page offset.
      * @return record offset.
      */
-    int getOffset();
+    Integer getOffset();
 
     /**
      * Get the page limit.
      * @return record limit.
      */
-    int getLimit();
+    Integer getLimit();
 
     /**
      * Whether or not to fetch the collection size or not.
      * @return true if the client wants the total size of the collection.
      */
-    boolean returnPageTotals();
+    Boolean returnPageTotals();
 
     /**
      * Get the total size of the collection
@@ -60,5 +60,5 @@ public interface Pagination {
      * Is this the default instance (not present).
      * @return true if pagination wasn't requested.  False otherwise.
      */
-    boolean isDefaultInstance();
+    public Boolean isDefaultInstance();
 }
