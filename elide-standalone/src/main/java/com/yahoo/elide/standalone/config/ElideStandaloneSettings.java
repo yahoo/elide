@@ -5,31 +5,48 @@
  */
 package com.yahoo.elide.standalone.config;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
-
 import com.yahoo.elide.Injector;
+import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.standalone.Util;
-import com.yahoo.elide.async.service.AsyncQueryDAO;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManagerFactory;
@@ -57,30 +74,11 @@ public interface ElideStandaloneSettings {
      * That is to say, if you intend to override this method, expect to fully configure the ElideSettings object to
      * your needs.
      *
-     * @param injector Service locator for web service for dependency injection.
+     * @param dictionary EntityDictionary object.
+     * @param dataStore Dastore object
      * @return Configured ElideSettings object.
      */
-    default ElideSettings getElideSettings(ServiceLocator injector) {
-        EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
-                enableAsync(), getDatabaseProperties());
-        DataStore dataStore = new JpaDataStore(
-                () -> { return entityManagerFactory.createEntityManager(); },
-                (em -> { return new NonJtaTransaction(em); }));
-
-        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
-                new Injector() {
-                    @Override
-                    public void inject(Object entity) {
-                        injector.inject(entity);
-                    }
-
-                    @Override
-                    public <T> T instantiate(Class<T> cls) {
-                        return injector.create(cls);
-                    }
-                });
-
-        dictionary.scanForSecurityChecks();
+    default ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore) {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
@@ -121,8 +119,8 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * API root path specification for JSON-API. Namely, this is the mount point of your API. By default it will look
-     * something like:
+     * API root path specification for JSON-API. Namely, this is the mount point of your API.
+     * By default it will look something like:
      *   <strong>yourcompany.com/api/v1/YOUR_ENTITY</strong>
      *
      * @return Default: /api/v1/*
@@ -166,7 +164,24 @@ public interface ElideStandaloneSettings {
     default boolean enableGraphQL() {
         return true;
     }
-    
+
+    /**
+     * Enable the support for Dynamic Model Configuration. If false, the feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableDynamicModelConfig() {
+        return false;
+    }
+
+    /**
+     * Base path to Hjson dynamic model configurations.
+     * @return Default: /models/
+     */
+    default String getDynamicConfigPath() {
+        return File.separator + "models" + File.separator;
+    }
+
     /**
      * Enable the support for Async querying feature. If false, the async feature will be disabled.
      *
@@ -223,7 +238,7 @@ public interface ElideStandaloneSettings {
 
     /**
      * Whether Dates should be ISO8601 strings (true) or epochs (false).
-     * @return
+     * @return whether ISO8601Dates are enabled.
      */
     default boolean enableISO8601Dates() {
         return true;
@@ -232,18 +247,57 @@ public interface ElideStandaloneSettings {
     /**
      * Whether or not Codahale metrics, healthchecks, thread, ping, and admin servlet
      * should be enabled.
-     * @return
+     * @return  whether ServiceMonitoring is enabled.
      */
     default boolean enableServiceMonitoring() {
         return true;
     }
 
     /**
-     * Enable swagger documentation by returning non empty list.
+     * Enable swagger documentation.
+     * @return whether Swagger is enabled;
+     */
+    default boolean enableSwagger() {
+        return false;
+    }
+
+    /**
+     * Swagger documentation requires an API version.
+     * The models with the same version are included.
+     * @return swagger version;
+     */
+    default String getSwaggerVersion() {
+        return NO_VERSION;
+    }
+
+    /**
+     * Swagger documentation requires an API name.
+     * @return swagger service name;
+     */
+    default String getSwaggerName() {
+        return "Elide Service";
+    }
+
+    /**
+     * Creates a singular swagger document for JSON-API.
+     * @param dictionary Contains the static metadata about Elide models. .
      * @return list of swagger registration objects.
      */
-    default List<DocEndpoint.SwaggerRegistration> enableSwagger() {
-        return new ArrayList<>();
+    default List<DocEndpoint.SwaggerRegistration> buildSwagger(EntityDictionary dictionary) {
+        Info info = new Info()
+                .title(getSwaggerName())
+                .version(getSwaggerVersion());
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+
+        String moduleBasePath = getJsonApiPathSpec().replaceAll("/\\*", "");
+
+        Swagger swagger = builder.build().basePath(moduleBasePath);
+
+        List<DocEndpoint.SwaggerRegistration> docs = new ArrayList<>();
+        docs.add(new DocEndpoint.SwaggerRegistration("test", swagger));
+
+        return docs;
     }
 
     /**
@@ -268,7 +322,7 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Gets properties to configure the database
+     * Gets properties to configure the database.
      *
      * @return Default: ./settings/hibernate.cfg.xml
      */
@@ -286,11 +340,150 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Gets the audit logger for elide
+     * Gets the audit logger for elide.
      *
      * @return Default: Slf4jLogger
      */
     default AuditLogger getAuditLogger() {
         return new Slf4jLogger();
+    }
+
+    /**
+     * Gets the dynamic compiler for elide.
+     *
+     * @return Optional ElideDynamicEntityCompiler
+     */
+    default Optional<ElideDynamicEntityCompiler> getDynamicCompiler() {
+        ElideDynamicEntityCompiler dynamicEntityCompiler = null;
+
+        if (enableDynamicModelConfig()) {
+            try {
+                dynamicEntityCompiler = new ElideDynamicEntityCompiler(getDynamicConfigPath());
+            } catch (Exception e) { // thrown by in memory compiler
+                throw new IllegalStateException(e);
+            }
+        }
+
+        return Optional.ofNullable(dynamicEntityCompiler);
+    }
+
+    /**
+     * Gets the DataStore for elide.
+     * @param metaDataStore MetaDataStore object.
+     * @param aggregationDataStore AggregationDataStore object.
+     * @param entityManagerFactory EntityManagerFactory object.
+     * @return EntityDictionary object initialized.
+     */
+    default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
+            EntityManagerFactory entityManagerFactory) {
+
+        DataStore jpaDataStore = new JpaDataStore(
+                () -> { return entityManagerFactory.createEntityManager(); },
+                (em -> { return new NonJtaTransaction(em); }));
+
+        DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
+
+        return dataStore;
+    }
+
+    /**
+     * Gets the AggregationDataStore for elide.
+     * @param queryEngine query engine object.
+     * @param optionalCompiler optional dynamic compiler object.
+     * @return AggregationDataStore object initialized.
+     */
+    default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
+            Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+        AggregationDataStore aggregationDataStore = null;
+
+        if (enableDynamicModelConfig()) {
+            Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
+            annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
+            aggregationDataStore = new AggregationDataStore(queryEngine, annotatedClasses);
+        } else {
+            aggregationDataStore = new AggregationDataStore(queryEngine);
+        }
+
+        return aggregationDataStore;
+    }
+
+    /**
+     * Gets the EntityDictionary for elide.
+     * @param injector Service locator for web service for dependency injection.
+     * @param optionalCompiler optional dynamic compiler object.
+     * @return EntityDictionary object initialized.
+     */
+    default EntityDictionary getEntityDictionary(ServiceLocator injector,
+            Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
+                new Injector() {
+                    @Override
+                    public void inject(Object entity) {
+                        injector.inject(entity);
+                    }
+
+                    @Override
+                    public <T> T instantiate(Class<T> cls) {
+                        return injector.create(cls);
+                    }
+                });
+
+        dictionary.scanForSecurityChecks();
+
+        Set<Class<?>> annotatedSecurityClasses = getDynamicClassesIfAvailable(optionalCompiler, SecurityCheck.class);
+
+        dictionary.addSecurityChecks(annotatedSecurityClasses);
+
+        return dictionary;
+    }
+
+    /**
+     * Gets the metadatastore for elide.
+     * @param optionalCompiler optional dynamic compiler object.
+     * @return MetaDataStore object initialized.
+     */
+    default MetaDataStore getMetaDataStore(Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+        MetaDataStore metaDataStore = null;
+
+        if (optionalCompiler.isPresent()) {
+            try {
+                metaDataStore = new MetaDataStore(optionalCompiler.get());
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            metaDataStore = new MetaDataStore();
+        }
+
+        return metaDataStore;
+    }
+
+    /**
+     * Gets the QueryEngine for elide.
+     * @param metaDataStore MetaDataStore object.
+     * @param entityManagerFactory EntityManagerFactory object.
+     * @return QueryEngine object initialized.
+     */
+    default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
+    }
+
+    static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,
+            Class<?> classz) {
+        Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
+
+        if (!optionalCompiler.isPresent()) {
+            return annotatedClasses;
+        }
+
+        ElideDynamicEntityCompiler compiler = optionalCompiler.get();
+
+        try {
+            annotatedClasses = compiler.findAnnotatedClasses(classz);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
+
+        return annotatedClasses;
     }
 }

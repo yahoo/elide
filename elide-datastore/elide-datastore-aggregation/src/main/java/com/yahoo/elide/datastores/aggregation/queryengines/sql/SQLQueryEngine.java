@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLMetric;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
@@ -115,7 +116,7 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public Iterable<Object> executeQuery(Query query, boolean useCache) {
+    public QueryResult executeQuery(Query query) {
         EntityManager entityManager = null;
         EntityTransaction transaction = null;
         try {
@@ -133,6 +134,7 @@ public class SQLQueryEngine extends QueryEngine {
 
             javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
 
+            QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
             Pagination pagination = query.getPagination();
             if (pagination != null) {
                 jpaQuery.setFirstResult(pagination.getOffset());
@@ -154,7 +156,7 @@ public class SQLQueryEngine extends QueryEngine {
                             "Running Query: " + paginationSQL
                     ).get();
 
-                    pagination.setPageTotals(total);
+                    resultBuilder.pageTotals(total);
                 }
             }
 
@@ -166,7 +168,8 @@ public class SQLQueryEngine extends QueryEngine {
                     () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
                     "Running Query: " + sql).get();
 
-            return new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate();
+            resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
+            return resultBuilder.build();
         } finally {
             if (transaction != null && transaction.isActive()) {
                 transaction.commit();

@@ -13,12 +13,12 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-example-parent-pom</artifactId>
-        <version>5.0.0-pr9-SNAPSHOT</version>
+        <version>5.0.0-pr10-SNAPSHOT</version>
     </parent>
 
     <properties>
         <mysql.data.directory>${project.build.directory}/mysql-data</mysql.data.directory>
-        <resteasy.version>3.11.2.Final</resteasy.version>
+        <resteasy.version>3.12.0.Final</resteasy.version>
     </properties>
 
     <dependencies>
@@ -46,12 +46,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr9-SNAPSHOT</version>
+            <version>5.0.0-pr10-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate5</artifactId>
-            <version>5.0.0-pr9-SNAPSHOT</version>
+            <version>5.0.0-pr10-SNAPSHOT</version>
         </dependency>
 
         <!-- Jetty -->

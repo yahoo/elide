@@ -8,12 +8,12 @@ package com.yahoo.elide.standalone.interfaces;
 import com.yahoo.elide.ElideSettings;
 
 /**
- * Standalone ElideSettingsProvider
+ * Standalone ElideSettingsProvider.
  */
 public interface ElideSettingsProvider {
 
     /**
-     * Provider for Elide settings
+     * Provider for Elide settings.
      *
      * @return Elide settings object.
      */

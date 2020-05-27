@@ -9,9 +9,9 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
@@ -27,22 +27,28 @@ import java.util.stream.Stream;
 @Value
 @Builder
 public class Query {
-    Table table;
+    @NonNull
+    private Table table;
 
     @Singular
-    List<MetricProjection> metrics;
+    private List<MetricProjection> metrics;
 
     @Singular
-    Set<ColumnProjection> groupByDimensions;
+    private Set<ColumnProjection> groupByDimensions;
 
     @Singular
-    Set<TimeDimensionProjection> timeDimensions;
+    private Set<TimeDimensionProjection> timeDimensions;
 
-    FilterExpression whereFilter;
-    FilterExpression havingFilter;
-    Sorting sorting;
-    Pagination pagination;
-    RequestScope scope;
+    private FilterExpression whereFilter;
+    private FilterExpression havingFilter;
+    private Sorting sorting;
+    private ImmutablePagination pagination;
+    private RequestScope scope;
+
+    /**
+     * Whether to bypass the {@link QueryEngine} cache for this query.
+     */
+    private boolean bypassingCache;
 
     /**
      * Returns all the dimensions regardless of type.

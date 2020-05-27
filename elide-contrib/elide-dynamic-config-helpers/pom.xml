@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-contrib-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>5.0.0-pr9-SNAPSHOT</version>
+        <version>5.0.0-pr10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
+            <version>${version.jackson}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -65,11 +65,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
-		<dependency>
-		    <groupId>commons-io</groupId>
-		    <artifactId>commons-io</artifactId>
-		    <version>${commons-io.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
         <dependency>
         <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -117,7 +117,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-         </dependency>
+        </dependency>
     </dependencies>
 
     <build>

@@ -61,8 +61,9 @@ public class ElideStandalone {
     }
     /**
      * Start the Elide service.
-     *
      * This method blocks until the server exits.
+     *
+     * @throws Exception Exception thrown
      */
     public void start() throws Exception {
         start(true);
@@ -72,6 +73,7 @@ public class ElideStandalone {
      * Start the Elide service.
      *
      * @param block - Whether or not to wait for the server to shutdown.
+     * @throws Exception Exception thrown
      */
     public void start(boolean block) throws Exception {
         ServletContextHandler context = new ServletContextHandler();
@@ -115,7 +117,7 @@ public class ElideStandalone {
             context.addServlet(AdminServlet.class, "/stats/*");
         }
 
-        if (!elideStandaloneSettings.enableSwagger().isEmpty()) {
+        if (elideStandaloneSettings.enableSwagger()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
                     elideStandaloneSettings.getSwaggerPathSpec());
             jerseyServlet.setInitOrder(0);
@@ -144,6 +146,8 @@ public class ElideStandalone {
 
     /**
      * Stop the Elide service.
+     *
+     * @throws Exception Exception thrown
      */
     public void stop() throws Exception {
         jettyServer.stop();
