@@ -207,7 +207,7 @@ public class ModelBuilderTest {
         dictionary.addArgumentsToAttribute(Book.class, FIELD_PUBLISH_DATE, arguments);
 
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
+        ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
