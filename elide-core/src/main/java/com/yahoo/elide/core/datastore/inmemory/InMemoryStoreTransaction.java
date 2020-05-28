@@ -121,7 +121,7 @@ public class InMemoryStoreTransaction extends DataStoreTransactionImplementation
         } else {
             System.out.println("*******************");
             System.out.println(super);
-            System.out.println("*******************")
+            System.out.println("*******************");
             return DataStoreTransaction.super.loadObject(projection, id, scope);
         }
     }
