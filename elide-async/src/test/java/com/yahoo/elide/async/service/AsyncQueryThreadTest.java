@@ -7,7 +7,6 @@ package com.yahoo.elide.async.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -68,7 +67,7 @@ public class AsyncQueryThreadTest {
 
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.COMPLETE);
-        verify(asyncQueryDao, times(1)).createAsyncQueryResult(anyInt(), anyString(), any(), any());
+        verify(asyncQueryDao, times(1)).updateAsyncQueryResult(any(), any());
     }
 
     @Test
@@ -86,7 +85,7 @@ public class AsyncQueryThreadTest {
 
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.COMPLETE);
-        verify(asyncQueryDao, times(1)).createAsyncQueryResult(anyInt(), anyString(), any(), any());
+        verify(asyncQueryDao, times(1)).updateAsyncQueryResult(any(), any());
     }
 
     @Test
@@ -98,7 +97,7 @@ public class AsyncQueryThreadTest {
         when(runner.run(query, user)).thenThrow(RuntimeException.class);
 
         queryThread.processQuery();
-
+        verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.FAILURE);
     }

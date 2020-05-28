@@ -163,22 +163,14 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody,
-            AsyncQuery asyncQuery, String asyncQueryId) {
-        log.debug("createAsyncQueryResult");
-        AsyncQueryResult queryResultObj = (AsyncQueryResult) executeInTransaction(dataStore, (tx, scope) -> {
-            AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
-            asyncQueryResult.setStatus(status);
-            asyncQueryResult.setResponseBody(responseBody);
-            asyncQueryResult.setContentLength(responseBody.length());
-            asyncQueryResult.setQuery(asyncQuery);
-            asyncQueryResult.setId(asyncQueryId);
+    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, AsyncQuery asyncQuery) {
+        log.debug("updateAsyncQueryResult");
+        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
             asyncQuery.setResult(asyncQueryResult);
-            tx.createObject(asyncQueryResult, scope);
             tx.save(asyncQuery, scope);
-            return asyncQueryResult;
+            return asyncQuery;
         });
-        return queryResultObj;
+        return queryObj;
     }
 
     /**

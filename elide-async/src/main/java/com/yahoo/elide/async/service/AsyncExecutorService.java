@@ -14,11 +14,14 @@ import com.yahoo.elide.security.User;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 
@@ -61,7 +64,7 @@ public class AsyncExecutorService {
      * Initialize the singleton AsyncExecutorService object.
      * If already initialized earlier, no new object is created.
      * @param elide Elide Instance
-     * @param threadPoolSize thred pool size
+     * @param threadPoolSize thread pool size
      * @param maxRunTime max run times in minutes
      * @param asyncQueryDao DAO Object
      */
@@ -85,17 +88,27 @@ public class AsyncExecutorService {
      * Execute Query asynchronously.
      * @param queryObj Query Object
      * @param user User
+     * @param apiVersion API Version
      */
     public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
+
         QueryRunner runner = runners.get(apiVersion);
         if (runner == null) {
             throw new InvalidOperationException("Invalid API Version");
         }
-
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
+        Future<?> task = executor.submit(queryWorker);
 
-        AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide,
-               executor.submit(queryWorker), queryObj, new Date(), maxRunTime, asyncQueryDao);
-        interruptor.execute(queryInterruptWorker);
+        try {
+            task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            // In case the future.get is interrupted , the underlying query may still have succeeded
+            log.error("InterruptedException: {}", e);
+        } catch (ExecutionException e) {
+            // Query Status set to failure will be handled by the processQuery method
+            log.error("ExecutionException: {}", e);
+        } catch (TimeoutException e) {
+            log.error("TimeoutException: {}", e);
+        }
     }
 }

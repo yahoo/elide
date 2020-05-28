@@ -5,46 +5,33 @@
  */
 package com.yahoo.elide.async.models;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
-
 import lombok.Data;
 
+import java.util.Date;
+
 import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.Embeddable;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 
 /**
  * Model for Async Query Result.
  */
-@Entity
-@Include(type = "asyncQueryResult")
-@ReadPermission(expression = "Principal is Owner")
-@UpdatePermission(expression = "Prefab.Role.None")
-@CreatePermission(expression = "Prefab.Role.None")
-@DeletePermission(expression = "Prefab.Role.None")
+@Embeddable
 @Data
-public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
-    @Id
-    @Column(columnDefinition = "varchar(36)")
-    private String id; //Matches id in query.
+
+public class AsyncQueryResult {
 
     private Integer contentLength;
 
-    private String responseBody; //success or errors
+    private String responseBody;  //URL or Response body
 
-    private Integer status; // HTTP Status
+    private Integer httpStatus; // HTTP Status
 
-    @OneToOne
-    private AsyncQuery query;
+    @Column(columnDefinition = "enum('EMBEDDED')")
+    @Enumerated(EnumType.STRING)
+    private ResultType resultType; //EMBEDDED, DOWNLOAD
 
-    @Exclude
-    public String getPrincipalName() {
-        return query.getPrincipalName();
-    }
+    Date completedOn = new Date();
+
 }

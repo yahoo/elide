@@ -6,9 +6,6 @@
 package com.yahoo.elide.async.integration.tests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
@@ -25,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
@@ -112,6 +110,7 @@ public class AsyncIT extends IntegrationTest {
 
     /**
      * Various tests for a JSONAPI query as a Async Request.
+     * @throws InterruptedException
      */
     @Test
     public void jsonApiRequestTests() throws InterruptedException {
@@ -127,7 +126,9 @@ public class AsyncIT extends IntegrationTest {
                                         attributes(
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -153,26 +154,23 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.relationships.result.data.type", equalTo("asyncQueryResult"))
-                        .body("data.relationships.result.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
+                        .body("data.attributes.status", equalTo("COMPLETE"));
 
                 // Validate AsyncQueryResult Response
                 given()
                         .accept("application/vnd.api+json")
-                        .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d/result")
+                        .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
                         .then()
                         .statusCode(HttpStatus.SC_OK)
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
-                        .body("data.type", equalTo("asyncQueryResult"))
-                        .body("data.attributes.contentLength", notNullValue())
-                        .body("data.attributes.responseBody", equalTo("{\"data\":"
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                                 + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                                 + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
-                        .body("data.attributes.status", equalTo(200))
-                        .body("data.relationships.query.data.type", equalTo("asyncQuery"))
-                        .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
+                        .body("data.attributes.result.httpStatus", equalTo(200))
+                        .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
@@ -180,32 +178,16 @@ public class AsyncIT extends IntegrationTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
                                 + "{ edges { node { id queryType status result "
-                                + "{ edges { node { id responseBody status} } } } } } }\","
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\","
                                 + "\"variables\":null}")
                         .post("/graphQL")
                         .asString();
 
-                String expectedResponse = document(
-                        selections(
-                                field(
-                                        "asyncQuery",
-                                        selections(
-                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
-                                                field("queryType", "JSONAPI_V1_0"),
-                                                field("status", "COMPLETE"),
-                                                field("result",
-                                                        selections(
-                                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
-                                                                field("responseBody", "{\\\"data\\\":"
-                                                                        + "[{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"3\\\",\\\"attributes\\\":{\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}"
-                                                                        + ",{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
-                                                                        + "{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"1\\\",\\\"attributes\\\":{\\\"title\\\":\\\"Ender's Game\\\"}}]}"),
-                                                                field("status", 200)
-                                                        ))
-                                        )
-                                )
-                        )
-                ).toResponse();
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\","
+                        + "\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"3\\\",\\\"attributes\\\":{\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}},"
+                        + "{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
+                        + "{\\\"type\\\":\\\"book\\\",\\\"id\\\":\\\"1\\\",\\\"attributes\\\":{\\\"title\\\":\\\"Ender's Game\\\"}}]}\","
+                        + "\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":218}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
@@ -220,6 +202,7 @@ public class AsyncIT extends IntegrationTest {
 
     /**
      * Various tests for a GRAPHQL query as a Async Request.
+     * @throws InterruptedException
      */
     @Test
     public void graphQLRequestTests() throws InterruptedException {
@@ -233,7 +216,9 @@ public class AsyncIT extends IntegrationTest {
                                         attributes(
                                                 attr("query", "{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}"),
                                                 attr("queryType", "GRAPHQL_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -259,58 +244,40 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("GRAPHQL_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.relationships.result.data.type", equalTo("asyncQueryResult"))
-                        .body("data.relationships.result.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"));
+                        .body("data.attributes.status", equalTo("COMPLETE"));
 
                 // Validate AsyncQueryResult Response
-                given()
+                String responseAsyncQueryResult =  given()
                         .accept("application/vnd.api+json")
-                        .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263c/result")
+                        .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263c")
                         .then()
                         .statusCode(HttpStatus.SC_OK)
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"))
-                        .body("data.type", equalTo("asyncQueryResult"))
-                        .body("data.attributes.contentLength", notNullValue())
-                        .body("data.attributes.responseBody", equalTo("{\"data\":{\"book\":{\"edges\":"
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.responseBody", equalTo("{\"data\":{\"book\":{\"edges\":"
                                 + "[{\"node\":{\"id\":\"1\",\"title\":\"Ender's Game\"}},"
                                 + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"
                                 + "{\"node\":{\"id\":\"3\",\"title\":\"For Whom the Bell Tolls\"}}]}}}"))
-                        .body("data.attributes.status", equalTo(200))
-                        .body("data.relationships.query.data.type", equalTo("asyncQuery"))
-                        .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"));
+                        .body("data.attributes.result.httpStatus", equalTo(200))
+                        .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString())).toString();
 
+                // Validate GraphQL Response
                 String responseGraphQL = given()
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263c\\\"]) "
                                 + "{ edges { node { id queryType status result "
-                                + "{ edges { node { id responseBody status} } } } } } }\""
-                                + ",\"variables\":null}")
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                                + "\"variables\":null}")
                         .post("/graphQL")
                         .asString();
 
-                String expectedResponse = document(
-                        selections(
-                                field(
-                                        "asyncQuery",
-                                        selections(
-                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"),
-                                                field("queryType", "GRAPHQL_V1_0"),
-                                                field("status", "COMPLETE"),
-                                                field("result",
-                                                        selections(
-                                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"),
-                                                                field("responseBody", "{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":"
-                                                                        + "[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
-                                                                        + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
-                                                                        + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}"),
-                                                                field("status", 200)
-                                                        ))
-                                        )
-                                )
-                        )
-                ).toResponse();
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263c\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                        + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
+                        + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
+                        + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
+                        + "\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":177}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
@@ -325,6 +292,7 @@ public class AsyncIT extends IntegrationTest {
 
     /**
      * Various tests for an unknown collection (group) that does not exist JSONAPI query as a Async Request.
+     * @throws InterruptedException
      */
     @Test
     public void jsonApiUnknownRequestTests() throws InterruptedException {
@@ -338,7 +306,9 @@ public class AsyncIT extends IntegrationTest {
                                         attributes(
                                                 attr("query", "/group?sort=genre&fields%5Bgroup%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -363,53 +333,32 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.relationships.result.data.type", equalTo("asyncQueryResult"))
-                        .body("data.relationships.result.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"));
+                        .body("data.attributes.status", equalTo("COMPLETE"));
 
                 // Validate AsyncQueryResult Response
                 given()
                         .accept("application/vnd.api+json")
-                        .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263b/result")
+                        .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263b")
                         .then()
                         .statusCode(HttpStatus.SC_OK)
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"))
-                        .body("data.type", equalTo("asyncQueryResult"))
-                        .body("data.attributes.contentLength", notNullValue())
-                        .body("data.attributes.responseBody", equalTo("{\"errors\":[{\"detail\":\"Unknown collection group\"}]}"))
-                        .body("data.attributes.status", equalTo(404))
-                        .body("data.relationships.query.data.type", equalTo("asyncQuery"))
-                        .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"));
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.responseBody", equalTo("{\"errors\":[{\"detail\":\"Unknown collection group\"}]}"))
+                        .body("data.attributes.result.httpStatus", equalTo(404));
 
-                // Validate GraphQL Response
+             // Validate GraphQL Response
                 String responseGraphQL = given()
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263b\\\"]) "
                                 + "{ edges { node { id queryType status result "
-                                + "{ edges { node { id responseBody status} } } } } } }\""
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\""
                                 + ",\"variables\":null}")
                         .post("/graphQL")
                         .asString();
 
-                String expectedResponse = document(
-                        selections(
-                                field(
-                                        "asyncQuery",
-                                        selections(
-                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"),
-                                                field("queryType", "JSONAPI_V1_0"),
-                                                field("status", "COMPLETE"),
-                                                field("result",
-                                                        selections(
-                                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"),
-                                                                field("responseBody", "{\\\"errors\\\":[{\\\"detail\\\":\\\"Unknown collection group\\\"}]}"),
-                                                                field("status", 404)
-                                                        ))
-                                        )
-                                )
-                        )
-                ).toResponse();
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263b\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"errors\\\":[{\\\"detail\\\":\\\"Unknown collection group\\\"}]}\",\"httpStatus\":404,\"resultType\":\"EMBEDDED\",\"contentLength\":50}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
 
@@ -425,6 +374,7 @@ public class AsyncIT extends IntegrationTest {
 
     /**
      * Various tests for making a Async request for AsyncQuery request that does not exist.
+     * @throws InterruptedException
      */
     @Test
     public void jsonApiBadRequestTests() throws InterruptedException {
@@ -437,13 +387,13 @@ public class AsyncIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NOT_FOUND)
                 .body("errors[0].detail", equalTo("Unknown identifier ba31ca4e-ed8f-4be0-a0f3-12088fa9263a for asyncQuery"));
 
-        //GRAPHQL bad request
+      //GRAPHQL bad request
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263a\\\"]) "
                         + "{ edges { node { id createdOn updatedOn queryType status result "
-                        + "{ edges { node { id createdOn updatedOn responseBody status} } } } } } }\""
+                        + "{ responseBody httpStatus resultType contentLength } } } } }\""
                         + ",\"variables\":null}")
                 .post("/graphQL")
                 .then()
@@ -451,10 +401,12 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.asyncQuery", nullValue())
                 .body("errors[0].message", equalTo("Exception while fetching data (/asyncQuery) : Unknown identifier "
                         + "[ba31ca4e-ed8f-4be0-a0f3-12088fa9263a] for asyncQuery"));
+
     }
 
     /**
      * Various tests for making a Async request to a model to which the user does not have permissions.
+     * @throws InterruptedException
      */
     @Test
     public void noReadEntityTests() throws InterruptedException {
@@ -469,7 +421,9 @@ public class AsyncIT extends IntegrationTest {
                                         attributes(
                                                 attr("query", "/noread"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -494,23 +448,20 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.relationships.result.data.type", equalTo("asyncQueryResult"))
-                        .body("data.relationships.result.data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"));
+                        .body("data.attributes.status", equalTo("COMPLETE"));
 
                 // Validate AsyncQueryResult Response
                 given()
                         .accept("application/vnd.api+json")
-                        .get("/asyncQuery/0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e/result")
+                        .get("/asyncQuery/0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e")
                         .then()
                         .statusCode(HttpStatus.SC_OK)
                         .body("data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"))
-                        .body("data.type", equalTo("asyncQueryResult"))
-                        .body("data.attributes.contentLength", notNullValue())
-                        .body("data.attributes.responseBody", equalTo("{\"data\":[]}"))
-                        .body("data.attributes.status", equalTo(200))
-                        .body("data.relationships.query.data.type", equalTo("asyncQuery"))
-                        .body("data.relationships.query.data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"));
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.responseBody", equalTo("{\"data\":[]}"))
+                        .body("data.attributes.result.httpStatus", equalTo(200))
+                        .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
@@ -518,29 +469,12 @@ public class AsyncIT extends IntegrationTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e\\\"]) "
                                 + "{ edges { node { id queryType status result "
-                                + "{ edges { node { id responseBody status} } } } } } }\""
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\""
                                 + ",\"variables\":null}")
                         .post("/graphQL")
                         .asString();
 
-                String expectedResponse = document(
-                        selections(
-                                field(
-                                        "asyncQuery",
-                                        selections(
-                                                field("id", "0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"),
-                                                field("queryType", "JSONAPI_V1_0"),
-                                                field("status", "COMPLETE"),
-                                                field("result",
-                                                        selections(
-                                                                field("id", "0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"),
-                                                                field("responseBody", "{\\\"data\\\":[]}"),
-                                                                field("status", 200)
-                                                        ))
-                                        )
-                                )
-                        )
-                ).toResponse();
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[]}\",\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":11}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
 

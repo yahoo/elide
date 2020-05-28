@@ -107,17 +107,15 @@ public class DefaultAsyncQueryDAOTest {
     }
 
     @Test
-    public void testCreateAsyncQueryResult() {
+    public void testUpdateAsyncQueryResult() {
         Integer status = 200;
         String responseBody = "responseBody";
         String uuid = "ba31ca4e-ed8f-4be0-a0f3-12088fa9263e";
-        AsyncQueryResult result = asyncQueryDAO.createAsyncQueryResult(status, "responseBody", asyncQuery, uuid);
-
-        assertEquals(status, result.getStatus());
-        assertEquals(responseBody, result.getResponseBody());
-        assertEquals(asyncQuery, result.getQuery());
-        assertEquals(uuid, result.getId());
-        verify(tx, times(1)).createObject(any(), any(RequestScope.class));
+        AsyncQuery query = new AsyncQuery();
+        AsyncQueryResult queryResult = new AsyncQueryResult();
+        queryResult.setResponseBody(responseBody);
+        query = asyncQueryDAO.updateAsyncQueryResult(queryResult, query);
+        assertEquals(responseBody, query.getResult().getResponseBody());
         verify(tx, times(1)).save(any(), any(RequestScope.class));
 
     }

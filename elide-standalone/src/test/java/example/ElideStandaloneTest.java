@@ -6,9 +6,6 @@
 package example;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
@@ -19,9 +16,9 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -29,9 +26,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-
 import example.models.Post;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -81,8 +76,6 @@ public class ElideStandaloneTest {
             public boolean enableSwagger() {
                 return true;
             }
-
-
             @Override
             public boolean enableGraphQL() {
                 return true;
@@ -234,7 +227,7 @@ public class ElideStandaloneTest {
 
     @Test
     public void testHealthCheckServlet() throws Exception {
-        given()
+            given()
                 .when()
                 .get("/stats/healthcheck")
                 .then()
@@ -257,7 +250,7 @@ public class ElideStandaloneTest {
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "functionArgument", "metric",
-                        "metricFunction", "dimension", "column", "table", "asyncQuery", "asyncQueryResult",
+                        "metricFunction", "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "postView"));
     }
 
@@ -298,27 +291,20 @@ public class ElideStandaloneTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.relationships.result.data.type", equalTo("asyncQueryResult"))
-                        .body("data.relationships.result.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
+                        .body("data.attributes.status", equalTo("COMPLETE"));
 
                 // Validate AsyncQueryResult Response
                 given()
                         .accept("application/vnd.api+json")
-                        .get("/api/v1/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d/result")
+                        .get("/api/v1/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
                         .then()
                         .statusCode(com.yahoo.elide.core.HttpStatus.SC_OK)
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
-                        .body("data.type", equalTo("asyncQueryResult"))
-                        .body("data.attributes.contentLength", notNullValue())
-                        .body("data.attributes.responseBody", equalTo("{\"data\":"
-                                + "[{\"type\":\"post\",\"id\":\"2\","
-                                + "\"attributes\":{\"abusiveContent\":false,"
-                                + "\"content\":\"This is my first post. woot.\","
-                                + "\"date\":\"2019-01-01T00:00Z\"}}]}"))
-                        .body("data.attributes.status", equalTo(200))
-                        .body("data.relationships.query.data.type", equalTo("asyncQuery"))
-                        .body("data.relationships.query.data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"));
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.responseBody", equalTo("{\"data\":"
+                                + "[{\"type\":\"post\",\"id\":\"2\",\"attributes\":{\"abusiveContent\":false,"
+                                + "\"content\":\"This is my first post. woot.\",\"date\":\"2019-01-01T00:00Z\"}}]}"));
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
@@ -326,34 +312,12 @@ public class ElideStandaloneTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
                                 + "{ edges { node { id queryType status result "
-                                + "{ edges { node { id responseBody status} } } } } } }\","
+                                + "{ responseBody httpStatus resultType contentLength } } } } }\","
                                 + "\"variables\":null}")
                         .post("/graphql/api/v1/")
                         .asString();
 
-                String expectedResponse = document(
-                        selections(
-                                field(
-                                        "asyncQuery",
-                                        selections(
-                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
-                                                field("queryType", "JSONAPI_V1_0"),
-                                                field("status", "COMPLETE"),
-                                                field("result",
-                                                        selections(
-                                                                field("id", "ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
-                                                                field("responseBody", "{\\\"data\\\":"
-                                                                        + "[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\","
-                                                                        + "\\\"attributes\\\":{\\\"abusiveContent\\\":false,"
-                                                                        + "\\\"content\\\":\\\"This is my first post. woot.\\\""
-                                                                        + ",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"}}]}"),
-                                                                field("status", 200)
-                                                        ))
-                                        )
-                                )
-                        )
-                ).toResponse();
-
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"}}]}\",\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":141}}}]}}}";
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             }
