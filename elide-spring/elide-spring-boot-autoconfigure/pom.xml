@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-spring-boot-autoconfigure</artifactId>
-    <version>5.0.0-pr10-SNAPSHOT</version>
+    <version>5.0.0-pr10</version>
     <packaging>jar</packaging>
     <name>Elide Spring Boot Autoconfigure</name>
     <description>Elide Spring Boot Autoconfigure</description>
@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>5.0.0-pr10-SNAPSHOT</version>
+        <version>5.0.0-pr10</version>
     </parent>
 
     <licenses>
@@ -35,7 +35,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>HEAD</tag>
+        <tag>5.0.0-pr10</tag>
     </scm>
 
     <properties>
@@ -51,56 +51,56 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <optional>true</optional>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-dynamic-config-helpers</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <optional>true</optional>
         </dependency>
 
@@ -170,7 +170,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr10</version>
             <scope>test</scope>
         </dependency>
 
