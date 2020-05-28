@@ -63,7 +63,7 @@ public class GraphQLConversionUtils {
     public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
         this.entityDictionary = entityDictionary;
         this.nonEntityDictionary = nonEntityDictionary;
-        this.nameUtils = new GraphQLNameUtils(dictionary);
+        this.nameUtils = new GraphQLNameUtils(entityDictionary);
         registerCustomScalars();
     }
 

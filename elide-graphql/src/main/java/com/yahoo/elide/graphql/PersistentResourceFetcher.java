@@ -46,13 +46,10 @@ import javax.validation.constraints.NotNull;
  */
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher<Object> {
-    private final ElideSettings settings;
-
     @Getter
     private final NonEntityDictionary nonEntityDictionary;
 
-    public PersistentResourceFetcher(ElideSettings settings, NonEntityDictionary nonEntityDictionary) {
-        this.settings = settings;
+    public PersistentResourceFetcher(NonEntityDictionary nonEntityDictionary) {
         this.nonEntityDictionary = nonEntityDictionary;
     }
 
