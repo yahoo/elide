@@ -1,0 +1,16 @@
+{
+  book {
+    edges {
+      node {
+        id
+        title
+        price {
+          units
+          currency {
+            currencyCode
+          }
+        }
+      }
+    }
+  }
+}

@@ -5,6 +5,25 @@
  */
 package com.yahoo.elide.graphql;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import javax.ws.rs.WebApplicationException;
+import javax.xml.ws.Response;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -14,21 +33,11 @@ import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.security.User;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
 import graphql.ExecutionInput;
@@ -36,16 +45,6 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 
 /**
  * Entry point for REST endpoints to execute GraphQL queries.
@@ -69,8 +68,10 @@ public class QueryRunner {
         this.elide = elide;
         this.apiVersion = apiVersion;
 
-        PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
-        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher, apiVersion);
+        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+        PersistentResourceFetcher fetcher = new PersistentResourceFetcher(nonEntityDictionary);
+        ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(),
+                nonEntityDictionary, fetcher, apiVersion);
 
         this.api = new GraphQL(builder.build());
 
@@ -144,8 +145,10 @@ public class QueryRunner {
     private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument) {
         boolean isVerbose = false;
+        UUID requestId = null;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-
+            requestId = tx.getRequestId();
+            elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
                         .responseCode(HttpStatus.SC_BAD_REQUEST)
@@ -270,6 +273,7 @@ public class QueryRunner {
             log.error("Unhandled error or exception.", e);
             throw e;
         } finally {
+            elide.getTransactionRegistry().removeRunningTransaction(requestId);
             elide.getAuditLogger().clear();
         }
     }

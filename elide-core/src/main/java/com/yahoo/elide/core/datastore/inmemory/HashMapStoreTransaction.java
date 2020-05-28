@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -27,7 +28,7 @@ import javax.persistence.GeneratedValue;
 /**
  * HashMapDataStore transaction handler.
  */
-public class HashMapStoreTransaction implements DataStoreTransaction {
+public class HashMapStoreTransaction extends DataStoreTransactionImplementation {
     private final Map<Class<?>, Map<String, Object>> dataStore;
     private final List<Operation> operations;
     private final EntityDictionary dictionary;

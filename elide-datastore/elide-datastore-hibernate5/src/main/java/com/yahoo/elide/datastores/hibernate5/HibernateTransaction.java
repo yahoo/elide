@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
@@ -48,13 +49,12 @@ import javax.persistence.PersistenceException;
  * Hibernate Transaction implementation.
  */
 @Slf4j
-public class HibernateTransaction implements DataStoreTransaction {
+public class HibernateTransaction extends DataStoreTransactionImplementation {
 
     private final Session session;
     private final SessionWrapper sessionWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
-
     /**
      * Constructor.
      *

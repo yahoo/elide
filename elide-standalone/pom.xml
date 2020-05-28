@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-standalone</artifactId>
-    <version>5.0.0-pr10-SNAPSHOT</version>
+    <version>5.0.0-pr11-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Standalone</name>
     <description>Elide Standalone Application</description>
@@ -16,7 +16,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.0-pr10-SNAPSHOT</version>
+        <version>5.0.0-pr11-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -48,7 +48,7 @@
     <properties>
         <!-- Versions -->
         <logback.version>1.2.3</logback.version>
-        <metrics.version>4.1.6</metrics.version>
+        <metrics.version>4.1.9</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -60,23 +60,35 @@
         <!-- Elide dependency -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-aggregation</artifactId>
+            <version>5.0.0-pr11-SNAPSHOT</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr11-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-dynamic-config-helpers</artifactId>
+            <version>5.0.0-pr11-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -194,7 +206,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>5.0.0-pr10-SNAPSHOT</version>
+            <version>5.0.0-pr11-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -239,6 +251,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

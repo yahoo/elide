@@ -11,6 +11,24 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Currency;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -21,35 +39,20 @@ import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import example.Author;
-import example.Book;
-import example.Pseudonym;
-import example.Publisher;
 import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import example.Author;
+import example.Book;
+import example.Price;
+import example.Pseudonym;
+import example.Publisher;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
 
 /**
  * Base functionality required to test the PersistentResourceFetcher.
@@ -85,8 +88,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         );
 
         inMemoryDataStore.populateEntityDictionary(dictionary);
-
-        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(), NO_VERSION);
+        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+        ModelBuilder builder = new ModelBuilder(dictionary, nonEntityDictionary,
+                new PersistentResourceFetcher(nonEntityDictionary), NO_VERSION);
 
         api = new GraphQL(builder.build());
 
@@ -125,6 +129,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book1.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
         book1.setPublisher(publisher1);
         book1.setPublicationDate(new Date(1514397817135L));
+        book1.setPrice(new Price(new BigDecimal(123), Currency.getInstance("USD")));
 
         Book book2 = new Book();
         book2.setId(2L);
@@ -132,6 +137,17 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book2.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
         book2.setPublisher(publisher1);
         book2.setPublicationDate(new Date(0L));
+        book2.setPrice(null);
+
+        Price book2Price1 = new Price(new BigDecimal(200), Currency.getInstance("USD"));
+        Price book2Price2 = new Price(new BigDecimal(210), Currency.getInstance("USD"));
+        book2.setPriceHistory(Arrays.asList(
+                book2Price1,
+                book2Price2));
+
+        book2.setPriceRevisions(new HashMap<>());
+        book2.getPriceRevisions().put(new Date(1590187582000L), book2Price1);
+        book2.getPriceRevisions().put(new Date(1590187682000L), book2Price2);
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));
@@ -147,6 +163,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book3.setTitle("Doctor Zhivago");
         book3.setAuthors(new ArrayList<>(Collections.singletonList(author2)));
         book3.setPublisher(publisher2);
+        book3.setPriceHistory(new ArrayList<>());
 
         author2.setBooks(new ArrayList<>(Collections.singletonList(book3)));
 

@@ -6,11 +6,7 @@
 
 package example.models.v2;
 
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.UpdatePermission;
-import example.checks.AdminCheck;
-import lombok.Data;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,7 +14,13 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.util.Date;
+
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.UpdatePermission;
+
+import example.checks.AdminCheck;
+import lombok.Data;
 
 @Entity
 @Include(rootLevel = true, type = "post")
@@ -31,7 +33,7 @@ public class PostV2 {
     @Column(nullable = false, name = "content")
     private String text;
 
-    @Temporal( TemporalType.TIMESTAMP )
+    @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
     @CreatePermission(expression = AdminCheck.USER_IS_ADMIN)

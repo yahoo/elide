@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Basically the same class as GraphQLInputObjectType except fields can be added after the
@@ -46,7 +47,7 @@ import java.util.Map;
 public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
 
     private final Map<String, GraphQLInputObjectField> fieldMap = new LinkedHashMap<String, GraphQLInputObjectField>();
-    private String name;
+    private final String name;
 
     public MutableGraphQLInputObjectType(String name, String description, List<GraphQLInputObjectField> fields) {
         super(name, description, fields);
@@ -57,10 +58,6 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
     @Override
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     private void buildMap(List<GraphQLInputObjectField> fields) {
@@ -136,5 +133,22 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
         public MutableGraphQLInputObjectType build() {
             return new MutableGraphQLInputObjectType(name, description, fields);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MutableGraphQLInputObjectType that = (MutableGraphQLInputObjectType) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

@@ -7,18 +7,20 @@ package com.yahoo.elide.core.hibernate.hql;
 
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
+
+import javax.management.Query;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
+import javafx.scene.control.Pagination;
 
 /**
  * Constructs a HQL query to fetch the size of a root collection.
@@ -72,7 +74,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
             filterClause = WHERE + new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
 
             //Build the JOIN clause
-            joinClause = getJoinClauseFromFilters(filterExpression.get());
+            joinClause =  getJoinClauseFromFilters(filterExpression.get(), true);
 
         } else {
             predicates = new HashSet<>();

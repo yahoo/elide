@@ -105,7 +105,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             FilterExpression joinedExpression = new AndFilterExpression(scoped, idExpression);
 
             //Build the JOIN clause from the filter predicate
-            joinClause = getJoinClauseFromFilters(joinedExpression);
+            joinClause = getJoinClauseFromFilters(joinedExpression, true);
 
             //Build the WHERE clause
             filterClause = new FilterTranslator().apply(joinedExpression, USE_ALIAS);

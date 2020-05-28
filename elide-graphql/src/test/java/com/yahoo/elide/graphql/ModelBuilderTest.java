@@ -15,16 +15,20 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.EntityDictionary;
-
 import com.yahoo.elide.request.Sorting;
-import example.Author;
-import example.Book;
-import example.Publisher;
 
 import org.junit.jupiter.api.Test;
 
+import example.Author;
+import example.Book;
+import example.Publisher;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
@@ -33,11 +37,6 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ModelBuilderTest {
     private EntityDictionary dictionary;
@@ -97,7 +96,7 @@ public class ModelBuilderTest {
     @Test
     public void testPageInfoObject() {
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
+        ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
@@ -108,7 +107,7 @@ public class ModelBuilderTest {
     @Test
     public void testRelationshipParameters() {
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
+        ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
         GraphQLObjectType root = schema.getQueryType();
@@ -144,7 +143,7 @@ public class ModelBuilderTest {
     @Test
     public void testBuild() {
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
+        ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 
@@ -207,7 +206,7 @@ public class ModelBuilderTest {
         dictionary.addArgumentsToAttribute(Book.class, FIELD_PUBLISH_DATE, arguments);
 
         DataFetcher fetcher = mock(DataFetcher.class);
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher, NO_VERSION);
+        ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 

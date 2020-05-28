@@ -8,10 +8,11 @@ package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashMap;
+
 import org.junit.jupiter.api.Test;
 
 import graphql.ExecutionResult;
-import java.util.HashMap;
 
 /**
  * Test the Fetch operation.
@@ -39,6 +40,21 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootCollection() throws Exception {
         runComparisonTest("rootCollection");
+    }
+
+    @Test
+    public void testComplexAttribute() throws Exception {
+        runComparisonTest("complexAttribute");
+    }
+
+    @Test
+    public void testComplexAttributeList() throws Exception {
+        runComparisonTest("complexAttributeList");
+    }
+
+    @Test
+    public void testComplexAttributeMap() throws Exception {
+        runComparisonTest("complexAttributeMap");
     }
 
     @Test

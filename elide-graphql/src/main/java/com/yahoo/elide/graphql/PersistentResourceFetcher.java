@@ -8,23 +8,6 @@ package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.graphql.containers.ConnectionContainer;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
-
-import com.google.common.collect.Sets;
-
-import graphql.language.Field;
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLType;
-import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,14 +19,40 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.validation.constraints.NotNull;
+
+import com.google.common.collect.Sets;
+import com.oracle.jrockit.jfr.InvalidValueException;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder.Relationship;
+import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.MapEntryContainer;
+import com.yahoo.elide.request.EntityProjection;
+
+import org.omg.CORBA.Environment;
+
+import graphql.schema.DataFetcher;
+import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLType;
+import jdk.nashorn.internal.objects.annotations.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
  */
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher<Object> {
-    public PersistentResourceFetcher() { }
+    @Getter
+    private final NonEntityDictionary nonEntityDictionary;
+
+    public PersistentResourceFetcher(NonEntityDictionary nonEntityDictionary) {
+        this.nonEntityDictionary = nonEntityDictionary;
+    }
 
     /**
      * Override graphql-java's {@link DataFetcher} get method to execute
@@ -419,7 +428,14 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         /* iterate through each attribute provided */
         for (Entity.Attribute attribute : attributes) {
             if (dictionary.isAttribute(entityClass, attribute.getName())) {
-                toUpdate.updateAttribute(attribute.getName(), attribute.getValue());
+                Class<?> attributeType = dictionary.getType(entityClass, attribute.getName());
+                Object attributeValue;
+                if (Map.class.isAssignableFrom(attributeType)) {
+                    attributeValue = MapEntryContainer.translateFromGraphQLMap(attribute);
+                } else {
+                    attributeValue = attribute.getValue();
+                }
+                toUpdate.updateAttribute(attribute.getName(), attributeValue);
             } else if (!Objects.equals(attribute.getName(), idFieldName)) {
                 throw new IllegalStateException("Unrecognized attribute passed to 'data': " + attribute.getName());
             }

@@ -13,6 +13,14 @@ import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
 
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
@@ -32,14 +40,6 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import lombok.extern.slf4j.Slf4j;
 
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * Contains methods that convert from a class to a GraphQL input or query type.
  */
@@ -51,7 +51,7 @@ public class GraphQLConversionUtils {
 
     private final Map<Class<?>, GraphQLScalarType> scalarMap = new HashMap<>();
 
-    protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+    protected NonEntityDictionary nonEntityDictionary;
     protected EntityDictionary entityDictionary;
 
     private final Map<Class, GraphQLObjectType> outputConversions = new HashMap<>();
@@ -60,9 +60,10 @@ public class GraphQLConversionUtils {
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
     private final GraphQLNameUtils nameUtils;
 
-    public GraphQLConversionUtils(EntityDictionary dictionary) {
-        this.entityDictionary = dictionary;
-        this.nameUtils = new GraphQLNameUtils(dictionary);
+    public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
+        this.entityDictionary = entityDictionary;
+        this.nonEntityDictionary = nonEntityDictionary;
+        this.nameUtils = new GraphQLNameUtils(entityDictionary);
         registerCustomScalars();
     }
 

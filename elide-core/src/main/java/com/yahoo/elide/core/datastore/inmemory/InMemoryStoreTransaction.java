@@ -6,22 +6,6 @@
 
 package com.yahoo.elide.core.datastore.inmemory;
 
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
-import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
-import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Relationship;
-import com.yahoo.elide.request.Sorting;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
@@ -35,15 +19,28 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
+import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
+import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
+
+import javafx.scene.control.Pagination;
+
 
 /**
  * Data Store Transaction that wraps another transaction and provides in-memory filtering, soring, and pagination
  * when the underlying transaction cannot perform the equivalent function.
  */
-public class InMemoryStoreTransaction implements DataStoreTransaction {
+public class InMemoryStoreTransaction extends DataStoreTransactionImplementation implements DataStoreTransaction {
 
     private final DataStoreTransaction tx;
-
     private static final Comparator<Object> NULL_SAFE_COMPARE = (a, b) -> {
         if (a == null && b == null) {
             return 0;

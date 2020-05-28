@@ -5,19 +5,18 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.core.filter.InPredicate;
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
-import com.yahoo.elide.request.Sorting;
-
 import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
 
+import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 /**
  * Wraps the Database Transaction type.
  */
@@ -31,7 +30,6 @@ public interface DataStoreTransaction extends Closeable {
         PARTIAL,
         NONE
     }
-
     /**
      * Save the updated object.
      *
@@ -229,7 +227,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - The object which owns the attribute.
      * @param attribute - the attribute to set.
      * @param scope - contains request level metadata.
-     */
+      */
     default void setAttribute(Object entity,
                               Attribute attribute,
                               RequestScope scope) {
@@ -263,4 +261,9 @@ public interface DataStoreTransaction extends Closeable {
     default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
     }
+    /**
+     * Transaction ID for each transaction
+     * @return UUID id
+     */
+    UUID getRequestId();
 }

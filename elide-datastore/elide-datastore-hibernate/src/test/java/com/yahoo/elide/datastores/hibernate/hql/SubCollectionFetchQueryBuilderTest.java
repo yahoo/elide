@@ -8,31 +8,30 @@ package com.yahoo.elide.datastores.hibernate.hql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
-
-import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
-import example.Author;
-import example.Book;
-import example.Chapter;
-import example.Publisher;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import example.Author;
+import example.Book;
+import example.Chapter;
+import example.Publisher;
+import javafx.scene.control.Pagination;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SubCollectionFetchQueryBuilderTest {
@@ -145,7 +144,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
                 + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN example_Book.publisher example_Book_publisher  LEFT JOIN FETCH example_Book.publisher  "
+                + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher  "
                 + "WHERE example_Book_publisher.name IN (:books_publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch ";
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+_\\w+", ":books_publisher_name_XXX");
@@ -191,7 +190,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
                 + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN example_Book.publisher example_Book_publisher LEFT JOIN FETCH example_Book.publisher "
+                + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher "
                 + "WHERE example_Book_publisher.name IN (:publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
 
         String actual = query.getQueryText();
