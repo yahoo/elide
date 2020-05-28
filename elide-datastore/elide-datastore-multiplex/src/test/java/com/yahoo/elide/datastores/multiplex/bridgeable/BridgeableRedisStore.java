@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.multiplex.bridgeable;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
@@ -58,7 +59,7 @@ public class BridgeableRedisStore implements DataStore {
         return new ExampleRedisTransaction();
     }
 
-    public class ExampleRedisTransaction implements DataStoreTransaction, BridgeableTransaction {
+    public class ExampleRedisTransaction extends DataStoreTransactionImplementation implements BridgeableTransaction {
 
         @Override
         public Object loadObject(EntityProjection projection,

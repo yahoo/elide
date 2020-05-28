@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
@@ -48,7 +49,7 @@ import javax.validation.ConstraintViolationException;
  * Base JPA transaction implementation class.
  */
 @Slf4j
-public abstract class AbstractJpaTransaction implements JpaTransaction {
+public abstract class AbstractJpaTransaction extends DataStoreTransactionImplementation implements JpaTransaction {
     private static final Predicate<Collection<?>> IS_PERSISTENT_COLLECTION =
             new PersistentCollectionChecker();
 

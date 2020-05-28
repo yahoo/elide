@@ -7,7 +7,10 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.EntityDictionary;
 
+import lombok.Getter;
+
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -16,6 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Deprecated
 public class HashMapStoreTransaction extends com.yahoo.elide.core.datastore.inmemory.HashMapStoreTransaction {
+    @Getter private final UUID requestId = UUID.randomUUID();
     public HashMapStoreTransaction(Map<Class<?>, Map<String, Object>> dataStore,
                                    EntityDictionary dictionary, Map<Class<?>, AtomicLong> typeIds) {
         super(dataStore, dictionary, typeIds);
