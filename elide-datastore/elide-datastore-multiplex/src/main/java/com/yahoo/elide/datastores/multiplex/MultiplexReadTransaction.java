@@ -13,7 +13,6 @@ import com.yahoo.elide.core.RequestScope;
  * Multiplex transaction handler.
  */
 public class MultiplexReadTransaction extends MultiplexTransaction {
-
     public MultiplexReadTransaction(MultiplexManager multiplexManager) {
         super(multiplexManager);
     }

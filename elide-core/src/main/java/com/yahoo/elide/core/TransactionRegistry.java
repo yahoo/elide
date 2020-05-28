@@ -5,44 +5,33 @@
  */
 package com.yahoo.elide.core;
 
-import lombok.Data;
+import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 /**
- * Transaction Registry interface to surface transaction details to other parts of Elide.
- */
-
-public interface TransactionRegistry {
-    /**
-     * @see RequestScope
-     * @see DataStoreTransaction
-     */
-    @Data
-    public static class TransactionEntry {
-        public RequestScope request;
-        public DataStoreTransaction transaction;
+* Transaction Registry class.
+*/
+@Getter
+public class TransactionRegistry {
+    private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
+    public Set<DataStoreTransaction> getRunningTransactions() {
+        Set<DataStoreTransaction> transactions = transactionMap.values().stream().collect(Collectors.toSet());
+        return transactions;
     }
 
-    /**
-     * @return all running transactions
-     */
-    Set<TransactionEntry> getRunningTransactions();
+    public DataStoreTransaction getRunningTransaction(UUID requestId) {
+        return transactionMap.get(requestId);
+    }
 
-    /**
-     * @param requestId
-     * @return matching running transaction
-     */
-    Set<TransactionEntry> getRunningTransaction(String requestId);
+    public void addRunningTransaction(UUID requestId, DataStoreTransaction tx) {
+        transactionMap.put(requestId, tx);
+    }
 
-    /**
-     * Adds running transaction
-     * @param transactionEntry TransactionEntry transactionEntry
-     */
-    void addRunningTransaction(TransactionEntry transactionEntry);
-
-    /**
-     * Removes running transaction when we call cancel on it
-     * @param transactionEntry TransactionEntry transactionEntry
-     */
-    void removeRunningTransaction(TransactionEntry transactionEntry);
+    public void removeRunningTransaction(UUID requestId) {
+        transactionMap.remove(requestId);
+    }
 }
