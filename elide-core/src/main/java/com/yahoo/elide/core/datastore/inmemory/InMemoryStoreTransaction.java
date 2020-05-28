@@ -119,6 +119,9 @@ public class InMemoryStoreTransaction extends DataStoreTransactionImplementation
                 projection.getFilterExpression()) == FeatureSupport.FULL) {
             return tx.loadObject(projection, id, scope);
         } else {
+            System.out.println("*****************");
+            System.out.println(super);
+            System.out.println("**")
             return DataStoreTransaction.super.loadObject(projection, id, scope);
         }
     }
