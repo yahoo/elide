@@ -32,10 +32,10 @@ import java.util.Set;
  */
 public class DynamicConfigHelpers {
 
-    private static final String TABLE_CONFIG_PATH = "tables" + File.separator;
-    private static final String SECURITY_CONFIG_PATH = "security.hjson";
-    private static final String VARIABLE_CONFIG_PATH = "variables.hjson";
-    private static final String NEW_LINE = "\n";
+    public static final String TABLE_CONFIG_PATH = "tables" + File.separator;
+    public static final String SECURITY_CONFIG_PATH = "security.hjson";
+    public static final String VARIABLE_CONFIG_PATH = "variables.hjson";
+    public static final String NEW_LINE = "\n";
 
     /**
      * Checks whether input is null or empty.
@@ -153,7 +153,7 @@ public class DynamicConfigHelpers {
         return new ObjectMapper().readValue(jsonConfig, configPojo);
     }
 
-    private static String readConfigFile(File configFile) {
+    public static String readConfigFile(File configFile) {
         StringBuffer sb = new StringBuffer();
         try {
             for (String line : FileUtils.readLines(configFile, StandardCharsets.UTF_8)) {
