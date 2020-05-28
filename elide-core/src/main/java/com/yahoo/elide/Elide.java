@@ -10,6 +10,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -57,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolationException;
@@ -76,7 +78,7 @@ public class Elide {
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
     @Getter private final JsonApiMapper mapper;
-
+    @Getter private final TransactionRegistry transactionRegistry;
     /**
      * Instantiates a new Elide instance.
      *
@@ -88,6 +90,7 @@ public class Elide {
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
         this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
         this.mapper = elideSettings.getMapper();
+        this.transactionRegistry = new TransactionRegistry();
 
         elideSettings.getSerdes().forEach((targetType, serde) -> {
             CoerceUtil.register(targetType, serde);
@@ -327,7 +330,10 @@ public class Elide {
                                           Supplier<DataStoreTransaction> transaction,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
+        UUID requestId = null;
         try (DataStoreTransaction tx = transaction.get()) {
+            requestId = tx.getRequestId();
+            transactionRegistry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -396,6 +402,7 @@ public class Elide {
             throw e;
 
         } finally {
+            transactionRegistry.removeRunningTransaction(requestId);
             auditLogger.clear();
         }
     }
