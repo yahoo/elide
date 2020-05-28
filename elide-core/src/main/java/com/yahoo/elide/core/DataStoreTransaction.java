@@ -17,7 +17,7 @@ import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
-
+import java.util.UUID;
 /**
  * Wraps the Database Transaction type.
  */
@@ -31,7 +31,6 @@ public interface DataStoreTransaction extends Closeable {
         PARTIAL,
         NONE
     }
-
     /**
      * Save the updated object.
      *
@@ -229,7 +228,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - The object which owns the attribute.
      * @param attribute - the attribute to set.
      * @param scope - contains request level metadata.
-     */
+      */
     default void setAttribute(Object entity,
                               Attribute attribute,
                               RequestScope scope) {
@@ -263,4 +262,9 @@ public interface DataStoreTransaction extends Closeable {
     default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
     }
+    /**
+     * Transaction ID for each transaction
+     * @return UUID id
+     */
+    UUID getRequestId();
 }
