@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.datastore.wrapped;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.request.Attribute;
@@ -25,7 +26,7 @@ import java.util.Set;
  */
 @Data
 @AllArgsConstructor
-public abstract class TransactionWrapper implements DataStoreTransaction {
+public abstract class TransactionWrapper extends DataStoreTransactionImplementation {
     protected DataStoreTransaction tx;
 
     @Override

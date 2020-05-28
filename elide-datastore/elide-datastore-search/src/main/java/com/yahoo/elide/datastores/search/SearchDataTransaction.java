@@ -55,7 +55,6 @@ public class SearchDataTransaction extends TransactionWrapper {
     private FullTextEntityManager em;
     private int minNgram;
     private int maxNgram;
-
     public SearchDataTransaction(DataStoreTransaction tx,
                                  EntityDictionary dictionary,
                                  FullTextEntityManager em,
