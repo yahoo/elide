@@ -19,7 +19,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -69,8 +68,6 @@ public class ModelBuilder {
     private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
-    private HashMap<String, GraphQLInputType> convertedInputs = new HashMap<>();
-
     /**
      * Class constructor, constructs the custom arguments to handle mutations
      * @param entityDictionary elide entity dictionary
@@ -82,7 +79,7 @@ public class ModelBuilder {
                         DataFetcher dataFetcher, String apiVersion) {
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
         this.entityDictionary = entityDictionary;
-        this.nameUtils = new GraphQLNameUtils(dictionary);
+        this.nameUtils = new GraphQLNameUtils(entityDictionary);
         this.dataFetcher = dataFetcher;
         this.apiVersion = apiVersion;
 
@@ -152,7 +149,7 @@ public class ModelBuilder {
      * @return The built schema.
      */
     public GraphQLSchema build() {
-        Set<Class<?>> allClasses = dictionary.getBoundClassesByVersion(apiVersion);
+        Set<Class<?>> allClasses = entityDictionary.getBoundClassesByVersion(apiVersion);
 
         if (allClasses.isEmpty()) {
             throw new IllegalArgumentException("None of the provided classes are exported by Elide");
@@ -265,7 +262,7 @@ public class ModelBuilder {
             log.debug("Building query attribute {} {} with arguments {} for entity {}",
                     attribute,
                     attributeClass.getName(),
-                    dictionary.getAttributeArguments(attributeClass, attribute).toString(),
+                    entityDictionary.getAttributeArguments(attributeClass, attribute).toString(),
                     entityClass.getName());
 
             GraphQLType attributeType =
@@ -383,22 +380,6 @@ public class ModelBuilder {
                     clazz.getName());
 
             GraphQLInputType attributeType = generator.attributeToInputObject(clazz, attributeClass, attribute);
-
-            if (attributeType instanceof GraphQLInputObjectType) {
-                String objectName = attributeType.getName();
-                if (!convertedInputs.containsKey(objectName)) {
-                    MutableGraphQLInputObjectType wrappedType =
-                            new MutableGraphQLInputObjectType(
-                                    objectName,
-                                    ((GraphQLInputObjectType) attributeType).getDescription(),
-                                    ((GraphQLInputObjectType) attributeType).getFields()
-                            );
-                    convertedInputs.put(objectName, wrappedType);
-                    attributeType = wrappedType;
-                } else {
-                    attributeType = convertedInputs.get(objectName);
-                }
-            }
 
             builder.field(newInputObjectField()
                 .name(attribute)
