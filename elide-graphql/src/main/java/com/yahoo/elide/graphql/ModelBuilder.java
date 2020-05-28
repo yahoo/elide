@@ -290,9 +290,7 @@ public class ModelBuilder {
                 continue;
             }
 
-            // this leads to two test case failure
             String relationshipEntityName = nameUtils.toConnectionName(relationshipClass);
-            //tests wont work//String relationshipEntityName = entityDictionary.getJsonAliasFor(relationshipClass);
             RelationshipType type = entityDictionary.getRelationshipType(entityClass, relationship);
 
             if (type.isToOne()) {

@@ -8,8 +8,10 @@ package com.yahoo.elide.async.service;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -22,6 +24,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
+import java.util.Date;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -74,10 +77,18 @@ public class AsyncQueryThread implements Runnable {
             if (response == null) {
                 throw new NoHttpResponseException("Response for request returned as null");
             }
-            // Create AsyncQueryResult entry for AsyncQuery and
+
+            // Create AsyncQueryResult entry for AsyncQuery
+
+            AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
+            asyncQueryResult.setHttpStatus(response.getResponseCode());
+            asyncQueryResult.setResponseBody(response.getBody());
+            asyncQueryResult.setContentLength(response.getBody().length());
+            asyncQueryResult.setResultType(ResultType.EMBEDDED);
+            asyncQueryResult.setCompletedOn(new Date());
+
             // add queryResult object to query object
-            asyncQueryDao.createAsyncQueryResult(response.getResponseCode(), response.getBody(),
-                    queryObj, queryObj.getId());
+            asyncQueryDao.updateAsyncQueryResult(asyncQueryResult, queryObj);
             // If we receive a response update Query Status to complete
             asyncQueryDao.updateStatus(queryObj, QueryStatus.COMPLETE);
 

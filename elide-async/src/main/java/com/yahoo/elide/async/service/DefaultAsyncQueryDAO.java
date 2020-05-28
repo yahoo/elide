@@ -11,7 +11,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -28,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
 
 import javax.inject.Singleton;
@@ -165,16 +163,9 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQuery createAsyncQueryResult(Integer status, String responseBody,
-            AsyncQuery asyncQuery, String asyncQueryId) {
-        log.debug("createAsyncQueryResult");
+    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, AsyncQuery asyncQuery) {
+        log.debug("updateAsyncQueryResult");
         AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
-            AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
-            asyncQueryResult.setHttpStatus(status);
-            asyncQueryResult.setResponseBody(responseBody);
-            asyncQueryResult.setContentLength(responseBody.length());
-            asyncQueryResult.setResultType(ResultType.EMBEDDED);
-            asyncQueryResult.setCompletedOn(new Date());
             asyncQuery.setResult(asyncQueryResult);
             tx.save(asyncQuery, scope);
             return asyncQuery;

@@ -23,6 +23,7 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.Transient;
 import javax.validation.constraints.Max;
+import javax.validation.constraints.Pattern;
 
 /**
  * Model for Async Query.
@@ -38,6 +39,8 @@ import javax.validation.constraints.Max;
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
+    @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+    message = "id not of pattern UUID")
     private String id; //Provided by client or generated if missing on create.
 
     private String query;  //JSON-API PATH or GraphQL payload.

@@ -24,13 +24,13 @@ public class AsyncQueryResult {
 
     private Integer contentLength;
 
-    private String responseBody; //success or errors
+    private String responseBody;  //URL or Response body
 
     private Integer httpStatus; // HTTP Status
 
     @Column(columnDefinition = "enum('EMBEDDED')")
     @Enumerated(EnumType.STRING)
-    private ResultType resultType;
+    private ResultType resultType; //EMBEDDED, DOWNLOAD
 
     Date completedOn = new Date();
 
