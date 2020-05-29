@@ -82,17 +82,26 @@ public class DynamicConfigValidator {
         }
 
         DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator();
-        dynamicConfigValidator.setConfigDir(absoluteBasePath);
-
-        dynamicConfigValidator.readVariableConfig();
-        if (dynamicConfigValidator.readSecurityConfig()) {
-            validateRoleInSecurityConfig(dynamicConfigValidator.getElideSecurityConfig());
-        }
-        if (dynamicConfigValidator.readTableConfig()) {
-            validateSqlInTableConfig(dynamicConfigValidator.getElideTableConfig());
-        }
+        dynamicConfigValidator.readAndValidateConfigs(absoluteBasePath);
 
         log.info("Configs Validation Passed!");
+    }
+
+    /**
+     * Read and validate config files under config directory
+     * @param absoluteBasePath Absolute base path for config directory
+     * @throws IOException IOException
+     */
+    public void readAndValidateConfigs(String absoluteBasePath) throws IOException {
+
+        this.setConfigDir(absoluteBasePath);
+        this.readVariableConfig();
+        if (this.readSecurityConfig()) {
+            validateRoleInSecurityConfig(this.getElideSecurityConfig());
+        }
+        if (this.readTableConfig()) {
+            validateSqlInTableConfig(this.getElideTableConfig());
+        }
     }
 
     /**
@@ -118,7 +127,8 @@ public class DynamicConfigValidator {
         if (isSecurityConfig) {
             String securityConfigContent = DynamicConfigHelpers.readConfigFile(new File(securityConfigPath));
             validateConfigForMissingVariables(securityConfigContent, this.variables);
-            this.elideSecurityConfig = DynamicConfigHelpers.getElideSecurityPojo(this.configDir, this.variables);
+            this.elideSecurityConfig = DynamicConfigHelpers.stringToElideSecurityPojo(securityConfigContent,
+                    this.variables);
         }
         return isSecurityConfig;
     }
@@ -137,11 +147,16 @@ public class DynamicConfigValidator {
             if (tableConfigs.isEmpty()) {
                 throw new IllegalStateException("No Table Configs found at location: " + tableConfigsPath);
             }
+            Set<Table> tables = new HashSet<>();
             for (File tableConfig : tableConfigs) {
                 String tableConfigContent = DynamicConfigHelpers.readConfigFile(tableConfig);
                 validateConfigForMissingVariables(tableConfigContent, this.variables);
+                ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(tableConfigContent, variables);
+                tables.addAll(table.getTables());
             }
-            this.elideTableConfig = DynamicConfigHelpers.getElideTablePojo(this.configDir, this.variables);
+            ElideTableConfig elideTableConfig = new ElideTableConfig();
+            elideTableConfig.setTables(tables);
+            this.elideTableConfig = elideTableConfig;
         } else {
             throw new IllegalStateException("Table Configs Directory doesn't exists at location: " + tableConfigsPath);
         }

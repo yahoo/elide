@@ -104,13 +104,25 @@ public class DynamicConfigHelpers {
                 new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {
-            String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(tableConfig), variables));
-            ElideTableConfig table = getModelPojo(jsonConfig, ElideTableConfig.class);
+            ElideTableConfig table = stringToElideTablePojo(readConfigFile(tableConfig), variables);
             tables.addAll(table.getTables());
         }
         ElideTableConfig elideTableConfig = new ElideTableConfig();
         elideTableConfig.setTables(tables);
         return elideTableConfig;
+    }
+
+    /**
+     * Generates ElideTableConfig Pojo from input String.
+     * @param content : input string
+     * @param variables : variables to resolve.
+     * @return ElideTableConfig Pojo
+     * @throws IOException
+     */
+    public static ElideTableConfig stringToElideTablePojo(String content, Map<String, Object> variables)
+            throws IOException {
+        String jsonConfig = hjsonToJson(resolveVariables(content, variables));
+        return getModelPojo(jsonConfig, ElideTableConfig.class);
     }
 
     /**
@@ -125,12 +137,24 @@ public class DynamicConfigHelpers {
         String filePath = basePath + SECURITY_CONFIG_PATH;
         File securityFile = new File(filePath);
         if (securityFile.exists()) {
-            String jsonConfig = hjsonToJson(resolveVariables(readConfigFile(securityFile), variables));
-            return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+            return stringToElideSecurityPojo(readConfigFile(securityFile), variables);
         } else {
             log.info("Security config file not found at " + filePath);
             return null;
         }
+    }
+
+    /**
+     * Generates ElideSecurityConfig Pojo from input String.
+     * @param content : input string
+     * @param variables : variables to resolve.
+     * @return ElideSecurityConfig Pojo
+     * @throws IOException
+     */
+    public static ElideSecurityConfig stringToElideSecurityPojo(String content, Map<String, Object> variables)
+            throws IOException {
+        String jsonConfig = hjsonToJson(resolveVariables(content, variables));
+        return getModelPojo(jsonConfig, ElideSecurityConfig.class);
     }
 
     /**
