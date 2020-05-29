@@ -30,6 +30,6 @@ public class AsyncQueryResult {
     @Enumerated(EnumType.STRING)
     private ResultType resultType; //EMBEDDED, DOWNLOAD
 
-    Date completedOn = new Date();
+    private Date completedOn = new Date();
 
 }

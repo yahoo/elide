@@ -247,7 +247,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.status", equalTo("COMPLETE"));
 
                 // Validate AsyncQueryResult Response
-                String responseAsyncQueryResult =  given()
+                given()
                         .accept("application/vnd.api+json")
                         .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263c")
                         .then()
