@@ -66,8 +66,4 @@ public class ISO8601DateSerde implements Serde<String, Date> {
     public String serialize(Date val) {
         return df.format(val);
     }
-
-    public String getFormat() {
-        return df.getPattern();
-    }
 }

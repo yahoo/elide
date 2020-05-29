@@ -7,7 +7,6 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -78,8 +77,7 @@ public class AsyncQueryCleanerThread implements Runnable {
         cal.setTime(new Date());
         cal.add(calendarUnit, -(amount));
         Date filterDate = cal.getTime();
-        ISO8601DateSerde serde = (ISO8601DateSerde) elide.getElideSettings().getSerdes().get(Date.class);
-        Format dateFormat = new SimpleDateFormat(serde.getFormat());
+        Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
         String filterDateFormatted = dateFormat.format(filterDate);
         log.debug("FilterDateFormatted = {}", filterDateFormatted);
         return filterDateFormatted;
