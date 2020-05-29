@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @Data
 /**
- * Util class to validate the model config files in local before deployment.
+ * Util class to validate and parse the model config files.
  */
 public class DynamicConfigValidator {
 
@@ -74,7 +74,7 @@ public class DynamicConfigValidator {
         }
         String configDir = cli.getOptionValue("configDir");
         File file = new File(configDir);
-        String absoluteBasePath = DynamicConfigHelpers.formatFilePath(file.getAbsolutePath());
+        String absoluteBasePath = file.getAbsolutePath();
         log.info("Absolute Path for Model Configs Directory: " + absoluteBasePath);
 
         if (!file.isDirectory()) {
@@ -89,12 +89,12 @@ public class DynamicConfigValidator {
 
     /**
      * Read and validate config files under config directory
-     * @param absoluteBasePath Absolute base path for config directory
+     * @param filePath path for config directory
      * @throws IOException IOException
      */
-    public void readAndValidateConfigs(String absoluteBasePath) throws IOException {
+    public void readAndValidateConfigs(String filePath) throws IOException {
 
-        this.setConfigDir(absoluteBasePath);
+        this.setConfigDir(DynamicConfigHelpers.formatFilePath(filePath));
         this.readVariableConfig();
         if (this.readSecurityConfig()) {
             validateRoleInSecurityConfig(this.getElideSecurityConfig());
