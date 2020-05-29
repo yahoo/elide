@@ -9,7 +9,6 @@ import lombok.Data;
 
 import java.util.Date;
 
-//import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
