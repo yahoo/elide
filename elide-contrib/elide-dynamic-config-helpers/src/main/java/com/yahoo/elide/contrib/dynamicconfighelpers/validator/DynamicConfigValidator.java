@@ -53,7 +53,6 @@ public class DynamicConfigValidator {
     private static final String SQL_SPLIT_REGEX = "\\s+";
     private static final String SEMI_COLON = ";";
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
-    private static final Options OPTIONS = prepareOptions();
 
     private ElideTableConfig elideTableConfig;
     private ElideSecurityConfig elideSecurityConfig;
@@ -62,14 +61,15 @@ public class DynamicConfigValidator {
 
     public static void main(String[] args) throws IOException, ParseException {
 
-        CommandLine cli = new DefaultParser().parse(OPTIONS, args);
+        Options options = prepareOptions();
+        CommandLine cli = new DefaultParser().parse(options, args);
 
         if (cli.hasOption("help")) {
-            printHelp();
+            printHelp(options);
             return;
         }
         if (!cli.hasOption("configDir")) {
-            printHelp();
+            printHelp(options);
             throw new MissingOptionException("Missing required option");
         }
         String configDir = cli.getOptionValue("configDir");
@@ -267,10 +267,10 @@ public class DynamicConfigValidator {
     /**
      * Print Help.
      */
-    private static void printHelp() {
+    private static void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp(
                 "java -cp <Jar File> com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator",
-                OPTIONS);
+                options);
     }
 }
