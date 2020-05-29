@@ -9,7 +9,7 @@ import lombok.Data;
 
 import java.util.Date;
 
-import javax.persistence.Column;
+//import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -28,7 +28,6 @@ public class AsyncQueryResult {
 
     private Integer httpStatus; // HTTP Status
 
-    @Column(columnDefinition = "enum('EMBEDDED')")
     @Enumerated(EnumType.STRING)
     private ResultType resultType; //EMBEDDED, DOWNLOAD
 
