@@ -106,16 +106,6 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     }
 
     @Test
-    public void testFetchJoinClause() {
-        String actual = extractToOneMergeJoins(Left.class, "right_alias");
-
-        String expected = " LEFT JOIN FETCH right_alias.noDeleteOne2One  "
-                + "LEFT JOIN FETCH right_alias.noUpdateOne2One  "
-                + "LEFT JOIN FETCH right_alias.one2one ";
-        assertEquals(expected, actual);
-    }
-
-    @Test
     public void testSortClauseWithoutPrefix() {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(TITLE, Sorting.SortOrder.asc);

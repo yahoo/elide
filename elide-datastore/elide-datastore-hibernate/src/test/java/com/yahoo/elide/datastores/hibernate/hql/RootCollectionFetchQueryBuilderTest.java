@@ -60,7 +60,7 @@ public class RootCollectionFetchQueryBuilderTest {
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher";
+                "SELECT example_Book FROM example.Book AS example_Book";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
 
@@ -80,7 +80,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected = "SELECT example_Book FROM example.Book AS example_Book "
-                + "LEFT JOIN FETCH example_Book.publisher order by example_Book.title asc";
+                + "order by example_Book.title asc";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
 
@@ -174,8 +174,8 @@ public class RootCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
-                + " WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
+                "SELECT example_Book FROM example.Book AS example_Book "
+                + "WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
 
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");

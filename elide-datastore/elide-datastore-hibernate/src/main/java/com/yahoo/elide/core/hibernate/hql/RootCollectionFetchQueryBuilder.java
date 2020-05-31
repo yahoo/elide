@@ -50,8 +50,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             String filterClause = WHERE + new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
 
             //Build the JOIN clause
-            String joinClause =  getJoinClauseFromFilters(filterExpression.get())
-                    + extractToOneMergeJoins(entityClass, entityAlias);
+            String joinClause =  getJoinClauseFromFilters(filterExpression.get());
 
             boolean requiresDistinct = pagination.isPresent() && containsOneToMany(filterExpression.get());
             Boolean sortOverRelationship = sorting.map(sort -> sort.getSortingPaths().keySet()
@@ -87,8 +86,6 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + entityName
                     + AS
                     + entityAlias
-                    + SPACE
-                    + extractToOneMergeJoins(entityClass, entityAlias)
                     + SPACE
                     + getSortClause(sorting, entityClass, USE_ALIAS));
         }

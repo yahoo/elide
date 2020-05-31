@@ -10,7 +10,6 @@ import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -186,15 +184,7 @@ public abstract class AbstractHQLQueryBuilder {
                 joinKey = previousAlias + PERIOD + fieldName;
             }
 
-            String fetch = "";
-            RelationshipType type = dictionary.getRelationshipType(pathElement.getType(), fieldName);
-
-            //This is a to-One relationship belonging to the collection being retrieved.
-            if (!skipFetches && type.isToOne() && !type.isComputed() && previousAlias == null) {
-                fetch = "FETCH ";
-
-            }
-            String joinFragment = LEFT + JOIN + fetch + joinKey + SPACE + alias + SPACE;
+            String joinFragment = LEFT + JOIN + joinKey + SPACE + alias + SPACE;
 
             if (!alreadyJoined.contains(joinKey)) {
                 joinClause.append(joinFragment);
@@ -205,40 +195,6 @@ public abstract class AbstractHQLQueryBuilder {
         }
 
         return joinClause.toString();
-    }
-
-    /**
-     * Builds a JOIN clause that eagerly fetches to-one relationships that Hibernate needs to hydrate.
-     * @param entityClass The entity class that is being queried in the HQL query.
-     * @param alias The HQL alias for the entity class.
-     * @return The JOIN clause that can be added to the FROM clause.
-     */
-    protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
-        return extractToOneMergeJoins(entityClass, alias, (unused) -> false);
-    }
-
-    protected String extractToOneMergeJoins(Class<?> entityClass, String alias,
-                                            Function<String, Boolean> skipRelation) {
-        List<String> relationshipNames = dictionary.getRelationships(entityClass);
-        StringBuilder joinString = new StringBuilder("");
-        for (String relationshipName : relationshipNames) {
-            RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
-            if (type.isToOne() && !type.isComputed()) {
-                if (skipRelation.apply(relationshipName)) {
-                    continue;
-                }
-                String joinKey = alias + PERIOD + relationshipName;
-
-                if (alreadyJoined.contains(joinKey)) {
-                    continue;
-                }
-
-                joinString.append(" LEFT JOIN FETCH ");
-                joinString.append(joinKey);
-                joinString.append(SPACE);
-            }
-        }
-        return joinString.toString();
     }
 
     /**
@@ -268,7 +224,7 @@ public abstract class AbstractHQLQueryBuilder {
     }
 
     /**
-     * Returns whether filter expression contains toMany relationship
+     * Returns whether filter expression contains toMany relationship.
      * @param filterExpression
      * @return
      */

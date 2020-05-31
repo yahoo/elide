@@ -15,7 +15,6 @@ import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 
 import java.util.Collection;
-import java.util.function.Function;
 
 /**
  * Constructs a HQL query to fetch a hibernate collection proxy.
@@ -29,24 +28,6 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                                           Session session) {
         super(dictionary, session);
         this.relationship = relationship;
-    }
-
-    @Override
-    protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
-        Function<String, Boolean> shouldSkip = (relationshipName) -> {
-            String inverseRelationName = dictionary.getRelationInverse(entityClass, relationshipName);
-            if (inverseRelationName.isEmpty()) {
-                return false;
-            }
-
-            Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationshipName);
-
-            //We don't need (or want) to fetch join the parent object.
-            return relationshipClass.equals(relationship.getParentType())
-                    && inverseRelationName.equals(relationship.getRelationshipName());
-        };
-
-        return extractToOneMergeJoins(entityClass, alias, shouldSkip);
     }
 
     /**
@@ -73,8 +54,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             Collection<FilterPredicate> predicates = fe.accept(extractor);
             String filterClause = new FilterTranslator().apply(fe, USE_ALIAS);
 
-            String joinClause =  getJoinClauseFromFilters(filterExpression.get())
-                    + extractToOneMergeJoins(relationship.getChildType(), childAlias);
+            String joinClause =  getJoinClauseFromFilters(filterExpression.get());
 
             //SELECT parent_children from Parent parent JOIN parent.children parent_children
             Query q = session.createQuery(SELECT
@@ -99,7 +79,6 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                             + parentName + SPACE + parentAlias
                             + JOIN
                             + parentAlias + PERIOD + relationshipName + SPACE + childAlias
-                            + extractToOneMergeJoins(relationship.getChildType(), childAlias)
                             + " WHERE " + parentAlias + "=:" + parentAlias
                             + getSortClause(sorting, relationship.getChildType(), USE_ALIAS)
         ));
