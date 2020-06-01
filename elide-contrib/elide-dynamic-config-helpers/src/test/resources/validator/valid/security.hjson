@@ -1,0 +1,18 @@
+{
+    roles : [
+        admin
+        guest
+        <% role %>
+        ]
+    rules: [
+        {
+            type: filter
+            filter: filter
+            name: User belongs to company <% bar%>
+        },
+        {
+            filter: filter
+            name: Principal is owner
+        },
+    ]
+}
