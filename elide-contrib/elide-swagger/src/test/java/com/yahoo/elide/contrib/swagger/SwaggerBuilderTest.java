@@ -600,6 +600,52 @@ public class SwaggerBuilderTest {
         assertEquals(sortValues, ((StringProperty) sortParam.getItems()).getEnum());
     }
 
+    @Test
+    public void testLegacyFilterParameters() throws Exception {
+        Info info = new Info()
+                .title("Test Service");
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        Swagger swagger = builder.build();
+
+        Operation op = swagger.getPaths().get("/book").getGet();
+
+        List<String> paramNames = op.getParameters().stream()
+                .filter(param -> param.getName().startsWith("filter"))
+                .map(Parameter::getName)
+                .collect(Collectors.toList());
+
+        List<String> expectedNames = Arrays.asList("filter[book]", "filter", "filter[book.title][in]",
+                "filter[book.year][in]", "filter[book.title][ge]", "filter[book.year][ge]", "filter[book.title][lt]",
+                "filter[book.year][lt]", "filter[book.title][not]", "filter[book.year][not]", "filter[book.title][le]",
+                "filter[book.year][le]", "filter[book.title][postfix]", "filter[book.year][postfix]",
+                "filter[book.title][infix]", "filter[book.year][infix]", "filter[book.title][prefix]",
+                "filter[book.year][prefix]", "filter[book.title][notnull]", "filter[book.year][notnull]",
+                "filter[book.title][gt]", "filter[book.year][gt]", "filter[book.title][isnull]",
+                "filter[book.year][isnull]");
+
+        assertEquals(expectedNames, paramNames);
+    }
+
+    @Test
+    public void testRsqlOnlyFilterParameters() throws Exception {
+        Info info = new Info()
+                .title("Test Service");
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info, false);
+        Swagger swagger = builder.build();
+
+        Operation op = swagger.getPaths().get("/book").getGet();
+
+        List<String> paramNames = op.getParameters().stream()
+                .filter(param -> param.getName().startsWith("filter"))
+                .map(Parameter::getName)
+                .collect(Collectors.toList());
+
+        List<String> expectedNames = Arrays.asList("filter[book]", "filter");
+
+        assertEquals(expectedNames, paramNames);
+    }
 
     /**
      * Verifies that the given property is of type 'Data' containing a reference to the given model.

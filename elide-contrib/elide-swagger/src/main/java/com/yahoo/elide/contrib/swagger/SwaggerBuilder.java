@@ -56,6 +56,7 @@ public class SwaggerBuilder {
     protected Map<Integer, Response> globalResponses;
     protected Set<Parameter> globalParams;
     protected Set<Operator> filterOperators;
+    protected boolean supportLegacyDialect;
 
     public static final Response UNAUTHORIZED_RESPONSE = new Response().description("Unauthorized");
     public static final Response FORBIDDEN_RESPONSE = new Response().description("Forbidden");
@@ -509,19 +510,21 @@ public class SwaggerBuilder {
                         .description("Filters the collection of " + typeName + " using a 'joined' RSQL expression"));
             }
 
-            for (Operator op : filterOperators) {
-                attributeNames.forEach((name) -> {
-                    Class<?> attributeClass = dictionary.getType(type, name);
+            if (supportLegacyDialect) {
+                for (Operator op : filterOperators) {
+                    attributeNames.forEach((name) -> {
+                        Class<?> attributeClass = dictionary.getType(type, name);
 
-                    /* Only filter attributes that can be assigned to strings or primitives */
-                    if (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass)) {
-                        params.add(new QueryParameter()
-                                .type("string")
-                                .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
-                                .description("Filters the collection of " + typeName + " by the attribute "
-                                        + name + " " + "using the operator " + op.getNotation()));
-                    }
-                });
+                        /* Only filter attributes that can be assigned to strings or primitives */
+                        if (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass)) {
+                            params.add(new QueryParameter()
+                                    .type("string")
+                                    .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
+                                    .description("Filters the collection of " + typeName + " by the attribute "
+                                            + name + " " + "using the operator " + op.getNotation()));
+                        }
+                    });
+                }
             }
 
             return params;
@@ -604,7 +607,17 @@ public class SwaggerBuilder {
      * @param info Basic service information that cannot be generated
      */
     public SwaggerBuilder(EntityDictionary dictionary, Info info) {
+        this(dictionary, info, true);
+    }
+
+    /**
+     * @param dictionary The entity dictionary
+     * @param info Basic service information that cannot be generated
+     * @param supportLegacyDialect Whether or not to support the legacy dialect
+     */
+    public SwaggerBuilder(EntityDictionary dictionary, Info info, boolean supportLegacyDialect) {
         this.dictionary = dictionary;
+        this.supportLegacyDialect = supportLegacyDialect;
         globalResponses = new HashMap<>();
         globalParams = new HashSet<>();
         allClasses = new HashSet<>();
