@@ -613,16 +613,17 @@ public class SwaggerBuilderTest {
         List<String> paramNames = op.getParameters().stream()
                 .filter(param -> param.getName().startsWith("filter"))
                 .map(Parameter::getName)
+                .sorted()
                 .collect(Collectors.toList());
 
-        List<String> expectedNames = Arrays.asList("filter[book]", "filter", "filter[book.title][in]",
-                "filter[book.year][in]", "filter[book.title][ge]", "filter[book.year][ge]", "filter[book.title][lt]",
-                "filter[book.year][lt]", "filter[book.title][not]", "filter[book.year][not]", "filter[book.title][le]",
-                "filter[book.year][le]", "filter[book.title][postfix]", "filter[book.year][postfix]",
-                "filter[book.title][infix]", "filter[book.year][infix]", "filter[book.title][prefix]",
-                "filter[book.year][prefix]", "filter[book.title][notnull]", "filter[book.year][notnull]",
-                "filter[book.title][gt]", "filter[book.year][gt]", "filter[book.title][isnull]",
-                "filter[book.year][isnull]");
+        List<String> expectedNames = Arrays.asList("filter", "filter[book.title][ge]", "filter[book.title][gt]",
+                "filter[book.title][in]", "filter[book.title][infix]", "filter[book.title][isnull]",
+                "filter[book.title][le]", "filter[book.title][lt]", "filter[book.title][not]",
+                "filter[book.title][notnull]", "filter[book.title][postfix]", "filter[book.title][prefix]",
+                "filter[book.year][ge]", "filter[book.year][gt]", "filter[book.year][in]", "filter[book.year][infix]",
+                "filter[book.year][isnull]", "filter[book.year][le]", "filter[book.year][lt]", "filter[book.year][not]",
+                "filter[book.year][notnull]", "filter[book.year][postfix]", "filter[book.year][prefix]",
+                "filter[book]");
 
         assertEquals(expectedNames, paramNames);
     }
@@ -640,9 +641,10 @@ public class SwaggerBuilderTest {
         List<String> paramNames = op.getParameters().stream()
                 .filter(param -> param.getName().startsWith("filter"))
                 .map(Parameter::getName)
+                .sorted()
                 .collect(Collectors.toList());
 
-        List<String> expectedNames = Arrays.asList("filter[book]", "filter");
+        List<String> expectedNames = Arrays.asList("filter", "filter[book]");
 
         assertEquals(expectedNames, paramNames);
     }
