@@ -137,13 +137,6 @@ public class AsyncIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
-
-        Response response = given()
-                    .accept("application/vnd.api+json")
-                    .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");
-
-        assertEquals(response.jsonPath().getString("data.attributes.status"), "COMPLETE");
-
         // Validate AsyncQueryResult Response
         given()
                 .accept("application/vnd.api+json")
@@ -152,6 +145,7 @@ public class AsyncIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                 .body("data.type", equalTo("asyncQuery"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
                 .body("data.attributes.result.contentLength", notNullValue())
                 .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                         + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
