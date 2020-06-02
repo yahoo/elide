@@ -5,14 +5,24 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.verify;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.FileUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -29,20 +39,39 @@ import java.util.Base64;
 public class DynamicConfigVerifier {
 
     /**
-     * Main Methode to Verify Signature of Model Tar file.
+     * Main Method to Verify Signature of Model Tar file.
      * @param args : expects 3 arguments.
-     * @throws IllegalStateException
+     * @throws ParseException
+     * @throws IOException
+     * @throws KeyStoreException
+     * @throws FileNotFoundException
+     * @throws SignatureException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     *
      */
-    public static void main(String[] args) {
-        if (args == null || args.length != 3) {
-            usage();
-            throw new IllegalStateException("No Arguments provided!");
-        }
-        String modelTarFile = args[0];
-        String signatureFile = args[1];
-        String publicKeyName = args[2];
+    public static void main(String[] args) throws ParseException, InvalidKeyException, NoSuchAlgorithmException,
+    SignatureException, FileNotFoundException, KeyStoreException, IOException {
 
-        if (verify(tarContents(modelTarFile), signatureFile, getPublicKey(publicKeyName))) {
+        Options options = prepareOptions();
+        CommandLine cli = new DefaultParser().parse(options, args);
+
+        if (cli.hasOption("help")) {
+            printHelp(options);
+            return;
+        }
+        if (!cli.hasOption("tarFile") || !cli.hasOption("signatureFile") || !cli.hasOption("publicKeyName")) {
+            printHelp(options);
+            throw new MissingOptionException("Missing required option");
+        }
+
+        String modelTarFile = cli.getOptionValue("tarFile");
+        String signatureFile = cli.getOptionValue("signatureFile");
+        String publicKeyName = cli.getOptionValue("publicKeyName");
+        long tarFileSize = getFileSize(modelTarFile);
+
+        if (verify(readTarContents(modelTarFile), tarFileSize,
+                signatureFile, getPublicKey(publicKeyName))) {
             log.info("Successfully Validated " + modelTarFile);
         }
         else {
@@ -50,66 +79,81 @@ public class DynamicConfigVerifier {
         }
     }
 
-    private static PublicKey getPublicKey(String keyName) {
-        PublicKey publicKey = null;
-        try {
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            Certificate cert = keyStore.getCertificate(keyName);
-            publicKey = cert.getPublicKey();
-        } catch (KeyStoreException e) {
-            log.error(e.getMessage());
-            throw new IllegalArgumentException("Key " + keyName + " is not availabe in keystore");
-        }
-        return publicKey;
+    /**
+     * Verify signature of tar.gz.
+     * @param fileList : list of files
+     * @param sizeOfFile : size of tar file
+     * @param signature : file containing signature
+     * @param publicKey : public key name
+     * @return whether the file can be verified by given key and signature
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     * @throws SignatureException
+     */
+    public static boolean verify(String fileList, long sizeOfFile, String signature, PublicKey publicKey)
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+
+        Signature publicSignature;
+
+        publicSignature = Signature.getInstance("SHA256withRSA");
+        publicSignature.initVerify(publicKey);
+        publicSignature.update((fileList + sizeOfFile).getBytes(StandardCharsets.UTF_8));
+        byte[] signatureBytes = Base64.getDecoder().decode(signature);
+        return publicSignature.verify(signatureBytes);
     }
 
     /**
-     * Verify signature of tar.gz.
-     * @param fileList
-     * @param signature
-     * @param publicKey
-     * @return whether the file can be verified by given key & signature.
-     * @throws Exception
+     * Get tar file size.
+     * @param modelTarFile
+     * @return size of tar file
      */
-    public static boolean verify(String fileList, String signature, PublicKey publicKey) {
-        Signature publicSignature;
-        try {
-            publicSignature = Signature.getInstance("SHA256withRSA");
-            publicSignature.initVerify(publicKey);
-            publicSignature.update(fileList.getBytes(StandardCharsets.UTF_8));
-            byte[] signatureBytes = Base64.getDecoder().decode(signature);
-            return publicSignature.verify(signatureBytes);
-        } catch (NoSuchAlgorithmException e) {
-            log.error(e.getMessage());
-        } catch (InvalidKeyException e) {
-            log.error(e.getMessage());
-        } catch (SignatureException e) {
-            log.error(e.getMessage());
-        }
-        return false;
+    private static long getFileSize(String modelTarFile) {
+        return FileUtils.sizeOf(new File(modelTarFile));
     }
 
-    private static String tarContents(String archiveFile) {
+    /**
+     * Retrieve public key from Key Store.
+     * @param keyName : name of the public key
+     * @return publickey
+     */
+    private static PublicKey getPublicKey(String keyName) throws KeyStoreException {
+        PublicKey publicKey = null;
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        Certificate cert = keyStore.getCertificate(keyName);
+        publicKey = cert.getPublicKey();
+        return publicKey;
+    }
+
+    private static String readTarContents(String archiveFile) throws FileNotFoundException, IOException {
         StringBuffer sb = new StringBuffer();
-        try (TarArchiveInputStream archive = new TarArchiveInputStream(
-                new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))))) {
-            TarArchiveEntry entry;
-            while ((entry = archive.getNextTarEntry()) != null) {
-                sb.append(entry.getName());
-            }
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            throw new IllegalArgumentException("archiveFile " + archiveFile + " is not available");
+        TarArchiveInputStream archive = new TarArchiveInputStream(
+                new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))));
+        TarArchiveEntry entry;
+        while ((entry = archive.getNextTarEntry()) != null) {
+            sb.append(entry.getName());
         }
         return sb.toString();
     }
 
-    private static void usage() {
-        log.info("\n Usage: java -cp <Jar File Name>"
-                + " com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigVerifier\n"
-                + " <The name of the tar.gz file\n"
-                + " <The name of the file containing the signature \n"
-                + " <The name public key \n"
-                );
+    /**
+     * Define Arguments.
+     */
+    private static final Options prepareOptions() {
+        Options options = new Options();
+        options.addOption(new Option("h", "help", false, "Print a help message and exit."));
+        options.addOption(new Option("t", "tarFile", true, "Path of the tar.gz file"));
+        options.addOption(new Option("s", "signatureFile", true, "Path of the file containing the signature"));
+        options.addOption(new Option("p", "publicKeyName", true, "Name of public key in keystore"));
+        return options;
+    }
+
+    /**
+     * Print Help.
+     */
+    private static void printHelp(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp(
+                "java -cp <Jar File> com.yahoo.elide.contrib.dynamicconfighelpers.verify.DynamicConfigVerifier",
+                options);
     }
 }
