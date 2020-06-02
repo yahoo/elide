@@ -98,6 +98,7 @@ public class ElideAsyncConfiguration {
                 .withEntityDictionary(elide.getElideSettings().getDictionary())
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
-        return new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+        Elide asyncElide = new Elide(asyncElideSettings);
+        return new DefaultAsyncQueryDAO(asyncElide, asyncElide.getDataStore());
     }
 }
