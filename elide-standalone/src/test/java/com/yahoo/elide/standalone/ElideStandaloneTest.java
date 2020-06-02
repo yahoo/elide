@@ -75,7 +75,7 @@ public class ElideStandaloneTest {
                 dictionary.bindEntity(Post.class);
                 Info info = new Info().title("Test Service").version("1.0");
 
-                SwaggerBuilder builder = new SwaggerBuilder(dictionary, info, false);
+                SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
                 Swagger swagger = builder.build();
 
                 Map<String, Swagger> docs = new HashMap<>();

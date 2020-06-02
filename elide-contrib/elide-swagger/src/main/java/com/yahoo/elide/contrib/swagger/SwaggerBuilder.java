@@ -57,6 +57,7 @@ public class SwaggerBuilder {
     protected Set<Parameter> globalParams;
     protected Set<Operator> filterOperators;
     protected boolean supportLegacyDialect;
+    protected boolean supportRSQLDialect;
 
     public static final Response UNAUTHORIZED_RESPONSE = new Response().description("Unauthorized");
     public static final Response FORBIDDEN_RESPONSE = new Response().description("Forbidden");
@@ -496,18 +497,22 @@ public class SwaggerBuilder {
 
             List<Parameter> params = new ArrayList<>();
 
-            /* Add RSQL Disjoint Filter Query Param */
-            params.add(new QueryParameter()
-                    .type("string")
-                    .name("filter[" + typeName + "]")
-                    .description("Filters the collection of " + typeName + " using a 'disjoint' RSQL expression"));
-
-            if (lineage.isEmpty()) {
-                 /* Add RSQL Joined Filter Query Param */
+            if (supportRSQLDialect) {
+                /* Add RSQL Disjoint Filter Query Param */
                 params.add(new QueryParameter()
                         .type("string")
-                        .name("filter")
-                        .description("Filters the collection of " + typeName + " using a 'joined' RSQL expression"));
+                        .name("filter[" + typeName + "]")
+                        .description("Filters the collection of " + typeName
+                                + " using a 'disjoint' RSQL expression"));
+
+                if (lineage.isEmpty()) {
+                    /* Add RSQL Joined Filter Query Param */
+                    params.add(new QueryParameter()
+                            .type("string")
+                            .name("filter")
+                            .description("Filters the collection of " + typeName
+                                    + " using a 'joined' RSQL expression"));
+                }
             }
 
             if (supportLegacyDialect) {
@@ -607,17 +612,9 @@ public class SwaggerBuilder {
      * @param info Basic service information that cannot be generated
      */
     public SwaggerBuilder(EntityDictionary dictionary, Info info) {
-        this(dictionary, info, true);
-    }
-
-    /**
-     * @param dictionary The entity dictionary
-     * @param info Basic service information that cannot be generated
-     * @param supportLegacyDialect Whether or not to support the legacy dialect
-     */
-    public SwaggerBuilder(EntityDictionary dictionary, Info info, boolean supportLegacyDialect) {
         this.dictionary = dictionary;
-        this.supportLegacyDialect = supportLegacyDialect;
+        this.supportLegacyDialect = true;
+        this.supportRSQLDialect = true;
         globalResponses = new HashMap<>();
         globalParams = new HashSet<>();
         allClasses = new HashSet<>();
@@ -646,6 +643,26 @@ public class SwaggerBuilder {
      */
     public SwaggerBuilder withGlobalResponse(int code, Response response) {
         globalResponses.put(code, response);
+        return this;
+    }
+
+    /**
+     * Turns on or off the legacy filter dialect.
+     * @param enableLegacyDialect Whether or not to enable the legacy filter dialect.
+     * @return the builder
+     */
+    public SwaggerBuilder withLegacyFilterDialect(boolean enableLegacyDialect) {
+        supportLegacyDialect = enableLegacyDialect;
+        return this;
+    }
+
+    /**
+     * Turns on or off the RSQL filter dialect.
+     * @param enableRSQLDialect Whether or not to enable the RSQL filter dialect.
+     * @return the builder
+     */
+    public SwaggerBuilder withRSQLFilterDialect(boolean enableRSQLDialect) {
+        supportRSQLDialect = enableRSQLDialect;
         return this;
     }
 
