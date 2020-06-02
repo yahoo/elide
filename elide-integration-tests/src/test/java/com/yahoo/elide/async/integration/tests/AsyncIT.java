@@ -109,7 +109,61 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
-     * Various tests for a JSONAPI query as a Async Request.
+     * Test for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 10.
+     * @throws InterruptedException
+     */
+    @Test
+    public void jsonApiRequestAsyncAfterTests() throws InterruptedException {
+
+        //Create Async Request
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("asyncQuery"),
+                                        id("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
+                                        attributes(
+                                                attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
+                                                attr("queryType", "JSONAPI_V1_0"),
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/asyncQuery")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED);
+
+
+        Response response = given()
+                    .accept("application/vnd.api+json")
+                    .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");
+
+        assertEquals(response.jsonPath().getString("data.attributes.status"), "COMPLETE");
+
+        // Validate AsyncQueryResult Response
+        given()
+                .accept("application/vnd.api+json")
+                .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
+                .body("data.type", equalTo("asyncQuery"))
+                .body("data.attributes.result.contentLength", notNullValue())
+                .body("data.attributes.result.responseBody", equalTo("{\"data\":"
+                        + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
+                        + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
+                        + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
+                .body("data.attributes.result.httpStatus", equalTo(200))
+                .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
+
+    }
+
+    /**
+     * Various tests for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 0.
      * @throws InterruptedException
      */
     @Test
@@ -128,7 +182,7 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
                                                 attr("requestId", "1001"),
-                                                attr("asyncAfterSeconds", "10")
+                                                attr("asyncAfterSeconds", "0")
                                         )
                                 )
                         ).toJSON())
