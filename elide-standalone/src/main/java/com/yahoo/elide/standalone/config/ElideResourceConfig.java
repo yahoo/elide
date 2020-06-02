@@ -23,7 +23,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCo
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.standalone.Util;

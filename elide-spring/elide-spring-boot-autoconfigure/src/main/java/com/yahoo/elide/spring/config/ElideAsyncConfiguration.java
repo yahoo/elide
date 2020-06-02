@@ -10,6 +10,8 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -26,6 +28,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.TimeZone;
 
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
@@ -88,6 +92,12 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncQueryDAO", matchIfMissing = true)
     public AsyncQueryDAO buildAsyncQueryDAO(Elide elide) {
+        // Creating a new ElideSettings and Elide object for Async services
+        // which will have ISO8601 Dates. Used for DefaultAsyncQueryDAO.
+        ElideSettings asyncElideSettings = new ElideSettingsBuilder(elide.getDataStore())
+                .withEntityDictionary(elide.getElideSettings().getDictionary())
+                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                .build();
         return new DefaultAsyncQueryDAO(elide, elide.getDataStore());
     }
 }
