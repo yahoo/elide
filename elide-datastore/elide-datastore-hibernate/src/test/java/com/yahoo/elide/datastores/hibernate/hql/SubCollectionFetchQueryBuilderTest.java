@@ -260,7 +260,7 @@ public class SubCollectionFetchQueryBuilderTest {
         sorting.put(PUBLISHER + PERIOD + NAME, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .build();
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "

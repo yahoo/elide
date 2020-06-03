@@ -166,7 +166,6 @@ public class SortingIT extends IntegrationTest {
         }
     }
 
-
     @Test
     public void testRootCollectionByNullRelationshipProperty() throws IOException {
         // Test whether all book records are received
