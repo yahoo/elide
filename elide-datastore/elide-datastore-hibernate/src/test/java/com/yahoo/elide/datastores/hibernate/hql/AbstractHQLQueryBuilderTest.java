@@ -121,9 +121,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         sorting.put(TITLE, Sorting.SortOrder.asc);
         sorting.put(GENRE, Sorting.SortOrder.desc);
 
-        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)), Book.class, NO_ALIAS);
+        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)));
 
-        String expected = " order by title asc,genre desc";
+        String expected = " order by example_Book.title asc,example_Book.genre desc";
         assertEquals(expected, actual);
     }
 
@@ -133,7 +133,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         sorting.put(TITLE, Sorting.SortOrder.asc);
         sorting.put(GENRE, Sorting.SortOrder.desc);
 
-        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)), Book.class, USE_ALIAS);
+        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)));
 
         String expected = " order by example_Book.title asc,example_Book.genre desc";
         assertEquals(expected, actual);
@@ -144,9 +144,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(PUBLISHER + PERIOD + NAME, Sorting.SortOrder.asc);
 
-        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)), Book.class, NO_ALIAS);
+        String actual = getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)));
 
-        String expected = " order by publisher.name asc";
+        String expected = " order by example_Book_publisher.name asc";
         assertEquals(expected, actual);
     }
 
@@ -155,7 +155,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(AUTHORS + PERIOD + NAME, Sorting.SortOrder.asc);
 
-        assertThrows(InvalidValueException.class, () -> getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary)), Book.class, NO_ALIAS));
+        assertThrows(InvalidValueException.class, () -> getSortClause(Optional.of(new SortingImpl(sorting, Book.class, dictionary))));
     }
 
     @Test
