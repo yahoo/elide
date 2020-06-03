@@ -19,27 +19,28 @@ import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Runnable thread for executing the query provided in Async Query.
+ * Callable thread for executing the query provided in Async Query.
  * It will also update the query status and result object at different
  * stages of execution.
  */
 @Slf4j
 @Data
-@AllArgsConstructor
-public class AsyncQueryThread implements Runnable {
+
+public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
     private AsyncQuery queryObj;
+    private AsyncQueryResult queryResultObj;
     private User user;
     private Elide elide;
     private final QueryRunner runner;
@@ -47,19 +48,31 @@ public class AsyncQueryThread implements Runnable {
     private String apiVersion;
 
     @Override
-    public void run() {
-        processQuery();
+    public AsyncQueryResult call() throws NoHttpResponseException, URISyntaxException {
+         return processQuery();
     }
+
+    public AsyncQueryThread(AsyncQuery queryObj, User user, Elide elide, QueryRunner runner,
+            AsyncQueryDAO asyncQueryDao, String apiVersion) {
+        this.queryObj = queryObj;
+        this.user = user;
+        this.elide = elide;
+        this.runner = runner;
+        this.asyncQueryDao = asyncQueryDao;
+        this.apiVersion = apiVersion;
+    }
+
 
    /**
     * This is the main method which processes the Async Query request, executes the query and updates
     * values for AsyncQuery and AsyncQueryResult models accordingly.
+    * @return AsyncQueryResult
     */
-    protected void processQuery() {
+    protected AsyncQueryResult processQuery() {
 
         try {
             // Change async query to processing
-            asyncQueryDao.updateStatus(queryObj, QueryStatus.PROCESSING);
+            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
             ElideResponse response = null;
             log.debug("AsyncQuery Object from request: {}", queryObj);
             if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
@@ -80,31 +93,17 @@ public class AsyncQueryThread implements Runnable {
 
             // Create AsyncQueryResult entry for AsyncQuery
 
-            AsyncQueryResult asyncQueryResult = new AsyncQueryResult();
-            asyncQueryResult.setHttpStatus(response.getResponseCode());
-            asyncQueryResult.setResponseBody(response.getBody());
-            asyncQueryResult.setContentLength(response.getBody().length());
-            asyncQueryResult.setResultType(ResultType.EMBEDDED);
-            asyncQueryResult.setCompletedOn(new Date());
-
-            // add queryResult object to query object
-            asyncQueryDao.updateAsyncQueryResult(asyncQueryResult, queryObj);
-            // If we receive a response update Query Status to complete
-            asyncQueryDao.updateStatus(queryObj, QueryStatus.COMPLETE);
+            queryResultObj = new AsyncQueryResult();
+            queryResultObj.setHttpStatus(response.getResponseCode());
+            queryResultObj.setResponseBody(response.getBody());
+            queryResultObj.setContentLength(response.getBody().length());
+            queryResultObj.setResultType(ResultType.EMBEDDED);
+            queryResultObj.setCompletedOn(new Date());
 
         } catch (Exception e) {
             log.error("Exception: {}", e);
-            if (e.getClass().equals(InterruptedException.class)) {
-                // An InterruptedException is encountered when we interrupt the query when it goes beyond max run time
-                // We set the QueryStatus to TIMEDOUT
-                // No AsyncQueryResult will be set for this case
-                asyncQueryDao.updateStatus(queryObj, QueryStatus.TIMEDOUT);
-            } else {
-                // If an Exception is encountered we set the QueryStatus to FAILURE
-                // No AsyncQueryResult will be set for this case
-                asyncQueryDao.updateStatus(queryObj, QueryStatus.FAILURE);
-            }
         }
+        return queryResultObj;
     }
 
     /**

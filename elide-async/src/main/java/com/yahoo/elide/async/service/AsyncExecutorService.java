@@ -7,6 +7,8 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
@@ -97,18 +99,28 @@ public class AsyncExecutorService {
             throw new InvalidOperationException("Invalid API Version");
         }
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
-        Future<?> task = executor.submit(queryWorker);
+
+        Future<AsyncQueryResult> task = executor.submit(queryWorker);
 
         try {
-            task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+            queryObj.setStatus(QueryStatus.PROCESSING);
+            AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+            queryObj.setResult(queryResultObj);
+            queryObj.setStatus(QueryStatus.COMPLETE);
         } catch (InterruptedException e) {
             // In case the future.get is interrupted , the underlying query may still have succeeded
             log.error("InterruptedException: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
         } catch (ExecutionException e) {
-            // Query Status set to failure will be handled by the processQuery method
+            // Query Status set to failure
             log.error("ExecutionException: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
+            AsyncQueryUpdateThread queryInterruptWorker = new AsyncQueryUpdateThread(elide,
+                    task, queryObj, asyncQueryDao);
+             interruptor.execute(queryInterruptWorker);
         }
+
     }
 }

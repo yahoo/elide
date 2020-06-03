@@ -18,19 +18,19 @@ public interface AsyncQueryDAO {
 
     /**
      * This method updates the QueryStatus for AsyncQuery for given QueryStatus.
-     * @param asyncQuery The AsyncQuery Object to be updated
+     * @param asyncQueryId The AsyncQuery Object to be updated
      * @param status Status from Enum QueryStatus
      * @return AsyncQuery Updated AsyncQuery Object
      */
-    public AsyncQuery updateStatus(AsyncQuery asyncQuery, QueryStatus status);
+    public AsyncQuery updateStatus(String asyncQueryId, QueryStatus status);
 
     /**
      * This method persists the model for AsyncQueryResult, AsyncQuery object and establishes the relationship.
      * @param asyncQueryResult AsyncQueryResult to be associated with the AsyncQuery object
-     * @param asyncQuery AsyncQuery object
+     * @param asyncQueryId String
      * @return AsyncQuery Object
      */
-    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, AsyncQuery asyncQuery);
+    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, String asyncQueryId);
 
     /**
      * This method deletes a collection of AsyncQuery and its associated AsyncQueryResult objects from database and

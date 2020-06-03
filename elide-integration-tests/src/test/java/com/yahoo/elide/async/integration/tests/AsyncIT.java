@@ -122,7 +122,7 @@ public class AsyncIT extends IntegrationTest {
                         data(
                                 resource(
                                         type("asyncQuery"),
-                                        id("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"),
+                                        id("edc4a871-dff2-4054-804e-d80075cf827d"),
                                         attributes(
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
@@ -135,15 +135,8 @@ public class AsyncIT extends IntegrationTest {
                 .when()
                 .post("/asyncQuery")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_CREATED);
-
-        // Validate AsyncQueryResult Response
-        given()
-                .accept("application/vnd.api+json")
-                .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf827d"))
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("COMPLETE"))
                 .body("data.attributes.result.contentLength", notNullValue())

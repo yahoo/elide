@@ -80,7 +80,7 @@ public class AsyncExecutorServiceTest {
     public void testExecuteQuery() {
 
         service.executeQuery(queryObj, testUser, NO_VERSION);
-        verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
+        verify(asyncQueryDao, times(0)).updateStatus(queryObj.getId(), QueryStatus.QUEUED);
 
     }
 
@@ -90,8 +90,8 @@ public class AsyncExecutorServiceTest {
          service.executeQuery(queryObj, testUser, NO_VERSION);
          Future<?> task = mock(Future.class);
          when(task.get(anyLong(), any(TimeUnit.class))).thenThrow(TimeoutException.class);
-         verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
-         verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
+         verify(asyncQueryDao, times(0)).updateStatus(queryObj.getId(), QueryStatus.QUEUED);
+         verify(asyncQueryDao, times(1)).updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
 
     }
 }

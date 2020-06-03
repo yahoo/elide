@@ -6,7 +6,7 @@
 package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
@@ -127,7 +127,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
                     UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
 
-                    dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
+                    dictionary.bindTrigger(AsyncQuery.class, CREATE, PRECOMMIT, executeQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
 
                     // Binding async cleanup service

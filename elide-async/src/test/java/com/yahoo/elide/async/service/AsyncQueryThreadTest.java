@@ -21,8 +21,12 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
+import org.apache.http.NoHttpResponseException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.net.URISyntaxException;
 
 public class AsyncQueryThreadTest {
 
@@ -53,7 +57,7 @@ public class AsyncQueryThreadTest {
     }
 
     @Test
-    public void testProcessQueryJsonApi() {
+    public void testProcessQueryJsonApi() throws NoHttpResponseException, URISyntaxException {
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         ElideResponse response = mock(ElideResponse.class);
 
@@ -65,13 +69,11 @@ public class AsyncQueryThreadTest {
 
         queryThread.processQuery();
 
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.COMPLETE);
-        verify(asyncQueryDao, times(1)).updateAsyncQueryResult(any(), any());
+        verify(asyncQueryDao, times(1)).updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
     }
 
     @Test
-    public void testProcessQueryGraphQl() {
+    public void testProcessQueryGraphQl() throws NoHttpResponseException, URISyntaxException {
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         ElideResponse response = mock(ElideResponse.class);
 
@@ -83,13 +85,11 @@ public class AsyncQueryThreadTest {
 
         queryThread.processQuery();
 
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.COMPLETE);
-        verify(asyncQueryDao, times(1)).updateAsyncQueryResult(any(), any());
+        verify(asyncQueryDao, times(1)).updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
     }
 
     @Test
-    public void testProcessQueryException() {
+    public void testProcessQueryException() throws NoHttpResponseException, URISyntaxException {
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
 
         when(queryObj.getQuery()).thenReturn(query);
@@ -97,8 +97,7 @@ public class AsyncQueryThreadTest {
         when(runner.run(query, user)).thenThrow(RuntimeException.class);
 
         queryThread.processQuery();
-        verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.FAILURE);
+        verify(asyncQueryDao, times(0)).updateStatus(queryObj.getId(), QueryStatus.QUEUED);
+        verify(asyncQueryDao, times(1)).updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
     }
 }

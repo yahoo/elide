@@ -58,10 +58,17 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQuery updateStatus(AsyncQuery asyncQuery, QueryStatus status) {
-        return updateAsyncQuery(asyncQuery, (asyncQueryObj) -> {
-            asyncQueryObj.setStatus(status);
+    public AsyncQuery updateStatus(String asyncQueryId, QueryStatus status) {
+        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .build();
+            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+            query.setStatus(status);
+            tx.save(query, scope);
+            return query;
         });
+        return queryObj;
     }
 
     /**
@@ -163,12 +170,16 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, AsyncQuery asyncQuery) {
+    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, String asyncQueryId) {
         log.debug("updateAsyncQueryResult");
         AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
-            asyncQuery.setResult(asyncQueryResult);
-            tx.save(asyncQuery, scope);
-            return asyncQuery;
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .build();
+            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+            query.setResult(asyncQueryResult);
+            tx.save(query, scope);
+            return query;
         });
         return queryObj;
     }
