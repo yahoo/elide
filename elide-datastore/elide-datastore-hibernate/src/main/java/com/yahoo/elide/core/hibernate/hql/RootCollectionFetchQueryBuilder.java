@@ -51,8 +51,8 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
             //Build the JOIN clause
             String joinClause =  getJoinClauseFromFilters(filterExpression.get())
-                    + extractToOneMergeJoins(entityClass, entityAlias)
-                    + explicitSortJoins(sorting, entityClass);
+                    + getJoinClauseFromSort(sorting)
+                    + extractToOneMergeJoins(entityClass, entityAlias);
 
             boolean requiresDistinct = pagination.isPresent() && containsOneToMany(filterExpression.get());
             Boolean sortOverRelationship = sorting.map(sort -> sort.getSortingPaths().keySet()
@@ -76,7 +76,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                         + SPACE
                         + filterClause
                         + SPACE
-                        + getSortClause(sorting, entityClass, USE_ALIAS)
+                        + getSortClause(sorting)
             );
 
             //Fill in the query parameters
@@ -89,10 +89,11 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + AS
                     + entityAlias
                     + SPACE
+                    + getJoinClauseFromSort(sorting)
                     + extractToOneMergeJoins(entityClass, entityAlias)
                     + explicitSortJoins(sorting, entityClass)
                     + SPACE
-                    + getSortClause(sorting, entityClass, USE_ALIAS));
+                    + getSortClause(sorting));
         }
 
         addPaginationToQuery(query);
