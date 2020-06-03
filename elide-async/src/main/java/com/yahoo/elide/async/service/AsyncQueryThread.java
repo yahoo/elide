@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.async.service;
 
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -18,6 +19,10 @@ import com.yahoo.elide.security.User;
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
+//import org.json.JSONArray;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -56,6 +61,7 @@ public class AsyncQueryThread implements Runnable {
     * values for AsyncQuery and AsyncQueryResult models accordingly.
     */
     protected void processQuery() {
+        Integer recCount = null;
 
         try {
             // Change async query to processing
@@ -68,11 +74,20 @@ public class AsyncQueryThread implements Runnable {
                 response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion);
                 log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
+
+                if (isValidJSON(response.getBody())) {
+                    recCount = calculateRecordsJSON(response.getBody());
+                }
+
             }
             else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
                 response = runner.run(queryObj.getQuery(), user);
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
+
+                if (isValidJSON(response.getBody())) {
+                    recCount = calculateRecordsGRAPHQL(response.getBody());
+                }
             }
             if (response == null) {
                 throw new NoHttpResponseException("Response for request returned as null");
@@ -84,6 +99,7 @@ public class AsyncQueryThread implements Runnable {
             asyncQueryResult.setHttpStatus(response.getResponseCode());
             asyncQueryResult.setResponseBody(response.getBody());
             asyncQueryResult.setContentLength(response.getBody().length());
+            asyncQueryResult.setRecordCount(recCount);
             asyncQueryResult.setResultType(ResultType.EMBEDDED);
             asyncQueryResult.setCompletedOn(new Date());
 
@@ -105,6 +121,64 @@ public class AsyncQueryThread implements Runnable {
                 asyncQueryDao.updateStatus(queryObj, QueryStatus.FAILURE);
             }
         }
+    }
+
+    /**
+     * Checks if the response obtained from the query is in JSON format.
+     * @param test response.getBody() from the AsyncQuery response
+     * @return returns true/ false
+     */
+    protected boolean isValidJSON(String test) {
+        try {
+            new JSONObject(test);
+        } catch (JSONException ex) {
+            try {
+                new JSONArray(test);
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected Integer calculateRecordsJSON(String jsonStr) {
+        Integer rec;
+        try {
+            JSONObject j = new JSONObject(jsonStr);
+            try {
+                rec = j.getJSONArray("data").length();
+            } catch (JSONException e2) {
+                rec = null;
+            }
+        } catch (JSONException e) {
+            rec = null;
+        }
+        return rec;
+    }
+
+    protected Integer calculateRecordsGRAPHQL(String jsonStr) {
+        Integer rec;
+        try {
+            JSONObject j = new JSONObject(jsonStr);
+            try {
+                JSONObject j2 = j.getJSONObject("data");
+                try {
+                    JSONObject j3 = j2.getJSONObject("book");
+                    try {
+                        rec = j3.getJSONArray("edges").length();
+                    } catch (JSONException e4) {
+                        rec = null;
+                    }
+                } catch (JSONException e3) {
+                    rec = null;
+                }
+            } catch (JSONException e2) {
+                rec = null;
+            }
+        } catch (JSONException e) {
+            rec = null;
+        }
+        return rec;
     }
 
     /**

@@ -61,7 +61,10 @@ public class AsyncQueryThreadTest {
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
         when(elide.get(anyString(), any(), any(), anyString())).thenReturn(response);
         when(response.getResponseCode()).thenReturn(200);
-        when(response.getBody()).thenReturn("ResponseBody");
+
+        String testStr = "{\"data\": []}";
+        String testStr1 = "responseBody";
+        when(response.getBody()).thenReturn(testStr);
 
         queryThread.processQuery();
 
@@ -79,7 +82,8 @@ public class AsyncQueryThreadTest {
         when(queryObj.getQueryType()).thenReturn(QueryType.GRAPHQL_V1_0);
         when(runner.run(query, user)).thenReturn(response);
         when(response.getResponseCode()).thenReturn(200);
-        when(response.getBody()).thenReturn("ResponseBody");
+
+        when(response.getBody()).thenReturn("{\"data\": []}");
 
         queryThread.processQuery();
 
