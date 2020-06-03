@@ -136,9 +136,36 @@ public abstract class AbstractHQLQueryBuilder {
         Collection<FilterPredicate> predicates = filterExpression.accept(visitor);
 
         return predicates.stream()
-                .map(predicate -> extractJoinClause(predicate, skipFetches))
+                .map(predicate -> extractJoinClause(predicate.getPath(), skipFetches))
                 .collect(Collectors.joining(SPACE));
     }
+
+
+    /**
+     * Extracts all the HQL JOIN clauses from given filter expression.
+     * @param sorting the sort expression to extract a join clause from
+     * @return an HQL join clause
+     */
+    protected String getJoinClauseFromSort(Optional<Sorting> sorting) {
+        return getJoinClauseFromSort(sorting, false);
+    }
+
+    /**
+     * Extracts all the HQL JOIN clauses from given filter expression.
+     * @param sorting the sort expression to extract a join clause from
+     * @param skipFetches JOIN but don't FETCH JOIN a relationship.
+     * @return an HQL join clause
+     */
+    protected String getJoinClauseFromSort(Optional<Sorting> sorting, boolean skipFetches) {
+        if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
+            Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getSortingPaths();
+            return validSortingRules.keySet().stream()
+                    .map(path -> extractJoinClause(path, skipFetches))
+                    .collect(Collectors.joining(SPACE));
+        }
+        return "";
+    }
+
 
     /**
      * Modifies the HQL query to add OFFSET and LIMIT.
@@ -153,17 +180,17 @@ public abstract class AbstractHQLQueryBuilder {
     }
 
     /**
-     * Extracts a join clause from a filter predicate (if it exists).
-     * @param predicate The predicate to examine
+     * Extracts a join clause from a path (if it exists).
+     * @param path The path to examine
      * @param skipFetches Don't fetch join
      * @return A HQL string representing the join
      */
-    private String extractJoinClause(FilterPredicate predicate, boolean skipFetches) {
+    private String extractJoinClause(Path path, boolean skipFetches) {
         StringBuilder joinClause = new StringBuilder();
 
         String previousAlias = null;
 
-        for (Path.PathElement pathElement : predicate.getPath().getPathElements()) {
+        for (Path.PathElement pathElement : path.getPathElements()) {
             String fieldName = pathElement.getFieldName();
             Class<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
             String typeAlias = getTypeAlias(typeClass);
@@ -236,6 +263,7 @@ public abstract class AbstractHQLQueryBuilder {
                 joinString.append(" LEFT JOIN FETCH ");
                 joinString.append(joinKey);
                 joinString.append(SPACE);
+                alreadyJoined.add(joinKey);
             }
         }
         return joinString.toString();
@@ -244,11 +272,9 @@ public abstract class AbstractHQLQueryBuilder {
     /**
      * Returns a sorting object into a HQL ORDER BY string.
      * @param sorting The sorting object passed from the client
-     * @param sortClass The class to sort.
-     * @param prefixWithAlias Whether the sorting fields should be prefixed by an alias.
      * @return The sorting clause
      */
-    protected String getSortClause(final Optional<Sorting> sorting, Class<?> sortClass, boolean prefixWithAlias) {
+    protected String getSortClause(final Optional<Sorting> sorting) {
         String sortingRules = "";
         if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
             final Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getSortingPaths();
@@ -256,9 +282,24 @@ public abstract class AbstractHQLQueryBuilder {
                 final List<String> ordering = new ArrayList<>();
                 // pass over the sorting rules
                 validSortingRules.forEach((path, order) -> {
-                    String prefix = (prefixWithAlias) ? getTypeAlias(sortClass) + PERIOD : "";
+                    String previousAlias = null;
+                    String aliasedFieldName = null;
 
-                    ordering.add(prefix + path.getFieldPath() + SPACE
+                    for (Path.PathElement pathElement : path.getPathElements()) {
+                        String fieldName = pathElement.getFieldName();
+                        Class<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
+                        previousAlias = previousAlias == null
+                                ? getTypeAlias(typeClass)
+                                : previousAlias;
+                        aliasedFieldName = previousAlias + PERIOD + fieldName;
+
+                        if (!dictionary.isRelation(pathElement.getType(), fieldName)) {
+                            break;
+                        }
+
+                        previousAlias = appendAlias(previousAlias, fieldName);
+                    }
+                    ordering.add(aliasedFieldName + SPACE
                             + (order.equals(Sorting.SortOrder.desc) ? "desc" : "asc"));
                 });
                 sortingRules = " order by " + StringUtils.join(ordering, COMMA);
