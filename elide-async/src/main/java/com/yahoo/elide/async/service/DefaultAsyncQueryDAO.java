@@ -170,7 +170,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, String asyncQueryId) {
+    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult,
+            String asyncQueryId, QueryStatus status) {
         log.debug("updateAsyncQueryResult");
         AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
@@ -178,6 +179,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                     .build();
             AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
             query.setResult(asyncQueryResult);
+            query.setStatus(status);
             tx.save(query, scope);
             return query;
         });

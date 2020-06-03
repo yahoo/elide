@@ -9,7 +9,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
-import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -71,8 +70,6 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     protected AsyncQueryResult processQuery() {
 
         try {
-            // Change async query to processing
-            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
             ElideResponse response = null;
             log.debug("AsyncQuery Object from request: {}", queryObj);
             if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {

@@ -91,7 +91,6 @@ public class AsyncExecutorServiceTest {
          Future<?> task = mock(Future.class);
          when(task.get(anyLong(), any(TimeUnit.class))).thenThrow(TimeoutException.class);
          verify(asyncQueryDao, times(0)).updateStatus(queryObj.getId(), QueryStatus.QUEUED);
-         verify(asyncQueryDao, times(1)).updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
 
     }
 }

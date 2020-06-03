@@ -67,9 +67,6 @@ public class AsyncQueryThreadTest {
         when(response.getResponseCode()).thenReturn(200);
         when(response.getBody()).thenReturn("ResponseBody");
 
-        queryThread.processQuery();
-
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
     }
 
     @Test
@@ -83,9 +80,6 @@ public class AsyncQueryThreadTest {
         when(response.getResponseCode()).thenReturn(200);
         when(response.getBody()).thenReturn("ResponseBody");
 
-        queryThread.processQuery();
-
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
     }
 
     @Test
@@ -98,6 +92,5 @@ public class AsyncQueryThreadTest {
 
         queryThread.processQuery();
         verify(asyncQueryDao, times(0)).updateStatus(queryObj.getId(), QueryStatus.QUEUED);
-        verify(asyncQueryDao, times(1)).updateStatus(queryObj.getId(), QueryStatus.PROCESSING);
     }
 }

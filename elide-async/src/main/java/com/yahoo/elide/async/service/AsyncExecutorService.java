@@ -108,18 +108,16 @@ public class AsyncExecutorService {
             queryObj.setResult(queryResultObj);
             queryObj.setStatus(QueryStatus.COMPLETE);
         } catch (InterruptedException e) {
-            // In case the future.get is interrupted , the underlying query may still have succeeded
             log.error("InterruptedException: {}", e);
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (ExecutionException e) {
-            // Query Status set to failure
             log.error("ExecutionException: {}", e);
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-            AsyncQueryUpdateThread queryInterruptWorker = new AsyncQueryUpdateThread(elide,
+            AsyncQueryUpdateThread queryUpdateWorker = new AsyncQueryUpdateThread(elide,
                     task, queryObj, asyncQueryDao);
-             interruptor.execute(queryInterruptWorker);
+             interruptor.execute(queryUpdateWorker);
         }
 
     }

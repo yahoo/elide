@@ -35,25 +35,21 @@ public class AsyncQueryUpdateThread implements Runnable {
     }
 
     /**
-     * This is the main method which interrupts the Async Query request, if it has executed beyond
-     * the maximum run time.
+     * This is the main method which updates the Async Query request.
      */
     protected void updateQuery() {
         try {
             AsyncQueryResult queryResultObj = task.get();
             // add queryResult object to query object
-            asyncQueryDao.updateAsyncQueryResult(queryResultObj, queryObj.getId());
+            asyncQueryDao.updateAsyncQueryResult(queryResultObj, queryObj.getId(), QueryStatus.COMPLETE);
             // If we receive a response update Query Status to complete
             asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.COMPLETE);
 
         } catch (InterruptedException e) {
-            // Incase the future.get is interrupted , the underlying query may still have succeeded
             log.error("InterruptedException: {}", e);
             asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE);
         } catch (Exception e) {
             log.error("Exception: {}", e);
-            // We set the QueryStatus to FAILURE
-            // No AsyncQueryResult will be set for this case
             asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE);
 
         }
