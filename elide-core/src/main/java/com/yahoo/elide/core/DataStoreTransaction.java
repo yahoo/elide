@@ -267,4 +267,9 @@ public interface DataStoreTransaction extends Closeable {
      * @return UUID id
      */
     UUID getRequestId();
+
+    /**
+     * cancel running transaction
+     */
+    void cancel();
 }

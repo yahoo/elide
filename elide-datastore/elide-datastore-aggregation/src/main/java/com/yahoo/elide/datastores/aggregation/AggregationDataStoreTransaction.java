@@ -20,8 +20,10 @@ import java.io.IOException;
  */
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
     private QueryEngine queryEngine;
-    public AggregationDataStoreTransaction(QueryEngine queryEngine) {
+    private CancelSession cancelSession;
+    public AggregationDataStoreTransaction(QueryEngine queryEngine, CancelSession cancelSession) {
         this.queryEngine = queryEngine;
+	this.cancelSession = cancelSession;
     }
 
     @Override
@@ -74,4 +76,10 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
                 scope.getDictionary());
         return translator.getQuery();
     }
+
+    @Override
+    public void cancel() {
+    	cancelSession.cancel();
+    }
+
 }

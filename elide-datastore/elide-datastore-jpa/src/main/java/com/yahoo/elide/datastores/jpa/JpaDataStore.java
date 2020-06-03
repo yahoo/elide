@@ -5,10 +5,13 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
+import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
+
+import org.hibernate.Session;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,15 +26,18 @@ public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
     protected final JpaTransactionSupplier writeTransactionSupplier;
+    protected final CancelSession cancelSession;
     protected final Set<Class<?>> modelsToBind;
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
+			CancelSession cancelSession,
                         Class<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
         this.writeTransactionSupplier = writeTransactionSupplier;
+	this.cancelSession = cancelSession;
         this.modelsToBind = new HashSet<>();
         for (Class<?> model : models) {
             modelsToBind.add(model);
@@ -41,8 +47,9 @@ public class JpaDataStore implements JPQLDataStore {
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier transactionSupplier,
+			CancelSession cancelSession,
                         Class<?> ... models) {
-        this(entityManagerSupplier, transactionSupplier, transactionSupplier, models);
+        this(entityManagerSupplier, transactionSupplier, transactionSupplier, cancelSession, models);
     }
 
     @Override
@@ -73,7 +80,7 @@ public class JpaDataStore implements JPQLDataStore {
     @Override
     public DataStoreTransaction beginReadTransaction() {
         EntityManager entityManager = entityManagerSupplier.get();
-        JpaTransaction transaction = readTransactionSupplier.get(entityManager);
+        JpaTransaction transaction = readTransactionSupplier.get(entityManager, cancelSession);
         transaction.begin();
         return transaction;
     }
@@ -81,7 +88,7 @@ public class JpaDataStore implements JPQLDataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         EntityManager entityManager = entityManagerSupplier.get();
-        JpaTransaction transaction = writeTransactionSupplier.get(entityManager);
+        JpaTransaction transaction = writeTransactionSupplier.get(entityManager, cancelSession);
         transaction.begin();
         return transaction;
     }

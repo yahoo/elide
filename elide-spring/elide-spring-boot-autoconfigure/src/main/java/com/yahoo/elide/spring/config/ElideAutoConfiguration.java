@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
+import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -25,6 +26,7 @@ import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
+import org.hibernate.Session;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -170,19 +172,21 @@ public class ElideAutoConfiguration {
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
         AggregationDataStore aggregationDataStore = null;
+	CancelSession cancelSession = new CancelSession(entityManagerFactory.get().unwrap(Session.class));
 
         if (isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
             Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
             annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-            aggregationDataStore = new AggregationDataStore(queryEngine, annotatedClass);
+            aggregationDataStore = new AggregationDataStore(queryEngine, annotatedClass, cancelSession);
         } else {
-            aggregationDataStore = new AggregationDataStore(queryEngine);
+            aggregationDataStore = new AggregationDataStore(queryEngine, cancelSession);
         }
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                    (em -> { return new NonJtaTransaction(em); }));
+                    (em -> { return new NonJtaTransaction(em, cancelSession); }),
+		     cancelSession);
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);

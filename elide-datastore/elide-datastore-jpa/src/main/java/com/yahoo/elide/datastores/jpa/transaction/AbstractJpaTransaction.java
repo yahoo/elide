@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction;
 
+import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
@@ -55,10 +56,12 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     protected final EntityManager em;
     private final EntityManagerWrapper emWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
+    private final CancelSession cancelSession;
 
-    protected AbstractJpaTransaction(EntityManager em) {
+    protected AbstractJpaTransaction(EntityManager em, CancelSession cancelSession) {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
+	this.cancelSession = cancelSession;
     }
 
     @Override

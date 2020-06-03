@@ -236,4 +236,9 @@ public abstract class MultiplexTransaction extends DataStoreTransactionImplement
                 .map(p -> (Serializable) p.getValues().get(0))
                 .orElse(null);
     }
+
+    @Override
+    public void cancel() {
+        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.cancel());
+    }
 }

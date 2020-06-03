@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.ArgumentType;
+import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -28,6 +29,7 @@ import java.util.Set;
 public class AggregationDataStore implements DataStore {
     private QueryEngine queryEngine;
     private Set<Class<?>> dynamicCompiledClasses;
+    private CancelSession cancelSession;
 
     /**
      * These are the classes the Aggregation Store manages.
@@ -35,13 +37,15 @@ public class AggregationDataStore implements DataStore {
     private static final List<Class<? extends Annotation>> AGGREGATION_STORE_CLASSES =
             Arrays.asList(FromTable.class, FromSubquery.class);
 
-    public AggregationDataStore(QueryEngine queryEngine) {
+    public AggregationDataStore(QueryEngine queryEngine, CancelSession cancelSession) {
         this.queryEngine = queryEngine;
+	this.cancelSession = cancelSession;
     }
 
-    public AggregationDataStore(QueryEngine queryEngine, Set<Class<?>> dynamicCompiledClasses) {
+    public AggregationDataStore(QueryEngine queryEngine, Set<Class<?>> dynamicCompiledClasses, CancelSession cancelSession) {
         this.queryEngine = queryEngine;
         this.dynamicCompiledClasses = dynamicCompiledClasses;
+        this.cancelSession = cancelSession;
     }
 
     /**
@@ -75,6 +79,6 @@ public class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new AggregationDataStoreTransaction(queryEngine);
+        return new AggregationDataStoreTransaction(queryEngine, cancelSession);
     }
 }

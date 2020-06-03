@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction;
 
+import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 
@@ -22,13 +23,15 @@ import javax.transaction.UserTransaction;
 @Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
-    public JtaTransaction(EntityManager entityManager) {
-        this(entityManager, lookupUserTransaction());
+    private final CancelSession cancelSession;
+    public JtaTransaction(EntityManager entityManager, CancelSession cancelSession) {
+        this(entityManager, lookupUserTransaction(), cancelSession);
     }
 
     public JtaTransaction(EntityManager entityManager, UserTransaction transaction) {
-        super(entityManager);
+        super(entityManager, cancSession);
         this.transaction = transaction;
+	this.cancelSession = cancelSession;
     }
 
     private static UserTransaction lookupUserTransaction() {
@@ -78,5 +81,10 @@ public class JtaTransaction extends AbstractJpaTransaction {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public void cancel() {
+	cancelSession.cancel();        
     }
 }
