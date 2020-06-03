@@ -116,7 +116,7 @@ public class ElideAutoConfiguration {
                 .title(settings.getSwagger().getName())
                 .version(settings.getSwagger().getVersion());
 
-        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
 
         Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
 

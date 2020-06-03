@@ -40,7 +40,7 @@ public class SwaggerResourceConfig extends ResourceConfig {
                         dictionary.bindEntity(Publisher.class);
                         Info info = new Info().title("Test Service").version("1.0");
 
-                        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+                        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
                         Swagger swagger = builder.build();
 
                         Map<String, Swagger> docs = new HashMap<>();

@@ -600,6 +600,83 @@ public class SwaggerBuilderTest {
         assertEquals(sortValues, ((StringProperty) sortParam.getItems()).getEnum());
     }
 
+    @Test
+    public void testAllFilterParameters() throws Exception {
+        Info info = new Info()
+                .title("Test Service");
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        Swagger swagger = builder.build();
+
+        Operation op = swagger.getPaths().get("/book").getGet();
+
+        List<String> paramNames = op.getParameters().stream()
+                .filter(param -> param.getName().startsWith("filter"))
+                .map(Parameter::getName)
+                .sorted()
+                .collect(Collectors.toList());
+
+        List<String> expectedNames = Arrays.asList("filter", "filter[book.title][ge]", "filter[book.title][gt]",
+                "filter[book.title][in]", "filter[book.title][infix]", "filter[book.title][isnull]",
+                "filter[book.title][le]", "filter[book.title][lt]", "filter[book.title][not]",
+                "filter[book.title][notnull]", "filter[book.title][postfix]", "filter[book.title][prefix]",
+                "filter[book.year][ge]", "filter[book.year][gt]", "filter[book.year][in]", "filter[book.year][infix]",
+                "filter[book.year][isnull]", "filter[book.year][le]", "filter[book.year][lt]", "filter[book.year][not]",
+                "filter[book.year][notnull]", "filter[book.year][postfix]", "filter[book.year][prefix]",
+                "filter[book]");
+
+        assertEquals(expectedNames, paramNames);
+    }
+
+    @Test
+    public void testRsqlOnlyFilterParameters() throws Exception {
+        Info info = new Info()
+                .title("Test Service");
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        builder = builder.withLegacyFilterDialect(false);
+        Swagger swagger = builder.build();
+
+        Operation op = swagger.getPaths().get("/book").getGet();
+
+        List<String> paramNames = op.getParameters().stream()
+                .filter(param -> param.getName().startsWith("filter"))
+                .map(Parameter::getName)
+                .sorted()
+                .collect(Collectors.toList());
+
+        List<String> expectedNames = Arrays.asList("filter", "filter[book]");
+
+        assertEquals(expectedNames, paramNames);
+    }
+
+    @Test
+    public void testLegacyOnlyFilterParameters() throws Exception {
+        Info info = new Info()
+                .title("Test Service");
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+        builder = builder.withRSQLFilterDialect(false);
+        Swagger swagger = builder.build();
+
+        Operation op = swagger.getPaths().get("/book").getGet();
+
+        List<String> paramNames = op.getParameters().stream()
+                .filter(param -> param.getName().startsWith("filter"))
+                .map(Parameter::getName)
+                .sorted()
+                .collect(Collectors.toList());
+
+        List<String> expectedNames = Arrays.asList("filter[book.title][ge]", "filter[book.title][gt]",
+                "filter[book.title][in]", "filter[book.title][infix]", "filter[book.title][isnull]",
+                "filter[book.title][le]", "filter[book.title][lt]", "filter[book.title][not]",
+                "filter[book.title][notnull]", "filter[book.title][postfix]", "filter[book.title][prefix]",
+                "filter[book.year][ge]", "filter[book.year][gt]", "filter[book.year][in]", "filter[book.year][infix]",
+                "filter[book.year][isnull]", "filter[book.year][le]", "filter[book.year][lt]", "filter[book.year][not]",
+                "filter[book.year][notnull]", "filter[book.year][postfix]", "filter[book.year][prefix]");
+
+        assertEquals(expectedNames, paramNames);
+    }
 
     /**
      * Verifies that the given property is of type 'Data' containing a reference to the given model.
