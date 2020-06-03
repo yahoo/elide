@@ -71,22 +71,6 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         return queryObj;
     }
 
-    /**
-     * This method updates the model for AsyncQuery with passed value.
-     * @param asyncQuery The AsyncQuery Object which will be updated
-     * @param updateFunction Functional interface for updating AsyncQuery Object
-     * @return AsyncQuery Object
-     */
-    private AsyncQuery updateAsyncQuery(AsyncQuery asyncQuery, UpdateQuery updateFunction) {
-        log.debug("updateAsyncQuery");
-        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
-            updateFunction.update(asyncQuery);
-            tx.save(asyncQuery, scope);
-            return asyncQuery;
-        });
-        return queryObj;
-    }
-
     @Override
     public Collection<AsyncQuery> updateStatusAsyncQueryCollection(String filterExpression,
             QueryStatus status) {
