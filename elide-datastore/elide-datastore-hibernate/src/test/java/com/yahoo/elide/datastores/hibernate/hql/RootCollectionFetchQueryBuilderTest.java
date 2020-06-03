@@ -46,7 +46,6 @@ public class RootCollectionFetchQueryBuilderTest {
     private static final String PERIOD = ".";
     private static final String NAME = "name";
     private static final String FIRSTNAME = "firstName";
-
     private RSQLFilterDialect filterParser;
 
     @BeforeAll
@@ -191,7 +190,6 @@ public class RootCollectionFetchQueryBuilderTest {
         assertEquals(expected, actual);
     }
 
-
     @Test
     public void testSortingWithJoin() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
@@ -202,7 +200,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .build();
 
         String expected =
@@ -231,16 +229,16 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .withPossibleFilterExpression(Optional.of(idPredicate))
                 .build();
 
         String expected =
                 "SELECT example_Book FROM example.Book AS example_Book"
                         + " LEFT JOIN FETCH example_Book.publisher example_Book_publisher"
-                        + " LEFT JOIN example_Book_publisher.editor example_Publisher_editor"
+                        + " LEFT JOIN example_Book_publisher.editor example_Book_publisher_editor"
                         + " WHERE example_Book.id IN (:id_XXX)"
-                        + " order by example_Publisher_editor.firstName desc";
+                        + " order by example_Book_publisher_editor.firstName desc";
 
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
