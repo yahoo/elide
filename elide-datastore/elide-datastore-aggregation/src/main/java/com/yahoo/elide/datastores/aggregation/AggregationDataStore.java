@@ -24,7 +24,6 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
-import org.hibernate.Session;
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */

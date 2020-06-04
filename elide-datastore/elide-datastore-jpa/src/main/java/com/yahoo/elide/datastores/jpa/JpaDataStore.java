@@ -10,8 +10,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 
-import org.hibernate.Session;
-
 import java.util.HashSet;
 import java.util.Set;
 
