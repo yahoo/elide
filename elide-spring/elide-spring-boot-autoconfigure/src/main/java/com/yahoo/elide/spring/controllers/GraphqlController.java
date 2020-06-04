@@ -62,6 +62,7 @@ public class GraphqlController {
     /**
      * Single entry point for GraphQL requests.
      *
+     * @param requestHeaders request headers
      * @param graphQLDocument post data as json document
      * @param principal The user principal
      * @return response
