@@ -17,7 +17,6 @@ import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
-import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -378,11 +377,10 @@ public interface ElideStandaloneSettings {
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
-	CancelSession cancelSession = new CancelSession(entityManagerFactory.get().unwrap(Session.class));
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                (em -> { return new NonJtaTransaction(em, cancelSession); }));
-
+		(em -> { return new NonJtaTransaction(em, em.unwrap(Session.class).cancelQuery()); }),
+                     (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
         return dataStore;
@@ -395,18 +393,19 @@ public interface ElideStandaloneSettings {
      * @return AggregationDataStore object initialized.
      */
     default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
-            Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+            Optional<ElideDynamicEntityCompiler> optionalCompiler, EntityManagerFactory entityManagerFactory) {
         AggregationDataStore aggregationDataStore = null;
-	CancelSession cancelSession = new CancelSession(entityManagerFactory.get().unwrap(Session.class));
         if (enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
-            aggregationDataStore = new AggregationDataStore(queryEngine, annotatedClasses, cancelSession);
+	    aggregationDataStore = new AggregationDataStore(
+            	() -> { return entityManagerFactory.createEntityManager(); },
+                queryEngine, annotatedClass, (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
         } else {
-            aggregationDataStore = new AggregationDataStore(queryEngine, cancelSession);
+            aggregationDataStore = new AggregationDataStore(
+            	() -> { return entityManagerFactory.createEntityManager(); },
+                queryEngine, (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
         }
-
-        return aggregationDataStore;
     }
 
     /**

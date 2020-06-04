@@ -15,15 +15,20 @@ import com.yahoo.elide.request.EntityProjection;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
+
+import javax.persistence.EntityManager;
+
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
+    private EntityManager em;
     private QueryEngine queryEngine;
-    private CancelSession cancelSession;
-    public AggregationDataStoreTransaction(QueryEngine queryEngine, CancelSession cancelSession) {
-        this.queryEngine = queryEngine;
-	this.cancelSession = cancelSession;
+    private AggregationDataStore.AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel;
+    public AggregationDataStoreTransaction(EntityManager em, QueryEngine queryEngine, AggregationDataStore.AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel) {
+        this.em = em;
+	this.queryEngine = queryEngine;
+	this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
     }
 
     @Override
@@ -79,7 +84,6 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
 
     @Override
     public void cancel() {
-    	cancelSession.cancel();
+    	aggregationDataStoreTransactionCancel.cancel(em);
     }
-
 }

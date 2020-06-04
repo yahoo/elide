@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.ArgumentType;
-import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -23,13 +22,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+
+import org.hibernate.Session;
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
 public class AggregationDataStore implements DataStore {
     private QueryEngine queryEngine;
     private Set<Class<?>> dynamicCompiledClasses;
-    private CancelSession cancelSession;
+    protected final AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel;
+    protected final EntityManagerSupplier entityManagerSupplier;
 
     /**
      * These are the classes the Aggregation Store manages.
@@ -37,15 +40,17 @@ public class AggregationDataStore implements DataStore {
     private static final List<Class<? extends Annotation>> AGGREGATION_STORE_CLASSES =
             Arrays.asList(FromTable.class, FromSubquery.class);
 
-    public AggregationDataStore(QueryEngine queryEngine, CancelSession cancelSession) {
+    public AggregationDataStore(EntityManagerSupplier entityManagerSupplier, QueryEngine queryEngine, AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel) {
+	this.entityManagerSupplier = entityManagerSupplier;
         this.queryEngine = queryEngine;
-	this.cancelSession = cancelSession;
+	this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
     }
 
-    public AggregationDataStore(QueryEngine queryEngine, Set<Class<?>> dynamicCompiledClasses, CancelSession cancelSession) {
+    public AggregationDataStore(EntityManagerSupplier entityManagerSupplier, QueryEngine queryEngine, Set<Class<?>> dynamicCompiledClasses, AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel) {
+ 	this.entityManagerSupplier = entityManagerSupplier;
         this.queryEngine = queryEngine;
         this.dynamicCompiledClasses = dynamicCompiledClasses;
-        this.cancelSession = cancelSession;
+    	this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
     }
 
     /**
@@ -79,6 +84,23 @@ public class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new AggregationDataStoreTransaction(queryEngine, cancelSession);
+	EntityManager entityManager = entityManagerSupplier.get();        
+        return new AggregationDataStoreTransaction(entityManager, queryEngine, aggregationDataStoreTransactionCancel);
+    }
+
+    /**
+     * Functional interface for describing a method to supply EntityManager.
+     */
+    @FunctionalInterface
+    public interface EntityManagerSupplier {
+        EntityManager get();
+    }
+
+    /**
+     * Functional interface for describing a method to supply AggregationDataStoreTransaction.
+     */
+    @FunctionalInterface
+    public interface  AggregationDataStoreTransactionCancel {
+        public void cancel(EntityManager entityManager);
     }
 }

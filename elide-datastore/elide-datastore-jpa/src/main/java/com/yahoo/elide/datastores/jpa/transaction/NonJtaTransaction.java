@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction;
 
-import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.datastores.jpa.JpaDataStore;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,11 +20,10 @@ import javax.persistence.EntityTransaction;
 @Slf4j
 public class NonJtaTransaction extends AbstractJpaTransaction {
     private final EntityTransaction transaction;
-    private final CancelSession cancelSession;
-    public NonJtaTransaction(EntityManager entityManager, CancelSession cancelSession) {
-        super(entityManager, cancelSession);
+    private final JpaDataStore.JpaTransactionCancel jpaTransactionCancel; 
+    public NonJtaTransaction(EntityManager entityManager, JpaDataStore.JpaTransactionCancel jpaTransactionCancel) {
+        super(entityManager, jpaTransactionCancel);
         this.transaction = entityManager.getTransaction();
-        this.cancelSession = cancelSession;
         entityManager.clear();
     }
 
@@ -67,6 +66,6 @@ public class NonJtaTransaction extends AbstractJpaTransaction {
 
     @Override
     public void cancel() {
-        cancelSession.cancel();
+	jpaTransactionCancel.cancel(em);
     }
 }

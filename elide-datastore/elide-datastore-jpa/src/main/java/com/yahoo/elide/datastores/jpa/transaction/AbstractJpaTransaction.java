@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction;
 
-import com.yahoo.elide.core.CancelSession;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
@@ -22,6 +21,7 @@ import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
+import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
@@ -56,12 +56,12 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     protected final EntityManager em;
     private final EntityManagerWrapper emWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final CancelSession cancelSession;
+    private final JpaDataStore.JpaTransactionCancel jpaTransactionCancel;
 
-    protected AbstractJpaTransaction(EntityManager em, CancelSession cancelSession) {
+    protected AbstractJpaTransaction(EntityManager em, JpaDataStore.JpaTransactionCancel jpaTransactionCancel) {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
-	this.cancelSession = cancelSession;
+	this.jpaTransactionCancel = jpaTransactionCancel;
     }
 
     @Override
