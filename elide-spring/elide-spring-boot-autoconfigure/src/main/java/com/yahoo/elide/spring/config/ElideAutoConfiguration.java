@@ -21,8 +21,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.jpa.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
+import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
