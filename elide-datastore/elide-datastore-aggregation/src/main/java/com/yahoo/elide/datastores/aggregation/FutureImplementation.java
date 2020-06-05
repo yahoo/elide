@@ -4,6 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
+import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryEngine;
 
 import java.util.concurrent.Future;
