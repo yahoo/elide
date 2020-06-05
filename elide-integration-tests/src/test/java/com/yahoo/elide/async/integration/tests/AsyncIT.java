@@ -165,6 +165,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.recordCount", equalTo(3))
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                                 + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
@@ -255,6 +256,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.recordCount", equalTo(3))
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":{\"book\":{\"edges\":"
                                 + "[{\"node\":{\"id\":\"1\",\"title\":\"Ender's Game\"}},"
                                 + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"

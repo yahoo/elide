@@ -19,8 +19,6 @@ import com.yahoo.elide.security.User;
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
-//import org.json.JSONArray;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -75,19 +73,15 @@ public class AsyncQueryThread implements Runnable {
                 log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
 
-                if (isValidJSON(response.getBody())) {
-                    recCount = calculateRecordsJSON(response.getBody());
-                }
+                recCount = calculateRecordsJSON(response.getBody());
 
             }
             else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
                 response = runner.run(queryObj.getQuery(), user);
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
-
-                if (isValidJSON(response.getBody())) {
-                    recCount = calculateRecordsGRAPHQL(response.getBody());
-                }
+                String tableName = getTableNameFromQuery(queryObj.getQuery());
+                recCount = calculateRecordsGRAPHQL(response.getBody(), tableName);
             }
             if (response == null) {
                 throw new NoHttpResponseException("Response for request returned as null");
@@ -123,24 +117,6 @@ public class AsyncQueryThread implements Runnable {
         }
     }
 
-    /**
-     * Checks if the response obtained from the query is in JSON format.
-     * @param test response.getBody() from the AsyncQuery response
-     * @return returns true/ false
-     */
-    protected boolean isValidJSON(String test) {
-        try {
-            new JSONObject(test);
-        } catch (JSONException ex) {
-            try {
-                new JSONArray(test);
-            } catch (JSONException ex1) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     protected Integer calculateRecordsJSON(String jsonStr) {
         Integer rec;
         try {
@@ -156,14 +132,14 @@ public class AsyncQueryThread implements Runnable {
         return rec;
     }
 
-    protected Integer calculateRecordsGRAPHQL(String jsonStr) {
+    protected Integer calculateRecordsGRAPHQL(String response, String table_name) {
         Integer rec;
         try {
-            JSONObject j = new JSONObject(jsonStr);
+            JSONObject j = new JSONObject(response);
             try {
                 JSONObject j2 = j.getJSONObject("data");
                 try {
-                    JSONObject j3 = j2.getJSONObject("book");
+                    JSONObject j3 = j2.getJSONObject(table_name);
                     try {
                         rec = j3.getJSONArray("edges").length();
                     } catch (JSONException e4) {
@@ -179,6 +155,23 @@ public class AsyncQueryThread implements Runnable {
             rec = null;
         }
         return rec;
+    }
+
+    protected String getTableNameFromQuery(String jsonStr) {
+        JSONObject j = new JSONObject(jsonStr);
+        String s = (String) j.get("query");
+        String str = "";
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '{' || s.charAt(i) == '}') {
+                continue;
+            }
+            else {
+                str = str + s.charAt(i);
+            }
+        }
+        String[] queryTerms = str.trim().split("\\s+");
+
+        return queryTerms[0];
     }
 
     /**
