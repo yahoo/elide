@@ -49,6 +49,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -292,17 +293,26 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     /**
-     * Cancels running transactions.
-     */
-    public void cancel() {
-        transactionCancel.cancel(entityManagerFactory.createEntityManager());
-    }
-
-    /**
      * Functional interface for describing a method to supply JpaTransaction.
      */
     @FunctionalInterface
     public interface TransactionCancel {
         public void cancel(EntityManager entityManager);
+    }
+  
+    public class FutureImplementation implements Future<QueryResult> {
+        private final TransactionCancel transactionCancel;
+	private final EntityManagerFactory entityManagerFactory;
+        /**
+	 * Cancels transaction
+         */
+    	@Override
+	protected FutureImplementation(EntityManagerFactory entityManagerFactory, TransactionCancel transactionCancel) {
+	    this.transactionCancel = transactionCancel;
+	    this.entityManagerFactory = entityManagerFactory;
+	}
+    	public boolean cancel(boolean mayInterruptIfRunning) {
+            transactionCancel.cancel(entityManagerFactory.createEntityManager());
+    	}    	
     }
 }
