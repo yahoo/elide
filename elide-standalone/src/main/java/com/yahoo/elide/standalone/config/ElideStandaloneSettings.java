@@ -27,6 +27,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
+import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.security.checks.Check;
@@ -57,6 +58,10 @@ import javax.persistence.EntityManagerFactory;
  */
 public interface ElideStandaloneSettings {
     /* Elide settings */
+
+     private final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+     private final SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+
     /**
      * A map containing check mappings for security across Elide. If not provided, then an empty map is used.
      * In case of an empty map, checks can be referenced by their fully qualified class names.
@@ -379,8 +384,7 @@ public interface ElideStandaloneSettings {
             EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-		(em -> { return new NonJtaTransaction(em, em.unwrap(Session.class).cancelQuery()); }),
-                     (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
+		(em -> { return new NonJtaTransaction(em, jpaTransactionCancel); }));
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
         return dataStore;
@@ -393,18 +397,16 @@ public interface ElideStandaloneSettings {
      * @return AggregationDataStore object initialized.
      */
     default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
-            Optional<ElideDynamicEntityCompiler> optionalCompiler, EntityManagerFactory entityManagerFactory) {
+            Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         AggregationDataStore aggregationDataStore = null;
         if (enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
 	    aggregationDataStore = new AggregationDataStore(
-            	() -> { return entityManagerFactory.createEntityManager(); },
-                queryEngine, annotatedClass, (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
+		queryEngine, annotatedClass);
         } else {
             aggregationDataStore = new AggregationDataStore(
-            	() -> { return entityManagerFactory.createEntityManager(); },
-                queryEngine, (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
+		queryEngine);
         }
     }
 
@@ -466,7 +468,7 @@ public interface ElideStandaloneSettings {
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null, transactionCancel);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,

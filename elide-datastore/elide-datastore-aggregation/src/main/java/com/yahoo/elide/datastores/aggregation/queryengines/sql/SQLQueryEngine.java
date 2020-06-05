@@ -60,13 +60,14 @@ import javax.persistence.EntityTransaction;
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
-
+    private final TransactionCancel transactionCancel;
     private final SQLReferenceTable referenceTable;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory, Cache cache) {
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory, Cache cache, TransactionCancel transactionCancel) {
         super(metaDataStore, cache);
         this.entityManagerFactory = entityManagerFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
+	this.transactionCancel = transactionCancel;
     }
 
     @Override
@@ -288,5 +289,20 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return getTypeAlias(entityClass);
+    }
+
+    /**
+     * Cancels running transactions.
+     */
+    public void cancel() {
+        transactionCancel.cancel(entityManagerFactory.createEntityManager());
+    }
+
+    /**
+     * Functional interface for describing a method to supply JpaTransaction.
+     */
+    @FunctionalInterface
+    public interface TransactionCancel {
+        public void cancel(EntityManager entityManager);
     }
 }

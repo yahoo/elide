@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jpa;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
+import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 
 import java.util.HashSet;
@@ -23,13 +24,13 @@ public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
     protected final JpaTransactionSupplier writeTransactionSupplier;
-    protected final JpaTransactionCancel jpaTransactionCancel;
+    protected final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel;
     protected final Set<Class<?>> modelsToBind;
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
-			JpaTransactionCancel jpaTransactionCancel,
+			AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel,
                         Class<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
@@ -44,7 +45,7 @@ public class JpaDataStore implements JPQLDataStore {
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier transactionSupplier,
-			JpaTransactionCancel jpaTransactionCancel,			
+			AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel,			
                         Class<?> ... models) {
         this(entityManagerSupplier, transactionSupplier, transactionSupplier, jpaTransactionCancel, models);
     }
@@ -104,13 +105,5 @@ public class JpaDataStore implements JPQLDataStore {
     @FunctionalInterface
     public interface JpaTransactionSupplier {
         JpaTransaction get(EntityManager entityManager, JpaTransactionCancel jpaTransactionCancel);
-    }
-
-    /**
-     * Functional interface for describing a method to supply JpaTransaction.
-     */
-    @FunctionalInterface
-    public interface JpaTransactionCancel {
-        public void cancel(EntityManager entityManager);
     }
 }

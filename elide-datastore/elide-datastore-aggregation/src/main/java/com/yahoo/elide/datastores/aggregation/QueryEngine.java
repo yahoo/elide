@@ -163,7 +163,7 @@ public abstract class QueryEngine {
      * @param query The query customized for a particular persistent storage or storage client
      * @return query results
      */
-    public abstract QueryResult executeQuery(Query query);
+    public abstract FutureImplementation<QueryResult> executeQuery(Query query);
 
     /**
      * Returns the schema for a given entity class.

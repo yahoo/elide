@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.jpa.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
@@ -57,6 +58,10 @@ public class ElideAutoConfiguration {
      * @return An instance of ElideDynamicEntityCompiler.
      * @throws Exception Exception thrown.
      */
+
+     private final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();}; 
+     private final SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+
     @Bean
     @ConditionalOnMissingBean
     public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
@@ -153,7 +158,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null, transactionCancel);
     }
 
     /**
@@ -171,25 +176,21 @@ public class ElideAutoConfiguration {
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
         AggregationDataStore aggregationDataStore = null;
-	JpaDataStore.JpaTransactionCancel jpaTransactionCancel = null;	
 
         if (isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
             Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
             annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
             aggregationDataStore = new AggregationDataStore(
-		 () -> { return entityManagerFactory.createEntityManager(); },
-		queryEngine, annotatedClass, (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
+		queryEngine, annotatedClass));
         } else {
             aggregationDataStore = new AggregationDataStore(
-		 () -> { return entityManagerFactory.createEntityManager(); },
-		queryEngine, (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
+		queryEngine);
         }
 	
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                    (em -> { return new NonJtaTransaction(em, em.unwrap(Session.class).cancelQuery()); }),
-		     (entityManager -> { entityManager.unwrap(Session.class).cancelQuery();}));
+                    (em -> { return new NonJtaTransaction(em, jpaTransactionCancel); }));
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);

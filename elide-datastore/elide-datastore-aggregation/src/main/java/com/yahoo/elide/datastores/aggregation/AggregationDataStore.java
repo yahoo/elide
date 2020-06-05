@@ -30,26 +30,22 @@ import javax.persistence.EntityManager;
 public class AggregationDataStore implements DataStore {
     private QueryEngine queryEngine;
     private Set<Class<?>> dynamicCompiledClasses;
-    protected final AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel;
-    protected final EntityManagerSupplier entityManagerSupplier;
-
+    protected final CancelTransaction cancelTransaction;
     /**
      * These are the classes the Aggregation Store manages.
      */
     private static final List<Class<? extends Annotation>> AGGREGATION_STORE_CLASSES =
             Arrays.asList(FromTable.class, FromSubquery.class);
 
-    public AggregationDataStore(EntityManagerSupplier entityManagerSupplier, QueryEngine queryEngine, AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel) {
-	this.entityManagerSupplier = entityManagerSupplier;
+    public AggregationDataStore(QueryEngine queryEngine, CancelTransaction cancelTransaction) {
         this.queryEngine = queryEngine;
-	this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
+	this.cancelTransaction = cancelTransaction;
     }
 
-    public AggregationDataStore(EntityManagerSupplier entityManagerSupplier, QueryEngine queryEngine, Set<Class<?>> dynamicCompiledClasses, AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel) {
- 	this.entityManagerSupplier = entityManagerSupplier;
+    public AggregationDataStore(QueryEngine queryEngine, Set<Class<?>> dynamicCompiledClasses, CancelTransaction cancelTransaction) {
         this.queryEngine = queryEngine;
         this.dynamicCompiledClasses = dynamicCompiledClasses;
-    	this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
+    	this.cancelTransaction = cancelTransaction;
     }
 
     /**
@@ -83,23 +79,14 @@ public class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-	EntityManager entityManager = entityManagerSupplier.get();        
-        return new AggregationDataStoreTransaction(entityManager, queryEngine, aggregationDataStoreTransactionCancel);
-    }
-
-    /**
-     * Functional interface for describing a method to supply EntityManager.
-     */
-    @FunctionalInterface
-    public interface EntityManagerSupplier {
-        EntityManager get();
+        return new AggregationDataStoreTransaction(queryEngine, cancelTransaction);
     }
 
     /**
      * Functional interface for describing a method to supply AggregationDataStoreTransaction.
      */
     @FunctionalInterface
-    public interface  AggregationDataStoreTransactionCancel {
+    public interface CancelTransaction {
         public void cancel(EntityManager entityManager);
     }
 }

@@ -82,8 +82,4 @@ public class JtaTransaction extends AbstractJpaTransaction {
         }
     }
 
-    @Override
-    public void cancel() {
-        jpaTransactionCancel.cancel(em);
-    }
 }

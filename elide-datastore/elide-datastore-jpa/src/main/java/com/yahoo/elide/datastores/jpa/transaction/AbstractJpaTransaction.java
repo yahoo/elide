@@ -304,4 +304,17 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
 
         return (Long) query.getQuery().getSingleResult();
     }
+
+    @Override
+    public void cancel() {
+        jpaTransactionCancel.cancel(em);
+    }
+
+    /**
+     * Functional interface for describing a method to supply JpaTransaction.
+     */
+    @FunctionalInterface
+    public interface JpaTransactionCancel {
+        public void cancel(EntityManager entityManager);
+    }
 }

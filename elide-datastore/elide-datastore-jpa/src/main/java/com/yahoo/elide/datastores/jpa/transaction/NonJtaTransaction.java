@@ -64,8 +64,4 @@ public class NonJtaTransaction extends AbstractJpaTransaction {
         return transaction.isActive();
     }
 
-    @Override
-    public void cancel() {
-	jpaTransactionCancel.cancel(em);
-    }
 }
