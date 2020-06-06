@@ -42,7 +42,7 @@ public class AsyncExecutorService {
     private Elide elide;
     private Map<String, QueryRunner> runners;
     private ExecutorService executor;
-    private ExecutorService interruptor;
+    private ExecutorService updater;
     private int maxRunTime;
     private AsyncQueryDAO asyncQueryDao;
     private static AsyncExecutorService asyncExecutorService = null;
@@ -58,7 +58,7 @@ public class AsyncExecutorService {
 
         this.maxRunTime = maxRunTime;
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
-        interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
+        updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         this.asyncQueryDao = asyncQueryDao;
     }
 
@@ -117,7 +117,7 @@ public class AsyncExecutorService {
             log.error("TimeoutException: {}", e);
             AsyncQueryUpdateThread queryUpdateWorker = new AsyncQueryUpdateThread(elide,
                     task, queryObj, asyncQueryDao);
-             interruptor.execute(queryUpdateWorker);
+            updater.execute(queryUpdateWorker);
         }
 
     }

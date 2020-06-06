@@ -168,8 +168,7 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("requestId", "1001"),
-                                                attr("asyncAfterSeconds", "0")
+                                                attr("requestId", "1001")
                                         )
                                 )
                         ).toJSON())
@@ -180,7 +179,7 @@ public class AsyncIT extends IntegrationTest {
 
         int i = 0;
         while (i < 1000) {
-            Thread.sleep(10);
+            Thread.sleep(100);
             Response response = given()
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");

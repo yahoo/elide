@@ -41,9 +41,7 @@ public class AsyncQueryUpdateThread implements Runnable {
         try {
             AsyncQueryResult queryResultObj = task.get();
             // add queryResult object to query object
-            asyncQueryDao.updateAsyncQueryResult(queryResultObj, queryObj.getId(), QueryStatus.COMPLETE);
-            // If we receive a response update Query Status to complete
-            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.COMPLETE);
+            asyncQueryDao.updateAsyncQueryResult(queryResultObj, queryObj.getId());
 
         } catch (InterruptedException e) {
             log.error("InterruptedException: {}", e);

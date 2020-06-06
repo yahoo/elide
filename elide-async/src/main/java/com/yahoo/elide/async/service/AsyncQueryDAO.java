@@ -28,11 +28,10 @@ public interface AsyncQueryDAO {
      * This method persists the model for AsyncQueryResult, AsyncQuery object and establishes the relationship.
      * @param asyncQueryResult AsyncQueryResult to be associated with the AsyncQuery object
      * @param asyncQueryId String
-     * @param complete
      * @return AsyncQuery Object
      */
     public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult,
-            String asyncQueryId, QueryStatus complete);
+            String asyncQueryId);
 
     /**
      * This method deletes a collection of AsyncQuery and its associated AsyncQueryResult objects from database and
