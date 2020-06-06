@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
@@ -49,7 +50,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -63,12 +68,13 @@ public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
     private final TransactionCancel transactionCancel;
     private final SQLReferenceTable referenceTable;
+    private final EntityManager entityManager = null;    
 
     public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory, Cache cache, TransactionCancel transactionCancel) {
         super(metaDataStore, cache);
         this.entityManagerFactory = entityManagerFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
-	this.transactionCancel = transactionCancel;
+        this.transactionCancel = transactionCancel;
     }
 
     @Override
@@ -118,70 +124,73 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public QueryResult executeQuery(Query query) {
-        EntityManager entityManager = null;
-        EntityTransaction transaction = null;
-        try {
-            entityManager = entityManagerFactory.createEntityManager();
+    public Future<QueryResult> executeQuery(Query query) {
+	ExecutorService executorService = Executors.newFixedThreadPool(2);
+	
+        Future<QueryResult> queryResultFuture = executorService.submit(() -> {
+	    EntityTransaction transaction = null;
+	    try {
+		entityManager = entityManagerFactory.createEntityManager();
 
-            // manually begin the transaction
-            transaction = entityManager.getTransaction();
-            if (!transaction.isActive()) {
-                transaction.begin();
-            }
+		// manually begin the transaction
+		transaction = entityManager.getTransaction();
+		if (!transaction.isActive()) {
+		    transaction.begin();
+		}
 
-            // Translate the query into SQL.
-            SQLQuery sql = toSQL(query);
-            log.debug("SQL Query: " + sql);
+		// Translate the query into SQL.
+		SQLQuery sql = toSQL(query);
+		log.debug("SQL Query: " + sql);
 
-            javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
+		javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
 
-            QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
-            Pagination pagination = query.getPagination();
-            if (pagination != null) {
-                jpaQuery.setFirstResult(pagination.getOffset());
-                jpaQuery.setMaxResults(pagination.getLimit());
+		QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
+		Pagination pagination = query.getPagination();
+		if (pagination != null) {
+		    jpaQuery.setFirstResult(pagination.getOffset());
+		    jpaQuery.setMaxResults(pagination.getLimit());
 
-                if (pagination.returnPageTotals()) {
+		    if (pagination.returnPageTotals()) {
 
-                    SQLQuery paginationSQL = toPageTotalSQL(sql);
-                    javax.persistence.Query pageTotalQuery =
-                            entityManager.createNativeQuery(paginationSQL.toString())
-                                    .setHint(QueryHints.HINT_READONLY, true);
+			SQLQuery paginationSQL = toPageTotalSQL(sql);
+		        javax.persistence.Query pageTotalQuery =
+				entityManager.createNativeQuery(paginationSQL.toString())
+					.setHint(QueryHints.HINT_READONLY, true);
 
-                    //Supply the query parameters to the query
-                    supplyFilterQueryParameters(query, pageTotalQuery);
+			//Supply the query parameters to the query
+			supplyFilterQueryParameters(query, pageTotalQuery);
 
-                    //Run the Pagination query and log the time spent.
-                    long total = new TimedFunction<>(
-                            () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
-                            "Running Query: " + paginationSQL
-                    ).get();
+			//Run the Pagination query and log the time spent.
+			long total = new TimedFunction<>(
+			        () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
+				"Running Query: " + paginationSQL
+			).get();
 
-                    resultBuilder.pageTotals(total);
-                }
-            }
+			resultBuilder.pageTotals(total);
+		    }
+		}   
 
-            // Supply the query parameters to the query
-            supplyFilterQueryParameters(query, jpaQuery);
+		// Supply the query parameters to the query
+		supplyFilterQueryParameters(query, jpaQuery);
 
-            // Run the primary query and log the time spent.
-            List<Object> results = new TimedFunction<>(
-                    () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
-                    "Running Query: " + sql).get();
+		// Run the primary query and log the time spent.
+		List<Object> results = new TimedFunction<>(
+			() -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
+			"Running Query: " + sql).get();
 
-            resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
-            return resultBuilder.build();
-        } finally {
-            if (transaction != null && transaction.isActive()) {
-                transaction.commit();
-            }
-            if (entityManager != null) {
-                entityManager.close();
-            }
+		resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
+		return resultBuilder.build();
+	    } finally {
+		if (transaction != null && transaction.isActive()) {
+		    transaction.commit();
+		}
+		if (entityManager != null) {
+		    entityManager.close();
+		}
+	    }
         }
+        return queryResultFuture;
     }
-
     /**
      * Translates the client query into SQL.
      *
@@ -300,19 +309,56 @@ public class SQLQueryEngine extends QueryEngine {
         public void cancel(EntityManager entityManager);
     }
   
-    public class FutureImplementation implements Future<QueryResult> {
-        private final TransactionCancel transactionCancel;
-	private final EntityManagerFactory entityManagerFactory;
+    public class QueryResultFuture<QueryResult> implements Future<QueryResult> {
         /**
-	 * Cancels transaction
+	 * Future Implementation of Query Result
          */
-    	@Override
-	protected FutureImplementation(EntityManagerFactory entityManagerFactory, TransactionCancel transactionCancel) {
-	    this.transactionCancel = transactionCancel;
-	    this.entityManagerFactory = entityManagerFactory;
+	private static enum RESULT {RUNNING, CANCELLED}
+	final CountDownLatch countDownLatch = new CountDownLatch(1);
+	private RESUlT Result = RESULT.RUNNING;	
+	private QueryResult queryResult;	
+	
+	public QueryResultFuture() {
+	     this.queryResult = queryResult;
+	     countDownLatch.countDown();
 	}
+
+        @Override
+        public QueryResult get() {
+            countDownLatch.await();
+            return queryResult;
+	}
+	
+	@Override
     	public boolean cancel(boolean mayInterruptIfRunning) {
-            transactionCancel.cancel(entityManagerFactory.createEntityManager());
-    	}    	
+	    try {
+            	transactionCancel.cancel(entityManager);
+		Result = RESULT.CANCELLED;	
+            	return true;
+            }
+	    catch (Exception e) {
+	    	throw e;
+            }
+    	}
+	
+	@Override
+	boolean isCancelled() {
+	    return Result == RESULT.CANCELLED;
+	}
+
+	@Override
+	boolean isDone() {
+	    return true;
+	}
+
+	@Override
+	@Override
+	public QueryResult get(long timeout, TimeUnit unit) throws TimeoutException {
+	    if (countDownLatch.await(timeout, unit)) {
+                return queryResult;
+            } else {
+                throw new TimeoutException();
+            }
+	}
     }
 }
