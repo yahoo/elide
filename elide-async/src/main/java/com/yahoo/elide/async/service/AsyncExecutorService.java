@@ -115,9 +115,24 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-            AsyncQueryUpdateThread queryUpdateWorker = new AsyncQueryUpdateThread(elide,
-                    task, queryObj, asyncQueryDao);
-            updater.execute(queryUpdateWorker);
+            if (task.isDone()) {
+                log.info("task is done.");
+                try {
+                    queryObj.setResult(task.get());
+                    queryObj.setStatus(QueryStatus.COMPLETE);
+                } catch (InterruptedException e1) {
+                    log.error("InterruptedException: {}", e);
+                    queryObj.setStatus(QueryStatus.FAILURE);
+                } catch (ExecutionException e1) {
+                    log.error("InterruptedException: {}", e);
+                    queryObj.setStatus(QueryStatus.FAILURE);
+                }
+            } else {
+                log.info("task is not done yet.");
+                AsyncQueryUpdateThread queryUpdateWorker = new AsyncQueryUpdateThread(elide,
+                        task, queryObj, asyncQueryDao);
+                updater.execute(queryUpdateWorker);
+            }
         }
 
     }
