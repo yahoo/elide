@@ -124,7 +124,7 @@ public class AsyncExecutorService {
                     log.error("InterruptedException: {}", e);
                     queryObj.setStatus(QueryStatus.FAILURE);
                 } catch (ExecutionException e1) {
-                    log.error("InterruptedException: {}", e);
+                    log.error("ExecutionException: {}", e);
                     queryObj.setStatus(QueryStatus.FAILURE);
                 }
             } else {
