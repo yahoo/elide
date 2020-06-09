@@ -15,15 +15,15 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.io.FileUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedInputStream;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
@@ -54,7 +54,7 @@ public class DynamicConfigVerifier {
      * @throws MissingOptionException
      */
     public static void main(String[] args) throws ParseException, InvalidKeyException, NoSuchAlgorithmException,
-            SignatureException, FileNotFoundException, KeyStoreException, IOException {
+    SignatureException, FileNotFoundException, KeyStoreException, IOException {
 
         Options options = prepareOptions();
         CommandLine cli = new DefaultParser().parse(options, args);
@@ -77,6 +77,7 @@ public class DynamicConfigVerifier {
         }
         else {
             log.error("Could not verify " + modelTarFile + " with details provided");
+            System.exit(-1);
         }
     }
 
@@ -111,12 +112,24 @@ public class DynamicConfigVerifier {
      */
     public static String readTarContents(String archiveFile) throws FileNotFoundException, IOException {
         StringBuffer sb = new StringBuffer();
-        TarArchiveInputStream archive = new TarArchiveInputStream(
-                new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))));
-        TarArchiveEntry entry;
-        while ((entry = archive.getNextTarEntry()) != null) {
-            sb.append(FileUtils.readFileToString(new File(entry.getName()), StandardCharsets.UTF_8));
+        BufferedReader br = null;
+        TarArchiveInputStream archiveInputStream = null;
+        try {
+            archiveInputStream = new TarArchiveInputStream(
+                    new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))));
+            TarArchiveEntry entry;
+            while ((entry = archiveInputStream.getNextTarEntry()) != null) {
+                br = new BufferedReader(new InputStreamReader(archiveInputStream));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+            }
+        } finally {
+            archiveInputStream.close();
+            br.close();
         }
+
         return sb.toString();
     }
 
