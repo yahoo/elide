@@ -20,7 +20,6 @@ import javax.persistence.EntityTransaction;
 @Slf4j
 public class NonJtaTransaction extends AbstractJpaTransaction {
     private final EntityTransaction transaction;
-    private final JpaDataStore.JpaTransactionCancel jpaTransactionCancel; 
     public NonJtaTransaction(EntityManager entityManager, JpaDataStore.JpaTransactionCancel jpaTransactionCancel) {
         super(entityManager, jpaTransactionCancel);
         this.transaction = entityManager.getTransaction();
