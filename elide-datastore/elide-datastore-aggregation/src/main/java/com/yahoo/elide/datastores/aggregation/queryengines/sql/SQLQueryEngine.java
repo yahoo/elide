@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
@@ -51,10 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -187,8 +183,8 @@ public class SQLQueryEngine extends QueryEngine {
      * Future Implementation of execute query
      */
     @Override
-    public QueryResultFuture<QueryResult> executeQuery(Query query) {
-        QueryResultFuture<QueryResult> queryResultFuture = new QueryResultFuture(executeQuery(query));
+    public Future<QueryResult> executeQuery(Query query) {
+        Future<QueryResult> queryResultFuture = new QueryResultFuture(executeQuery(query));
 	queryResultFuture.run();
         return queryResultFuture;
     }
@@ -314,15 +310,15 @@ public class SQLQueryEngine extends QueryEngine {
     public class QueryResultFuture<V> extends FutureTask<V> {
         /**
 	 * FutureTask Implementation of Query Result
-         */
-	
+         */	
 	public QueryResultFuture(Callable<V> callable) {
 	    super(callable);     
 	}
 
 	@Override
-    	public boolean cancel(TransactionCancel transactionCancel, EntityManager entityManager) {
+    	public boolean cancel(boolean mayInterruptIfRunning) {
             transactionCancel.cancel(entityManager);
+	    return true;
     	}	
     }
 }
