@@ -33,6 +33,8 @@ import com.yahoo.elide.utils.ClassScanner;
 
 import java.util.Collections;
 import java.util.HashMap;
+
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -51,9 +53,15 @@ public abstract class SQLUnitTest {
     protected static QueryEngine engine;
 
     public static void init(Cache cache) {
+        emf = Persistence.createEntityManagerFactory("aggregationStore");
+        EntityManager em = emf.createEntityManager();
+        em.getTransaction().begin();
+        em.createNativeQuery("DROP ALL OBJECTS;").executeUpdate();
+        em.createNativeQuery("RUNSCRIPT FROM 'classpath:create_tables.sql'").executeUpdate();
+        em.getTransaction().commit();
+
         metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
 
-        emf = Persistence.createEntityManagerFactory("aggregationStore");
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStatsWithView.class);
         dictionary.bindEntity(PlayerStatsView.class);

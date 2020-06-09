@@ -21,6 +21,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,6 +29,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ValidatableResponse;
@@ -46,6 +49,11 @@ import javax.ws.rs.core.MediaType;
  */
 public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+
+    @BeforeAll
+    public void beforeEach() {
+        SQLUnitTest.init(null);
+    }
 
     @Override
     protected DataStoreTestHarness createHarness() {
