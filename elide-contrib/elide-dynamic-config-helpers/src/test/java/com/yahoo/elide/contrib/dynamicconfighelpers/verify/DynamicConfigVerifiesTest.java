@@ -31,17 +31,17 @@ public class DynamicConfigVerifiesTest {
     @BeforeAll
     public static void setUp() throws Exception {
         kp = generateKeyPair();
-        signature = sign("testing-signature5", kp.getPrivate());
+        signature = sign("testing-signature", kp.getPrivate());
     }
 
     @Test
     public void testValidSignature() throws Exception {
-        assertTrue(DynamicConfigVerifier.verify("testing-signature", 5, signature, kp.getPublic()));
+        assertTrue(DynamicConfigVerifier.verify("testing-signature", signature, kp.getPublic()));
     }
 
     @Test
     public void testInvalidSignature() throws Exception {
-        assertFalse(DynamicConfigVerifier.verify("invalid-signature", 5, signature, kp.getPublic()));
+        assertFalse(DynamicConfigVerifier.verify("invalid-signature", signature, kp.getPublic()));
     }
 
     @Test

@@ -35,6 +35,9 @@ import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.util.Base64;
 
+/**
+ * Util class to Verify model tar.gz file's RSA signature with available public key in key store.
+ */
 @Slf4j
 public class DynamicConfigVerifier {
 
@@ -48,10 +51,10 @@ public class DynamicConfigVerifier {
      * @throws SignatureException
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeyException
-     *
+     * @throws MissingOptionException
      */
     public static void main(String[] args) throws ParseException, InvalidKeyException, NoSuchAlgorithmException,
-    SignatureException, FileNotFoundException, KeyStoreException, IOException {
+            SignatureException, FileNotFoundException, KeyStoreException, IOException {
 
         Options options = prepareOptions();
         CommandLine cli = new DefaultParser().parse(options, args);
@@ -68,10 +71,8 @@ public class DynamicConfigVerifier {
         String modelTarFile = cli.getOptionValue("tarFile");
         String signatureFile = cli.getOptionValue("signatureFile");
         String publicKeyName = cli.getOptionValue("publicKeyName");
-        long tarFileSize = getFileSize(modelTarFile);
 
-        if (verify(readTarContents(modelTarFile), tarFileSize,
-                signatureFile, getPublicKey(publicKeyName))) {
+        if (verify(readTarContents(modelTarFile), signatureFile, getPublicKey(publicKeyName))) {
             log.info("Successfully Validated " + modelTarFile);
         }
         else {
@@ -81,8 +82,7 @@ public class DynamicConfigVerifier {
 
     /**
      * Verify signature of tar.gz.
-     * @param fileList : list of files
-     * @param sizeOfFile : size of tar file
+     * @param fileContent : content Of all config files
      * @param signature : file containing signature
      * @param publicKey : public key name
      * @return whether the file can be verified by given key and signature
@@ -90,25 +90,34 @@ public class DynamicConfigVerifier {
      * @throws InvalidKeyException
      * @throws SignatureException
      */
-    public static boolean verify(String fileList, long sizeOfFile, String signature, PublicKey publicKey)
+    public static boolean verify(String fileContent, String signature, PublicKey publicKey)
             throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 
         Signature publicSignature;
 
         publicSignature = Signature.getInstance("SHA256withRSA");
         publicSignature.initVerify(publicKey);
-        publicSignature.update((fileList + sizeOfFile).getBytes(StandardCharsets.UTF_8));
+        publicSignature.update(fileContent.getBytes(StandardCharsets.UTF_8));
         byte[] signatureBytes = Base64.getDecoder().decode(signature);
         return publicSignature.verify(signatureBytes);
     }
 
     /**
-     * Get tar file size.
-     * @param modelTarFile
-     * @return size of tar file
+     * Read Content of all files.
+     * @param archiveFile : tar.gz file path
+     * @return appended content of all files in tar
+     * @throws FileNotFoundException
+     * @throws IOException
      */
-    private static long getFileSize(String modelTarFile) {
-        return FileUtils.sizeOf(new File(modelTarFile));
+    public static String readTarContents(String archiveFile) throws FileNotFoundException, IOException {
+        StringBuffer sb = new StringBuffer();
+        TarArchiveInputStream archive = new TarArchiveInputStream(
+                new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))));
+        TarArchiveEntry entry;
+        while ((entry = archive.getNextTarEntry()) != null) {
+            sb.append(FileUtils.readFileToString(new File(entry.getName()), StandardCharsets.UTF_8));
+        }
+        return sb.toString();
     }
 
     /**
@@ -122,17 +131,6 @@ public class DynamicConfigVerifier {
         Certificate cert = keyStore.getCertificate(keyName);
         publicKey = cert.getPublicKey();
         return publicKey;
-    }
-
-    private static String readTarContents(String archiveFile) throws FileNotFoundException, IOException {
-        StringBuffer sb = new StringBuffer();
-        TarArchiveInputStream archive = new TarArchiveInputStream(
-                new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))));
-        TarArchiveEntry entry;
-        while ((entry = archive.getNextTarEntry()) != null) {
-            sb.append(entry.getName());
-        }
-        return sb.toString();
     }
 
     /**
