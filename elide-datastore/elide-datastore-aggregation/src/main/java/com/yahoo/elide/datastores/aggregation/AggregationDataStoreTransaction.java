@@ -84,7 +84,7 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     }
 
     @Override
-    public void cancel {
+    public void cancel() {
         result.cancel(true); 
     }
 }
