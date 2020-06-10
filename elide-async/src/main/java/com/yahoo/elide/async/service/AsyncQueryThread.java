@@ -117,6 +117,11 @@ public class AsyncQueryThread implements Runnable {
         }
     }
 
+    /**
+     * This method calculates the number of records from the response with JSON API.
+     * @param jsonStr is the response.getBody() we get from the response
+     * @return rec is the recordCount
+     */
     protected Integer calculateRecordsJSON(String jsonStr) {
         Integer rec;
         try {
@@ -132,6 +137,12 @@ public class AsyncQueryThread implements Runnable {
         return rec;
     }
 
+    /**
+     * This method calculates the number of records from the response with GRAPHQL API.
+     * @param response is the response.getBody() we get from the response
+     * @param table_name is the table from which we extract the data
+     * @return rec is the recordCount
+     */
     protected Integer calculateRecordsGRAPHQL(String response, String table_name) {
         Integer rec;
         try {
@@ -157,6 +168,11 @@ public class AsyncQueryThread implements Runnable {
         return rec;
     }
 
+    /**
+     * This method helps to extract the table name from the query.
+     * @param jsonStr is the query with which we are extracting the data
+     * @return the table name from the above query
+     */
     protected String getTableNameFromQuery(String jsonStr) {
         JSONObject j = new JSONObject(jsonStr);
         String s = (String) j.get("query");
