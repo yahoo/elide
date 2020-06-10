@@ -126,11 +126,8 @@ public class AsyncQueryThread implements Runnable {
         Integer rec;
         try {
             JSONObject j = new JSONObject(jsonStr);
-            try {
-                rec = j.getJSONArray("data").length();
-            } catch (JSONException e2) {
-                rec = null;
-            }
+            rec = j.getJSONArray("data").length();
+
         } catch (JSONException e) {
             rec = null;
         }
@@ -147,21 +144,10 @@ public class AsyncQueryThread implements Runnable {
         Integer rec;
         try {
             JSONObject j = new JSONObject(response);
-            try {
-                JSONObject j2 = j.getJSONObject("data");
-                try {
-                    JSONObject j3 = j2.getJSONObject(table_name);
-                    try {
-                        rec = j3.getJSONArray("edges").length();
-                    } catch (JSONException e4) {
-                        rec = null;
-                    }
-                } catch (JSONException e3) {
-                    rec = null;
-                }
-            } catch (JSONException e2) {
-                rec = null;
-            }
+            JSONObject j2 = j.getJSONObject("data");
+            JSONObject j3 = j2.getJSONObject(table_name);
+            rec = j3.getJSONArray("edges").length();
+
         } catch (JSONException e) {
             rec = null;
         }
