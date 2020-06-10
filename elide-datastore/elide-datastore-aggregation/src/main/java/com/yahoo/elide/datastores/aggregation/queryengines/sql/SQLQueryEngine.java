@@ -186,7 +186,6 @@ public class SQLQueryEngine extends QueryEngine {
     @Override
     public Future<QueryResult> executeQuery(Query query) {
         QueryResultFuture<QueryResult> queryResultFuture = new QueryResultFuture(executeQuery(query));
-        queryResultFuture.run();
         return queryResultFuture;
     }
 
