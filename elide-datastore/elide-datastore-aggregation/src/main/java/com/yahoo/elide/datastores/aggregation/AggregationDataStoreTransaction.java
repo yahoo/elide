@@ -89,6 +89,6 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
 
     @Override
     public void cancel() {
-        result.cancel(true); 
+        queryResult.cancel(true); 
     }
 }
