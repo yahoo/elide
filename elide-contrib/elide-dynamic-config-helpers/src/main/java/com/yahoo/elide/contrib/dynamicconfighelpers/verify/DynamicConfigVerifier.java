@@ -77,6 +77,7 @@ public class DynamicConfigVerifier {
         }
         else {
             log.error("Could not verify " + modelTarFile + " with details provided");
+            return;
         }
     }
 
