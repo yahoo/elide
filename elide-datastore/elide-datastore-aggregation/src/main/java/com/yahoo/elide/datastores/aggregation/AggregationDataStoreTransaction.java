@@ -24,7 +24,7 @@ import javax.persistence.EntityManager;
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
     private EntityManager em;
     private QueryEngine queryEngine;
-    private Future<QueryResult> result;
+    private Future<QueryResult> queryResult;
     public AggregationDataStoreTransaction(EntityManager em, QueryEngine queryEngine) {
         this.em = em;
 	this.queryEngine = queryEngine;
@@ -59,8 +59,9 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         Query query = buildQuery(entityProjection, scope);
-        result = queryEngine.executeQuery(query);
-	result.run();
+        queryResult = queryEngine.executeQuery(query);
+	queryResult.run();
+	QueryResult result = queryResult.get();
         if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
             entityProjection.getPagination().setPageTotals(result.getPageTotals());
         }
