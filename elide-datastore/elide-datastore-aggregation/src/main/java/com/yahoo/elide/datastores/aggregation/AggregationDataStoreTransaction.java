@@ -61,11 +61,17 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
         Query query = buildQuery(entityProjection, scope);
         queryResult = queryEngine.executeQuery(query);
 	queryResult.run();
-	QueryResult result = queryResult.get();
-        if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
-            entityProjection.getPagination().setPageTotals(result.getPageTotals());
-        }
-        return result.getData();
+	try {
+	    QueryResult result = queryResult.get();
+            if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
+                entityProjection.getPagination().setPageTotals(result.getPageTotals());
+            }
+            return result.getData();
+	} catch (e) {
+	    String errorMsg = String.format("Error while registering custom Serde: %s", e.getLocalizedMessage());
+	    log.error(errorMsg);
+	}
+	
     }
 
     @Override
