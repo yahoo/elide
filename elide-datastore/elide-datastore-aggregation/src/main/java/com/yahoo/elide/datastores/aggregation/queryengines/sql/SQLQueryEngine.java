@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -119,7 +120,7 @@ public class SQLQueryEngine extends QueryEngine {
         return new SQLMetricProjection(metric, referenceTable, alias, arguments);
     }
 
-    public QueryResult executeQuery(Query query) {
+    private QueryResult executeQuery(Query query) {
 	EntityTransaction transaction = null;
 	try {
 	    entityManager = entityManagerFactory.createEntityManager();
@@ -185,7 +186,7 @@ public class SQLQueryEngine extends QueryEngine {
     @Override
     public Future<QueryResult> executeQuery(Query query) {
         QueryResultFuture<QueryResult> queryResultFuture = new QueryResultFuture(executeQuery(query));
-	queryResultFuture.run();
+        queryResultFuture.run();
         return queryResultFuture;
     }
 
@@ -318,7 +319,7 @@ public class SQLQueryEngine extends QueryEngine {
 	@Override
     	public boolean cancel(boolean mayInterruptIfRunning) {
             transactionCancel.cancel(entityManager);
-	    return true;
+	    return super.cancel(true);
     	}	
     }
 }

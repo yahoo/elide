@@ -15,7 +15,7 @@ import com.yahoo.elide.request.EntityProjection;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
-
+import java.util.concurrent.Future;
 import javax.persistence.EntityManager;
 
 /**
@@ -24,8 +24,8 @@ import javax.persistence.EntityManager;
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
     private EntityManager em;
     private QueryEngine queryEngine;
-    private AggregationDataStore.AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel;
-    public AggregationDataStoreTransaction(EntityManager em, QueryEngine queryEngine, AggregationDataStore.AggregationDataStoreTransactionCancel aggregationDataStoreTransactionCancel) {
+    private Future<QueryResult> result;
+    public AggregationDataStoreTransaction(EntityManager em, QueryEngine queryEngine) {
         this.em = em;
 	this.queryEngine = queryEngine;
 	this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
@@ -59,7 +59,8 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         Query query = buildQuery(entityProjection, scope);
-        QueryResult result = queryEngine.executeQuery(query);
+        result = queryEngine.executeQuery(query);
+	result.run();
         if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
             entityProjection.getPagination().setPageTotals(result.getPageTotals());
         }
@@ -83,7 +84,7 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     }
 
     @Override
-    public void cancel() {
-    	aggregationDataStoreTransactionCancel.cancel(em);
+    public void cancel {
+        result.cancel(true); 
     }
 }
