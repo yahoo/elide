@@ -116,13 +116,14 @@ public class DynamicConfigVerifier {
         try {
             archiveInputStream = new TarArchiveInputStream(
                     new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))));
-            TarArchiveEntry entry;
-            while ((entry = archiveInputStream.getNextTarEntry()) != null) {
+            TarArchiveEntry entry = archiveInputStream.getNextTarEntry();
+            while (entry  != null) {
                 br = new BufferedReader(new InputStreamReader(archiveInputStream));
                 String line;
                 while ((line = br.readLine()) != null) {
                     sb.append(line);
                 }
+                entry = archiveInputStream.getNextTarEntry();
             }
         } finally {
             archiveInputStream.close();
