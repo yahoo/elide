@@ -17,7 +17,6 @@ import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
-import javax.persistence.EntityManager;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
