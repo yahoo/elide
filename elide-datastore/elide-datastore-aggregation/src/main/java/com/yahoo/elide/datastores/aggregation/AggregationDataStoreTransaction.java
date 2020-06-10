@@ -10,6 +10,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
+import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -22,11 +23,9 @@ import javax.persistence.EntityManager;
  * Transaction handler for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
-    private EntityManager em;
     private QueryEngine queryEngine;
     private Future<QueryResult> queryResult;
-    public AggregationDataStoreTransaction(EntityManager em, QueryEngine queryEngine) {
-        this.em = em;
+    public AggregationDataStoreTransaction(QueryEngine queryEngine) {
 	this.queryEngine = queryEngine;
 	this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
     }
@@ -67,9 +66,8 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
                 entityProjection.getPagination().setPageTotals(result.getPageTotals());
             }
             return result.getData();
-	} catch (e) {
-	    String errorMsg = String.format("Error while registering custom Serde: %s", e.getLocalizedMessage());
-	    log.error(errorMsg);
+	} catch (TransactionException e) {
+	    throw new TransactionException(null);
 	}
 	
     }

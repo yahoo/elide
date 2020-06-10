@@ -24,18 +24,18 @@ public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
     protected final JpaTransactionSupplier writeTransactionSupplier;
-    protected final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel;
+    protected final JpaTransactionCancelSupplier jpaTransactionCancel;
     protected final Set<Class<?>> modelsToBind;
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
-			AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel,
+                        JpaTransactionCancelSupplier jpaTransactionCancel,
                         Class<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
         this.writeTransactionSupplier = writeTransactionSupplier;
-	this.jpaTransactionCancel = jpaTransactionCancel;
+        this.jpaTransactionCancel = jpaTransactionCancel;
         this.modelsToBind = new HashSet<>();
         for (Class<?> model : models) {
             modelsToBind.add(model);
@@ -45,7 +45,7 @@ public class JpaDataStore implements JPQLDataStore {
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier transactionSupplier,
-			AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel,			
+                        JpaTransactionCancelSupplier jpaTransactionCancel,
                         Class<?> ... models) {
         this(entityManagerSupplier, transactionSupplier, transactionSupplier, jpaTransactionCancel, models);
     }
@@ -78,6 +78,7 @@ public class JpaDataStore implements JPQLDataStore {
     @Override
     public DataStoreTransaction beginReadTransaction() {
         EntityManager entityManager = entityManagerSupplier.get();
+        AbstractJpaTransaction.JpaTransactionCancel transactionCancel = jpaTransactionCancel.get();
         JpaTransaction transaction = readTransactionSupplier.get(entityManager, jpaTransactionCancel);
         transaction.begin();
         return transaction;
@@ -86,6 +87,7 @@ public class JpaDataStore implements JPQLDataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         EntityManager entityManager = entityManagerSupplier.get();
+        AbstractJpaTransaction.JpaTransactionCancel transactionCancel = jpaTransactionCancel.get();
         JpaTransaction transaction = writeTransactionSupplier.get(entityManager, jpaTransactionCancel);
         transaction.begin();
         return transaction;
@@ -104,6 +106,14 @@ public class JpaDataStore implements JPQLDataStore {
      */
     @FunctionalInterface
     public interface JpaTransactionSupplier {
-        JpaTransaction get(EntityManager entityManager, JpaTransactionCancel jpaTransactionCancel);
+        JpaTransaction get(EntityManager entityManager, AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel);
+    }
+
+    /**
+     * Functional interface for describing a method to supply JpaTransaction.
+     */
+    @FunctionalInterface
+    public interface JpaTransactionCancelSupplier {
+        AbstractJpaTransaction.JpaTransactionCancel get();
     }
 }

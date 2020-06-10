@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction;
 
-import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.datastores.jpa.JpaDataStore;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,11 +23,11 @@ import javax.transaction.UserTransaction;
 @Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
-    public JtaTransaction(EntityManager entityManager, JpaDataStore.JpaTransactionCancel jpaTransactionCancel) {
+    public JtaTransaction(EntityManager entityManager, JpaTransactionCancel jpaTransactionCancel) {
         this(entityManager, lookupUserTransaction(), jpaTransactionCancel);
     }
 
-    public JtaTransaction(EntityManager entityManager, UserTransaction transaction, JpaDataStore.JpaTransactionCancel jpaTransactionCancel) {
+    public JtaTransaction(EntityManager entityManager, UserTransaction transaction, JpaTransactionCancel jpaTransactionCancel) {
         super(entityManager, jpaTransactionCancel);
         this.transaction = transaction;
     }
@@ -80,5 +80,4 @@ public class JtaTransaction extends AbstractJpaTransaction {
             return false;
         }
     }
-
 }

@@ -56,12 +56,12 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     protected final EntityManager em;
     private final EntityManagerWrapper emWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final JpaDataStore.JpaTransactionCancel jpaTransactionCancel;
+    private final JpaTransactionCancel jpaTransactionCancel;
 
-    protected AbstractJpaTransaction(EntityManager em, JpaDataStore.JpaTransactionCancel jpaTransactionCancel) {
+    protected AbstractJpaTransaction(EntityManager em, JpaTransactionCancel jpaTransactionCancel) {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
-	this.jpaTransactionCancel = jpaTransactionCancel;
+        this.jpaTransactionCancel = jpaTransactionCancel;
     }
 
     @Override

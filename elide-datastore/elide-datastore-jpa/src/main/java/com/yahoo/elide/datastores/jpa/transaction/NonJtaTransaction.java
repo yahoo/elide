@@ -62,5 +62,4 @@ public class NonJtaTransaction extends AbstractJpaTransaction {
     public boolean isOpen() {
         return transaction.isActive();
     }
-
 }
