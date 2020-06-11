@@ -184,7 +184,7 @@ public class SQLQueryEngine extends QueryEngine {
      */
     @Override
     public FutureTask<QueryResult> executeQuery(Query query) {
-        QueryResultFuture<Callable<QueryResult>> queryResultFuture = new QueryResultFuture<QueryResult>(execute(query));
+        FutureTask<QueryResult> queryResultFuture = new QueryResultFuture<>(execute(query));
         return queryResultFuture;
     }
 
