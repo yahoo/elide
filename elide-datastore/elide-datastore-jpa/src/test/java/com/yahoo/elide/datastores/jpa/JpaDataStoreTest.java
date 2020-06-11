@@ -20,7 +20,6 @@ import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 
 import com.google.common.collect.Sets;
-import org.hibernate.Session;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -62,7 +61,7 @@ public class JpaDataStoreTest {
         EntityManager managerMock = mock(EntityManager.class);
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
-        AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> {};
+        AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { };
         JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused, txCancel) -> { return null; }, jpaTransactionCancel);
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
@@ -94,7 +93,7 @@ public class JpaDataStoreTest {
         EntityManager managerMock = mock(EntityManager.class);
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
-        AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> {};
+        AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { };
         JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused, txCancel) -> { return null; }, jpaTransactionCancel, Test.class);
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         store.populateEntityDictionary(dictionary);
