@@ -29,8 +29,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
 
-        AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
-        SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+        AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
+        SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
         QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory, null, transactionCancel);
 
         AggregationDataStore aggregationDataStore = new AggregationDataStore(sqlQueryEngine);

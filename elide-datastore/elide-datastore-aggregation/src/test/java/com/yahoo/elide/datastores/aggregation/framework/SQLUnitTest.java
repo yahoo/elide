@@ -67,7 +67,7 @@ public abstract class SQLUnitTest {
 
         metaDataStore.populateEntityDictionary(dictionary);
 
-        SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+        SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
         engine = new SQLQueryEngine(metaDataStore, emf, null, transactionCancel);
         playerStatsTable = engine.getTable("playerStats");
 
