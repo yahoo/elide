@@ -16,14 +16,14 @@ import com.yahoo.elide.request.EntityProjection;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
-import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
     private QueryEngine queryEngine;
-    private Future<QueryResult> queryResult;
+    private FutureTask<QueryResult> queryResult;
     public AggregationDataStoreTransaction(QueryEngine queryEngine) {
         this.queryEngine = queryEngine;
     }

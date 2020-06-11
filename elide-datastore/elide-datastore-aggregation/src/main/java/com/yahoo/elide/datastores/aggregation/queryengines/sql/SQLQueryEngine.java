@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -184,7 +183,7 @@ public class SQLQueryEngine extends QueryEngine {
      * Future Implementation of execute query.
      */
     @Override
-    public Future<QueryResult> executeQuery(Query query) {
+    public FutureTask<QueryResult> executeQuery(Query query) {
         QueryResultFuture<QueryResult> queryResultFuture = new QueryResultFuture<QueryResult>(execute(query));
         return queryResultFuture;
     }

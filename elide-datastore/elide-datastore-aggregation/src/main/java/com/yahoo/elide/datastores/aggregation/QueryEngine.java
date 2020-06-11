@@ -27,7 +27,7 @@ import com.google.common.base.Functions;
 import lombok.Getter;
 
 import java.util.Map;
-import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 /**
  * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
@@ -163,7 +163,7 @@ public abstract class QueryEngine {
      * @param query The query customized for a particular persistent storage or storage client
      * @return query results
      */
-    public abstract Future<QueryResult> executeQuery(Query query);
+    public abstract FutureTask<QueryResult> executeQuery(Query query);
 
     /**
      * Returns the schema for a given entity class.
