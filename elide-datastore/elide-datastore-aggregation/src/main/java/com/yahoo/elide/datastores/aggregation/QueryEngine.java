@@ -27,8 +27,8 @@ import com.google.common.base.Functions;
 import lombok.Getter;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 /**
  * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
  * against an underlying persistence layer.

@@ -7,10 +7,10 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
-import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -25,8 +25,8 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     private QueryEngine queryEngine;
     private Future<QueryResult> queryResult;
     public AggregationDataStoreTransaction(QueryEngine queryEngine) {
-	this.queryEngine = queryEngine;
-	this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
+        this.queryEngine = queryEngine;
+        this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
     }
 
     @Override
@@ -58,17 +58,16 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         Query query = buildQuery(entityProjection, scope);
         queryResult = queryEngine.executeQuery(query);
-	queryResult.run();
-	try {
-	    QueryResult result = queryResult.get();
+        queryResult.run();
+        try {
+            QueryResult result = queryResult.get();
             if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
                 entityProjection.getPagination().setPageTotals(result.getPageTotals());
             }
             return result.getData();
-	} catch (TransactionException e) {
-	    throw new TransactionException(null);
-	}
-	
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        }
     }
 
     @Override
@@ -89,6 +88,6 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
 
     @Override
     public void cancel() {
-        queryResult.cancel(true); 
+        queryResult.cancel(true);
     }
 }
