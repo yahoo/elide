@@ -17,6 +17,7 @@ import example.models.generics.Manager;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
 import org.hibernate.MappingException;
+import org.hibernate.Session;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
