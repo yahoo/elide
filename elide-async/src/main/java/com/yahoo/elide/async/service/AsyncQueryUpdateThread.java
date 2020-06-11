@@ -49,7 +49,6 @@ public class AsyncQueryUpdateThread implements Runnable {
         } catch (Exception e) {
             log.error("Exception: {}", e);
             asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE);
-
         }
     }
 }

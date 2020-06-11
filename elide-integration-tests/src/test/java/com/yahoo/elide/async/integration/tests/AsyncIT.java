@@ -25,9 +25,12 @@ import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApp
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.initialization.InMemoryDataStoreHarness;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -176,7 +179,14 @@ public class AsyncIT extends IntegrationTest {
                 .when()
                 .post("/asyncQuery")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_CREATED);
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
+                .body("data.type", equalTo("asyncQuery"))
+                .body("data.attributes.status", equalTo("PROCESSING"))
+                .body("data.attributes.result.contentLength", nullValue())
+                .body("data.attributes.result.responseBody", nullValue())
+                .body("data.attributes.result.httpStatus", nullValue())
+                .body("data.attributes.result.resultType", nullValue());
 
         int i = 0;
         while (i < 1000) {
@@ -240,6 +250,46 @@ public class AsyncIT extends IntegrationTest {
             }
         }
     }
+    /**
+     * Test for a GraphQL query as a Async Request with asyncAfterSeconds value set to 10.
+     * @throws InterruptedException
+     */
+    @Test
+    public void graphQLRequestAsyncAfterTests() throws InterruptedException {
+
+        //Create Async Request
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("asyncQuery"),
+                                        id("edc4a871-dff2-4054-804e-d80075cf827e"),
+                                        attributes(
+                                                attr("query", "{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}"),
+                                                attr("queryType", "GRAPHQL_V1_0"),
+                                                attr("status", "QUEUED"),
+                                                attr("requestId", "1001"),
+                                                attr("asyncAfterSeconds", "10")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/asyncQuery")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf827e"))
+                .body("data.type", equalTo("asyncQuery"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
+                .body("data.attributes.result.contentLength", notNullValue())
+                .body("data.attributes.result.responseBody", equalTo("{\"data\":{\"book\":{\"edges\":"
+                        + "[{\"node\":{\"id\":\"1\",\"title\":\"Ender's Game\"}},"
+                        + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"
+                        + "{\"node\":{\"id\":\"3\",\"title\":\"For Whom the Bell Tolls\"}}]}}}"))
+                .body("data.attributes.result.httpStatus", equalTo(200))
+                .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString())).toString();
+
+    }
 
     /**
      * Various tests for a GRAPHQL query as a Async Request.
@@ -259,14 +309,21 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("queryType", "GRAPHQL_V1_0"),
                                                 attr("status", "QUEUED"),
                                                 attr("requestId", "1001"),
-                                                attr("asyncAfterSeconds", "10")
+                                                attr("asyncAfterSeconds", "0")
                                         )
                                 )
                         ).toJSON())
                 .when()
                 .post("/asyncQuery")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_CREATED);
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263c"))
+                .body("data.type", equalTo("asyncQuery"))
+                .body("data.attributes.status", equalTo("PROCESSING"))
+                .body("data.attributes.result.contentLength", nullValue())
+                .body("data.attributes.result.responseBody", nullValue())
+                .body("data.attributes.result.httpStatus", nullValue())
+                .body("data.attributes.result.resultType", nullValue());
 
         int i = 0;
         while (i < 1000) {

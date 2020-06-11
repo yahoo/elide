@@ -46,7 +46,7 @@ public class AsyncExecutorService {
     private int maxRunTime;
     private AsyncQueryDAO asyncQueryDao;
     private static AsyncExecutorService asyncExecutorService = null;
-
+    private AsyncQueryUpdateThread queryUpdateWorker;
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
         this.elide = elide;
@@ -101,6 +101,7 @@ public class AsyncExecutorService {
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
 
         Future<AsyncQueryResult> task = executor.submit(queryWorker);
+        queryUpdateWorker = new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao);
 
         try {
             queryObj.setStatus(QueryStatus.PROCESSING);
@@ -115,24 +116,21 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-            if (task.isDone()) {
-                log.info("task is done.");
-                try {
-                    queryObj.setResult(task.get());
-                    queryObj.setStatus(QueryStatus.COMPLETE);
-                } catch (InterruptedException e1) {
-                    log.error("InterruptedException: {}", e);
-                    queryObj.setStatus(QueryStatus.FAILURE);
-                } catch (ExecutionException e1) {
-                    log.error("ExecutionException: {}", e);
-                    queryObj.setStatus(QueryStatus.FAILURE);
-                }
-            } else {
-                log.info("task is not done yet.");
-                AsyncQueryUpdateThread queryUpdateWorker = new AsyncQueryUpdateThread(elide,
-                        task, queryObj, asyncQueryDao);
-                updater.execute(queryUpdateWorker);
-            }
+        }
+
+    }
+    /**
+     * Complete Query asynchronously.
+     * @param query AsyncQuery
+     * @param user User
+     * @param apiVersion API Version
+     */
+    public void completeQuery(AsyncQuery query, User user, String apiVersion) {
+        try {
+            log.info("Task has not completed");
+            updater.execute(queryUpdateWorker);
+        } catch (NullPointerException e) {
+            log.info("Task has completed");
         }
 
     }

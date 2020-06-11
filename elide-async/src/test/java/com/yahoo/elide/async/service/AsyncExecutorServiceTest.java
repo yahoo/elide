@@ -42,7 +42,7 @@ public class AsyncExecutorServiceTest {
     private AsyncQuery queryObj;
     private AsyncQueryResult queryResultObj;
     private User testUser;
-
+    private AsyncQueryUpdateThread asyncQueryUpdateThread;
     @BeforeAll
     public void setupMockElide() {
         HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
@@ -57,6 +57,7 @@ public class AsyncExecutorServiceTest {
         testUser = mock(User.class);
         AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
         service = AsyncExecutorService.getInstance();
+        asyncQueryUpdateThread = mock(AsyncQueryUpdateThread.class);
 
     }
 
@@ -81,7 +82,6 @@ public class AsyncExecutorServiceTest {
 
     }
 
-
     //Test for TimeoutException after asyncAfterSeconds
     @Test
     public void testAsyncAfterExecuteQuery() throws InterruptedException {
@@ -92,7 +92,7 @@ public class AsyncExecutorServiceTest {
         query.setId(id);
         User user = new User(null);
         service.executeQuery(query, user, NO_VERSION);
+        service.completeQuery(query, user, NO_VERSION);
         verify(asyncQueryDao, times(1)).updateAsyncQueryResult(queryResultObj, query.getId());
-
     }
 }
