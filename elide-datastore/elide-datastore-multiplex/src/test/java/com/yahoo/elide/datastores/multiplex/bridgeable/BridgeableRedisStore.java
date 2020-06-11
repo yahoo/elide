@@ -243,6 +243,11 @@ public class BridgeableRedisStore implements DataStore {
         public <T> T createNewObject(Class<T> entityClass) {
             return null;
         }
+
+        @Override
+        public void cancel() {
+
+        }
     }
 
     /**
