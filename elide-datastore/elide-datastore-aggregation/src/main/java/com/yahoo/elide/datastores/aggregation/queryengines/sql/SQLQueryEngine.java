@@ -120,7 +120,7 @@ public class SQLQueryEngine extends QueryEngine {
         return new SQLMetricProjection(metric, referenceTable, alias, arguments);
     }
 
-    private QueryResult executeQuery(Query query) {
+    private QueryResult execute(Query query) {
         EntityTransaction transaction = null;
         try {
             entityManager = entityManagerFactory.createEntityManager();
@@ -185,7 +185,7 @@ public class SQLQueryEngine extends QueryEngine {
      */
     @Override
     public Future<QueryResult> executeQuery(Query query) {
-        QueryResultFuture<QueryResult> queryResultFuture = new QueryResultFuture(executeQuery(query));
+        QueryResultFuture<QueryResult> queryResultFuture = new QueryResultFuture(execute(query));
         return queryResultFuture;
     }
 
