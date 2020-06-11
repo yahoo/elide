@@ -43,7 +43,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
     private DataStore store;
     private MetadataImplementor metadataImplementor;
-    private final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+    private final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
 
     public JpaDataStoreHarness() {
         Map<String, Object> options = new HashMap<>();
