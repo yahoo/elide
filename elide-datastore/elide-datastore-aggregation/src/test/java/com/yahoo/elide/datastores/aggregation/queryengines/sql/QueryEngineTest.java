@@ -297,7 +297,9 @@ public class QueryEngineTest extends SQLUnitTest {
                 .pagination(new ImmutablePagination(0, 1, false, true))
                 .build();
 
-        QueryResult result = engine.executeQuery(query);
+        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
+        queryResult.run();
+        QueryResult result = queryResult.get();
         List<Object> data = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
 

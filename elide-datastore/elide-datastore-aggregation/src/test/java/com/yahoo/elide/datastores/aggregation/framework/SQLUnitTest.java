@@ -30,6 +30,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.utils.ClassScanner;
 
+import org.hibernate.Session;
+
 import java.util.Collections;
 import java.util.HashMap;
 import javax.persistence.EntityManagerFactory;

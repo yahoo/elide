@@ -16,6 +16,8 @@ import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
+import org.hibernate.Session;
+
 import javax.persistence.EntityManagerFactory;
 
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
