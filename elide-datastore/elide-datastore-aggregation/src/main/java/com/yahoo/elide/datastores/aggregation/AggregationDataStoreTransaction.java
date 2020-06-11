@@ -68,6 +68,8 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
             throw new TransactionException(null);
         } catch (InterruptedException e) {
             throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new ExecutionException(e);
         }
     }
 
