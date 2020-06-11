@@ -66,7 +66,7 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
 
         String cacheKey = null;
         if (cache != null && !query.isBypassingCache()) {
-            String tableVersion = queryEngine.getTableVersion(query, queryEngineTransaction);
+            String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
             if (tableVersion != null) {
                 cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
                 result = cache.get(cacheKey);

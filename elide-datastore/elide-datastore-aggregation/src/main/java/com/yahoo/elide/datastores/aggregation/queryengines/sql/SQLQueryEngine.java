@@ -195,11 +195,10 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public String getTableVersion(Query query, Transaction transaction) {
+    public String getTableVersion(Table table, Transaction transaction) {
         EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
 
         String tableVersion = null;
-        Table table = query.getTable();
         Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {

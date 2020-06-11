@@ -73,7 +73,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     @Test
     void loadObjectsPopulatesCache() {
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
-        when(queryEngine.getTableVersion(query, qeTransaction)).thenReturn("foo");
+        when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
         when(queryEngine.executeQuery(query, qeTransaction)).thenReturn(queryResult);
         AggregationDataStoreTransaction transaction = new MyAggregationDataStoreTransaction(queryEngine, cache);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
@@ -90,7 +90,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     void loadObjectsUsesCache() {
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
         when(cache.get(anyString())).thenReturn(queryResult);
-        when(queryEngine.getTableVersion(query, qeTransaction)).thenReturn("foo");
+        when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
         AggregationDataStoreTransaction transaction = new MyAggregationDataStoreTransaction(queryEngine, cache);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
 
@@ -106,7 +106,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     void loadObjectsPassesPagination() {
         QueryResult queryResult = QueryResult.builder().data(DATA).pageTotals(314L).build();
         when(cache.get(anyString())).thenReturn(queryResult);
-        when(queryEngine.getTableVersion(query, qeTransaction)).thenReturn("foo");
+        when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
         AggregationDataStoreTransaction transaction = new MyAggregationDataStoreTransaction(queryEngine, cache);
         Pagination pagination = new PaginationImpl(
                 String.class, null, null, DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT, true, false);

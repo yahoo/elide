@@ -169,12 +169,14 @@ public abstract class QueryEngine {
     public abstract QueryResult executeQuery(Query query, Transaction transaction);
 
     /**
-     * FIXME
-     * @param query
-     * @param transaction
-     * @return
+     * Get a serial number or other token indicating the version of the data in the table.
+     * No particular semantics are required, though it must change if the data changes.
+     * If one is not available, returns null.
+     * @param table The table to get version of
+     * @param transaction The transaction to use for the lookup
+     * @return a version token, or null if not available.
      */
-    public abstract String getTableVersion(Query query, Transaction transaction);
+    public abstract String getTableVersion(Table table, Transaction transaction);
 
     /**
      * Returns the schema for a given entity class.
