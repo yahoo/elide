@@ -73,15 +73,21 @@ public class AsyncQueryThread implements Runnable {
                 log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
 
-                recCount = calculateRecordsJSON(response.getBody());
+                if (response.getResponseCode() == 200) {
+                    recCount = calculateRecordsJSON(response.getBody());
+                }
 
             }
             else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
                 response = runner.run(queryObj.getQuery(), user);
                 log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                         response.getResponseCode(), response.getBody());
-                String tableName = getTableNameFromQuery(queryObj.getQuery());
-                recCount = calculateRecordsGRAPHQL(response.getBody(), tableName);
+
+                if (response.getResponseCode() == 200) {
+                    String tableName = getTableNameFromQuery(queryObj.getQuery());
+                    recCount = calculateRecordsGRAPHQL(response.getBody(), tableName);
+                }
+
             }
             if (response == null) {
                 throw new NoHttpResponseException("Response for request returned as null");
@@ -160,19 +166,28 @@ public class AsyncQueryThread implements Runnable {
      * @return the table name from the above query
      */
     protected String getTableNameFromQuery(String jsonStr) {
-        JSONObject j = new JSONObject(jsonStr);
-        String s = (String) j.get("query");
-        String str = "";
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) == '{' || s.charAt(i) == '}') {
-                continue;
-            }
-            else {
-                str = str + s.charAt(i);
-            }
-        }
-        String[] queryTerms = str.trim().split("\\s+");
+        StringBuilder str = new StringBuilder();
+        String[] queryTerms;
+        try {
+            JSONObject j = new JSONObject(jsonStr);
+            String s = (String) j.get("query");
 
+            Integer countBrackets = 0;
+            for (int i = 0; i < s.length(); i++) {
+                if (s.charAt(i) == '{' || s.charAt(i) == '}') {
+                    countBrackets++;
+                    if (countBrackets == 2) {
+                        break;
+                    }
+                }
+                else {
+                    str.append(s.charAt(i));
+                }
+            }
+            queryTerms = str.toString().trim().split("\\s+");
+        } catch (JSONException e) {
+            queryTerms = str.toString().trim().split("\\s+");
+        }
         return queryTerms[0];
     }
 

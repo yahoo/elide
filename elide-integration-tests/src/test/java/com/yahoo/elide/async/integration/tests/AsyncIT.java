@@ -346,6 +346,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.recordCount", nullValue())
                         .body("data.attributes.result.responseBody", equalTo("{\"errors\":[{\"detail\":\"Unknown collection group\"}]}"))
                         .body("data.attributes.result.httpStatus", equalTo(404));
 
@@ -461,6 +462,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.recordCount", equalTo(0))
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":[]}"))
                         .body("data.attributes.result.httpStatus", equalTo(200))
                         .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
