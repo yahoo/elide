@@ -12,6 +12,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
+import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
@@ -28,13 +29,16 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
 
-        QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
+        AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+        SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+        QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory, null, transactionCancel);
 
         AggregationDataStore aggregationDataStore = new AggregationDataStore(sqlQueryEngine);
 
         DataStore jpaStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                NonJtaTransaction::new
+                NonJtaTransaction::new,
+                jpaTransactionCancel
         );
 
         return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);

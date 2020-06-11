@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.request.Sorting;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -46,7 +48,10 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
+        queryResult.run();
+        QueryResult result = queryResult.get();
+        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
@@ -80,7 +85,10 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
+        queryResult.run();
+        QueryResult result = queryResult.get();
+        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
@@ -114,8 +122,10 @@ public class ViewTest extends SQLUnitTest {
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
-
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
+        queryResult.run();
+        QueryResult result = queryResult.get();
+        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
@@ -150,7 +160,10 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
+        queryResult.run();
+        QueryResult result = queryResult.get();
+        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
@@ -185,7 +198,10 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
+        queryResult.run();
+        QueryResult result = queryResult.get();
+        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
@@ -220,7 +236,10 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
+        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
+        queryResult.run();
+        QueryResult result = queryResult.get();
+        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();
