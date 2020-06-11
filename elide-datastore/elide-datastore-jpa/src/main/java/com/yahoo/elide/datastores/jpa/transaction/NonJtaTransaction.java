@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.datastores.jpa.JpaDataStore;
 
 import lombok.extern.slf4j.Slf4j;
 
