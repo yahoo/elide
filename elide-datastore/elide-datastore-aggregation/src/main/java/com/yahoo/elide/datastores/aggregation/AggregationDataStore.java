@@ -74,6 +74,6 @@ public class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new AggregationDataStoreTransaction(queryEngine, cancelTransaction);
+        return new AggregationDataStoreTransaction(queryEngine);
     }
 }

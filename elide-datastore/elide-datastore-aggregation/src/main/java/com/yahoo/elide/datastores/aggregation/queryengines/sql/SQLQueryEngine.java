@@ -65,10 +65,10 @@ public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
     private final TransactionCancel transactionCancel;
     private final SQLReferenceTable referenceTable;
-    private final EntityManager entityManager = null;
+    private final EntityManager entityManager;
 
     public SQLQueryEngine(MetaDataStore mDStore, EntityManagerFactory emFactory, Cache cx, TransactionCancel txCancel) {
-        super(metaDataStore, cx);
+        super(mDStore, cx);
         this.entityManagerFactory = emFactory;
         this.referenceTable = new SQLReferenceTable(mDStore);
         this.transactionCancel = txCancel;
@@ -185,7 +185,7 @@ public class SQLQueryEngine extends QueryEngine {
      */
     @Override
     public Future<QueryResult> executeQuery(Query query) {
-        QueryResultFuture<QueryResult> queryResultFuture = new QueryResultFuture(execute(query));
+        QueryResultFuture<QueryResult> queryResultFuture = new QueryResultFuture<>(execute(query));
         return queryResultFuture;
     }
 

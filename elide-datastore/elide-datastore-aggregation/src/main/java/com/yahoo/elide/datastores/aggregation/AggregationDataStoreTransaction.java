@@ -26,7 +26,6 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     private Future<QueryResult> queryResult;
     public AggregationDataStoreTransaction(QueryEngine queryEngine) {
         this.queryEngine = queryEngine;
-        this.aggregationDataStoreTransactionCancel = aggregationDataStoreTransactionCancel;
     }
 
     @Override
