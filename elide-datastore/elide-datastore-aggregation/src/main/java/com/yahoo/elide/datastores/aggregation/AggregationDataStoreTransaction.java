@@ -16,7 +16,6 @@ import com.yahoo.elide.request.EntityProjection;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
-import java.lang.InterruptedException;
 import java.util.concurrent.FutureTask;
 
 /**
