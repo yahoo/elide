@@ -385,7 +385,7 @@ public interface ElideStandaloneSettings {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 ((em, txCancel) -> { return new NonJtaTransaction(em, txCancel); }),
-                () -> { return jpaTransactionCancel; });
+                jpaTransactionCancel);
 
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 

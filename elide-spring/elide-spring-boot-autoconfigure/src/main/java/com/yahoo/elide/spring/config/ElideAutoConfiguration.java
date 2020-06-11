@@ -191,7 +191,7 @@ public class ElideAutoConfiguration {
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                     ((em, txCancel) -> { return new NonJtaTransaction(em, txCancel); }),
-                    () -> { return jpaTransactionCancel; });
+                    jpaTransactionCancel);
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
