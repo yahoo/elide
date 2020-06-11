@@ -22,8 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */

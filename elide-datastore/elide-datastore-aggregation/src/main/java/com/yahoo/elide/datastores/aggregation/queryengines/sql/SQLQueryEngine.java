@@ -67,10 +67,10 @@ public class SQLQueryEngine extends QueryEngine {
     private final SQLReferenceTable referenceTable;
     private final EntityManager entityManager = null;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory emFactory, Cache cache, TransactionCancel txCancel) {
-        super(metaDataStore, cache);
+    public SQLQueryEngine(MetaDataStore mDStore, EntityManagerFactory emFactory, Cache cx, TransactionCancel txCancel) {
+        super(metaDataStore, cx);
         this.entityManagerFactory = emFactory;
-        this.referenceTable = new SQLReferenceTable(metaDataStore);
+        this.referenceTable = new SQLReferenceTable(mDStore);
         this.transactionCancel = txCancel;
     }
 
@@ -179,9 +179,9 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }
     }
-   
+
     /**
-     * Future Implementation of execute query
+     * Future Implementation of execute query.
      */
     @Override
     public Future<QueryResult> executeQuery(Query query) {
@@ -309,16 +309,16 @@ public class SQLQueryEngine extends QueryEngine {
 
     public class QueryResultFuture<V> extends FutureTask<V> {
         /**
-	 * FutureTask Implementation of Query Result
-         */	
-	public QueryResultFuture(Callable<V> callable) {
-	    super(callable);     
-	}
+         * FutureTask Implementation of Query Result.
+         */
+         public QueryResultFuture(Callable<V> callable) {
+             super(callable);
+         }
 
         @Override
         public boolean cancel(boolean mayInterruptIfRunning) {
             transactionCancel.cancel(entityManager);
             return super.cancel(true);
-        }	
+        }
     }
 }
