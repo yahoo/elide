@@ -78,8 +78,7 @@ public class JpaDataStore implements JPQLDataStore {
     @Override
     public DataStoreTransaction beginReadTransaction() {
         EntityManager entityManager = entityManagerSupplier.get();
-        AbstractJpaTransaction.JpaTransactionCancel transactionCancel = jpaTransactionCancel.get();
-        JpaTransaction transaction = readTransactionSupplier.get(entityManager, transactionCancel);
+        JpaTransaction transaction = readTransactionSupplier.get(entityManager, jpaTransactionCancel);
         transaction.begin();
         return transaction;
     }
@@ -87,8 +86,7 @@ public class JpaDataStore implements JPQLDataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         EntityManager entityManager = entityManagerSupplier.get();
-        AbstractJpaTransaction.JpaTransactionCancel transactionCancel = jpaTransactionCancel.get();
-        JpaTransaction transaction = writeTransactionSupplier.get(entityManager, transactionCancel);
+        JpaTransaction transaction = writeTransactionSupplier.get(entityManager, jpaTransactionCancel);
         transaction.begin();
         return transaction;
     }
