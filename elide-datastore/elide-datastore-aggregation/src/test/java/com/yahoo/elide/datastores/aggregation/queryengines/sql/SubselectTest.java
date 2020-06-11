@@ -28,7 +28,7 @@ public class SubselectTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init(null);
+        SQLUnitTest.init();
 
         SUB_HONG_KONG.setIsoCode("HKG");
         SUB_HONG_KONG.setName("Hong Kong");

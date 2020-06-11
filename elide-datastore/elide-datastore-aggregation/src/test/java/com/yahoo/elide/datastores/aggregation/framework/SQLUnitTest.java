@@ -23,7 +23,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
@@ -61,7 +60,7 @@ public abstract class SQLUnitTest {
 
     protected QueryEngine.Transaction transaction;
 
-    public static void init(Cache cache) {
+    public static void init() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
@@ -85,7 +84,7 @@ public abstract class SQLUnitTest {
 
         metaDataStore.populateEntityDictionary(dictionary);
 
-        engine = new SQLQueryEngine(metaDataStore, emf, cache);
+        engine = new SQLQueryEngine(metaDataStore, emf);
         playerStatsTable = engine.getTable("playerStats");
 
         ASIA.setName("Asia");

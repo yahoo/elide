@@ -28,7 +28,7 @@ public class ViewTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init(null);
+        SQLUnitTest.init();
         playerStatsWithViewSchema = engine.getTable("playerStatsWithView");
     }
 

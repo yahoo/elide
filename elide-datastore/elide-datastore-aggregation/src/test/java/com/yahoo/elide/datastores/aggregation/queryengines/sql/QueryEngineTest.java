@@ -37,7 +37,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init(null);
+        SQLUnitTest.init();
 
         playerStatsViewTable = engine.getTable("playerStatsView");
     }

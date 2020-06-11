@@ -19,11 +19,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
@@ -65,8 +63,8 @@ public class SQLQueryEngine extends QueryEngine {
 
     private final SQLReferenceTable referenceTable;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory, Cache cache) {
-        super(metaDataStore, cache);
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
+        super(metaDataStore);
         this.entityManagerFactory = entityManagerFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
     }
@@ -150,16 +148,6 @@ public class SQLQueryEngine extends QueryEngine {
     public QueryResult executeQuery(Query query, Transaction transaction) {
         EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
 
-        String cacheKey = null;
-        if (cache != null && !query.isBypassingCache()) {
-            String tableVersion = getTableVersion(entityManager, query);
-            cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
-            QueryResult result = cache.get(cacheKey);
-            if (result != null) {
-                return result;
-            }
-        }
-
         // Translate the query into SQL.
         SQLQuery sql = toSQL(query);
         String queryString = sql.toString();
@@ -186,11 +174,7 @@ public class SQLQueryEngine extends QueryEngine {
                 "Running Query: " + queryString).get();
 
         resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
-        QueryResult result = resultBuilder.build();
-        if (cacheKey != null) {
-            cache.put(cacheKey, result);
-        }
-        return result;
+        return resultBuilder.build();
     }
 
     private long getPageTotal(Query query, SQLQuery sql, EntityManager entityManager) {
@@ -210,7 +194,10 @@ public class SQLQueryEngine extends QueryEngine {
         ).get();
     }
 
-    private String getTableVersion(EntityManager entityManager, Query query) {
+    @Override
+    public String getTableVersion(Query query, Transaction transaction) {
+        EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
+
         String tableVersion = null;
         Table table = query.getTable();
         Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());

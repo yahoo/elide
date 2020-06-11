@@ -45,7 +45,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init(null);
+        SQLUnitTest.init();
     }
 
     @Test

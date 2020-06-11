@@ -34,7 +34,7 @@ public class QueryKeyExtractorTest {
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init(null);
+        SQLUnitTest.init();
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
         playerStatsTable = new Table(PlayerStats.class, dictionary);

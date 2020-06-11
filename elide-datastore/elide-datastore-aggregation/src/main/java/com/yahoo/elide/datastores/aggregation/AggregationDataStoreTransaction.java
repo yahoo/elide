@@ -8,22 +8,29 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import lombok.ToString;
+
 import java.io.IOException;
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
+@ToString
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
     private final QueryEngine queryEngine;
+    private final Cache cache;
     private final QueryEngine.Transaction queryEngineTransaction;
 
-    public AggregationDataStoreTransaction(QueryEngine queryEngine) {
+    public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache) {
         this.queryEngine = queryEngine;
+        this.cache = cache;
         this.queryEngineTransaction = queryEngine.beginTransaction();
     }
 
@@ -55,7 +62,22 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         Query query = buildQuery(entityProjection, scope);
-        QueryResult result = queryEngine.executeQuery(query, queryEngineTransaction);
+        QueryResult result = null;
+
+        String cacheKey = null;
+        if (cache != null && !query.isBypassingCache()) {
+            String tableVersion = queryEngine.getTableVersion(query, queryEngineTransaction);
+            if (tableVersion != null) {
+                cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
+                result = cache.get(cacheKey);
+            }
+        }
+        if (result == null) {
+            result = queryEngine.executeQuery(query, queryEngineTransaction);
+            if (cacheKey != null) {
+                cache.put(cacheKey, result);
+            }
+        }
         if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
             entityProjection.getPagination().setPageTotals(result.getPageTotals());
         }
@@ -68,7 +90,7 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     }
 
     @VisibleForTesting
-    private Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
+    Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Table table = queryEngine.getTable(scope.getDictionary().getJsonAliasFor(entityProjection.getType()));
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,

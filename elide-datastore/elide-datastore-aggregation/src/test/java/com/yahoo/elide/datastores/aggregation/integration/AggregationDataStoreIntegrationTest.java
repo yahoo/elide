@@ -52,7 +52,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
     @BeforeAll
     public void beforeEach() {
-        SQLUnitTest.init(null);
+        SQLUnitTest.init();
     }
 
     @Override

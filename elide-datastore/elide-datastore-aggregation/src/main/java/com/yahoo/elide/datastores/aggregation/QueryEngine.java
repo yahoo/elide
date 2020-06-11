@@ -14,7 +14,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -77,22 +76,18 @@ public abstract class QueryEngine {
 
     private final Map<String, Table> tables;
 
-    protected final Cache cache;
-
     /**
      * QueryEngine is constructed with a metadata store and is responsible for constructing all Tables and Entities
      * metadata in this metadata store.
+     *  @param metaDataStore a metadata store
      *
-     * @param metaDataStore a metadata store
-     * @param cache the cache for query results, or null
      */
-    public QueryEngine(MetaDataStore metaDataStore, Cache cache) {
+    public QueryEngine(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getDictionary();
         populateMetaData(metaDataStore);
         this.tables = metaDataStore.getMetaData(Table.class).stream()
                 .collect(Collectors.toMap(Table::getId, Functions.identity()));
-        this.cache = cache;
     }
 
     /**
@@ -172,6 +167,14 @@ public abstract class QueryEngine {
      * @return query results
      */
     public abstract QueryResult executeQuery(Query query, Transaction transaction);
+
+    /**
+     * FIXME
+     * @param query
+     * @param transaction
+     * @return
+     */
+    public abstract String getTableVersion(Query query, Transaction transaction);
 
     /**
      * Returns the schema for a given entity class.
