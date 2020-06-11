@@ -16,8 +16,8 @@ import com.yahoo.elide.request.EntityProjection;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
