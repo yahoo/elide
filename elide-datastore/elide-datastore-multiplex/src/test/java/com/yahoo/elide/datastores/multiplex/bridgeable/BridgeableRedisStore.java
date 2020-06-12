@@ -246,7 +246,7 @@ public class BridgeableRedisStore implements DataStore {
 
         @Override
         public void cancel() {
-
+            // Nothing
         }
     }
 
