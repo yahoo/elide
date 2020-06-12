@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMin;
 
@@ -33,6 +34,7 @@ import javax.persistence.Id;
  */
 @Include(rootLevel = true)
 @Cardinality(size = CardinalitySize.LARGE)
+@VersionQuery(sql = "SELECT COUNT(*) from playerStats")
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")

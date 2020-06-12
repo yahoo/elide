@@ -21,8 +21,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class SubselectTest extends SQLUnitTest {
     private static final SubCountry SUB_HONG_KONG = new SubCountry();
@@ -54,8 +52,7 @@ public class SubselectTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -87,8 +84,7 @@ public class SubselectTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -124,8 +120,7 @@ public class SubselectTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results = StreamSupport.stream(engine.executeQuery(query).getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");

@@ -12,9 +12,14 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.utils.ClassScanner;
+
+import lombok.Builder;
+import lombok.NonNull;
+import lombok.ToString;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -25,24 +30,18 @@ import java.util.Set;
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
  */
+@Builder
+@ToString
 public class AggregationDataStore implements DataStore {
-    private QueryEngine queryEngine;
-    private Set<Class<?>> dynamicCompiledClasses;
+    @NonNull private final QueryEngine queryEngine;
+    private final Cache cache;
+    private final Set<Class<?>> dynamicCompiledClasses;
 
     /**
      * These are the classes the Aggregation Store manages.
      */
     private static final List<Class<? extends Annotation>> AGGREGATION_STORE_CLASSES =
             Arrays.asList(FromTable.class, FromSubquery.class);
-
-    public AggregationDataStore(QueryEngine queryEngine) {
-        this.queryEngine = queryEngine;
-    }
-
-    public AggregationDataStore(QueryEngine queryEngine, Set<Class<?>> dynamicCompiledClasses) {
-        this.queryEngine = queryEngine;
-        this.dynamicCompiledClasses = dynamicCompiledClasses;
-    }
 
     /**
      * Populate an {@link EntityDictionary} and use this dictionary to construct a {@link QueryEngine}.
@@ -75,6 +74,6 @@ public class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new AggregationDataStoreTransaction(queryEngine);
+        return new AggregationDataStoreTransaction(queryEngine, cache);
     }
 }
