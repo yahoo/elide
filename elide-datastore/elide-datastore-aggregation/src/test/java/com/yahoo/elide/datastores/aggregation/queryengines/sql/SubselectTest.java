@@ -51,9 +51,9 @@ public class SubselectTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .build();
- 
+
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
-        
+
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
         stats1.setHighScore(2412);

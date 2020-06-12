@@ -179,7 +179,6 @@ public class ViewTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
-
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsWithView usa0 = new PlayerStatsWithView();

@@ -24,7 +24,7 @@ public class DimensionFormulaTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, null, null, null));
+                () -> new SQLQueryEngine(metaDataStore, null));
         assertEquals(
                 "Formula reference loop found: loop.playerLevel->loop.playerLevel",
                 exception.getMessage());
@@ -36,7 +36,7 @@ public class DimensionFormulaTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, null, null, null));
+                () -> new SQLQueryEngine(metaDataStore, null));
         assertEquals(
                 "Formula reference loop found: joinToLoop.playerLevel->joinToLoop.playerLevel",
                 exception.getMessage());
@@ -49,7 +49,7 @@ public class DimensionFormulaTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, null, null, null));
+                () -> new SQLQueryEngine(metaDataStore, null));
 
         String exception1 = "Formula reference loop found: loopCountryA.inUsa->loopCountryB.inUsa->loopCountryA.inUsa";
 

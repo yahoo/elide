@@ -31,12 +31,15 @@ public class Query {
     private Table table;
 
     @Singular
+    @NonNull
     private List<MetricProjection> metrics;
 
     @Singular
+    @NonNull
     private Set<ColumnProjection> groupByDimensions;
 
     @Singular
+    @NonNull
     private Set<TimeDimensionProjection> timeDimensions;
 
     private FilterExpression whereFilter;

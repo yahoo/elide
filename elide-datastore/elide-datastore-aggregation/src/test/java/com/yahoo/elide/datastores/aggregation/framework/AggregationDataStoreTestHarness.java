@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.framework;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
@@ -33,9 +32,10 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
         AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
         SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
-        QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory, null, transactionCancel);
 
-        AggregationDataStore aggregationDataStore = new AggregationDataStore(sqlQueryEngine);
+        AggregationDataStore aggregationDataStore = AggregationDataStore.builder()
+                .queryEngine(new SQLQueryEngine(metaDataStore, entityManagerFactory))
+                .build();
 
         DataStore jpaStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),

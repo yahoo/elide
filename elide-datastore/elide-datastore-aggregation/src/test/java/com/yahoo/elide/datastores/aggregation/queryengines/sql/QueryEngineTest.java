@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Lists;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -277,9 +278,9 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        assertEquals(data.size(), 1, "Number of records returned does not match");
-        assertEquals(data.get(0), stats1, "Returned record does not match");
-        assertEquals(result.getPageTotals(), 3, "Page totals does not match");
+        assertEquals(1, data.size(), "Number of records returned does not match");
+        assertEquals(stats1, data.get(0), "Returned record does not match");
+        assertEquals(3, result.getPageTotals(), "Page totals does not match");
     }
 
     /**

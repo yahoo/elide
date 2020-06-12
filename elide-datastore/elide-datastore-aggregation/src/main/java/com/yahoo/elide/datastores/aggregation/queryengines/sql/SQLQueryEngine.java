@@ -67,7 +67,7 @@ public class SQLQueryEngine extends QueryEngine {
         super(metaDataStore);
         this.entityManagerFactory = entityManagerFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
-	this.transactionCancel = txCancel;
+	      this.transactionCancel = txCancel;
     }
 
     @Override
@@ -123,9 +123,10 @@ public class SQLQueryEngine extends QueryEngine {
 
         private final EntityManager entityManager;
         private final EntityTransaction transaction;
-	private final TransactionCancel transactionCancel;
+	      private final TransactionCancel transactionCancel;
 
         SqlTransaction(EntityManagerFactory emf, TransactionCancel transactionCancel) {
+
             entityManager = emf.createEntityManager();
             transaction = entityManager.getTransaction();
             transactionCancel = transactionCancel;
