@@ -394,17 +394,15 @@ public interface ElideStandaloneSettings {
      */
     default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
             Optional<ElideDynamicEntityCompiler> optionalCompiler) {
-        AggregationDataStore aggregationDataStore = null;
+        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
+                .queryEngine(queryEngine);
 
         if (enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
-            aggregationDataStore = new AggregationDataStore(queryEngine, annotatedClasses);
-        } else {
-            aggregationDataStore = new AggregationDataStore(queryEngine);
+            aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
         }
-
-        return aggregationDataStore;
+        return aggregationDataStoreBuilder.build();
     }
 
     /**
@@ -465,7 +463,7 @@ public interface ElideStandaloneSettings {
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,
