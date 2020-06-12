@@ -13,7 +13,7 @@ import lombok.NonNull;
 import lombok.Value;
 
 /**
- * A {@link QueryResult} contains the results from {@link QueryEngine#executeQuery(Query)}.
+ * A {@link QueryResult} contains the results from {@link QueryEngine#executeQuery(Query, QueryEngine.Transaction)}.
  */
 @Value
 @Builder

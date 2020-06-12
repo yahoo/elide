@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.framework;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
@@ -28,9 +27,9 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
 
-        QueryEngine sqlQueryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
-
-        AggregationDataStore aggregationDataStore = new AggregationDataStore(sqlQueryEngine);
+        AggregationDataStore aggregationDataStore = AggregationDataStore.builder()
+                .queryEngine(new SQLQueryEngine(metaDataStore, entityManagerFactory))
+                .build();
 
         DataStore jpaStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
