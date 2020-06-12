@@ -167,7 +167,6 @@ public class AsyncQueryThread implements Runnable {
      */
     protected String getTableNameFromQuery(String jsonStr) {
         StringBuilder str = new StringBuilder();
-        String[] queryTerms;
         try {
             JSONObject j = new JSONObject(jsonStr);
             String s = (String) j.get("query");
@@ -184,11 +183,11 @@ public class AsyncQueryThread implements Runnable {
                     str.append(s.charAt(i));
                 }
             }
-            queryTerms = str.toString().trim().split("\\s+");
         } catch (JSONException e) {
-            queryTerms = str.toString().trim().split("\\s+");
+            log.error("Exception: {}", e);
+
         }
-        return queryTerms[0];
+        return str.toString().trim().split("\\s+")[0];
     }
 
     /**
