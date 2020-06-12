@@ -70,7 +70,7 @@ public abstract class SQLUnitTest {
         metaDataStore.populateEntityDictionary(dictionary);
 
         SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
-        engine = new SQLQueryEngine(metaDataStore, emf, null, transactionCancel);
+        engine = new SQLQueryEngine(metaDataStore, emf, transactionCancel);
         playerStatsTable = engine.getTable("playerStats");
 
         ASIA.setName("Asia");

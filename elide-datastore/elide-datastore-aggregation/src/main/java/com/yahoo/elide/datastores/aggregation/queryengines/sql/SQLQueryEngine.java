@@ -19,12 +19,12 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLMetric;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -49,8 +49,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -64,13 +62,12 @@ public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
     private final TransactionCancel transactionCancel;
     private final SQLReferenceTable referenceTable;
-    private EntityManager entityManager;
 
-    public SQLQueryEngine(MetaDataStore mDStore, EntityManagerFactory emFactory, Cache cx, TransactionCancel txCancel) {
-        super(mDStore, cx);
-        this.entityManagerFactory = emFactory;
-        this.referenceTable = new SQLReferenceTable(mDStore);
-        this.transactionCancel = txCancel;
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory, TransactionCancel txCancel) {
+        super(metaDataStore);
+        this.entityManagerFactory = entityManagerFactory;
+        this.referenceTable = new SQLReferenceTable(metaDataStore);
+	this.transactionCancel = txCancel;
     }
 
     @Override
@@ -119,57 +116,26 @@ public class SQLQueryEngine extends QueryEngine {
         return new SQLMetricProjection(metric, referenceTable, alias, arguments);
     }
 
-    private QueryResult execute(Query query) {
-        EntityTransaction transaction = null;
-        try {
-            entityManager = entityManagerFactory.createEntityManager();
+    /**
+     * State needed for SQLQueryEngine to execute queries.
+     */
+    static class SqlTransaction implements QueryEngine.Transaction  {
 
-            // manually begin the transaction
+        private final EntityManager entityManager;
+        private final EntityTransaction transaction;
+	private final TransactionCancel transactionCancel;
+
+        SqlTransaction(EntityManagerFactory emf, TransactionCancel transactionCancel) {
+            entityManager = emf.createEntityManager();
             transaction = entityManager.getTransaction();
+            transactionCancel = transactionCancel;
             if (!transaction.isActive()) {
                 transaction.begin();
             }
-            // Translate the query into SQL.
-            SQLQuery sql = toSQL(query);
-            log.debug("SQL Query: " + sql);
+        }
 
-            javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
-
-            QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
-            Pagination pagination = query.getPagination();
-            if (pagination != null) {
-                jpaQuery.setFirstResult(pagination.getOffset());
-                jpaQuery.setMaxResults(pagination.getLimit());
-
-                if (pagination.returnPageTotals()) {
-
-                    SQLQuery paginationSQL = toPageTotalSQL(sql);
-                    javax.persistence.Query pageTotalQuery =
-                        entityManager.createNativeQuery(paginationSQL.toString())
-                            .setHint(QueryHints.HINT_READONLY, true);
-
-                    //Supply the query parameters to the query
-                    supplyFilterQueryParameters(query, pageTotalQuery);
-
-                    //Run the Pagination query and log the time spent.
-                    long total = new TimedFunction<>(
-                        () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
-                        "Running Query: " + paginationSQL
-                    ).get();
-                    resultBuilder.pageTotals(total);
-                }
-            }
-            // Supply the query parameters to the query
-            supplyFilterQueryParameters(query, jpaQuery);
-
-            // Run the primary query and log the time spent.
-            List<Object> results = new TimedFunction<>(
-                () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
-                "Running Query: " + sql).get();
-
-            resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
-            return resultBuilder.build();
-        } finally {
+        @Override
+        public void close() {
             if (transaction != null && transaction.isActive()) {
                 transaction.commit();
             }
@@ -177,20 +143,87 @@ public class SQLQueryEngine extends QueryEngine {
                 entityManager.close();
             }
         }
+
+        @Override
+         public void cancel() {
+            transactionCancel.cancel(entityManager);
+         }
+
     }
 
-    /**
-     * Future Implementation of execute query.
-     */
     @Override
-    public FutureTask<QueryResult> executeQuery(Query query) {
-        FutureTask<QueryResult> queryResultFuture = new QueryResultFuture<QueryResult>(new Callable<QueryResult>() {
-            @Override
-            public QueryResult call() throws Exception {
-                return execute(query);
+    public QueryEngine.Transaction beginTransaction() {
+        return new SqlTransaction(entityManagerFactory, transactionCancel);
+    }
+
+    @Override
+    public QueryResult executeQuery(Query query, Transaction transaction) {
+        EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
+
+        // Translate the query into SQL.
+        SQLQuery sql = toSQL(query);
+        String queryString = sql.toString();
+        log.debug("SQL Query: " + queryString);
+        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(queryString);
+
+        QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
+
+        Pagination pagination = query.getPagination();
+        if (pagination != null) {
+            jpaQuery.setFirstResult(pagination.getOffset());
+            jpaQuery.setMaxResults(pagination.getLimit());
+            if (pagination.returnPageTotals()) {
+                resultBuilder.pageTotals(getPageTotal(query, sql, entityManager));
             }
-        });
-        return queryResultFuture;
+        }
+
+        // Supply the query parameters to the query
+        supplyFilterQueryParameters(query, jpaQuery);
+
+        // Run the primary query and log the time spent.
+        List<Object> results = new TimedFunction<List<Object>>(
+                () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
+                "Running Query: " + queryString).get();
+
+        resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
+        return resultBuilder.build();
+    }
+
+    private long getPageTotal(Query query, SQLQuery sql, EntityManager entityManager) {
+        String paginationSQL = toPageTotalSQL(sql).toString();
+
+        javax.persistence.Query pageTotalQuery =
+                entityManager.createNativeQuery(paginationSQL)
+                        .setHint(QueryHints.HINT_READONLY, true);
+
+        //Supply the query parameters to the query
+        supplyFilterQueryParameters(query, pageTotalQuery);
+
+        //Run the Pagination query and log the time spent.
+        return new TimedFunction<>(
+                () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
+                "Running Query: " + paginationSQL
+        ).get();
+    }
+
+    @Override
+    public String getTableVersion(Table table, Transaction transaction) {
+        EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
+
+        String tableVersion = null;
+        Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());
+        VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
+        if (versionAnnotation != null) {
+            String versionQueryString = versionAnnotation.sql();
+            javax.persistence.Query versionQuery =
+                    entityManager.createNativeQuery(versionQueryString)
+                            .setHint(QueryHints.HINT_READONLY, true);
+            tableVersion = new TimedFunction<>(
+                    () -> CoerceUtil.coerce(versionQuery.getSingleResult(), String.class),
+                    "Running Query: " + versionQueryString
+            ).get();
+        }
+        return tableVersion;
     }
 
     /**
@@ -309,20 +342,5 @@ public class SQLQueryEngine extends QueryEngine {
     @FunctionalInterface
     public interface TransactionCancel {
         public void cancel(EntityManager entityManager);
-    }
-
-    public class QueryResultFuture<V> extends FutureTask<V> {
-        /**
-         * FutureTask Implementation of Query Result.
-         */
-         public QueryResultFuture(Callable<V> callable) {
-             super(callable);
-         }
-
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            transactionCancel.cancel(entityManager);
-            return super.cancel(true);
-        }
     }
 }

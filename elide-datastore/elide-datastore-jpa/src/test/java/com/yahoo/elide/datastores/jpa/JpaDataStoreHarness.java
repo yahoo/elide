@@ -99,8 +99,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
         store = new JpaDataStore(
                 () -> { return emf.createEntityManager(); },
-                (entityManager, txCancel) -> { return new NonJtaTransaction(entityManager, txCancel); },
-                jpaTransactionCancel
+                (entityManager) -> { return new NonJtaTransaction(entityManager, jpaTransactionCancel); }
         );
     }
 

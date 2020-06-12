@@ -62,7 +62,7 @@ public class JpaDataStoreTest {
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
         AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { };
-        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused, txCancel) -> { return null; }, jpaTransactionCancel);
+        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused) -> { return null; });
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
 
@@ -94,7 +94,7 @@ public class JpaDataStoreTest {
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
         AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { };
-        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused, txCancel) -> { return null; }, jpaTransactionCancel, Test.class);
+        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused) -> { return null; }, Test.class);
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         store.populateEntityDictionary(dictionary);
 

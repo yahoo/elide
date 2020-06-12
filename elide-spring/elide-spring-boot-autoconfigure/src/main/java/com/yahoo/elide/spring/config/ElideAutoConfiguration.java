@@ -61,6 +61,7 @@ public class ElideAutoConfiguration {
 
      private final AbstractJpaTransaction.JpaTransactionCancel jTC = (e) -> { e.unwrap(Session.class).cancelQuery(); };
      private final SQLQueryEngine.TransactionCancel txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+     //public final Function<AbstractJpaTransaction.JpaTransactionCancel, Void> FUNC = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     @Bean
     @ConditionalOnMissingBean
@@ -158,7 +159,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null, txCancel);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
     }
 
     /**
@@ -175,23 +176,19 @@ public class ElideAutoConfiguration {
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngine queryEngine,
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
-        AggregationDataStore aggregationDataStore = null;
-
+        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
+                .queryEngine(queryEngine);
         if (isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
             Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
             annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-            aggregationDataStore = new AggregationDataStore(
-                queryEngine, annotatedClass);
-        } else {
-            aggregationDataStore = new AggregationDataStore(
-                queryEngine);
+            aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
         }
+        AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                    ((em, txCancel) -> { return new NonJtaTransaction(em, txCancel); }),
-                    jTC);
+                    (em) -> { return new NonJtaTransaction(em, jTC); } );
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);

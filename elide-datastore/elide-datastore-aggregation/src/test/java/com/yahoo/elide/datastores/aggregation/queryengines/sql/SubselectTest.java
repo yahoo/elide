@@ -13,7 +13,6 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.request.Sorting;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -22,9 +21,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.FutureTask;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class SubselectTest extends SQLUnitTest {
     private static final SubCountry SUB_HONG_KONG = new SubCountry();
@@ -55,13 +51,9 @@ public class SubselectTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .build();
-
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-
+ 
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
+        
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
         stats1.setHighScore(2412);
@@ -92,11 +84,7 @@ public class SubselectTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -132,11 +120,7 @@ public class SubselectTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");

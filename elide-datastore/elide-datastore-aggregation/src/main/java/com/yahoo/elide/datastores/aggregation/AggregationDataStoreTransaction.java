@@ -7,25 +7,31 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import lombok.ToString;
+
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
+@ToString
 public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
-    private QueryEngine queryEngine;
-    private FutureTask<QueryResult> queryResult;
-    public AggregationDataStoreTransaction(QueryEngine queryEngine) {
+    private final QueryEngine queryEngine;
+    private final Cache cache;
+    private final QueryEngine.Transaction queryEngineTransaction;
+
+    public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache) {
         this.queryEngine = queryEngine;
+        this.cache = cache;
+        this.queryEngineTransaction = queryEngine.beginTransaction();
     }
 
     @Override
@@ -45,7 +51,7 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
 
     @Override
     public void commit(RequestScope scope) {
-
+        queryEngineTransaction.close();
     }
 
     @Override
@@ -56,30 +62,35 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         Query query = buildQuery(entityProjection, scope);
-        queryResult = queryEngine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
-                entityProjection.getPagination().setPageTotals(result.getPageTotals());
+        QueryResult result = null;
+
+        String cacheKey = null;
+        if (cache != null && !query.isBypassingCache()) {
+            String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
+            if (tableVersion != null) {
+                cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
+                result = cache.get(cacheKey);
             }
-            return result.getData();
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
         }
+        if (result == null) {
+            result = queryEngine.executeQuery(query, queryEngineTransaction);
+            if (cacheKey != null) {
+                cache.put(cacheKey, result);
+            }
+        }
+        if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
+            entityProjection.getPagination().setPageTotals(result.getPageTotals());
+        }
+        return result.getData();
     }
 
     @Override
     public void close() throws IOException {
-
+        queryEngineTransaction.close();
     }
 
     @VisibleForTesting
-    private Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
+    Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Table table = queryEngine.getTable(scope.getDictionary().getJsonAliasFor(entityProjection.getType()));
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
@@ -89,8 +100,8 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
         return translator.getQuery();
     }
 
-    @Override
+        @Override
     public void cancel() {
-        queryResult.cancel(true);
+        queryEngineTransaction.cancel(true);
     }
 }

@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.sort.SortingImpl;
@@ -31,10 +30,6 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class QueryEngineTest extends SQLUnitTest {
     private static Table playerStatsViewTable;
@@ -50,7 +45,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test loading all three records from the table.
      */
     @Test
-    public void testFullTableLoad() {
+    public void testFullTableLoad() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
@@ -58,20 +53,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -101,26 +83,13 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test loading records using {@link FromSubquery}
      */
     @Test
-    public void testFromSubQuery() {
+    public void testFromSubQuery() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
                 .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
@@ -151,20 +120,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsView.class, dictionary))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
@@ -191,20 +147,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -230,20 +173,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStatsView.class, false))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
@@ -254,7 +184,7 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testSortAggregatedMetric() {
+    public void testSortAggregatedMetric() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("lowScore", Sorting.SortOrder.desc);
 
@@ -265,20 +195,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -299,7 +216,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test sorting by dimension attribute which is not present in the query.
      */
     @Test
-    public void testSortJoin() {
+    public void testSortJoin() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("playerName", Sorting.SortOrder.asc);
 
@@ -311,20 +228,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -354,7 +258,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test pagination.
      */
     @Test
-    public void testPagination() {
+    public void testPagination() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
@@ -363,21 +267,8 @@ public class QueryEngineTest extends SQLUnitTest {
                 .pagination(new ImmutablePagination(0, 1, false, true))
                 .build();
 
-        List<Object> data;
-        QueryResult result;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            result = queryResult.get();
-            data = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        QueryResult result = engine.executeQuery(query, transaction);
+        List<Object> data = toList(result.getData());
 
         //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
         PlayerStats stats1 = new PlayerStats();
@@ -406,20 +297,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         // Only "Good" rating would have total high score less than 2400
         PlayerStats stats1 = new PlayerStats();
@@ -447,20 +325,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -483,7 +348,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test sorting by two different columns-one metric and one dimension.
      */
     @Test
-    public void testSortByMultipleColumns() {
+    public void testSortByMultipleColumns() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("lowScore", Sorting.SortOrder.desc);
         sortMap.put("playerName", Sorting.SortOrder.asc);
@@ -496,20 +361,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -539,27 +391,14 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test grouping by a dimension with a JoinTo annotation.
      */
     @Test
-    public void testJoinToGroupBy() {
+    public void testJoinToGroupBy() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryIsoCode")))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -591,20 +430,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -625,7 +451,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test grouping by a dimension with a JoinTo annotation.
      */
     @Test
-    public void testJoinToSort() {
+    public void testJoinToSort() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryIsoCode", Sorting.SortOrder.asc);
         sortMap.put("highScore", Sorting.SortOrder.asc);
@@ -638,20 +464,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -681,27 +494,14 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test month grain query.
      */
     @Test
-    public void testTotalScoreByMonth() {
+    public void testTotalScoreByMonth() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.MONTH))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -716,7 +516,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test filter by time dimension.
      */
     @Test
-    public void testFilterByTemporalDimension() {
+    public void testFilterByTemporalDimension() throws Exception {
         FilterPredicate predicate = new FilterPredicate(
                 new Path(PlayerStats.class, dictionary, "recordedDate"),
                 Operator.IN,
@@ -729,20 +529,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .whereFilter(predicate)
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -754,7 +541,7 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testAmbiguousFields() {
+    public void testAmbiguousFields() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("lowScore", Sorting.SortOrder.asc);
 
@@ -766,20 +553,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -806,27 +580,14 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testNullJoinToStringValue() {
+    public void testNullJoinToStringValue() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryNickName")))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -844,27 +605,14 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testNullJoinToIntValue() {
+    public void testNullJoinToIntValue() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryUnSeats")))
                 .build();
 
-        List<Object> results;
-        FutureTask<QueryResult> queryResult = engine.executeQuery(query);
-        queryResult.run();
-        try {
-            QueryResult result = queryResult.get();
-            results = StreamSupport.stream(result.getData().spliterator(), false)
-                .collect(Collectors.toList());
-        } catch (TransactionException e) {
-            throw new TransactionException(null);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
