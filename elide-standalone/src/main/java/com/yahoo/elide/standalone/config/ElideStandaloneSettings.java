@@ -32,10 +32,10 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.security.checks.Check;
 
-import org.hibernate.Session;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.hibernate.Session;
 
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
@@ -59,8 +59,8 @@ import javax.persistence.EntityManagerFactory;
 public interface ElideStandaloneSettings {
     /* Elide settings */
 
-     private final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
-     private final SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+     public final AbstractJpaTransaction.JpaTransactionCancel JTC = (m) -> { m.unwrap(Session.class).cancelQuery(); };
+     public final SQLQueryEngine.TransactionCancel TXCANCEL = (m) -> { m.unwrap(Session.class).cancelQuery(); };
 
     /**
      * A map containing check mappings for security across Elide. If not provided, then an empty map is used.
@@ -385,7 +385,7 @@ public interface ElideStandaloneSettings {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 ((em, txCancel) -> { return new NonJtaTransaction(em, txCancel); }),
-                jpaTransactionCancel);
+                JTC);
 
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
@@ -404,12 +404,13 @@ public interface ElideStandaloneSettings {
         if (enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
-	    aggregationDataStore = new AggregationDataStore(
-		queryEngine, annotatedClass);
+            aggregationDataStore = new AggregationDataStore(
+                queryEngine, annotatedClasses);
         } else {
             aggregationDataStore = new AggregationDataStore(
-		queryEngine);
+                queryEngine);
         }
+        return aggregationDataStore;
     }
 
     /**
@@ -470,7 +471,7 @@ public interface ElideStandaloneSettings {
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null, transactionCancel);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null, TXCANCEL);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,

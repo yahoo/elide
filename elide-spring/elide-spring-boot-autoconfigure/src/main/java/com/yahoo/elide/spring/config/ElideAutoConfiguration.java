@@ -59,8 +59,8 @@ public class ElideAutoConfiguration {
      * @throws Exception Exception thrown.
      */
 
-     private final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();}; 
-     private final SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery();};
+     private final AbstractJpaTransaction.JpaTransactionCancel jTC = (e) -> { e.unwrap(Session.class).cancelQuery(); };
+     private final SQLQueryEngine.TransactionCancel txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     @Bean
     @ConditionalOnMissingBean
@@ -158,7 +158,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null, transactionCancel);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null, txCancel);
     }
 
     /**
@@ -182,16 +182,16 @@ public class ElideAutoConfiguration {
             Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
             annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
             aggregationDataStore = new AggregationDataStore(
-		queryEngine, annotatedClass));
+                queryEngine, annotatedClass);
         } else {
             aggregationDataStore = new AggregationDataStore(
-		queryEngine);
+                queryEngine);
         }
-	
+
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                     ((em, txCancel) -> { return new NonJtaTransaction(em, txCancel); }),
-                    jpaTransactionCancel);
+                    jTC);
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);

@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.sort.SortingImpl;
@@ -30,6 +31,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -56,11 +58,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -96,11 +107,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metric(invoke(playerStatsViewTable.getMetric("highScore")))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
@@ -131,11 +151,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStatsView.class, dictionary))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
@@ -162,11 +191,20 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -192,11 +230,20 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStatsView.class, false))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
@@ -217,11 +264,21 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
+
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -254,11 +311,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -297,11 +363,21 @@ public class QueryEngineTest extends SQLUnitTest {
                 .pagination(new ImmutablePagination(0, 1, false, true))
                 .build();
 
+        List<Object> data;
+        QueryResult result;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> data = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            result = queryResult.get();
+            data = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
         PlayerStats stats1 = new PlayerStats();
@@ -330,11 +406,20 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         // Only "Good" rating would have total high score less than 2400
         PlayerStats stats1 = new PlayerStats();
@@ -362,11 +447,20 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -402,11 +496,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -443,11 +546,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryIsoCode")))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -479,11 +591,20 @@ public class QueryEngineTest extends SQLUnitTest {
                         PlayerStats.class, false))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -517,11 +638,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -558,11 +688,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.MONTH))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -590,11 +729,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .whereFilter(predicate)
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -618,11 +766,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
@@ -656,11 +813,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryNickName")))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
@@ -685,11 +851,20 @@ public class QueryEngineTest extends SQLUnitTest {
                 .groupByDimension(toProjection(playerStatsTable.getDimension("countryUnSeats")))
                 .build();
 
+        List<Object> results;
         FutureTask<QueryResult> queryResult = engine.executeQuery(query);
         queryResult.run();
-        QueryResult result = queryResult.get();
-        List<Object> results = StreamSupport.stream(result.getData().spliterator(), false)
+        try {
+            QueryResult result = queryResult.get();
+            results = StreamSupport.stream(result.getData().spliterator(), false)
                 .collect(Collectors.toList());
+        } catch (TransactionException e) {
+            throw new TransactionException(null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
