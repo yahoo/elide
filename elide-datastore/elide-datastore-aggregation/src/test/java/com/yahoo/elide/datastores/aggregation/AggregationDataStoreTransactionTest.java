@@ -71,7 +71,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     }
 
     @Test
-    void loadObjectsPopulatesCache() {
+    public void loadObjectsPopulatesCache() {
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
         when(queryEngine.executeQuery(query, qeTransaction)).thenReturn(queryResult);
@@ -87,23 +87,23 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     }
 
     @Test
-    void loadObjectsUsesCache() {
+    public void loadObjectsUsesCache() {
+        String cacheKey = "foo;" + queryKey;
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
-        when(cache.get(anyString())).thenReturn(queryResult);
+        when(cache.get(cacheKey)).thenReturn(queryResult);
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
         AggregationDataStoreTransaction transaction = new MyAggregationDataStoreTransaction(queryEngine, cache);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
 
         assertEquals(DATA, transaction.loadObjects(entityProjection, scope));
 
-        String cacheKey = "foo;" + queryKey;
         Mockito.verify(queryEngine, never()).executeQuery(any(), any());
         Mockito.verify(cache).get(cacheKey);
         Mockito.verifyNoMoreInteractions(cache);
     }
 
     @Test
-    void loadObjectsPassesPagination() {
+    public void loadObjectsPassesPagination() {
         QueryResult queryResult = QueryResult.builder().data(DATA).pageTotals(314L).build();
         when(cache.get(anyString())).thenReturn(queryResult);
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
@@ -123,7 +123,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     }
 
     @Test
-    void loadObjectsNoTableVersion() {
+    public void loadObjectsNoTableVersion() {
         when(queryEngine.executeQuery(query, qeTransaction))
                 .thenReturn(QueryResult.builder().data(Collections.emptyList()).build());
         AggregationDataStoreTransaction transaction = new MyAggregationDataStoreTransaction(queryEngine, cache);
@@ -135,7 +135,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     }
 
     @Test
-    void loadObjectsBypassCache() {
+    public void loadObjectsBypassCache() {
         query = Query.builder().table(playerStatsTable).bypassingCache(true).build();
 
         QueryResult queryResult = QueryResult.builder().data(DATA).build();

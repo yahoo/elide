@@ -115,6 +115,9 @@ public class SQLQueryEngine extends QueryEngine {
         return new SQLMetricProjection(metric, referenceTable, alias, arguments);
     }
 
+    /**
+     * State needed for SQLQueryEngine to execute queries.
+     */
     static class SqlTransaction implements QueryEngine.Transaction {
 
         private final EntityManager entityManager;

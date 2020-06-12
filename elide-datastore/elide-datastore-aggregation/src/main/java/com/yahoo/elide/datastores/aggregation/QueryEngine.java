@@ -151,6 +151,9 @@ public abstract class QueryEngine {
                 .forEach(metaDataStore::addTable);
     }
 
+    /**
+     * Contains state necessary for query execution.
+     */
     public interface Transaction extends AutoCloseable {
         @Override
         void close();
@@ -171,7 +174,7 @@ public abstract class QueryEngine {
     /**
      * Get a serial number or other token indicating the version of the data in the table.
      * No particular semantics are required, though it must change if the data changes.
-     * If one is not available, returns null.
+     * If one is not available, returns null, which will prevent caching this table.
      * @param table The table to get version of
      * @param transaction The transaction to use for the lookup
      * @return a version token, or null if not available.
