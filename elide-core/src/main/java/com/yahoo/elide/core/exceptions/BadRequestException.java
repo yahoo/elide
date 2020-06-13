@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.filter.dialect.ParseException;
 
 /**
  * Invalid predicate exception.
@@ -13,5 +14,9 @@ import com.yahoo.elide.core.HttpStatus;
 public class BadRequestException extends HttpStatusException {
     public BadRequestException(String message) {
         super(HttpStatus.SC_BAD_REQUEST, message);
+    }
+
+    public BadRequestException(String message, Throwable cause) {
+        super(HttpStatus.SC_BAD_REQUEST, message, cause, null);
     }
 }

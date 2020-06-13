@@ -19,8 +19,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Operator enum for predicates.
@@ -180,8 +182,7 @@ public enum Operator {
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
             return entiry -> !hasMember(fieldPath, values, requestScope).test(entiry);
         }
-    }
-    ;
+    };
 
     public static final Function<String, String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
     @Getter private final String notation;
@@ -245,7 +246,7 @@ public enum Operator {
     //
     // String-like In with optional transformation
     private static <T> Predicate<T> in(Path fieldPath, List<Object> values,
-                                       RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             Object fieldValue = getFieldValue(entity, fieldPath, requestScope);
 
@@ -267,7 +268,7 @@ public enum Operator {
     //
     // String-like prefix matching with optional transformation
     private static <T> Predicate<T> prefix(Path fieldPath, List<Object> values,
-                                           RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("PREFIX can only take one argument");
@@ -286,7 +287,7 @@ public enum Operator {
     //
     // String-like postfix matching with optional transformation
     private static <T> Predicate<T> postfix(Path fieldPath, List<Object> values,
-                                            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("POSTFIX can only take one argument");
@@ -305,7 +306,7 @@ public enum Operator {
     //
     // String-like infix matching with optional transformation
     private static <T> Predicate<T> infix(Path fieldPath, List<Object> values,
-                                          RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("INFIX can only take one argument");
@@ -355,7 +356,9 @@ public enum Operator {
         return (T entity) -> {
 
             Object val = getFieldValue(entity, fieldPath, requestScope);
-            if (val == null) { return false; }
+            if (val == null) {
+                return false;
+            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).isEmpty();
             }
@@ -377,7 +380,9 @@ public enum Operator {
                     .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
                     .orElse(CoerceUtil.coerce(values.get(0), String.class));
 
-            if (val == null) { return false; }
+            if (val == null) {
+                return false;
+            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).contains(filterStr);
             }
@@ -390,7 +395,7 @@ public enum Operator {
     }
 
     /**
-     * Return value of field/path for given entity.  For example this.book.author
+     * Return value of field/path for given entity. For example this.book.author
      *
      * @param <T> the type of entity to retrieve a value from
      * @param entity Entity bean
@@ -407,13 +412,21 @@ public enum Operator {
             if (val == null) {
                 break;
             }
-            val = PersistentResource.getValue(val, field.getFieldName(), requestScope);
+            if (val instanceof Collection) {
+                val = ((Collection) val).stream()
+                        .filter(Objects::nonNull)
+                        .map(target -> PersistentResource.getValue(target, field.getFieldName(), requestScope))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+            } else {
+                val = PersistentResource.getValue(val, field.getFieldName(), requestScope);
+            }
         }
         return val;
     }
 
     private static <T> Predicate<T> getComparator(Path fieldPath, List<Object> values,
-                                                  RequestScope requestScope, Predicate<Integer> condition) {
+            RequestScope requestScope, Predicate<Integer> condition) {
         return (T entity) -> {
             if (values.size() == 0) {
                 throw new BadRequestException("No value to compare");
