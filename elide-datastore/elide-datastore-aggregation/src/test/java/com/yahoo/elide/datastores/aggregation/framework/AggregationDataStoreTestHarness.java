@@ -11,12 +11,14 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
-import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
 import org.hibernate.Session;
 
+import java.util.function.Consumer;
+
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
@@ -29,18 +31,15 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     @Override
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
-
-        AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
-        SQLQueryEngine.TransactionCancel transactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
+        Consumer<EntityManager> func = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
         AggregationDataStore aggregationDataStore = AggregationDataStore.builder()
-                .queryEngine(new SQLQueryEngine(metaDataStore, entityManagerFactory))
+                .queryEngine(new SQLQueryEngine(metaDataStore, entityManagerFactory, func))
                 .build();
 
         DataStore jpaStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                NonJtaTransaction::new,
-                jpaTransactionCancel
+                (em) -> { return new NonJtaTransaction(em, func); }
         );
 
         return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);

@@ -27,7 +27,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
-import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.security.checks.Check;
@@ -50,8 +49,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
-//import java.util.function.Function;
 import java.util.function.Consumer;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -60,9 +59,7 @@ import javax.persistence.EntityManagerFactory;
 public interface ElideStandaloneSettings {
     /* Elide settings */
 
-     public final AbstractJpaTransaction.JpaTransactionCancel JTC = (m) -> { m.unwrap(Session.class).cancelQuery(); };
-     public final SQLQueryEngine.TransactionCancel TXCANCEL = (m) -> { m.unwrap(Session.class).cancelQuery(); };
-     //public final Function<AbstractJpaTransaction.JpaTransactionCancel, Void> CANCELFUNCTION = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+     public final Consumer<EntityManager> FUNC = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     /**
      * A map containing check mappings for security across Elide. If not provided, then an empty map is used.
@@ -386,7 +383,7 @@ public interface ElideStandaloneSettings {
             EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                (em) -> { return new NonJtaTransaction(em, JTC); } );
+                (em) -> { return new NonJtaTransaction(em, FUNC); });
 
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
@@ -470,7 +467,7 @@ public interface ElideStandaloneSettings {
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, TXCANCEL);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, FUNC);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,

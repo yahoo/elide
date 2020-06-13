@@ -42,7 +42,7 @@ public class AggregationDataStore implements DataStore {
      */
     private static final List<Class<? extends Annotation>> AGGREGATION_STORE_CLASSES =
             Arrays.asList(FromTable.class, FromSubquery.class);
-  
+
     /**
      * Populate an {@link EntityDictionary} and use this dictionary to construct a {@link QueryEngine}.
      * @param dictionary the dictionary

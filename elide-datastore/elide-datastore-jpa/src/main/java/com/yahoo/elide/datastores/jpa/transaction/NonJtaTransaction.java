@@ -10,6 +10,7 @@ import com.yahoo.elide.core.RequestScope;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
@@ -19,7 +20,7 @@ import javax.persistence.EntityTransaction;
 @Slf4j
 public class NonJtaTransaction extends AbstractJpaTransaction {
     private final EntityTransaction transaction;
-    public NonJtaTransaction(EntityManager entityManager, JpaTransactionCancel jpaTransactionCancel) {
+    public NonJtaTransaction(EntityManager entityManager, Consumer<EntityManager> jpaTransactionCancel) {
         super(entityManager, jpaTransactionCancel);
         this.transaction = entityManager.getTransaction();
         entityManager.clear();

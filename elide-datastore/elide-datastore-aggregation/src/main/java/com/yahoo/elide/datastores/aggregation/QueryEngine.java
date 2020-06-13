@@ -26,7 +26,6 @@ import com.google.common.base.Functions;
 import lombok.Getter;
 
 import java.util.Map;
-import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 /**
  * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
@@ -157,6 +156,7 @@ public abstract class QueryEngine {
     public interface Transaction extends AutoCloseable {
         @Override
         void close();
+        void cancel();
     }
 
     public abstract Transaction beginTransaction();

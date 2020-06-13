@@ -22,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
-import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
@@ -41,6 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Consumer;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -59,9 +60,7 @@ public class ElideAutoConfiguration {
      * @throws Exception Exception thrown.
      */
 
-     private final AbstractJpaTransaction.JpaTransactionCancel jTC = (e) -> { e.unwrap(Session.class).cancelQuery(); };
-     private final SQLQueryEngine.TransactionCancel txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
-     //public final Function<AbstractJpaTransaction.JpaTransactionCancel, Void> FUNC = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+     private final Consumer<EntityManager> func = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     @Bean
     @ConditionalOnMissingBean
@@ -159,7 +158,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, func);
     }
 
     /**
@@ -188,7 +187,7 @@ public class ElideAutoConfiguration {
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                    (em) -> { return new NonJtaTransaction(em, jTC); } );
+                    (em) -> { return new NonJtaTransaction(em, func); });
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);

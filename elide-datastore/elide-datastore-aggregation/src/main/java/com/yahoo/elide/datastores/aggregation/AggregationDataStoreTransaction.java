@@ -100,8 +100,8 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
         return translator.getQuery();
     }
 
-        @Override
+    @Override
     public void cancel() {
-        queryEngineTransaction.cancel(true);
+        queryEngineTransaction.cancel();
     }
 }

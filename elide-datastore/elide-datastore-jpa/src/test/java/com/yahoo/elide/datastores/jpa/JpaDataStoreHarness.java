@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.jpa;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.utils.ClassScanner;
 import example.Parent;
@@ -30,7 +29,9 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -44,7 +45,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
     private DataStore store;
     private MetadataImplementor metadataImplementor;
-    private final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
+    private final Consumer<EntityManager> func = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     public JpaDataStoreHarness() {
         Map<String, Object> options = new HashMap<>();
@@ -99,7 +100,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
         store = new JpaDataStore(
                 () -> { return emf.createEntityManager(); },
-                (entityManager) -> { return new NonJtaTransaction(entityManager, jpaTransactionCancel); }
+                (entityManager) -> { return new NonJtaTransaction(entityManager, func); }
         );
     }
 

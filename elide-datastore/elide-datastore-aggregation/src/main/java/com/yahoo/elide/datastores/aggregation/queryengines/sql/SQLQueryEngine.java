@@ -49,6 +49,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -60,14 +61,14 @@ import javax.persistence.EntityTransaction;
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
-    private final TransactionCancel transactionCancel;
+    private final Consumer<EntityManager> transactionCancel;
     private final SQLReferenceTable referenceTable;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory, TransactionCancel txCancel) {
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory eMFactory, Consumer<EntityManager> txC) {
         super(metaDataStore);
-        this.entityManagerFactory = entityManagerFactory;
+        this.entityManagerFactory = eMFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
-	      this.transactionCancel = txCancel;
+        this.transactionCancel = txC;
     }
 
     @Override
@@ -123,13 +124,13 @@ public class SQLQueryEngine extends QueryEngine {
 
         private final EntityManager entityManager;
         private final EntityTransaction transaction;
-	      private final TransactionCancel transactionCancel;
+        private final Consumer<EntityManager> transactionCancel;
 
-        SqlTransaction(EntityManagerFactory emf, TransactionCancel transactionCancel) {
+        SqlTransaction(EntityManagerFactory emf, Consumer<EntityManager> transactionCancel) {
 
             entityManager = emf.createEntityManager();
             transaction = entityManager.getTransaction();
-            transactionCancel = transactionCancel;
+            this.transactionCancel = transactionCancel;
             if (!transaction.isActive()) {
                 transaction.begin();
             }
@@ -146,9 +147,9 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         @Override
-         public void cancel() {
-            transactionCancel.cancel(entityManager);
-         }
+        public void cancel() {
+            transactionCancel.accept(entityManager);
+        }
 
     }
 
@@ -335,13 +336,5 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return getTypeAlias(entityClass);
-    }
-
-    /**
-     * Functional interface for describing a method to supply JpaTransaction.
-     */
-    @FunctionalInterface
-    public interface TransactionCancel {
-        public void cancel(EntityManager entityManager);
     }
 }

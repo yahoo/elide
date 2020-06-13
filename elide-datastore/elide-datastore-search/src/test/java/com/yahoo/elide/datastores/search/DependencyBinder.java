@@ -15,7 +15,6 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
-import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -25,7 +24,9 @@ import org.hibernate.Session;
 import java.io.File;
 import java.util.HashMap;
 import java.util.TimeZone;
+import java.util.function.Consumer;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -47,12 +48,12 @@ public class DependencyBinder extends ResourceConfig {
                     indexOnStartup = true;
                 }
 
-                AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
+                Consumer<EntityManager> func = (em) -> { em.unwrap(Session.class).cancelQuery(); };
                 EntityManagerFactory emf = Persistence.createEntityManagerFactory("searchDataStoreTest");
                 DataStore jpaStore = new JpaDataStore(
                         emf::createEntityManager,
-                        NonJtaTransaction::new,
-                        jpaTransactionCancel);
+                        (em) -> { return new NonJtaTransaction(em, func); }
+                        );
 
                 EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 

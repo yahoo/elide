@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import javax.persistence.EntityManager;
@@ -55,9 +56,9 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     protected final EntityManager em;
     private final EntityManagerWrapper emWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final JpaTransactionCancel jpaTransactionCancel;
+    private final Consumer<EntityManager> jpaTransactionCancel;
 
-    protected AbstractJpaTransaction(EntityManager em, JpaTransactionCancel jpaTransactionCancel) {
+    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel) {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
         this.jpaTransactionCancel = jpaTransactionCancel;
@@ -306,14 +307,6 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
 
     @Override
     public void cancel() {
-        jpaTransactionCancel.cancel(em);
-    }
-
-    /**
-     * Functional interface for describing a method to supply JpaTransaction.
-     */
-    @FunctionalInterface
-    public interface JpaTransactionCancel {
-        public void cancel(EntityManager entityManager);
+        jpaTransactionCancel.accept(em);
     }
 }

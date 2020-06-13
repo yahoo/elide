@@ -24,18 +24,15 @@ public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
     protected final JpaTransactionSupplier writeTransactionSupplier;
-    //protected final AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel;
     protected final Set<Class<?>> modelsToBind;
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
-                        // AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel,
                         Class<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
         this.writeTransactionSupplier = writeTransactionSupplier;
-        // this.jpaTransactionCancel = jpaTransactionCancel;
         this.modelsToBind = new HashSet<>();
         for (Class<?> model : models) {
             modelsToBind.add(model);
@@ -45,7 +42,6 @@ public class JpaDataStore implements JPQLDataStore {
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier transactionSupplier,
-                        // AbstractJpaTransaction.JpaTransactionCancel jpaTransactionCancel,
                         Class<?> ... models) {
         this(entityManagerSupplier, transactionSupplier, transactionSupplier, models);
     }
