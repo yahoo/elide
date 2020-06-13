@@ -270,7 +270,7 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Cancel running transaction.
-     * Implementation must be thread-safe
+     * Implementation must be thread-safe.
      */
     void cancel();
 }
