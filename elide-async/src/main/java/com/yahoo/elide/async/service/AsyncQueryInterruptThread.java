@@ -47,7 +47,8 @@ public class AsyncQueryInterruptThread implements Runnable {
     protected void interruptQuery() {
         try {
             long interruptTimeMillies = calculateTimeOut(maxRunTimeMinutes, submittedOn);
-
+            log.info("Waiting on the future with the given timeout for {}", interruptTimeMillies);
+            System.out.println("Waiting on the future with the given timeout for " + interruptTimeMillies);
             if (interruptTimeMillies > 0) {
                log.debug("Waiting on the future with the given timeout for {}", interruptTimeMillies);
                task.get(interruptTimeMillies, TimeUnit.MILLISECONDS);
