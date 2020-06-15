@@ -17,6 +17,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.cache.Cache;
+import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -167,7 +169,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngine queryEngine,
-            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
+            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings, Cache cache)
             throws ClassNotFoundException {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
                 .queryEngine(queryEngine);
@@ -177,14 +179,24 @@ public class ElideAutoConfiguration {
             annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
             aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
         }
+        aggregationDataStoreBuilder.cache(cache);
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
-        JpaDataStore jpaDataStore = new JpaDataStore(
-                () -> { return entityManagerFactory.createEntityManager(); },
-                    (em -> { return new NonJtaTransaction(em); }));
+        JpaDataStore jpaDataStore = new JpaDataStore(entityManagerFactory::createEntityManager, NonJtaTransaction::new);
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
+    }
+
+    /**
+     * Creates a query result cache to be used by {@link #buildDataStore}, or null if cache is to be disabled.
+     * @param settings Elide configuration settings.
+     * @return An instance of a query cache, or null.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    Cache buildQueryCache(ElideConfigProperties settings) {
+        return (settings.getQueryCacheSize() > 0) ? new CaffeineCache(settings.getQueryCacheSize()) : null;
     }
 
     /**

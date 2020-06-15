@@ -22,6 +22,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.cache.Cache;
+import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -349,6 +351,24 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Limit on number of query cache entries. Non-positive values disable the query cache.
+     *
+     * @return Default: 1024
+     */
+    default Integer getQueryCacheSize() {
+        return CaffeineCache.DEFAULT_CACHE_SIZE;
+    }
+
+    /**
+     * Get the query cache implementation. If null, query cache is disabled.
+     *
+     * @return Default: CaffeineCache(getQueryCacheSize()
+     */
+    default Cache getQueryCache() {
+        return getQueryCacheSize() > 0 ? new CaffeineCache(getQueryCacheSize()) : null;
+    }
+
+    /**
      * Gets the dynamic compiler for elide.
      *
      * @return Optional ElideDynamicEntityCompiler
@@ -402,6 +422,7 @@ public interface ElideStandaloneSettings {
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
             aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
         }
+        aggregationDataStoreBuilder.cache(getQueryCache());
         return aggregationDataStoreBuilder.build();
     }
 

@@ -10,8 +10,13 @@ import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+/**
+ * A basic local-only cache.
+ */
 public class CaffeineCache implements Cache {
-    private final com.github.benmanes.caffeine.cache.Cache<Object,QueryResult> cache;
+    public static final int DEFAULT_CACHE_SIZE = 1024;
+
+    private final com.github.benmanes.caffeine.cache.Cache<Object, QueryResult> cache;
 
     public CaffeineCache(int maximumSize) {
         cache = Caffeine.newBuilder().maximumSize(maximumSize).recordStats().build();
