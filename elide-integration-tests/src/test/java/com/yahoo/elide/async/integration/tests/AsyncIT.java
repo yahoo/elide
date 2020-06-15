@@ -24,7 +24,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
+import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +38,7 @@ import io.restassured.response.Response;
 import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AsyncIT extends AsyncIntegrationTest {
+public class AsyncIT extends IntegrationTest {
 
 
     private static final Resource ENDERS_GAME = resource(
@@ -68,6 +70,15 @@ public class AsyncIT extends AsyncIntegrationTest {
 
     public AsyncIT() {
         super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
+
+    /**
+     * Returns an initialized data store.
+     *
+     * @return an initialized data store.
+     */
+    public static DataStore getDataStore() {
+        return new AsyncDelayDataStore(dataStoreHarness.getDataStore());
     }
 
     /**

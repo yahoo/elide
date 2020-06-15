@@ -55,12 +55,13 @@ public class AsyncDelayStoreTransaction extends DataStoreTransactionImplementati
     public void createObject(Object entity, RequestScope scope) {
         tx.createObject(entity, scope);
     }
-
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         try {
             log.debug("LoadObjects Sleep for delay test");
-            Thread.sleep(5000);
+            if (entityProjection.getType().toString().trim().equals("class example.Book")) {
+                Thread.sleep(5000);
+            }
         } catch (InterruptedException e) {
             log.debug("Test delay interrupted");
         }
