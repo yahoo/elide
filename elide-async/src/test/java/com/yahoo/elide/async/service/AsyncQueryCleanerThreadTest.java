@@ -13,10 +13,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+import com.yahoo.elide.security.checks.Check;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 public class AsyncQueryCleanerThreadTest {
 
@@ -26,7 +35,15 @@ public class AsyncQueryCleanerThreadTest {
 
     @BeforeEach
     public void setupMocks() {
-        elide = mock(Elide.class);
+        HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
+        Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
+
+        elide = new Elide(
+                new ElideSettingsBuilder(inMemoryStore)
+                        .withEntityDictionary(new EntityDictionary(checkMappings))
+                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                        .build());
+
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao);
     }

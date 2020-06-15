@@ -7,6 +7,8 @@ package com.yahoo.elide.tests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -62,6 +64,7 @@ public class SortingIT extends IntegrationTest {
     public void testSortingRootCollectionByRelationshipProperty() throws IOException {
         JsonNode result = getAsNode("/book?sort=-publisher.name");
         int size = result.get("data").size();
+        assertEquals(8, size);
 
         JsonNode books = result.get("data");
         String firstBookName = books.get(0).get("attributes").get("title").asText();
@@ -71,6 +74,8 @@ public class SortingIT extends IntegrationTest {
         assertEquals("The Old Man and the Sea", secondBookName);
 
         result = getAsNode("/book?sort=publisher.name");
+        size = result.get("data").size();
+        assertEquals(8, size);
 
         books = result.get("data");
         firstBookName = books.get(size - 2).get("attributes").get("title").asText();
@@ -159,5 +164,35 @@ public class SortingIT extends IntegrationTest {
             String actualTitle = books.get(idx).get("attributes").get("title").asText();
             assertEquals(expectedTitle, actualTitle);
         }
+    }
+
+    @Test
+    public void testRootCollectionByNullRelationshipProperty() throws IOException {
+        // Test whether all book records are received
+        when()
+                .get("/book?sort=publisher.editor.lastName")
+                .then()
+                .body("data", hasSize(8))
+        ;
+        when()
+                .get("/book?sort=-publisher.editor.lastName")
+                .then()
+                .body("data", hasSize(8))
+        ;
+
+    }
+
+    @Test
+    public void testSubcollectionByNullRelationshipProperty() throws IOException {
+        when()
+                .get("/author/1/books?sort=publisher.editor.lastName")
+                .then()
+                .body("data", hasSize(2))
+        ;
+        when()
+                .get("/author/1/books?sort=-publisher.editor.lastName")
+                .then()
+                .body("data", hasSize(2))
+        ;
     }
 }

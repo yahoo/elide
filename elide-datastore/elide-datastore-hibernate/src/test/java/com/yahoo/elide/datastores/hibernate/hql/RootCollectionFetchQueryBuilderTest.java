@@ -25,6 +25,7 @@ import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Chapter;
+import example.Editor;
 import example.Publisher;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -40,6 +41,11 @@ public class RootCollectionFetchQueryBuilderTest {
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";
+    private static final String PUBLISHER = "publisher";
+    private static final String EDITOR = "editor";
+    private static final String PERIOD = ".";
+    private static final String NAME = "name";
+    private static final String FIRSTNAME = "firstName";
     private RSQLFilterDialect filterParser;
 
     @BeforeAll
@@ -49,6 +55,7 @@ public class RootCollectionFetchQueryBuilderTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Chapter.class);
+        dictionary.bindEntity(Editor.class);
         filterParser = new RSQLFilterDialect(dictionary, new CaseSensitivityStrategy.UseColumnCollation());
     }
 
@@ -176,6 +183,63 @@ public class RootCollectionFetchQueryBuilderTest {
         String expected =
                 "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
                 + " WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testSortingWithJoin() {
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                Book.class, dictionary, new TestSessionWrapper());
+
+        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
+        sorting.put(PUBLISHER + PERIOD + NAME, Sorting.SortOrder.asc);
+
+
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
+                .build();
+
+        String expected =
+                "SELECT example_Book FROM example.Book AS example_Book "
+                        + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher "
+                        + "order by example_Book_publisher.name asc";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootFetchWithRelationshipSortingAndFilters() {
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                Book.class, dictionary, new TestSessionWrapper());
+
+        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
+        sorting.put(PUBLISHER + PERIOD + EDITOR + PERIOD + FIRSTNAME, Sorting.SortOrder.desc);
+
+        Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
+
+        FilterPredicate idPredicate = new InPredicate(idPath, 1);
+
+
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
+                .withPossibleFilterExpression(Optional.of(idPredicate))
+                .build();
+
+        String expected =
+                "SELECT example_Book FROM example.Book AS example_Book"
+                        + " LEFT JOIN FETCH example_Book.publisher example_Book_publisher"
+                        + " LEFT JOIN example_Book_publisher.editor example_Book_publisher_editor"
+                        + " WHERE example_Book.id IN (:id_XXX)"
+                        + " order by example_Book_publisher_editor.firstName desc";
 
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");

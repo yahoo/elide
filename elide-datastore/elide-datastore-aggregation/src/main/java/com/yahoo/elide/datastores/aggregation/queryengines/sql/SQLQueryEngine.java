@@ -19,12 +19,12 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLMetric;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -63,8 +63,8 @@ public class SQLQueryEngine extends QueryEngine {
 
     private final SQLReferenceTable referenceTable;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory, Cache cache) {
-        super(metaDataStore, cache);
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
+        super(metaDataStore);
         this.entityManagerFactory = entityManagerFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
     }
@@ -115,62 +115,24 @@ public class SQLQueryEngine extends QueryEngine {
         return new SQLMetricProjection(metric, referenceTable, alias, arguments);
     }
 
-    @Override
-    public QueryResult executeQuery(Query query) {
-        EntityManager entityManager = null;
-        EntityTransaction transaction = null;
-        try {
-            entityManager = entityManagerFactory.createEntityManager();
+    /**
+     * State needed for SQLQueryEngine to execute queries.
+     */
+    static class SqlTransaction implements QueryEngine.Transaction {
 
-            // manually begin the transaction
+        private final EntityManager entityManager;
+        private final EntityTransaction transaction;
+
+        SqlTransaction(EntityManagerFactory emf) {
+            entityManager = emf.createEntityManager();
             transaction = entityManager.getTransaction();
             if (!transaction.isActive()) {
                 transaction.begin();
             }
+        }
 
-            // Translate the query into SQL.
-            SQLQuery sql = toSQL(query);
-            log.debug("SQL Query: " + sql);
-
-            javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
-
-            QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
-            Pagination pagination = query.getPagination();
-            if (pagination != null) {
-                jpaQuery.setFirstResult(pagination.getOffset());
-                jpaQuery.setMaxResults(pagination.getLimit());
-
-                if (pagination.returnPageTotals()) {
-
-                    SQLQuery paginationSQL = toPageTotalSQL(sql);
-                    javax.persistence.Query pageTotalQuery =
-                            entityManager.createNativeQuery(paginationSQL.toString())
-                                    .setHint(QueryHints.HINT_READONLY, true);
-
-                    //Supply the query parameters to the query
-                    supplyFilterQueryParameters(query, pageTotalQuery);
-
-                    //Run the Pagination query and log the time spent.
-                    long total = new TimedFunction<>(
-                            () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
-                            "Running Query: " + paginationSQL
-                    ).get();
-
-                    resultBuilder.pageTotals(total);
-                }
-            }
-
-            // Supply the query parameters to the query
-            supplyFilterQueryParameters(query, jpaQuery);
-
-            // Run the primary query and log the time spent.
-            List<Object> results = new TimedFunction<>(
-                    () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
-                    "Running Query: " + sql).get();
-
-            resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
-            return resultBuilder.build();
-        } finally {
+        @Override
+        public void close() {
             if (transaction != null && transaction.isActive()) {
                 transaction.commit();
             }
@@ -178,6 +140,81 @@ public class SQLQueryEngine extends QueryEngine {
                 entityManager.close();
             }
         }
+    }
+
+    @Override
+    public QueryEngine.Transaction beginTransaction() {
+        return new SqlTransaction(entityManagerFactory);
+    }
+
+    @Override
+    public QueryResult executeQuery(Query query, Transaction transaction) {
+        EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
+
+        // Translate the query into SQL.
+        SQLQuery sql = toSQL(query);
+        String queryString = sql.toString();
+        log.debug("SQL Query: " + queryString);
+        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(queryString);
+
+        QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
+
+        Pagination pagination = query.getPagination();
+        if (pagination != null) {
+            jpaQuery.setFirstResult(pagination.getOffset());
+            jpaQuery.setMaxResults(pagination.getLimit());
+            if (pagination.returnPageTotals()) {
+                resultBuilder.pageTotals(getPageTotal(query, sql, entityManager));
+            }
+        }
+
+        // Supply the query parameters to the query
+        supplyFilterQueryParameters(query, jpaQuery);
+
+        // Run the primary query and log the time spent.
+        List<Object> results = new TimedFunction<List<Object>>(
+                () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
+                "Running Query: " + queryString).get();
+
+        resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
+        return resultBuilder.build();
+    }
+
+    private long getPageTotal(Query query, SQLQuery sql, EntityManager entityManager) {
+        String paginationSQL = toPageTotalSQL(sql).toString();
+
+        javax.persistence.Query pageTotalQuery =
+                entityManager.createNativeQuery(paginationSQL)
+                        .setHint(QueryHints.HINT_READONLY, true);
+
+        //Supply the query parameters to the query
+        supplyFilterQueryParameters(query, pageTotalQuery);
+
+        //Run the Pagination query and log the time spent.
+        return new TimedFunction<>(
+                () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
+                "Running Query: " + paginationSQL
+        ).get();
+    }
+
+    @Override
+    public String getTableVersion(Table table, Transaction transaction) {
+        EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
+
+        String tableVersion = null;
+        Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());
+        VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
+        if (versionAnnotation != null) {
+            String versionQueryString = versionAnnotation.sql();
+            javax.persistence.Query versionQuery =
+                    entityManager.createNativeQuery(versionQueryString)
+                            .setHint(QueryHints.HINT_READONLY, true);
+            tableVersion = new TimedFunction<>(
+                    () -> CoerceUtil.coerce(versionQuery.getSingleResult(), String.class),
+                    "Running Query: " + versionQueryString
+            ).get();
+        }
+        return tableVersion;
     }
 
     /**

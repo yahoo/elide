@@ -90,7 +90,7 @@ public class AsyncExecutorService {
      * Execute Query asynchronously.
      * @param queryObj Query Object
      * @param user User
-     * @param apiVersion API Version
+     * @param apiVersion api version
      */
     public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
 
