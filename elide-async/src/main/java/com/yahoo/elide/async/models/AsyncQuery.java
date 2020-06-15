@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.async.service.AsyncQueryUpdateThread;
 
 import lombok.Data;
 
@@ -62,6 +63,9 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
 
     @Exclude
     private String principalName;
+
+    @Transient
+    private AsyncQueryUpdateThread queryUpdateWorker = null;
 
     @PrePersist
     public void prePersistStatus() {

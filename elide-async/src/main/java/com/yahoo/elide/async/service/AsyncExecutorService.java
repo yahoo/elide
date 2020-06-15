@@ -46,7 +46,6 @@ public class AsyncExecutorService {
     private int maxRunTime;
     private AsyncQueryDAO asyncQueryDao;
     private static AsyncExecutorService asyncExecutorService = null;
-    private AsyncQueryUpdateThread queryUpdateWorker;
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
         this.elide = elide;
@@ -100,7 +99,6 @@ public class AsyncExecutorService {
         }
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
         Future<AsyncQueryResult> task = executor.submit(queryWorker);
-
         try {
             queryObj.setStatus(QueryStatus.PROCESSING);
             AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
@@ -114,7 +112,7 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-            queryUpdateWorker = new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao);
+            queryObj.setQueryUpdateWorker(new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao));
         }
 
     }
@@ -126,9 +124,9 @@ public class AsyncExecutorService {
      */
     public void completeQuery(AsyncQuery query, User user, String apiVersion) {
         try {
-            if (queryUpdateWorker != null) {
+            if (query.getQueryUpdateWorker() != null) {
                 log.info("Task has not completed");
-                updater.execute(queryUpdateWorker);
+                updater.execute(query.getQueryUpdateWorker());
             }
         } catch (NullPointerException e) {
             log.info("Task has completed");
