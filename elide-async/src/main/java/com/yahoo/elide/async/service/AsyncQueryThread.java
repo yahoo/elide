@@ -9,6 +9,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -99,6 +100,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
         } catch (Exception e) {
             log.error("Exception: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
         }
         return queryResultObj;
     }

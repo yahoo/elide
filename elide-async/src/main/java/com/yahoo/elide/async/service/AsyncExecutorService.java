@@ -123,12 +123,10 @@ public class AsyncExecutorService {
      * @param apiVersion API Version
      */
     public void completeQuery(AsyncQuery query, User user, String apiVersion) {
-        try {
-            if (query.getQueryUpdateWorker() != null) {
-                log.info("Task has not completed");
-                updater.execute(query.getQueryUpdateWorker());
-            }
-        } catch (NullPointerException e) {
+        if (query.getQueryUpdateWorker() != null) {
+            log.info("Task has not completed");
+            updater.execute(query.getQueryUpdateWorker());
+        } else {
             log.info("Task has completed");
         }
     }
