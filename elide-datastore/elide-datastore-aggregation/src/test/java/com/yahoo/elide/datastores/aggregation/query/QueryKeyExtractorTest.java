@@ -118,12 +118,14 @@ public class QueryKeyExtractorTest {
                 QueryKeyExtractor.extractKey(Query.builder()
                         .table(playerStatsTable)
                         .metric(invoke(playerStatsTable.getMetric("highScore")))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.DAY))
                         .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
                         .build()),
                 QueryKeyExtractor.extractKey(Query.builder()
                         .table(playerStatsTable)
                         .metric(invoke(playerStatsTable.getMetric("highScore")))
                         .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.DAY))
                         .build()));
     }
 }
