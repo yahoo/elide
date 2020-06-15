@@ -3,7 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.query;
+package com.yahoo.elide.datastores.aggregation.cache;
+
+import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 
 /**
  * A cache for {@link QueryResult}s.
