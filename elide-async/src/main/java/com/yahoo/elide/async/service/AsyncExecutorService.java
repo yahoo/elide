@@ -99,9 +99,7 @@ public class AsyncExecutorService {
             throw new InvalidOperationException("Invalid API Version");
         }
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
-
         Future<AsyncQueryResult> task = executor.submit(queryWorker);
-        queryUpdateWorker = new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao);
 
         try {
             queryObj.setStatus(QueryStatus.PROCESSING);
@@ -116,6 +114,7 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
+            queryUpdateWorker = new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao);
         }
 
     }
@@ -127,11 +126,12 @@ public class AsyncExecutorService {
      */
     public void completeQuery(AsyncQuery query, User user, String apiVersion) {
         try {
-            log.info("Task has not completed");
-            updater.execute(queryUpdateWorker);
+            if (queryUpdateWorker != null) {
+                log.info("Task has not completed");
+                updater.execute(queryUpdateWorker);
+            }
         } catch (NullPointerException e) {
             log.info("Task has completed");
         }
-
     }
 }
