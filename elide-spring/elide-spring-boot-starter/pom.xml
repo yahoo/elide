@@ -143,7 +143,6 @@
             <version>${version.jetty}</version>
         </dependency>
 
-
         <!-- Let's use Jetty Instead -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
