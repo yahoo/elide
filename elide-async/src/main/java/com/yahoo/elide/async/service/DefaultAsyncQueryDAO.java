@@ -201,8 +201,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             tx.commit(scope);
         } catch (IOException e) {
             log.error("IOException: {}", e);
-        } catch (Exception e) {
-            log.error("Exception: {}", e);
+            throw new IllegalStateException(e);
         }
         return result;
     }
