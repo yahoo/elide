@@ -362,7 +362,7 @@ public interface ElideStandaloneSettings {
     /**
      * Get the query cache implementation. If null, query cache is disabled.
      *
-     * @return Default: CaffeineCache(getQueryCacheSize()
+     * @return Default: {@code new CaffeineCache(getQueryCacheSize())}
      */
     default Cache getQueryCache() {
         return getQueryCacheSize() > 0 ? new CaffeineCache(getQueryCacheSize()) : null;
