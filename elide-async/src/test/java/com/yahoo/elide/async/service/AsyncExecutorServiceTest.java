@@ -47,7 +47,7 @@ public class AsyncExecutorServiceTest {
     private AsyncQuery queryObj3;
     private User testUser;
     private AsyncQueryUpdateThread asyncQueryUpdateThread;
-    Future<AsyncQueryResult> task;
+    private Future<AsyncQueryResult> task;
     @BeforeAll
     public void setupMockElide() {
         HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
