@@ -28,12 +28,15 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +54,9 @@ import javax.persistence.EntityManagerFactory;
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @Slf4j
 public class ElideAutoConfiguration {
+
+    @Autowired(required = false)
+    private MeterRegistry meterRegistry;
 
     /**
      * Creates a entity compiler for compiling dynamic config classes.
@@ -196,7 +202,14 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     Cache buildQueryCache(ElideConfigProperties settings) {
-        return (settings.getQueryCacheSize() > 0) ? new CaffeineCache(settings.getQueryCacheSize()) : null;
+        CaffeineCache cache = null;
+        if (settings.getQueryCacheSize() > 0) {
+            cache = new CaffeineCache(settings.getQueryCacheSize());
+            if (meterRegistry != null) {
+                CaffeineCacheMetrics.monitor(meterRegistry, cache.getImplementation(), "elideQueryCache");
+            }
+        }
+        return cache;
     }
 
     /**

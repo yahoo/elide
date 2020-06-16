@@ -31,4 +31,8 @@ public class CaffeineCache implements Cache {
     public void put(Object key, QueryResult result) {
         cache.put(key, result);
     }
+
+    public com.github.benmanes.caffeine.cache.Cache<Object, QueryResult> getImplementation() {
+        return cache;
+    }
 }
