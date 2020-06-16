@@ -12,6 +12,7 @@ import com.yahoo.elide.utils.ClassScanner;
 import org.hibernate.cfg.AvailableSettings;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties.Naming;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
@@ -60,6 +61,7 @@ public class ElideDynamicConfiguration {
      * @return LocalContainerEntityManagerFactoryBean bean
      */
     @Bean
+    @ConditionalOnMissingBean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory (
             DataSource source,
             JpaProperties jpaProperties,
