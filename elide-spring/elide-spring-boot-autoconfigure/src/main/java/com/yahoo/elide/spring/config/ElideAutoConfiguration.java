@@ -201,7 +201,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    Cache buildQueryCache(ElideConfigProperties settings) {
+    public Cache buildQueryCache(ElideConfigProperties settings) {
         CaffeineCache cache = null;
         if (settings.getQueryCacheSize() > 0) {
             cache = new CaffeineCache(settings.getQueryCacheSize());
