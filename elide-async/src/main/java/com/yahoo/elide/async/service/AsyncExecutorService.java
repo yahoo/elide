@@ -113,6 +113,9 @@ public class AsyncExecutorService {
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
             queryObj.setQueryUpdateWorker(new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao));
+        } catch (Exception e) {
+            log.error("Exception: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
         }
 
     }

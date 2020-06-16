@@ -9,7 +9,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
-import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -67,41 +66,38 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     * This is the main method which processes the Async Query request, executes the query and updates
     * values for AsyncQuery and AsyncQueryResult models accordingly.
     * @return AsyncQueryResult
+    * @throws URISyntaxException
+    * @throws NoHttpResponseException
     */
-    protected AsyncQueryResult processQuery() {
+    protected AsyncQueryResult processQuery() throws URISyntaxException, NoHttpResponseException {
 
-        try {
-            ElideResponse response = null;
-            log.debug("AsyncQuery Object from request: {}", queryObj);
-            if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
-                MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
-                log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
-                response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion);
-                log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
-                        response.getResponseCode(), response.getBody());
-            }
-            else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-                response = runner.run(queryObj.getQuery(), user);
-                log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
-                        response.getResponseCode(), response.getBody());
-            }
-            if (response == null) {
-                throw new NoHttpResponseException("Response for request returned as null");
-            }
-
-            // Create AsyncQueryResult entry for AsyncQuery
-
-            queryResultObj = new AsyncQueryResult();
-            queryResultObj.setHttpStatus(response.getResponseCode());
-            queryResultObj.setResponseBody(response.getBody());
-            queryResultObj.setContentLength(response.getBody().length());
-            queryResultObj.setResultType(ResultType.EMBEDDED);
-            queryResultObj.setCompletedOn(new Date());
-
-        } catch (Exception e) {
-            log.error("Exception: {}", e);
-            queryObj.setStatus(QueryStatus.FAILURE);
+        ElideResponse response = null;
+        log.debug("AsyncQuery Object from request: {}", queryObj);
+        if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
+            MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
+            log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
+            response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion);
+            log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
+                    response.getResponseCode(), response.getBody());
         }
+        else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+            response = runner.run(queryObj.getQuery(), user);
+            log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
+                    response.getResponseCode(), response.getBody());
+        }
+        if (response == null) {
+            throw new NoHttpResponseException("Response for request returned as null");
+        }
+
+        // Create AsyncQueryResult entry for AsyncQuery
+
+        queryResultObj = new AsyncQueryResult();
+        queryResultObj.setHttpStatus(response.getResponseCode());
+        queryResultObj.setResponseBody(response.getBody());
+        queryResultObj.setContentLength(response.getBody().length());
+        queryResultObj.setResultType(ResultType.EMBEDDED);
+        queryResultObj.setCompletedOn(new Date());
+
         return queryResultObj;
     }
 

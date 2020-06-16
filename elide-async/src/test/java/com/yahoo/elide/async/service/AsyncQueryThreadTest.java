@@ -6,7 +6,6 @@
 package com.yahoo.elide.async.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -93,20 +92,5 @@ public class AsyncQueryThreadTest {
 
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
-    }
-
-    @Test
-    public void testProcessQueryException() throws NoHttpResponseException, URISyntaxException {
-        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
-        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
-
-        when(queryObj.getQuery()).thenReturn(query);
-        when(queryObj.getId()).thenReturn(id);
-        when(queryObj.getQueryType()).thenReturn(QueryType.GRAPHQL_V1_0);
-        when(runner.run(query, user)).thenThrow(RuntimeException.class);
-
-        queryResultObj = queryThread.processQuery();
-
-        assertNull(queryResultObj);
     }
 }
