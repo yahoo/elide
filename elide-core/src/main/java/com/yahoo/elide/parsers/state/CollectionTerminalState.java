@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.ToString;
@@ -114,7 +115,7 @@ public class CollectionTerminalState extends BaseState {
         parent.ifPresent(persistentResource -> persistentResource.addRelation(relationName.get(), newObject));
         return () -> {
             JsonApiDocument returnDoc = new JsonApiDocument();
-            returnDoc.setData(new Data(newObject.toResource()));
+            returnDoc.setData(new Data<>(newObject.toResource()));
             JsonNode responseBody = mapper.getObjectMapper().convertValue(returnDoc, JsonNode.class);
             return Pair.of(HttpStatus.SC_CREATED, responseBody);
         };
@@ -166,7 +167,7 @@ public class CollectionTerminalState extends BaseState {
         Data<Resource> data = doc.getData();
         Collection<Resource> resources = data.get();
 
-        Resource resource = (resources.size() == 1) ? resources.iterator().next() : null;
+        Resource resource = (resources.size() == 1) ? IterableUtils.first(resources) : null;
         if (resource == null) {
             try {
                 throw new InvalidEntityBodyException(mapper.writeJsonApiDocument(doc));

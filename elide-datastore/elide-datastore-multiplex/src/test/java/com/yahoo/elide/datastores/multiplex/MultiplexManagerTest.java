@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -20,9 +20,10 @@ import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
 
 import com.google.common.collect.Lists;
-
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.apache.commons.collections4.IterableUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,10 +36,11 @@ import java.util.Optional;
  * MultiplexManager tests.
  */
 @Slf4j
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MultiplexManagerTest {
     private MultiplexManager multiplexManager;
 
-    @BeforeTest
+    @BeforeAll
     public void setup() {
         final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         final InMemoryDataStore inMemoryDataStore1 = new InMemoryDataStore(FirstBean.class.getPackage());
@@ -71,12 +73,12 @@ public class MultiplexManagerTest {
             Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
-            FirstBean bean = (FirstBean) beans.iterator().next();
+            FirstBean bean = (FirstBean) IterableUtils.first(beans);
             assertTrue(bean.id != null && "Test".equals(bean.name));
         }
     }
 
-    @Test(priority = 3)
+    @Test
     public void partialCommitFailure() throws IOException {
         final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         final InMemoryDataStore ds1 = new InMemoryDataStore(FirstBean.class.getPackage());
@@ -84,8 +86,8 @@ public class MultiplexManagerTest {
         final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);
         multiplexManager.populateEntityDictionary(entityDictionary);
 
-        assertEquals(multiplexManager.getSubManager(FirstBean.class), ds1);
-        assertEquals(multiplexManager.getSubManager(OtherBean.class), ds2);
+        assertEquals(ds1, multiplexManager.getSubManager(FirstBean.class));
+        assertEquals(ds2, multiplexManager.getSubManager(OtherBean.class));
 
         try (DataStoreTransaction t = ds1.beginTransaction()) {
             assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());

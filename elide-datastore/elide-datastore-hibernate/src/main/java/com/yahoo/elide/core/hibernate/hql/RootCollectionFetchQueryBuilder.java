@@ -6,8 +6,9 @@
 package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
@@ -44,14 +45,25 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             Collection<FilterPredicate> predicates = filterExpression.get().accept(extractor);
 
             //Build the WHERE clause
-            String filterClause = new HQLFilterOperation().apply(filterExpression.get(), USE_ALIAS);
+            String filterClause = new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
 
             //Build the JOIN clause
             String joinClause =  getJoinClauseFromFilters(filterExpression.get())
                     + extractToOneMergeJoins(entityClass, entityAlias);
 
+            boolean requiresDistinct = pagination.isPresent() && containsOneToMany(filterExpression.get());
+            Boolean sortOverRelationship = sorting
+                .map(sort -> sort.getValidSortingRules(entityClass, dictionary).keySet().stream()
+                    .anyMatch(path -> path.getPathElements().size() > 1))
+                .orElse(false);
+            if (requiresDistinct && sortOverRelationship) {
+                //SQL does not support distinct and order by on columns which are not selected
+                throw new InvalidValueException("Combination of pagination, sorting over relationship and"
+                    + " filtering over toMany relationships unsupported");
+            }
             query = session.createQuery(
                     SELECT
+                        + (requiresDistinct ? DISTINCT : "")
                         + entityAlias
                         + FROM
                         + entityName

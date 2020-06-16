@@ -49,7 +49,7 @@ public class CoerceUtil {
     public static <T> T coerce(Object value, Class<T> cls) {
         initializeCurrentClassLoaderIfNecessary();
 
-        if (value == null || cls == null || cls.isAssignableFrom(value.getClass())) {
+        if (value == null || cls == null || cls.isInstance(value)) {
             return (T) value;
         }
 
@@ -76,6 +76,10 @@ public class CoerceUtil {
 
     public static <S, T> Serde<S, T> lookup(Class<T> targetType) {
         return (Serde<S, T>) SERDES.getOrDefault(targetType, null);
+    }
+
+    public static Map<Class<?>, Serde<?, ?>> getSerdes() {
+        return Collections.unmodifiableMap(SERDES);
     }
 
     /**

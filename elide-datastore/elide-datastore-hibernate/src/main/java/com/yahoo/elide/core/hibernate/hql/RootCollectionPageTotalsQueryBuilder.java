@@ -7,7 +7,7 @@ package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
@@ -67,13 +67,13 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
             predicates = filterExpression.get().accept(extractor);
 
             //Build the WHERE clause
-            filterClause = new HQLFilterOperation().apply(filterExpression.get(), USE_ALIAS);
+            filterClause = new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
 
             //Build the JOIN clause
-            joinClause =  getJoinClauseFromFilters(filterExpression.get());
+            joinClause =  getJoinClauseFromFilters(filterExpression.get(), true);
 
         } else {
-            predicates = new HashSet();
+            predicates = new HashSet<>();
             filterClause = "";
             joinClause = "";
         }

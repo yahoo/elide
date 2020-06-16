@@ -5,12 +5,21 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.dialect.CaseSensitivityStrategy;
+import com.yahoo.elide.core.filter.dialect.ParseException;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
 import example.Author;
@@ -18,30 +27,29 @@ import example.Book;
 import example.Chapter;
 import example.Publisher;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RootCollectionFetchQueryBuilderTest {
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";
-    private static final String BOOKS = "books";
-    private static final String PUBLISHER = "publisher";
+    private RSQLFilterDialect filterParser;
 
-    @BeforeClass
+    @BeforeAll
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Chapter.class);
+        filterParser = new RSQLFilterDialect(dictionary, new CaseSensitivityStrategy.UseColumnCollation());
     }
 
     @Test
@@ -51,10 +59,11 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book  ";
+        String expected =
+                "SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher  ";
         String actual = query.getQueryText();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -69,33 +78,18 @@ public class RootCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book   order by example_Book.title asc";
+        String expected = "SELECT example_Book FROM example.Book AS example_Book  "
+                + "LEFT JOIN FETCH example_Book.publisher   order by example_Book.title asc";
         String actual = query.getQueryText();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
-    public void testRootFetchWithJoinFilter() {
+    public void testRootFetchWithJoinFilter() throws ParseException {
 
-        List<Path.PathElement> chapterTitlePath = Arrays.asList(
-                new Path.PathElement(Author.class, Book.class, BOOKS),
-                new Path.PathElement(Book.class, Chapter.class, "chapters"),
-                new Path.PathElement(Chapter.class, String.class, TITLE)
-        );
-
-        FilterPredicate titlePredicate = new InPredicate(
-                new Path(chapterTitlePath),
-                "ABC", "DEF");
-
-        List<Path.PathElement>  publisherNamePath = Arrays.asList(
-                new Path.PathElement(Author.class, Book.class, BOOKS),
-                new Path.PathElement(Book.class, Publisher.class, PUBLISHER),
-                new Path.PathElement(Publisher.class, String.class, "name")
-        );
-
-        FilterPredicate publisherNamePredicate = new InPredicate(
-                new Path(publisherNamePath), "Pub1");
+        final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", Author.class, true);
+        final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", Author.class, true);
 
         OrFilterExpression expression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
 
@@ -120,7 +114,60 @@ public class RootCollectionFetchQueryBuilderTest {
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_publisher_name_\\w\\w\\w\\w+", ":books_publisher_name_XXX");
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDistinctRootFetchWithToManyJoinFilterAndPagination() throws ParseException {
+        final Pagination pagination = Pagination.fromOffsetAndLimit(10, 0, false);
+
+        final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", Author.class, true);
+        final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", Author.class, true);
+
+        OrFilterExpression expression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                Author.class, dictionary, new TestSessionWrapper());
+
+        builder.withPossiblePagination(Optional.of(pagination));
+
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .withPossibleFilterExpression(Optional.of(expression))
+                .build();
+
+
+        String expected =
+                "SELECT DISTINCT example_Author FROM example.Author AS example_Author  "
+                + "LEFT JOIN example_Author.books example_Author_books  "
+                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
+                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  "
+                + "WHERE (example_Book_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
+                + "OR example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
+
+        String actual = query.getQueryText();
+        actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
+        actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
+        actual = actual.replaceFirst(":books_publisher_name_\\w\\w\\w\\w+", ":books_publisher_name_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDistinctRootFetchWithToManyJoinFilterAndSortOverRelationshipAndPagination() throws ParseException {
+        final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", Author.class, true);
+        final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", Author.class, true);
+        final Pagination pagination = Pagination.fromOffsetAndLimit(10, 0, false);
+        final Sorting sorting = Sorting.parseSortRule("-books.title");
+
+        OrFilterExpression expression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
+
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+            Author.class, dictionary, new TestSessionWrapper());
+        builder.withPossibleFilterExpression(Optional.of(expression));
+        builder.withPossiblePagination(Optional.of(pagination));
+        builder.withPossibleSorting(Optional.of(sorting));
+
+        assertThrows(InvalidValueException.class, builder::build);
     }
 
     @Test
@@ -142,12 +189,12 @@ public class RootCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book  "
-                + "WHERE example_Book.id IN (:id_XXX)  order by example_Book.title asc";
+                "SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher"
+                + "  WHERE example_Book.id IN (:id_XXX)  order by example_Book.title asc";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 }

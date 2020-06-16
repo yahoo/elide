@@ -6,8 +6,11 @@
 
 package com.yahoo.elide.graphql;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.RequestScope;
+import org.junit.jupiter.api.Test;
 
 import graphql.ExecutionResult;
 
@@ -32,6 +35,21 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootCollection() throws Exception {
         runComparisonTest("rootCollection");
+    }
+
+    @Test
+    public void testComplexAttribute() throws Exception {
+        runComparisonTest("complexAttribute");
+    }
+
+    @Test
+    public void testComplexAttributeList() throws Exception {
+        runComparisonTest("complexAttributeList");
+    }
+
+    @Test
+    public void testComplexAttributeMap() throws Exception {
+        runComparisonTest("complexAttributeMap");
     }
 
     @Test
@@ -96,6 +114,9 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
     @Test
     public void testFailuresWithBody() throws Exception {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         String graphQLRequest = "{ "
                 + "book(ids: [\"1\"], data: [{\"id\": \"1\"}]) { "
                 + "edges { node { "
@@ -105,7 +126,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "} "
                 + "}";
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        Assert.assertTrue(!result.getErrors().isEmpty());
+        assertTrue(!result.getErrors().isEmpty());
     }
 
     @Test
@@ -145,6 +166,9 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
     @Test
     public void testSchemaIntrospection() throws Exception {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         String graphQLRequest = "{"
             + "__schema {"
             + "types {"
@@ -154,11 +178,14 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
             + "}";
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
 
-        Assert.assertTrue(result.getErrors().isEmpty());
+        assertTrue(result.getErrors().isEmpty());
     }
 
     @Test
     public void testTypeIntrospection() throws Exception {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+
         String graphQLRequest = "{"
             + "__type(name: \"author\") {"
             + "   name"
@@ -169,7 +196,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
             + "}";
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
 
-        Assert.assertTrue(result.getErrors().isEmpty());
+        assertTrue(result.getErrors().isEmpty());
     }
 
     @Override

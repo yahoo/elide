@@ -53,7 +53,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     private final SessionWrapper sessionWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
-    private final ScrollMode scrollMode;
 
     /**
      * Constructor.
@@ -71,7 +70,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
         this.sessionWrapper = new SessionWrapper(session);
         this.isScrollEnabled = isScrollEnabled;
-        this.scrollMode = scrollMode;
     }
 
     @Override
@@ -89,14 +87,17 @@ public class HibernateTransaction implements DataStoreTransaction {
         try {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
-            FlushMode flushMode = session.getHibernateFlushMode();
-            // flush once for patch extension
-            if (requestScope != null && !requestScope.isMutatingMultipleEntities() && flushMode != FlushMode.MANUAL) {
-                session.flush();
-            }
+            hibernateFlush(requestScope);
         } catch (PersistenceException e) {
             log.error("Caught hibernate exception during flush", e);
             throw new TransactionException(e);
+        }
+    }
+
+    protected void hibernateFlush(RequestScope requestScope) {
+        FlushMode flushMode = session.getHibernateFlushMode();
+        if (flushMode != FlushMode.MANUAL) {
+            session.flush();
         }
     }
 
@@ -183,7 +184,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (isScrollEnabled) {
             return new ScrollableIterator<>(query.getQuery().scroll());
         }
-        return query.getQuery().list();
+        return (Iterable) query.getQuery().list();
     }
 
     @Override
@@ -199,8 +200,18 @@ public class HibernateTransaction implements DataStoreTransaction {
         EntityDictionary dictionary = scope.getDictionary();
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
+            Collection<?> filteredVal = (Collection<?>) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
+
+                /*
+                 * If there is no filtering or sorting required in the data store, and the pagination is default,
+                 * return the proxy and let Hibernate manage the SQL generation.
+                 */
+                if (! filterExpression.isPresent() && ! sorting.isPresent()
+                    && (! pagination.isPresent() || (pagination.isPresent() && pagination.get().isDefaultInstance()))) {
+                    return val;
+                }
+
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
                 RelationshipImpl relationship = new RelationshipImpl(

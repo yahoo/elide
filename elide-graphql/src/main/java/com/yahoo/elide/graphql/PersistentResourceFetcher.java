@@ -12,21 +12,25 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.MapEntryContainer;
 
 import com.google.common.collect.Sets;
+
+import org.apache.commons.collections4.IterableUtils;
 
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayDeque;
@@ -42,19 +46,21 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
  */
 @Slf4j
-public class PersistentResourceFetcher implements DataFetcher {
+public class PersistentResourceFetcher implements DataFetcher<Object> {
     private final ElideSettings settings;
 
-    public PersistentResourceFetcher(ElideSettings settings) {
+    @Getter
+    private final NonEntityDictionary nonEntityDictionary;
+
+    public PersistentResourceFetcher(ElideSettings settings, NonEntityDictionary nonEntityDictionary) {
         this.settings = settings;
+        this.nonEntityDictionary = nonEntityDictionary;
     }
 
     /**
@@ -166,7 +172,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return {@link PersistentResource} object(s)
      */
-    public ConnectionContainer fetchObject(Environment context, RequestScope requestScope, Class entityClass,
+    public ConnectionContainer fetchObject(Environment context, RequestScope requestScope, Class<?> entityClass,
                                                 Optional<List<String>> ids, Optional<String> sort,
                                                 Optional<String> offset, Optional<String> first,
                                                 Optional<String> filters, boolean generateTotals) {
@@ -207,7 +213,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return persistence resource object(s)
      */
     public Object fetchRelationship(Environment context,
-                                     PersistentResource parentResource,
+                                     PersistentResource<?> parentResource,
                                      String fieldName,
                                      Optional<List<String>> ids,
                                      Optional<String> offset,
@@ -216,7 +222,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                                      Optional<String> filters,
                                      boolean generateTotals) {
         EntityDictionary dictionary = parentResource.getRequestScope().getDictionary();
-        Class entityClass = dictionary.getParameterizedType(parentResource.getObject(), fieldName);
+        Class<?> entityClass = dictionary.getParameterizedType(parentResource.getObject(), fieldName);
         String typeName = dictionary.getJsonAliasFor(entityClass);
 
         Optional<Pagination> pagination = buildPagination(first, offset, generateTotals);
@@ -255,7 +261,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return Connection object.
      */
     private ConnectionContainer upsertOrUpdateObjects(Environment context,
-                                                      Executor updateFunc,
+                                                      Executor<?> updateFunc,
                                                       RelationshipOp operation) {
         /* sanity check for id and data argument w UPSERT/UPDATE */
         if (context.ids.isPresent()) {
@@ -298,8 +304,10 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* fixup relationships */
         for (Entity entity : entitySet) {
             graphWalker(entity, this::updateRelationship);
-            if (!context.isRoot()) { /* add relation between parent and nested entity */
-                context.parentResource.addRelation(context.field.getName(), entity.toPersistentResource());
+            PersistentResource<?> childResource = entity.toPersistentResource();
+            if (!context.isRoot()) {
+                /* add relation between parent and nested entity */
+                context.parentResource.addRelation(context.field.getName(), childResource);
             }
         }
 
@@ -326,8 +334,8 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param function Function to process nodes
      * @return set of {@link PersistentResource} objects
      */
-    private void graphWalker(Entity entity, Executor function) {
-        Queue<Entity> toVisit = new ArrayDeque();
+    private void graphWalker(Entity entity, Executor<?> function) {
+        Queue<Entity> toVisit = new ArrayDeque<>();
         Set<Entity> visited = new LinkedHashSet<>();
         toVisit.add(entity);
 
@@ -335,9 +343,8 @@ public class PersistentResourceFetcher implements DataFetcher {
             Entity currentEntity = toVisit.remove();
             if (visited.contains(currentEntity)) {
                 continue;
-            } else {
-                visited.add(currentEntity);
             }
+            visited.add(currentEntity);
             function.execute(currentEntity);
             Set<Entity.Relationship> relationshipEntities = currentEntity.getRelationships();
             /* loop over relationships */
@@ -352,9 +359,9 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param entity Resource entity
      * @return {@link PersistentResource} object
      */
-    private PersistentResource updateRelationship(Entity entity) {
+    private PersistentResource<?> updateRelationship(Entity entity) {
         Set<Entity.Relationship> relationshipEntities = entity.getRelationships();
-        PersistentResource resource = entity.toPersistentResource();
+        PersistentResource<?> resource = entity.toPersistentResource();
         Set<PersistentResource> toUpdate;
 
         /* loop over each relationship */
@@ -374,12 +381,12 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param entity Resource entity
      * @return {@link PersistentResource} object
      */
-    private PersistentResource upsertObject(Environment context, Entity entity) {
+    private PersistentResource<?> upsertObject(Environment context, Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
-        PersistentResource upsertedResource;
-        PersistentResource parentResource;
+        PersistentResource<?> upsertedResource;
+        PersistentResource<?> parentResource;
         if (!entity.getParentResource().isPresent()) {
             parentResource = null;
         } else {
@@ -402,7 +409,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                         Optional.empty(),
                         Optional.empty(),
                         false).getPersistentResources();
-                upsertedResource = loadedResource.iterator().next();
+                upsertedResource = IterableUtils.first(loadedResource);
 
             //The ID doesn't exist yet.  Let's create the object.
             } catch (InvalidObjectIdentifierException | InvalidValueException e) {
@@ -416,24 +423,23 @@ public class PersistentResourceFetcher implements DataFetcher {
         return updateAttributes(upsertedResource, entity, attributes);
     }
 
-    private PersistentResource updateObject(Environment context, Entity entity) {
+    private PersistentResource<?> updateObject(Environment context, Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
-        PersistentResource updatedResource;
+        PersistentResource<?> updatedResource;
 
         if (!id.isPresent()) {
             throw new BadRequestException("UPDATE data objects must include ids");
-        } else {
-            Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
-                Optional.of(Arrays.asList(id.get())),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                false).getPersistentResources();
-            updatedResource = loadedResource.iterator().next();
         }
+        Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
+            Optional.of(Arrays.asList(id.get())),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            false).getPersistentResources();
+        updatedResource = IterableUtils.first(loadedResource);
 
         return updateAttributes(updatedResource, entity, attributes);
     }
@@ -445,7 +451,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param attributes Set of entity attributes
      * @return Persistence Resource object
      */
-    private PersistentResource updateAttributes(PersistentResource toUpdate,
+    private PersistentResource<?> updateAttributes(PersistentResource<?> toUpdate,
                                                 Entity entity,
                                                 Set<Entity.Attribute> attributes) {
         EntityDictionary dictionary = entity.getRequestScope().getDictionary();
@@ -455,7 +461,14 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* iterate through each attribute provided */
         for (Entity.Attribute attribute : attributes) {
             if (dictionary.isAttribute(entityClass, attribute.getName())) {
-                toUpdate.updateAttribute(attribute.getName(), attribute.getValue());
+                Class<?> attributeType = dictionary.getType(entityClass, attribute.getName());
+                Object attributeValue;
+                if (Map.class.isAssignableFrom(attributeType)) {
+                    attributeValue = MapEntryContainer.translateFromGraphQLMap(attribute);
+                } else {
+                    attributeValue = attribute.getValue();
+                }
+                toUpdate.updateAttribute(attribute.getName(), attributeValue);
             } else if (!Objects.equals(attribute.getName(), idFieldName)) {
                 throw new IllegalStateException("Unrecognized attribute passed to 'data': " + attribute.getName());
             }
@@ -561,22 +574,38 @@ public class PersistentResourceFetcher implements DataFetcher {
         return sort.map(Sorting::parseSortRule);
     }
 
+    private MultivaluedHashMap<String, String> getQueryParams(Optional<String> typeName, String filterStr) {
+        return new MultivaluedHashMap<String, String>() {
+            {
+                String filterKey = "filter";
+                if (typeName.isPresent()) {
+                    filterKey += "[" + typeName + "]";
+                }
+                put(filterKey, Arrays.asList(filterStr));
+            }
+        };
+    }
+
     private Optional<FilterExpression> buildFilter(String typeName,
                                                    Optional<String> filter,
                                                    RequestScope requestScope) {
         // TODO: Refactor FilterDialect interfaces to accept string or List<String> instead of (or in addition to?)
         // query params.
         return filter.map(filterStr -> {
-            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>() {
-                {
-                    put("filter[" + typeName + "]", Arrays.asList(filterStr));
-                }
-            };
+            String errorMessage = "";
             try {
-                return requestScope.getFilterDialect().parseTypedExpression(typeName, queryParams).get(typeName);
+                return requestScope.getFilterDialect()
+                        .parseGlobalExpression(typeName, getQueryParams(Optional.empty(), filterStr));
             } catch (ParseException e) {
-                log.debug("Filter parse exception caught", e);
-                throw new InvalidPredicateException("Could not parse filter for type: " + typeName);
+                errorMessage = e.getMessage();
+            }
+
+            try {
+                return requestScope.getFilterDialect()
+                        .parseTypedExpression(typeName, getQueryParams(Optional.of(typeName), filterStr))
+                        .get(typeName);
+            } catch (ParseException e) {
+                throw new BadRequestException(errorMessage + "\n" + e.getMessage());
             }
         });
     }

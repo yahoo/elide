@@ -1,9 +1,0 @@
-{
-    "data":{
-        "type":"user",
-        "id":"1",
-        "attributes":{
-            "password":"god"
-        }
-    }
-}

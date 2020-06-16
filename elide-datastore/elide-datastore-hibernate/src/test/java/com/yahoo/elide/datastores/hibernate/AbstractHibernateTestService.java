@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.datastores.hibernate;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import org.testng.annotations.BeforeTest;
+import org.junit.jupiter.api.BeforeAll;
 
 import lombok.NoArgsConstructor;
 
@@ -44,7 +44,7 @@ public abstract class AbstractHibernateTestService {
         return dataStore;
     }
 
-    @BeforeTest
+    @BeforeAll
     public static void initHibernate() {
         getDatabaseManager();
     }
@@ -53,7 +53,7 @@ public abstract class AbstractHibernateTestService {
         try {
             JsonApiDocument expectedDoc = jsonApiMapper.readJsonApiDocument(expected);
             JsonApiDocument actualDoc = jsonApiMapper.readJsonApiDocument(actual);
-            assertEquals(actualDoc, expectedDoc, "\n" + actual + "\n" + expected + "\n");
+            assertEquals(expectedDoc, actualDoc, "\n" + actual + "\n" + expected + "\n");
         } catch (IOException e) {
             fail("\n" + actual + "\n" + expected + "\n", e);
         }

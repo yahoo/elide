@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.4.2-SNAPSHOT</version>
+        <version>4.6.5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -40,7 +40,7 @@
 
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
-        <version.log4j>2.4.1</version.log4j>
+        <version.log4j>2.13.2</version.log4j>
     </properties>
 
     <dependencyManagement>
@@ -48,7 +48,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>4.4.2-SNAPSHOT</version>
+                <version>4.6.5-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -68,14 +68,6 @@
         <module>elide-blog-example</module>
         <module>elide-blog-example-resteasy</module>
     </modules>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
     <build>
         <pluginManagement>

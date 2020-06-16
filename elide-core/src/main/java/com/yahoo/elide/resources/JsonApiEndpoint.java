@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.resources;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
@@ -32,17 +34,18 @@ import javax.ws.rs.core.UriInfo;
  * Default endpoint/servlet for using Elide and JSONAPI.
  */
 @Singleton
-@Produces("application/vnd.api+json")
+@Produces(JSONAPI_CONTENT_TYPE)
 @Path("/")
 public class JsonApiEndpoint {
     protected final Elide elide;
     protected final Function<SecurityContext, Object> getUser;
 
-    private static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
+    public static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
 
     @Inject
-    public JsonApiEndpoint(@Named("elide") Elide elide,
-                           @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
+    public JsonApiEndpoint(
+            @Named("elide") Elide elide,
+            @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
         this.elide = elide;
         this.getUser = getUser == null ? DEFAULT_GET_USER : getUser;
     }
@@ -57,7 +60,7 @@ public class JsonApiEndpoint {
      */
     @POST
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response post(
         @PathParam("path") String path,
         @Context SecurityContext securityContext,
@@ -95,7 +98,7 @@ public class JsonApiEndpoint {
      */
     @PATCH
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response patch(
         @HeaderParam("Content-Type") String contentType,
         @HeaderParam("accept") String accept,
@@ -115,7 +118,7 @@ public class JsonApiEndpoint {
      */
     @DELETE
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response delete(
         @PathParam("path") String path,
         @Context SecurityContext securityContext,

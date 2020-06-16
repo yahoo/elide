@@ -5,111 +5,225 @@
  */
 package com.yahoo.elide.auditTests;
 
-import static com.jayway.restassured.RestAssured.given;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.audit.InMemoryLogger;
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.ResourceLinkage;
 import com.yahoo.elide.initialization.AuditIntegrationTestApplicationResourceConfig;
-import com.yahoo.elide.utils.JsonParser;
+import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import org.apache.http.HttpStatus;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests for audit functionality.
  */
-public class AuditIT extends AbstractIntegrationTestInitializer {
+public class AuditIT extends IntegrationTest {
     private final InMemoryLogger logger = AuditIntegrationTestApplicationResourceConfig.LOGGER;
-    private final JsonParser jsonParser = new JsonParser();
-
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     public AuditIT() {
-        super(AuditIntegrationTestApplicationResourceConfig.class);
+        super(AuditIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
     }
 
-    @Test(priority = 0)
-    public void testAuditOnCreate() throws Exception {
-        String request = jsonParser.getJson("/AuditIT/createAuditEntity.req.json");
-        String expected = jsonParser.getJson("/AuditIT/createAuditEntity.resp.json");
+    private static final Resource AUDIT_1 = resource(
+            type("auditEntity"),
+            id("1"),
+            attributes(
+                    attr("value", "test abc")
+            )
+    );
 
-        String actual = given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
-                .post("/auditEntity")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
+    private static final Resource AUDIT_1_RELATIONSHIP = resource(
+            type("auditEntity"),
+            id("1"),
+            attributes(
+                    attr("value", "updated value")
+            ),
+            relationships(
+                    relation(
+                            "otherEntity",
+                            true,
+                            linkage(
+                                    type("auditEntity"),
+                                    id("2")
+                            )
+                    )
+            )
+    );
 
-        assertEqualDocuments(actual, expected);
-        Assert.assertTrue(logger.logMessages.contains("old: null\n"
+    private static final Resource AUDIT_2 = resource(
+            type("auditEntity"),
+            id("2"),
+            attributes(
+                    attr("value", "test def")
+            ),
+            relationships(
+                    relation(
+                            "otherEntity",
+                            true,
+                            linkage(
+                                    type("auditEntity"),
+                                    id("1")
+                            )
+                    )
+            )
+    );
+
+    @Test
+    public void testAuditOnCreate() {
+        String expected = datum(
+                resource(
+                        type("auditEntity"),
+                        id("1"),
+                        attributes(
+                                attr("value", "test abc")
+                        ),
+                        relationships(
+                                relation("otherEntity", (ResourceLinkage[]) null),
+                                relation("inverses")
+                        )
+                )
+        ).toJSON();
+
+        // create auditEntity 1 and validate the created entity
+        String actual = createAuditEntity(AUDIT_1);
+
+        assertEqualDocuments(actual, expected); // document comparison is needed as the order of relationship can be different
+        assertTrue(logger.logMessages.contains("old: null\n"
                 + "new: Value: test abc relationship: null"));
-        Assert.assertTrue(logger.logMessages.contains("Created with value: test abc"));
+        assertTrue(logger.logMessages.contains("Created with value: test abc"));
     }
 
-    @Test(priority = 1)
+    @Test
     public void testAuditOnUpdate() {
-        String request = jsonParser.getJson("/AuditIT/createAuditEntity2.req.json");
-        String expected = jsonParser.getJson("/AuditIT/createAuditEntity2.resp.json");
+        String expected = datum(
+                resource(
+                        type("auditEntity"),
+                        id("2"),
+                        attributes(
+                                attr("value", "test def")
+                        ),
+                        relationships(
+                                relation(
+                                        "otherEntity",
+                                        linkage(
+                                                type("auditEntity"),
+                                                id("1")
+                                        )
+                                ),
+                                relation("inverses")
+                        )
+                )
+        ).toJSON();
 
-        String actual = given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
-                .post("/auditEntity")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
+        // create auditEntity 1
+        createAuditEntity(AUDIT_1);
 
-        assertEqualDocuments(actual, expected);
+        // create auditEntity 2 and validate the created entity
+        String actual = createAuditEntity(AUDIT_2);
 
-        request = jsonParser.getJson("/AuditIT/updateAuditEntity.req.json");
+        assertEqualDocuments(actual, expected); // document comparison is needed as the order of relationship can be different
 
+        // update auditEntity 1 directly
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(
+                        datum(AUDIT_1_RELATIONSHIP).toJSON()
+                )
                 .patch("/auditEntity/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        Assert.assertTrue(logger.logMessages.contains("Updated relationship (for id: 1): 2"));
-        Assert.assertTrue(logger.logMessages.contains("Updated value (for id: 1): updated value"));
+        assertTrue(logger.logMessages.contains("Updated relationship (for id: 1): 2"));
+        assertTrue(logger.logMessages.contains("Updated value (for id: 1): updated value"));
     }
 
-    @Test(priority = 2)
+    @Test
     public void testAuditWithDuplicateLineageEntry() {
-        String request = jsonParser.getJson("/AuditIT/updateAuditEntityLineageDup.req.json");
+        // create auditEntity 1 and 2
+        createAuditEntity(AUDIT_1);
+        createAuditEntity(AUDIT_2);
 
+        // update auditEntity 1 through the relationship of auditEntity 2
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(
+                        datum(
+                                resource(
+                                        type("auditEntity"),
+                                        id("1"),
+                                        attributes(
+                                                attr("value", "update id 1 through id 2")
+                                        )
+                                )
+                        ).toJSON()
+                )
                 .patch("/auditEntity/2/otherEntity/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        Assert.assertTrue(logger.logMessages.contains("Updated value (for id: 1): update id 1 through id 2"));
+        assertTrue(logger.logMessages.contains("Updated value (for id: 1): update id 1 through id 2"));
     }
 
-    @Test(priority = 3)
+    @Test
     public void testAuditUpdateOnInverseCollection() {
-        String request = jsonParser.getJson("/AuditIT/createAuditEntityInverse.req.json");
+        // create auditEntity 1 and 2, update auditEntity 1 to have relationship to auditEntity 2
+        createAuditEntity(AUDIT_1);
+        createAuditEntity(AUDIT_2);
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(AUDIT_1_RELATIONSHIP).toJSON()
+                )
+                .patch("/auditEntity/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        Assert.assertFalse(logger.logMessages.contains("Inverse entities: [Value: update id 1 through id 2 relationship: 2]"));
+        assertFalse(logger.logMessages.contains("Inverse entities: [Value: updated value relationship: 2]"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(
+                        datum(
+                                resource(
+                                        type("auditEntityInverse"),
+                                        id("1"),
+                                        relationships(
+                                                relation(
+                                                        "entities",
+                                                        linkage(
+                                                                type("auditEntity"),
+                                                                id("1")
+                                                        )
+                                                )
+                                        )
+                                )
+                        ).toJSON()
+                )
                 .post("/auditEntityInverse")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        Assert.assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list [AuditEntityInverse{id=1, entities=[Value: update id 1 through id 2 relationship: 2]}]"));
-        Assert.assertTrue(logger.logMessages.contains("Inverse entities: [Value: update id 1 through id 2 relationship: 2]"));
+        assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list [AuditEntityInverse{id=1, entities=[Value: updated value relationship: 2]}]"));
+        assertTrue(logger.logMessages.contains("Inverse entities: [Value: updated value relationship: 2]"));
 
         // This message may have been added on create. Remove it so we don't get a false positive.
         // NOTE: Our internal audit loggers handle this behavior by ignoring update messages associated with
@@ -125,7 +239,22 @@ public class AuditIT extends AbstractIntegrationTestInitializer {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        Assert.assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list []"));
-        Assert.assertTrue(logger.logMessages.contains("Inverse entities: []"));
+        assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list []"));
+        assertTrue(logger.logMessages.contains("Inverse entities: []"));
+    }
+
+    private String createAuditEntity(Resource auditEntity) {
+        return given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(auditEntity).toJSON()
+                )
+                .post("/auditEntity")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract()
+                .body()
+                .asString();
     }
 }

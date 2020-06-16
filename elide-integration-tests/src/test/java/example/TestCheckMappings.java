@@ -32,7 +32,7 @@ public class TestCheckMappings {
                     .put("negativeIntegerUser", NegativeIntegerUserCheck.class)
                     .put("negativeChildId", NegativeChildIdCheck.class)
                     .put("noCommit", NoCommitEntity.NoCommitCheck.class)
-                    .put("child4Parent10", Child4Parent10Check.class)
+                    .put("child4Parent5", Child4Parent5Check.class)
                     .put("checkActsLikeFilter", AnotherFilterExpressionCheckObj.CheckActsLikeFilter.class)
                     .put("noRead", CreateButNoRead.NOREAD.class)
                     .put("updateOnCreate", Common.UpdateOnCreate.class)

@@ -14,7 +14,6 @@ import example.Author;
 import example.Book;
 import example.Pseudonym;
 import example.Publisher;
-import org.testng.annotations.BeforeClass;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +24,7 @@ import java.util.Map;
 public class GraphQLTest {
     protected EntityDictionary dictionary;
 
-    @BeforeClass
-    public void init() {
+    public GraphQLTest() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
         checks.put("allow all", com.yahoo.elide.security.checks.prefab.Role.ALL.class);
 

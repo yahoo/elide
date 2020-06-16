@@ -20,6 +20,7 @@ import com.yahoo.elide.core.exceptions.InvalidConstraintException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.exceptions.UnableToAddSerdeException;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
@@ -31,19 +32,32 @@ import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.owasp.encoder.Encode;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolationException;
@@ -55,6 +69,9 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 @Slf4j
 public class Elide {
+    public static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
+    public static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
+            "application/vnd.api+json; ext=jsonpatch";
 
     @Getter private final ElideSettings elideSettings;
     @Getter private final AuditLogger auditLogger;
@@ -76,6 +93,64 @@ public class Elide {
         elideSettings.getSerdes().forEach((targetType, serde) -> {
             CoerceUtil.register(targetType, serde);
         });
+
+        registerCustomSerde();
+    }
+
+    protected void registerCustomSerde() {
+        Set<Class<?>> classes = registerCustomSerdeScan();
+
+        for (Class<?> clazz : classes) {
+            if (!Serde.class.isAssignableFrom(clazz)) {
+                log.warn("Skipping Serde registration (not a Serde!): {}", clazz);
+                continue;
+            }
+            Serde serde;
+            try {
+                serde = (Serde) clazz
+                        .getDeclaredConstructor()
+                        .newInstance();
+            } catch (InstantiationException | IllegalAccessException
+                    | NoSuchMethodException | InvocationTargetException e) {
+                String errorMsg = String.format("Error while registering custom Serde: %s", e.getLocalizedMessage());
+                log.error(errorMsg);
+                throw new UnableToAddSerdeException(errorMsg, e);
+            }
+            ElideTypeConverter converter = clazz.getAnnotation(ElideTypeConverter.class);
+            Class baseType = converter.type();
+            registerCustomSerde(baseType, serde, converter.name());
+
+            for (Class type : converter.subTypes()) {
+                if (!baseType.isAssignableFrom(type)) {
+                    throw new IllegalArgumentException("Mentioned type " + type
+                            + " not subtype of " + baseType);
+                }
+                registerCustomSerde(type, serde, converter.name());
+            }
+        }
+    }
+
+    protected void registerCustomSerde(Class<?> type, Serde serde, String name) {
+        log.info("Registering serde for type : {}", type);
+        CoerceUtil.register(type, serde);
+        registerCustomSerdeInObjectMapper(type, serde, name);
+    }
+
+    protected void registerCustomSerdeInObjectMapper(Class<?> type, Serde serde, String name) {
+        ObjectMapper objectMapper = mapper.getObjectMapper();
+        objectMapper.registerModule(new SimpleModule(name)
+                .addSerializer(type, new JsonSerializer<Object>() {
+                    @Override
+                    public void serialize(Object obj, JsonGenerator jsonGenerator,
+                                          SerializerProvider serializerProvider)
+                            throws IOException, JsonProcessingException {
+                        jsonGenerator.writeObject(serde.serialize(obj));
+                    }
+                }));
+    }
+
+    protected Set<Class<?>> registerCustomSerdeScan() {
+        return ClassScanner.getAnnotatedClasses(ElideTypeConverter.class);
     }
 
     /**
@@ -89,7 +164,7 @@ public class Elide {
     public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings, false);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -107,7 +182,7 @@ public class Elide {
     public ElideResponse post(String path, String jsonApiDocument, Object opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
             BaseVisitor visitor = new PostVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -141,7 +216,7 @@ public class Elide {
         } else {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
+                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 return visit(path, requestScope, visitor);
             };
@@ -163,7 +238,7 @@ public class Elide {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -247,9 +322,9 @@ public class Elide {
         } catch (ConstraintViolationException e) {
             log.debug("Constraint violation exception caught", e);
             String message = "Constraint violation";
-            if (!e.getConstraintViolations().isEmpty()) {
+            if (CollectionUtils.isNotEmpty(e.getConstraintViolations())) {
                 // Return error for the first constraint violation
-                message = e.getConstraintViolations().iterator().next().getMessage();
+                message = IterableUtils.first(e.getConstraintViolations()).getMessage();
             }
             return buildErrorResponse(new InvalidConstraintException(message), isVerbose);
 
@@ -266,13 +341,20 @@ public class Elide {
         if (error instanceof InternalServerErrorException) {
             log.error("Internal Server Error", error);
         }
+
+        boolean encodeErrorResponse = elideSettings.isEncodeErrorResponses();
         if (!(error instanceof CustomErrorException) && elideSettings.isReturnErrorObjects()) {
-            ErrorObjects errors = ErrorObjects.builder().addError()
-                    .withDetail(isVerbose ? error.getVerboseMessage() : error.toString()).build();
+            String errorDetail = isVerbose ? error.getVerboseMessage() : error.toString();
+            if (encodeErrorResponse) {
+                errorDetail = Encode.forHtml(errorDetail);
+            }
+            ErrorObjects errors = ErrorObjects.builder().addError().withDetail(errorDetail).build();
             JsonNode responseBody = mapper.getObjectMapper().convertValue(errors, JsonNode.class);
             return buildResponse(Pair.of(error.getStatus(), responseBody));
         }
-        return buildResponse(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse());
+
+        return buildResponse(isVerbose ? error.getVerboseErrorResponse(encodeErrorResponse)
+                : error.getErrorResponse(encodeErrorResponse));
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

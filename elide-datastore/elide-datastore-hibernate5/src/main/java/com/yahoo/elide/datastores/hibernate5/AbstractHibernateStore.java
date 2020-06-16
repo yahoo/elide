@@ -5,22 +5,22 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.JPQLDataStore;
 
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.jpa.HibernateEntityManager;
+import org.hibernate.jpa.HibernateEntityManagerFactory;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.EntityType;
 
 /**
  * Hibernate interface library.
  */
-public abstract class AbstractHibernateStore implements DataStore {
+public abstract class AbstractHibernateStore implements JPQLDataStore {
     protected final SessionFactory sessionFactory;
     protected final boolean isScrollEnabled;
     protected final ScrollMode scrollMode;
@@ -63,30 +63,30 @@ public abstract class AbstractHibernateStore implements DataStore {
      */
     public static class Builder {
         private final SessionFactory sessionFactory;
-        private final EntityManager entityManager;
         private boolean isScrollEnabled;
         private ScrollMode scrollMode;
+        private EntityManagerFactory emf;
 
         public Builder(final SessionFactory sessionFactory) {
             this.sessionFactory = sessionFactory;
             this.isScrollEnabled = true;
             this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.entityManager = null;
+            this.emf = null;
         }
 
-        public Builder(final EntityManager entityManager) {
+        public Builder(final EntityManagerFactory entityManagerFactory) {
             this.sessionFactory = null;
             this.isScrollEnabled = true;
             this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.entityManager = entityManager;
+            this.emf = entityManagerFactory;
         }
 
         @Deprecated
-        public Builder(final HibernateEntityManager entityManager) {
+        public Builder(final HibernateEntityManagerFactory entityManagerFactory) {
             this.sessionFactory = null;
             this.isScrollEnabled = true;
             this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.entityManager = entityManager;
+            this.emf = entityManagerFactory;
         }
 
         public Builder withScrollEnabled(final boolean isScrollEnabled) {
@@ -102,8 +102,8 @@ public abstract class AbstractHibernateStore implements DataStore {
         public AbstractHibernateStore build() {
             if (sessionFactory != null) {
                 return new HibernateSessionFactoryStore(sessionFactory, isScrollEnabled, scrollMode);
-            } else if (entityManager != null) {
-                return new HibernateEntityManagerStore(entityManager, isScrollEnabled, scrollMode);
+            } else if (emf != null) {
+                return new HibernateEntityManagerStore(emf, isScrollEnabled, scrollMode);
             }
             throw new IllegalStateException("Either an EntityManager or SessionFactory is required!");
         }
@@ -112,34 +112,16 @@ public abstract class AbstractHibernateStore implements DataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
-        for (EntityType type : sessionFactory.getMetamodel().getEntities()) {
+        for (EntityType<?> type : sessionFactory.getMetamodel().getEntities()) {
             bindEntity(dictionary, type);
         }
     }
 
-    protected void bindEntity(EntityDictionary dictionary, EntityType type) {
-        try {
-            Class mappedClass = type.getJavaType();
-            // Ignore this result. We are just checking to see if it throws an exception meaning that
-            // provided class was _not_ an entity.
-            dictionary.lookupEntityClass(mappedClass);
+    protected void bindEntity(EntityDictionary dictionary, EntityType<?> type) {
+        Class<?> mappedClass = type.getJavaType();
 
-            // Bind if successful
-            dictionary.bindEntity(mappedClass);
-        } catch (IllegalArgumentException e)  {
-            // Ignore this entity
-            // Turns out that hibernate may include non-entity types in this list when using things
-            // like envers. Since they are not entities, we do not want to bind them into the entity
-            // dictionary
-        }
+        bindEntityClass(mappedClass, dictionary);
     }
-
-    /**
-     * Get current Hibernate session.
-     *
-     * @return session
-     */
-    abstract public Session getSession();
 
     /**
      * Start Hibernate transaction.

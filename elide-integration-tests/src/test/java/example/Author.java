@@ -9,8 +9,10 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,6 +29,9 @@ import javax.persistence.Table;
 
 /**
  * Model for authors.
+ * <p>
+ * <b>CAUTION: DO NOT DECORATE IT WITH {@link Builder}, which hides its no-args constructor. This will result in
+ * runtime error at places such as {@code entityClass.newInstance();}</b>
  */
 @Entity
 @Table(name = "author")
@@ -48,6 +53,17 @@ public class Author {
     @Exclude
     private String naturalKey = UUID.randomUUID().toString();
 
+    @Getter @Setter
+    private String name;
+
+    @ManyToMany(mappedBy = "authors")
+    @Getter @Setter
+    private Collection<Book> books = new ArrayList<>();
+
+    @Getter @Setter
+    @ReadPermission(expression = "deny all")
+    private String homeAddress;
+
     @Override
     public int hashCode() {
         return naturalKey.hashCode();
@@ -62,12 +78,6 @@ public class Author {
         return ((Author) obj).naturalKey.equals(naturalKey);
     }
 
-    @Getter @Setter
-    private String name;
-
-    @ManyToMany(mappedBy = "authors")
-    @Getter @Setter
-    private Collection<Book> books = new ArrayList<>();
     @Override
     public String toString() {
         return "Author: " + id;

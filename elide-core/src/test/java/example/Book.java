@@ -29,6 +29,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
+
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -69,6 +71,7 @@ public class Book {
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
     private Publisher publisher = null;
+    private Collection<String> awards = new ArrayList<>();
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -118,6 +121,16 @@ public class Book {
 
     public void setAuthors(Collection<Author> authors) {
         this.authors = authors;
+    }
+
+
+    @ElementCollection(targetClass = String.class)
+    public Collection<String> getAwards() {
+        return awards;
+    }
+
+    public void setAwards(Collection<String> awards) {
+        this.awards = awards;
     }
 
     @OneToOne

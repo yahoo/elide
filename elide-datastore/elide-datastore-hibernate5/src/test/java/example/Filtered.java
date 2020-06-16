@@ -26,15 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
 /**
  * Filtered permission check.
  */
 @CreatePermission(expression = "filterCheck")
-@ReadPermission(expression = "deny all OR filterCheck OR filterCheck3")
+@ReadPermission(expression = "deny all OR filterCheck OR filterCheck3 OR negativeIntegerUser")
 @UpdatePermission(expression = "filterCheck")
 @DeletePermission(expression = "filterCheck")
 @Include(rootLevel = true)
@@ -42,20 +39,8 @@ import javax.persistence.Id;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @ToString
-public class Filtered  {
+public class Filtered extends BaseId {
     @ReadPermission(expression = "deny all") public transient boolean init = false;
-
-    private long id;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     static private FilterPredicate getPredicateOfId(long id) {
         Path.PathElement path1 = new Path.PathElement(Filtered.class, long.class, "id");
@@ -68,7 +53,7 @@ public class Filtered  {
     /**
      * Filter for ID == 1.
      */
-    static public class FilterCheck extends FilterExpressionCheck {
+    static public class FilterCheck<T> extends FilterExpressionCheck<T> {
         /* Limit reads to ID 1 */
         @Override
         public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
@@ -79,12 +64,11 @@ public class Filtered  {
     /**
      * Filter for ID == 3.
      */
-    static public class FilterCheck3 extends FilterExpressionCheck {
+    static public class FilterCheck3<T> extends FilterExpressionCheck<T> {
         /* Limit reads to ID 3 */
         @Override
         public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
             return getPredicateOfId(3L);
-
         }
     }
 }

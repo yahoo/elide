@@ -60,7 +60,7 @@ public class Child extends BaseId {
             targetEntity = Parent.class
         )
     // Contrived check for regression example. Should clean this up. No updating child 4 via parent 10
-    @UpdatePermission(expression = "child4Parent10")
+    @UpdatePermission(expression = "child4Parent5")
     public Set<Parent> getParents() {
         return parents;
     }
@@ -140,7 +140,7 @@ public class Child extends BaseId {
 
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
-        public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
             return new NotNullPredicate(new Path.PathElement(Child.class, Long.class, "id"));
         }
     }

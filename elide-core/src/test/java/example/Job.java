@@ -28,7 +28,7 @@ public class Job {
 
     @Id
     @Getter
-    private Long id;
+    private Long jobId;
 
     @Getter @Setter
     private String title;

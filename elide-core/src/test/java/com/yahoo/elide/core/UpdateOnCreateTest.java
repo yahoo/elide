@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -13,15 +14,12 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-
 import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
 import example.UpdateAndCreate;
-
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -33,7 +31,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     private RequestScope userThreeScope;
     private RequestScope userFourScope;
 
-    @BeforeTest
+    public UpdateOnCreateTest() {
+        super();
+        init();
+    }
+
     public void init() {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
@@ -55,13 +57,13 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         User userOne = new User(1);
-        userOneScope = new RequestScope(null, null, tx, userOne, null, elideSettings, false);
+        userOneScope = new RequestScope(null, null, tx, userOne, null, elideSettings);
         User userTwo = new User(2);
-        userTwoScope = new RequestScope(null, null, tx, userTwo, null, elideSettings, false);
+        userTwoScope = new RequestScope(null, null, tx, userTwo, null, elideSettings);
         User userThree = new User(3);
-        userThreeScope = new RequestScope(null, null, tx, userThree, null, elideSettings, false);
+        userThreeScope = new RequestScope(null, null, tx, userThree, null, elideSettings);
         User userFour = new User(4);
-        userFourScope = new RequestScope(null, null, tx, userFour, null, elideSettings, false);
+        userFourScope = new RequestScope(null, null, tx, userFour, null, elideSettings);
 
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
         when(tx.loadObject(eq(UpdateAndCreate.class),
@@ -103,9 +105,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     }
 
     //Create denied based on field level expression
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void createPermissionCheckFieldAnnotationForCreatingAnEntityFailureCase() {
-        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userFourScope, Optional.of("3"));
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> PersistentResource.createObject(null, UpdateAndCreate.class, userFourScope, Optional.of("3")));
     }
 
     //----------------------------------------- ** Update Attribute ** ------------------------------------------------
@@ -119,12 +123,12 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void updatePermissionInheritedForAttributeFailureCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
                 "1",
                 userOneScope);
-        loaded.updateAttribute("name", "");
+        assertThrows(ForbiddenAccessException.class, () -> loaded.updateAttribute("name", ""));
     }
 
     //Class level expression overwritten by field level expression
@@ -137,12 +141,12 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void updatePermissionOverwrittenForAttributeFailureCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
                 "1",
                 userThreeScope);
-        loaded.updateAttribute("alias", "");
+        assertThrows(ForbiddenAccessException.class, () -> loaded.updateAttribute("alias", ""));
     }
 
 
@@ -160,7 +164,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void updatePermissionInheritedForRelationFailureCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
                 "1",
@@ -168,7 +172,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
                 "1",
                 userOneScope);
-        loaded.addRelation("books", loadedBook);
+        assertThrows(ForbiddenAccessException.class, () -> loaded.addRelation("books", loadedBook));
     }
 
     //Class level expression overwritten by field level expression
@@ -184,7 +188,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void updatePermissionOverwrittenForRelationFailureCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
                 "1",
@@ -192,7 +196,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
                 "1",
                 userTwoScope);
-        loaded.addRelation("author", loadedAuthor);
+        assertThrows(ForbiddenAccessException.class, () -> loaded.addRelation("author", loadedAuthor));
     }
 
     //----------------------------------------- ** Update Attribute On Create ** --------------------------------------
@@ -204,10 +208,10 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void createPermissionInheritedForAttributeFailureCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("5"));
-        created.updateAttribute("name", "");
+        assertThrows(ForbiddenAccessException.class, () -> created.updateAttribute("name", ""));
     }
 
     //Class level expression overwritten by field level expression
@@ -218,10 +222,15 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void createPermissionOverwrittenForAttributeFailureCase() {
-        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userFourScope, Optional.of("7"));
-        created.updateAttribute("alias", "");
+        assertThrows(
+                ForbiddenAccessException.class, () -> {
+                    PersistentResource<UpdateAndCreate> created =
+                            PersistentResource.createObject(null, UpdateAndCreate.class, userFourScope, Optional.of("7"));
+                    created.updateAttribute("alias", "");
+                }
+        );
     }
 
 
@@ -237,13 +246,13 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void createPermissionInheritedForRelationFailureCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("9"));
         PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
                 "1",
                 userThreeScope);
-        created.addRelation("books", loadedBook);
+        assertThrows(ForbiddenAccessException.class, () -> created.addRelation("books", loadedBook));
     }
 
     //Class level expression overwritten by field level expression
@@ -257,12 +266,12 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void createPermissionOverwrittenForRelationFailureCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("11"));
         PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
                 "1",
                 userOneScope);
-        created.addRelation("author", loadedAuthor);
+        assertThrows(ForbiddenAccessException.class, () -> created.addRelation("author", loadedAuthor));
     }
 }

@@ -12,3 +12,6 @@ dependency-reduced-pom.xml
 *.class
 *tags
 **.swp
+.project
+*/.project
+*/*/.project

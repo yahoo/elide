@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.graphql;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the Add operation.
@@ -22,6 +23,24 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     public void testRootSingleWithList() throws Exception {
         //book 1 and 2 already exist, should update
         runComparisonTest("rootSingleWithList");
+    }
+
+    @Test
+    public void testUpdateComplexAttribute() throws Exception {
+        //book 1 and 2 already exist, should update
+        runComparisonTest("updateComplexAttribute");
+    }
+
+    @Test
+    public void testUpdateComplexAttributeList() throws Exception {
+        //book 1 and 2 already exist, should update
+        runComparisonTest("updateComplexAttributeList");
+    }
+
+    @Test
+    public void testUpdateComplexAttributeMap() throws Exception {
+        //book 1 and 2 already exist, should update
+        runComparisonTest("updateComplexAttributeMap");
     }
 
     @Test
@@ -70,7 +89,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     }
 
     // TODO: Reeanble when supporting arguments into computed attributes.
-    @Test(enabled = false)
+    @Disabled
     public void testSetComputedAttribute() throws Exception {
         runComparisonTest("setComputedAttribute");
     }

@@ -1,0 +1,3 @@
+{
+  "query": "{invoice(sort: \"<script>\"){edges{node{id}}}"
+}

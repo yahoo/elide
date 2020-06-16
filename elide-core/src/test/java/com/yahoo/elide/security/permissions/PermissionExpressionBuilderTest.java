@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
@@ -17,10 +19,8 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.permissions.expressions.Expression;
-
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class PermissionExpressionBuilderTest {
     private PermissionExpressionBuilder builder;
     private ElideSettings elideSettings;
 
-    @BeforeMethod
+    @BeforeEach
     public void setupEntityDictionary() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
         checks.put("user has all access", Role.ALL.class);
@@ -63,21 +63,23 @@ public class PermissionExpressionBuilderTest {
         Expression expression = builder.buildAnyFieldExpressions(
                 resource,
                 ReadPermission.class,
-                (ChangeSpec) null);
+                null);
 
-        Assert.assertEquals(expression.toString(),
+        assertEquals(
                 "READ PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  "
                         + "FOR EXPRESSION [(FIELDS(\u001B[31mFAILURE\u001B[m)) OR (ENTITY(((user has all access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)) AND ((user has no access "
-                        + "\u001B[34mWAS UNEVALUATED\u001B[m))))]");
+                        + "\u001B[34mWAS UNEVALUATED\u001B[m))))]",
+                expression.toString());
 
         expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
 
-        Assert.assertEquals(expression.toString(),
+        assertEquals(
                 "READ PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  "
                         + "FOR EXPRESSION [(FIELDS(\u001B[31mFAILURE\u001B[m)) OR (ENTITY(((user has all access "
                         + "\u001B[32mPASSED\u001B[m)) AND ((user has no access "
-                        + "\u001B[31mFAILED\u001B[m))))]");
+                        + "\u001B[31mFAILED\u001B[m))))]",
+                expression.toString());
 
     }
 
@@ -104,26 +106,28 @@ public class PermissionExpressionBuilderTest {
                 "foo",
                 changes);
 
-        Assert.assertEquals(expression.toString(),
+        assertEquals(
                 "UPDATE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=0} WITH CHANGES ChangeSpec { "
                         + "resource=PersistentResource{type=model, id=0}, field=foo, original=1, modified=2} "
                         + "FOR EXPRESSION [FIELD(((user has all access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)) OR ((user has no access "
-                        + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
+                        + "\u001B[34mWAS UNEVALUATED\u001B[m)))]",
+                expression.toString());
 
         expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
 
-        Assert.assertEquals(expression.toString(),
+        assertEquals(
                 "UPDATE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=0} WITH CHANGES ChangeSpec { "
                         + "resource=PersistentResource{type=model, id=0}, field=foo, original=1, modified=2} "
                         + "FOR EXPRESSION [FIELD(((user has all access "
                         + "\u001B[32mPASSED\u001B[m)) OR ((user has no access "
-                        + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
+                        + "\u001B[34mWAS UNEVALUATED\u001B[m)))]",
+                expression.toString());
 
      }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, null, null, null, elideSettings, false);
+        RequestScope requestScope = new RequestScope(null, null, null, null, null, elideSettings);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 }

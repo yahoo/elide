@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.datastores.noop;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ public class NoopDataStoreTest {
         DataStore store = new NoopDataStore(Arrays.asList(NoopBean.class));
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         store.populateEntityDictionary(dictionary);
-        assertEquals(dictionary.getEntityClass("theNoopBean"), NoopBean.class);
+        assertEquals(NoopBean.class, dictionary.getEntityClass("theNoopBean"));
     }
 
     @Test

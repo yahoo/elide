@@ -5,107 +5,175 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.utils.JsonParser;
+import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
+import java.util.HashMap;
 
-public class BookAuthorIT extends AbstractIntegrationTestInitializer {
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
+public class BookAuthorIT extends IntegrationTest {
 
     private static final String ATTRIBUTES = "attributes";
     private static final String RELATIONSHIPS = "relationships";
     private static final String INCLUDED = "included";
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final JsonParser jsonParser = new JsonParser();
+    private static final Resource HEMINGWAY = resource(
+            type("author"),
+            attributes(
+                    attr("name", "Ernest Hemingway")
+            )
+    );
 
-    @Test
-    public void setup() throws IOException {
+    private static final Resource THE_OLD_MAN_AND_THE_SEA = resource(
+            type("book"),
+            attributes(
+                    attr("title", "The Old Man and the Sea"),
+                    attr("genre", "Literary Fiction"),
+                    attr("language", "English")
+            )
+    );
+
+    private static final Resource HEMINGWAY_RELATIONSHIP = resource(
+            type("author"),
+            id(1)
+    );
+
+    private static final Resource ORSON_SCOTT_CARD = resource(
+            type("author"),
+            attributes(
+                    attr("name", "Orson Scott Card")
+            )
+    );
+
+    private static final Resource ENDERS_GAME = resource(
+            type("book"),
+            attributes(
+                    attr("title", "Ender's Game"),
+                    attr("genre", "Science Fiction"),
+                    attr("language", "English")
+            )
+    );
+
+    private static final Resource ORSON_RELATIONSHIP = resource(
+            type("author"),
+            id(2)
+    );
+
+    private static final Resource FOR_WHOM_THE_BELL_TOLLS = resource(
+            type("book"),
+            attributes(
+                    attr("title", "For Whom the Bell Tolls"),
+                    attr("genre", "Literary Fiction"),
+                    attr("language", "English")
+            )
+    );
+
+    @BeforeEach
+    public void setup() {
+        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+
         // Create Author: Ernest Hemingway
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway.json"))
+                .body(
+                        datum(HEMINGWAY).toJSON()
+                )
                 .post("/author")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Book: The Old Man and the Sea
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/BookAuthorIT/the_old_man_and_the_sea.json"))
+                .body(
+                        datum(THE_OLD_MAN_AND_THE_SEA).toJSON()
+                )
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Relationship: Ernest Hemingway -> The Old Man and the Sea
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway_relationship.json"))
+                .body(
+                        datum(HEMINGWAY_RELATIONSHIP).toJSON()
+                )
                 .patch("/book/1/relationships/authors")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         // Create Author: Orson Scott Card
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/BookAuthorIT/orson_scott_card.json"))
+                .body(
+                        datum(ORSON_SCOTT_CARD).toJSON()
+                )
                 .post("/author")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Book: Ender's Game
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/BookAuthorIT/enders_game.json"))
+                .body(
+                        datum(ENDERS_GAME).toJSON()
+                )
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Relationship: Orson Scott Card -> Ender's Game
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/BookAuthorIT/orson_scott_card_relationship.json"))
+                .body(
+                        datum(ORSON_RELATIONSHIP).toJSON()
+                )
                 .patch("/book/2/relationships/authors")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
         // Create Book: For Whom the Bell Tolls
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/BookAuthorIT/for_whom_the_bell_tolls.json"))
+                .body(
+                        datum(FOR_WHOM_THE_BELL_TOLLS).toJSON()
+                )
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Create Relationship: Ernest Hemingway -> For Whom the Bell Tolls
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway_relationship.json"))
+                .body(
+                        datum(HEMINGWAY_RELATIONSHIP).toJSON()
+                )
                 .patch("/book/3/relationships/authors")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -113,130 +181,138 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testSparseSingleDataFieldValue() throws Exception {
-        JsonNode responseBody = objectMapper.readTree(
-                RestAssured
-                        .given()
+        JsonNode responseBody = mapper.readTree(
+                given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
                         .param("fields[book]", "title")
-                        .get("/book").asString());
+                        .get("/book")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
 
-        Assert.assertTrue(responseBody.has("data"));
+        assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
-            Assert.assertTrue(bookNode.has(ATTRIBUTES));
-            Assert.assertFalse(bookNode.has(RELATIONSHIPS));
+            assertTrue(bookNode.has(ATTRIBUTES));
+            assertFalse(bookNode.has(RELATIONSHIPS));
 
             JsonNode attributes = bookNode.get(ATTRIBUTES);
-            Assert.assertEquals(attributes.size(), 1);
-            Assert.assertTrue(attributes.has("title"));
+            assertEquals(1, attributes.size());
+            assertTrue(attributes.has("title"));
         }
 
-        Assert.assertTrue(responseBody.has(INCLUDED));
+        assertTrue(responseBody.has(INCLUDED));
 
         for (JsonNode include : responseBody.get(INCLUDED)) {
-            Assert.assertFalse(include.has(ATTRIBUTES));
-            Assert.assertFalse(include.has(RELATIONSHIPS));
+            assertFalse(include.has(ATTRIBUTES));
+            assertFalse(include.has(RELATIONSHIPS));
         }
     }
 
     @Test
     public void testSparseTwoDataFieldValuesNoIncludes() throws Exception {
-        JsonNode responseBody = objectMapper.readTree(
-                RestAssured
-                        .given()
+        JsonNode responseBody = mapper.readTree(
+                given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("fields[book]", "title,language")
-                        .get("/book").asString());
+                        .get("/book")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
 
-        Assert.assertTrue(responseBody.has("data"));
+        assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
-            Assert.assertTrue(bookNode.has(ATTRIBUTES));
-            Assert.assertFalse(bookNode.has(RELATIONSHIPS));
+            assertTrue(bookNode.has(ATTRIBUTES));
+            assertFalse(bookNode.has(RELATIONSHIPS));
 
             JsonNode attributes = bookNode.get(ATTRIBUTES);
-            Assert.assertEquals(attributes.size(), 2);
-            Assert.assertTrue(attributes.has("title"));
-            Assert.assertTrue(attributes.has("language"));
+            assertEquals(2, attributes.size());
+            assertTrue(attributes.has("title"));
+            assertTrue(attributes.has("language"));
         }
 
-        Assert.assertFalse(responseBody.has(INCLUDED));
+        assertFalse(responseBody.has(INCLUDED));
     }
 
     @Test
     public void testSparseNoFilters() throws Exception {
-        JsonNode responseBody = objectMapper.readTree(
-                RestAssured
-                        .given()
+        JsonNode responseBody = mapper.readTree(
+                given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
-                        .get("/book").asString());
+                        .get("/book")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
 
-        Assert.assertTrue(responseBody.has("data"));
+        assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
-            Assert.assertTrue(bookNode.has(ATTRIBUTES));
+            assertTrue(bookNode.has(ATTRIBUTES));
             JsonNode attributes = bookNode.get(ATTRIBUTES);
-            Assert.assertTrue(attributes.has("title"));
-            Assert.assertTrue(attributes.has("language"));
-            Assert.assertTrue(attributes.has("genre"));
+            assertTrue(attributes.has("title"));
+            assertTrue(attributes.has("language"));
+            assertTrue(attributes.has("genre"));
 
-            Assert.assertTrue(bookNode.has(RELATIONSHIPS));
+            assertTrue(bookNode.has(RELATIONSHIPS));
             JsonNode relationships = bookNode.get(RELATIONSHIPS);
-            Assert.assertTrue(relationships.has("authors"));
+            assertTrue(relationships.has("authors"));
         }
 
-        Assert.assertTrue(responseBody.has(INCLUDED));
+        assertTrue(responseBody.has(INCLUDED));
 
         for (JsonNode include : responseBody.get(INCLUDED)) {
-            Assert.assertTrue(include.has(ATTRIBUTES));
+            assertTrue(include.has(ATTRIBUTES));
             JsonNode attributes = include.get(ATTRIBUTES);
-            Assert.assertTrue(attributes.has("name"));
+            assertTrue(attributes.has("name"));
 
-            Assert.assertTrue(include.has(RELATIONSHIPS));
+            assertTrue(include.has(RELATIONSHIPS));
             JsonNode relationships = include.get(RELATIONSHIPS);
-            Assert.assertTrue(relationships.has("books"));
+            assertTrue(relationships.has("books"));
         }
     }
 
     @Test
     public void testTwoSparseFieldFilters() throws Exception {
-        JsonNode responseBody = objectMapper.readTree(
-                RestAssured
-                        .given()
+        JsonNode responseBody = mapper.readTree(
+                given()
                         .contentType(JSONAPI_CONTENT_TYPE)
                         .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
                         .param("fields[book]", "title,genre,authors")
                         .param("fields[author]", "name")
-                        .get("/book").asString());
+                        .get("/book")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
 
-        Assert.assertTrue(responseBody.has("data"));
+        assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
-            Assert.assertTrue(bookNode.has(ATTRIBUTES));
+            assertTrue(bookNode.has(ATTRIBUTES));
             JsonNode attributes = bookNode.get(ATTRIBUTES);
-            Assert.assertEquals(attributes.size(), 2);
-            Assert.assertTrue(attributes.has("title"));
-            Assert.assertTrue(attributes.has("genre"));
+            assertEquals(2, attributes.size());
+            assertTrue(attributes.has("title"));
+            assertTrue(attributes.has("genre"));
 
-            Assert.assertTrue(bookNode.has(RELATIONSHIPS));
+            assertTrue(bookNode.has(RELATIONSHIPS));
             JsonNode relationships = bookNode.get(RELATIONSHIPS);
-            Assert.assertTrue(relationships.has("authors"));
+            assertTrue(relationships.has("authors"));
         }
 
-        Assert.assertTrue(responseBody.has(INCLUDED));
+        assertTrue(responseBody.has(INCLUDED));
 
         for (JsonNode include : responseBody.get(INCLUDED)) {
-            Assert.assertTrue(include.has(ATTRIBUTES));
+            assertTrue(include.has(ATTRIBUTES));
             JsonNode attributes = include.get(ATTRIBUTES);
-            Assert.assertTrue(attributes.has("name"));
+            assertTrue(attributes.has("name"));
 
-            Assert.assertFalse(include.has(RELATIONSHIPS));
+            assertFalse(include.has(RELATIONSHIPS));
         }
     }
 }

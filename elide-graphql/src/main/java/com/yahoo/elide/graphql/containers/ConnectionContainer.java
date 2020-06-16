@@ -6,6 +6,7 @@
 package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
@@ -17,8 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.BadRequestException;
-
 /**
  * Container representing a GraphQL "connection" object.
  */
@@ -29,7 +28,7 @@ public class ConnectionContainer implements GraphQLContainer {
     // Refers to the type of persistentResources
     @Getter private final String typeName;
 
-    private static final String EDGES_KEYWORD = "edges";
+    public static final String EDGES_KEYWORD = "edges";
     public static final String PAGE_INFO_KEYWORD = "pageInfo";
 
     @Override

@@ -10,40 +10,22 @@ import com.yahoo.elide.core.EntityDictionary;
 
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
-import org.hibernate.jpa.HibernateEntityManager;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.EntityType;
 
 /**
  * Hibernate5 store supporting the EntityManager.
  */
 public class HibernateEntityManagerStore extends AbstractHibernateStore {
-    protected final EntityManager entityManager;
+    protected final EntityManagerFactory entityManagerFactory;
 
-    @Deprecated
-    public HibernateEntityManagerStore(HibernateEntityManager entityManager,
+    public HibernateEntityManagerStore(EntityManagerFactory entityManagerFactory,
                                        boolean isScrollEnabled,
                                        ScrollMode scrollMode) {
         super(null, isScrollEnabled, scrollMode);
-        this.entityManager = entityManager;
-    }
-
-    public HibernateEntityManagerStore(EntityManager entityManager,
-                                       boolean isScrollEnabled,
-                                       ScrollMode scrollMode) {
-        super(null, isScrollEnabled, scrollMode);
-        this.entityManager = entityManager;
-    }
-
-    /**
-     * Get current Hibernate session.
-     *
-     * @return session Hibernate session from EntityManager.
-     */
-    @Override
-    public Session getSession() {
-        return entityManager.unwrap(Session.class);
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     /**
@@ -54,7 +36,8 @@ public class HibernateEntityManagerStore extends AbstractHibernateStore {
     @Override
     @SuppressWarnings("resource")
     public DataStoreTransaction beginTransaction() {
-        Session session = getSession();
+        EntityManager manager = entityManagerFactory.createEntityManager();
+        Session session = manager.unwrap(Session.class);
         session.beginTransaction();
         session.clear();
         return transactionSupplier.get(session, isScrollEnabled, scrollMode);
@@ -63,7 +46,7 @@ public class HibernateEntityManagerStore extends AbstractHibernateStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
-        for (EntityType type : entityManager.getEntityManagerFactory().getMetamodel().getEntities()) {
+        for (EntityType<?> type : entityManagerFactory.getMetamodel().getEntities()) {
             bindEntity(dictionary, type);
         }
     }

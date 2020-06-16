@@ -15,11 +15,12 @@ import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.graphql.GraphQLEndointTest;
+import com.yahoo.elide.graphql.GraphQLEndpointTest;
 import com.yahoo.elide.security.RequestScope;
 
 import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;
+import lombok.Builder;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -31,6 +32,12 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Transient;
 
+/**
+ * Model for book.
+ * <p>
+ * <b>CAUTION: DO NOT DECORATE IT WITH {@link Builder}, which hides its no-args constructor. This will result in
+ * runtime error at places such as {@code entityClass.newInstance();}</b>
+ */
 @Include(rootLevel = true)
 @Entity
 @CreatePermission(expression = UserChecks.IS_USER_1)
@@ -87,19 +94,19 @@ public class Book {
 
     @OnUpdatePreSecurity(value = "title")
     public void titlePreSecurity(RequestScope scope) {
-        GraphQLEndointTest.User user = (GraphQLEndointTest.User) scope.getUser().getOpaqueUser();
+        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
         user.appendLog("On Title Update Pre Security\n");
     }
 
     @OnUpdatePreCommit(value = "title")
     public void titlePreCommit(RequestScope scope) {
-        GraphQLEndointTest.User user = (GraphQLEndointTest.User) scope.getUser().getOpaqueUser();
+        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
         user.appendLog("On Title Update Pre Commit\n");
     }
 
     @OnUpdatePostCommit(value = "title")
     public void titlePostCommit(RequestScope scope) {
-        GraphQLEndointTest.User user = (GraphQLEndointTest.User) scope.getUser().getOpaqueUser();
+        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
         user.appendLog("On Title Update Post Commit\n");
     }
 }

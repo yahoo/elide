@@ -18,10 +18,9 @@ import javax.persistence.Table;
  * Model for Users (author of posts and author of comments).
  */
 @Entity
-@Table(name = "user")
+@Table(name = "blogger")
 @Include(rootLevel = true)
 @SharePermission
-//@CreatePermission(expression = "Prefab.Role.All")
 public class User {
     private long id;
     private String name;

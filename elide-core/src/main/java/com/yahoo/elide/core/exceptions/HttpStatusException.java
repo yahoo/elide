@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.owasp.encoder.Encode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,16 +52,46 @@ public abstract class HttpStatusException extends RuntimeException {
                 : null;
     }
 
+    /**
+     * Get a response detailing the error that occurred.
+     * @return Pair containing status code and a JsonNode containing error details
+     */
     public Pair<Integer, JsonNode> getErrorResponse() {
+        return getErrorResponse(false);
+    }
+
+    /**
+     * Get a response detailing the error that occurred.
+     * Optionally, encode the error message to be safe for HTML.
+     * @param encodeResponse true if the message should be encoded for html
+     * @return Pair containing status code and a JsonNode containing error details
+     */
+    public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
+        String message = encodeResponse ? Encode.forHtml(toString()) : toString();
         Map<String, List<String>> errors = Collections.singletonMap(
-                "errors", Collections.singletonList(toString())
+                "errors", Collections.singletonList(message)
         );
         return buildResponse(errors);
     }
 
+    /**
+     * Get a verbose response detailing the error that occurred.
+     * @return Pair containing status code and a JsonNode containing error details
+     */
     public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+        return getVerboseErrorResponse(false);
+    }
+
+    /**
+     * Get a verbose response detailing the error that occurred.
+     * Optionally, encode the error message to be safe for HTML.
+     * @param encodeResponse true if the message should be encoded for html
+     * @return Pair containing status code and a JsonNode containing error details
+     */
+    public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
+        String message = encodeResponse ? Encode.forHtml(getVerboseMessage()) : getVerboseMessage();
         Map<String, List<String>> errors = Collections.singletonMap(
-                "errors", Collections.singletonList(getVerboseMessage())
+                "errors", Collections.singletonList(message)
         );
         return buildResponse(errors);
     }

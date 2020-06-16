@@ -5,50 +5,61 @@
  */
 package com.yahoo.elide.assignedIdLongTests;
 
-import static com.jayway.restassured.RestAssured.given;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.initialization.AssignedIdLongIntegrationTestApplicationResourceConfig;
-import com.yahoo.elide.utils.JsonParser;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
+import com.yahoo.elide.initialization.IntegrationTest;
 
 import org.apache.http.HttpStatus;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class AssignedIdLongIT extends AbstractIntegrationTestInitializer {
-    private final JsonParser jsonParser = new JsonParser();
+public class AssignedIdLongIT extends IntegrationTest {
 
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-
-    public AssignedIdLongIT() {
-        super(AssignedIdLongIntegrationTestApplicationResourceConfig.class);
-    }
-
-    @Test(priority = 0)
+    @Test
     public void testResponseCodeOnUpdate() {
-        String request = jsonParser.getJson("/AssignedIdLongIT/createAssignedIdLongEntity.req.json");
-        String expected = jsonParser.getJson("/AssignedIdLongIT/createAssignedIdLongEntity.resp.json");
+        Data original = datum(
+                resource(
+                        type("assignedIdLong"),
+                        id("1"),
+                        attributes(
+                                attr("value", 3)
+                        )
+                )
+        );
 
-        String actual = given()
+        Data modified = datum(
+                resource(
+                        type("assignedIdLong"),
+                        id("1"),
+                        attributes(
+                                attr("value", 9)
+                        )
+                )
+        );
+
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(original)
                 .post("/assignedIdLong")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
-        assertEqualDocuments(actual, expected);
+                .body(equalTo(original.toJSON()));
 
-        request = jsonParser.getJson("/AssignedIdLongIT/updateAssignedIdLong.req.json");
-        expected = jsonParser.getJson("/AssignedIdLongIT/updateAssignedIdLong.resp.json");
-
-        actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(modified)
                 .patch("/assignedIdLong/1")
                 .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-        assertEqualDocuments(actual, expected);
+                .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 }

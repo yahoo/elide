@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -198,9 +199,15 @@ public class JsonApiPatch {
             if (data == null || data.get() == null) {
                 throw new InvalidEntityBodyException("Expected an entity body but received none.");
             }
+
             Collection<Resource> resources = data.get();
             if (!path.contains("relationships")) { // Reserved key for relationships
                 String id = getSingleResource(resources).getId();
+
+                if (id == null || id.isEmpty()) {
+                    throw new InvalidEntityBodyException("Patch extension requires all objects to have an assigned "
+                            + "ID (temporary or permanent) when assigning relationships.");
+                }
                 String fullPath = path + "/" + id;
                 // Defer relationship updating until the end
                 getSingleResource(resources).setRelationships(null);
@@ -383,7 +390,7 @@ public class JsonApiPatch {
         }
 
         // Find ext=jsonpatch
-        return Arrays.asList(header.split(";")).stream()
+        return Arrays.stream(header.split(";"))
             .map(key -> key.split("="))
             .filter(value -> value.length == 2)
             .anyMatch(value -> value[0].trim().equals("ext") && value[1].trim().equals("jsonpatch"));
@@ -393,6 +400,6 @@ public class JsonApiPatch {
         if (resources == null || resources.size() != 1) {
             throw new InvalidEntityBodyException("Expected single resource.");
         }
-        return resources.iterator().next();
+        return IterableUtils.first(resources);
     }
 }

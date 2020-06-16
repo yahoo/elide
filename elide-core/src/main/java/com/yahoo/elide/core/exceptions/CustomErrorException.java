@@ -44,16 +44,17 @@ public class CustomErrorException extends HttpStatusException {
     }
 
     @Override
-    public Pair<Integer, JsonNode> getErrorResponse() {
+    public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
         return buildCustomResponse();
     }
 
     @Override
-    public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+    public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
         return buildCustomResponse();
     }
 
     private Pair<Integer, JsonNode> buildCustomResponse() {
+        // TODO: should support for encoding custom responses be added?
         JsonNode responseBody = OBJECT_MAPPER.convertValue(errorObjects, JsonNode.class);
         return Pair.of(getStatus(), responseBody);
     }

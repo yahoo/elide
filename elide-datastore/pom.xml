@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.4.2-SNAPSHOT</version>
+        <version>4.6.5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -51,6 +51,7 @@
         <module>elide-datastore-inmemorydb</module>
         <module>elide-datastore-multiplex</module>
         <module>elide-datastore-noop</module>
+        <module>elide-datastore-search</module>
     </modules>
 
     <dependencyManagement>
@@ -58,22 +59,12 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>4.4.2-SNAPSHOT</version>
+                <version>4.6.5-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
-                <version>5.3.3.Final</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>slf4j-api</artifactId>
-                        <groupId>org.slf4j</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>validation-api</artifactId>
-                        <groupId>javax.validation</groupId>
-                    </exclusion>
-                </exclusions>
+                <version>5.4.3.Final</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -94,6 +85,11 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+        </dependency>
+
     </dependencies>
     <build>
         <pluginManagement>
@@ -101,7 +97,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.12</version>
+                    <version>3.1.0</version>
                     <executions>
                         <execution>
                             <id>add-source-generate-sources</id>
@@ -135,14 +131,12 @@
                     <configuration>
                         <systemPropertyVariables>
                             <restassured.port>${restassured.port}</restassured.port>
-                            <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
+                            <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
                         </systemPropertyVariables>
-                        <suiteXmlFiles>
-                            <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
-                            <suiteXmlFile>${project.basedir}/../testng-audit.xml</suiteXmlFile>
-                            <suiteXmlFile>${project.basedir}/../testng-fieldleveltest.xml</suiteXmlFile>
-                            <suiteXmlFile>${project.basedir}/../testng-assignedIdLong.xml</suiteXmlFile>
-                        </suiteXmlFiles>
+                        <includes>
+                            <include>%regex[.*IT.*]</include>
+                        </includes>
+                        <dependenciesToScan>com.yahoo.elide:elide-integration-tests</dependenciesToScan>
                     </configuration>
                     <executions>
                         <execution>

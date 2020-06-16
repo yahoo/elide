@@ -6,14 +6,30 @@
   -->
 <configuration>
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <filter
+      class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
     <encoder>
       <pattern>%msg%n</pattern>
     </encoder>
   </appender>
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>target/trace.log</file>
+    <append>false</append>
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+  <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="FILE" />
+    <neverBlock>true</neverBlock>
+  </appender>
 
-  <logger name="com.yahoo.elide.graphql" level="DEBUG" />
+  <logger name="com.yahoo.elide" level="TRACE" />
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
+    <appender-ref ref="ASYNC" />
   </root>
 </configuration>

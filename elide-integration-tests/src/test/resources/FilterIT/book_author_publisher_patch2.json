@@ -1,0 +1,36 @@
+[
+  {
+    "op": "add",
+    "path": "/author",
+    "value": {
+      "id": "12345678-1234-1234-1234-1234567890ab",
+      "type": "author",
+      "attributes": {
+        "name": "Thomas Harris"
+      },
+      "relationships": {
+        "books": {
+          "data": [
+            {
+              "type": "book",
+              "id": "12345678-1234-1234-1234-1234567890ac"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/book",
+    "value": {
+      "type": "book",
+      "id": "12345678-1234-1234-1234-1234567890ac",
+      "attributes": {
+        "title": "I'm OK - You're OK",
+        "genre": "Psychology & Counseling",
+        "language": "English"
+      }
+    }
+  }
+]

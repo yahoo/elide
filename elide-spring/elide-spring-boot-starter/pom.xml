@@ -1,0 +1,158 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-spring-boot-starter</artifactId>
+    <version>4.6.5-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>Elide Spring Boot Starter</name>
+    <description>Elide Spring Boot Starter</description>
+    <url>https://github.com/yahoo/elide</url>
+    <parent>
+        <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-spring-parent-pom</artifactId>
+        <version>4.6.5-SNAPSHOT</version>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Yahoo! Inc.</name>
+        <url>http://www.yahoo.com</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <url>https://github.com/yahoo/elide.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <spring.boot.version>2.3.0.RELEASE</spring.boot.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- Compile Dependencies -->
+        <!-- Elide dependencies -->
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-core</artifactId>
+            <version>4.6.5-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-graphql</artifactId>
+            <version>4.6.5-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-annotations</artifactId>
+            <version>4.6.5-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-jpa</artifactId>
+            <version>4.6.5-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-swagger</artifactId>
+            <version>4.6.5-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Jetty -->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+            <version>${version.jetty}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
+            <version>${version.jetty}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>javax-websocket-server-impl</artifactId>
+            <version>${version.jetty}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-spring-boot-autoconfigure</artifactId>
+            <version>4.6.5-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>${spring.boot.version}</version>
+
+            <!-- No Tomcat -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Let's use Jetty Instead -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jetty</artifactId>
+            <version>${spring.boot.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-servlets</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.jetty.websocket</groupId>
+                    <artifactId>websocket-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.jetty.websocket</groupId>
+                    <artifactId>javax-websocket-server-impl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+
+        <!-- YAML for spring config -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.26</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jaxb-annotations</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+    </dependencies>
+</project>

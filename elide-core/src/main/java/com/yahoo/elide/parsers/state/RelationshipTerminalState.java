@@ -21,6 +21,7 @@ import com.yahoo.elide.jsonapi.models.Resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -55,13 +56,10 @@ public class RelationshipTerminalState extends BaseState {
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
         Map<String, Relationship> relationships = record.toResourceWithSortingAndPagination().getRelationships();
-        Relationship relationship = null;
         if (relationships != null) {
-            relationship = relationships.get(relationshipName);
-        }
+            Relationship relationship = relationships.get(relationshipName);
 
-        // Handle valid relationship
-        if (relationship != null) {
+            // Handle valid relationship
 
             // Set data
             Data<Resource> data = relationship.getData();
@@ -120,6 +118,9 @@ public class RelationshipTerminalState extends BaseState {
         }
 
         if (relationshipType.isToMany()) {
+            if (data == null) {
+                return false;
+            }
             Collection<Resource> resources = data.get();
             if (resources == null) {
                 return false;
@@ -165,7 +166,7 @@ public class RelationshipTerminalState extends BaseState {
         }
 
         Collection<Resource> resources = data.get();
-        if (resources == null || resources.isEmpty()) {
+        if (CollectionUtils.isEmpty(resources)) {
             // As per: http://jsonapi.org/format/#crud-updating-relationship-responses-403
             throw new ForbiddenAccessException("Unknown update");
         }

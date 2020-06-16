@@ -19,7 +19,7 @@ public class ResourceLinkage extends LinkedHashMap<String, Object> {
      * @param type the type
      */
     public ResourceLinkage(Id id, Type type) {
-       this.put("id", id.value);
        this.put("type", type.value);
+       this.put("id", id.value);
     }
 }

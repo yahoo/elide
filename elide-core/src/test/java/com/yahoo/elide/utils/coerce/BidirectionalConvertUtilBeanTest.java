@@ -5,19 +5,21 @@
  */
 package com.yahoo.elide.utils.coerce;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.apache.commons.beanutils.Converter;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Currency;
 
 public class BidirectionalConvertUtilBeanTest {
 
-    private BidirectionalConvertUtilBean convertUtilBean;
+    private static BidirectionalConvertUtilBean convertUtilBean;
 
-    @BeforeClass
-    public void init() {
+    @BeforeAll
+    public static void init() {
         convertUtilBean = new BidirectionalConvertUtilBean();
         convertUtilBean.register(String.class, Currency.class, new Converter() {
             @Override
@@ -29,11 +31,11 @@ public class BidirectionalConvertUtilBeanTest {
 
     @Test
     public void testSourceTargetLookup() {
-        Assert.assertNotNull(convertUtilBean.lookup(String.class, Currency.class));
+        assertNotNull(convertUtilBean.lookup(String.class, Currency.class));
     }
 
     @Test
     public void testInvalidLookup() {
-        Assert.assertNull(convertUtilBean.lookup(Long.class, Currency.class));
+        assertNull(convertUtilBean.lookup(Long.class, Currency.class));
     }
 }

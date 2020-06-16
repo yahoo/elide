@@ -11,8 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests MultiplexTransaction.

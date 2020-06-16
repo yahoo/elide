@@ -102,11 +102,11 @@ public interface DataStoreTransaction extends Closeable {
      * @return a new instance of type T
      */
     default <T> T createNewObject(Class<T> entityClass) {
-        T obj = null;
+        T obj;
         try {
             obj = entityClass.newInstance();
         } catch (java.lang.InstantiationException | IllegalAccessException e) {
-            //do nothing
+            obj = null;
         }
         return obj;
     }

@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.datastores.inmemory;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -19,9 +19,9 @@ import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
 
 import com.google.common.collect.ImmutableSet;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.apache.commons.collections4.IterableUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,20 +34,20 @@ import java.util.Set;
 public class HashMapDataStoreTest {
     private InMemoryDataStore inMemoryDataStore;
 
-    @BeforeMethod
+    @BeforeEach
     public void setup() {
         final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         inMemoryDataStore = new InMemoryDataStore(FirstBean.class.getPackage());
         inMemoryDataStore.populateEntityDictionary(entityDictionary);
     }
 
-    @Test(expectedExceptions = {IllegalArgumentException.class})
+    @Test
     public void checkLoading() {
         final EntityDictionary entityDictionary = inMemoryDataStore.getDictionary();
         assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
         assertNotNull(entityDictionary.getJsonAliasFor(SecondBean.class));
-        assertNull(entityDictionary.getJsonAliasFor(ExcludedBean.class));
-        assertNull(entityDictionary.getJsonAliasFor(NonEntity.class));
+        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(NonEntity.class));
+        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(ExcludedBean.class));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class HashMapDataStoreTest {
             Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
-            FirstBean bean = (FirstBean) beans.iterator().next();
+            FirstBean bean = (FirstBean) IterableUtils.first(beans);
             assertTrue(!"0".equals(bean.id) && "Test".equals(bean.name));
         }
     }
@@ -105,6 +105,6 @@ public class HashMapDataStoreTest {
             }
         }
 
-        assertEquals(names, ImmutableSet.of("number one", "number two"));
+        assertEquals(ImmutableSet.of("number one", "number two"), names);
     }
 }

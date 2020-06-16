@@ -39,6 +39,20 @@ import java.util.stream.StreamSupport;
  */
 public class InMemoryStoreTransaction implements DataStoreTransaction {
 
+    private static final Comparator<Object> NULL_SAFE_COMPARE = (a, b) -> {
+        if (a == null && b == null) {
+            return 0;
+        } else if (a == null) {
+            return -1;
+        } else if (b == null) {
+            return 1;
+        } else if (a instanceof Comparable) {
+            return ((Comparable) a).compareTo(b);
+        } else {
+            throw new IllegalStateException("Trying to comparing non-comparable types!");
+        }
+    };
+
     private DataStoreTransaction tx;
 
     /**
@@ -105,7 +119,12 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             }
         };
 
-        boolean filterInMemory = scope.isMutatingMultipleEntities();
+
+        /*
+         * If we are mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
+         * It must be done in memory by Elide as some newly created entities have not yet been persisted.
+         */
+        boolean filterInMemory = scope.getNewPersistentResources().size() > 0;
         return fetchData(fetcher, relationClass, filterExpression, sorting, pagination, filterInMemory, scope);
     }
 
@@ -163,9 +182,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         if (! filterExpression.isPresent()
                 || tx.supportsFiltering(entityClass, filterExpression.get()) == FeatureSupport.FULL) {
             return tx.loadObject(entityClass, id, filterExpression, scope);
-        } else {
-            return DataStoreTransaction.super.loadObject(entityClass, id, filterExpression, scope);
         }
+        return DataStoreTransaction.super.loadObject(entityClass, id, filterExpression, scope);
     }
 
     @Override
@@ -337,20 +355,16 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
             // Drill down into path to find value for comparison
             for (Path.PathElement pathElement : path.getPathElements()) {
-                leftCompare = PersistentResource.getValue(leftCompare, pathElement.getFieldName(), requestScope);
-                rightCompare = PersistentResource.getValue(rightCompare, pathElement.getFieldName(), requestScope);
+                leftCompare = (leftCompare == null ? null
+                        : PersistentResource.getValue(leftCompare, pathElement.getFieldName(), requestScope));
+                rightCompare = (rightCompare == null ? null
+                        : PersistentResource.getValue(rightCompare, pathElement.getFieldName(), requestScope));
             }
 
-            // Make sure value is comparable and perform comparison
-            if (leftCompare instanceof Comparable) {
-                int result = ((Comparable<Object>) leftCompare).compareTo(rightCompare);
-                if (order == Sorting.SortOrder.asc) {
-                    return result;
-                }
-                return -result;
+            if (order == Sorting.SortOrder.asc) {
+                return NULL_SAFE_COMPARE.compare(leftCompare, rightCompare);
             }
-
-            throw new IllegalStateException("Trying to comparing non-comparable types!");
+            return NULL_SAFE_COMPARE.compare(rightCompare, leftCompare);
         };
     }
 
@@ -416,9 +430,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     ) {
         if (sorting.isPresent() && (! tx.supportsSorting(entityClass, sorting.get()) || filteredInMemory)) {
             return Pair.of(Optional.empty(), sorting);
-        } else {
-            return Pair.of(sorting, Optional.empty());
         }
+        return Pair.of(sorting, Optional.empty());
     }
 
     /**
@@ -441,6 +454,14 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                 || filteredInMemory
                 || sortedInMemory) {
             return Pair.of(Optional.empty(), pagination);
+
+        /*
+         * For default pagination, we let the store do its work, but we also let the store ignore pagination
+         * by also performing in memory.  This allows the ORM the opportunity to manage its own SQL query generation
+         * to avoid N+1.
+         */
+        } else if (pagination.isPresent() && pagination.get().isDefaultInstance()) {
+            return Pair.of(pagination, pagination);
         } else {
             return Pair.of(pagination, Optional.empty());
         }

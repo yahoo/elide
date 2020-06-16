@@ -1,0 +1,29 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "priceRevisions": [
+            {
+              "key": "2016-01-02T00:00Z",
+              "value": {
+                "units": 126,
+                "currency": {
+                  "currencyCode": "USD"
+                }
+              }
+            },
+            {
+              "key": "2016-01-01T00:00Z",
+              "value": {
+                "units": 125,
+                "currency": null
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -8,7 +8,6 @@ package example;
 import com.yahoo.elide.annotation.Exclude;
 
 import java.util.UUID;
-
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -45,7 +44,7 @@ public abstract class BaseId {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof BaseId)) {
+        if (!(obj instanceof BaseId)) {
             return false;
         }
 

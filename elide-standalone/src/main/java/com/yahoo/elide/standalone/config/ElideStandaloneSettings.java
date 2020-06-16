@@ -7,6 +7,9 @@ package com.yahoo.elide.standalone.config;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.Injector;
+import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -20,14 +23,16 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import io.swagger.models.Swagger;
+
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.function.Consumer;
-
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.core.SecurityContext;
 
 /**
@@ -57,18 +62,33 @@ public interface ElideStandaloneSettings {
      * @return Configured ElideSettings object.
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
-        EntityManager entityManager = Util.getEntityManager(getModelPackageName(), new Properties());
+        EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
+                getDatabaseProperties());
         DataStore dataStore = new JpaDataStore(
-                () -> { return entityManager; },
+                () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
 
-        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(), injector::inject);
+        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
+                new Injector() {
+                    @Override
+                    public void inject(Object entity) {
+                        injector.inject(entity);
+                    }
+
+                    @Override
+                    public <T> T instantiate(Class<T> cls) {
+                        return injector.create(cls);
+                    }
+                });
+
+        dictionary.scanForSecurityChecks();
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withUseFilterExpressions(true)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary));
+                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withAuditLogger(getAuditLogger());
 
         if (enableIS06081Dates()) {
             builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
@@ -131,6 +151,16 @@ public interface ElideStandaloneSettings {
         return "/graphql/api/v1";
     }
 
+
+    /**
+     * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
+     *
+     * @return Default: /swagger/*
+     */
+    default String getSwaggerPathSepc() {
+        return "/swagger/*";
+    }
+
     /**
      * Enable the JSONAPI endpoint. If false, the endpoint will be disabled.
      *
@@ -150,7 +180,7 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Whether Dates should be ISO8601 strings (true) or epochs (false)
+     * Whether Dates should be ISO8601 strings (true) or epochs (false).
      * @return
      */
     default boolean enableIS06081Dates() {
@@ -165,6 +195,16 @@ public interface ElideStandaloneSettings {
     default boolean enableServiceMonitoring() {
         return true;
     }
+
+
+    /**
+     * Enable swagger documentation by returning non empty map object.
+     * @return Map object that maps document name to swagger object.
+     */
+    default Map<String, Swagger> enableSwagger() {
+        return new HashMap<>();
+    }
+
 
     /**
      * JAX-RS filters to register with the web service.
@@ -184,17 +224,17 @@ public interface ElideStandaloneSettings {
      */
     default Consumer<ResourceConfig> getApplicationConfigurator() {
         // Do nothing by default
-        return (x) -> {};
+        return (x) -> { };
     }
 
+
     /**
-     * Location to hibernate5 config. This is only required if you're using the <em>default</em> ElideSettings object.
-     * Namely, you are not providing your own through the settings class.
+     * Gets properties to configure the database
      *
      * @return Default: ./settings/hibernate.cfg.xml
      */
-    default String getHibernate5ConfigPath() {
-        return "./settings/hibernate.cfg.xml";
+    default Properties getDatabaseProperties() {
+        return new Properties();
     }
 
     /**
@@ -204,5 +244,14 @@ public interface ElideStandaloneSettings {
      */
     default void updateServletContextHandler(ServletContextHandler servletContextHandler) {
         // Do nothing
+    }
+
+    /**
+     * Gets the audit logger for elide
+     *
+     * @return Default: Slf4jLogger
+     */
+    default AuditLogger getAuditLogger() {
+        return new Slf4jLogger();
     }
 }

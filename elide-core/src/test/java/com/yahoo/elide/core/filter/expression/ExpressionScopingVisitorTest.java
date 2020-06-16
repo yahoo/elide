@@ -5,16 +5,17 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
-
 import example.Author;
 import example.Book;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,15 +52,15 @@ public class ExpressionScopingVisitorTest {
         ExpressionScopingVisitor scopingVisitor = new ExpressionScopingVisitor(scope);
         FilterExpression copy = not.accept(scopingVisitor);
 
-        Assert.assertNotEquals(copy, not);
+        assertNotEquals(not, copy);
 
         List<FilterPredicate> predicates = (List) copy.accept(new PredicateExtractionVisitor(new ArrayList<>()));
         List<FilterPredicate> toCompare = Arrays.asList(p2.scopedBy(scope), p3.scopedBy(scope), p1.scopedBy(scope), p4.scopedBy(scope));
         for (int i = 0; i < predicates.size(); i++) {
             FilterPredicate predicateOriginal = toCompare.get(i);
             FilterPredicate predicateCopy = predicates.get(i);
-            Assert.assertEquals(predicateCopy, predicateOriginal);
-            Assert.assertTrue(predicateCopy != predicateOriginal);
+            assertEquals(predicateOriginal, predicateCopy);
+            assertTrue(predicateCopy != predicateOriginal);
         }
     }
 }

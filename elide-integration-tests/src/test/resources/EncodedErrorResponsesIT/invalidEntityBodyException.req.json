@@ -1,0 +1,13 @@
+[
+  {
+    "op": "add",
+    "path": "/parent",
+    "value": {
+      "id": "23",
+      "type": "parent"
+    },
+    "relationships": {
+      "spouses": {}
+    }
+  }
+]

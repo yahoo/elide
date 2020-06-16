@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.graphql;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the Delete operation.

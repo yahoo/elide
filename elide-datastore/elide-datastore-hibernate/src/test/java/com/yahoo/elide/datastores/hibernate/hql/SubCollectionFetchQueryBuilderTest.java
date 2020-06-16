@@ -5,12 +5,16 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
 import example.Author;
@@ -18,9 +22,9 @@ import example.Book;
 import example.Chapter;
 import example.Publisher;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,7 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SubCollectionFetchQueryBuilderTest {
+
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";
@@ -37,7 +43,7 @@ public class SubCollectionFetchQueryBuilderTest {
     private static final String PUBLISHER = "publisher";
     private static final String PUB1 = "Pub1";
 
-    @BeforeClass
+    @BeforeAll
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
@@ -66,7 +72,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
-        Assert.assertNull(query);
+        assertNull(query);
     }
 
     @Test
@@ -95,11 +101,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
-                + "JOIN example_Author__fetch.books example_Book "
+                + "JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher  "
                 + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
         String actual = query.getQueryText();
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -136,12 +142,12 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
                 + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN example_Book.publisher example_Book_publisher  "
+                + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher  "
                 + "WHERE example_Book_publisher.name IN (:books_publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch ";
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+_\\w+", ":books_publisher_name_XXX");
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -182,12 +188,48 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
                 + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN example_Book.publisher example_Book_publisher  "
+                + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher  "
                 + "WHERE example_Book_publisher.name IN (:publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch  order by example_Book.title asc";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+", ":publisher_name_XXX");
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testFetchJoinExcludesParent() {
+        Publisher publisher = new Publisher();
+        publisher.setId(1);
+
+        Book book = new Book();
+        book.setId(2);
+
+        RelationshipImpl relationship = new RelationshipImpl(
+                Publisher.class,
+                Book.class,
+                BOOKS,
+                publisher,
+                Arrays.asList(book)
+        );
+
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship, dictionary, new TestSessionWrapper());
+
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .withPossibleFilterExpression(Optional.empty())
+                .withPossibleSorting(Optional.empty())
+                .withPossiblePagination(
+                        Optional.of(Pagination.fromOffsetAndLimit(1, 1, false)))
+                .build();
+
+        String expected = "SELECT example_Book FROM example.Publisher example_Publisher__fetch "
+                + "JOIN example_Publisher__fetch.books example_Book "
+                + "WHERE example_Publisher__fetch=:example_Publisher__fetch";
+
+        String actual = query.getQueryText();
+        actual = actual.replaceFirst(":publisher_name_\\w+", ":publisher_name_XXX");
+
+        assertEquals(expected, actual);
     }
 }
