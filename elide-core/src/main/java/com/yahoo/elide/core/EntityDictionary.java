@@ -445,6 +445,15 @@ public class EntityDictionary {
     }
 
     /**
+     * Get the Injector for this dictionary.
+     *
+     * @return Injector instance.
+     */
+    public Injector getInjector() {
+        return injector;
+    }
+
+    /**
      * Get the list of attribute names for an entity.
      *
      * @param entity entity instance
