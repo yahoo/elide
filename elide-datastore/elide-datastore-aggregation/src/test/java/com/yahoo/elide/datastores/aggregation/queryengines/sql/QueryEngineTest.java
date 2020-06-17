@@ -46,7 +46,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test loading all three records from the table.
      */
     @Test
-    public void testFullTableLoad() {
+    public void testFullTableLoad() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
@@ -84,7 +84,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test loading records using {@link FromSubquery}
      */
     @Test
-    public void testFromSubQuery() {
+    public void testFromSubQuery() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsViewTable)
                 .metric(invoke(playerStatsViewTable.getMetric("highScore")))
@@ -185,7 +185,7 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testSortAggregatedMetric() {
+    public void testSortAggregatedMetric() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("lowScore", Sorting.SortOrder.desc);
 
@@ -217,7 +217,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test sorting by dimension attribute which is not present in the query.
      */
     @Test
-    public void testSortJoin() {
+    public void testSortJoin() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("playerName", Sorting.SortOrder.asc);
 
@@ -259,7 +259,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test pagination.
      */
     @Test
-    public void testPagination() {
+    public void testPagination() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
@@ -349,7 +349,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test sorting by two different columns-one metric and one dimension.
      */
     @Test
-    public void testSortByMultipleColumns() {
+    public void testSortByMultipleColumns() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("lowScore", Sorting.SortOrder.desc);
         sortMap.put("playerName", Sorting.SortOrder.asc);
@@ -392,7 +392,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test grouping by a dimension with a JoinTo annotation.
      */
     @Test
-    public void testJoinToGroupBy() {
+    public void testJoinToGroupBy() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
@@ -452,7 +452,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test grouping by a dimension with a JoinTo annotation.
      */
     @Test
-    public void testJoinToSort() {
+    public void testJoinToSort() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryIsoCode", Sorting.SortOrder.asc);
         sortMap.put("highScore", Sorting.SortOrder.asc);
@@ -495,7 +495,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test month grain query.
      */
     @Test
-    public void testTotalScoreByMonth() {
+    public void testTotalScoreByMonth() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
@@ -517,7 +517,7 @@ public class QueryEngineTest extends SQLUnitTest {
      * Test filter by time dimension.
      */
     @Test
-    public void testFilterByTemporalDimension() {
+    public void testFilterByTemporalDimension() throws Exception {
         FilterPredicate predicate = new FilterPredicate(
                 new Path(PlayerStats.class, dictionary, "recordedDate"),
                 Operator.IN,
@@ -542,7 +542,7 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testAmbiguousFields() {
+    public void testAmbiguousFields() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("lowScore", Sorting.SortOrder.asc);
 
@@ -581,7 +581,7 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testNullJoinToStringValue() {
+    public void testNullJoinToStringValue() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
@@ -606,7 +606,7 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testNullJoinToIntValue() {
+    public void testNullJoinToIntValue() throws Exception {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
