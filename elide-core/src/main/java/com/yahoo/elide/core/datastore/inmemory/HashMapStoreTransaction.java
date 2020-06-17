@@ -182,4 +182,9 @@ public class HashMapStoreTransaction extends DataStoreTransactionImplementation 
     private boolean containsObject(Object obj) {
         return dataStore.get(obj.getClass()).containsValue(obj);
     }
+
+    @Override
+    public void cancel() {
+        //nothing to cancel in HashMap store transaction
+    }
 }
