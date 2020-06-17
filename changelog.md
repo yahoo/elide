@@ -354,6 +354,7 @@
  * ConstraintViolationExceptions are propagated on flush (JPA Transaction)
  * Enable support for JPA @MapsId annotation on relationships so that client doesn't have
    to provide a dummy ID to make entity creation work.
+* Cache all calls to getEntityBinding
 
 ## 4.4.0
 **Features**
