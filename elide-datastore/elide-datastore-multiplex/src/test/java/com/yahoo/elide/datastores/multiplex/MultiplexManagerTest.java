@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.yahoo.elide.Injector;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -125,5 +126,47 @@ public class MultiplexManagerTest {
             assertEquals(list.size(), 1);
             assertEquals(((FirstBean) list.get(0)).name, "name");
         }
+    }
+
+    @Test
+    public void subordinateEntityDictionaryInheritsInjector() {
+        final Injector injector =
+             new Injector() {
+                @Override
+                public void inject(Object entity) {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        final QueryDictionaryDataStore ds1 = new QueryDictionaryDataStore();
+        final MultiplexManager multiplexManager = new MultiplexManager(ds1);
+        multiplexManager.populateEntityDictionary(
+            new EntityDictionary(
+                new HashMap<>(),
+                injector
+            )
+        );
+        assertEquals(
+            ds1.getDictionary().getInjector(),
+            injector
+        );
+    }
+
+    private static class QueryDictionaryDataStore implements DataStore {
+        private EntityDictionary dictionary;
+
+        @Override
+        public void populateEntityDictionary(final EntityDictionary dictionary) {
+            this.dictionary = dictionary;
+        }
+
+        @Override
+        public DataStoreTransaction beginTransaction() {
+            throw new UnsupportedOperationException();
+        }
+
+        public EntityDictionary getDictionary() {
+            return this.dictionary;
+        }
+
     }
 }
