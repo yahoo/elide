@@ -44,7 +44,7 @@
     </scm>
 
     <properties>
-        <junit.version>5.6.0</junit.version>
+        <junit.version>5.6.2</junit.version>
     </properties>
 
     <dependencies>
