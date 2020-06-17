@@ -468,4 +468,9 @@ public class InMemoryStoreTransaction extends DataStoreTransactionImplementation
             return Pair.of(pagination, Optional.empty());
         }
     }
+
+   @Override
+   public void cancel() {
+       tx.cancel();
+   }
 }

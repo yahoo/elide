@@ -63,7 +63,7 @@
     </scm>
 
     <prerequisites>
-        <maven>3.0.0</maven>
+        <maven>3.6.3</maven>
     </prerequisites>
 
     <properties>
@@ -394,6 +394,7 @@
                 </executions>
                 <configuration>
                     <doclint>all,-missing</doclint>
+                    <source>${source.jdk.version}</source>
                 </configuration>
             </plugin>
             <plugin>

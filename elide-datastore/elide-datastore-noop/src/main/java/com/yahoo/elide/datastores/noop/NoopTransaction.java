@@ -118,4 +118,12 @@ public class NoopTransaction extends DataStoreTransactionImplementation {
     public void close() throws IOException {
         // No-op transaction, do nothing.
     }
+
+    /**
+     * No-op transaction, do nothing.
+     */
+    @Override
+    public void cancel() {
+        // No-op transaction, do nothing.
+    }
 }
