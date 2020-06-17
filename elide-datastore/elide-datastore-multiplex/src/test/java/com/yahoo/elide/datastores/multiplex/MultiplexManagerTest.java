@@ -129,7 +129,7 @@ public class MultiplexManagerTest {
     }
     
     @Test
-    public void test_subordinate_dictionary_inherits_injector() {
+    public void subordinateEntityDictionaryInheritsInjector() {
         final Injector injector = 
              new Injector() {
                 @Override
