@@ -126,4 +126,46 @@ public class MultiplexManagerTest {
             assertEquals(((FirstBean) list.get(0)).name, "name");
         }
     }
+    
+    @Test
+    public void test_subordinate_dictionary_inherits_injector() {
+        final Injector injector = 
+             new Injector() {
+                @Override
+                public void inject(Object entity) {
+                    throw new UnsupportedOperationException();
+                }                
+            };
+        final QueryDictionaryDataStore ds1 = new QueryDictionaryDataStore();
+        final MultiplexManager multiplexManager = new MultiplexManager(ds1);
+        multiplexManager.populateEntityDictionary(
+            new EntityDictionary(
+                new HashMap<>(),
+                injector
+            )
+        );
+        assertEquals(
+            ds1.getDictionary().getInjector(),
+            injector
+        );
+    }
+    
+    private static class QueryDictionaryDataStore implements DataStore {
+        private EntityDictionary dictionary;
+        
+        @Override
+        public void populateEntityDictionary(final EntityDictionary dictionary) {
+            this.dictionary = dictionary;
+        }
+
+        @Override
+        public DataStoreTransaction beginTransaction() {
+            throw new UnsupportedOperationException();
+        }
+        
+        public EntityDictionary getDictionary() {
+            return this.dictionary;
+        }
+        
+    }
 }
