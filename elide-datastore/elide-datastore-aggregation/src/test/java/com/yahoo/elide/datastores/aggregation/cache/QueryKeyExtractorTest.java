@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.aggregation.query;
+package com.yahoo.elide.datastores.aggregation.cache;
 
 import static com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest.invoke;
 import static com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest.toProjection;
@@ -18,6 +18,8 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.request.Sorting;
 
 import org.junit.jupiter.api.BeforeAll;
