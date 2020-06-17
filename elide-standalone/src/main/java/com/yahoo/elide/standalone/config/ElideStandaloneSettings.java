@@ -355,8 +355,8 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: 1024
      */
-    default Integer getQueryCacheSize() {
-        return CaffeineCache.DEFAULT_CACHE_SIZE;
+    default Integer getQueryCacheMaximumEntries() {
+        return CaffeineCache.DEFAULT_MAXIMUM_ENTRIES;
     }
 
     /**
@@ -365,7 +365,7 @@ public interface ElideStandaloneSettings {
      * @return Default: {@code new CaffeineCache(getQueryCacheSize())}
      */
     default Cache getQueryCache() {
-        return getQueryCacheSize() > 0 ? new CaffeineCache(getQueryCacheSize()) : null;
+        return getQueryCacheMaximumEntries() > 0 ? new CaffeineCache(getQueryCacheMaximumEntries()) : null;
     }
 
     /**

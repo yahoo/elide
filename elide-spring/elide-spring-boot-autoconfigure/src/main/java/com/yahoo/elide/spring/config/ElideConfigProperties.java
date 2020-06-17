@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.spring.config;
 
-import static com.yahoo.elide.datastores.aggregation.cache.CaffeineCache.DEFAULT_CACHE_SIZE;
+import static com.yahoo.elide.datastores.aggregation.cache.CaffeineCache.DEFAULT_MAXIMUM_ENTRIES;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -56,5 +56,5 @@ public class ElideConfigProperties {
     /**
      * Limit on number of query cache entries. Non-positive values disable the query cache.
      */
-    private int queryCacheSize = DEFAULT_CACHE_SIZE;
+    private int queryCacheMaximumEntries = DEFAULT_MAXIMUM_ENTRIES;
 }

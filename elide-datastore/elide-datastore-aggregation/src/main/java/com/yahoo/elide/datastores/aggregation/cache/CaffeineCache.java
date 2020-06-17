@@ -14,7 +14,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * A basic local-only cache.
  */
 public class CaffeineCache implements Cache {
-    public static final int DEFAULT_CACHE_SIZE = 1024;
+    public static final int DEFAULT_MAXIMUM_ENTRIES = 1024;
 
     private final com.github.benmanes.caffeine.cache.Cache<Object, QueryResult> cache;
 

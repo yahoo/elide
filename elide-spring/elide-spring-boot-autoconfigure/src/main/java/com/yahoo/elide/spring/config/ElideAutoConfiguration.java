@@ -203,8 +203,8 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     public Cache buildQueryCache(ElideConfigProperties settings) {
         CaffeineCache cache = null;
-        if (settings.getQueryCacheSize() > 0) {
-            cache = new CaffeineCache(settings.getQueryCacheSize());
+        if (settings.getQueryCacheMaximumEntries() > 0) {
+            cache = new CaffeineCache(settings.getQueryCacheMaximumEntries());
             if (meterRegistry != null) {
                 CaffeineCacheMetrics.monitor(meterRegistry, cache.getImplementation(), "elideQueryCache");
             }
