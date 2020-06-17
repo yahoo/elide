@@ -49,6 +49,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -60,13 +61,14 @@ import javax.persistence.EntityTransaction;
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
-
+    private final Consumer<EntityManager> transactionCancel;
     private final SQLReferenceTable referenceTable;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory eMFactory, Consumer<EntityManager> txC) {
         super(metaDataStore);
-        this.entityManagerFactory = entityManagerFactory;
+        this.entityManagerFactory = eMFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
+        this.transactionCancel = txC;
     }
 
     @Override
@@ -118,14 +120,17 @@ public class SQLQueryEngine extends QueryEngine {
     /**
      * State needed for SQLQueryEngine to execute queries.
      */
-    static class SqlTransaction implements QueryEngine.Transaction {
+    static class SqlTransaction implements QueryEngine.Transaction  {
 
         private final EntityManager entityManager;
         private final EntityTransaction transaction;
+        private final Consumer<EntityManager> transactionCancel;
 
-        SqlTransaction(EntityManagerFactory emf) {
+        SqlTransaction(EntityManagerFactory emf, Consumer<EntityManager> transactionCancel) {
+
             entityManager = emf.createEntityManager();
             transaction = entityManager.getTransaction();
+            this.transactionCancel = transactionCancel;
             if (!transaction.isActive()) {
                 transaction.begin();
             }
@@ -140,11 +145,17 @@ public class SQLQueryEngine extends QueryEngine {
                 entityManager.close();
             }
         }
+
+        @Override
+        public void cancel() {
+            transactionCancel.accept(entityManager);
+        }
+
     }
 
     @Override
     public QueryEngine.Transaction beginTransaction() {
-        return new SqlTransaction(entityManagerFactory);
+        return new SqlTransaction(entityManagerFactory, transactionCancel);
     }
 
     @Override
