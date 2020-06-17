@@ -19,11 +19,14 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.hibernate.Session;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.TimeZone;
+import java.util.function.Consumer;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -45,10 +48,12 @@ public class DependencyBinder extends ResourceConfig {
                     indexOnStartup = true;
                 }
 
+                Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
                 EntityManagerFactory emf = Persistence.createEntityManagerFactory("searchDataStoreTest");
                 DataStore jpaStore = new JpaDataStore(
                         emf::createEntityManager,
-                        NonJtaTransaction::new);
+                        (em) -> { return new NonJtaTransaction(em, txCancel); }
+                        );
 
                 EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 

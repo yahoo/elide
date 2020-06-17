@@ -301,4 +301,9 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
             throw new IOException("Transaction not closed");
         }
     }
+
+    @Override
+    public void cancel() {
+        session.cancelQuery();
+    }
 }

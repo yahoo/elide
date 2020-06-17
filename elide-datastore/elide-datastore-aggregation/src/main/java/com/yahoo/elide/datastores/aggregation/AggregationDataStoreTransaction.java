@@ -99,4 +99,9 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
                 scope.getDictionary());
         return translator.getQuery();
     }
+
+    @Override
+    public void cancel() {
+        queryEngineTransaction.cancel();
+    }
 }

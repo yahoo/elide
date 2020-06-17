@@ -33,7 +33,7 @@ public class ViewTest extends SQLUnitTest {
     }
 
     @Test
-    public void testViewAttribute() {
+    public void testViewAttribute() throws Exception {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 

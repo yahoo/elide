@@ -268,4 +268,10 @@ public interface DataStoreTransaction extends Closeable {
      * @return UUID id
      */
     UUID getRequestId();
+
+    /**
+     * Cancel running transaction.
+     * Implementation must be thread-safe.
+     */
+    void cancel();
 }

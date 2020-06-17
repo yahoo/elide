@@ -16,6 +16,7 @@ import example.models.generics.Manager;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
 import org.hibernate.MappingException;
+import org.hibernate.Session;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
@@ -28,7 +29,9 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -42,6 +45,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
     private DataStore store;
     private MetadataImplementor metadataImplementor;
+    private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     public JpaDataStoreHarness() {
         Map<String, Object> options = new HashMap<>();
@@ -96,7 +100,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
         store = new JpaDataStore(
                 () -> { return emf.createEntityManager(); },
-                (entityManager) -> { return new NonJtaTransaction(entityManager); }
+                (entityManager) -> { return new NonJtaTransaction(entityManager, txCancel); }
         );
     }
 
