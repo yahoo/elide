@@ -294,4 +294,9 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
         // no limit
         return null;
     }
+
+    @Override
+    public void cancel() {
+        session.cancelQuery();
+    }
 }

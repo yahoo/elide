@@ -125,4 +125,9 @@ public abstract class TransactionWrapper extends DataStoreTransactionImplementat
     public void close() throws IOException {
         tx.close();
     }
+
+    @Override
+    public void cancel() {
+        tx.cancel();
+    }
 }

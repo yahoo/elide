@@ -78,4 +78,9 @@ class TestDataStore extends DataStoreTransactionImplementation implements DataSt
             RequestScope scope) {
         throw new TransactionException(null);
     }
+
+    @Override
+    public void cancel() {
+        // Nothing
+    }
 }

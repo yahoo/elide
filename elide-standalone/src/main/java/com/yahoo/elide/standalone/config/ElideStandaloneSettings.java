@@ -36,6 +36,7 @@ import com.yahoo.elide.security.checks.Check;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.hibernate.Session;
 
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
@@ -51,6 +52,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -58,6 +60,9 @@ import javax.persistence.EntityManagerFactory;
  */
 public interface ElideStandaloneSettings {
     /* Elide settings */
+
+     public final Consumer<EntityManager> TXCANCEL = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+
     /**
      * A map containing check mappings for security across Elide. If not provided, then an empty map is used.
      * In case of an empty map, checks can be referenced by their fully qualified class names.
@@ -396,10 +401,9 @@ public interface ElideStandaloneSettings {
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
-
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                (em -> { return new NonJtaTransaction(em); }));
+                (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
 
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
@@ -484,7 +488,7 @@ public interface ElideStandaloneSettings {
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, TXCANCEL);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,

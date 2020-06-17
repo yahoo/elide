@@ -27,6 +27,7 @@ import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
+import org.hibernate.Session;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -44,6 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Consumer;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -64,6 +67,9 @@ public class ElideAutoConfiguration {
      * @return An instance of ElideDynamicEntityCompiler.
      * @throws Exception Exception thrown.
      */
+
+     private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+
     @Bean
     @ConditionalOnMissingBean
     public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
@@ -160,7 +166,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
     }
 
     /**
@@ -188,7 +194,8 @@ public class ElideAutoConfiguration {
         aggregationDataStoreBuilder.cache(cache);
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
-        JpaDataStore jpaDataStore = new JpaDataStore(entityManagerFactory::createEntityManager, NonJtaTransaction::new);
+        JpaDataStore jpaDataStore = new JpaDataStore(entityManagerFactory::createEntityManager, 
+                                                     (em) -> { return new NonJtaTransaction(em, txCancel); });
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
