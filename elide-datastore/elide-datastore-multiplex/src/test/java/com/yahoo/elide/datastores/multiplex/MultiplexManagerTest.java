@@ -130,12 +130,12 @@ public class MultiplexManagerTest {
     
     @Test
     public void subordinateEntityDictionaryInheritsInjector() {
-        final Injector injector = 
+        final Injector injector =
              new Injector() {
                 @Override
                 public void inject(Object entity) {
                     throw new UnsupportedOperationException();
-                }                
+                }
             };
         final QueryDictionaryDataStore ds1 = new QueryDictionaryDataStore();
         final MultiplexManager multiplexManager = new MultiplexManager(ds1);
@@ -150,10 +150,10 @@ public class MultiplexManagerTest {
             injector
         );
     }
-    
+
     private static class QueryDictionaryDataStore implements DataStore {
         private EntityDictionary dictionary;
-        
+
         @Override
         public void populateEntityDictionary(final EntityDictionary dictionary) {
             this.dictionary = dictionary;
@@ -163,10 +163,10 @@ public class MultiplexManagerTest {
         public DataStoreTransaction beginTransaction() {
             throw new UnsupportedOperationException();
         }
-        
+
         public EntityDictionary getDictionary() {
             return this.dictionary;
         }
-        
+
     }
 }
