@@ -23,8 +23,8 @@ import javax.transaction.UserTransaction;
 @Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
-    public JtaTransaction(EntityManager entityManager, Consumer<EntityManager> jpaTransactionCancel) {
-        this(entityManager, lookupUserTransaction(), jpaTransactionCancel);
+    public JtaTransaction(EntityManager entityManager, Consumer<EntityManager> txCancel) {
+        this(entityManager, lookupUserTransaction(), txCancel);
     }
 
     public JtaTransaction(EntityManager entityManager, UserTransaction transaction, Consumer<EntityManager> txCancel) {

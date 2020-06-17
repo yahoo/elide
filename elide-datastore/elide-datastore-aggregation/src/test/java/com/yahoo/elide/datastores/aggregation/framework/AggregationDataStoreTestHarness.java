@@ -31,15 +31,15 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     @Override
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
-        Consumer<EntityManager> func = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+        Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
         AggregationDataStore aggregationDataStore = AggregationDataStore.builder()
-                .queryEngine(new SQLQueryEngine(metaDataStore, entityManagerFactory, func))
+                .queryEngine(new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel))
                 .build();
 
         DataStore jpaStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                (em) -> { return new NonJtaTransaction(em, func); }
+                (em) -> { return new NonJtaTransaction(em, txCancel); }
         );
 
         return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);

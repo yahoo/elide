@@ -85,8 +85,8 @@ public abstract class SQLUnitTest {
         filterParser = new RSQLFilterDialect(dictionary);
 
         metaDataStore.populateEntityDictionary(dictionary);
-        Consumer<EntityManager> func = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
-        engine = new SQLQueryEngine(metaDataStore, emf, func);
+        Consumer<EntityManager> txCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
+        engine = new SQLQueryEngine(metaDataStore, emf, txCancel);
 
         playerStatsTable = engine.getTable("playerStats");
 

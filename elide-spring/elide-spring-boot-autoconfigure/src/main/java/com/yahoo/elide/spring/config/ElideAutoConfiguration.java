@@ -60,7 +60,7 @@ public class ElideAutoConfiguration {
      * @throws Exception Exception thrown.
      */
 
-     private final Consumer<EntityManager> func = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+     private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     @Bean
     @ConditionalOnMissingBean
@@ -158,7 +158,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, func);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
     }
 
     /**
@@ -187,7 +187,7 @@ public class ElideAutoConfiguration {
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                    (em) -> { return new NonJtaTransaction(em, func); });
+                    (em) -> { return new NonJtaTransaction(em, txCancel); });
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);

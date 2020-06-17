@@ -45,7 +45,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
     private DataStore store;
     private MetadataImplementor metadataImplementor;
-    private final Consumer<EntityManager> func = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+    private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     public JpaDataStoreHarness() {
         Map<String, Object> options = new HashMap<>();
@@ -100,7 +100,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
         store = new JpaDataStore(
                 () -> { return emf.createEntityManager(); },
-                (entityManager) -> { return new NonJtaTransaction(entityManager, func); }
+                (entityManager) -> { return new NonJtaTransaction(entityManager, txCancel); }
         );
     }
 

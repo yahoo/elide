@@ -156,6 +156,10 @@ public abstract class QueryEngine {
     public interface Transaction extends AutoCloseable {
         @Override
         void close();
+
+        /**
+         * Cancels running transaction
+         */
         void cancel();
     }
 

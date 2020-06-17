@@ -59,7 +59,7 @@ import javax.persistence.EntityManagerFactory;
 public interface ElideStandaloneSettings {
     /* Elide settings */
 
-     public final Consumer<EntityManager> FUNC = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+     public final Consumer<EntityManager> TXCANCEL = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     /**
      * A map containing check mappings for security across Elide. If not provided, then an empty map is used.
@@ -383,7 +383,7 @@ public interface ElideStandaloneSettings {
             EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                (em) -> { return new NonJtaTransaction(em, FUNC); });
+                (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
 
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
@@ -467,7 +467,7 @@ public interface ElideStandaloneSettings {
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, FUNC);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, TXCANCEL);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,
