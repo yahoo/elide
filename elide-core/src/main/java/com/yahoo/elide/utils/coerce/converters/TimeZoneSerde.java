@@ -1,0 +1,25 @@
+/*
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.utils.coerce.converters;
+
+import java.util.TimeZone;
+
+@ElideTypeConverter(type = TimeZone.class, name = "TimeZone")
+public class TimeZoneSerde implements Serde<String, TimeZone> {
+
+    @Override
+    public TimeZone deserialize(String val) {
+        System.out.println("**************DeSerialize Timezone");
+        TimeZone timezone = TimeZone.getTimeZone(val);
+        return timezone;
+    }
+
+    @Override
+    public String serialize(TimeZone val) {
+        System.out.println("**************Serialize Timezone");
+        return val.getDisplayName(false, TimeZone.SHORT);
+    }
+}
