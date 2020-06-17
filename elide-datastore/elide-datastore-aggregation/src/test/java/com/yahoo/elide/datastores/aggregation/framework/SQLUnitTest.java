@@ -30,12 +30,14 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.utils.ClassScanner;
 
+import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -83,8 +85,9 @@ public abstract class SQLUnitTest {
         filterParser = new RSQLFilterDialect(dictionary);
 
         metaDataStore.populateEntityDictionary(dictionary);
+        Consumer<EntityManager> txCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
+        engine = new SQLQueryEngine(metaDataStore, emf, txCancel);
 
-        engine = new SQLQueryEngine(metaDataStore, emf);
         playerStatsTable = engine.getTable("playerStats");
 
         ASIA.setName("Asia");
