@@ -127,7 +127,7 @@ public class MultiplexManagerTest {
             assertEquals(((FirstBean) list.get(0)).name, "name");
         }
     }
-    
+
     @Test
     public void subordinateEntityDictionaryInheritsInjector() {
         final Injector injector =
