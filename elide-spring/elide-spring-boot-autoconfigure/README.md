@@ -23,6 +23,8 @@ The Elide spring autoconfigure package provides the core code needed to use Elid
 | elide.swagger.enabled      | No         | false           | Whether or not the Swagger document endpoint is exposed. |
 | elide.swagger.name         | No         | 'Elide Service' | Swagger documentation requires an API name.              |
 | elide.swagger.version      | No         | '1.0'           | Swagger documentation requires an API version.           |
+| elide.queryCacheMaximumEntries | No     | 1024            | Maximum number of entries inquery result cache.          |
+
 
 ## Entity Dictionary Override
 
