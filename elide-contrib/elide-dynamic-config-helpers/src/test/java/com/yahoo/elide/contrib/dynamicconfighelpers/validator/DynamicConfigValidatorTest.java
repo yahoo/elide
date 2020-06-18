@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
+//import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
@@ -107,7 +107,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadTableConfigJoinType() {
-        assertThrows(ValueInstantiationException.class, () -> DynamicConfigValidator
+        assertThrows(NullPointerException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type" }));
     }
 

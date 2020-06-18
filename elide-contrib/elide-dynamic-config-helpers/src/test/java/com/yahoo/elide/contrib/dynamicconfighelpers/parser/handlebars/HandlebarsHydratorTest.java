@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -234,7 +235,7 @@ public class HandlebarsHydratorTest {
             + "}\n";
 
     @Test
-    public void testConfigHydration() throws IOException {
+    public void testConfigHydration() throws IOException, ProcessingException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
         String path = "src/test/resources/models";
@@ -253,7 +254,7 @@ public class HandlebarsHydratorTest {
     }
 
     @Test
-    public void testTableHydration() throws IOException {
+    public void testTableHydration() throws IOException, ProcessingException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
         String path = "src/test/resources/models";
@@ -268,7 +269,7 @@ public class HandlebarsHydratorTest {
     }
 
     @Test
-    public void testSecurityHydration() throws IOException {
+    public void testSecurityHydration() throws IOException, ProcessingException {
         HandlebarsHydrator obj = new HandlebarsHydrator();
         String path = "src/test/resources/models";
 
