@@ -50,9 +50,7 @@ public class ElideDynamicEntityCompiler {
     public ElideDynamicEntityCompiler(String path) throws Exception {
 
         if (DynamicConfigHelpers.isNullOrEmpty(path)) {
-//            :TODO test this in example, add check on resources/model, if not exists throw exception
-            path = "src/main/resources/models/";
-//            throw new IllegalArgumentException("Config path is null");
+            throw new IllegalArgumentException("Config path is null");
         }
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
 

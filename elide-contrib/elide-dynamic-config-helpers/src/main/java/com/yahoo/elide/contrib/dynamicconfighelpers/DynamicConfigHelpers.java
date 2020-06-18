@@ -94,18 +94,18 @@ public class DynamicConfigHelpers {
     @SuppressWarnings("unchecked")
     public static Map<String, Object> getVariablesPojo(String basePath)
             throws JsonProcessingException, ProcessingException {
+        Map<String, Object> variables = null;
         String filePath = basePath + VARIABLE_CONFIG_PATH;
         File variableFile = new File(filePath);
         if (variableFile.exists()) {
             String jsonConfig = hjsonToJson(readConfigFile(variableFile));
             if (verifySchema(VARIABLE, jsonConfig)) {
-                return getModelPojo(jsonConfig, Map.class);
+                variables = getModelPojo(jsonConfig, Map.class);
             }
-            return null;
         } else {
             log.info("Variables config file not found at " + filePath);
-            return null;
         }
+        return variables;
     }
 
     /**
@@ -154,11 +154,12 @@ public class DynamicConfigHelpers {
      */
     public static ElideTableConfig stringToElideTablePojo(String content, Map<String, Object> variables)
             throws IOException, ProcessingException {
+        ElideTableConfig table = null;
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
         if (verifySchema(TABLE, jsonConfig)) {
-            return getModelPojo(jsonConfig, ElideTableConfig.class);
+            table = getModelPojo(jsonConfig, ElideTableConfig.class);
         }
-        return null;
+        return table;
     }
 
     /**
@@ -171,14 +172,15 @@ public class DynamicConfigHelpers {
      */
     public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
             throws IOException, ProcessingException {
+        ElideSecurityConfig security = null;
         String filePath = basePath + SECURITY_CONFIG_PATH;
         File securityFile = new File(filePath);
         if (securityFile.exists()) {
-            return stringToElideSecurityPojo(readConfigFile(securityFile), variables);
+            security = stringToElideSecurityPojo(readConfigFile(securityFile), variables);
         } else {
             log.info("Security config file not found at " + filePath);
-            return null;
         }
+        return security;
     }
 
     /**
@@ -251,6 +253,8 @@ public class DynamicConfigHelpers {
         case VARIABLE :
             results = variableSchema.validate(new ObjectMapper().readTree(jsonConfig));
             break;
+        default :
+            return false;
         }
         return results.isSuccess();
     }
@@ -262,11 +266,10 @@ public class DynamicConfigHelpers {
             return FACTORY.getJsonSchema(objectMapper.readTree(reader));
         } catch (IOException e) {
             log.error("Error loading schema file " + resource + " to verify");
-            log.error(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         } catch (ProcessingException e) {
             log.error("Error loading schema file " + resource + " to verify");
-            log.error(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
-        return null;
     }
 }
