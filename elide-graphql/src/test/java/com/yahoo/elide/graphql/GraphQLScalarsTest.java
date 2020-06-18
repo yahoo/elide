@@ -11,6 +11,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.utils.coerce.converters.OffsetDateTimeSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
+import com.yahoo.elide.utils.coerce.converters.TimeZoneSerde;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -84,6 +85,16 @@ public class GraphQLScalarsTest {
         assertEquals(expectedDate, actualDate);
     }
 
+    @Test
+    public void testGraphQLTimeZoneDeserialize() {
+        TimeZone expectedTz = TimeZone.getTimeZone("EST");
+        String input = "EST";
+        TimeZoneSerde timeZoneScalar = new TimeZoneSerde();
+        SerdeCoercing timeZoneSerde =
+                new SerdeCoercing("", timeZoneScalar);
+        Object actualTz = timeZoneSerde.parseLiteral(new StringValue(input));
+        assertEquals(expectedTz, actualTz);
+    }
     @Test
     public void testGraphQLDeferredIdSerialize() {
         assertEquals(123L, GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize(123L));

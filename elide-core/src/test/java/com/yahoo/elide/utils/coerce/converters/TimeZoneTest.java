@@ -17,21 +17,18 @@ public class TimeZoneTest {
     public void testGraphQLTimeZoneSerialize() {
 
         TimeZone timezone = TimeZone.getTimeZone("EST");
-        System.out.println("testGraphQLTimeZoneSerialize " + timezone);
         String expected = "EST";
         TimeZoneSerde timeZoneScalar = new TimeZoneSerde();
-        Object actualTimeZone = timeZoneScalar.serialize(timezone);
-        assertEquals(expected, actualTimeZone);
+        Object actual = timeZoneScalar.serialize(timezone);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testGraphQLTimeZoneDeserialize() {
-        TimeZone actualTimeZone = TimeZone.getTimeZone("EST");
-        System.out.println(actualTimeZone);
+        TimeZone expectedTimeZone = TimeZone.getTimeZone("EST");
         String actual = "EST";
         TimeZoneSerde timeZoneScalar = new TimeZoneSerde();
-        Object expected = timeZoneScalar.deserialize(actual);
-        System.out.println(expected);
-        assertEquals(expected, actualTimeZone);
+        Object actualTimeZone = timeZoneScalar.deserialize(actual);
+        assertEquals(expectedTimeZone, actualTimeZone);
     }
 }
