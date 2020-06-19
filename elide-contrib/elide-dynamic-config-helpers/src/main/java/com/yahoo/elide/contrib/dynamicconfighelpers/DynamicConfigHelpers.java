@@ -266,10 +266,10 @@ public class DynamicConfigHelpers {
             return FACTORY.getJsonSchema(objectMapper.readTree(reader));
         } catch (IOException e) {
             log.error("Error loading schema file " + resource + " to verify");
-            throw new RuntimeException(e.getMessage());
+            throw new IllegalStateException(e.getMessage());
         } catch (ProcessingException e) {
             log.error("Error loading schema file " + resource + " to verify");
-            throw new RuntimeException(e.getMessage());
+            throw new IllegalStateException(e.getMessage());
         }
     }
 }
