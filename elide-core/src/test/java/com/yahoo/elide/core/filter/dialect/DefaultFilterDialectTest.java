@@ -124,7 +124,6 @@ public class DefaultFilterDialectTest {
 
         assertEquals(1, expressionMap.size());
         assertEquals("author.books.title IN [foo, bar, baz]", expressionMap.get("author").toString());
-        assertEquals("author.name INFIX [Hemingway]", expressionMap.get("author").toString());
     }
 
     @Test

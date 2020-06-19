@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.core.filter.dialect.ParseException;
 
 /**
  * Invalid predicate exception.
