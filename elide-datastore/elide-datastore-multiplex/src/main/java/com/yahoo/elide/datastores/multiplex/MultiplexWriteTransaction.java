@@ -111,15 +111,12 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     private <T> Iterable<T> hold(DataStoreTransaction transaction, Iterable<T> list) {
-        if (transaction != lastDataStoreTransaction) {
-            ArrayList<T> newList = new ArrayList<>();
-            list.forEach(newList::add);
-            for (T object : newList) {
-                hold(transaction, object);
-            }
-            return newList;
+        ArrayList<T> newList = new ArrayList<>();
+        list.forEach(newList::add);
+        for (T object : newList) {
+            hold(transaction, object);
         }
-        return list;
+        return newList;
     }
 
     /**
@@ -129,9 +126,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      * @return original object
      */
     private <T> T hold(DataStoreTransaction subTransaction, T object) {
-        if (subTransaction != lastDataStoreTransaction) {
-            clonedObjects.put(object, cloneObject(object));
-        }
+        clonedObjects.put(object, cloneObject(object));
         return object;
     }
 

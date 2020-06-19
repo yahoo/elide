@@ -112,6 +112,7 @@ public class HandlebarsHydratorTest {
             + "import lombok.ToString;\n"
             + "import lombok.Data;\n"
             + "\n"
+            + "import java.math.BigDecimal;\n"
             + "import java.util.Date;\n"
             + "import javax.persistence.Column;\n"
             + "import javax.persistence.Id;\n"
