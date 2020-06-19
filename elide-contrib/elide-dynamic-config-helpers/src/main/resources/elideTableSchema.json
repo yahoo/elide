@@ -390,8 +390,7 @@
             },
             "required": [
               "name",
-              "extends",
-              "dimensions"
+              "extends"
             ]
           }
         ]
