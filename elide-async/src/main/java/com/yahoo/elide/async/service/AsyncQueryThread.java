@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -48,6 +49,7 @@ public class AsyncQueryThread implements Runnable {
     private final QueryRunner runner;
     private AsyncQueryDAO asyncQueryDao;
     private String apiVersion;
+    private ResultStorageEngine resultStorageEngine;
 
     @Override
     public void run() {
@@ -107,6 +109,9 @@ public class AsyncQueryThread implements Runnable {
             asyncQueryDao.updateAsyncQueryResult(asyncQueryResult, queryObj);
             // If we receive a response update Query Status to complete
             asyncQueryDao.updateStatus(queryObj, QueryStatus.COMPLETE);
+
+            resultStorageEngine = new DefaultResultStorageEngine();
+            resultStorageEngine.storeResults(UUID.fromString(queryObj.getId()), response.getBody());
 
         } catch (Exception e) {
             log.error("Exception: {}", e);

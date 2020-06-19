@@ -32,6 +32,7 @@ public class AsyncQueryThreadTest {
     private QueryRunner runner;
     private AsyncQuery queryObj;
     private AsyncQueryDAO asyncQueryDao;
+    private ResultStorageEngine resultStorageEngine;
 
     @BeforeEach
     public void setupMocks() {
@@ -40,7 +41,8 @@ public class AsyncQueryThreadTest {
         runner = mock(QueryRunner.class);
         queryObj = mock(AsyncQuery.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
-        queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
+        resultStorageEngine = mock(DefaultResultStorageEngine.class);
+        queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1", resultStorageEngine);
     }
 
     @Test
