@@ -11,6 +11,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.utils.coerce.converters.OffsetDateTimeSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
+import com.yahoo.elide.utils.coerce.converters.TimeZoneSerde;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,13 +78,23 @@ public class GraphQLScalarsTest {
                         16, 45, 4, 56,
                         ZoneOffset.ofHoursMinutes(5, 30));
         String input = "1995-11-02T16:45:04.000000056+05:30";
-        OffsetDateTimeSerde offsetDateTimeScalar = new OffsetDateTimeSerde();
-        SerdeCoercing offsetDateTimeSerde =
-                new SerdeCoercing("", offsetDateTimeScalar);
-        Object actualDate = offsetDateTimeSerde.parseLiteral(new StringValue(input));
+        OffsetDateTimeSerde offsetDateTimeSerde = new OffsetDateTimeSerde();
+        SerdeCoercing serdeCoercing =
+                new SerdeCoercing("", offsetDateTimeSerde);
+        Object actualDate = serdeCoercing.parseLiteral(new StringValue(input));
         assertEquals(expectedDate, actualDate);
     }
 
+    @Test
+    public void testGraphQLTimeZoneDeserialize() {
+        TimeZone expectedTz = TimeZone.getTimeZone("EST");
+        String input = "EST";
+        TimeZoneSerde timeZoneSerde = new TimeZoneSerde();
+        SerdeCoercing serdeCoercing =
+                new SerdeCoercing("", timeZoneSerde);
+        Object actualTz = serdeCoercing.parseLiteral(new StringValue(input));
+        assertEquals(expectedTz, actualTz);
+    }
     @Test
     public void testGraphQLDeferredIdSerialize() {
         assertEquals(123L, GraphQLScalars.GRAPHQL_DEFERRED_ID.getCoercing().serialize(123L));
