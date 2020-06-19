@@ -24,17 +24,22 @@ import java.util.TimeZone;
 public class GraphQLConversionUtilsTest {
 
     @Test
-    public void testGraphQLConversionUtilsClassToScalarType() {
+    public void testGraphQLConversionUtilsOffsetDateTimeToScalarType() {
         CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
-        CoerceUtil.register(TimeZone.class, new TimeZoneSerde());
         GraphQLConversionUtils graphQLConversionUtils =
                 new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary());
         GraphQLScalarType offsetDateTimeType = graphQLConversionUtils.classToScalarType(OffsetDateTime.class);
-        GraphQLScalarType timeZoneType = graphQLConversionUtils.classToScalarType(TimeZone.class);
         assertNotNull(offsetDateTimeType);
-        assertNotNull(timeZoneType);
         String expected = "OffsetDateTime";
         assertEquals(expected, offsetDateTimeType.getName());
+    }
+    @Test
+    public void testGraphQLConversionUtilsTimeZoneToScalarType() {
+        CoerceUtil.register(TimeZone.class, new TimeZoneSerde());
+        GraphQLConversionUtils graphQLConversionUtils =
+                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary());
+        GraphQLScalarType timeZoneType = graphQLConversionUtils.classToScalarType(TimeZone.class);
+        assertNotNull(timeZoneType);
         String expectedTimezone = "TimeZone";
         assertEquals(expectedTimezone, timeZoneType.getName());
     }

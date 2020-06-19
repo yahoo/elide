@@ -14,21 +14,21 @@ import java.util.TimeZone;
 public class TimeZoneTest {
 
     @Test
-    public void testGraphQLTimeZoneSerialize() {
+    public void testTimeZoneSerialize() {
 
         TimeZone timezone = TimeZone.getTimeZone("EST");
         String expected = "EST";
-        TimeZoneSerde timeZoneScalar = new TimeZoneSerde();
-        Object actual = timeZoneScalar.serialize(timezone);
+        TimeZoneSerde timeZoneSerde = new TimeZoneSerde();
+        Object actual = timeZoneSerde.serialize(timezone);
         assertEquals(expected, actual);
     }
 
     @Test
-    public void testGraphQLTimeZoneDeserialize() {
+    public void testTimeZoneDeserialize() {
         TimeZone expectedTimeZone = TimeZone.getTimeZone("EST");
         String actual = "EST";
-        TimeZoneSerde timeZoneScalar = new TimeZoneSerde();
-        Object actualTimeZone = timeZoneScalar.deserialize(actual);
+        TimeZoneSerde timeZoneSerde = new TimeZoneSerde();
+        Object actualTimeZone = timeZoneSerde.deserialize(actual);
         assertEquals(expectedTimeZone, actualTimeZone);
     }
 }
