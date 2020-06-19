@@ -9,6 +9,9 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Serde class for bidirectional conversion from OffsetDateTime type to String.
+ */
 @ElideTypeConverter(type = OffsetDateTime.class, name = "OffsetDateTime")
 public class OffsetDateTimeSerde implements Serde<String, OffsetDateTime> {
 
