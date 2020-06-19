@@ -30,11 +30,9 @@ public class HandlebarsHydrator {
     public static final String HANDLEBAR_START_DELIMITER = "<%";
     public static final String HANDLEBAR_END_DELIMITER = "%>";
     public static final EscapingStrategy MY_ESCAPING_STRATEGY = new Hbs(new String[][]{
-        {"<", "&lt;" },
-        {">", "&gt;" },
         {"\"", "&quot;" },
         {"`", "&#x60;" },
-        {"&", "&amp;" }
+        {"\n", " " }
     });
 
     /**
