@@ -68,7 +68,7 @@ public class ElideAutoConfiguration {
      * @throws Exception Exception thrown.
      */
 
-     private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+    private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     @Bean
     @ConditionalOnMissingBean
