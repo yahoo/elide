@@ -5,13 +5,16 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * Tests MultiplexTransaction.
@@ -33,7 +36,18 @@ public class MultiplexTransactionTest {
 
         multiplexTx.preCommit();
 
-        verify(tx1).preCommit();
-        verify(tx2).preCommit();
+        // Since transactions are lazy initialized,
+        // preCommit will not be called on individual transactions.
+        verify(tx1, Mockito.times(0)).preCommit();
+        verify(tx2, Mockito.times(0)).preCommit();
+
+        MultiplexReadTransaction multiplexReadTx = (MultiplexReadTransaction) multiplexTx;
+
+        long countInitializedTransaction = multiplexReadTx.transactions.values().stream()
+                .filter(dataStoreTransaction -> dataStoreTransaction != null)
+                .count();
+
+        assertEquals(0, countInitializedTransaction);
+
     }
 }
