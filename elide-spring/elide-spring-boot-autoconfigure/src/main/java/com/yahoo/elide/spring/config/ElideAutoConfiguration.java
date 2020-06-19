@@ -152,7 +152,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, null);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
     }
 
     /**
@@ -169,16 +169,15 @@ public class ElideAutoConfiguration {
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngine queryEngine,
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
-        AggregationDataStore aggregationDataStore = null;
-
+        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
+                .queryEngine(queryEngine);
         if (isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
             Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
             annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-            aggregationDataStore = new AggregationDataStore(queryEngine, annotatedClass);
-        } else {
-            aggregationDataStore = new AggregationDataStore(queryEngine);
+            aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
         }
+        AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },

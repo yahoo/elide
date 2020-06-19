@@ -43,6 +43,7 @@ public class SubCollectionFetchQueryBuilderTest {
     private static final String BOOKS = "books";
     private static final String NAME = "name";
     private static final String PUBLISHER = "publisher";
+    private static final String PERIOD = ".";
     private static final String PUB1 = "Pub1";
 
     @BeforeAll
@@ -233,6 +234,41 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+", ":publisher_name_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testSubCollectionFetchWithRelationshipSorting() {
+        Author author = new Author();
+        author.setId(1L);
+
+        Book book = new Book();
+        book.setId(2);
+
+        RelationshipImpl relationship = new RelationshipImpl(
+                Author.class,
+                Book.class,
+                BOOKS,
+                author,
+                Arrays.asList(book));
+
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(relationship,
+                dictionary, new TestSessionWrapper());
+
+        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
+        sorting.put(PUBLISHER + PERIOD + NAME, Sorting.SortOrder.asc);
+
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
+                .build();
+
+        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
+                + "JOIN example_Author__fetch.books example_Book "
+                + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher "
+                + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book_publisher.name asc";
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }

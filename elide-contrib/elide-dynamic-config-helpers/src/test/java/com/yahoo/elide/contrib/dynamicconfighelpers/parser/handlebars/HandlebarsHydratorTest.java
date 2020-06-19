@@ -7,7 +7,7 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideConfigParser;
+import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 
 import org.junit.jupiter.api.Test;
 
@@ -242,7 +242,8 @@ public class HandlebarsHydratorTest {
         String absolutePath = file.getAbsolutePath();
         String hjsonPath = absolutePath + "/tables/table1.hjson";
 
-        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
+        DynamicConfigValidator testClass = new DynamicConfigValidator();
+        testClass.readAndValidateConfigs(path);
 
         Map<String, Object> map = testClass.getVariables();
 
@@ -256,10 +257,9 @@ public class HandlebarsHydratorTest {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
         String path = "src/test/resources/models";
-        File file = new File(path);
-        String absolutePath = file.getAbsolutePath();
 
-        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
+        DynamicConfigValidator testClass = new DynamicConfigValidator();
+        testClass.readAndValidateConfigs(path);
 
         Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
 
@@ -271,10 +271,9 @@ public class HandlebarsHydratorTest {
     public void testSecurityHydration() throws IOException {
         HandlebarsHydrator obj = new HandlebarsHydrator();
         String path = "src/test/resources/models";
-        File file = new File(path);
-        String absolutePath = file.getAbsolutePath();
 
-        ElideConfigParser testClass = new ElideConfigParser(absolutePath);
+        DynamicConfigValidator testClass = new DynamicConfigValidator();
+        testClass.readAndValidateConfigs(path);
 
         Map<String, String> securityClasses = obj.hydrateSecurityTemplate(testClass.getElideSecurityConfig());
 

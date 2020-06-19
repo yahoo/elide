@@ -7,6 +7,8 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
@@ -40,7 +42,7 @@ public class AsyncExecutorService {
     private Elide elide;
     private Map<String, QueryRunner> runners;
     private ExecutorService executor;
-    private ExecutorService interruptor;
+    private ExecutorService updater;
     private int maxRunTime;
     private AsyncQueryDAO asyncQueryDao;
     private static AsyncExecutorService asyncExecutorService = null;
@@ -57,7 +59,7 @@ public class AsyncExecutorService {
 
         this.maxRunTime = maxRunTime;
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
-        interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
+        updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         this.asyncQueryDao = asyncQueryDao;
     }
 
@@ -89,7 +91,7 @@ public class AsyncExecutorService {
      * Execute Query asynchronously.
      * @param queryObj Query Object
      * @param user User
-     * @param apiVersion API Version
+     * @param apiVersion api version
      */
     public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
 
@@ -102,15 +104,37 @@ public class AsyncExecutorService {
         Future<?> task = executor.submit(queryWorker);
 
         try {
-            task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+            queryObj.setStatus(QueryStatus.PROCESSING);
+            AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+            queryObj.setResult(queryResultObj);
+            queryObj.setStatus(QueryStatus.COMPLETE);
         } catch (InterruptedException e) {
-            // In case the future.get is interrupted , the underlying query may still have succeeded
             log.error("InterruptedException: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
         } catch (ExecutionException e) {
-            // Query Status set to failure will be handled by the processQuery method
             log.error("ExecutionException: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
+            queryObj.setQueryUpdateWorker(new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao));
+        } catch (Exception e) {
+            log.error("Exception: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
+        }
+
+    }
+    /**
+     * Complete Query asynchronously.
+     * @param query AsyncQuery
+     * @param user User
+     * @param apiVersion API Version
+     */
+    public void completeQuery(AsyncQuery query, User user, String apiVersion) {
+        if (query.getQueryUpdateWorker() != null) {
+            log.info("Task has not completed");
+            updater.execute(query.getQueryUpdateWorker());
+        } else {
+            log.info("Task has completed");
         }
     }
 }

@@ -58,24 +58,15 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQuery updateStatus(AsyncQuery asyncQuery, QueryStatus status) {
-        return updateAsyncQuery(asyncQuery, (asyncQueryObj) -> {
-            asyncQueryObj.setStatus(status);
-        });
-    }
-
-    /**
-     * This method updates the model for AsyncQuery with passed value.
-     * @param asyncQuery The AsyncQuery Object which will be updated
-     * @param updateFunction Functional interface for updating AsyncQuery Object
-     * @return AsyncQuery Object
-     */
-    private AsyncQuery updateAsyncQuery(AsyncQuery asyncQuery, UpdateQuery updateFunction) {
-        log.debug("updateAsyncQuery");
+    public AsyncQuery updateStatus(String asyncQueryId, QueryStatus status) {
         AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
-            updateFunction.update(asyncQuery);
-            tx.save(asyncQuery, scope);
-            return asyncQuery;
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .build();
+            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+            query.setStatus(status);
+            tx.save(query, scope);
+            return query;
         });
         return queryObj;
     }
@@ -163,12 +154,18 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, AsyncQuery asyncQuery) {
+    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult,
+            String asyncQueryId) {
         log.debug("updateAsyncQueryResult");
         AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
-            asyncQuery.setResult(asyncQueryResult);
-            tx.save(asyncQuery, scope);
-            return asyncQuery;
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .build();
+            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+            query.setResult(asyncQueryResult);
+            query.setStatus(QueryStatus.COMPLETE);
+            tx.save(query, scope);
+            return query;
         });
         return queryObj;
     }

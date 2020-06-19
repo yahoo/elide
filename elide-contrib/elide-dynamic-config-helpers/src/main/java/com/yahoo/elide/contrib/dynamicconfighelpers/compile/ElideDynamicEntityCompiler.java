@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.compile;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.parser.ElideConfigParser;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
-
+import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 import com.google.common.collect.Sets;
 
 import org.mdkt.compiler.InMemoryJavaCompiler;
@@ -49,13 +49,17 @@ public class ElideDynamicEntityCompiler {
      */
     public ElideDynamicEntityCompiler(String path) throws Exception {
 
-        ElideTableConfig tableConfig = new ElideTableConfig();
-        ElideSecurityConfig securityConfig = new ElideSecurityConfig();
-        ElideConfigParser elideConfigParser = new ElideConfigParser(path);
+        if (DynamicConfigHelpers.isNullOrEmpty(path)) {
+            throw new IllegalArgumentException("Config path is null");
+        }
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
 
-        tableConfig = elideConfigParser.getElideTableConfig();
-        securityConfig = elideConfigParser.getElideSecurityConfig();
+        DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator();
+        dynamicConfigValidator.readAndValidateConfigs(path);
+
+        ElideTableConfig tableConfig = dynamicConfigValidator.getElideTableConfig();
+        ElideSecurityConfig securityConfig = dynamicConfigValidator.getElideSecurityConfig();
+
         tableClasses = hydrator.hydrateTableTemplate(tableConfig);
         securityClasses = hydrator.hydrateSecurityTemplate(securityConfig);
 

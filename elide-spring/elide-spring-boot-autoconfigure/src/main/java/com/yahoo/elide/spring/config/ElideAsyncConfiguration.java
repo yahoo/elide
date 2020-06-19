@@ -7,9 +7,13 @@ package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.hooks.CompleteQueryHook;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -26,6 +30,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.TimeZone;
 
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
@@ -55,8 +61,10 @@ public class ElideAsyncConfiguration {
 
         // Binding AsyncQuery LifeCycleHook
         ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(asyncExecutorService);
+        CompleteQueryHook completeQueryHook = new CompleteQueryHook(asyncExecutorService);
         UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
-        dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
+        dictionary.bindTrigger(AsyncQuery.class, CREATE, PRECOMMIT, executeQueryHook, false);
+        dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
 
         return AsyncExecutorService.getInstance();
@@ -88,6 +96,13 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncQueryDAO", matchIfMissing = true)
     public AsyncQueryDAO buildAsyncQueryDAO(Elide elide) {
-        return new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+        // Creating a new ElideSettings and Elide object for Async services
+        // which will have ISO8601 Dates. Used for DefaultAsyncQueryDAO.
+        ElideSettings asyncElideSettings = new ElideSettingsBuilder(elide.getDataStore())
+                .withEntityDictionary(elide.getElideSettings().getDictionary())
+                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                .build();
+        Elide asyncElide = new Elide(asyncElideSettings);
+        return new DefaultAsyncQueryDAO(asyncElide, asyncElide.getDataStore());
     }
 }

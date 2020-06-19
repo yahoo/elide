@@ -7,10 +7,13 @@ package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.hooks.CompleteQueryHook;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -39,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
@@ -113,9 +117,18 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 // Binding async service
                 if (settings.enableAsync()) {
+                    // Creating a new ElideSettings and Elide object for Async services
+                    // which will have ISO8601 Dates. Used for DefaultAsyncQueryDAO.
+                    ElideSettings asyncElideSettings = new ElideSettingsBuilder(elideSettings.getDataStore())
+                            .withEntityDictionary(elideSettings.getDictionary())
+                            .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+                            .build();
+
+                    Elide asyncElide = new Elide(asyncElideSettings);
+
                     AsyncQueryDAO asyncQueryDao = settings.getAsyncQueryDAO();
                     if (asyncQueryDao == null) {
-                        asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+                        asyncQueryDao = new DefaultAsyncQueryDAO(asyncElide, asyncElide.getDataStore());
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
@@ -125,9 +138,11 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     // Binding AsyncQuery LifeCycleHook
                     ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
+                    CompleteQueryHook completeQueryHook = new CompleteQueryHook(AsyncExecutorService.getInstance());
                     UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
 
-                    dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, executeQueryHook, false);
+                    dictionary.bindTrigger(AsyncQuery.class, CREATE, PRECOMMIT, executeQueryHook, false);
+                    dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
 
                     // Binding async cleanup service
