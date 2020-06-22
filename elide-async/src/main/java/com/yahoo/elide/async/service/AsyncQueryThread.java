@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.service;
 
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -64,6 +63,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         this.runner = runner;
         this.asyncQueryDao = asyncQueryDao;
         this.apiVersion = apiVersion;
+       // this.resultStorageEngine = resultStorageEngine;
     }
 
 
@@ -74,10 +74,10 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     * @throws URISyntaxException
     * @throws NoHttpResponseException
     */
-   
     protected AsyncQueryResult processQuery() throws URISyntaxException, NoHttpResponseException {
 
         ElideResponse response = null;
+        Integer recCount = null;
         log.debug("AsyncQuery Object from request: {}", queryObj);
         if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
             MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
@@ -85,7 +85,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion);
             log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                     response.getResponseCode(), response.getBody());
-          
+
             if (response.getResponseCode() == 200) {
                 recCount = calculateRecordsJSON(response.getBody());
             }
@@ -94,7 +94,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             response = runner.run(queryObj.getQuery(), user);
             log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                     response.getResponseCode(), response.getBody());
-          
+
             if (response.getResponseCode() == 200) {
                 String tableName = getTableNameFromQuery(queryObj.getQuery());
                 recCount = calculateRecordsGRAPHQL(response.getBody(), tableName);
@@ -110,9 +110,10 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         queryResultObj.setHttpStatus(response.getResponseCode());
         queryResultObj.setResponseBody(response.getBody());
         queryResultObj.setContentLength(response.getBody().length());
+        queryResultObj.setRecordCount(recCount);
         queryResultObj.setResultType(ResultType.EMBEDDED);
         queryResultObj.setCompletedOn(new Date());
-  
+
         resultStorageEngine = new DefaultResultStorageEngine();
         resultStorageEngine.storeResults(UUID.fromString(queryObj.getId()), response.getBody());
 

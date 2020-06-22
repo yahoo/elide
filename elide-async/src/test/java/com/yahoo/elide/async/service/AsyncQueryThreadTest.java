@@ -46,7 +46,7 @@ public class AsyncQueryThreadTest {
         queryResultObj = mock(AsyncQueryResult.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         resultStorageEngine = mock(DefaultResultStorageEngine.class);
-        queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1", resultStorageEngine);
+        queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
     }
 
     @Test
@@ -73,7 +73,7 @@ public class AsyncQueryThreadTest {
 
         queryResultObj = queryThread.processQuery();
 
-        assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
+        assertEquals(queryResultObj.getResponseBody(), "responseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
 
@@ -93,7 +93,7 @@ public class AsyncQueryThreadTest {
 
         queryResultObj = queryThread.processQuery();
 
-        assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
+        assertEquals(queryResultObj.getResponseBody(), "responseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
 }

@@ -100,8 +100,8 @@ public class AsyncExecutorService {
             throw new InvalidOperationException("Invalid API Version");
         }
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao,
-                apiVersion, resultStorageEngine);
-        Future<?> task = executor.submit(queryWorker);
+                apiVersion);
+        Future<AsyncQueryResult> task = executor.submit(queryWorker);
 
         try {
             queryObj.setStatus(QueryStatus.PROCESSING);
