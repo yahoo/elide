@@ -34,9 +34,8 @@ import java.util.Set;
  * If any commit fails in process, reverse any commits already completed.
  */
 public abstract class MultiplexTransaction extends DataStoreTransactionImplementation {
-    protected final LinkedHashMap<DataStore, DataStoreTransaction> transactions;
+    protected LinkedHashMap<DataStore, DataStoreTransaction> transactions;
     protected final MultiplexManager multiplexManager;
-    protected final DataStoreTransaction lastDataStoreTransaction;
 
     /**
      * Multiplex transaction handler.
@@ -45,14 +44,6 @@ public abstract class MultiplexTransaction extends DataStoreTransactionImplement
     public MultiplexTransaction(MultiplexManager multiplexManager) {
         this.multiplexManager = multiplexManager;
         this.transactions = new LinkedHashMap<>(multiplexManager.dataStores.size());
-
-        // create each subordinate transaction
-        DataStoreTransaction transaction = null;
-        for (DataStore dataStore : multiplexManager.dataStores) {
-            transaction = beginTransaction(dataStore);
-            transactions.put(dataStore, transaction);
-        }
-        lastDataStoreTransaction = transaction;
     }
 
     protected abstract DataStoreTransaction beginTransaction(DataStore dataStore);
@@ -78,19 +69,25 @@ public abstract class MultiplexTransaction extends DataStoreTransactionImplement
 
     @Override
     public void flush(RequestScope requestScope) {
-        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.flush(requestScope));
+        transactions.values().stream()
+                .filter(dataStoreTransaction -> dataStoreTransaction != null)
+                .forEach(dataStoreTransaction -> dataStoreTransaction.flush(requestScope));
     }
 
     @Override
     public void preCommit() {
-        transactions.values().forEach(DataStoreTransaction::preCommit);
+        transactions.values().stream()
+                .filter(dataStoreTransaction -> dataStoreTransaction != null)
+                .forEach(DataStoreTransaction::preCommit);
     }
 
     @Override
     public void commit(RequestScope scope) {
         // flush all before commit
         flush(scope);
-        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.commit(scope));
+        transactions.values().stream()
+               .filter(dataStoreTransaction -> dataStoreTransaction != null)
+               .forEach(dataStoreTransaction -> dataStoreTransaction.commit(scope));
     }
 
     @Override
@@ -121,9 +118,20 @@ public abstract class MultiplexTransaction extends DataStoreTransactionImplement
     }
 
     protected DataStoreTransaction getTransaction(Class<?> cls) {
-        DataStoreTransaction transaction = transactions.get(this.multiplexManager.getSubManager(cls));
+        DataStore lookupDataStore = this.multiplexManager.getSubManager(cls);
+
+        DataStoreTransaction transaction = transactions.get(lookupDataStore);
         if (transaction == null) {
-            throw new InvalidCollectionException(cls.getName());
+            for (DataStore dataStore : multiplexManager.dataStores) {
+                if (dataStore.equals(lookupDataStore)) {
+                    transaction = beginTransaction(dataStore);
+                    transactions.put(dataStore, transaction);
+                    break;
+                }
+            }
+            if (transaction == null) {
+                throw new InvalidCollectionException(cls.getName());
+            }
         }
         return transaction;
     }
@@ -235,5 +243,10 @@ public abstract class MultiplexTransaction extends DataStoreTransactionImplement
                 .findFirst()
                 .map(p -> (Serializable) p.getValues().get(0))
                 .orElse(null);
+    }
+
+    @Override
+    public void cancel() {
+        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.cancel());
     }
 }

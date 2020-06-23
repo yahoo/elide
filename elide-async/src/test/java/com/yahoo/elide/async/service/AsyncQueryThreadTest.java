@@ -93,4 +93,18 @@ public class AsyncQueryThreadTest {
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
+
+    @Test
+    public void testAsyncQueryResultNullException() {
+        String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
+
+        when(queryObj.getQuery()).thenReturn(query);
+        when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
+        when(asyncQueryDao.createAsyncQueryResult(any(), any(), any(), any())).thenThrow(RuntimeException.class);
+
+        queryThread.processQuery();
+
+        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.PROCESSING);
+        verify(asyncQueryDao, times(1)).updateStatus(queryObj, QueryStatus.FAILURE);
+    }
 }

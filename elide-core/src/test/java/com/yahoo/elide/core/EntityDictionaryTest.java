@@ -953,7 +953,6 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals(3, models.size());  //Also includes com.yahoo.elide inner classes from this file.
         assertTrue(models.contains(BookV2.class));
 
-
         models = getBoundClassesByVersion(NO_VERSION);
         assertEquals(14, models.size());
     }

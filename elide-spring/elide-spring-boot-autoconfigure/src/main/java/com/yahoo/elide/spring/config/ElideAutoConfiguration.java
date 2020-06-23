@@ -17,6 +17,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.cache.Cache;
+import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -25,13 +27,17 @@ import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
+import org.hibernate.Session;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Consumer;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -50,12 +58,18 @@ import javax.persistence.EntityManagerFactory;
 @Slf4j
 public class ElideAutoConfiguration {
 
+    @Autowired(required = false)
+    private MeterRegistry meterRegistry;
+
     /**
      * Creates a entity compiler for compiling dynamic config classes.
      * @param settings Config Settings.
      * @return An instance of ElideDynamicEntityCompiler.
      * @throws Exception Exception thrown.
      */
+
+    private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+
     @Bean
     @ConditionalOnMissingBean
     public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
@@ -152,7 +166,7 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
     }
 
     /**
@@ -167,7 +181,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngine queryEngine,
-            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
+            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings, Cache cache)
             throws ClassNotFoundException {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
                 .queryEngine(queryEngine);
@@ -177,14 +191,32 @@ public class ElideAutoConfiguration {
             annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
             aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
         }
+        aggregationDataStoreBuilder.cache(cache);
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
-        JpaDataStore jpaDataStore = new JpaDataStore(
-                () -> { return entityManagerFactory.createEntityManager(); },
-                    (em -> { return new NonJtaTransaction(em); }));
+        JpaDataStore jpaDataStore = new JpaDataStore(entityManagerFactory::createEntityManager,
+                                                     (em) -> { return new NonJtaTransaction(em, txCancel); });
 
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
+    }
+
+    /**
+     * Creates a query result cache to be used by {@link #buildDataStore}, or null if cache is to be disabled.
+     * @param settings Elide configuration settings.
+     * @return An instance of a query cache, or null.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public Cache buildQueryCache(ElideConfigProperties settings) {
+        CaffeineCache cache = null;
+        if (settings.getQueryCacheMaximumEntries() > 0) {
+            cache = new CaffeineCache(settings.getQueryCacheMaximumEntries());
+            if (meterRegistry != null) {
+                CaffeineCacheMetrics.monitor(meterRegistry, cache.getImplementation(), "elideQueryCache");
+            }
+        }
+        return cache;
     }
 
     /**

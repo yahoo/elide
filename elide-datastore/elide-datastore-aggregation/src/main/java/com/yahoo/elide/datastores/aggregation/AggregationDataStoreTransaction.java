@@ -7,10 +7,10 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.datastores.aggregation.cache.Cache;
+import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.datastores.aggregation.query.Cache;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.request.EntityProjection;
 
@@ -98,5 +98,10 @@ public class AggregationDataStoreTransaction extends DataStoreTransactionImpleme
                 entityProjection,
                 scope.getDictionary());
         return translator.getQuery();
+    }
+
+    @Override
+    public void cancel() {
+        queryEngineTransaction.cancel();
     }
 }

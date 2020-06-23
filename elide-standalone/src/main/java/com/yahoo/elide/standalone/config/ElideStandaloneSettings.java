@@ -22,6 +22,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.cache.Cache;
+import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -34,6 +36,7 @@ import com.yahoo.elide.security.checks.Check;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.hibernate.Session;
 
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
@@ -49,6 +52,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -56,6 +60,9 @@ import javax.persistence.EntityManagerFactory;
  */
 public interface ElideStandaloneSettings {
     /* Elide settings */
+
+     public final Consumer<EntityManager> TXCANCEL = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+
     /**
      * A map containing check mappings for security across Elide. If not provided, then an empty map is used.
      * In case of an empty map, checks can be referenced by their fully qualified class names.
@@ -349,6 +356,24 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Limit on number of query cache entries. Non-positive values disable the query cache.
+     *
+     * @return Default: 1024
+     */
+    default Integer getQueryCacheMaximumEntries() {
+        return CaffeineCache.DEFAULT_MAXIMUM_ENTRIES;
+    }
+
+    /**
+     * Get the query cache implementation. If null, query cache is disabled.
+     *
+     * @return Default: {@code new CaffeineCache(getQueryCacheSize())}
+     */
+    default Cache getQueryCache() {
+        return getQueryCacheMaximumEntries() > 0 ? new CaffeineCache(getQueryCacheMaximumEntries()) : null;
+    }
+
+    /**
      * Gets the dynamic compiler for elide.
      *
      * @return Optional ElideDynamicEntityCompiler
@@ -376,10 +401,9 @@ public interface ElideStandaloneSettings {
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
-
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
-                (em -> { return new NonJtaTransaction(em); }));
+                (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
 
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
@@ -402,6 +426,7 @@ public interface ElideStandaloneSettings {
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
             aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
         }
+        aggregationDataStoreBuilder.cache(getQueryCache());
         return aggregationDataStoreBuilder.build();
     }
 
@@ -463,7 +488,7 @@ public interface ElideStandaloneSettings {
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory);
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, TXCANCEL);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,

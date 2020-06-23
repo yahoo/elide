@@ -160,4 +160,9 @@ public class DataStoreTransactionTest extends DataStoreTransactionImplementation
     public void createObject(Object entity, RequestScope scope) {
         // nothing
     }
+
+    @Override
+    public void cancel() {
+       //nothing
+    }
 }

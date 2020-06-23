@@ -14,6 +14,11 @@ import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
+import org.hibernate.Session;
+
+import java.util.function.Consumer;
+
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
@@ -26,14 +31,15 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     @Override
     public DataStore getDataStore() {
         MetaDataStore metaDataStore = new MetaDataStore();
+        Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
         AggregationDataStore aggregationDataStore = AggregationDataStore.builder()
-                .queryEngine(new SQLQueryEngine(metaDataStore, entityManagerFactory))
+                .queryEngine(new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel))
                 .build();
 
         DataStore jpaStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                NonJtaTransaction::new
+                (em) -> { return new NonJtaTransaction(em, txCancel); }
         );
 
         return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);
