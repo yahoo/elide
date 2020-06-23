@@ -14,6 +14,9 @@ import com.yahoo.elide.security.RequestScope;
 
 import java.util.Optional;
 
+/**
+ * LifeCycle Hook for execution of AsyncQuery.
+ */
 public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
 
     private AsyncExecutorService asyncExecutorService;

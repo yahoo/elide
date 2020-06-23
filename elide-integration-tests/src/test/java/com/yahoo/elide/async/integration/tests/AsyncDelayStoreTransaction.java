@@ -7,64 +7,36 @@
 package com.yahoo.elide.async.integration.tests;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.request.EntityProjection;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 /**
  * Data Store Transaction that wraps another transaction and provides delay for testing Async queries.
  */
 @Slf4j
-public class AsyncDelayStoreTransaction extends DataStoreTransactionImplementation implements DataStoreTransaction {
+public class AsyncDelayStoreTransaction extends TransactionWrapper {
 
-    private final DataStoreTransaction tx;
+    private Integer testDelay;
+    protected static Boolean sleep = false;
 
-    public AsyncDelayStoreTransaction(DataStoreTransaction tx) {
-            this.tx = tx;
-    }
-    @Override
-    public void close() throws IOException {
-        tx.close();
-    }
+    public AsyncDelayStoreTransaction(DataStoreTransaction tx, Integer testDelay) {
 
-    @Override
-    public void save(Object entity, RequestScope scope) {
-        tx.save(entity, scope);
-
-    }
-
-    @Override
-    public void delete(Object entity, RequestScope scope) {
-        tx.delete(entity, scope);
-    }
-
-    @Override
-    public void flush(RequestScope scope) {
-        tx.flush(scope);
-    }
-
-    @Override
-    public void commit(RequestScope scope) {
-        tx.commit(scope);
-    }
-
-    @Override
-    public void createObject(Object entity, RequestScope scope) {
-        tx.createObject(entity, scope);
+        super(tx);
+        this.testDelay = testDelay;
     }
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         try {
             log.debug("LoadObjects Sleep for delay test");
-            if (entityProjection.getType().toString().trim().equals("class example.Book")) {
-                Thread.sleep(5000);
+            if (sleep) {
+                Thread.sleep(testDelay);
             }
         } catch (InterruptedException e) {
             log.debug("Test delay interrupted");
         }
-        return tx.loadObjects(entityProjection, scope);
+        return super.loadObjects(entityProjection, scope);
     }
 }

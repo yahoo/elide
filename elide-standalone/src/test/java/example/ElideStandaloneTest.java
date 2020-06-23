@@ -291,16 +291,7 @@ public class ElideStandaloneTest {
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"));
-
-                // Validate AsyncQueryResult Response
-                given()
-                        .accept("application/vnd.api+json")
-                        .get("/api/v1/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
-                        .then()
-                        .statusCode(com.yahoo.elide.core.HttpStatus.SC_OK)
-                        .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
-                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                                 + "[{\"type\":\"post\",\"id\":\"2\",\"attributes\":{\"abusiveContent\":false,"
