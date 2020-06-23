@@ -11,18 +11,20 @@ The Elide spring autoconfigure package provides the core code needed to use Elid
    
 ## Configuration Properties   
 
-| *Property*                 | *Required* |  *Default*      | *Description*                                            |
-| -------------------------- | -----------| --------------- | -------------------------------------------------------- |
-| elide.pageSize             | No         | 500             | Default pagination page size for collections             |
-| elide.maxPageSize          | No         | 10000           | Max pagination page size a client can request.           |
-| elide.json-api.path        | No         | '/'             | URL path prefix for JSON-API endpoint.                   |
-| elide.json-api.enabled     | No         | false           | Whether or not the JSON-API endpoint is exposed.         |
-| elide.graphql.path         | No         | '/'             | URL path prefix for GraphQL endpoint.                    |
-| elide.graphql.enabled      | No         | false           | Whether or not the GraphQL endpoint is exposed.          |
-| elide.swagger.path         | No         | '/'             | URL path prefix for Swagger document  endpoint.          |
-| elide.swagger.enabled      | No         | false           | Whether or not the Swagger document endpoint is exposed. |
-| elide.swagger.name         | No         | 'Elide Service' | Swagger documentation requires an API name.              |
-| elide.swagger.version      | No         | '1.0'           | Swagger documentation requires an API version.           |
+| *Property*                     | *Required* |  *Default*      | *Description*                                            |
+| ------------------------------ | -----------| --------------- | -------------------------------------------------------- |
+| elide.pageSize                 | No         | 500             | Default pagination page size for collections             |
+| elide.maxPageSize              | No         | 10000           | Max pagination page size a client can request.           |
+| elide.json-api.path            | No         | '/'             | URL path prefix for JSON-API endpoint.                   |
+| elide.json-api.enabled         | No         | false           | Whether or not the JSON-API endpoint is exposed.         |
+| elide.graphql.path             | No         | '/'             | URL path prefix for GraphQL endpoint.                    |
+| elide.graphql.enabled          | No         | false           | Whether or not the GraphQL endpoint is exposed.          |
+| elide.swagger.path             | No         | '/'             | URL path prefix for Swagger document  endpoint.          |
+| elide.swagger.enabled          | No         | false           | Whether or not the Swagger document endpoint is exposed. |
+| elide.swagger.name             | No         | 'Elide Service' | Swagger documentation requires an API name.              |
+| elide.swagger.version          | No         | '1.0'           | Swagger documentation requires an API version.           |
+| elide.queryCacheMaximumEntries | No         | 1024            | Maximum number of entries in query result cache.         |
+
 
 ## Entity Dictionary Override
 
