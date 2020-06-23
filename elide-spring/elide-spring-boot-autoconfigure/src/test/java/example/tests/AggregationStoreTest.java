@@ -13,11 +13,15 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.HttpStatus;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+
+import io.micrometer.core.instrument.MeterRegistry;
 
 /**
  * Example functional tests for Aggregation Store.
@@ -34,7 +38,7 @@ public class AggregationStoreTest extends IntegrationTest {
                     + "\t\t(1,100,'Foo'),"
                     + "\t\t(2,150,'Bar');"
     })
-    public void jsonApiGetTest() {
+    public void jsonApiGetTest(@Autowired MeterRegistry metrics) {
         when()
                 .get("/json/stats?fields[stats]=measure")
                 .then()
@@ -50,5 +54,11 @@ public class AggregationStoreTest extends IntegrationTest {
                         ).toJSON())
                 )
                 .statusCode(HttpStatus.SC_OK);
+
+        // query cache was active and publishing metrics
+        assertEquals(
+                1,
+                metrics.get("cache.gets").tags("cache", "elideQueryCache", "result", "miss").functionCounter().count()
+        );
     }
 }

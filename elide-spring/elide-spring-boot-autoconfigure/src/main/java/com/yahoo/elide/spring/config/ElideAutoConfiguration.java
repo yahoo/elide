@@ -181,7 +181,8 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngine queryEngine,
-            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings, Cache cache)
+            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings,
+            @Autowired(required = false) Cache cache)
             throws ClassNotFoundException {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
                 .queryEngine(queryEngine);
