@@ -28,11 +28,11 @@ import java.net.URISyntaxException;
 
 public class AsyncQueryThreadTest {
 
-    private AsyncQueryThread queryThread;
+    //private AsyncQueryThread queryThread;
     private User user;
     private Elide elide;
     private QueryRunner runner;
-    private AsyncQuery queryObj;
+    //private AsyncQuery queryObj;
     private AsyncQueryResult queryResultObj;
     private AsyncQueryDAO asyncQueryDao;
 
@@ -41,55 +41,38 @@ public class AsyncQueryThreadTest {
         user = mock(User.class);
         elide = mock(Elide.class);
         runner = mock(QueryRunner.class);
-        queryObj = mock(AsyncQuery.class);
         queryResultObj = mock(AsyncQueryResult.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
-        queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
-    }
-
-    @Test
-    public void testAsyncQueryThreadSet() {
-        assertEquals(queryObj, queryThread.getQueryObj());
-        assertEquals(user, queryThread.getUser());
-        assertEquals(elide, queryThread.getElide());
-        assertEquals(runner, queryThread.getRunner());
-        assertEquals(asyncQueryDao, queryThread.getAsyncQueryDao());
     }
 
     @Test
     public void testProcessQueryJsonApi() throws NoHttpResponseException, URISyntaxException {
+        AsyncQuery queryObj = new AsyncQuery();
+        ElideResponse response = new ElideResponse(200, "ResponseBody");
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
-        ElideResponse response = mock(ElideResponse.class);
-
-        when(queryObj.getQuery()).thenReturn(query);
-        when(queryObj.getId()).thenReturn(id);
-        when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         when(elide.get(anyString(), any(), any(), anyString())).thenReturn(response);
-        when(response.getResponseCode()).thenReturn(200);
-        when(response.getBody()).thenReturn("ResponseBody");
-
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
         queryResultObj = queryThread.processQuery();
-
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
 
     @Test
     public void testProcessQueryGraphQl() throws NoHttpResponseException, URISyntaxException {
+        AsyncQuery queryObj = new AsyncQuery();
+        ElideResponse response = new ElideResponse(200, "ResponseBody");
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
-        ElideResponse response = mock(ElideResponse.class);
-
-        when(queryObj.getQuery()).thenReturn(query);
-        when(queryObj.getId()).thenReturn(id);
-        when(queryObj.getQueryType()).thenReturn(QueryType.GRAPHQL_V1_0);
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         when(runner.run(query, user)).thenReturn(response);
-        when(response.getResponseCode()).thenReturn(200);
-        when(response.getBody()).thenReturn("ResponseBody");
-
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
         queryResultObj = queryThread.processQuery();
-
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }

@@ -15,7 +15,6 @@ import static org.mockito.Mockito.when;
 
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
@@ -86,12 +85,9 @@ public class AsyncExecutorServiceTest {
         AsyncQuery queryObj = mock(AsyncQuery.class);
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
-        ElideResponse response = mock(ElideResponse.class);
         when(queryObj.getQuery()).thenReturn(query);
         when(queryObj.getId()).thenReturn(id);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
-        when(response.getResponseCode()).thenReturn(200);
-        when(response.getBody()).thenReturn("ResponseBody");
         when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
         service.executeQuery(queryObj, testUser, NO_VERSION);
         verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
