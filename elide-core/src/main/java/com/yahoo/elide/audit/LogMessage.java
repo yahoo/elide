@@ -12,14 +12,14 @@ import com.yahoo.elide.core.ResourceLineage;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 
-import de.odysseus.el.ExpressionFactoryImpl;
-import de.odysseus.el.util.SimpleContext;
-
+import java.lang.reflect.Constructor;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import javax.el.ELContext;
 import javax.el.ELException;
 import javax.el.ExpressionFactory;
 import javax.el.PropertyNotFoundException;
@@ -30,7 +30,8 @@ import javax.el.ValueExpression;
  */
 public class LogMessage {
     //Supposedly this is thread safe.
-    private static final ExpressionFactory EXPRESSION_FACTORY = new ExpressionFactoryImpl();
+    private static final ExpressionFactory EXPRESSION_FACTORY = ExpressionFactory.newInstance();
+    private static final Supplier<ELContext> CREATE_CONTEXT = createSimpleContext();
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
     private final String template;
@@ -96,8 +97,8 @@ public class LogMessage {
      * @return the message
      */
     public String getMessage() {
-        final SimpleContext ctx = new SimpleContext();
-        final SimpleContext singleElementContext = new SimpleContext();
+        final ELContext ctx = CREATE_CONTEXT.get();
+        final ELContext singleElementContext = CREATE_CONTEXT.get();
 
         if (record != null) {
             /* Create a new lineage which includes the passed in record */
@@ -118,8 +119,8 @@ public class LogMessage {
                     singleElementExpression = EXPRESSION_FACTORY.createValueExpression(values.get(values.size() - 1)
                             .getObject(), Object.class);
                 }
-                ctx.setVariable(name, expression);
-                singleElementContext.setVariable(name, singleElementExpression);
+                ctx.getVariableMapper().setVariable(name, expression);
+                singleElementContext.getVariableMapper().setVariable(name, singleElementExpression);
             }
 
             final Object user = getUser();
@@ -128,8 +129,8 @@ public class LogMessage {
                     .createValueExpression(
                         user, Object.class
                     );
-                ctx.setVariable("opaqueUser", opaqueUserValueExpression);
-                singleElementContext.setVariable("opaqueUser", opaqueUserValueExpression);
+                ctx.getVariableMapper().setVariable("opaqueUser", opaqueUserValueExpression);
+                singleElementContext.getVariableMapper().setVariable("opaqueUser", opaqueUserValueExpression);
             }
         }
 
@@ -167,6 +168,38 @@ public class LogMessage {
             return MessageFormat.format(template, results);
         } catch (IllegalArgumentException e) {
             throw new InvalidSyntaxException(e);
+        }
+    }
+
+    private static Supplier<ELContext> createSimpleContext() {
+        try {
+            Constructor<? extends ELContext> contructor = Class.forName("javax.el.StandardELContext")
+                    .asSubclass(ELContext.class)
+                    .getDeclaredConstructor(ExpressionFactory.class);
+            return () -> {
+                try {
+                    return contructor.newInstance(EXPRESSION_FACTORY);
+                } catch (ReflectiveOperationException re) {
+                    throw new IllegalStateException(re);
+                }
+            };
+        } catch (ReflectiveOperationException standardContextException) {
+            try {
+                Class<? extends ELContext> cls = Class.forName("de.odysseus.el.util.SimpleContext")
+                        .asSubclass(ELContext.class);
+                return () -> {
+                    try {
+                        return cls.newInstance();
+                    } catch (ReflectiveOperationException re) {
+                        throw new IllegalStateException(re);
+                    }
+                };
+            } catch (ReflectiveOperationException simpleContextException) {
+                IllegalStateException illegalState = new IllegalStateException("Cannot instantiate ELContext");
+                illegalState.addSuppressed(standardContextException);
+                illegalState.addSuppressed(simpleContextException);
+                throw illegalState;
+            }
         }
     }
 
