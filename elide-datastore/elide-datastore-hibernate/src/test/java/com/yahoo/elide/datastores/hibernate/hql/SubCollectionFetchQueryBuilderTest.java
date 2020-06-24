@@ -30,9 +30,11 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SubCollectionFetchQueryBuilderTest {
@@ -79,6 +81,82 @@ public class SubCollectionFetchQueryBuilderTest {
     }
 
     @Test
+    public void testSubCollectionFetchWithIncludedRelation() {
+        Author author = new Author();
+        author.setId(1L);
+
+        Book book = new Book();
+        book.setId(2);
+
+        RelationshipImpl relationship = new RelationshipImpl(
+                Author.class,
+                Book.class,
+                BOOKS,
+                author,
+                Arrays.asList(book));
+
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(relationship,
+                dictionary, new TestSessionWrapper());
+
+        Set<String> includedRelations = new HashSet<>();
+        includedRelations.add("publisher");
+
+        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
+        sorting.put(TITLE, Sorting.SortOrder.asc);
+
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .withRelationsIncludedInProjection(includedRelations)
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
+                .build();
+
+        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
+                + "JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher "
+                + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testSubCollectionFetchWithIncludedToManyRelation() {
+        Author author = new Author();
+        author.setId(1L);
+
+        Book book = new Book();
+        book.setId(2);
+
+        RelationshipImpl relationship = new RelationshipImpl(
+                Author.class,
+                Book.class,
+                BOOKS,
+                author,
+                Arrays.asList(book));
+
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(relationship,
+                dictionary, new TestSessionWrapper());
+
+        Set<String> includedRelations = new HashSet<>();
+        includedRelations.add("authors");
+
+        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
+        sorting.put(TITLE, Sorting.SortOrder.asc);
+
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .withRelationsIncludedInProjection(includedRelations)
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
+                .build();
+
+        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
+                + "JOIN example_Author__fetch.books example_Book "
+                + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testSubCollectionFetchWithSorting() {
         Author author = new Author();
         author.setId(1L);
@@ -104,7 +182,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
-                + "JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher "
+                + "JOIN example_Author__fetch.books example_Book "
                 + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
@@ -146,7 +224,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
                 + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher  "
+                + "LEFT JOIN example_Book.publisher example_Book_publisher  "
                 + "WHERE example_Book_publisher.name IN (:books_publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch ";
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+_\\w+", ":books_publisher_name_XXX");
@@ -192,7 +270,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
                 + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher "
+                + "LEFT JOIN example_Book.publisher example_Book_publisher "
                 + "WHERE example_Book_publisher.name IN (:publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
 
         String actual = query.getQueryText();
@@ -265,7 +343,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
                 + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher "
+                + "LEFT JOIN example_Book.publisher example_Book_publisher "
                 + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book_publisher.name asc";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");

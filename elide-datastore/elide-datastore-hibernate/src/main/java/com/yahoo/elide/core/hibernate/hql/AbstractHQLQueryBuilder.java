@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ public abstract class AbstractHQLQueryBuilder {
     protected Optional<Sorting> sorting;
     protected Optional<Pagination> pagination;
     protected Optional<FilterExpression> filterExpression;
+    protected Set<String> relationsIncludedInProjection = Collections.EMPTY_SET;
     protected static final String SPACE = " ";
     protected static final String PERIOD = ".";
     protected static final String COMMA = ",";
@@ -79,6 +81,7 @@ public abstract class AbstractHQLQueryBuilder {
         sorting = Optional.empty();
         pagination = Optional.empty();
         filterExpression = Optional.empty();
+
     }
 
     public abstract Query build();
@@ -95,6 +98,11 @@ public abstract class AbstractHQLQueryBuilder {
 
     public AbstractHQLQueryBuilder withPossiblePagination(final Optional<Pagination> possiblePagination) {
         this.pagination = possiblePagination;
+        return this;
+    }
+
+    public AbstractHQLQueryBuilder withRelationsIncludedInProjection(final Set<String> relationsIncludedInProjection) {
+        this.relationsIncludedInProjection = relationsIncludedInProjection;
         return this;
     }
 
@@ -217,7 +225,8 @@ public abstract class AbstractHQLQueryBuilder {
             RelationshipType type = dictionary.getRelationshipType(pathElement.getType(), fieldName);
 
             //This is a to-One relationship belonging to the collection being retrieved.
-            if (!skipFetches && type.isToOne() && !type.isComputed() && previousAlias == null) {
+            if (!skipFetches && relationsIncludedInProjection.contains(fieldName) && type.isToOne()
+                    && !type.isComputed() && previousAlias == null) {
                 fetch = "FETCH ";
 
             }
@@ -249,6 +258,9 @@ public abstract class AbstractHQLQueryBuilder {
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
         StringBuilder joinString = new StringBuilder("");
         for (String relationshipName : relationshipNames) {
+            if (!relationsIncludedInProjection.contains(relationshipName)) {
+                continue;
+            }
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
             if (type.isToOne() && !type.isComputed()) {
                 if (skipRelation.apply(relationshipName)) {

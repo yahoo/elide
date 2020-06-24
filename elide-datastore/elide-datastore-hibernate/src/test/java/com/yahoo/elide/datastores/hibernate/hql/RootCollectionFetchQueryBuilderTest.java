@@ -33,8 +33,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RootCollectionFetchQueryBuilderTest {
@@ -67,7 +69,7 @@ public class RootCollectionFetchQueryBuilderTest {
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher";
+                "SELECT example_Book FROM example.Book AS example_Book";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
 
@@ -87,7 +89,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected = "SELECT example_Book FROM example.Book AS example_Book "
-                + "LEFT JOIN FETCH example_Book.publisher order by example_Book.title asc";
+                + "order by example_Book.title asc";
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
 
@@ -181,7 +183,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
+                "SELECT example_Book FROM example.Book AS example_Book"
                 + " WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
 
         String actual = query.getQueryText();
@@ -206,7 +208,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
         String expected =
                 "SELECT example_Book FROM example.Book AS example_Book "
-                        + "LEFT JOIN FETCH example_Book.publisher example_Book_publisher "
+                        + "LEFT JOIN example_Book.publisher example_Book_publisher "
                         + "order by example_Book_publisher.name asc";
 
         String actual = query.getQueryText();
@@ -236,7 +238,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
         String expected =
                 "SELECT example_Book FROM example.Book AS example_Book"
-                        + " LEFT JOIN FETCH example_Book.publisher example_Book_publisher"
+                        + " LEFT JOIN example_Book.publisher example_Book_publisher"
                         + " LEFT JOIN example_Book_publisher.editor example_Book_publisher_editor"
                         + " WHERE example_Book.id IN (:id_XXX)"
                         + " order by example_Book_publisher_editor.firstName desc";
@@ -244,6 +246,24 @@ public class RootCollectionFetchQueryBuilderTest {
         String actual = query.getQueryText();
         actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRootFetchWithToOneRelationIncluded() {
+        RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
+                Book.class, dictionary, new TestSessionWrapper());
+
+        Set<String> relationsIncludedInProjection = new HashSet();
+        relationsIncludedInProjection.add("publisher");
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .withRelationsIncludedInProjection(relationsIncludedInProjection).build();
+
+        String expected =
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher";
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }

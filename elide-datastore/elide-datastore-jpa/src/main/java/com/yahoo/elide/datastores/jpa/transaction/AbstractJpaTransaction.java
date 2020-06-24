@@ -171,6 +171,7 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
             QueryWrapper query =
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, emWrapper)
                             .withPossibleFilterExpression(Optional.of(joinedExpression))
+                            .withRelationsIncludedInProjection(projection.getIncludedRelationsName())
                             .build();
 
             return query.getQuery().getSingleResult();
@@ -199,6 +200,7 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                         .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                         .withPossibleSorting(Optional.ofNullable(sorting))
                         .withPossiblePagination(Optional.ofNullable(pagination))
+                        .withRelationsIncludedInProjection(projection.getIncludedRelationsName())
                         .build();
 
         return query.getQuery().getResultList();
@@ -249,6 +251,7 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                                 .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                                 .withPossibleSorting(Optional.ofNullable(sorting))
                                 .withPossiblePagination(Optional.ofNullable(pagination))
+                                .withRelationsIncludedInProjection(relation.getProjection().getIncludedRelationsName())
                                 .build();
 
                 if (query != null) {

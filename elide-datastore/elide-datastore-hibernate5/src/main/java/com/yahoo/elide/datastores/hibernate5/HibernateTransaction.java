@@ -153,6 +153,7 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
             QueryWrapper query =
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)
                     .withPossibleFilterExpression(Optional.of(joinedExpression))
+                    .withRelationsIncludedInProjection(projection.getIncludedRelationsName())
                     .build();
 
             return query.getQuery().uniqueResult();
@@ -181,6 +182,7 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                         .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                         .withPossibleSorting(Optional.ofNullable(sorting))
                         .withPossiblePagination(Optional.ofNullable(pagination))
+                        .withRelationsIncludedInProjection(projection.getIncludedRelationsName())
                         .build();
 
 
@@ -235,6 +237,7 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                                 .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                                 .withPossibleSorting(Optional.ofNullable(sorting))
                                 .withPossiblePagination(Optional.ofNullable(pagination))
+                                .withRelationsIncludedInProjection(relation.getProjection().getIncludedRelationsName())
                                 .build();
 
                 if (query != null) {

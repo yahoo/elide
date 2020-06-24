@@ -38,10 +38,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
@@ -107,12 +109,13 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
     @Test
     public void testFetchJoinClause() {
+        Set<String> relationsIncludedInProjection = new HashSet<>();
+        relationsIncludedInProjection.add("one2one");
+        this.relationsIncludedInProjection = relationsIncludedInProjection;
         String actual = extractToOneMergeJoins(Left.class, "right_alias");
 
-        String expected = " LEFT JOIN FETCH right_alias.noDeleteOne2One  "
-                + "LEFT JOIN FETCH right_alias.noUpdateOne2One  "
-                + "LEFT JOIN FETCH right_alias.one2one ";
-        assertEquals(expected, actual);
+        String expected = "LEFT JOIN FETCH right_alias.one2one";
+        assertEquals(expected, actual.trim());
     }
 
     @Test
