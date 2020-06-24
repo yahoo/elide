@@ -118,6 +118,11 @@
             <artifactId>json</artifactId>
             <version>20200518</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.opendevl</groupId>
+            <artifactId>json2flat</artifactId>
+            <version>1.0.3</version>
+        </dependency>
     </dependencies>
 
     <build>

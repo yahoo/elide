@@ -7,12 +7,12 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
-import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.async.models.ResultType;
+import com.yahoo.elide.async.models.*;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
+
+import com.github.opendevl.JFlat;
+import com.jayway.jsonpath.PathNotFoundException;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
@@ -24,7 +24,9 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -114,8 +116,16 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         queryResultObj.setResultType(ResultType.EMBEDDED);
         queryResultObj.setCompletedOn(new Date());
 
+        String jsonToCSV = convertJsonToCSV(response.getBody());
+
         resultStorageEngine = new DefaultResultStorageEngine();
-        resultStorageEngine.storeResults(UUID.fromString(queryObj.getId()), response.getBody());
+        if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
+            resultStorageEngine.storeResults(UUID.fromString(queryObj.getId()), jsonToCSV);
+        }
+        else {
+            resultStorageEngine.storeResults(UUID.fromString(queryObj.getId()), response.getBody());
+        }
+
 
         return queryResultObj;
     }
@@ -185,6 +195,31 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
         }
         return str.toString().trim().split("\\s+")[0];
+    }
+
+    protected String convertJsonToCSV(String jsonStr) {
+        if (jsonStr == null) {
+            return null;
+        }
+        StringBuilder str = new StringBuilder();
+
+        try {
+            new JSONObject(jsonStr);
+            JFlat flatMe = new JFlat(jsonStr);
+            List<Object[]> json2csv = flatMe.json2Sheet().getJsonAsSheet();
+
+            for (Object[] obj : json2csv) {
+                str.append(Arrays.toString(obj));
+            }
+
+        } catch (JSONException e) {
+            log.error("Exception: {}", e);
+        } catch (PathNotFoundException e) {
+            log.error("Exception: {}", e);
+        }
+
+        return str.toString();
+
     }
 
     /**
