@@ -672,10 +672,10 @@ public class EntityBinding {
         return hasConstructor;
     }
 
-    private List<Class<?>> getInheritedTypes(Class<?> entityClass) {
+    private List<Class<?>> getInheritedTypes(Class<?> entityCls) {
         ArrayList<Class<?>> results = new ArrayList<>();
 
-        for (Class<?> cls = entityClass.getSuperclass(); cls != Object.class; cls = cls.getSuperclass()) {
+        for (Class<?> cls = entityCls.getSuperclass(); null != cls && Object.class != cls; cls = cls.getSuperclass()) {
             results.add(cls);
         }
 
