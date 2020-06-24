@@ -96,6 +96,14 @@ public class AsyncQueryThreadTest {
         assertEquals(queryResultObj.getResponseBody(), "responseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
+    @Test
+    public void testConvertJsonToCSV() {
 
+        String csvStr = "[/key][\"value\"]";
+        String jsonStr = "{\"key\":\"value\"}";
 
+        String jsonToCSV = queryThread.convertJsonToCSV(jsonStr);
+
+        assertEquals(jsonToCSV, csvStr);
+    }
 }

@@ -116,8 +116,15 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         queryResultObj.setResultType(ResultType.EMBEDDED);
         queryResultObj.setCompletedOn(new Date());
 
+        String jsonToCSV = convertJsonToCSV(response.getBody());
+
         resultStorageEngine = new DefaultResultStorageEngine();
-        resultStorageEngine.storeResults(UUID.fromString(queryObj.getId()), response.getBody());
+        if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
+            resultStorageEngine.storeResults(UUID.fromString(queryObj.getId()), jsonToCSV);
+        }
+        else {
+            resultStorageEngine.storeResults(UUID.fromString(queryObj.getId()), response.getBody());
+        }
 
         return queryResultObj;
     }
@@ -187,6 +194,36 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
         }
         return str.toString().trim().split("\\s+")[0];
+    }
+
+    /**
+     * This method converts the JSON response to a CSV response type
+     * @param jsonStr is the response.getBody() of the query
+     * @return retuns a string which nis in CSV format
+     */
+    protected String convertJsonToCSV(String jsonStr) {
+        if (jsonStr == null) {
+            return null;
+        }
+        StringBuilder str = new StringBuilder();
+
+        try {
+            new JSONObject(jsonStr);
+            JFlat flatMe = new JFlat(jsonStr);
+            List<Object[]> json2csv = flatMe.json2Sheet().getJsonAsSheet();
+
+            for (Object[] obj : json2csv) {
+                str.append(Arrays.toString(obj));
+            }
+
+        } catch (JSONException e) {
+            log.error("Exception: {}", e);
+        } catch (PathNotFoundException e) {
+            log.error("Exception: {}", e);
+        }
+
+        return str.toString();
+
     }
 
     /**
