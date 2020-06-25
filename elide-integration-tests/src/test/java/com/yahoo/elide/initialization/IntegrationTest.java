@@ -45,7 +45,7 @@ import java.util.HashMap;
 public abstract class IntegrationTest {
 
     /* Shared between the test setup code (to insert test data) as well as the Jetty server (to serve test data) */
-    private static DataStoreTestHarness dataStoreHarness;
+    protected static DataStoreTestHarness dataStoreHarness;
 
     protected final ObjectMapper mapper = new ObjectMapper();
     protected DataStore dataStore = null;
