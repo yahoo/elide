@@ -46,6 +46,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -195,7 +196,6 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.attributes.result.httpStatus", nullValue())
                 .body("data.attributes.result.resultType", nullValue());
 
-        AsyncDelayStoreTransaction.sleep = false;
         int i = 0;
         while (i < 1000) {
             Thread.sleep(10);
@@ -275,7 +275,6 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.attributes.result.httpStatus", equalTo(200))
                 .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
-        AsyncDelayStoreTransaction.sleep = false;
     }
 
     /**
@@ -322,7 +321,6 @@ public class AsyncIT extends IntegrationTest {
         .then()
         .statusCode(org.apache.http.HttpStatus.SC_OK);
 
-        AsyncDelayStoreTransaction.sleep = false;
         int i = 0;
         while (i < 1000) {
             Thread.sleep(10);
@@ -415,7 +413,6 @@ public class AsyncIT extends IntegrationTest {
                  + "\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":177}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
-        AsyncDelayStoreTransaction.sleep = false;
     }
 
     /**
@@ -577,6 +574,14 @@ public class AsyncIT extends IntegrationTest {
         }
     }
 
+    /**
+     * Reset sleep delay flag after each test
+     */
+    @AfterEach
+    public void sleepDelayReset() {
+
+        AsyncDelayStoreTransaction.sleep = false;
+    }
     private JsonNode toJsonNode(String query, Map<String, Object> variables) {
         ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
         graphqlNode.put("query", query);
