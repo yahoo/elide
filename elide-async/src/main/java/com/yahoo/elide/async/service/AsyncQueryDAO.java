@@ -18,21 +18,19 @@ public interface AsyncQueryDAO {
 
     /**
      * This method updates the QueryStatus for AsyncQuery for given QueryStatus.
-     * @param asyncQuery The AsyncQuery Object to be updated
+     * @param asyncQueryId The AsyncQuery Object to be updated
      * @param status Status from Enum QueryStatus
      * @return AsyncQuery Updated AsyncQuery Object
      */
-    public AsyncQuery updateStatus(AsyncQuery asyncQuery, QueryStatus status);
+    public AsyncQuery updateStatus(String asyncQueryId, QueryStatus status);
 
     /**
      * This method persists the model for AsyncQueryResult, AsyncQuery object and establishes the relationship.
-     * @param status ElideResponse status from AsyncQuery
-     * @param responseBody ElideResponse responseBody from AsyncQuery
-     * @param asyncQuery AsyncQuery object to be associated with the AsyncQueryResult object
-     * @param asyncQueryId UUID of the AsyncQuery to be associated with the AsyncQueryResult object
-     * @return AsyncQueryResult Object
+     * @param asyncQueryResult AsyncQueryResult to be associated with the AsyncQuery object
+     * @param asyncQueryId String
+     * @return AsyncQuery Object
      */
-    public AsyncQueryResult createAsyncQueryResult(Integer status, String responseBody, AsyncQuery asyncQuery,
+    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult,
             String asyncQueryId);
 
     /**
