@@ -11,11 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.security.User;
@@ -27,6 +30,8 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncExecutorServiceTest {
@@ -34,22 +39,22 @@ public class AsyncExecutorServiceTest {
     private AsyncExecutorService service;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
+    private User testUser;
+    private AsyncQueryUpdateThread asyncQueryUpdateThread;
 
     @BeforeAll
-    public void setupMocks() {
+    public void setupMockElide() {
         HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
-
         elide = new Elide(
                 new ElideSettingsBuilder(inMemoryStore)
                         .withEntityDictionary(new EntityDictionary(checkMappings))
                         .build());
-
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
-
+        testUser = mock(User.class);
         AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
-
         service = AsyncExecutorService.getInstance();
+        asyncQueryUpdateThread = mock(AsyncQueryUpdateThread.class);
     }
 
     @Test
@@ -58,17 +63,47 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getRunners());
         assertEquals(60, service.getMaxRunTime());
         assertNotNull(service.getExecutor());
-        assertNotNull(service.getInterruptor());
+        assertNotNull(service.getUpdater());
         assertEquals(asyncQueryDao, service.getAsyncQueryDao());
     }
 
+    //Test for executor hook execution
     @Test
-    public void testExecuteQuery() {
+    public void testExecuteQueryFail() throws ExecutionException, TimeoutException, InterruptedException {
+
+       AsyncQuery queryObj = mock(AsyncQuery.class);
+       when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
+       service.executeQuery(queryObj, testUser, NO_VERSION);
+       verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
+       verify(queryObj, times(1)).setStatus(QueryStatus.FAILURE);
+    }
+
+    //Test for executor hook execution
+    @Test
+    public void testExecuteQueryComplete() throws InterruptedException {
+
         AsyncQuery queryObj = mock(AsyncQuery.class);
-        User testUser = mock(User.class);
-
+        String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        when(queryObj.getQuery()).thenReturn(query);
+        when(queryObj.getId()).thenReturn(id);
+        when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
+        when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
         service.executeQuery(queryObj, testUser, NO_VERSION);
+        verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
+        verify(queryObj, times(1)).setStatus(QueryStatus.COMPLETE);
+    }
 
-        verify(asyncQueryDao, times(0)).updateStatus(queryObj, QueryStatus.QUEUED);
+    //Test for complete hook execution
+    @Test
+    public void testCompleteQuery() throws InterruptedException {
+
+        AsyncQuery queryObj = mock(AsyncQuery.class);
+        when(queryObj.getAsyncAfterSeconds()).thenReturn(0);
+        when(queryObj.getQueryUpdateWorker()).thenReturn(asyncQueryUpdateThread);
+        service.executeQuery(queryObj, testUser, NO_VERSION);
+        service.completeQuery(queryObj, testUser, NO_VERSION);
+        verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
+        verify(queryObj, times(2)).getQueryUpdateWorker();
     }
 }
