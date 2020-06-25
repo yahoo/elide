@@ -32,11 +32,15 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.ResultType;
-import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
+import com.yahoo.elide.contrib.testhelpers.graphql.EnumFieldSerializer;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
+import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
-
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -54,7 +58,7 @@ import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AsyncIT extends AsyncIntegrationTest {
+public class AsyncIT extends IntegrationTest {
 
     @Data
     private class AsyncQuery {
@@ -62,12 +66,12 @@ public class AsyncIT extends AsyncIntegrationTest {
         private String id;
         private String query;
 
-        @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
+        @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String queryType;
         private Integer asyncAfterSeconds;
         private String requestId;
 
-        @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
+        @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String status;
     }
 
@@ -98,6 +102,22 @@ public class AsyncIT extends AsyncIntegrationTest {
             )
     );
 
+    public AsyncIT() {
+        super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
+
+    @Override
+    protected DataStoreTestHarness createHarness() {
+        DataStoreTestHarness dataStoreTestHarness = super.createHarness();
+        return new DataStoreTestHarness() {
+                public DataStore getDataStore() {
+                    return new AsyncDelayDataStore(dataStoreTestHarness.getDataStore(), 5000);
+                }
+                public void cleanseTestData() {
+                    dataStoreTestHarness.cleanseTestData();
+                }
+        };
+    }
     /**
      * Creates test data for all tests.
      */
@@ -268,12 +288,12 @@ public class AsyncIT extends AsyncIntegrationTest {
 
         AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
-         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf828e");
-         queryObj.setAsyncAfterSeconds(0);
-         queryObj.setQueryType("#GRAPHQL_V1_0");
-         queryObj.setStatus("#QUEUED");
-         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
-         String graphQLRequest = document(
+        queryObj.setId("edc4a871-dff2-4054-804e-d80075cf828e");
+        queryObj.setAsyncAfterSeconds(0);
+        queryObj.setQueryType("GRAPHQL_V1_0");
+        queryObj.setStatus("QUEUED");
+        queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        String graphQLRequest = document(
                  mutation(
                          selection(
                                  field(
@@ -291,51 +311,32 @@ public class AsyncIT extends AsyncIntegrationTest {
                                  )
                          )
                  )
-         ).toQuery();
+        ).toQuery();
 
-         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-         given()
-         .contentType(MediaType.APPLICATION_JSON)
-         .accept(MediaType.APPLICATION_JSON)
-         .body(graphQLJsonNode)
-         .post("/graphQL")
-         .then()
-         .statusCode(org.apache.http.HttpStatus.SC_OK);
+        JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
+        given()
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .body(graphQLJsonNode)
+        .post("/graphQL")
+        .then()
+        .statusCode(org.apache.http.HttpStatus.SC_OK);
 
         AsyncDelayStoreTransaction.sleep = false;
         int i = 0;
         while (i < 1000) {
             Thread.sleep(10);
-            String graphQLStatus = document(
-                    selection(
-                            field(
-                                    "asyncQuery",
-                                    arguments(
-                                            argument("ids", "\"edc4a871-dff2-4054-804e-d80075cf828e\"")
-                                    ),
-                                    selections(
-                                            field("status")
-                                    )
-                            )
-                    )
-            ).toQuery();
-            String response = given()
+            String responseGraphQL = given()
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
-                    .body(toJsonNode(graphQLStatus, null))
+                    .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
+                            + "{ edges { node { id queryType status result "
+                            + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                            + "\"variables\":null}")
                     .post("/graphQL")
                     .asString();
             // If Async Query is created and completed
-            if (response.equals("{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"status\":\"COMPLETE\"}}]}}}")) {
-                String responseGraphQL = given()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
-                                + "{ edges { node { id queryType status result "
-                                + "{ responseBody httpStatus resultType contentLength } } } } }\","
-                                + "\"variables\":null}")
-                        .post("/graphQL")
-                        .asString();
+            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
 
                 String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                         + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
@@ -363,12 +364,12 @@ public class AsyncIT extends AsyncIntegrationTest {
 
         AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
-         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf829e");
-         queryObj.setAsyncAfterSeconds(7);
-         queryObj.setQueryType("#GRAPHQL_V1_0");
-         queryObj.setStatus("#QUEUED");
-         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
-         String graphQLRequest = document(
+        queryObj.setId("edc4a871-dff2-4054-804e-d80075cf829e");
+        queryObj.setAsyncAfterSeconds(7);
+        queryObj.setQueryType("GRAPHQL_V1_0");
+        queryObj.setStatus("QUEUED");
+        queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        String graphQLRequest = document(
                  mutation(
                          selection(
                                  field(
@@ -386,18 +387,18 @@ public class AsyncIT extends AsyncIntegrationTest {
                                  )
                          )
                  )
-         ).toQuery();
+        ).toQuery();
 
-         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-         given()
-         .contentType(MediaType.APPLICATION_JSON)
-         .accept(MediaType.APPLICATION_JSON)
-         .body(graphQLJsonNode)
-         .post("/graphQL")
-         .then()
-         .statusCode(org.apache.http.HttpStatus.SC_OK);
+        JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
+        given()
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .body(graphQLJsonNode)
+        .post("/graphQL")
+        .then()
+        .statusCode(org.apache.http.HttpStatus.SC_OK);
 
-         String responseGraphQL = given()
+        String responseGraphQL = given()
                  .contentType(MediaType.APPLICATION_JSON)
                  .accept(MediaType.APPLICATION_JSON)
                  .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
@@ -407,14 +408,14 @@ public class AsyncIT extends AsyncIntegrationTest {
                  .post("/graphQL")
                  .asString();
 
-         String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                  + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
                  + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
                  + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
                  + "\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":177}}}]}}}";
 
-         assertEquals(expectedResponse, responseGraphQL);
-         AsyncDelayStoreTransaction.sleep = false;
+        assertEquals(expectedResponse, responseGraphQL);
+        AsyncDelayStoreTransaction.sleep = false;
     }
 
     /**

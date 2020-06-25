@@ -28,11 +28,9 @@ import java.net.URISyntaxException;
 
 public class AsyncQueryThreadTest {
 
-    //private AsyncQueryThread queryThread;
     private User user;
     private Elide elide;
     private QueryRunner runner;
-    //private AsyncQuery queryObj;
     private AsyncQueryResult queryResultObj;
     private AsyncQueryDAO asyncQueryDao;
 
