@@ -9,6 +9,7 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
@@ -57,8 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolationException;
@@ -172,6 +172,45 @@ public class Elide {
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new GetVisitor(requestScope);
+
+            //form the ApiQuery
+            Optional<MultivaluedMap<String, String>> queryParamsOptional = requestScope.getQueryParams();
+            String apiQuery;
+            if (!queryParamsOptional.isPresent()) {
+                apiQuery = path;
+            } else {
+                apiQuery = path + '?';
+                Iterator<String> it = queryParams.keySet().iterator();
+                while (it.hasNext()) {
+                    String key = (String) it.next();
+                    List<String> value = queryParams.get(key);
+                    for (String v : value) {
+                        apiQuery += key + "=" + v;
+                    }
+                    if (it.hasNext()) {
+                        apiQuery += '&';
+                    }
+                }
+            }
+
+            //accept the query here
+            if (requestScope.getElideSettings() != null) {
+                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+                if (opaqueUser == null) {
+                    ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                            null,
+                            requestScope.getHeaders(),
+                            requestScope.getApiVersion(),
+                            apiQuery);
+                } else {
+                    ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                            opaqueUser.getPrincipal(),
+                            requestScope.getHeaders(),
+                            requestScope.getApiVersion(),
+                            apiQuery);
+                }
+            }
+
             return visit(path, requestScope, visitor);
         });
 
@@ -307,6 +346,12 @@ public class Elide {
 
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();
+            }
+
+            //call complete query here
+            if (requestScope.getElideSettings() != null) {
+                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+                ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
             }
 
             return response;

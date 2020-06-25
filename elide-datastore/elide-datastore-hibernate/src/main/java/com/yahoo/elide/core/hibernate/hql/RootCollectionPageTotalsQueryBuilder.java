@@ -80,7 +80,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
             joinClause = "";
         }
 
-        Query query = session.createQuery("SELECT COUNT(DISTINCT "
+        String queryText = "SELECT COUNT(DISTINCT "
                 + entityAlias
                 + ") "
                 + FROM
@@ -90,8 +90,9 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
                 + SPACE
                 + joinClause
                 + SPACE
-                + filterClause
-        );
+                + filterClause ;
+        setQueryString(queryText);
+        Query query = session.createQuery(queryText);
         supplyFilterQueryParameters(query, predicates);
         return query;
     }

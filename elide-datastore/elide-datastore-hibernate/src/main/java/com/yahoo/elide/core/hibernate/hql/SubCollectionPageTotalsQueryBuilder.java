@@ -123,18 +123,20 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             predicates.add(idExpression);
         }
 
-        Query query = session.createQuery(
-                "SELECT COUNT(DISTINCT "
-                        + relationshipAlias
-                        + ") "
-                        + FROM
-                        + parentType.getCanonicalName()
-                        + AS
-                        + parentAlias
-                        + SPACE
-                        + joinClause
-                        + WHERE
-                        + filterClause);
+        String queryText = "SELECT COUNT(DISTINCT "
+                + relationshipAlias
+                + ") "
+                + FROM
+                + parentType.getCanonicalName()
+                + AS
+                + parentAlias
+                + SPACE
+                + joinClause
+                + WHERE
+                + filterClause ;
+
+        setQueryString(queryText);
+        Query query = session.createQuery(queryText);
 
         //Fill in the query parameters
         supplyFilterQueryParameters(query, predicates);

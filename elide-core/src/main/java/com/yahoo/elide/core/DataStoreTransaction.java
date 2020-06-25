@@ -273,4 +273,23 @@ public interface DataStoreTransaction extends Closeable {
      * Implementation must be thread-safe.
      */
     void cancel();
+
+    /**
+     * Query Detail Implementation for Elide (Entity Projection)
+     * @param projection The EntityProjection class from which to extract the base query and the model name
+     * @param scope Contains request level metadata
+     */
+    default public QueryDetail explain(EntityProjection projection, RequestScope scope) {
+        return new QueryDetail();
+    }
+
+    /**
+     * Query Detail Implementation for Elide (Relationship)
+     * @param relationship The Relationship class between the current entity and all its neighbors
+     * @param scope Contains request level metadata
+     * @param entity The object entity
+     */
+    default public QueryDetail explain(Relationship relationship, RequestScope scope, Object entity) {
+        return new QueryDetail();
+    }
 }

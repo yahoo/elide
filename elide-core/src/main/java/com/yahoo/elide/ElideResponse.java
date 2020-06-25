@@ -26,4 +26,20 @@ public class ElideResponse {
         this.responseCode = responseCode;
         this.body = body;
     }
+
+    @Override
+    public String toString() {
+        return "ElideResponse{"
+                +
+                "responseCode="
+                +
+                responseCode
+                +
+                ", body='"
+                +
+                body
+                + '\''
+                +
+                '}';
+    }
 }

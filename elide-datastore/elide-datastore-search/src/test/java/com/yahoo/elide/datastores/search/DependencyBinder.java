@@ -72,6 +72,7 @@ public class DependencyBinder extends ResourceConfig {
                         .withJoinFilterDialect(new DefaultFilterDialect(dictionary))
                         .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                         .withSubqueryFilterDialect(new DefaultFilterDialect(dictionary))
+                        .withQueryLogger()
                         .build());
 
                 bind(elide).to(Elide.class).named("elide");

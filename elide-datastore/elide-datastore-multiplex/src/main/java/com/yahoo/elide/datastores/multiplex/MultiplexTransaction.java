@@ -5,12 +5,7 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.*;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -248,5 +243,15 @@ public abstract class MultiplexTransaction extends DataStoreTransactionImplement
     @Override
     public void cancel() {
         transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.cancel());
+    }
+
+    @Override
+    public QueryDetail explain(EntityProjection projection, RequestScope scope) {
+        return getTransaction(projection.getType()).explain(projection, scope);
+    }
+
+    @Override
+    public QueryDetail explain(Relationship relationship, RequestScope scope, Object entity) {
+        return getTransaction(relationship.getProjection().getType()).explain(relationship, scope, entity);
     }
 }

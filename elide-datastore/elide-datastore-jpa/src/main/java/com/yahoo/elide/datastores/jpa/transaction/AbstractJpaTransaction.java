@@ -5,11 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction;
 
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.*;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -29,14 +25,12 @@ import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -58,10 +52,14 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final Consumer<EntityManager> jpaTransactionCancel;
 
+    @Getter
+    private List<String> queryText;
+
     protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel) {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
         this.jpaTransactionCancel = jpaTransactionCancel;
+        this.queryText = new ArrayList<>();
     }
 
     @Override
@@ -171,11 +169,16 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                     ? new AndFilterExpression(filterExpression, idExpression)
                     : idExpression;
 
+            RootCollectionFetchQueryBuilder queryBuilder =
+                    new RootCollectionFetchQueryBuilder(entityClass, dictionary, emWrapper);
+
             QueryWrapper query =
-                    (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, emWrapper)
+                    (QueryWrapper) queryBuilder
                             .withPossibleFilterExpression(Optional.of(joinedExpression))
                             .build();
 
+            String queryTxt = queryBuilder.getQueryString();
+            queryText.add(queryTxt);
             return query.getQuery().getSingleResult();
         } catch (NoResultException e) {
             return null;
@@ -197,13 +200,17 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                     Optional.ofNullable(filterExpression), scope.getDictionary()));
         }
 
+        RootCollectionFetchQueryBuilder queryBuilder =
+                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper);
         QueryWrapper query =
-                (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper)
+                (QueryWrapper) queryBuilder
                         .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                         .withPossibleSorting(Optional.ofNullable(sorting))
                         .withPossiblePagination(Optional.ofNullable(pagination))
                         .build();
 
+        String queryTxt = queryBuilder.getQueryString();
+        queryText.add(queryTxt);
         return query.getQuery().getResultList();
     }
 
@@ -247,13 +254,15 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                             Optional.ofNullable(filterExpression), scope.getDictionary()));
                 }
 
-                QueryWrapper query = (QueryWrapper)
-                        new SubCollectionFetchQueryBuilder(relationship, dictionary, emWrapper)
-                                .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
-                                .withPossibleSorting(Optional.ofNullable(sorting))
-                                .withPossiblePagination(Optional.ofNullable(pagination))
-                                .build();
-
+                SubCollectionFetchQueryBuilder queryBuilder =
+                        new SubCollectionFetchQueryBuilder(relationship, dictionary, emWrapper);
+                QueryWrapper query = (QueryWrapper) queryBuilder
+                        .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
+                        .withPossibleSorting(Optional.ofNullable(sorting))
+                        .withPossiblePagination(Optional.ofNullable(pagination))
+                        .build();
+                String queryTxt = queryBuilder.getQueryString();
+                queryText.add(queryTxt);
                 if (query != null) {
                     return query.getQuery().getResultList();
                 }
@@ -274,13 +283,14 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     private <T> Long getTotalRecords(Class<T> entityClass,
                                      Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
+        RootCollectionPageTotalsQueryBuilder queryBuilder =
+                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, emWrapper);
 
-
-        QueryWrapper query = (QueryWrapper)
-                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, emWrapper)
-                        .withPossibleFilterExpression(filterExpression)
-                        .build();
-
+        QueryWrapper query = (QueryWrapper) queryBuilder
+                .withPossibleFilterExpression(filterExpression)
+                .build();
+        String queryTxt = queryBuilder.getQueryString();
+        queryText.add(queryTxt);
         return (Long) query.getQuery().getSingleResult();
     }
 
@@ -297,16 +307,36 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                                      Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
 
-        QueryWrapper query = (QueryWrapper)
-                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, emWrapper)
-                        .withPossibleFilterExpression(filterExpression)
-                        .build();
-
+        SubCollectionPageTotalsQueryBuilder queryBuilder =
+                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, emWrapper);
+        QueryWrapper query = (QueryWrapper) queryBuilder
+                .withPossibleFilterExpression(filterExpression)
+                .build();
+        String queryTxt = queryBuilder.getQueryString();
+        queryText.add(queryTxt);
         return (Long) query.getQuery().getSingleResult();
     }
 
     @Override
     public void cancel() {
         jpaTransactionCancel.accept(em);
+    }
+
+    @Override
+    public QueryDetail explain(EntityProjection projection, RequestScope scope) {
+        Class<?> entityClass = projection.getType();
+        String modelName = entityClass.getName();
+        List<String> queryTextList = getQueryText();
+        this.queryText = new ArrayList<>();
+        return new QueryDetail(modelName, queryTextList);
+    }
+
+    @Override
+    public QueryDetail explain(Relationship relationship, RequestScope scope, Object entity) {
+        Class<?> entityClass = relationship.getProjection().getType();
+        String modelName = entityClass.getName();
+        List<String> queryTextList = getQueryText();
+        this.queryText = new ArrayList<>();
+        return new QueryDetail(modelName, queryTextList);
     }
 }

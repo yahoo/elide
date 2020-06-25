@@ -5,11 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.*;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FalsePredicate;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -36,13 +32,12 @@ import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.AbstractPersistentCollection;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Optional;
+import java.util.*;
 
 
 /**
@@ -55,6 +50,10 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
     private final SessionWrapper sessionWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
+
+    @Getter
+    private List<String> queryText;
+
     /**
      * Constructor.
      *
@@ -66,6 +65,7 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
         this.session = session;
         this.sessionWrapper = new SessionWrapper(session);
         this.isScrollEnabled = isScrollEnabled;
+        this.queryText = new ArrayList<>();
     }
 
     @Override
@@ -145,11 +145,16 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                     ? new AndFilterExpression(filterExpression, idExpression)
                     : idExpression;
 
-            QueryWrapper query =
-                    (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)
-                    .withPossibleFilterExpression(Optional.of(joinedExpression))
-                    .build();
+            RootCollectionFetchQueryBuilder queryBuilder =
+                    new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper);
 
+            final QueryWrapper query =
+                    (QueryWrapper) queryBuilder
+                            .withPossibleFilterExpression(Optional.of(joinedExpression))
+                            .build();
+
+            String queryTxt = queryBuilder.getQueryString();
+            queryText.add(queryTxt);
             return query.getQuery().uniqueResult();
         } catch (ObjectNotFoundException e) {
             return null;
@@ -171,13 +176,18 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                     Optional.ofNullable(filterExpression), scope.getDictionary()));
         }
 
+        RootCollectionFetchQueryBuilder queryBuilder =
+                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper);
+
         final QueryWrapper query =
-                (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper)
+                (QueryWrapper) queryBuilder
                         .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                         .withPossibleSorting(Optional.ofNullable(sorting))
                         .withPossiblePagination(Optional.ofNullable(pagination))
                         .build();
 
+        String queryTxt = queryBuilder.getQueryString();
+        queryText.add(queryTxt);
         if (isScrollEnabled) {
             return new ScrollableIterator<>(query.getQuery().scroll());
         }
@@ -224,13 +234,18 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                             Optional.ofNullable(filterExpression), scope.getDictionary()));
                 }
 
+                SubCollectionFetchQueryBuilder queryBuilder =
+                        new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper);
+
                 final QueryWrapper query =
-                    (QueryWrapper) new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper)
+                        (QueryWrapper) queryBuilder
                                 .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                                 .withPossibleSorting(Optional.ofNullable(sorting))
                                 .withPossiblePagination(Optional.ofNullable(pagination))
                                 .build();
 
+                String queryTxt = queryBuilder.getQueryString();
+                queryText.add(queryTxt);
                 if (query != null) {
                     return query.getQuery().list();
                 }
@@ -250,11 +265,14 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                                      Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
 
+        RootCollectionPageTotalsQueryBuilder queryBuilder =
+                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, sessionWrapper);
         QueryWrapper query =
-                (QueryWrapper) new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, sessionWrapper)
+                (QueryWrapper) queryBuilder
                         .withPossibleFilterExpression(filterExpression)
                         .build();
-
+        String queryTxt = queryBuilder.getQueryString();
+        queryText.add(queryTxt);
         return (Long) query.getQuery().uniqueResult();
     }
 
@@ -269,11 +287,14 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                                      Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
 
+        SubCollectionPageTotalsQueryBuilder queryBuilder =
+                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper);
         QueryWrapper query =
-                (QueryWrapper) new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper)
+                (QueryWrapper) queryBuilder
                         .withPossibleFilterExpression(filterExpression)
                         .build();
-
+        String queryTxt = queryBuilder.getQueryString();
+        queryText.add(queryTxt);
         return (Long) query.getQuery().uniqueResult();
     }
 
@@ -298,5 +319,23 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
     @Override
     public void cancel() {
         session.cancelQuery();
+    }
+
+    @Override
+    public QueryDetail explain(EntityProjection projection, RequestScope scope) {
+        Class<?> entityClass = projection.getType();
+        String modelName = entityClass.getName();
+        List<String> queryTextList = getQueryText();
+        this.queryText = new ArrayList<>();
+        return new QueryDetail(modelName, queryTextList);
+    }
+
+    @Override
+    public QueryDetail explain(Relationship relationship, RequestScope scope, Object entity) {
+        Class<?> entityClass = relationship.getProjection().getType();
+        String modelName = entityClass.getName();
+        List<String> queryTextList = getQueryText();
+        this.queryText = new ArrayList<>();
+        return new QueryDetail(modelName, queryTextList);
     }
 }

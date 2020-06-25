@@ -10,6 +10,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.ErrorObjects;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -184,8 +185,16 @@ public class QueryRunner {
             if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
                 executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
             }
-
             executionInput.variables(variables);
+
+            if (requestScope.getElideSettings() != null) {
+                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+                ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                        principal.getPrincipal(),
+                        requestScope.getHeaders(),
+                        requestScope.getApiVersion(),
+                        query);
+            }
 
             ExecutionResult result = api.execute(executionInput);
 
@@ -217,10 +226,18 @@ public class QueryRunner {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
-            return ElideResponse.builder()
+            ElideResponse response =  ElideResponse.builder()
                     .responseCode(HttpStatus.SC_OK)
                     .body(mapper.writeValueAsString(result))
                     .build();
+
+            //call complete query here if operation = QUERY
+            if (requestScope.getElideSettings() != null) {
+                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+                ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
+            }
+
+            return response;
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), isVerbose);

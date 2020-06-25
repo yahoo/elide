@@ -122,6 +122,7 @@ public class GraphQLEndpointTest {
                 new ElideSettingsBuilder(inMemoryStore)
                         .withEntityDictionary(new EntityDictionary(checkMappings))
                         .withAuditLogger(audit)
+                        .withQueryLogger()
                         .build());
         endpoint = new GraphQLEndpoint(elide);
 

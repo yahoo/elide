@@ -8,6 +8,7 @@ package com.yahoo.elide.core.datastore.wrapped;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.DataStoreTransactionImplementation;
+import com.yahoo.elide.core.QueryDetail;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.request.Attribute;
@@ -129,5 +130,15 @@ public abstract class TransactionWrapper extends DataStoreTransactionImplementat
     @Override
     public void cancel() {
         tx.cancel();
+    }
+
+    @Override
+    public QueryDetail explain(EntityProjection projection, RequestScope scope) {
+        return tx.explain(projection, scope);
+    }
+
+    @Override
+    public QueryDetail explain(Relationship relationship, RequestScope scope, Object entity) {
+        return tx.explain(relationship, scope, entity);
     }
 }

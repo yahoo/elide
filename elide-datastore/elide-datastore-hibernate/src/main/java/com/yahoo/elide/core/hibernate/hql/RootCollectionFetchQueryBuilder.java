@@ -63,26 +63,28 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                 throw new InvalidValueException("Combination of pagination, sorting over relationship and"
                     + " filtering over toMany relationships unsupported");
             }
-            query = session.createQuery(
-                    SELECT
-                        + (requiresDistinct ? DISTINCT : "")
-                        + entityAlias
-                        + FROM
-                        + entityName
-                        + AS
-                        + entityAlias
-                        + SPACE
-                        + joinClause
-                        + SPACE
-                        + filterClause
-                        + SPACE
-                        + getSortClause(sorting)
-            );
+
+            String queryText = SELECT
+                    + (requiresDistinct ? DISTINCT : "")
+                    + entityAlias
+                    + FROM
+                    + entityName
+                    + AS
+                    + entityAlias
+                    + SPACE
+                    + joinClause
+                    + SPACE
+                    + filterClause
+                    + SPACE
+                    + getSortClause(sorting);
+
+            setQueryString(queryText);
+            query = session.createQuery(queryText);
 
             //Fill in the query parameters
             supplyFilterQueryParameters(query, predicates);
         } else {
-            query = session.createQuery(SELECT
+            String queryText = SELECT
                     + entityAlias
                     + FROM
                     + entityName
@@ -92,7 +94,10 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + getJoinClauseFromSort(sorting)
                     + extractToOneMergeJoins(entityClass, entityAlias)
                     + SPACE
-                    + getSortClause(sorting));
+                    + getSortClause(sorting);
+
+            setQueryString(queryText);
+            query = session.createQuery(queryText);
         }
 
         addPaginationToQuery(query);

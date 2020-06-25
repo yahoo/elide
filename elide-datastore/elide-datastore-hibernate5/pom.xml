@@ -38,6 +38,7 @@
         <tag>HEAD</tag>
     </scm>
     <properties>
+        <dataStoreHarness>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreHarness</dataStoreHarness>
         <excludeTags>excludeOnHibernate5</excludeTags>
     </properties>
 

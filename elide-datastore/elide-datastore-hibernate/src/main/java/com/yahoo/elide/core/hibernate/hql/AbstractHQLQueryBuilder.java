@@ -21,6 +21,9 @@ import com.yahoo.elide.request.Sorting;
 
 import org.apache.commons.lang3.StringUtils;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,6 +60,9 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final boolean NO_ALIAS = false;
     protected Set<String> alreadyJoined = new HashSet<>();
 
+    @Getter @Setter
+    protected String queryString;
+
     /**
      * Represents a relationship between two entities.
      */
@@ -75,6 +81,7 @@ public abstract class AbstractHQLQueryBuilder {
     public AbstractHQLQueryBuilder(EntityDictionary dictionary, Session session) {
         this.session = session;
         this.dictionary = dictionary;
+        this.queryString = "";
 
         sorting = Optional.empty();
         pagination = Optional.empty();

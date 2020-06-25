@@ -78,37 +78,43 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + extractToOneMergeJoins(relationship.getChildType(), childAlias);
 
             //SELECT parent_children from Parent parent JOIN parent.children parent_children
-            Query q = session.createQuery(SELECT
-                            + childAlias
-                            + FROM
-                            + parentName + SPACE + parentAlias
-                            + JOIN
-                            + parentAlias + PERIOD + relationshipName + SPACE + childAlias
-                            + joinClause
-                            + WHERE
-                            + filterClause
-                            + " AND " + parentAlias + "=:" + parentAlias
-                            + SPACE
-                            + getSortClause(sorting)
-            );
+            String queryText = SELECT
+                    + childAlias
+                    + FROM
+                    + parentName + SPACE + parentAlias
+                    + JOIN
+                    + parentAlias + PERIOD + relationshipName + SPACE + childAlias
+                    + joinClause
+                    + WHERE
+                    + filterClause
+                    + " AND " + parentAlias + "=:" + parentAlias
+                    + SPACE
+                    + getSortClause(sorting);
+            setQueryString(queryText);
+            Query q = session.createQuery(queryText);
 
             supplyFilterQueryParameters(q, predicates);
             return q;
-        }).orElse(session.createQuery(SELECT
-                            + childAlias
-                            + FROM
-                            + parentName + SPACE + parentAlias
-                            + JOIN
-                            + parentAlias + PERIOD + relationshipName + SPACE + childAlias
-                            + getJoinClauseFromSort(sorting)
-                            + extractToOneMergeJoins(relationship.getChildType(), childAlias)
-                            + " WHERE " + parentAlias + "=:" + parentAlias
-                            + getSortClause(sorting)
-        ));
+        }).orElse(getQuery(childAlias, parentName, parentAlias, relationshipName));
 
         query.setParameter(parentAlias, relationship.getParent());
 
         addPaginationToQuery(query);
         return query;
+    }
+
+    private Query getQuery(String childAlias, String parentName, String parentAlias, String relationshipName) {
+        String queryText = SELECT
+                + childAlias
+                + FROM
+                + parentName + SPACE + parentAlias
+                + JOIN
+                + parentAlias + PERIOD + relationshipName + SPACE + childAlias
+                + getJoinClauseFromSort(sorting)
+                + extractToOneMergeJoins(relationship.getChildType(), childAlias)
+                + " WHERE " + parentAlias + "=:" + parentAlias
+                + getSortClause(sorting);
+        setQueryString(queryText);
+        return session.createQuery(queryText);
     }
 }
