@@ -7,6 +7,8 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
@@ -14,11 +16,14 @@ import com.yahoo.elide.security.User;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 
@@ -37,11 +42,10 @@ public class AsyncExecutorService {
     private Elide elide;
     private Map<String, QueryRunner> runners;
     private ExecutorService executor;
-    private ExecutorService interruptor;
+    private ExecutorService updater;
     private int maxRunTime;
     private AsyncQueryDAO asyncQueryDao;
     private static AsyncExecutorService asyncExecutorService = null;
-
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao) {
         this.elide = elide;
@@ -53,7 +57,7 @@ public class AsyncExecutorService {
 
         this.maxRunTime = maxRunTime;
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
-        interruptor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
+        updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         this.asyncQueryDao = asyncQueryDao;
     }
 
@@ -61,7 +65,7 @@ public class AsyncExecutorService {
      * Initialize the singleton AsyncExecutorService object.
      * If already initialized earlier, no new object is created.
      * @param elide Elide Instance
-     * @param threadPoolSize thred pool size
+     * @param threadPoolSize thread pool size
      * @param maxRunTime max run times in minutes
      * @param asyncQueryDao DAO Object
      */
@@ -88,15 +92,45 @@ public class AsyncExecutorService {
      * @param apiVersion api version
      */
     public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
+
         QueryRunner runner = runners.get(apiVersion);
         if (runner == null) {
             throw new InvalidOperationException("Invalid API Version");
         }
-
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
+        Future<AsyncQueryResult> task = executor.submit(queryWorker);
+        try {
+            queryObj.setStatus(QueryStatus.PROCESSING);
+            AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+            queryObj.setResult(queryResultObj);
+            queryObj.setStatus(QueryStatus.COMPLETE);
+        } catch (InterruptedException e) {
+            log.error("InterruptedException: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
+        } catch (ExecutionException e) {
+            log.error("ExecutionException: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
+        } catch (TimeoutException e) {
+            log.error("TimeoutException: {}", e);
+            queryObj.setQueryUpdateWorker(new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao));
+        } catch (Exception e) {
+            log.error("Exception: {}", e);
+            queryObj.setStatus(QueryStatus.FAILURE);
+        }
 
-        AsyncQueryInterruptThread queryInterruptWorker = new AsyncQueryInterruptThread(elide,
-               executor.submit(queryWorker), queryObj, new Date(), maxRunTime, asyncQueryDao);
-        interruptor.execute(queryInterruptWorker);
+    }
+    /**
+     * Complete Query asynchronously.
+     * @param query AsyncQuery
+     * @param user User
+     * @param apiVersion API Version
+     */
+    public void completeQuery(AsyncQuery query, User user, String apiVersion) {
+        if (query.getQueryUpdateWorker() != null) {
+            log.debug("Task has not completed");
+            updater.execute(query.getQueryUpdateWorker());
+        } else {
+            log.debug("Task has completed");
+        }
     }
 }

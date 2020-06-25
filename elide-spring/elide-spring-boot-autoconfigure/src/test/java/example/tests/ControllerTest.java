@@ -362,7 +362,7 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("tags.name", containsInAnyOrder("group", "functionArgument", "metric",
-                        "metricFunction", "dimension", "column", "table", "asyncQuery", "asyncQueryResult",
+                        "metricFunction", "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
                         "stats"));
     }
