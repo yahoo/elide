@@ -39,6 +39,7 @@ public class DefaultAsyncQueryDAOTest {
     private Elide elide;
     private DataStore dataStore;
     private AsyncQuery asyncQuery;
+    private AsyncQueryResult asyncQueryResult;
     private DataStoreTransaction tx;
     private EntityDictionary dictionary;
 
@@ -46,6 +47,7 @@ public class DefaultAsyncQueryDAOTest {
     public void setupMocks() {
         dataStore = mock(DataStore.class);
         asyncQuery = mock(AsyncQuery.class);
+        asyncQueryResult = mock(AsyncQueryResult.class);
         tx = mock(DataStoreTransaction.class);
 
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
@@ -76,9 +78,9 @@ public class DefaultAsyncQueryDAOTest {
 
     @Test
     public void testUpdateStatus() {
-        AsyncQuery result = asyncQueryDAO.updateStatus(asyncQuery, QueryStatus.PROCESSING);
-
-        assertEquals(result, asyncQuery);
+        when(tx.loadObject(any(), any(), any())).thenReturn(asyncQuery);
+        asyncQueryDAO.updateStatus("1234", QueryStatus.PROCESSING);
+        verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).save(any(AsyncQuery.class), any(RequestScope.class));
         verify(asyncQuery, times(1)).setStatus(QueryStatus.PROCESSING);
     }
@@ -107,18 +109,13 @@ public class DefaultAsyncQueryDAOTest {
     }
 
     @Test
-    public void testCreateAsyncQueryResult() {
-        Integer status = 200;
-        String responseBody = "responseBody";
-        String uuid = "ba31ca4e-ed8f-4be0-a0f3-12088fa9263e";
-        AsyncQueryResult result = asyncQueryDAO.createAsyncQueryResult(status, "responseBody", asyncQuery, uuid);
-
-        assertEquals(status, result.getStatus());
-        assertEquals(responseBody, result.getResponseBody());
-        assertEquals(asyncQuery, result.getQuery());
-        assertEquals(uuid, result.getId());
-        verify(tx, times(1)).createObject(any(), any(RequestScope.class));
-        verify(tx, times(1)).save(any(), any(RequestScope.class));
+    public void testUpdateAsyncQueryResult() {
+        when(tx.loadObject(any(), any(), any())).thenReturn(asyncQuery);
+        asyncQueryDAO.updateAsyncQueryResult(asyncQueryResult, asyncQuery.getId());
+        verify(dataStore, times(1)).beginTransaction();
+        verify(tx, times(1)).save(any(AsyncQuery.class), any(RequestScope.class));
+        verify(asyncQuery, times(1)).setResult(asyncQueryResult);
+        verify(asyncQuery, times(1)).setStatus(QueryStatus.COMPLETE);
 
     }
 }

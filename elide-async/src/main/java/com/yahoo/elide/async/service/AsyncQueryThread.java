@@ -8,8 +8,9 @@ package com.yahoo.elide.async.service;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -17,26 +18,28 @@ import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
+import java.util.Date;
+import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Runnable thread for executing the query provided in Async Query.
+ * Callable thread for executing the query provided in Async Query.
  * It will also update the query status and result object at different
  * stages of execution.
  */
 @Slf4j
 @Data
-@AllArgsConstructor
-public class AsyncQueryThread implements Runnable {
+
+public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
     private AsyncQuery queryObj;
+    private AsyncQueryResult queryResultObj;
     private User user;
     private Elide elide;
     private final QueryRunner runner;
@@ -44,57 +47,58 @@ public class AsyncQueryThread implements Runnable {
     private String apiVersion;
 
     @Override
-    public void run() {
-        processQuery();
+    public AsyncQueryResult call() throws NoHttpResponseException, URISyntaxException {
+         return processQuery();
     }
 
-    /**
-     * This is the main method which processes the Async Query request, executes the query and updates
-     * values for AsyncQuery and AsyncQueryResult models accordingly.
+    public AsyncQueryThread(AsyncQuery queryObj, User user, Elide elide, QueryRunner runner,
+            AsyncQueryDAO asyncQueryDao, String apiVersion) {
+        this.queryObj = queryObj;
+        this.user = user;
+        this.elide = elide;
+        this.runner = runner;
+        this.asyncQueryDao = asyncQueryDao;
+        this.apiVersion = apiVersion;
+    }
+
+
+   /**
+    * This is the main method which processes the Async Query request, executes the query and updates
+    * values for AsyncQuery and AsyncQueryResult models accordingly.
+    * @return AsyncQueryResult
+    * @throws URISyntaxException
+    * @throws NoHttpResponseException
     */
-    protected void processQuery() {
-        try {
-            // Change async query to processing
-            asyncQueryDao.updateStatus(queryObj, QueryStatus.PROCESSING);
-            ElideResponse response = null;
-            log.debug("AsyncQuery Object from request: {}", queryObj);
-            if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
-                MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
-                log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
-                response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion);
-                log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
-                        response.getResponseCode(), response.getBody());
-            }
-            else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-                response = runner.run(queryObj.getQuery(), user);
-                log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
-                        response.getResponseCode(), response.getBody());
-            }
-            if (response == null) {
-                throw new NoHttpResponseException("Response for request returned as null");
-            }
+    protected AsyncQueryResult processQuery() throws URISyntaxException, NoHttpResponseException {
 
-            // Create AsyncQueryResult entry for AsyncQuery and
-            // add queryResult object to query object
-            asyncQueryDao.createAsyncQueryResult(response.getResponseCode(), response.getBody(),
-                    queryObj, queryObj.getId());
-
-            // If we receive a response update Query Status to complete
-            asyncQueryDao.updateStatus(queryObj, QueryStatus.COMPLETE);
-
-        } catch (Exception e) {
-            log.error("Exception: {}", e);
-            if (e.getClass().equals(InterruptedException.class)) {
-                // An InterruptedException is encountered when we interrupt the query when it goes beyond max run time
-                // We set the QueryStatus to TIMEDOUT
-                // No AsyncQueryResult will be set for this case
-                asyncQueryDao.updateStatus(queryObj, QueryStatus.TIMEDOUT);
-            } else {
-                // If an Exception is encountered we set the QueryStatus to FAILURE
-                // No AsyncQueryResult will be set for this case
-                asyncQueryDao.updateStatus(queryObj, QueryStatus.FAILURE);
-            }
+        ElideResponse response = null;
+        log.debug("AsyncQuery Object from request: {}", queryObj);
+        if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
+            MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
+            log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
+            response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion);
+            log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
+                    response.getResponseCode(), response.getBody());
         }
+        else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+            response = runner.run(queryObj.getQuery(), user);
+            log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
+                    response.getResponseCode(), response.getBody());
+        }
+        if (response == null) {
+            throw new NoHttpResponseException("Response for request returned as null");
+        }
+
+        // Create AsyncQueryResult entry for AsyncQuery
+
+        queryResultObj = new AsyncQueryResult();
+        queryResultObj.setHttpStatus(response.getResponseCode());
+        queryResultObj.setResponseBody(response.getBody());
+        queryResultObj.setContentLength(response.getBody().length());
+        queryResultObj.setResultType(ResultType.EMBEDDED);
+        queryResultObj.setCompletedOn(new Date());
+
+        return queryResultObj;
     }
 
     /**

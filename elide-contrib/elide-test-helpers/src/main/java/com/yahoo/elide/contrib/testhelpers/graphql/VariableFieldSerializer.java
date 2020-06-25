@@ -50,12 +50,17 @@ import java.io.IOException;
 public class VariableFieldSerializer extends JsonSerializer<String> {
 
     private static final String VARIABLE_SIGN = "$";
+    private static final String ENUM_SIGN = "#";
 
     @Override
     public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+
         if (value.startsWith(VARIABLE_SIGN)) {
             // this is a variable
             gen.writeRawValue(value);
+        } else if (value.startsWith(ENUM_SIGN)) {
+            // this is an enum
+            gen.writeRawValue(value.substring(1));
         } else {
             gen.writeString(value);
         }
