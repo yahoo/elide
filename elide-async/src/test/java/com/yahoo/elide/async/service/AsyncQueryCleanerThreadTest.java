@@ -32,6 +32,7 @@ public class AsyncQueryCleanerThreadTest {
     private AsyncQueryCleanerThread cleanerThread;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
+    private ResultStorageEngine resultStorageEngine;
 
     @BeforeEach
     public void setupMocks() {
@@ -45,7 +46,9 @@ public class AsyncQueryCleanerThreadTest {
                         .build());
 
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
-        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao);
+        resultStorageEngine = mock(DefaultResultStorageEngine.class);
+        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao,
+                resultStorageEngine);
     }
 
     @Test

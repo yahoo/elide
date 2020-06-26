@@ -24,7 +24,8 @@ public class AsyncCleanerServiceTest {
         Elide elide = mock(Elide.class);
 
         AsyncQueryDAO dao = mock(DefaultAsyncQueryDAO.class);
-        AsyncCleanerService.init(elide, 5, 60, dao);
+        ResultStorageEngine resultStorageEngine = mock(DefaultResultStorageEngine.class);
+        AsyncCleanerService.init(elide, 5, 60, dao, resultStorageEngine);
         service = AsyncCleanerService.getInstance();
     }
 

@@ -205,6 +205,7 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("PROCESSING"))
                 .body("data.attributes.result.contentLength", nullValue())
+                .body("data.attributes.result.recordCount", nullValue())
                 .body("data.attributes.result.responseBody", nullValue())
                 .body("data.attributes.result.httpStatus", nullValue())
                 .body("data.attributes.result.resultType", nullValue());
@@ -230,12 +231,11 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
-                        .body("data.attributes.result.responseBody", equalTo("{\"data\":"
-                                + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
-                                + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
-                                + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
+                        .body("data.attributes.result.recordCount", equalTo(3))
+                        .body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
+                                + "/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf830e"))
                         .body("data.attributes.result.httpStatus", equalTo(200))
-                        .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
+                        .body("data.attributes.result.resultType", equalTo(ResultType.DOWNLOAD.toString()));
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
@@ -285,6 +285,7 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("COMPLETE"))
                 .body("data.attributes.result.contentLength", notNullValue())
+                .body("data.attributes.result.recordCount", equalTo(3))
                 .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                         + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                         + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
@@ -358,11 +359,9 @@ public class AsyncIT extends IntegrationTest {
             // If Async Query is created and completed
             if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
 
-                expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
-                        + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
-                        + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
-                        + "\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":177}}}]}}}";
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                        + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf828e\","
+                        + "\"httpStatus\":200,\"resultType\":\"DOWNLOAD\",\"contentLength\":177}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
@@ -536,6 +535,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.recordCount", nullValue())
                         .body("data.attributes.result.responseBody", equalTo("{\"errors\":[{\"detail\":\"Unknown collection group\"}]}"))
                         .body("data.attributes.result.httpStatus", equalTo(404));
 
@@ -640,6 +640,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.recordCount", equalTo(0))
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":[]}"))
                         .body("data.attributes.result.httpStatus", equalTo(200))
                         .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));

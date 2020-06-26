@@ -21,7 +21,6 @@ import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
 import org.apache.http.NoHttpResponseException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +33,7 @@ public class AsyncQueryThreadTest {
     private QueryRunner runner;
     private AsyncQueryResult queryResultObj;
     private AsyncQueryDAO asyncQueryDao;
+    private ResultStorageEngine resultStorageEngine;
 
     @BeforeEach
     public void setupMocks() {
@@ -42,6 +42,7 @@ public class AsyncQueryThreadTest {
         runner = mock(QueryRunner.class);
         queryResultObj = mock(AsyncQueryResult.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
+        resultStorageEngine = mock(DefaultResultStorageEngine.class);
     }
 
     @Test
@@ -53,8 +54,10 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
-        when(elide.get(anyString(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
-        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
+
+        when(elide.get(anyString(), any(), any(), anyString(), any())).thenReturn(response);
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
+                resultStorageEngine);
         queryResultObj = queryThread.processQuery();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
@@ -69,10 +72,27 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
-        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
+
+        when(runner.run(eq(query), eq(user), any())).thenReturn(response);
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
+                resultStorageEngine);
         queryResultObj = queryThread.processQuery();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
+    }
+
+    @Test
+    public void testConvertJsonToCSV() throws URISyntaxException, NoHttpResponseException {
+
+        String csvStr = "[key][\"value\"]";
+        String jsonStr = "{\"key\":\"value\"}";
+        AsyncQueryThread queryThread = mock(AsyncQueryThread.class);
+        when(queryResultObj.getResponseBody()).thenReturn(jsonStr);
+        when(queryThread.processQuery()).thenReturn(queryResultObj);
+        when(queryThread.convertJsonToCSV(queryResultObj.getResponseBody())).thenReturn(csvStr);
+
+        String jsonToCSV = queryThread.convertJsonToCSV(jsonStr);
+
+        assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
     }
 }

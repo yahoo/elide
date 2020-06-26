@@ -31,7 +31,7 @@ public class AsyncCleanerService {
 
     @Inject
     private AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays,
-            AsyncQueryDAO asyncQueryDao) {
+            AsyncQueryDAO asyncQueryDao, ResultStorageEngine resultStorageEngine) {
 
         //If query is still running for twice than maxRunTime, then interrupt did not work due to host/app crash.
         int queryRunTimeThresholdMinutes = maxRunTimeMinutes * 2;
@@ -39,7 +39,7 @@ public class AsyncCleanerService {
         // Setting up query cleaner that marks long running query as TIMEDOUT.
         ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
         AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide,
-            queryCleanupDays, asyncQueryDao);
+            queryCleanupDays, asyncQueryDao, resultStorageEngine);
 
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.
@@ -63,9 +63,10 @@ public class AsyncCleanerService {
      * @param asyncQueryDao DAO Object
      */
     public static void init(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays,
-            AsyncQueryDAO asyncQueryDao) {
+            AsyncQueryDAO asyncQueryDao, ResultStorageEngine resultStorageEngine) {
         if (asyncCleanerService == null) {
-            asyncCleanerService = new AsyncCleanerService(elide, maxRunTimeMinutes, queryCleanupDays, asyncQueryDao);
+            asyncCleanerService = new AsyncCleanerService(elide, maxRunTimeMinutes, queryCleanupDays, asyncQueryDao,
+                    resultStorageEngine);
         } else {
             log.debug("asyncCleanerService is already initialized.");
         }

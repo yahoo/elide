@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -31,6 +33,7 @@ public class AsyncQueryCleanerThread implements Runnable {
     private Elide elide;
     private int queryCleanupDays;
     private AsyncQueryDAO asyncQueryDao;
+    private ResultStorageEngine resultStorageEngine;
 
     @Override
     public void run() {
@@ -48,7 +51,9 @@ public class AsyncQueryCleanerThread implements Runnable {
 
         String filterExpression = "createdOn=le='" + cleanupDateFormatted + "'";
 
-        asyncQueryDao.deleteAsyncQueryAndResultCollection(filterExpression);
+        Collection<AsyncQuery> asyncQueryList = asyncQueryDao.deleteAsyncQueryAndResultCollection(filterExpression);
+
+        resultStorageEngine.deleteResultsCollection(asyncQueryList);
 
     }
 
@@ -72,7 +77,7 @@ public class AsyncQueryCleanerThread implements Runnable {
      * @param amount Amount of days to be subtracted from current time
      * @return formatted filter date
      */
-     private String evaluateFormattedFilterDate(int calendarUnit, int amount) {
+    private String evaluateFormattedFilterDate(int calendarUnit, int amount) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         cal.add(calendarUnit, -(amount));

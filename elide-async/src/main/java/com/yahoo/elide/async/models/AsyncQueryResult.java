@@ -23,6 +23,8 @@ public class AsyncQueryResult {
 
     private Integer contentLength;
 
+    private Integer recordCount;
+
     private String responseBody;  //URL or Response body
 
     private Integer httpStatus; // HTTP Status

@@ -13,7 +13,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -41,6 +40,7 @@ public class AsyncExecutorServiceTest {
     private AsyncQueryDAO asyncQueryDao;
     private User testUser;
     private AsyncQueryUpdateThread asyncQueryUpdateThread;
+    private ResultStorageEngine resultStorageEngine;
 
     @BeforeAll
     public void setupMockElide() {
@@ -51,8 +51,9 @@ public class AsyncExecutorServiceTest {
                         .withEntityDictionary(new EntityDictionary(checkMappings))
                         .build());
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
+        resultStorageEngine = mock(DefaultResultStorageEngine.class);
         testUser = mock(User.class);
-        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
+        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
         service = AsyncExecutorService.getInstance();
         asyncQueryUpdateThread = mock(AsyncQueryUpdateThread.class);
     }
@@ -65,6 +66,7 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
         assertEquals(asyncQueryDao, service.getAsyncQueryDao());
+        assertEquals(resultStorageEngine, service.getResultStorageEngine());
     }
 
     //Test for executor hook execution
