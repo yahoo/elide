@@ -65,6 +65,10 @@ public abstract class IntegrationTest {
     }
 
     protected IntegrationTest(final Class<? extends ResourceConfig> resourceConfig, String packageName) {
+        this(resourceConfig, packageName, null);
+    }
+
+    protected IntegrationTest(final Class<? extends ResourceConfig> resourceConfig, String packageName, String port) {
         this.resourceConfig = resourceConfig.getCanonicalName();
         this.packageName = packageName;
 
@@ -74,7 +78,7 @@ public abstract class IntegrationTest {
         this.dataStore = dataStoreHarness.getDataStore();
 
         try {
-            this.server = setUpServer();
+            this.server = setUpServer(port);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -109,14 +113,15 @@ public abstract class IntegrationTest {
         dataStoreHarness.cleanseTestData();
     }
 
-    protected final Server setUpServer() throws Exception {
+    protected final Server setUpServer(String port) throws Exception {
         // setup RestAssured
         RestAssured.baseURI = "http://localhost/";
         RestAssured.basePath = "/";
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // port randomly picked in pom.xml
-        String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
+        String restassuredPort = StringUtils.isNotEmpty(port) ? port
+                : System.getProperty("restassured.port", System.getenv("restassured.port"));
         RestAssured.port =
                 Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
 

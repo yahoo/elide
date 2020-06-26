@@ -68,13 +68,14 @@ public class DefaultAsyncQueryDAOTest {
 
         elide = new Elide(elideSettings);
         when(dataStore.beginTransaction()).thenReturn(tx);
-        asyncQueryDAO = new DefaultAsyncQueryDAO(elide, dataStore);
+
+        asyncQueryDAO = new DefaultAsyncQueryDAO(elide.getElideSettings(), dataStore);
     }
 
     @Test
     public void testAsyncQueryCleanerThreadSet() {
-        assertEquals(elide, asyncQueryDAO.getElide());
         assertEquals(dataStore, asyncQueryDAO.getDataStore());
+        assertEquals(elide.getElideSettings(), asyncQueryDAO.getElideSettings());
     }
 
     @Test

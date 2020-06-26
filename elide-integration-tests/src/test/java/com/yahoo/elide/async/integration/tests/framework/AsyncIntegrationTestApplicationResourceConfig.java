@@ -24,6 +24,8 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultResultStorageEngine;
+import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.audit.InMemoryLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
@@ -93,10 +95,14 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
-                AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+                AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
-                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
+                ResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine("/download", elide.getElideSettings(),
+                        elide.getDataStore());
+                bind(resultStorageEngine).to(ResultStorageEngine.class);
+
+                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                 BillingService billingService = new BillingService() {
@@ -121,7 +127,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 dictionary.bindTrigger(Invoice.class, "complete", CREATE, PRECOMMIT, invoiceCompletionHook);
                 dictionary.bindTrigger(Invoice.class, "complete", UPDATE, PRECOMMIT, invoiceCompletionHook);
 
-                AsyncCleanerService.init(elide, 30, 5, 150, asyncQueryDao);
+                AsyncCleanerService.init(elide, 60, 5, 150, asyncQueryDao, resultStorageEngine);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         });

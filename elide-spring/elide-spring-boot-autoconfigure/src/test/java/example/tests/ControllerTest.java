@@ -410,6 +410,14 @@ public class ControllerTest extends IntegrationTest {
     }
 
     @Test
+    public void downloadControllerTest() {
+        when()
+                .get("/download/asyncQueryId")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
     public void versionedSwaggerDocumentTest() {
         given()
                 .header("ApiVersion", "1.0")

@@ -20,6 +20,8 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultResultStorageEngine;
+import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
@@ -129,12 +131,20 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     AsyncQueryDAO asyncQueryDao = settings.getAsyncQueryDAO();
                     if (asyncQueryDao == null) {
-                        asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+                        asyncQueryDao = new DefaultAsyncQueryDAO(elide.getElideSettings(),
+                                elide.getDataStore());
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
+                    ResultStorageEngine resultStorageEngine = settings.getResultStorageEngine();
+                    if (resultStorageEngine == null) {
+                        resultStorageEngine = new DefaultResultStorageEngine(settings.getDownloadApiPathSpec(),
+                                elide.getElideSettings(), elide.getDataStore());
+                    }
+                    bind(resultStorageEngine).to(ResultStorageEngine.class);
+
                     AsyncExecutorService.init(elide, settings.getAsyncThreadSize(),
-                            settings.getAsyncMaxRunTimeSeconds(), asyncQueryDao);
+                            settings.getAsyncMaxRunTimeSeconds(), asyncQueryDao), resultStorageEngine);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
@@ -150,7 +160,8 @@ public class ElideResourceConfig extends ResourceConfig {
                     if (settings.enableAsyncCleanup()) {
                         AsyncCleanerService.init(elide, settings.getAsyncMaxRunTimeSeconds(),
                                 settings.getAsyncQueryCleanupDays(),
-                                settings.getAsyncQueryCancelCheckIntervalSeconds(), asyncQueryDao);
+                                settings.getAsyncQueryCancelCheckIntervalSeconds(), asyncQueryDao,
+                                resultStorageEngine);
                         bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
                     }
                 }

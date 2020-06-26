@@ -3,11 +3,10 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.service;
+package com.yahoo.elide.async.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import com.yahoo.elide.async.models.AsyncQuery;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,6 +33,7 @@ public class AsyncQueryTest {
     public void testMaxAsyncAfterSeconds() {
         AsyncQuery queryObj = new AsyncQuery();
         queryObj.setAsyncAfterSeconds(12);
+        queryObj.setResultType(ResultType.EMBEDDED);
         Set<ConstraintViolation<AsyncQuery>> constraintViolations = validator.validate(queryObj);
         assertEquals(1, constraintViolations.size());
         assertEquals("must be less than or equal to 10", constraintViolations.iterator().next().getMessage());

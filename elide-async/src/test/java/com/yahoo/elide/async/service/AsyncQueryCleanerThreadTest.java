@@ -34,9 +34,11 @@ public class AsyncQueryCleanerThreadTest {
     private AsyncQueryCleanerThread cleanerThread;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
+    private ResultStorageEngine resultStorageEngine;
 
     @BeforeEach
     public void setupMocks() {
+
         HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
@@ -46,7 +48,9 @@ public class AsyncQueryCleanerThreadTest {
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
-        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao);
+        resultStorageEngine = mock(DefaultResultStorageEngine.class);
+        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao,
+                resultStorageEngine);
     }
 
     @Test
@@ -55,15 +59,19 @@ public class AsyncQueryCleanerThreadTest {
         assertEquals(asyncQueryDao, cleanerThread.getAsyncQueryDao());
         assertEquals(7, cleanerThread.getMaxRunTimeMinutes());
         assertEquals(7, cleanerThread.getQueryCleanupDays());
+        assertEquals(resultStorageEngine, cleanerThread.getResultStorageEngine());
     }
 
     @Test
     public void testDeleteAsyncQuery() {
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.deleteAsyncQuery();
+
         verify(asyncQueryDao, times(1)).deleteAsyncQueryAndResultCollection(filterCaptor.capture());
         Long date = System.currentTimeMillis() - (cleanerThread.getQueryCleanupDays() * 24 * 3600 * 1000);
         assertEquals("asyncQuery.createdOn LE [" + new Date(date) + "]", filterCaptor.getValue().toString());
+
+        verify(resultStorageEngine, times(1)).deleteResultsCollection(any());
     }
 
     @Test

@@ -12,6 +12,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
+import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
@@ -62,7 +63,7 @@ import javax.persistence.EntityManagerFactory;
 public interface ElideStandaloneSettings {
     /* Elide settings */
 
-     public final Consumer<EntityManager> TXCANCEL = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+    public final Consumer<EntityManager> TXCANCEL = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     /**
      * A map containing check mappings for security across Elide. If not provided, then an empty map is used.
@@ -156,6 +157,15 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * API root path specification for Async Results Download.
+     *
+     * @return Default: /api/v1/download
+     */
+    default String getDownloadApiPathSpec() {
+        return "/api/v1/download";
+    }
+
+    /**
      * Enable the JSONAPI endpoint. If false, the endpoint will be disabled.
      *
      * @return Default: True
@@ -171,6 +181,15 @@ public interface ElideStandaloneSettings {
      */
     default boolean enableGraphQL() {
         return true;
+    }
+
+    /**
+     * Enable the Async Download endpoint. If false, the endpoint will be disabled.
+     *
+     * @return Default: false
+     */
+    default boolean enableAsyncDownload() {
+        return false;
     }
 
     /**
@@ -260,6 +279,24 @@ public interface ElideStandaloneSettings {
      */
     default AsyncQueryDAO getAsyncQueryDAO() {
         return null;
+    }
+
+    /**
+     * Implementation of ResultStorageEngine to use.
+     *
+     * @return ResultStorageEngine type object.
+     */
+    default ResultStorageEngine getResultStorageEngine() {
+        return null;
+    }
+
+    /**
+     * Generates a default a baseURL.
+     *
+     * @return a URL in String format.
+     */
+    default String getAsyncDownloadPath() {
+        return "/download/api/v1";
     }
 
     /**

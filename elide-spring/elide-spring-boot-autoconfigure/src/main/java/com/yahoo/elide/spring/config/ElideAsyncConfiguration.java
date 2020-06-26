@@ -19,8 +19,11 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultResultStorageEngine;
+import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.core.EntityDictionary;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -50,9 +53,9 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
-            AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary) {
+            AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary, ResultStorageEngine resultStorageEngine) {
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao);
+                settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao, resultStorageEngine);
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
         // Binding AsyncQuery LifeCycleHook
@@ -77,10 +80,10 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
     public AsyncCleanerService buildAsyncCleanerService(Elide elide, ElideConfigProperties settings,
-            AsyncQueryDAO asyncQueryDao) {
+            AsyncQueryDAO asyncQueryDao, @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncCleanerService.init(elide, settings.getAsync().getMaxRunTimeSeconds(),
-                settings.getAsync().getQueryCleanupDays(),
-                settings.getAsync().getQueryCancellationIntervalSeconds(), asyncQueryDao);
+                settings.getAsync().getQueryCleanupDays(), settings.getAsync().getQueryCancellationIntervalSeconds(),
+                asyncQueryDao, resultStorageEngine);
         return AsyncCleanerService.getInstance();
     }
 
@@ -93,6 +96,27 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncQueryDAO", matchIfMissing = true)
     public AsyncQueryDAO buildAsyncQueryDAO(Elide elide) {
-        return new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+        return new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
+    }
+
+    /**
+     * Configure the ResultStorageEngine used by async query requests.
+     * @param elide elideObject.
+     * @return an ResultStorageEngine object.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "elide.async.download", name = "defaultResultStorageEngine", matchIfMissing = true)
+    public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings) {
+        // Creating a new ElideSettings and Elide object for Async services
+        // which will have ISO8601 Dates. Used for DefaultResultStorageEngine.
+        if (!settings.getAsync().getDownload().isEnabled()) {
+            return null;
+        } else {
+            String downloadURI = settings.getAsync().getDownload().isEnabled()
+                    ? settings.getAsync().getDownload().getPath() : null;
+            return new DefaultResultStorageEngine(downloadURI, elide.getElideSettings(),
+                    elide.getDataStore());
+        }
     }
 }

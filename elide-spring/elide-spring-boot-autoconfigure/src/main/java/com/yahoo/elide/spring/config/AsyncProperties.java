@@ -11,7 +11,7 @@ import lombok.Data;
  * Extra properties for setting up async query support.
  */
 @Data
-public class AsyncProperties extends ControllerProperties {
+public class AsyncProperties {
 
     /**
      * Default thread pool size.
@@ -49,5 +49,15 @@ public class AsyncProperties extends ControllerProperties {
      * If false, the user will provide custom implementation of AsyncQueryDAO.
      */
     private boolean defaultAsyncQueryDAO = true;
+
+    /**
+     * Whether or not the controller is enabled.
+     */
+    private boolean enabled = false;
+
+    /**
+     * Settings for the Download controller.
+     */
+    private AsyncDownloadProperties download;
 
 }
