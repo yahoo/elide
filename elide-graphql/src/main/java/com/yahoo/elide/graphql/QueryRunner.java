@@ -187,14 +187,8 @@ public class QueryRunner {
             }
             executionInput.variables(variables);
 
-            if (requestScope.getElideSettings() != null) {
-                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-                ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
-                        principal.getPrincipal(),
-                        requestScope.getHeaders(),
-                        requestScope.getApiVersion(),
-                        query);
-            }
+            //accept the query here for logging
+            queryRunnerAcceptQuery(requestScope, principal, query);
 
             ExecutionResult result = api.execute(executionInput);
 
@@ -232,10 +226,7 @@ public class QueryRunner {
                     .build();
 
             //call complete query here if operation = QUERY
-            if (requestScope.getElideSettings() != null) {
-                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-                ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
-            }
+            queryRunnerCompleteQuery(requestScope, response);
 
             return response;
         } catch (JsonProcessingException e) {
@@ -322,5 +313,23 @@ public class QueryRunner {
                 .responseCode(error.getStatus())
                 .body(errorBody)
                 .build();
+    }
+
+    private static void queryRunnerAcceptQuery(GraphQLRequestScope requestScope, User principal, String query) {
+        if (requestScope.getElideSettings() != null) {
+            QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                    principal.getPrincipal(),
+                    requestScope.getHeaders(),
+                    requestScope.getApiVersion(),
+                    query);
+        }
+    }
+
+    private static void queryRunnerCompleteQuery(GraphQLRequestScope requestScope, ElideResponse response) {
+        if (requestScope.getElideSettings() != null) {
+            QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
+        }
     }
 }

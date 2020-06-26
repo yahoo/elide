@@ -7,7 +7,13 @@ package com.yahoo.elide;
 
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.core.*;
+import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.NoopQueryLogger;
+import com.yahoo.elide.core.QueryLogger;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.Slf4jQueryLogger;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;

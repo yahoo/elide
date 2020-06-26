@@ -18,21 +18,21 @@ public class NoopQueryLogger implements QueryLogger {
 
     @Override
     public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer, String apiQuery) {
-        return;
+        //does nothing
     }
 
     @Override
     public void processQuery(UUID queryId, QueryDetail qd) {
-        return;
+        //does nothing
     }
 
     @Override
     public void cancelQuery(UUID queryId) {
-        return;
+        //does nothing
     }
 
     @Override
     public void completeQuery(UUID queryId, ElideResponse response) {
-        return;
+        //does nothing
     }
 }

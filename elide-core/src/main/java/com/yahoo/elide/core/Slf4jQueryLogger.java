@@ -32,11 +32,14 @@ public class Slf4jQueryLogger implements QueryLogger {
             startTime.put(queryId, start);
         }
 
+        /**
+         * headers to be logged out.
         String headersQuery = "";
         for (String key : headers.keySet()) {
             String value = headers.get(key);
             headersQuery = key + ": " + value + "\n";
         }
+        */
 
         log.info("Accepted Query with RequestId: "
                 + queryId
@@ -50,7 +53,7 @@ public class Slf4jQueryLogger implements QueryLogger {
 
     @Override
     public void processQuery(UUID queryId, QueryDetail qd) {
-        if (qd.toString() != "") {
+        if (!qd.toString().equals("")) {
             log.info("Processing Query with RequestId: " + queryId + ". QueryText: " + qd.toString());
         }
     }
@@ -70,7 +73,8 @@ public class Slf4jQueryLogger implements QueryLogger {
             return;
         }
 
-        long endTime, start;
+        long endTime;
+        long start;
         endTime = System.currentTimeMillis();
         synchronized (this) {
             start = startTime.get(queryId);

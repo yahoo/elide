@@ -73,7 +73,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
     private int hashCode = 0;
-    public static List<QueryDetail> storeQueries;
 
     static final String CLASS_NO_FIELD = "";
 
@@ -175,7 +174,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         this.type = dictionary.getJsonAliasFor(obj.getClass());
         this.transaction = scope.getTransaction();
         this.requestScope = scope;
-        this.storeQueries = new ArrayList<>();
         dictionary.initializeEntity(obj);
     }
 
@@ -240,10 +238,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
             //call the explain function from DataStoreTransaction interface
             qd = tx.explain(projection, requestScope);
-            if (requestScope.getElideSettings() != null) {
-                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-                ql.processQuery(UUID.fromString(requestScope.getRequestId()), qd);
-            }
+            queryLoggerProcessQuery(qd, requestScope);
 
             if (obj == null) {
                 throw new InvalidObjectIdentifierException(id, dictionary.getJsonAliasFor(loadClass));
@@ -356,10 +351,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         //call the explain function from DataStoreTransaction interface
         qd = tx.explain(modifiedProjection, requestScope);
-        if (requestScope.getElideSettings() != null) {
-            QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            ql.processQuery(UUID.fromString(requestScope.getRequestId()), qd);
-        }
+        queryLoggerProcessQuery(qd, requestScope);
 
         Set<PersistentResource> allResources = Sets.union(newResources, existingResources);
 
@@ -1098,10 +1090,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         //call the explain function from DataStoreTransaction interface
         qd = transaction.explain(modifiedRelationship, requestScope, obj);
-        if (requestScope.getElideSettings() != null) {
-            QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            ql.processQuery(UUID.fromString(requestScope.getRequestId()), qd);
-        }
+        queryLoggerProcessQuery(qd, requestScope);
 
         if (val == null) {
             return Collections.emptySet();
@@ -1885,5 +1874,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private static <T> T firstOrNullIfEmpty(final Collection<T> coll) {
         return CollectionUtils.isEmpty(coll) ? null : IterableUtils.first(coll);
+    }
+
+    private static void queryLoggerProcessQuery(QueryDetail qd, RequestScope requestScope) {
+        if (requestScope.getElideSettings() != null) {
+            QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.processQuery(UUID.fromString(requestScope.getRequestId()), qd);
+        }
     }
 }
