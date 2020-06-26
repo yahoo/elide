@@ -75,6 +75,12 @@
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
             <version>5.0.0-pr13-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
