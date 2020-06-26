@@ -109,6 +109,24 @@ public class DynamicConfigHelpers {
     }
 
     /**
+     * converts variables hjson string to map of variables.
+     * @param config
+     * @return Map of Variables
+     * @throws ProcessingException
+     * @throws IOException
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> stringToVariablesPojo(String config)
+            throws ProcessingException, IOException {
+        Map<String, Object> variables = null;
+        String jsonConfig = hjsonToJson(config);
+        if (verifySchema(VARIABLE, jsonConfig)) {
+            variables = getModelPojo(jsonConfig, Map.class);
+        }
+        return variables;
+    }
+
+    /**
      * converts all available table config to ElideTableConfig Pojo.
      * @param basePath : root path to model dir
      * @param variables : variables to resolve.
