@@ -14,6 +14,6 @@ import java.util.Collections;
  */
 public class SqlSum extends SQLMetricFunction {
     public SqlSum() {
-        super("sum", "sql sum function", "SUM(%s)", Collections.emptySet());
+        super("sum", "sql sum function", "sql function", "SUM(%s)", Collections.emptySet());
     }
 }

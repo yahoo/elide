@@ -14,8 +14,8 @@ import java.util.Set;
  * SQL extension of {@link MetricFunction} which would be invoked as sql and can construct sql templates.
  */
 public class SQLMetricFunction extends MetricFunction {
-    public SQLMetricFunction(String name, String description, String expression,
+    public SQLMetricFunction(String name, String description, String category, String expression,
                              Set<FunctionArgument> arguments) {
-        super(name, description, expression, arguments);
+        super(name, description, category, expression, arguments);
     }
 }

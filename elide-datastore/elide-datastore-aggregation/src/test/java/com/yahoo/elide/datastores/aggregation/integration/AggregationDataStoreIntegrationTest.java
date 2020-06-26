@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 
 import java.io.BufferedReader;
@@ -719,7 +720,17 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("SMALL"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
-
+        Response response1 = given()
+                .accept("application/vnd.api+json")
+                .get("/metric/playerStats.highScore?include=metricFunction");
+                
+        System.out.println(response1.asString());
+        
+        Response response2 = given()
+                .accept("application/vnd.api+json")
+                .get("/metric/playerStats.lowScore?include=metricFunction");
+                
+        System.out.println(response2.asString());
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats")
@@ -751,6 +762,24 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
+                .get("/metric/playerStats.highScore?include=metricFunction")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("highScore"))
+                .body("data.attributes.valueType",  equalTo("INTEGER"))
+                .body("data.attributes.columnType",  equalTo("FIELD"))
+                .body("data.attributes.expression",  equalTo("highScore"))
+                .body("data.attributes.category",  equalTo("Score Category"))
+                .body("data.attributes.description",  equalTo("very awesome score"))
+                .body("data.relationships.table.data.id", equalTo("playerStats"))
+                .body("data.relationships.metricFunction.data.id", equalTo("playerStats.highScore[max]"))
+                .body("included.id", hasItem("playerStats.highScore[max]"))
+                .body("included.attributes.category", hasItem("sql function"))
+                .body("included.attributes.description", hasItem("very awesome score"))
+                .body("included.attributes.expression", hasItem("MAX(%s)"));
+
+        given()
+                .accept("application/vnd.api+json")
                 .get("/metric/playerStats.lowScore?include=metricFunction")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -761,6 +790,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
+                .body("included.attributes.category", hasItem("sql function"))
                 .body("included.attributes.description", hasItem("sql min function"))
                 .body("included.attributes.expression", hasItem("MIN(%s)"));
 
