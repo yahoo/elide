@@ -88,24 +88,19 @@ public class DynamicConfigHelpers {
      * converts variable.hjson to map of variables.
      * @param basePath : root path to model dir
      * @return Map of variables
-     * @throws JsonProcessingException
      * @throws ProcessingException
+     * @throws IOException
      */
-    @SuppressWarnings("unchecked")
     public static Map<String, Object> getVariablesPojo(String basePath)
-            throws JsonProcessingException, ProcessingException {
-        Map<String, Object> variables = null;
+            throws ProcessingException, IOException {
         String filePath = basePath + VARIABLE_CONFIG_PATH;
         File variableFile = new File(filePath);
         if (variableFile.exists()) {
-            String jsonConfig = hjsonToJson(readConfigFile(variableFile));
-            if (verifySchema(VARIABLE, jsonConfig)) {
-                variables = getModelPojo(jsonConfig, Map.class);
-            }
+            return stringToVariablesPojo(readConfigFile(variableFile));
         } else {
             log.info("Variables config file not found at " + filePath);
         }
-        return variables;
+        return null;
     }
 
     /**

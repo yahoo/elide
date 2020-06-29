@@ -13,7 +13,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import org.apache.commons.cli.CommandLine;
@@ -32,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -65,6 +63,7 @@ public class DynamicConfigValidator {
     private static final String SQL_SPLIT_REGEX = "\\s+";
     private static final String SEMI_COLON = ";";
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
+    private static final int FILE_PREFIX_LENGTH = 5; //"file:".length()
 
     private ElideTableConfig elideTableConfig;
     private ElideSecurityConfig elideSecurityConfig;
@@ -122,7 +121,7 @@ public class DynamicConfigValidator {
         }
 
         URL jar = DynamicConfigValidator.class.getProtectionDomain().getCodeSource().getLocation();
-        Path jarFile = Paths.get(jar.toString().substring("file:".length()));
+        Path jarFile = Paths.get(jar.toString().substring(FILE_PREFIX_LENGTH));
         FileSystem fs = FileSystems.newFileSystem(jarFile, null);
 
         // load variables
@@ -157,10 +156,10 @@ public class DynamicConfigValidator {
     /**
      * Read variable file config.
      * @return boolean true if variable config file exists else false
-     * @throws JsonProcessingException
      * @throws ProcessingException
+     * @throws IOException
      */
-    private boolean readVariableConfig() throws JsonProcessingException, ProcessingException {
+    private boolean readVariableConfig() throws ProcessingException, IOException {
         boolean isVariableConfig = exists(this.configDir + DynamicConfigHelpers.VARIABLE_CONFIG_PATH);
         this.variables = isVariableConfig ? DynamicConfigHelpers.getVariablesPojo(this.configDir)
                 : Collections.<String, Object>emptyMap();
@@ -180,7 +179,7 @@ public class DynamicConfigValidator {
             directoryStream = Files.newDirectoryStream(fs.getPath(this.configDir));
             for (Path path : directoryStream) {
                 String fileName = path.getFileName().toString();
-                if (fileName.equals("variables.hjson")) {
+                if (fileName.equals(DynamicConfigHelpers.VARIABLE_CONFIG_PATH)) {
                     inputStream = DynamicConfigValidator.class.getResourceAsStream(path.toString());
                     this.variables = DynamicConfigHelpers.stringToVariablesPojo(
                             IOUtils.toString(inputStream, StandardCharsets.UTF_8));
@@ -224,7 +223,7 @@ public class DynamicConfigValidator {
 
             for (Path path: directoryStream) {
                 String fileName = path.getFileName().toString();
-                if (fileName.equals("security.hjson")) {
+                if (fileName.equals(DynamicConfigHelpers.SECURITY_CONFIG_PATH)) {
                     String securityConfigContent = IOUtils.toString(DynamicConfigValidator.class.getResourceAsStream(
                             path.toString()), StandardCharsets.UTF_8);
                     validateConfigForMissingVariables(securityConfigContent, this.variables);
@@ -300,7 +299,7 @@ public class DynamicConfigValidator {
      * @param filePath path of the file or directory
      * @return boolean true if file or directory exists else false
      */
-    private static boolean exists(String filePath) {
+    public static boolean exists(String filePath) {
         return new File(filePath).exists();
     }
 
@@ -427,7 +426,7 @@ public class DynamicConfigValidator {
      * @return Path to model dir
      */
     private String formatClassPath(String filePath) {
-        String[] path = filePath.split("resources" + File.separator);
+        String[] path = filePath.split(File.separator + "resources" + File.separator);
         return (path.length == 2 ? path[1] : filePath);
     }
 }

@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ public class DynamicConfigHelpersTest {
     }
 
     @Test
-    public void testValidVariableSchema() throws JsonProcessingException, ProcessingException {
+    public void testValidVariableSchema() throws ProcessingException, IOException {
         String path = "src/test/resources/variables/valid";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
