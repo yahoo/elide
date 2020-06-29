@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 
 import java.io.BufferedReader;
@@ -720,17 +719,6 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("SMALL"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
-        Response response1 = given()
-                .accept("application/vnd.api+json")
-                .get("/metric/playerStats.highScore?include=metricFunction");
-                
-        System.out.println(response1.asString());
-        
-        Response response2 = given()
-                .accept("application/vnd.api+json")
-                .get("/metric/playerStats.lowScore?include=metricFunction");
-                
-        System.out.println(response2.asString());
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats")

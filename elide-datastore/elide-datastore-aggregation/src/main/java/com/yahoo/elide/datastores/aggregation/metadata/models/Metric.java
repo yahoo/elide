@@ -56,7 +56,7 @@ public class Metric extends Column {
             if (formula != null) {
                 this.metricFunction = constructMetricFunction(
                         constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
-                        meta == null ? null : meta.description(),meta == null ? null : meta.category(),
+                        meta == null ? null : meta.description(), meta == null ? null : meta.category(),
                         formula.value(),
                         new HashSet<>());
 

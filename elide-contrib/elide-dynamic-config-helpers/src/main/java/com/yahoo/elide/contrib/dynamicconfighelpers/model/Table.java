@@ -61,6 +61,9 @@ public class Table {
     @JsonProperty("description")
     private String description;
 
+    @JsonProperty("category")
+    private String category;
+
     @JsonProperty("cardinality")
     private Table.Cardinality cardinality = Table.Cardinality.fromValue("tiny");
 
