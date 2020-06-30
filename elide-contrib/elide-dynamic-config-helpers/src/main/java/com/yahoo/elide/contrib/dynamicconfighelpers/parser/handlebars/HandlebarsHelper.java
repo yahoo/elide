@@ -113,7 +113,7 @@ public class HandlebarsHelper {
             case TEXT:
                 return STRING;
             case TIME:
-                return DATE;
+                return STRING;
             case DECIMAL:
                 return BIGDECIMAL;
             case MONEY:

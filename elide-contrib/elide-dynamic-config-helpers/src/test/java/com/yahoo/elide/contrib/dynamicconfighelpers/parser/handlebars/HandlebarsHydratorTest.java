@@ -160,7 +160,7 @@ public class HandlebarsHydratorTest {
             + "    @Meta(description = \"createdOn\")\n"
             + "    \n"
             + "    @DimensionFormula(\"create_on\")\n"
-            + "    private Date createdOn;\n"
+            + "    private String createdOn;\n"
             + "\n"
             + "\n"
             + "\n"

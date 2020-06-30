@@ -35,14 +35,14 @@
                 definition : '{{playerCountry.isoCode}}'
             },
             {
-                name : createdOn
+                name : creationDate
                 type : TIME
                 definition : createdOn
                 grains: [
                 {
                     grain :  MONTH
                     sql :  '''
-                    PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')
+                    FORMATDATETIME(%s, 'yyyy-MM-01')
                     '''
                 }
                 ]
