@@ -6,8 +6,8 @@
 package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
-import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
@@ -63,7 +63,7 @@ public class ElideAsyncConfiguration {
         ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(asyncExecutorService);
         CompleteQueryHook completeQueryHook = new CompleteQueryHook(asyncExecutorService);
         UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
-        dictionary.bindTrigger(AsyncQuery.class, CREATE, PRECOMMIT, executeQueryHook, false);
+        dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, executeQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
 
