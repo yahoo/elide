@@ -10,6 +10,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import example.embeddedid.Building;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
 
@@ -30,6 +31,7 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
         Set<Package> beanPackages = Sets.newHashSet(
                 Parent.class.getPackage(),
                 Invoice.class.getPackage(),
+                Building.class.getPackage(),
                 Manager.class.getPackage()
         );
 
