@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 @ElideTypeConverter(type = Address.class, name = "Address")
 public class AddressSerde implements Serde<String, Address> {
-    private static final Pattern addressPattern =
+    private static final Pattern ADDRESS_PATTERN =
             Pattern.compile("Address\\(number=(\\d+), street=([a-zA-Z0-9 ]+), zipCode=(\\d+)\\)");
 
     @Override
@@ -23,7 +23,7 @@ public class AddressSerde implements Serde<String, Address> {
         byte[] decodedBytes = Base64.getDecoder().decode(val);
         String decodedString = new String(decodedBytes);
 
-        Matcher matcher = addressPattern.matcher(decodedString);
+        Matcher matcher = ADDRESS_PATTERN.matcher(decodedString);
         if (! matcher.matches()) {
             throw new InvalidValueException(decodedString);
         }

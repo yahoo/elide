@@ -6,28 +6,6 @@
 
 package com.yahoo.elide.tests;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.IntegrationTest;
-import example.embeddedid.Address;
-import example.embeddedid.AddressSerde;
-import example.embeddedid.Building;
-import io.restassured.response.ValidatableResponse;
-import lombok.Data;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
@@ -48,6 +26,30 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.IntegrationTest;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
+import example.embeddedid.Address;
+import example.embeddedid.AddressSerde;
+import example.embeddedid.Building;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import io.restassured.response.ValidatableResponse;
+import lombok.Data;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import javax.ws.rs.core.MediaType;
 
 public class EmbeddedIdIT extends IntegrationTest {
 
@@ -145,6 +147,34 @@ public class EmbeddedIdIT extends IntegrationTest {
                         )
                 ).toJSON())
         );
+    }
+
+    @Test
+    public void testJsonApiFetchRelationship() {
+        String address1Id = serde.serialize(address1);
+        String address3Id = serde.serialize(address3);
+
+        given()
+                .when()
+                .get("/building/" + address1Id + "/neighbors")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("building"),
+                                        id(address3Id),
+                                        attributes(
+                                                attr("name", "Assembly Hall")
+                                        ),
+                                        relationships(
+                                                relation("neighbors",
+                                                        linkage(type("building"), id(address1Id))
+                                                )
+                                        )
+                                )
+                        ).toJSON())
+                );
     }
 
     @Test
@@ -276,6 +306,49 @@ public class EmbeddedIdIT extends IntegrationTest {
     }
 
     @Test
+    public void testGraphQLFetchRelationship() throws Exception {
+        String address1Id = serde.serialize(address1);
+        String address3Id = serde.serialize(address3);
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "building",
+                                arguments(
+                                        argument("ids", Arrays.asList(address1Id))
+                                ),
+                                selections(
+                                        field("neighbors",
+                                                selections(
+                                                        field("name"),
+                                                        field("address")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "building",
+                                selections(
+                                        field("neighbors",
+                                                selections(
+                                                        field("name", "Assembly Hall"),
+                                                        field("address", address3Id)
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void testGraphQLFilterById() throws Exception {
         String addressId = serde.serialize(address1);
 
@@ -385,7 +458,6 @@ public class EmbeddedIdIT extends IntegrationTest {
                 .body(query)
                 .post("/graphQL")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK);
     }
 

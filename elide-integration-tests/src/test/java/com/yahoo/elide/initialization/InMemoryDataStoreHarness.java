@@ -10,13 +10,13 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import example.embeddedid.Building;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
 
 import com.google.common.collect.Sets;
 
 import example.Parent;
+import example.embeddedid.Building;
 
 import java.util.Set;
 
