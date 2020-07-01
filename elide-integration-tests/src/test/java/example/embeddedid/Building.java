@@ -8,9 +8,12 @@ package example.embeddedid;
 
 import com.yahoo.elide.annotation.Include;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.Set;
 
 @Include(rootLevel = true)
 @Data
@@ -20,4 +23,8 @@ public class Building {
     Address address;
 
     String name;
+
+    @OneToMany
+    @EqualsAndHashCode.Exclude
+    Set<Building> neighbors;
 }

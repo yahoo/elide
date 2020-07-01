@@ -7,9 +7,9 @@
 package com.yahoo.elide.tests;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
@@ -40,6 +40,9 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
@@ -50,6 +53,7 @@ public class EmbeddedIdIT extends IntegrationTest {
 
     protected Address address1 = new Address(0, "Bullion Blvd", 40121);
     protected Address address2 = new Address(1409, "W Green St", 61801);
+    protected Address address3 = new Address(1800, "South First Street", 61820);
     protected AddressSerde serde = new AddressSerde();
 
     @BeforeEach
@@ -57,11 +61,19 @@ public class EmbeddedIdIT extends IntegrationTest {
         dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
         DataStoreTransaction tx = dataStore.beginTransaction();
 
-        Building building = new Building();
-        building.setAddress(address1);
-        building.setName("Fort Knox");
+        Building building1 = new Building();
+        building1.setAddress(address1);
+        building1.setName("Fort Knox");
 
-        tx.createObject(building, null);
+        Building building2 = new Building();
+        building2.setAddress(address3);
+        building2.setName("Assembly Hall");
+
+        building1.setNeighbors(Sets.newHashSet(building2));
+        building2.setNeighbors(Sets.newHashSet(building1));
+
+        tx.createObject(building1, null);
+        tx.createObject(building2, null);
 
         tx.commit(null);
         tx.close();
@@ -69,32 +81,98 @@ public class EmbeddedIdIT extends IntegrationTest {
 
     @Test
     public void testJsonApiFetchCollection() {
+        String address1Id = serde.serialize(address1);
+        String address3Id = serde.serialize(address3);
+
         given()
                 .when()
                 .get("/building")
                 .then()
-                .log().all()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("building"),
+                                        id(address1Id),
+                                        attributes(
+                                                attr("name", "Fort Knox")
+                                        ),
+                                        relationships(
+                                                relation("neighbors",
+                                                        linkage(type("building"), id(address3Id))
+                                                )
+                                        )
+                                ),
+                                resource(
+                                        type("building"),
+                                        id(address3Id),
+                                        attributes(
+                                                attr("name", "Assembly Hall")
+                                        ),
+                                        relationships(
+                                                relation("neighbors",
+                                                        linkage(type("building"), id(address1Id))
+                                                )
+                                        )
+                                )
+                        ).toJSON())
+                );
     }
 
     @Test
     public void testJsonApiFetchById() {
+        String address1Id = serde.serialize(address1);
+        String address3Id = serde.serialize(address3);
+
         given()
                 .when()
-                .get("/building/" + serde.serialize(address1))
+                .get("/building/" + address1Id)
                 .then()
-                .log().all()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                    datum(
+                        resource(
+                                type("building"),
+                                id(address1Id),
+                                attributes(
+                                        attr("name", "Fort Knox")
+                                ),
+                                relationships(
+                                        relation("neighbors",
+                                                linkage(type("building"), id(address3Id))
+                                        )
+                                )
+                        )
+                ).toJSON())
+        );
     }
 
     @Test
     public void testJsonApiFilterById() {
+        String address1Id = serde.serialize(address1);
+        String address3Id = serde.serialize(address3);
+
         given()
-                .when()
-            .get("/building?filter=id=='" + serde.serialize(address1) + "'")
+            .when()
+            .get("/building?filter=id=='" + address1Id + "'")
                 .then()
-                .log().all()
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                    data(
+                        resource(
+                            type("building"),
+                            id(address1Id),
+                            attributes(
+                                attr("name", "Fort Knox")
+                            ),
+                            relationships(
+                                relation("neighbors",
+                                linkage(type("building"), id(address3Id))
+                            )
+                        )
+                    )
+                ).toJSON()
+            ));
     }
 
     @Test
@@ -122,7 +200,8 @@ public class EmbeddedIdIT extends IntegrationTest {
                             id(serde.serialize(address2)),
                             attributes(attr(
                                     "name", "Altgeld Hall"
-                            ))
+                            )),
+                            relationships(relation("neighbors"))
                         )).toJSON()
                 ));
     }
@@ -149,8 +228,11 @@ public class EmbeddedIdIT extends IntegrationTest {
                                 selections(
                                         field("address", serde.serialize(address1)),
                                         field("name", "Fort Knox")
+                                ),
+                                selections(
+                                        field("address", serde.serialize(address3)),
+                                        field("name", "Assembly Hall")
                                 )
-
                         )
                 )
         ).toResponse();
