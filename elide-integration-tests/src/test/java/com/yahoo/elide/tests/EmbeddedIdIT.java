@@ -18,6 +18,7 @@ import example.embeddedid.Address;
 import example.embeddedid.AddressSerde;
 import example.embeddedid.Building;
 import io.restassured.response.ValidatableResponse;
+import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -106,7 +107,7 @@ public class EmbeddedIdIT extends IntegrationTest {
                                 type("building"),
                                 id(serde.serialize(address2)),
                                 attributes(attr(
-                                        "name", "Altegeld Hall"
+                                        "name", "Altgeld Hall"
                                 ))
                         )
 
@@ -120,7 +121,7 @@ public class EmbeddedIdIT extends IntegrationTest {
                             type("building"),
                             id(serde.serialize(address2)),
                             attributes(attr(
-                                    "name", "Altegeld Hall"
+                                    "name", "Altgeld Hall"
                             ))
                         )).toJSON()
                 ));
@@ -227,8 +228,50 @@ public class EmbeddedIdIT extends IntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
-    private void create(String query, Map<String, Object> variables) throws IOException {
-        runQuery(toJsonQuery(query, variables));
+    @Test
+    public void testGraphQLCreate() throws Exception {
+
+        @Data
+        class SerializedBuilding {
+            String name;
+            String address;
+        }
+
+        String addressId = serde.serialize(address2);
+        SerializedBuilding building = new SerializedBuilding();
+        building.address = addressId;
+        building.name = "Altgeld Hall";
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "building",
+                                arguments(
+                                        argument("op", "UPSERT"),
+                                        argument("data", building)
+                                ),
+                                selections(
+                                        field("address"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "building",
+                                selections(
+                                        field("address", addressId),
+                                        field("name", "Altgeld Hall")
+                                )
+
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     private void runQueryWithExpectedResult(
@@ -264,20 +307,8 @@ public class EmbeddedIdIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK);
     }
 
-    private String toJsonArray(JsonNode... nodes) throws IOException {
-        ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
-        for (JsonNode node : nodes) {
-            arrayNode.add(node);
-        }
-        return mapper.writeValueAsString(arrayNode);
-    }
-
     private String toJsonQuery(String query, Map<String, Object> variables) throws IOException {
         return mapper.writeValueAsString(toJsonNode(query, variables));
-    }
-
-    private JsonNode toJsonNode(String query) {
-        return toJsonNode(query, null);
     }
 
     private JsonNode toJsonNode(String query, Map<String, Object> variables) {
