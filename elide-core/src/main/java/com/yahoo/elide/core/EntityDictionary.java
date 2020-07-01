@@ -32,6 +32,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 
+import com.yahoo.elide.utils.coerce.converters.Serde;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 
@@ -1000,20 +1001,33 @@ public class EntityDictionary {
         }
         try {
             AccessibleObject idField = null;
-            for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
+            Class<?> valueClass = value.getClass();
+            for (; idField == null && valueClass != null; valueClass = valueClass.getSuperclass()) {
                 try {
-                    idField = getEntityBinding(cls).getIdField();
+                    idField = getEntityBinding(valueClass).getIdField();
                 } catch (NullPointerException e) {
-                    log.warn("Class: {} ID Field: {}", cls.getSimpleName(), idField);
+                    log.warn("Class: {} ID Field: {}", valueClass.getSimpleName(), idField);
                 }
             }
+
+            Class<?> idClass;
+            Object idValue;
             if (idField instanceof Field) {
-                return String.valueOf(((Field) idField).get(value));
+                idValue = ((Field) idField).get(value);
+                idClass = ((Field) idField).getType();
+            } else if (idField instanceof Method) {
+                idValue = ((Method) idField).invoke(value, (Object[]) null);
+                idClass = ((Method) idField).getReturnType();
+            } else {
+                return null;
             }
-            if (idField instanceof Method) {
-                return String.valueOf(((Method) idField).invoke(value, (Object[]) null));
+
+            Serde serde = CoerceUtil.lookup(idClass);
+            if (serde != null) {
+                return String.valueOf(serde.serialize(idValue));
             }
-            return null;
+
+            return String.valueOf(idValue);
         } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
             return null;
         }
