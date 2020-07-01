@@ -130,6 +130,7 @@ public class EmbeddedIdIT extends IntegrationTest {
                 .when()
                 .get("/building/" + address1Id)
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(
                     datum(

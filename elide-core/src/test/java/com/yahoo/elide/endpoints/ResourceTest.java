@@ -30,6 +30,18 @@ public class ResourceTest {
     }
 
     @Test
+    public void verifyBase64ID() {
+        new CoreBaseVisitor().visit(parse(
+                "company/QWRkcmVzcyhudW1iZXI9MCwgc3RyZWV0PUJ1bGxpb24gQmx2ZCwgemlwQ29kZT00MDEyMSk="));
+    }
+
+    @Test
+    public void verifyURLEncodedID() {
+        new CoreBaseVisitor().visit(parse(
+                "company/abcdef%201234"));
+    }
+
+    @Test
     public void parseFailRelationship() {
         assertThrows(
                 ParseCancellationException.class,
