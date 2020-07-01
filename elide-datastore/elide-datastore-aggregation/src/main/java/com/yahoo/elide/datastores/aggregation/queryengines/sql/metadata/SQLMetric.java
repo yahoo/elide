@@ -27,10 +27,9 @@ public class SQLMetric extends Metric {
     @Override
     protected SQLMetricFunction constructMetricFunction(String id,
                                                      String description,
-                                                     String category,
                                                      String expression,
                                                      Set<FunctionArgument> arguments) {
-        return new SQLMetricFunction(id, description, category, expression, arguments);
+        return new SQLMetricFunction(id, description, expression, arguments);
     }
 
     /**

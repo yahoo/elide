@@ -56,7 +56,7 @@ public class Metric extends Column {
             if (formula != null) {
                 this.metricFunction = constructMetricFunction(
                         constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
-                        meta == null ? null : meta.description(), meta == null ? null : meta.category(),
+                        meta == null ? null : meta.description(),
                         formula.value(),
                         new HashSet<>());
 
@@ -108,9 +108,8 @@ public class Metric extends Column {
      */
     protected MetricFunction constructMetricFunction(String id,
                                                      String description,
-                                                     String category,
                                                      String expression,
                                                      Set<FunctionArgument> arguments) {
-        return new MetricFunction(id, description, category, expression, arguments);
+        return new MetricFunction(id, description, expression, arguments);
     }
 }

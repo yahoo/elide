@@ -14,6 +14,6 @@ import java.util.Collections;
  */
 public class SqlMin extends SQLMetricFunction {
     public SqlMin() {
-        super("min", "sql min function", "sql function", "MIN(%s)", Collections.emptySet());
+        super("min", "sql min function", "MIN(%s)", Collections.emptySet());
     }
 }
