@@ -38,6 +38,7 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
+@Meta(description = "Player Statistics", category = "Sports Category")
 public class PlayerStats {
 
     public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')";

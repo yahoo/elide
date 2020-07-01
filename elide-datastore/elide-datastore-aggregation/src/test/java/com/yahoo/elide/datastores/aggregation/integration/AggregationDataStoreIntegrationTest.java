@@ -726,6 +726,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("LARGE"))
+                .body("data.attributes.category", equalTo("Sports Category"))
                 .body(
                         "data.relationships.dimensions.data.id",
                         hasItems(
