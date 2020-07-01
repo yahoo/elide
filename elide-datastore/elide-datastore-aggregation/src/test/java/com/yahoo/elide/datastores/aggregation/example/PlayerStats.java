@@ -132,6 +132,7 @@ public class PlayerStats {
     }
 
     @MetricAggregation(function = SqlMin.class)
+    @Meta(description = "very low score", category = "Score Category")
     public long getLowScore() {
         return lowScore;
     }
