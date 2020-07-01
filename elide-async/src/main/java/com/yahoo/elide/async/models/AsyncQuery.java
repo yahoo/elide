@@ -69,7 +69,10 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
 
     @PrePersist
     public void prePersistStatus() {
-        status = QueryStatus.QUEUED;
+        if (status == null) {
+            status = QueryStatus.QUEUED;
+        }
+
         if (id == null || id.isEmpty()) {
             id = UUID.randomUUID().toString();
         }

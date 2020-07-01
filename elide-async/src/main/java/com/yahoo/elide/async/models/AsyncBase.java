@@ -28,7 +28,14 @@ public abstract class AsyncBase {
 
     @PrePersist
     public void prePersist() {
-        createdOn = updatedOn = new Date();
+
+        if (createdOn == null) {
+            createdOn = new Date();
+        }
+
+        if (updatedOn == null) {
+            updatedOn = new Date();
+        }
     }
 
     @PreUpdate
