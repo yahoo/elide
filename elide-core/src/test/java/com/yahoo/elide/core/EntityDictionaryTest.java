@@ -33,6 +33,7 @@ import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
 import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -57,6 +58,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +130,27 @@ public class EntityDictionaryTest extends EntityDictionary {
         testDictionary.scanForSecurityChecks();
 
         assertEquals("User is Admin", testDictionary.getCheckIdentifier(Foo.class));
+    }
+
+    @Test
+    public void testSerdeId() {
+
+        @Include
+        class EntityWithDateId {
+            @Id
+            Date id;
+        }
+
+        EntityDictionary testDictionary = new EntityDictionary(
+                new HashMap<>(),
+                null,
+                (unused) -> { return new ISO8601DateSerde(); });
+
+        testDictionary.bindEntity(EntityWithDateId.class);
+
+        EntityWithDateId testModel = new EntityWithDateId();
+        testModel.id = new Date(0);
+        assertEquals("1970-01-01T00:00Z", testDictionary.getId(testModel));
     }
 
     @Test

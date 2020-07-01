@@ -84,6 +84,8 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
     protected final Injector injector;
 
+    protected final Function<Class, Serde> serdeLookup ;
+
     public final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
@@ -110,6 +112,13 @@ public class EntityDictionary {
      *                 initialize Elide models.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
+        this(checks, injector, CoerceUtil::lookup);
+    }
+
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                            Injector injector,
+                            Function<Class, Serde> serdeLookup) {
+        this.serdeLookup = serdeLookup;
         checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
 
         addPrefabCheck("Prefab.Role.All", Role.ALL.class);
@@ -1022,7 +1031,7 @@ public class EntityDictionary {
                 return null;
             }
 
-            Serde serde = CoerceUtil.lookup(idClass);
+            Serde serde = serdeLookup.apply(idClass);
             if (serde != null) {
                 return String.valueOf(serde.serialize(idValue));
             }
