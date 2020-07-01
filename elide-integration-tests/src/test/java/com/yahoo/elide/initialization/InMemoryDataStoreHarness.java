@@ -16,7 +16,6 @@ import com.yahoo.elide.models.triggers.Invoice;
 import com.google.common.collect.Sets;
 
 import example.Parent;
-import example.embeddedid.Building;
 
 import java.util.Set;
 
@@ -31,7 +30,6 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
         Set<Package> beanPackages = Sets.newHashSet(
                 Parent.class.getPackage(),
                 Invoice.class.getPackage(),
-                Building.class.getPackage(),
                 Manager.class.getPackage()
         );
 
