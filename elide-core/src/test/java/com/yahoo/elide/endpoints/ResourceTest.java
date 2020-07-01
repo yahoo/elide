@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.endpoints;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
@@ -21,24 +22,24 @@ public class ResourceTest {
 
     @Test
     public void verifyParseRelationship() {
-        new CoreBaseVisitor().visit(parse("parent/123/relationships/children"));
+        assertNull(new CoreBaseVisitor().visit(parse("parent/123/relationships/children")));
     }
 
     @Test
     public void verifyParseRelation() {
-        new CoreBaseVisitor().visit(parse("company/123/cities/2/relationships/states/1"));
+        assertNull(new CoreBaseVisitor().visit(parse("company/123/cities/2/relationships/states/1")));
     }
 
     @Test
     public void verifyBase64ID() {
-        new CoreBaseVisitor().visit(parse(
-                "company/QWRkcmVzcyhudW1iZXI9MCwgc3RyZWV0PUJ1bGxpb24gQmx2ZCwgemlwQ29kZT00MDEyMSk="));
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/QWRkcmVzcyhudW1iZXI9MCwgc3RyZWV0PUJ1bGxpb24gQmx2ZCwgemlwQ29kZT00MDEyMSk=")));
     }
 
     @Test
     public void verifyURLEncodedID() {
-        new CoreBaseVisitor().visit(parse(
-                "company/abcdef%201234"));
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/abcdef%201234")));
     }
 
     @Test

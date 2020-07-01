@@ -25,16 +25,12 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import example.embeddedid.Address;
 import example.embeddedid.AddressSerde;
@@ -42,16 +38,13 @@ import example.embeddedid.Building;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.restassured.response.ValidatableResponse;
 import lombok.Data;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
-import javax.ws.rs.core.MediaType;
 
-public class EmbeddedIdIT extends IntegrationTest {
+public class EmbeddedIdIT extends GraphQLIntegrationTest {
 
     protected Address address1 = new Address(0, "Bullion Blvd", 40121);
     protected Address address2 = new Address(1409, "W Green St", 61801);
@@ -389,8 +382,8 @@ public class EmbeddedIdIT extends IntegrationTest {
 
         @Data
         class SerializedBuilding {
-            String name;
-            String address;
+            private String name;
+            private String address;
         }
 
         String addressId = serde.serialize(address2);
@@ -428,50 +421,5 @@ public class EmbeddedIdIT extends IntegrationTest {
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
-    }
-
-    private void runQueryWithExpectedResult(
-            String graphQLQuery,
-            Map<String, Object> variables,
-            String expected
-    ) throws IOException {
-        compareJsonObject(runQuery(graphQLQuery, variables), expected);
-    }
-
-    private void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
-        runQueryWithExpectedResult(graphQLQuery, null, expected);
-    }
-
-    private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = mapper.readTree(response.extract().body().asString());
-        JsonNode expectedNode = mapper.readTree(expected);
-        assertEquals(expectedNode, responseNode);
-    }
-
-    private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
-        return runQuery(toJsonQuery(query, variables));
-    }
-
-    private ValidatableResponse runQuery(String query) {
-        return given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(query)
-                .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    private String toJsonQuery(String query, Map<String, Object> variables) throws IOException {
-        return mapper.writeValueAsString(toJsonNode(query, variables));
-    }
-
-    private JsonNode toJsonNode(String query, Map<String, Object> variables) {
-        ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
-        graphqlNode.put("query", query);
-        if (variables != null) {
-            graphqlNode.set("variables", mapper.valueToTree(variables));
-        }
-        return graphqlNode;
     }
 }

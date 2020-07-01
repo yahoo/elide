@@ -138,7 +138,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         @Include
         class EntityWithDateId {
             @Id
-            Date id;
+            private Date id;
         }
 
         EntityDictionary testDictionary = new EntityDictionary(

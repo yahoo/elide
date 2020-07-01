@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Set;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -20,11 +21,12 @@ import javax.persistence.OneToMany;
 @Entity
 public class Building {
     @Id
-    Address address;
+    @Embedded
+    private Address address;
 
-    String name;
+    private String name;
 
     @OneToMany
     @EqualsAndHashCode.Exclude
-    Set<Building> neighbors;
+    private Set<Building> neighbors;
 }
