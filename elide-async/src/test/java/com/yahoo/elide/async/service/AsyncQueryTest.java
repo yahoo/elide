@@ -7,7 +7,6 @@ package com.yahoo.elide.async.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import com.yahoo.elide.async.models.AsyncQuery;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -43,7 +42,6 @@ public class AsyncQueryTest {
     @Test
     public void testUUIDGeneration() {
         AsyncQuery queryObj = new AsyncQuery();
-        assertNull(queryObj.getId());
         assertNotNull(queryObj.getId());
     }
 }
