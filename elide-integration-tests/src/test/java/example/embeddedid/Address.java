@@ -6,14 +6,17 @@
 
 package example.embeddedid;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.Base64;
 
 @Embeddable
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Address implements Serializable {
     private long number;
     private String street;

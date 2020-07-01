@@ -27,11 +27,12 @@ public class AddressSerde implements Serde<String, Address> {
         if (! matcher.matches()) {
             throw new InvalidValueException(decodedString);
         }
+        long number = Long.valueOf(matcher.group(1));
+        String street = matcher.group(2);
+        long zipCode = Long.valueOf(matcher.group(3));
 
-        Address address = new Address();
-        address.setNumber(Long.valueOf(matcher.group(1)));
-        address.setStreet(matcher.group(2));
-        address.setZipCode(Long.valueOf(matcher.group(3)));
+        Address address = new Address(number, street, zipCode);
+
         return address;
     }
 
