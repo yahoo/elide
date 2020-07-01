@@ -14,7 +14,6 @@ import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.MappedSuperclass;
-//import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
 @MappedSuperclass
