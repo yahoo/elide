@@ -192,7 +192,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse post(String path, String jsonApiDocument, 
+    public ElideResponse post(String path, String jsonApiDocument,
                               MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
@@ -230,7 +230,7 @@ public class Elide {
      * @return Elide response object
      */
     public ElideResponse patch(String contentType, String accept,
-                               String path, String jsonApiDocument, 
+                               String path, String jsonApiDocument,
                                MultivaluedMap<String, String> queryParams, Object opaqueUser) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
@@ -268,7 +268,7 @@ public class Elide {
     public ElideResponse delete(String path, String jsonApiDocument, Object opaqueUser) {
         return delete(path, jsonApiDocument, null, opaqueUser);
     }
-    
+
     /**
      * Handle DELETE.
      *
@@ -278,7 +278,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse delete(String path, String jsonApiDocument, 
+    public ElideResponse delete(String path, String jsonApiDocument,
                                 MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
