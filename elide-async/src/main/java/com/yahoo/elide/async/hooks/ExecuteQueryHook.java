@@ -31,7 +31,6 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
                         RequestScope requestScope, Optional<ChangeSpec> changes) {
         if (query.getStatus() == QueryStatus.QUEUED && query.getResult() == null) {
             asyncExecutorService.executeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
-            query.prePersist();
         }
     }
 }

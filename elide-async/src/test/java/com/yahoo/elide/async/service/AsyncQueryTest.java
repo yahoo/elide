@@ -44,7 +44,6 @@ public class AsyncQueryTest {
     public void testUUIDGeneration() {
         AsyncQuery queryObj = new AsyncQuery();
         assertNull(queryObj.getId());
-        queryObj.prePersistStatus();
         assertNotNull(queryObj.getId());
     }
 }
