@@ -32,7 +32,7 @@ public class AsyncQueryOperationChecks {
             String principalName = ((PrincipalOwned) object).getPrincipalName();
             if (principalName == null && (principal == null || principal.getName() == null)) {
                 status = true;
-            } else {
+            } else if (principalName != null && principal != null && principal.getName() != null) {
                 status = principalName.equals(principal.getName());
             }
             return status;
