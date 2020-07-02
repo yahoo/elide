@@ -38,6 +38,7 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
+@Meta(description = "Player Statistics", category = "Sports Category")
 public class PlayerStats {
 
     public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
@@ -122,7 +123,7 @@ public class PlayerStats {
     }
 
     @MetricAggregation(function = SqlMax.class)
-    @Meta(description = "very awesome score")
+    @Meta(description = "very awesome score", category = "Score Category")
     public long getHighScore() {
         return highScore;
     }
@@ -132,6 +133,7 @@ public class PlayerStats {
     }
 
     @MetricAggregation(function = SqlMin.class)
+    @Meta(description = "very low score", category = "Score Category")
     public long getLowScore() {
         return lowScore;
     }

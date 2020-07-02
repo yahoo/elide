@@ -41,6 +41,8 @@ public abstract class Column {
 
     private final String name;
 
+    private final String category;
+
     private final String description;
 
     @ToOne
@@ -68,8 +70,10 @@ public abstract class Column {
         Meta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, Meta.class, fieldName);
         if (meta != null) {
             this.description = meta.description();
+            this.category = meta.category();
         } else {
             this.description = null;
+            this.category = null;
         }
 
         valueType = getValueType(tableClass, fieldName, dictionary);
