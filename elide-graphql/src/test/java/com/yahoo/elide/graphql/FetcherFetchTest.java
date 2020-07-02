@@ -168,8 +168,18 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testFragmentCorrect() throws Exception {
-        runComparisonTest("fragmentCorrect");
+    public void testFragmentOnNode() throws Exception {
+        runComparisonTest("fragmentOnNode");
+    }
+
+    @Test
+    public void testFragmentOnConnection() throws Exception {
+        runComparisonTest("fragmentOnConnection");
+    }
+
+    @Test
+    public void testFragmentOnEdges() throws Exception {
+        runComparisonTest("fragmentOnEdges");
     }
 
     @Test
