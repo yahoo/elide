@@ -66,41 +66,46 @@ public class JsonApiController {
 
     @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
     public ResponseEntity<String> elidePost(@RequestBody String body,
+                                            @RequestParam Map<String, String> allRequestParams,
                                             HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         ElideResponse response = elide
-                .post(pathname, body, authentication);
+                .post(pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
     public ResponseEntity<String> elidePatch(@RequestBody String body,
+                                             @RequestParam Map<String, String> allRequestParams,
                                              HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         ElideResponse response = elide
-                .patch(request.getContentType(), request.getContentType(), pathname, body, authentication);
+                .patch(request.getContentType(), request.getContentType(), pathname, body,
+                       new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @DeleteMapping(value = "/**")
     public ResponseEntity<String> elideDelete(HttpServletRequest request,
-                                              Principal authentication) {
+                                             @RequestParam Map<String, String> allRequestParams,
+                                             Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         ElideResponse response = elide
-                .delete(pathname, null, authentication);
+                .delete(pathname, null, new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
     @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
     public ResponseEntity<String> elideDeleteRelationship(@RequestBody String body,
+                                                          @RequestParam Map<String, String> allRequestParams,
                                                           HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
         ElideResponse response = elide
-                .delete(pathname, body, authentication);
+                .delete(pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 

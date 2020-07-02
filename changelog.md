@@ -1,5 +1,17 @@
 # Change Log
 
+## 4.6.5
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/bd516473fbeeb47ca05eaf510734f06432c4280a) Disabling Legacy Filter Dialect in Swagger Documentation (#1363) 
+   * [view commit](https://github.com/yahoo/elide/commit/d3cbcc23e9c7719b1a73f627121c6bc5fcb1bf23) Bumping Hibernate Validator Version (#1377) 
+   * [view commit](https://github.com/yahoo/elide/commit/6186da248b7249bcd858a4a433bfdbc50744af60) Bump classgraph from 4.8.78 to 4.8.86 (#1373) 
+   * [view commit](https://github.com/yahoo/elide/commit/e71dd40dfb8adf1b997a345317b016338e2b8153) make sub-ordinate dictionaries inherit injector from multiplexManager's dictionary. (#1380) 
+   * [view commit](https://github.com/yahoo/elide/commit/57dea8e19495e67f83130bb58f99aa2e5c915184) Bump liquibase-core from 3.8.9 to 3.10.0 (#1372) 
+   * [view commit](https://github.com/yahoo/elide/commit/4054908fa66648a0feb2c3001d234556f2fcb463) Bump checkstyle from 8.32 to 8.33 (#1361) 
+   * [view commit](https://github.com/yahoo/elide/commit/27d841954541ebe1a1648fde5a294b003ef1d7e0) Bump junit-jupiter-params from 5.6.0 to 5.6.2 (#1356) 
+   * [view commit](https://github.com/yahoo/elide/commit/2c3c32e7ee729426850f54da9295961192af17d6) Bump jersey-container-servlet-core from 2.30.1 to 2.31 (#1358) 
+   * [view commit](https://github.com/yahoo/elide/commit/7910f05a4ea7cd614798580082f8350843888fde) Bump version.log4j from 2.13.2 to 2.13.3 (#1355) 
+
 ## 4.6.4
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/96d8f4c1ad42728e75b7b841c7dad6f58d006f8f) Supported embedded entities in graphql (#1339) 
