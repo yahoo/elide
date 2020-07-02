@@ -42,7 +42,7 @@ import javax.persistence.Id;
 <%else if sql%>@FromSubquery(sql = "<%sql%>")
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-<%#if description%>@Meta(description = "<%description%>")<%/if%>
+<%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
 <%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 
@@ -60,7 +60,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/ifTypeMatches%>
 
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-    <%#if description%>@Meta(description = "<%description%>")<%/if%>
+    <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
     <%#if hidden%>@Exclude<%/if%>
     @DimensionFormula("<%definition%>")
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
@@ -83,7 +83,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 
     @MetricFormula("<%definition%>")
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-    <%#if description%>@Meta(description = "<%description%>")<%/if%>
+    <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
     <%#if hidden%>@Exclude<%/if%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
 
