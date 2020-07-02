@@ -7,6 +7,7 @@ package com.yahoo.elide.async.hooks;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
@@ -28,6 +29,8 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, AsyncQuery query,
                         RequestScope requestScope, Optional<ChangeSpec> changes) {
-        asyncExecutorService.executeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
+        if (query.getStatus() == QueryStatus.QUEUED && query.getResult() == null) {
+            asyncExecutorService.executeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
+        }
     }
 }

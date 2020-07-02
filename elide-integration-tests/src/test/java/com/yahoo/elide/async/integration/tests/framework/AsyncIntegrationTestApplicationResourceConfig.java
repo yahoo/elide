@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.integration.tests.framework;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
@@ -102,7 +103,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 
-                dictionary.bindTrigger(AsyncQuery.class, CREATE, PRECOMMIT, executeQueryHook, false);
+                dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, executeQueryHook, false);
                 dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
                 dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
                 dictionary.bindTrigger(Invoice.class, "complete", CREATE, PRECOMMIT, invoiceCompletionHook);
