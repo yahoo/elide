@@ -711,7 +711,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void metaDataTest() {
+    public void tableMetaDataTest() {
+
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/country")
@@ -719,13 +720,13 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("SMALL"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
-
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("LARGE"))
+                .body("data.attributes.category", equalTo("Sports Category"))
                 .body(
                         "data.relationships.dimensions.data.id",
                         hasItems(
@@ -737,6 +738,10 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats.overallRating"))
                 .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"))
                 .body("data.relationships.timeDimensions.data.id", hasItems("playerStats.recordedDate"));
+    }
+
+    @Test
+    public void dimensionMetaDataTest() {
 
         given()
                 .accept("application/vnd.api+json")
@@ -749,20 +754,10 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.expression",  equalTo("player.name"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
 
-        given()
-                .accept("application/vnd.api+json")
-                .get("/metric/playerStats.lowScore?include=metricFunction")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("lowScore"))
-                .body("data.attributes.valueType",  equalTo("INTEGER"))
-                .body("data.attributes.columnType",  equalTo("FIELD"))
-                .body("data.attributes.expression",  equalTo("lowScore"))
-                .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
-                .body("included.id", hasItem("playerStats.lowScore[min]"))
-                .body("included.attributes.description", hasItem("sql min function"))
-                .body("included.attributes.expression", hasItem("MIN(%s)"));
+    }
+
+    @Test
+    public void timeDimensionMetaDataTest() {
 
         given()
                 .accept("application/vnd.api+json")
@@ -784,6 +779,26 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         hasItems(
                                 "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
                                 "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')"));
+    }
+    @Test
+    public void metricMetaDataTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/metric/playerStats.lowScore?include=metricFunction")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("lowScore"))
+                .body("data.attributes.valueType",  equalTo("INTEGER"))
+                .body("data.attributes.columnType",  equalTo("FIELD"))
+                .body("data.attributes.expression",  equalTo("lowScore"))
+                .body("data.attributes.category",  equalTo("Score Category"))
+                .body("data.attributes.description",  equalTo("very low score"))
+                .body("data.relationships.table.data.id", equalTo("playerStats"))
+                .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
+                .body("included.id", hasItem("playerStats.lowScore[min]"))
+                .body("included.attributes.description", hasItem("very low score"))
+                .body("included.attributes.expression", hasItem("MIN(%s)"));
 
         given()
                 .accept("application/vnd.api+json")
@@ -795,8 +810,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
-    }
 
+    }
     private void create(String query, Map<String, Object> variables) throws IOException {
         runQuery(toJsonQuery(query, variables));
     }
