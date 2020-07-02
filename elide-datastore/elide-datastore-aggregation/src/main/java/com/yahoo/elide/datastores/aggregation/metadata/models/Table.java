@@ -41,6 +41,8 @@ public class Table {
 
     private final String name;
 
+    private final String category;
+
     @Exclude
     private final String version;
 
@@ -105,10 +107,13 @@ public class Table {
                 .collect(Collectors.toSet());
 
         Meta meta = cls.getAnnotation(Meta.class);
+
         if (meta != null) {
             this.description = meta.description();
+            this.category = meta.category();
         } else {
             this.description = null;
+            this.category = null;
         }
 
         Cardinality cardinality = dictionary.getAnnotation(cls, Cardinality.class);

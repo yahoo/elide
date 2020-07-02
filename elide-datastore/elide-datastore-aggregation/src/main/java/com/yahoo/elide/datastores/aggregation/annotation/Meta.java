@@ -20,4 +20,5 @@ import java.lang.annotation.Target;
 public @interface Meta {
 
     String description() default "";
+    String category() default "";
 }

@@ -7,6 +7,7 @@
       '''
       A long description
       '''
+      category: Table Category
       cardinality : large
       hidden : false
       readAccess : A user is admin or is a player in the game
@@ -29,6 +30,7 @@
           {
           name : highScore
           type : INTEGER
+          description : very awesome score
           definition: 'MAX(score)'
           }
       ]
@@ -36,6 +38,7 @@
          {
            name : countryIsoCode
            type : TEXT
+           category : country detail
            definition : '{{playerCountry.isoCode}}'
          },
          {
