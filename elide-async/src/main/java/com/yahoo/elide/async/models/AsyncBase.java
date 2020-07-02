@@ -8,28 +8,23 @@ package com.yahoo.elide.async.models;
 import com.yahoo.elide.annotation.Exclude;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
 @MappedSuperclass
 public abstract class AsyncBase {
 
-    @Getter private Date createdOn;
+    @Getter private Date createdOn = new Date();
 
-    @Getter private Date updatedOn;
+    @Getter @Setter private Date updatedOn = new Date();
 
     @Exclude
     protected String naturalKey = UUID.randomUUID().toString();
-
-    @PrePersist
-    public void prePersist() {
-        createdOn = updatedOn = new Date();
-    }
 
     @PreUpdate
     public void preUpdate() {
