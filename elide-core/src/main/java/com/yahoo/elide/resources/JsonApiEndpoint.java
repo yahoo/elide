@@ -111,7 +111,8 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.patch(contentType, accept, path, jsonapiDocument, queryParams, getUser.apply(securityContext)));
+        return build(elide.patch(contentType, accept, path, jsonapiDocument,
+                                 queryParams, getUser.apply(securityContext)));
     }
 
     /**
