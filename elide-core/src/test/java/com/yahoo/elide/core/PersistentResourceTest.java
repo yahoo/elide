@@ -92,6 +92,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -705,7 +706,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         @SuppressWarnings("resource")
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, elideSettings);
+        RequestScope goodScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
 
         // null resource in toMany relationship is not valid
         List<Resource> idList = new ArrayList<>();
@@ -2220,7 +2221,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        PatchRequestScope parentScope = new PatchRequestScope("/book", NO_VERSION, tx, new TestUser("1"), elideSettings);
+        PatchRequestScope parentScope = new PatchRequestScope("/book", NO_VERSION, tx, new TestUser("1"), UUID.randomUUID(), elideSettings);
         PatchRequestScope scope = new PatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works

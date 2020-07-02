@@ -165,16 +165,30 @@ public class Elide {
      */
     public ElideResponse get(String path, MultivaluedMap<String, String> queryParams,
                              User opaqueUser, String apiVersion) {
-        return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
+        return get(path, queryParams, opaqueUser, apiVersion, UUID.randomUUID());
+    }
+
+    /**
+     * Handle GET.
+     *
+     * @param path the path
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams,
+                             User opaqueUser, String apiVersion, UUID requestId) {
+        return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
-                    tx, user, queryParams, elideSettings);
+                    tx, user, queryParams, requestId, elideSettings);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
-
     }
 
     /**
@@ -183,13 +197,28 @@ public class Elide {
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
+     * @param apiVersion the API version
      * @return Elide response object
      */
     public ElideResponse post(String path, String jsonApiDocument, User opaqueUser, String apiVersion) {
-        return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
+        return post(path, jsonApiDocument, opaqueUser, apiVersion, UUID.randomUUID());
+    }
+
+    /**
+     * Handle POST.
+     *
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse post(String path, String jsonApiDocument, User opaqueUser, String apiVersion, UUID requestId) {
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, apiVersion,
-                    jsonApiDoc, tx, user, null, elideSettings);
+                    jsonApiDoc, tx, user, null, requestId, elideSettings);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new PostVisitor(requestScope);
@@ -205,15 +234,36 @@ public class Elide {
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
+     * @param apiVersion the API version
      * @return Elide response object
      */
     public ElideResponse patch(String contentType, String accept,
-                               String path, String jsonApiDocument, User opaqueUser, String apiVersion) {
+                               String path, String jsonApiDocument,
+                               User opaqueUser, String apiVersion) {
+        return patch(contentType, accept, path, jsonApiDocument, opaqueUser, apiVersion, UUID.randomUUID());
+    }
+
+    /**
+     * Handle PATCH.
+     *
+     * @param contentType the content type
+     * @param accept the accept
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse patch(String contentType, String accept,
+                               String path, String jsonApiDocument,
+                               User opaqueUser, String apiVersion, UUID requestId) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
             handler = (tx, user) -> {
-                PatchRequestScope requestScope = new PatchRequestScope(path, apiVersion, tx, user, elideSettings);
+                PatchRequestScope requestScope = new PatchRequestScope(path, apiVersion, tx,
+                        user, requestId, elideSettings);
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
@@ -226,7 +276,7 @@ public class Elide {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
                 RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
-                        tx, user, null, elideSettings);
+                        tx, user, null, requestId, elideSettings);
                 requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                         requestScope).parsePath(path));
                 BaseVisitor visitor = new PatchVisitor(requestScope);
@@ -234,7 +284,7 @@ public class Elide {
             };
         }
 
-        return handleRequest(false, opaqueUser, dataStore::beginTransaction, handler);
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, handler);
     }
 
     /**
@@ -243,15 +293,32 @@ public class Elide {
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
+     * @param apiVersion the API version
      * @return Elide response object
      */
-    public ElideResponse delete(String path, String jsonApiDocument, User opaqueUser, String apiVersion) {
-        return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
+    public ElideResponse delete(String path, String jsonApiDocument,
+                                User opaqueUser, String apiVersion) {
+        return delete(path, jsonApiDocument, opaqueUser, apiVersion, UUID.randomUUID());
+    }
+
+    /**
+     * Handle DELETE.
+     *
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse delete(String path, String jsonApiDocument,
+                                User opaqueUser, String apiVersion, UUID requestId) {
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
-                    tx, user, null, elideSettings);
+                    tx, user, null, requestId, elideSettings);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new DeleteVisitor(requestScope);
@@ -274,16 +341,15 @@ public class Elide {
      * @param isReadOnly if the transaction is read only
      * @param user the user object from the container
      * @param transaction a transaction supplier
+     * @param requestId the Request ID
      * @param handler a function that creates the request scope and request handler
      * @return the response
      */
     protected ElideResponse handleRequest(boolean isReadOnly, User user,
-                                          Supplier<DataStoreTransaction> transaction,
+                                          Supplier<DataStoreTransaction> transaction, UUID requestId,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
-        UUID requestId = null;
         try (DataStoreTransaction tx = transaction.get()) {
-            requestId = tx.getRequestId();
             transactionRegistry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
             RequestScope requestScope = result.getRequestScope();
@@ -313,29 +379,23 @@ public class Elide {
 
         } catch (WebApplicationException e) {
             throw e;
-
         } catch (ForbiddenAccessException e) {
             if (log.isDebugEnabled()) {
                 log.debug("{}", e.getLoggedMessage());
             }
             return buildErrorResponse(e, isVerbose);
-
         } catch (JsonPatchExtensionException e) {
             log.debug("JSON patch extension exception caught", e);
             return buildErrorResponse(e, isVerbose);
-
         } catch (HttpStatusException e) {
             log.debug("Caught HTTP status exception", e);
             return buildErrorResponse(e, isVerbose);
-
         } catch (IOException e) {
             log.error("IO Exception uncaught by Elide", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
-
         } catch (ParseCancellationException e) {
             log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
-
         } catch (ConstraintViolationException e) {
             log.debug("Constraint violation exception caught", e);
             String message = "Constraint violation";
@@ -351,7 +411,6 @@ public class Elide {
             }
             log.error("Error or exception uncaught by Elide", e);
             throw e;
-
         } finally {
             transactionRegistry.removeRunningTransaction(requestId);
             auditLogger.clear();

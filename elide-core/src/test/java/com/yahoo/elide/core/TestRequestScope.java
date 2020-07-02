@@ -12,6 +12,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.User;
 
 import java.util.Optional;
+import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -24,7 +25,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary) {
-        super(null, NO_VERSION, new JsonApiDocument(), transaction, user, null,
+        super(null, NO_VERSION, new JsonApiDocument(), transaction, user, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build());
@@ -33,7 +34,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(EntityDictionary dictionary,
                             String path,
                             MultivaluedMap<String, String> queryParams) {
-        super(path, NO_VERSION, new JsonApiDocument(), null, null, queryParams,
+        super(path, NO_VERSION, new JsonApiDocument(), null, null, queryParams, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());

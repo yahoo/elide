@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 @SuppressWarnings("StringEquality")
@@ -231,7 +232,7 @@ public class PermissionToFilterExpressionVisitorTest {
     //
     public RequestScope newRequestScope() {
         User john = new TestUser("John");
-        return requestScope = new RequestScope(null, NO_VERSION, null, null, john, null, elideSettings);
+        return requestScope = new RequestScope(null, NO_VERSION, null, null, john, null, UUID.randomUUID(), elideSettings);
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {
