@@ -16,6 +16,7 @@ import com.yahoo.elide.security.User;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -104,6 +105,7 @@ public class AsyncExecutorService {
             AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
             queryObj.setResult(queryResultObj);
             queryObj.setStatus(QueryStatus.COMPLETE);
+            queryObj.setUpdatedOn(new Date());
         } catch (InterruptedException e) {
             log.error("InterruptedException: {}", e);
             queryObj.setStatus(QueryStatus.FAILURE);
