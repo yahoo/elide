@@ -238,9 +238,11 @@ public class GraphQLEntityProjectionMaker {
 
         FragmentDefinition fragmentDefinition = fragmentResolver.get(fragmentName);
 
+        String fragmentTypeName = fragmentDefinition.getTypeCondition().getName();
         // type name in type condition of the Fragment must match the entity projection type name
-        if (nameUtils.toConnectionName(projectionBuilder.getType())
-                .equals(fragmentDefinition.getTypeCondition().getName())) {
+        if (fragmentTypeName.equals(nameUtils.toConnectionName(projectionBuilder.getType()))
+                || fragmentTypeName.equals(nameUtils.toEdgesName(projectionBuilder.getType()))
+                || fragmentTypeName.equals(nameUtils.toNodeName(projectionBuilder.getType()))) {
             fragmentDefinition.getSelectionSet().getSelections()
                     .forEach(selection -> addSelection(selection, projectionBuilder));
         }
