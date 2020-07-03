@@ -37,12 +37,15 @@ import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.AbstractPersistentCollection;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -56,9 +59,6 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
 
-    @Getter
-    private List<String> queryText;
-
     /**
      * Constructor.
      *
@@ -70,7 +70,6 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
         this.session = session;
         this.sessionWrapper = new SessionWrapper(session);
         this.isScrollEnabled = isScrollEnabled;
-        this.queryText = new ArrayList<>();
     }
 
     @Override
@@ -150,16 +149,11 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                     ? new AndFilterExpression(filterExpression, idExpression)
                     : idExpression;
 
-            RootCollectionFetchQueryBuilder queryBuilder =
-                    new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper);
-
-            final QueryWrapper query =
-                    (QueryWrapper) queryBuilder
+            QueryWrapper query =
+                    (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)
                             .withPossibleFilterExpression(Optional.of(joinedExpression))
                             .build();
 
-            String queryTxt = queryBuilder.getQueryString();
-            queryText.add(queryTxt);
             return query.getQuery().uniqueResult();
         } catch (ObjectNotFoundException e) {
             return null;
@@ -181,18 +175,13 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                     Optional.ofNullable(filterExpression), scope.getDictionary()));
         }
 
-        RootCollectionFetchQueryBuilder queryBuilder =
-                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper);
-
         final QueryWrapper query =
-                (QueryWrapper) queryBuilder
+                (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper)
                         .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                         .withPossibleSorting(Optional.ofNullable(sorting))
                         .withPossiblePagination(Optional.ofNullable(pagination))
                         .build();
 
-        String queryTxt = queryBuilder.getQueryString();
-        queryText.add(queryTxt);
         if (isScrollEnabled) {
             return new ScrollableIterator<>(query.getQuery().scroll());
         }
@@ -239,18 +228,13 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                             Optional.ofNullable(filterExpression), scope.getDictionary()));
                 }
 
-                SubCollectionFetchQueryBuilder queryBuilder =
-                        new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper);
-
                 final QueryWrapper query =
-                        (QueryWrapper) queryBuilder
+                        (QueryWrapper) new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper)
                                 .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                                 .withPossibleSorting(Optional.ofNullable(sorting))
                                 .withPossiblePagination(Optional.ofNullable(pagination))
                                 .build();
 
-                String queryTxt = queryBuilder.getQueryString();
-                queryText.add(queryTxt);
                 if (query != null) {
                     return query.getQuery().list();
                 }
@@ -270,14 +254,11 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                                      Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
 
-        RootCollectionPageTotalsQueryBuilder queryBuilder =
-                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, sessionWrapper);
         QueryWrapper query =
-                (QueryWrapper) queryBuilder
+                (QueryWrapper) new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, sessionWrapper)
                         .withPossibleFilterExpression(filterExpression)
                         .build();
-        String queryTxt = queryBuilder.getQueryString();
-        queryText.add(queryTxt);
+
         return (Long) query.getQuery().uniqueResult();
     }
 
@@ -292,14 +273,11 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
                                      Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
 
-        SubCollectionPageTotalsQueryBuilder queryBuilder =
-                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper);
         QueryWrapper query =
-                (QueryWrapper) queryBuilder
+                (QueryWrapper) new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper)
                         .withPossibleFilterExpression(filterExpression)
                         .build();
-        String queryTxt = queryBuilder.getQueryString();
-        queryText.add(queryTxt);
+
         return (Long) query.getQuery().uniqueResult();
     }
 
@@ -329,18 +307,143 @@ public class HibernateTransaction extends DataStoreTransactionImplementation {
     @Override
     public QueryDetail explain(EntityProjection projection, RequestScope scope) {
         Class<?> entityClass = projection.getType();
-        String modelName = entityClass.getName();
-        List<String> queryTextList = getQueryText();
-        this.queryText = new ArrayList<>();
-        return new QueryDetail(modelName, queryTextList);
+        Pagination pagination = projection.getPagination();
+        FilterExpression filterExpression = projection.getFilterExpression();
+        Sorting sorting = projection.getSorting();
+        List<String> queryTextList = new ArrayList<>();
+
+        if (pagination != null && pagination.returnPageTotals()) {
+            pagination.setPageTotals(getTotalRecords(entityClass,
+                    Optional.ofNullable(filterExpression), scope.getDictionary()));
+            queryTextList.add(explainTotalRecords(projection, scope));
+        }
+
+        RootCollectionFetchQueryBuilder queryBuilder =
+                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper);
+
+        //build the underlying query
+        queryBuilder
+                .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
+                .withPossibleSorting(Optional.ofNullable(sorting))
+                .withPossiblePagination(Optional.ofNullable(pagination))
+                .build();
+
+        queryTextList.add(queryBuilder.getQueryString());
+        return new QueryDetail(entityClass.getName(), queryTextList);
     }
 
     @Override
     public QueryDetail explain(Relationship relationship, RequestScope scope, Object entity) {
-        Class<?> entityClass = relationship.getProjection().getType();
-        String modelName = entityClass.getName();
-        List<String> queryTextList = getQueryText();
-        this.queryText = new ArrayList<>();
-        return new QueryDetail(modelName, queryTextList);
+        FilterExpression filterExpression = relationship.getProjection().getFilterExpression();
+        Sorting sorting = relationship.getProjection().getSorting();
+        Pagination pagination = relationship.getProjection().getPagination();
+        List<String> queryTextList = new ArrayList<>();
+
+        EntityDictionary dictionary = scope.getDictionary();
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationship.getName(), scope);
+        if (val instanceof Collection) {
+            Collection<?> filteredVal = (Collection<?>) val;
+            if (filteredVal instanceof AbstractPersistentCollection) {
+                if (filterExpression == null && sorting == null
+                        && (pagination == null || (pagination.isDefaultInstance()))) {
+                    return defaultHQLGeneration(relationship, scope);
+                }
+
+                Class<?> relationClass = dictionary.getParameterizedType(entity, relationship.getName());
+
+                RelationshipImpl relationshipImpl = new RelationshipImpl(
+                        dictionary.lookupEntityClass(entity.getClass()),
+                        relationClass,
+                        relationship.getName(),
+                        entity,
+                        filteredVal);
+
+                if (pagination != null && pagination.returnPageTotals()) {
+                    pagination.setPageTotals(getTotalRecords(relationshipImpl,
+                            Optional.ofNullable(filterExpression), scope.getDictionary()));
+                    queryTextList.add(explainTotalRecords(relationshipImpl, relationship, scope));
+                }
+
+                SubCollectionFetchQueryBuilder queryBuilder =
+                        new SubCollectionFetchQueryBuilder(relationshipImpl, dictionary, sessionWrapper);
+
+                //build the underlying query
+                queryBuilder
+                        .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
+                        .withPossibleSorting(Optional.ofNullable(sorting))
+                        .withPossiblePagination(Optional.ofNullable(pagination))
+                        .build();
+
+                queryTextList.add(queryBuilder.getQueryString());
+                return new QueryDetail(relationship.getName(), queryTextList);
+            }
+        }
+        return new QueryDetail();
+    }
+
+    /**
+     * Returns the basic HQL query given no pagination, filtering, sorting is present
+     * @param relationship The relationship to count
+     * @param scope Contains request level metadata
+     * @return The Query Detail object with the underlying HQL.
+     */
+    private QueryDetail defaultHQLGeneration(Relationship relationship, RequestScope scope) {
+        EntityProjection projection = relationship.getProjection();
+        Class<?> entityClass = projection.getType();
+
+        RootCollectionFetchQueryBuilder queryBuilder =
+                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper);
+
+        queryBuilder.build();
+
+        List<String> queryTextList = new ArrayList<>();
+        queryTextList.add(queryBuilder.getQueryString());
+        return new QueryDetail(entityClass.getName(), queryTextList);
+    }
+
+    /**
+     * Returns the total record count for a root entity and an optional filter expression.
+     * @param projection The EntityProjection class from which to extract the base query and the model name
+     * @param scope Contains request level metadata
+     * @return The underlying HQL statement
+     */
+    private String explainTotalRecords(EntityProjection projection,
+                                     RequestScope scope) {
+        Class<?> entityClass = projection.getType();
+        EntityDictionary dictionary = scope.getDictionary();
+        Optional<FilterExpression> filterExpression =
+                Optional.ofNullable(projection.getFilterExpression());
+
+        RootCollectionPageTotalsQueryBuilder queryBuilder =
+                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, sessionWrapper);
+
+        queryBuilder
+                .withPossibleFilterExpression(filterExpression)
+                .build();
+
+        return queryBuilder.getQueryString();
+    }
+
+    /**
+     * Returns the total record count for a entity relationship
+     * @param relationshipImpl The relationship to count
+     * @param relationship The Relationship class between the current entity and all its neighbors
+     * @param scope Contains request level metadata
+     * @return The underlying HQL statement.
+     */
+    private String explainTotalRecords(AbstractHQLQueryBuilder.Relationship relationshipImpl,
+                                     Relationship relationship, RequestScope scope) {
+        Optional<FilterExpression> filterExpression =
+                Optional.ofNullable(relationship.getProjection().getFilterExpression());
+        EntityDictionary dictionary = scope.getDictionary();
+
+        SubCollectionPageTotalsQueryBuilder queryBuilder =
+                new SubCollectionPageTotalsQueryBuilder(relationshipImpl, dictionary, sessionWrapper);
+
+        queryBuilder
+                .withPossibleFilterExpression(filterExpression)
+                .build();
+
+        return queryBuilder.getQueryString();
     }
 }

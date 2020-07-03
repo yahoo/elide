@@ -20,29 +20,21 @@ public class QueryDetail {
     private List<String> queryText;
 
     public QueryDetail() {
-        modelName = "No Name";
+        modelName = "";
         queryText = new ArrayList<String>();
 
-        queryText.add("Default Select Statement");
+        queryText.add("");
     }
 
     public QueryDetail(String modelName) {
         this.modelName = modelName;
         queryText = new ArrayList<String>();
 
-        queryText.add("Default Select Statement");
+        queryText.add("");
     }
 
     public QueryDetail(String modelName, List<String> queryText) {
         this.modelName = modelName;
         this.queryText = queryText;
-    }
-
-    public String toString() {
-        String queryString = "";
-        for (String s : queryText) {
-            queryString += s + "\n";
-        }
-        return queryString;
     }
 }

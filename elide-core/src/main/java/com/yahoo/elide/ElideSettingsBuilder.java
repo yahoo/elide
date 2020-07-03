@@ -164,6 +164,10 @@ public class ElideSettingsBuilder {
         return this;
     }
 
+    /**
+     * Changes the default NoopQueryLogger to Slf4jQueryLogger
+     * @return Modified ElideSettingsBuilder object to now include the Slf4jQueryLogger
+     */
     public ElideSettingsBuilder withQueryLogger() {
         this.queryLogger = new Slf4jQueryLogger();
         return this;

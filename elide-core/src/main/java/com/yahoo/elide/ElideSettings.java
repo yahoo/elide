@@ -39,5 +39,5 @@ public class ElideSettings {
     @Getter private final int defaultPageSize;
     @Getter private final int updateStatusCode;
     @Getter private final Map<Class, Serde> serdes;
-    @Getter private QueryLogger queryLogger;
+    @Getter private final QueryLogger queryLogger;
 }

@@ -30,12 +30,16 @@ import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -57,14 +61,10 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final Consumer<EntityManager> jpaTransactionCancel;
 
-    @Getter
-    private List<String> queryText;
-
     protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel) {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
         this.jpaTransactionCancel = jpaTransactionCancel;
-        this.queryText = new ArrayList<>();
     }
 
     @Override
@@ -174,16 +174,11 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                     ? new AndFilterExpression(filterExpression, idExpression)
                     : idExpression;
 
-            RootCollectionFetchQueryBuilder queryBuilder =
-                    new RootCollectionFetchQueryBuilder(entityClass, dictionary, emWrapper);
-
             QueryWrapper query =
-                    (QueryWrapper) queryBuilder
+                    (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, emWrapper)
                             .withPossibleFilterExpression(Optional.of(joinedExpression))
                             .build();
 
-            String queryTxt = queryBuilder.getQueryString();
-            queryText.add(queryTxt);
             return query.getQuery().getSingleResult();
         } catch (NoResultException e) {
             return null;
@@ -205,17 +200,13 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                     Optional.ofNullable(filterExpression), scope.getDictionary()));
         }
 
-        RootCollectionFetchQueryBuilder queryBuilder =
-                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper);
         QueryWrapper query =
-                (QueryWrapper) queryBuilder
+                (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper)
                         .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
                         .withPossibleSorting(Optional.ofNullable(sorting))
                         .withPossiblePagination(Optional.ofNullable(pagination))
                         .build();
 
-        String queryTxt = queryBuilder.getQueryString();
-        queryText.add(queryTxt);
         return query.getQuery().getResultList();
     }
 
@@ -259,15 +250,13 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                             Optional.ofNullable(filterExpression), scope.getDictionary()));
                 }
 
-                SubCollectionFetchQueryBuilder queryBuilder =
-                        new SubCollectionFetchQueryBuilder(relationship, dictionary, emWrapper);
-                QueryWrapper query = (QueryWrapper) queryBuilder
-                        .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
-                        .withPossibleSorting(Optional.ofNullable(sorting))
-                        .withPossiblePagination(Optional.ofNullable(pagination))
-                        .build();
-                String queryTxt = queryBuilder.getQueryString();
-                queryText.add(queryTxt);
+                QueryWrapper query = (QueryWrapper)
+                        new SubCollectionFetchQueryBuilder(relationship, dictionary, emWrapper)
+                            .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
+                            .withPossibleSorting(Optional.ofNullable(sorting))
+                            .withPossiblePagination(Optional.ofNullable(pagination))
+                            .build();
+
                 if (query != null) {
                     return query.getQuery().getResultList();
                 }
@@ -288,14 +277,13 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     private <T> Long getTotalRecords(Class<T> entityClass,
                                      Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
-        RootCollectionPageTotalsQueryBuilder queryBuilder =
-                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, emWrapper);
 
-        QueryWrapper query = (QueryWrapper) queryBuilder
-                .withPossibleFilterExpression(filterExpression)
-                .build();
-        String queryTxt = queryBuilder.getQueryString();
-        queryText.add(queryTxt);
+
+        QueryWrapper query = (QueryWrapper)
+                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, emWrapper)
+                    .withPossibleFilterExpression(filterExpression)
+                    .build();
+
         return (Long) query.getQuery().getSingleResult();
     }
 
@@ -312,13 +300,11 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
                                      Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
 
-        SubCollectionPageTotalsQueryBuilder queryBuilder =
-                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, emWrapper);
-        QueryWrapper query = (QueryWrapper) queryBuilder
-                .withPossibleFilterExpression(filterExpression)
-                .build();
-        String queryTxt = queryBuilder.getQueryString();
-        queryText.add(queryTxt);
+        QueryWrapper query = (QueryWrapper)
+                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, emWrapper)
+                    .withPossibleFilterExpression(filterExpression)
+                    .build();
+
         return (Long) query.getQuery().getSingleResult();
     }
 
@@ -330,18 +316,142 @@ public abstract class AbstractJpaTransaction extends DataStoreTransactionImpleme
     @Override
     public QueryDetail explain(EntityProjection projection, RequestScope scope) {
         Class<?> entityClass = projection.getType();
-        String modelName = entityClass.getName();
-        List<String> queryTextList = getQueryText();
-        this.queryText = new ArrayList<>();
-        return new QueryDetail(modelName, queryTextList);
+        Pagination pagination = projection.getPagination();
+        FilterExpression filterExpression = projection.getFilterExpression();
+        Sorting sorting = projection.getSorting();
+        List<String> queryTextList = new ArrayList<>();
+
+        if (pagination != null && pagination.returnPageTotals()) {
+            pagination.setPageTotals(getTotalRecords(entityClass,
+                    Optional.ofNullable(filterExpression), scope.getDictionary()));
+            queryTextList.add(explainTotalRecords(projection, scope));
+        }
+
+        RootCollectionFetchQueryBuilder queryBuilder =
+                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper);
+
+        //build the underlying query
+        queryBuilder
+                .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
+                .withPossibleSorting(Optional.ofNullable(sorting))
+                .withPossiblePagination(Optional.ofNullable(pagination))
+                .build();
+
+        queryTextList.add(queryBuilder.getQueryString());
+        return new QueryDetail(entityClass.getName(), queryTextList);
     }
 
     @Override
     public QueryDetail explain(Relationship relationship, RequestScope scope, Object entity) {
-        Class<?> entityClass = relationship.getProjection().getType();
-        String modelName = entityClass.getName();
-        List<String> queryTextList = getQueryText();
-        this.queryText = new ArrayList<>();
-        return new QueryDetail(modelName, queryTextList);
+        FilterExpression filterExpression = relationship.getProjection().getFilterExpression();
+        Sorting sorting = relationship.getProjection().getSorting();
+        Pagination pagination = relationship.getProjection().getPagination();
+        List<String> queryTextList = new ArrayList<>();
+
+        EntityDictionary dictionary = scope.getDictionary();
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationship.getName(), scope);
+        if (val instanceof Collection) {
+            Collection<?> filteredVal = (Collection<?>) val;
+            if (IS_PERSISTENT_COLLECTION.test(filteredVal)) {
+                if (filterExpression == null && sorting == null
+                        && (pagination == null || (pagination.isDefaultInstance()))) {
+                    return defaultJPQLGeneration(relationship, scope);
+                }
+
+                Class<?> relationClass = dictionary.getParameterizedType(entity, relationship.getName());
+
+                RelationshipImpl relationshipImpl = new RelationshipImpl(
+                        dictionary.lookupEntityClass(entity.getClass()),
+                        relationClass,
+                        relationship.getName(),
+                        entity,
+                        filteredVal);
+
+                if (pagination != null && pagination.returnPageTotals()) {
+                    pagination.setPageTotals(getTotalRecords(relationshipImpl,
+                            Optional.ofNullable(filterExpression), scope.getDictionary()));
+                    queryTextList.add(explainTotalRecords(relationshipImpl, relationship, scope));
+                }
+
+                SubCollectionFetchQueryBuilder queryBuilder =
+                        new SubCollectionFetchQueryBuilder(relationshipImpl, dictionary, emWrapper);
+
+                //build the underlying query
+                queryBuilder
+                        .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
+                        .withPossibleSorting(Optional.ofNullable(sorting))
+                        .withPossiblePagination(Optional.ofNullable(pagination))
+                        .build();
+
+                queryTextList.add(queryBuilder.getQueryString());
+                return new QueryDetail(relationship.getName(), queryTextList);
+            }
+        }
+        return new QueryDetail();
+    }
+
+    /**
+     * Returns the basic JPQL query given no pagination, filtering, sorting is present
+     * @param relationship The relationship to count
+     * @param scope Contains request level metadata
+     * @return The Query Detail object with the underlying HQL.
+     */
+    private QueryDetail defaultJPQLGeneration(Relationship relationship, RequestScope scope) {
+        EntityProjection projection = relationship.getProjection();
+        Class<?> entityClass = projection.getType();
+
+        RootCollectionFetchQueryBuilder queryBuilder =
+                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper);
+
+        queryBuilder.build();
+
+        List<String> queryTextList = new ArrayList<>();
+        queryTextList.add(queryBuilder.getQueryString());
+        return new QueryDetail(entityClass.getName(), queryTextList);
+    }
+
+    /**
+     * Returns the total record count for a root entity and an optional filter expression.
+     * @param projection The EntityProjection class from which to extract the base query and the model name
+     * @param scope Contains request level metadata
+     * @return The underlying JPQL statement
+     */
+    private String explainTotalRecords(EntityProjection projection,
+                                       RequestScope scope) {
+        Class<?> entityClass = projection.getType();
+        EntityDictionary dictionary = scope.getDictionary();
+        Optional<FilterExpression> filterExpression = Optional.ofNullable(projection.getFilterExpression());
+
+        RootCollectionPageTotalsQueryBuilder queryBuilder =
+                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, emWrapper);
+
+        queryBuilder
+                .withPossibleFilterExpression(filterExpression)
+                .build();
+
+        return queryBuilder.getQueryString();
+    }
+
+    /**
+     * Returns the total record count for a entity relationship
+     * @param relationshipImpl The relationship to count
+     * @param relationship The Relationship class between the current entity and all its neighbors
+     * @param scope Contains request level metadata
+     * @return The underlying JPQL statement.
+     */
+    private String explainTotalRecords(AbstractHQLQueryBuilder.Relationship relationshipImpl,
+                                       Relationship relationship, RequestScope scope) {
+        Optional<FilterExpression> filterExpression =
+                Optional.ofNullable(relationship.getProjection().getFilterExpression());
+        EntityDictionary dictionary = scope.getDictionary();
+
+        SubCollectionPageTotalsQueryBuilder queryBuilder =
+                new SubCollectionPageTotalsQueryBuilder(relationshipImpl, dictionary, emWrapper);
+
+        queryBuilder
+                .withPossibleFilterExpression(filterExpression)
+                .build();
+
+        return queryBuilder.getQueryString();
     }
 }

@@ -9,7 +9,9 @@ import com.yahoo.elide.ElideResponse;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Default NoopQuery Logger Implementation for Elide
@@ -17,7 +19,14 @@ import java.util.UUID;
 public class NoopQueryLogger implements QueryLogger {
 
     @Override
-    public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer, String apiQuery) {
+    public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers,
+                                   String apiVer, String apiQuery) {
+        //does nothing
+    }
+
+    @Override
+    public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer,
+                            Optional<MultivaluedMap<String, String>> queryParams, String path) {
         //does nothing
     }
 

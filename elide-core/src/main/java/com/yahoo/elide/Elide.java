@@ -58,7 +58,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolationException;
@@ -173,44 +175,8 @@ public class Elide {
                     requestScope).parsePath(path));
             BaseVisitor visitor = new GetVisitor(requestScope);
 
-            //form the ApiQuery
-            Optional<MultivaluedMap<String, String>> queryParamsOptional = requestScope.getQueryParams();
-            String apiQuery;
-            if (!queryParamsOptional.isPresent()) {
-                apiQuery = path;
-            } else {
-                apiQuery = path + '?';
-                Iterator<String> it = queryParams.keySet().iterator();
-                while (it.hasNext()) {
-                    String key = (String) it.next();
-                    List<String> value = queryParams.get(key);
-                    for (String v : value) {
-                        apiQuery += key + "=" + v;
-                    }
-                    if (it.hasNext()) {
-                        apiQuery += '&';
-                    }
-                }
-            }
-
             //accept the query here
-            if (requestScope.getElideSettings() != null) {
-                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-                if (opaqueUser == null) {
-                    ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
-                            null,
-                            requestScope.getHeaders(),
-                            requestScope.getApiVersion(),
-                            apiQuery);
-                } else {
-                    ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
-                            opaqueUser.getPrincipal(),
-                            requestScope.getHeaders(),
-                            requestScope.getApiVersion(),
-                            apiQuery);
-                }
-            }
-
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             return visit(path, requestScope, visitor);
         });
 
@@ -232,6 +198,9 @@ public class Elide {
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new PostVisitor(requestScope);
+
+            //accept the query here
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             return visit(path, requestScope, visitor);
         });
     }
@@ -256,6 +225,8 @@ public class Elide {
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
+                    //accept the query here
+                    elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
                     return new HandlerResult(requestScope, responder);
                 } catch (RuntimeException e) {
                     return new HandlerResult(requestScope, e);
@@ -269,6 +240,9 @@ public class Elide {
                 requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                         requestScope).parsePath(path));
                 BaseVisitor visitor = new PatchVisitor(requestScope);
+
+                //accept the query here
+                elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
                 return visit(path, requestScope, visitor);
             };
         }
@@ -294,6 +268,9 @@ public class Elide {
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new DeleteVisitor(requestScope);
+
+            //accept the query here
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             return visit(path, requestScope, visitor);
         });
     }
@@ -349,11 +326,7 @@ public class Elide {
             }
 
             //call complete query here
-            if (requestScope.getElideSettings() != null) {
-                QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-                ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
-            }
-
+            elideCompleteQuery(requestScope, response);
             return response;
 
         } catch (WebApplicationException e) {
@@ -462,6 +435,35 @@ public class Elide {
 
         public RequestScope getRequestScope() {
             return requestScope;
+        }
+    }
+
+    private static void elideAcceptQuery(RequestScope requestScope, User opaqueUser,
+                                         Optional<MultivaluedMap<String, String>> queryParams, String path) {
+        if (requestScope.getElideSettings() != null) {
+            QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            if (opaqueUser == null) {
+                ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                        null,
+                        requestScope.getHeaders(),
+                        requestScope.getApiVersion(),
+                        queryParams,
+                        path);
+            } else {
+                ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                        opaqueUser.getPrincipal(),
+                        requestScope.getHeaders(),
+                        requestScope.getApiVersion(),
+                        queryParams,
+                        path);
+            }
+        }
+    }
+
+    private static void elideCompleteQuery(RequestScope requestScope, ElideResponse response) {
+        if (requestScope.getElideSettings() != null) {
+            QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
         }
     }
 }

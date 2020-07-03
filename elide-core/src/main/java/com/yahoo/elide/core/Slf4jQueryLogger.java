@@ -9,9 +9,12 @@ import com.yahoo.elide.ElideResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.Principal;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Slf4jQuery Logger Implementation for Elide. Overrides the default Noop QueryLogger
@@ -19,77 +22,93 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class Slf4jQueryLogger implements QueryLogger {
-    private volatile Map<UUID, Long> startTime;
-
-    public Slf4jQueryLogger() {
-        startTime = new ConcurrentHashMap<>();
-    }
 
     @Override
-    public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer, String apiQuery) {
-        synchronized (this) {
-            long start = System.currentTimeMillis();
-            startTime.put(queryId, start);
-        }
+    public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers,
+                                   String apiVer, String apiQuery) {
+        long start = System.currentTimeMillis();
 
-        /**
-         * headers to be logged out.
-        String headersQuery = "";
-        for (String key : headers.keySet()) {
-            String value = headers.get(key);
-            headersQuery = key + ": " + value + "\n";
-        }
-        */
-
-        log.info("Accepted Query with RequestId: "
+        log.debug("Accepted Query with RequestId: "
                 + queryId
                 + " User: "
                 + user
                 + " ApiVersion: "
                 + apiVer
                 + " ApiQuery: "
-                + apiQuery);
+                + apiQuery
+                + ". Start Time "
+                + start);
+    }
+
+    @Override
+    public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer,
+                            Optional<MultivaluedMap<String, String>> queryParams, String path) {
+        long start = System.currentTimeMillis();
+        String apiQuery =  constructAPIQuery(queryParams, path);
+
+        log.debug("Accepted Query with RequestId: "
+                + queryId
+                + " User: "
+                + user
+                + " ApiVersion: "
+                + apiVer
+                + " ApiQuery: "
+                + apiQuery
+                + ". Start Time "
+                + start);
     }
 
     @Override
     public void processQuery(UUID queryId, QueryDetail qd) {
         if (!qd.toString().equals("")) {
-            log.info("Processing Query with RequestId: " + queryId + ". QueryText: " + qd.toString());
+            log.debug("Processing Query with RequestId: " + queryId + ". QueryText: " + qd.toString());
         }
     }
 
     @Override
     public void cancelQuery(UUID queryId) {
-        synchronized (this) {
-            startTime.remove(queryId);
-        }
-        log.info("Canceling Query with RequestId: " + queryId);
+        log.debug("Canceling Query with RequestId: " + queryId);
     }
 
     @Override
     public void completeQuery(UUID queryId, ElideResponse response) {
-        if (!startTime.containsKey(queryId)) {
-            //key does not exist (post, delete, patch etc)
-            return;
-        }
-
-        long endTime;
-        long start;
-        endTime = System.currentTimeMillis();
-        synchronized (this) {
-            start = startTime.get(queryId);
-            startTime.remove(queryId);
-        }
-
-        long timeElapsed = endTime - start; //returns elapsed time in milliseconds
+        long endTime = System.currentTimeMillis();
         int responseCode = response.getResponseCode();
 
         //log the result
-        log.info("Completed Query with RequestId: "
+        log.debug("Completed Query with RequestId: "
                 + queryId
-                + ". Query Execution Time: "
-                + timeElapsed
+                + ". End Time: "
+                + endTime
                 + " Response Status: "
                 + responseCode);
+    }
+
+    /**
+     * Constructs the default apiQuery if it not formed earlier
+     * @param queryParams KeyValue Pair of all parameters
+     * @param path The apiQuery endpoint path
+     * @return the apiQuery
+     */
+    private String constructAPIQuery(Optional<MultivaluedMap<String, String>> queryParams, String path) {
+        String apiQuery;
+        if (!queryParams.isPresent()) {
+            apiQuery = path;
+        } else {
+            apiQuery = path + '?';
+            MultivaluedMap<String, String> qParams = queryParams.get();
+            Iterator<String> it = qParams.keySet().iterator();
+            while (it.hasNext()) {
+                String key = (String) it.next();
+                List<String> value = qParams.get(key);
+                for (String v : value) {
+                    apiQuery += key + "=" + v;
+                }
+                if (it.hasNext()) {
+                    apiQuery += '&';
+                }
+            }
+        }
+        return apiQuery;
     }
 }

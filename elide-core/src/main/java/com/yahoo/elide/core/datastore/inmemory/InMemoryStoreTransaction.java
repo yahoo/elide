@@ -70,7 +70,6 @@ public class InMemoryStoreTransaction extends DataStoreTransactionImplementation
                      RequestScope scope);
     }
 
-
     public InMemoryStoreTransaction(DataStoreTransaction tx) {
         this.tx = tx;
     }
@@ -477,11 +476,52 @@ public class InMemoryStoreTransaction extends DataStoreTransactionImplementation
 
     @Override
     public QueryDetail explain(EntityProjection projection, RequestScope scope) {
-        return tx.explain(projection, scope);
+        DataFetcher fetcher = new DataFetcher() {
+            @Override
+            public QueryDetail fetch(Optional<FilterExpression> filterExpression,
+                                          Optional<Sorting> sorting,
+                                          Optional<Pagination> pagination,
+                                          RequestScope scope) {
+
+                return tx.explain(projection.copyOf()
+                        .filterExpression(filterExpression.orElse(null))
+                        .pagination(pagination.orElse(null))
+                        .sorting(sorting.orElse(null))
+                        .build(), scope);
+            }
+        };
+
+        return (QueryDetail) fetchData(fetcher, projection.getType(),
+                Optional.ofNullable(projection.getFilterExpression()),
+                Optional.ofNullable(projection.getSorting()),
+                Optional.ofNullable(projection.getPagination()),
+                false, scope);
     }
 
     @Override
     public QueryDetail explain(Relationship relationship, RequestScope scope, Object entity) {
-        return tx.explain(relationship, scope, entity);
+        DataFetcher fetcher = new DataFetcher() {
+            @Override
+            public QueryDetail fetch(Optional<FilterExpression> filterExpression,
+                                Optional<Sorting> sorting,
+                                Optional<Pagination> pagination,
+                                RequestScope scope) {
+
+                return tx.explain(relationship.copyOf()
+                        .projection(relationship.getProjection().copyOf()
+                                .filterExpression(filterExpression.orElse(null))
+                                .sorting(sorting.orElse(null))
+                                .pagination(pagination.orElse(null))
+                                .build()
+                        ).build(), scope, entity);
+            }
+        };
+
+        boolean filterInMemory = scope.getNewPersistentResources().size() > 0;
+        return (QueryDetail) fetchData(fetcher, relationship.getProjection().getType(),
+                Optional.ofNullable(relationship.getProjection().getFilterExpression()),
+                Optional.ofNullable(relationship.getProjection().getSorting()),
+                Optional.ofNullable(relationship.getProjection().getPagination()),
+                filterInMemory, scope);
     }
 }

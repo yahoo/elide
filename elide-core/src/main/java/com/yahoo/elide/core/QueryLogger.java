@@ -9,7 +9,9 @@ import com.yahoo.elide.ElideResponse;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Query Logger Interface for Elide
@@ -17,14 +19,27 @@ import java.util.UUID;
 public interface QueryLogger {
 
     /**
-     * Accepts the incoming query and notes the start time for the query
+     * Accepts the incoming GraphQL query and notes the start time for the query
      * @param queryId The RequestScope requestId.
      * @param user The Principal user
      * @param headers Http Request Headers
      * @param apiVer API Version
      * @param apiQuery QueryString of the requested URL request
      */
-    void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer, String apiQuery);
+    void acceptQuery(UUID queryId, Principal user, Map<String, String> headers,
+                            String apiVer, String apiQuery);
+
+    /**
+     * Accepts the incoming JSON API query and notes the start time for the query
+     * @param queryId The RequestScope requestId.
+     * @param user The Principal user
+     * @param headers Http Request Headers
+     * @param apiVer API Version
+     * @param queryParams QueryParams for the incoming JSON API query
+     * @param path The apiQuery endpoint path for the incoming query
+     */
+    void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer,
+                     Optional<MultivaluedMap<String, String>> queryParams, String path);
 
     /**
      * Processes and logs all the queries from QueryDetail to STDOUT and an external file (target/trace.log)
