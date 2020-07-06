@@ -11,12 +11,8 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchema;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.hjson.JsonValue;
@@ -25,10 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -43,24 +38,9 @@ public class DynamicConfigHelpers {
     public static final String SECURITY_CONFIG_PATH = "security.hjson";
     public static final String VARIABLE_CONFIG_PATH = "variables.hjson";
     public static final String NEW_LINE = "\n";
-
-    private static final String TABLE = "table";
-    private static final String SECURITY = "security";
-    private static final String VARIABLE = "variable";
-    private static final String TABLE_SCHEMA = "/elideTableSchema.json";
-    private static final String SECURITY_SCHEMA = "/elideSecuritySchema.json";
-    private static final String VARIABLE_SCHEMA = "/elideVariableSchema.json";
-
-    private static final JsonSchemaFactory FACTORY = JsonSchemaFactory.byDefault();
-    private static JsonSchema tableSchema;
-    private static JsonSchema securitySchema;
-    private static JsonSchema variableSchema;
-
-    static {
-        tableSchema = loadSchema(TABLE_SCHEMA);
-        securitySchema = loadSchema(SECURITY_SCHEMA);
-        variableSchema = loadSchema(VARIABLE_SCHEMA);
-    }
+    public static final String TABLE = "table";
+    public static final String SECURITY = "security";
+    public static final String VARIABLE = "variable";
 
     /**
      * Checks whether input is null or empty.
@@ -99,13 +79,13 @@ public class DynamicConfigHelpers {
         File variableFile = new File(filePath);
         if (variableFile.exists()) {
             String jsonConfig = hjsonToJson(readConfigFile(variableFile));
-            if (verifySchema(VARIABLE, jsonConfig)) {
+            if (DynamicConfigSchemaValidator.verifySchema(VARIABLE, jsonConfig)) {
                 variables = getModelPojo(jsonConfig, Map.class);
             }
         } else {
             log.info("Variables config file not found at " + filePath);
         }
-        return variables;
+        return (variables == null ? new HashMap<String, Object>() : variables);
     }
 
     /**
@@ -156,7 +136,7 @@ public class DynamicConfigHelpers {
             throws IOException, ProcessingException {
         ElideTableConfig table = null;
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        if (verifySchema(TABLE, jsonConfig)) {
+        if (DynamicConfigSchemaValidator.verifySchema(TABLE, jsonConfig)) {
             table = getModelPojo(jsonConfig, ElideTableConfig.class);
         }
         return table;
@@ -194,7 +174,7 @@ public class DynamicConfigHelpers {
     public static ElideSecurityConfig stringToElideSecurityPojo(String content, Map<String, Object> variables)
             throws IOException, ProcessingException {
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        if (verifySchema(SECURITY, jsonConfig)) {
+        if (DynamicConfigSchemaValidator.verifySchema(SECURITY, jsonConfig)) {
             return getModelPojo(jsonConfig, ElideSecurityConfig.class);
         }
         return null;
@@ -237,39 +217,5 @@ public class DynamicConfigHelpers {
 
     private static <T> T getModelPojo(String jsonConfig, final Class<T> configPojo) throws JsonProcessingException {
         return new ObjectMapper().readValue(jsonConfig, configPojo);
-    }
-
-    private static boolean verifySchema(String configType, String jsonConfig)
-            throws JsonMappingException, JsonProcessingException, ProcessingException {
-        ProcessingReport results = null;
-
-        switch (configType) {
-        case TABLE :
-            results = tableSchema.validate(new ObjectMapper().readTree(jsonConfig));
-            break;
-        case SECURITY :
-            results = securitySchema.validate(new ObjectMapper().readTree(jsonConfig));
-            break;
-        case VARIABLE :
-            results = variableSchema.validate(new ObjectMapper().readTree(jsonConfig));
-            break;
-        default :
-            return false;
-        }
-        return results.isSuccess();
-    }
-
-    private static JsonSchema loadSchema(String resource) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Reader reader = new InputStreamReader(DynamicConfigHelpers.class.getResourceAsStream(resource));
-        try {
-            return FACTORY.getJsonSchema(objectMapper.readTree(reader));
-        } catch (IOException e) {
-            log.error("Error loading schema file " + resource + " to verify");
-            throw new IllegalStateException(e.getMessage());
-        } catch (ProcessingException e) {
-            log.error("Error loading schema file " + resource + " to verify");
-            throw new IllegalStateException(e.getMessage());
-        }
     }
 }
