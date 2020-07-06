@@ -12,7 +12,7 @@ import org.junit.Test;
 import java.time.Instant;
 
 public class InstantSerdeTest {
-    private final Serde<String, Instant> serde = new ISO8601InstantSerde();
+    private final Serde<String, Instant> serde = new InstantSerde();
 
     @Test
     public void canDeserializeUtcIsoString() {
