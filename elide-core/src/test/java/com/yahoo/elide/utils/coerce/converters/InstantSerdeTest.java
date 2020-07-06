@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import java.time.Instant;
 
-public class ISO8601InstantSerdeTest {
+public class InstantSerdeTest {
     private final Serde<String, Instant> serde = new ISO8601InstantSerde();
 
     @Test
