@@ -23,7 +23,7 @@ public class InstantSerdeTest {
     }
 
     @Test
-    public void canDeserializeOffseIsoString() {
+    public void canDeserializeOffsetIsoString() {
         final Instant instant = serde.deserialize("2019-06-01T10:42:55+01:00");
 
         assertEquals(1559382175, instant.getEpochSecond());
