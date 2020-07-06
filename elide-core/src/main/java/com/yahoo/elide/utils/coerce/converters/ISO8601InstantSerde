@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.mcafee.csi.thirdparty.com.yahoo.elide.utils.coerce.converters;
+package com.yahoo.elide.utils.coerce.converters;
 
 import com.yahoo.elide.utils.coerce.converters.Serde;
 import java.time.Instant;
@@ -15,17 +15,15 @@ import java.time.format.DateTimeFormatter;
  * Uses the semantics of {@link java.time.format.DateTimeFormatter#ISO_INSTANT}
  */
 public class ISO8601InstantSerde implements Serde<String, Instant> {
-
     @Override
     public Instant deserialize(final String value) {
         return Instant.from(
             DateTimeFormatter.ISO_INSTANT.parse(value)
         );
     }
-
+    
     @Override
     public String serialize(final Instant value) {
         return DateTimeFormatter.ISO_INSTANT.format(value);
     }
-
 }
