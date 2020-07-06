@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.utils.coerce.converters;
 
-import com.yahoo.elide.utils.coerce.converters.Serde;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
