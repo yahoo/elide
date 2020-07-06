@@ -21,7 +21,7 @@ public class ISO8601InstantSerde implements Serde<String, Instant> {
             DateTimeFormatter.ISO_INSTANT.parse(value)
         );
     }
-    
+
     @Override
     public String serialize(final Instant value) {
         return DateTimeFormatter.ISO_INSTANT.format(value);
