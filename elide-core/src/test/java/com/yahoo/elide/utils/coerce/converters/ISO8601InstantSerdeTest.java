@@ -1,16 +1,22 @@
-package com.mcafee.csi.thirdparty.com.yahoo.elide.utils.coerce.converters;
+/*
+ * Copyright 2018, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.utils.coerce.converters;
 
-import com.yahoo.elide.utils.coerce.converters.Serde;
-import java.time.Instant;
 import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
+
+import java.time.Instant;
 
 public class ISO8601InstantSerdeTest {
 
     private final Serde<String, Instant> serde = new ISO8601InstantSerde();
 
     @Test
-    public void can_deserialize_utc_iso_string() {
+    public void canDeserializeUtcIsoString() {
 
         final Instant instant = serde.deserialize("2019-06-01T09:42:55Z");
 
@@ -20,7 +26,7 @@ public class ISO8601InstantSerdeTest {
     }
 
     @Test
-    public void can_deserialize_offset_iso_string() {
+    public void canDeserializeOffseIsoString() {
 
         final Instant instant = serde.deserialize("2019-06-01T10:42:55+01:00");
 
@@ -30,7 +36,7 @@ public class ISO8601InstantSerdeTest {
     }
 
     @Test
-    public void can_deserialize_sub_second_precision_utc_iso_string() {
+    public void canDeserializeSubSecondPrecisionUtcIsoString() {
 
         final Instant instant = serde.deserialize("2019-06-01T09:42:55.123Z");
 
@@ -40,7 +46,7 @@ public class ISO8601InstantSerdeTest {
     }
 
     @Test
-    public void can_serialize() {
+    public void canSerialize() {
 
         assertEquals(
             "2019-06-01T09:42:55Z",
@@ -50,7 +56,7 @@ public class ISO8601InstantSerdeTest {
     }
 
     @Test
-    public void can_serialize_sub_second_precision() {
+    public void canSerializeSubSecondPrecision() {
 
         assertEquals(
             "2019-06-01T09:42:55.123Z",
