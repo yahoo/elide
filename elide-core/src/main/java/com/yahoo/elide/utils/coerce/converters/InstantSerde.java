@@ -15,20 +15,18 @@ import java.time.format.DateTimeFormatter;
  */
 @ElideTypeConverter(type = Instant.class, name = "Instant")
 public class InstantSerde implements Serde<String, Instant> {
-    // NB. ideally we would use ISO_INSTANT here but there is a bug in JDK-8 that
-    // means that parsing an ISO offset time doesn't work :-(
-    // https://bugs.openjdk.java.net/browse/JDK-8166138
-    private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-
     @Override
     public Instant deserialize(final String value) {
         return Instant.from(
-            FORMATTER.parse(value)
+            // NB. ideally we would use ISO_INSTANT here but there is a bug in JDK-8 that
+            // means that parsing an ISO offset time doesn't work :-(
+            // https://bugs.openjdk.java.net/browse/JDK-8166138
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(value)
         );
     }
 
     @Override
     public String serialize(final Instant value) {
-        return FORMATTER.format(value);
+        return DateTimeFormatter.ISO_INSTANT.format(value);
     }
 }
