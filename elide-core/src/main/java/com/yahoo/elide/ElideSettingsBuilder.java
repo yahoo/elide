@@ -183,8 +183,6 @@ public class ElideSettingsBuilder {
         serdes.put(java.sql.Date.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Date.class));
         serdes.put(java.sql.Time.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Time.class));
         serdes.put(java.sql.Timestamp.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Timestamp.class));
-        serdes.put(java.time.Instant.class, new InstantSerde());
-        serdes.put(java.time.OffsetDateTime.class, new OffsetDateTimeSerde());
         return this;
     }
 
