@@ -83,7 +83,7 @@ public class DynamicConfigHelpers {
                 }
             } catch (ProcessingException e) {
                 log.error("Error Validating variable config : " + e.getMessage());
-                throw new IOException(e.getMessage());
+                throw new IOException(e);
             }
         } else {
             log.info("Variables config file not found at " + filePath);
@@ -143,7 +143,7 @@ public class DynamicConfigHelpers {
             }
         } catch (ProcessingException e) {
             log.error("Error Validating Table config : " + e.getMessage());
-            throw new IOException(e.getMessage());
+            throw new IOException(e);
         }
         return (table == null ? new ElideTableConfig() : table);
     }
@@ -184,7 +184,7 @@ public class DynamicConfigHelpers {
             }
         } catch (ProcessingException e) {
             log.error("Error Validating Security config : " + e.getMessage());
-            throw new IOException(e.getMessage());
+            throw new IOException(e);
         }
         return null;
     }
