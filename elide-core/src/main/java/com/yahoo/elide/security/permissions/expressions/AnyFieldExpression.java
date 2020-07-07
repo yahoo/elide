@@ -33,14 +33,17 @@ public class AnyFieldExpression implements Expression {
 
     @Override
     public ExpressionResult evaluate(EvaluationMode mode) {
+        if (entityExpression == null) {
+            return PASS;
+        }
+
         ExpressionResult fieldResult = fieldExpression.evaluate(mode);
 
         if (fieldResult != FAIL) {
             return fieldResult;
+        } else {
+            return entityExpression.evaluate(mode);
         }
-
-        ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
-        return entityResult;
     }
 
     @Override
