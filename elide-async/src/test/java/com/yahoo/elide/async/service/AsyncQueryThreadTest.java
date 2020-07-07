@@ -8,6 +8,7 @@ package com.yahoo.elide.async.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +53,7 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
-        when(elide.get(anyString(), any(), any(), anyString())).thenReturn(response);
+        when(elide.get(anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
         queryResultObj = queryThread.processQuery();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
@@ -68,7 +69,7 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        when(runner.run(query, user)).thenReturn(response);
+        when(runner.run(eq(query), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
         queryResultObj = queryThread.processQuery();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");

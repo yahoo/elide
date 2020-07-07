@@ -180,7 +180,7 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("requestId", "1001"),
+                                                attr("requestId", "edc4a871-dff2-4054-804e-d80075cf8300"),
                                                 attr("asyncAfterSeconds", "0")
                                         )
                                 )
@@ -256,7 +256,7 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("requestId", "1001"),
+                                                attr("requestId", "edc4a871-dff2-4054-804e-d80075cf8300"),
                                                 attr("asyncAfterSeconds", "7")
                                         )
                                 )
@@ -443,7 +443,7 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/group?sort=genre&fields%5Bgroup%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("requestId", "1001"),
+                                                attr("requestId", "edc4a871-dff2-4054-804e-d80075cf8300"),
                                                 attr("asyncAfterSeconds", "10")
                                         )
                                 )
@@ -543,7 +543,7 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/noread"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("requestId", "1001"),
+                                                attr("requestId", "edc4a871-dff2-4054-804e-d80075cf8300"),
                                                 attr("asyncAfterSeconds", "10")
                                         )
                                 )
