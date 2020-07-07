@@ -281,8 +281,10 @@ public class ElideStandaloneTest {
                     .accept("application/vnd.api+json")
                     .get("/api/v1/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");
 
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
             // If Async Query is created and completed
-            if (response.jsonPath().getString("data.attributes.status").equals("COMPLETE")) {
+            if (outputResponse.equals("COMPLETE")) {
 
                 // Validate AsyncQuery Response
                 response
@@ -310,6 +312,9 @@ public class ElideStandaloneTest {
 
                 String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"}}]}\",\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":141}}}]}}}";
                 assertEquals(expectedResponse, responseGraphQL);
+                break;
+            } else if (!(outputResponse.equals("PROCESSING"))) {
+                fail("Async Query not completed.");
                 break;
             }
             i++;
