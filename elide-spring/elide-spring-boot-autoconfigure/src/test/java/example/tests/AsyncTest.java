@@ -16,7 +16,9 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.core.HttpStatus;
 
@@ -106,6 +108,7 @@ public class AsyncTest extends IntegrationTest {
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             } else if (!(outputResponse.equals("PROCESSING") || outputResponse.equals("QUEUED"))) {
+                fail("Async Query not completed.");
                 break;
             }
         }

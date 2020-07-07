@@ -29,6 +29,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -227,6 +228,7 @@ public class AsyncIT extends IntegrationTest {
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING") || outputResponse.equals("QUEUED"))) {
+                fail("Async Query not completed.");
                 break;
             }
 
@@ -355,6 +357,7 @@ public class AsyncIT extends IntegrationTest {
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\"") || responseGraphQL.contains("\"status\":\"QUEUED\""))) {
+                fail("Async Query not completed.");
                 break;
             }
             i++;
@@ -484,6 +487,7 @@ public class AsyncIT extends IntegrationTest {
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING") || outputResponse.equals("QUEUED"))) {
+                fail("Async Query not completed.");
                 break;
             }
             i++;
@@ -589,6 +593,7 @@ public class AsyncIT extends IntegrationTest {
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING") || outputResponse.equals("QUEUED"))) {
+                fail("Async Query not completed.");
                 break;
             }
             i++;
