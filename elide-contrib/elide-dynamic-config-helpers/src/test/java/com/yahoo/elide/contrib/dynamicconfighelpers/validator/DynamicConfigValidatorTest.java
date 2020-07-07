@@ -15,6 +15,8 @@ import org.apache.commons.cli.MissingOptionException;
 import org.hjson.ParseException;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+
 public class DynamicConfigValidatorTest {
 
     @Test
@@ -105,7 +107,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadTableConfigJoinType() {
-        assertThrows(NullPointerException.class, () -> DynamicConfigValidator
+        assertThrows(IOException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type" }));
     }
 

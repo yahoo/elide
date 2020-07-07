@@ -68,19 +68,22 @@ public class DynamicConfigHelpers {
      * converts variable.hjson to map of variables.
      * @param basePath : root path to model dir
      * @return Map of variables
-     * @throws JsonProcessingException
-     * @throws ProcessingException
+     * @throws IOException
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> getVariablesPojo(String basePath)
-            throws JsonProcessingException, ProcessingException {
+    public static Map<String, Object> getVariablesPojo(String basePath) throws IOException {
         Map<String, Object> variables = null;
         String filePath = basePath + VARIABLE_CONFIG_PATH;
         File variableFile = new File(filePath);
         if (variableFile.exists()) {
             String jsonConfig = hjsonToJson(readConfigFile(variableFile));
-            if (DynamicConfigSchemaValidator.verifySchema(VARIABLE, jsonConfig)) {
-                variables = getModelPojo(jsonConfig, Map.class);
+            try {
+                if (DynamicConfigSchemaValidator.verifySchema(VARIABLE, jsonConfig)) {
+                    variables = getModelPojo(jsonConfig, Map.class);
+                }
+            } catch (ProcessingException e) {
+                log.error("Error Validating variable config : " + e.getMessage());
+                throw new IOException(e.getMessage());
             }
         } else {
             log.info("Variables config file not found at " + filePath);
@@ -94,10 +97,9 @@ public class DynamicConfigHelpers {
      * @param variables : variables to resolve.
      * @return ElideTableConfig pojo
      * @throws IOException
-     * @throws ProcessingException
      */
     public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables)
-            throws IOException, ProcessingException {
+            throws IOException {
         return getElideTablePojo(basePath, variables, TABLE_CONFIG_PATH);
     }
 
@@ -108,15 +110,15 @@ public class DynamicConfigHelpers {
      * @param tableDirName : dir name for table configs
      * @return ElideTableConfig pojo
      * @throws IOException
-     * @throws ProcessingException
      */
     public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables,
-            String tableDirName) throws IOException, ProcessingException {
+            String tableDirName) throws IOException {
         Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + tableDirName),
                 new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {
-            ElideTableConfig table = stringToElideTablePojo(readConfigFile(tableConfig), variables);
+            ElideTableConfig table;
+            table = stringToElideTablePojo(readConfigFile(tableConfig), variables);
             tables.addAll(table.getTables());
         }
         ElideTableConfig elideTableConfig = new ElideTableConfig();
@@ -130,16 +132,20 @@ public class DynamicConfigHelpers {
      * @param variables : variables to resolve.
      * @return ElideTableConfig Pojo
      * @throws IOException
-     * @throws ProcessingException
      */
     public static ElideTableConfig stringToElideTablePojo(String content, Map<String, Object> variables)
-            throws IOException, ProcessingException {
+            throws IOException {
         ElideTableConfig table = null;
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        if (DynamicConfigSchemaValidator.verifySchema(TABLE, jsonConfig)) {
-            table = getModelPojo(jsonConfig, ElideTableConfig.class);
+        try {
+            if (DynamicConfigSchemaValidator.verifySchema(TABLE, jsonConfig)) {
+                table = getModelPojo(jsonConfig, ElideTableConfig.class);
+            }
+        } catch (ProcessingException e) {
+            log.error("Error Validating Table config : " + e.getMessage());
+            throw new IOException(e.getMessage());
         }
-        return table;
+        return (table == null ? new ElideTableConfig() : table);
     }
 
     /**
@@ -148,10 +154,9 @@ public class DynamicConfigHelpers {
      * @param variables : variables to resolve.
      * @return ElideSecurityConfig Pojo
      * @throws IOException
-     * @throws ProcessingException
      */
     public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
-            throws IOException, ProcessingException {
+            throws IOException {
         ElideSecurityConfig security = null;
         String filePath = basePath + SECURITY_CONFIG_PATH;
         File securityFile = new File(filePath);
@@ -169,13 +174,17 @@ public class DynamicConfigHelpers {
      * @param variables : variables to resolve.
      * @return ElideSecurityConfig Pojo
      * @throws IOException
-     * @throws ProcessingException
      */
     public static ElideSecurityConfig stringToElideSecurityPojo(String content, Map<String, Object> variables)
-            throws IOException, ProcessingException {
+            throws IOException {
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        if (DynamicConfigSchemaValidator.verifySchema(SECURITY, jsonConfig)) {
-            return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+        try {
+            if (DynamicConfigSchemaValidator.verifySchema(SECURITY, jsonConfig)) {
+                return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+            }
+        } catch (ProcessingException e) {
+            log.error("Error Validating Security config : " + e.getMessage());
+            throw new IOException(e.getMessage());
         }
         return null;
     }

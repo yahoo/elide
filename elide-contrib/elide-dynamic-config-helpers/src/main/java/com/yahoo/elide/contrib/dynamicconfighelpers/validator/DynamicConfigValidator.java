@@ -13,9 +13,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -60,7 +57,7 @@ public class DynamicConfigValidator {
     private Map<String, Object> variables;
     private String configDir;
 
-    public static void main(String[] args) throws IOException, ParseException, ProcessingException {
+    public static void main(String[] args) throws IOException, ParseException {
 
         Options options = prepareOptions();
         CommandLine cli = new DefaultParser().parse(options, args);
@@ -92,9 +89,8 @@ public class DynamicConfigValidator {
      * Read and validate config files under config directory.
      * @param filePath path for config directory
      * @throws IOException IOException
-     * @throws ProcessingException
      */
-    public void readAndValidateConfigs(String filePath) throws IOException, ProcessingException {
+    public void readAndValidateConfigs(String filePath) throws IOException {
 
         this.setConfigDir(DynamicConfigHelpers.formatFilePath(filePath));
         this.readVariableConfig();
@@ -109,10 +105,9 @@ public class DynamicConfigValidator {
     /**
      * Read variable file config.
      * @return boolean true if variable config file exists else false
-     * @throws JsonProcessingException
-     * @throws ProcessingException
+     * @throws IOException
      */
-    private boolean readVariableConfig() throws JsonProcessingException, ProcessingException {
+    private boolean readVariableConfig() throws IOException {
         boolean isVariableConfig = exists(this.configDir + DynamicConfigHelpers.VARIABLE_CONFIG_PATH);
         this.variables = isVariableConfig ? DynamicConfigHelpers.getVariablesPojo(this.configDir)
                 : Collections.<String, Object>emptyMap();
@@ -123,9 +118,8 @@ public class DynamicConfigValidator {
      * Read security config file and checks for any missing Handlebar variables.
      * @return boolean true if security config file exists else false
      * @throws IOException
-     * @throws ProcessingException
      */
-    private boolean readSecurityConfig() throws IOException, ProcessingException {
+    private boolean readSecurityConfig() throws IOException {
         String securityConfigPath = this.configDir + DynamicConfigHelpers.SECURITY_CONFIG_PATH;
         boolean isSecurityConfig = exists(securityConfigPath);
         if (isSecurityConfig) {
@@ -141,9 +135,8 @@ public class DynamicConfigValidator {
      * Read table config files and checks for any missing Handlebar variables.
      * @return boolean true if table config directory exists else false
      * @throws IOException
-     * @throws ProcessingException
      */
-    private boolean readTableConfig() throws IOException, ProcessingException {
+    private boolean readTableConfig() throws IOException {
         String tableConfigsPath = this.configDir + DynamicConfigHelpers.TABLE_CONFIG_PATH;
         boolean isTableConfig = exists(tableConfigsPath);
         if (isTableConfig) {

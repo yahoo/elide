@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
@@ -37,9 +35,17 @@ public class DynamicConfigSchemaValidator {
         variableSchema = loadSchema(VARIABLE_SCHEMA);
     }
 
-    public static boolean verifySchema(String configType, String jsonConfig)
-            throws JsonMappingException, JsonProcessingException, ProcessingException {
+    /**
+     *  Verify config against schema.
+     * @param configType
+     * @param jsonConfig
+     * @return whether config is valid
+     * @throws IOException
+     * @throws ProcessingException
+     */
+    public static boolean verifySchema(String configType, String jsonConfig) throws IOException, ProcessingException {
         ProcessingReport results = null;
+        boolean isSuccess = false;
 
         switch (configType) {
         case DynamicConfigHelpers.TABLE :
@@ -52,9 +58,15 @@ public class DynamicConfigSchemaValidator {
             results = variableSchema.validate(new ObjectMapper().readTree(jsonConfig));
             break;
         default :
+            log.error("Not a valid config type :" + configType);
             return false;
         }
-        return results.isSuccess();
+        isSuccess = results.isSuccess();
+
+        if (!isSuccess) {
+            throw new ProcessingException("Schema validation failed");
+        }
+        return isSuccess;
     }
 
     private static JsonSchema loadSchema(String resource) {

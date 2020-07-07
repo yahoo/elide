@@ -5,8 +5,10 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import org.hjson.JsonValue;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +43,9 @@ public class DynamicConfigSchemaValidatorTest {
             "/security/invalid/security.hjson"})
     public void testInvalidSecuritySchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
-        assertFalse(DynamicConfigSchemaValidator.verifySchema(SECURITY, jsonConfig));
+        Exception e = assertThrows(ProcessingException.class,
+                () -> DynamicConfigSchemaValidator.verifySchema(SECURITY, jsonConfig));
+        assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
     }
 
     // Variable config test
@@ -63,7 +67,9 @@ public class DynamicConfigSchemaValidatorTest {
             "/variables/invalid/variables.json"})
     public void testInvalidVariableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
-        assertFalse(DynamicConfigSchemaValidator.verifySchema(VARIABLE, jsonConfig));
+        Exception e = assertThrows(ProcessingException.class,
+                () -> DynamicConfigSchemaValidator.verifySchema(VARIABLE, jsonConfig));
+        assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
     }
 
     // Table config test
@@ -87,7 +93,9 @@ public class DynamicConfigSchemaValidatorTest {
             "/tables/invalid/table.hjson"})
     public void testInvalidTableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
-        assertFalse(DynamicConfigSchemaValidator.verifySchema(TABLE, jsonConfig));
+        Exception e = assertThrows(ProcessingException.class,
+                () -> DynamicConfigSchemaValidator.verifySchema(TABLE, jsonConfig));
+        assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
     }
 
     private String loadHjsonFromClassPath(String resource) throws Exception {
