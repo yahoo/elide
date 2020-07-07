@@ -227,7 +227,7 @@ public class AsyncIT extends IntegrationTest {
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query not completed.");
+                fail("Async Query has failed.");
                 break;
             }
 
@@ -356,7 +356,7 @@ public class AsyncIT extends IntegrationTest {
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
-                fail("Async Query not completed.");
+                fail("Async Query has failed.");
                 break;
             }
             i++;
@@ -486,7 +486,7 @@ public class AsyncIT extends IntegrationTest {
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query not completed.");
+                fail("Async Query has failed.");
                 break;
             }
             i++;
@@ -592,7 +592,7 @@ public class AsyncIT extends IntegrationTest {
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query not completed.");
+                fail("Async Query has failed.");
                 break;
             }
             i++;

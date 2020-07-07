@@ -314,7 +314,7 @@ public class ElideStandaloneTest {
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query not completed.");
+                fail("Async Query has failed.");
                 break;
             }
             i++;
