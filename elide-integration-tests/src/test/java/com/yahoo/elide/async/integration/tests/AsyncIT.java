@@ -227,7 +227,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
                 break;
-            } else if (!(outputResponse.equals("PROCESSING") || outputResponse.equals("QUEUED"))) {
+            } else if (!(outputResponse.equals("PROCESSING"))) {
                 fail("Async Query not completed.");
                 break;
             }
@@ -356,7 +356,7 @@ public class AsyncIT extends IntegrationTest {
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
-            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\"") || responseGraphQL.contains("\"status\":\"QUEUED\""))) {
+            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
                 fail("Async Query not completed.");
                 break;
             }
@@ -486,7 +486,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.httpStatus", equalTo(404));
 
                 break;
-            } else if (!(outputResponse.equals("PROCESSING") || outputResponse.equals("QUEUED"))) {
+            } else if (!(outputResponse.equals("PROCESSING"))) {
                 fail("Async Query not completed.");
                 break;
             }
@@ -592,7 +592,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
                 break;
-            } else if (!(outputResponse.equals("PROCESSING") || outputResponse.equals("QUEUED"))) {
+            } else if (!(outputResponse.equals("PROCESSING"))) {
                 fail("Async Query not completed.");
                 break;
             }

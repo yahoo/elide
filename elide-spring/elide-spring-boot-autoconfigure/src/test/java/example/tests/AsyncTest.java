@@ -107,7 +107,7 @@ public class AsyncTest extends IntegrationTest {
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
-            } else if (!(outputResponse.equals("PROCESSING") || outputResponse.equals("QUEUED"))) {
+            } else if (!(outputResponse.equals("PROCESSING"))) {
                 fail("Async Query not completed.");
                 break;
             }
