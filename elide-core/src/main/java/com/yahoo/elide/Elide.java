@@ -209,7 +209,6 @@ public class Elide {
      * @param accept the accept
      * @param path the path
      * @param jsonApiDocument the json api document
-     * @param queryParams the query params
      * @param opaqueUser the opaque user
      * @return Elide response object
      */

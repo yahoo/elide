@@ -166,7 +166,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
                 String expressionText = paramValues.get(0);
 
-                FilterExpression filterExpression = parseFilterExpression(expressionText, entityType, false);
+                FilterExpression filterExpression = parseFilterExpression(expressionText, entityType, true);
                 expressionByType.put(typeName, filterExpression);
             } else {
                 throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
