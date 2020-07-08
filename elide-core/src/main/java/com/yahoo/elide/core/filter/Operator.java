@@ -272,13 +272,14 @@ public enum Operator {
                 throw new BadRequestException("PREFIX can only take one argument");
             }
 
-            Object val = getFieldValue(entity, fieldPath, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
-            return valStr != null
-                    && filterStr != null
-                    && transform.apply(valStr).startsWith(transform.apply(filterStr));
+                return lhs != null && rhs != null && lhs.startsWith(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
@@ -291,13 +292,14 @@ public enum Operator {
                 throw new BadRequestException("POSTFIX can only take one argument");
             }
 
-            Object val = getFieldValue(entity, fieldPath, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
-            return valStr != null
-                    && filterStr != null
-                    && transform.apply(valStr).endsWith(transform.apply(filterStr));
+                return lhs != null && rhs != null && lhs.endsWith(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
@@ -310,13 +312,14 @@ public enum Operator {
                 throw new BadRequestException("INFIX can only take one argument");
             }
 
-            Object val = getFieldValue(entity, fieldPath, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
-            return valStr != null
-                    && filterStr != null
-                    && transform.apply(valStr).contains(transform.apply(filterStr));
+                return lhs != null && rhs != null && lhs.contains(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
