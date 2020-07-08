@@ -14,6 +14,7 @@ import com.yahoo.elide.security.User;
 import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
@@ -31,13 +32,14 @@ public class GraphQLRequestScope extends RequestScope {
             User user,
             String apiVersion,
             ElideSettings elideSettings,
-            GraphQLProjectionInfo projectionInfo
+            GraphQLProjectionInfo projectionInfo,
+            UUID requestId
     ) {
         // TODO: We're going to break out the two request scopes. `RequestScope` should become an interface and
         // we should have a GraphQLRequestScope and a JSONAPIRequestScope.
         // TODO: What should mutate multiple entity value be? There is a problem with this setting in practice.
         // Namely, we don't filter or paginate in the data store.
-        super(baseUrlEndpoint, "/", apiVersion, null, transaction, user, new MultivaluedHashMap<>(), elideSettings);
+        super(baseUrlEndPoint, "/", apiVersion, null, transaction, user, new MultivaluedHashMap<>(), requestId, elideSettings);
         this.projectionInfo = projectionInfo;
 
         // Entity Projection is retrieved from projectionInfo.

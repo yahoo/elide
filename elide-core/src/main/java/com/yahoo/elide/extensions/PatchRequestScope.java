@@ -12,6 +12,7 @@ import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.User;
 
+import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -27,6 +28,7 @@ public class PatchRequestScope extends RequestScope {
      * @param apiVersion client requested API version
      * @param transaction current database transaction
      * @param user        request user
+     * @param requestId   request ID
      * @param elideSettings Elide settings object
      */
     public PatchRequestScope(
@@ -35,6 +37,7 @@ public class PatchRequestScope extends RequestScope {
             String apiVersion,
             DataStoreTransaction transaction,
             User user,
+            UUID requestId,
             ElideSettings elideSettings) {
         super(
                 baseUrlEndPoint,
@@ -44,6 +47,7 @@ public class PatchRequestScope extends RequestScope {
                 transaction,
                 user,
                 (MultivaluedMap<String, String>) null,
+                requestId,
                 elideSettings
         );
     }

@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
@@ -33,7 +32,7 @@ import java.util.Set;
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
  * If any commit fails in process, reverse any commits already completed.
  */
-public abstract class MultiplexTransaction extends DataStoreTransactionImplementation {
+public abstract class MultiplexTransaction implements DataStoreTransaction {
     protected LinkedHashMap<DataStore, DataStoreTransaction> transactions;
     protected final MultiplexManager multiplexManager;
 

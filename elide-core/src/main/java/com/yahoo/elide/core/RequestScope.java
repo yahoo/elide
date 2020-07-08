@@ -68,7 +68,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
-    private final String requestId;
+    private final UUID requestId;
     private final Map<String, FilterExpression> expressionsByType;
 
     private PublishSubject<CRUDEvent> lifecycleEvents;
@@ -115,6 +115,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         DataStoreTransaction transaction,
                         User user,
                         MultivaluedMap<String, String> queryParams,
+                        UUID requestId,
                         ElideSettings elideSettings) {
         this.apiVersion = apiVersion;
         this.lifecycleEvents = PublishSubject.create();
@@ -141,7 +142,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
-        this.requestId = UUID.randomUUID().toString();
+        this.requestId = requestId;
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)

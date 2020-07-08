@@ -54,7 +54,8 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @ComputedAttribute
     private Integer asyncAfterSeconds = 10;
 
-    private String requestId; //Client provided
+    @Exclude
+    private String requestId = UUID.randomUUID().toString();
 
     @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
     @CreatePermission(expression = "value is Queued")
