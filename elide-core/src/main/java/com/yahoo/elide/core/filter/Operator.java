@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -235,11 +236,9 @@ public enum Operator {
     // In with strict equality
     private static <T> Predicate<T> in(Path fieldPath, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
-            Object val = getFieldValue(entity, fieldPath, requestScope);
+            BiPredicate predicate = (a, b) -> a.equals(b);
 
-            return val != null && values.stream()
-                    .map(v -> CoerceUtil.coerce(v, val.getClass()))
-                    .anyMatch(val::equals);
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
@@ -248,20 +247,19 @@ public enum Operator {
     private static <T> Predicate<T> in(Path fieldPath, List<Object> values,
             RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
-            Object fieldValue = getFieldValue(entity, fieldPath, requestScope);
 
-            if (fieldValue == null) {
-                return false;
-            }
+            BiPredicate predicate = (a, b) -> {
+                if (!a.getClass().isAssignableFrom(String.class)) {
+                    throw new IllegalStateException("Cannot case insensitive compare non-string values");
+                }
 
-            if (!fieldValue.getClass().isAssignableFrom(String.class)) {
-                throw new IllegalStateException("Cannot case insensitive compare non-string values");
-            }
+                String lhs = transform.apply((String) a);
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
-            String val = transform.apply((String) fieldValue);
-            return val != null && values.stream()
-                    .map(v -> transform.apply(CoerceUtil.coerce(v, String.class)))
-                    .anyMatch(val::equals);
+                return lhs.equals(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
@@ -445,6 +443,26 @@ public enum Operator {
         Comparable fieldComp = CoerceUtil.coerce(fieldValue, Comparable.class);
 
         return fieldComp.compareTo(testComp);
+    }
+
+    private static boolean evaluate(Object entity, Path fieldPath, List<Object> values,
+                             BiPredicate predicate, RequestScope requestScope) {
+        Class<?> valueClass = fieldPath.lastElement().get().getFieldType();
+
+        Object leftHandSide = getFieldValue(entity, fieldPath, requestScope);
+
+        if (leftHandSide instanceof Collection && !valueClass.isAssignableFrom(Collection.class)) {
+            return ((Collection) leftHandSide).stream()
+                    .anyMatch((leftHandSideElement) -> {
+                        return values.stream()
+                                .map(value -> CoerceUtil.coerce(value, valueClass))
+                                .anyMatch(value -> predicate.test(leftHandSideElement, value));
+                    });
+        } else {
+            return leftHandSide != null && values.stream()
+                    .map(value -> CoerceUtil.coerce(value, valueClass))
+                    .anyMatch(value -> predicate.test(leftHandSide, value));
+        }
     }
 
     public Operator negate() {
