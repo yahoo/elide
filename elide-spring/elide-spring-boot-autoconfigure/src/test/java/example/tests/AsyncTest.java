@@ -17,6 +17,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.core.HttpStatus;
 
@@ -71,8 +72,10 @@ public class AsyncTest extends IntegrationTest {
                     .accept("application/vnd.api+json")
                     .get("/json/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d");
 
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
              //If Async Query is created and completed then validate results
-            if (response.jsonPath().getString("data.attributes.status").equals("COMPLETE")) {
+            if (outputResponse.equals("COMPLETE")) {
 
                 // Validate AsyncQuery Response
                 response
@@ -102,6 +105,9 @@ public class AsyncTest extends IntegrationTest {
                 String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"group\\\",\\\"id\\\":\\\"com.example.repository\\\",\\\"attributes\\\":{\\\"commonName\\\":\\\"Example Repository\\\",\\\"deprecated\\\":false,\\\"description\\\":\\\"The code for this project\\\"},\\\"relationships\\\":{\\\"products\\\":{\\\"data\\\":[]}}}]}\",\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":208}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
+                break;
+            } else if (!(outputResponse.equals("PROCESSING"))) {
+                fail("Async Query has failed.");
                 break;
             }
         }
