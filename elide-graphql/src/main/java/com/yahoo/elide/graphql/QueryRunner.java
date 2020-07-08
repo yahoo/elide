@@ -92,6 +92,17 @@ public class QueryRunner {
      * @return The response.
      */
     public ElideResponse run(String graphQLDocument, User user) {
+        return run(graphQLDocument, user, UUID.randomUUID());
+    }
+
+    /**
+     * Execute a GraphQL query and return the response.
+     * @param graphQLDocument The graphQL document (wrapped in JSON payload).
+     * @param user The user who issued the query.
+     * @param requestId the Request ID.
+     * @return The response.
+     */
+    public ElideResponse run(String graphQLDocument, User user, UUID requestId) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -106,7 +117,7 @@ public class QueryRunner {
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(mapper, user, graphQLDocument, node);
+                (node) -> executeGraphQLRequest(mapper, user, graphQLDocument, node, requestId);
 
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
@@ -145,11 +156,9 @@ public class QueryRunner {
     }
 
     private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
-                                                String graphQLDocument, JsonNode jsonDocument) {
+                                                String graphQLDocument, JsonNode jsonDocument, UUID requestId) {
         boolean isVerbose = false;
-        UUID requestId = null;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-            requestId = tx.getRequestId();
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
@@ -169,7 +178,8 @@ public class QueryRunner {
             GraphQLProjectionInfo projectionInfo =
                     new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion).make(query);
             GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope(tx, principal, apiVersion, elide.getElideSettings(), projectionInfo);
+                    new GraphQLRequestScope(tx, principal, apiVersion,
+                            elide.getElideSettings(), projectionInfo, requestId);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
