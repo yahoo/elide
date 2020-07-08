@@ -56,6 +56,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -1392,7 +1393,7 @@ public class LifeCycleTest {
     private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx) {
         User user = new TestUser("1");
 
-        return new RequestScope(null, NO_VERSION, null, tx, user, null,
+        return new RequestScope(null, NO_VERSION, null, tx, user, null, UUID.randomUUID(),
                 getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
     }
 }

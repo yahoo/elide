@@ -52,6 +52,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -191,7 +192,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo =
                 new GraphQLEntityProjectionMaker(settings, variables, NO_VERSION).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
@@ -217,7 +218,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         if (isMutation) {
@@ -250,7 +251,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected ExecutionResult runGraphQLRequest(String graphQLRequest, Map<String, Object> variables) {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
 
         return api.execute(graphQLRequest, requestScope, variables);
     }
