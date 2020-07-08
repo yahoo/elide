@@ -49,4 +49,13 @@ public class AsyncQueryOperationChecks {
             return changeSpec.get().getModified().toString().equals(QueryStatus.CANCELLED.name());
         }
     }
+
+    @SecurityCheck(AsyncQueryStatusQueuedValue.VALUE_IS_QUEUED)
+    public static class AsyncQueryStatusQueuedValue extends OperationCheck<AsyncQuery> {
+        public static final String VALUE_IS_QUEUED = "value is Queued";
+        @Override
+        public boolean ok(AsyncQuery object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return changeSpec.get().getModified().toString().equals(QueryStatus.QUEUED.name());
+        }
+    }
 }
