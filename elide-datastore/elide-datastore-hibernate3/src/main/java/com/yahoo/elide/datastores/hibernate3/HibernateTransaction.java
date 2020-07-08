@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.hibernate3;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
@@ -49,7 +48,7 @@ import java.util.Optional;
  * Hibernate Transaction implementation.
  */
 @Slf4j
-public class HibernateTransaction extends DataStoreTransactionImplementation {
+public class HibernateTransaction implements DataStoreTransaction {
 
     private final Session session;
     private final SessionWrapper sessionWrapper;
