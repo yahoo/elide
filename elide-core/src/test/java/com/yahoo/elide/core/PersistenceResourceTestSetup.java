@@ -58,6 +58,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.persistence.Entity;
@@ -117,7 +118,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
                 new Child(),
                 null,
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
-                new RequestScope(null, null, NO_VERSION, null, null, null, null,
+                new RequestScope(null, null, NO_VERSION, null, null, null, null, UUID.randomUUID(),
                         initSettings()
                 )
         );
@@ -144,7 +145,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, MultivaluedMap<String, String> queryParams) {
-        return new RequestScope(null, path, NO_VERSION, null, tx, user, queryParams, elideSettings);
+        return new RequestScope(null, path, NO_VERSION, null, tx, user, queryParams, UUID.randomUUID(), elideSettings);
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
@@ -153,12 +154,12 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         User goodUser = new TestUser("1");
-        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, elideSettings);
+        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
-        return new RequestScope(null, null, NO_VERSION, new JsonApiDocument(), null, user, null,
+        return new RequestScope(null, null, NO_VERSION, new JsonApiDocument(), null, user, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                     .withEntityDictionary(dictionary)
                     .withAuditLogger(auditLogger)

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
@@ -55,6 +56,7 @@ public class LogMessageImplTest {
 
         final RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null,
                 new TestUser("aaron"), null,
+                UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withAuditLogger(new TestAuditLogger())
                         .withEntityDictionary(dictionary)

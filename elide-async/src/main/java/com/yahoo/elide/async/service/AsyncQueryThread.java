@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -70,18 +71,19 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     * @throws NoHttpResponseException
     */
     protected AsyncQueryResult processQuery() throws URISyntaxException, NoHttpResponseException {
+        UUID requestId = UUID.fromString(queryObj.getRequestId());
 
         ElideResponse response = null;
         log.debug("AsyncQuery Object from request: {}", queryObj);
         if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
             MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
             log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
-            response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion);
+            response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion, requestId);
             log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                     response.getResponseCode(), response.getBody());
         }
         else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            response = runner.run(queryObj.getQuery(), user);
+            response = runner.run(queryObj.getQuery(), user, requestId);
             log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                     response.getResponseCode(), response.getBody());
         }

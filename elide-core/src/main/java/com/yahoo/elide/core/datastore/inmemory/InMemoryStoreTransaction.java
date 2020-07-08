@@ -7,7 +7,6 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -41,7 +40,7 @@ import java.util.stream.StreamSupport;
  * Data Store Transaction that wraps another transaction and provides in-memory filtering, soring, and pagination
  * when the underlying transaction cannot perform the equivalent function.
  */
-public class InMemoryStoreTransaction extends DataStoreTransactionImplementation implements DataStoreTransaction {
+public class InMemoryStoreTransaction implements DataStoreTransaction {
 
     private final DataStoreTransaction tx;
     private static final Comparator<Object> NULL_SAFE_COMPARE = (a, b) -> {
