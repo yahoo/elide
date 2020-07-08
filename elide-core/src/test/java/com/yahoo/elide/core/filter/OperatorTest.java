@@ -205,6 +205,48 @@ public class OperatorTest {
     }
 
     @Test
+    public void lessThanOpTraversingToManyRelationshipTests() throws Exception {
+        Book book = new Book();
+        Author author1 = new Author();
+        author1.setName("Jon");
+        author1.setId(10L);
+        Author author2 = new Author();
+        author2.setName("Jane");
+        author2.setId(20L);
+        book.setAuthors(Arrays.asList(author1, author2));
+
+        // single value
+        fn = Operator.LT.contextualize(constructPath(Book.class, "authors.id"), Collections.singletonList("11"), requestScope);
+        assertTrue(fn.test(book));
+
+        fn = Operator.LT.contextualize(constructPath(Book.class, "authors.id"), Collections.singletonList("40"), requestScope);
+        assertTrue(fn.test(book));
+
+        fn = Operator.LT.contextualize(constructPath(Book.class, "authors.id"), Collections.singletonList("5"), requestScope);
+        assertFalse(fn.test(book));
+
+        // multiple value
+        fn = Operator.LT.contextualize(constructPath(Book.class, "authors.id"), Arrays.asList("5", "11"), requestScope);
+        assertTrue(fn.test(book));
+
+        fn = Operator.LT.contextualize(constructPath(Book.class, "authors.id"), Arrays.asList("5", "4"), requestScope);
+        assertFalse(fn.test(book));
+
+        fn = Operator.LT.contextualize(constructPath(Book.class, "authors.id"), Arrays.asList("11", "12"), requestScope);
+        assertTrue(fn.test(book));
+
+        fn = Operator.LT.contextualize(constructPath(Book.class, "authors.id"), Arrays.asList("40", "50"), requestScope);
+        assertTrue(fn.test(book));
+
+        // when val is null
+        author1.setId(null);
+        author2.setId(null);
+
+        fn = Operator.LT.contextualize(constructPath(Book.class, "authors.id"), Collections.singletonList("11"), requestScope);
+        assertFalse(fn.test(book));
+    }
+
+    @Test
     public void memberOfTest() throws Exception {
         author = new Author();
         author.setId(1L);

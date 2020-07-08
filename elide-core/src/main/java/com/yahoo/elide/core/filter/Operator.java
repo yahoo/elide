@@ -433,6 +433,16 @@ public enum Operator {
                 throw new BadRequestException("No value to compare");
             }
             Object fieldVal = getFieldValue(entity, fieldPath, requestScope);
+
+            if (fieldVal instanceof Collection) {
+                return ((Collection) fieldVal).stream()
+                        .anyMatch((fieldValueElement) -> {
+                            return fieldValueElement != null
+                                    && values.stream()
+                                    .anyMatch(testVal -> condition.test(compare(fieldValueElement, testVal)));
+                        });
+            }
+
             return fieldVal != null
                     && values.stream()
                     .anyMatch(testVal -> condition.test(compare(fieldVal, testVal)));
