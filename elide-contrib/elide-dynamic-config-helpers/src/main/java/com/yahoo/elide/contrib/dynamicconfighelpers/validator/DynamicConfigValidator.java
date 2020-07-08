@@ -5,29 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
-
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +25,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
+
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.io.FileUtils;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import sun.misc.IOUtils;
+import sun.tools.jar.CommandLine;
 
 @Slf4j
 @Data
@@ -70,7 +65,7 @@ public class DynamicConfigValidator {
     private Map<String, Object> variables;
     private String configDir;
 
-    public static void main(String[] args) throws IOException, ParseException, ProcessingException {
+    public static void main(String[] args) throws IOException, ParseException {
 
         Options options = prepareOptions();
         CommandLine cli = new DefaultParser().parse(options, args);
@@ -139,9 +134,8 @@ public class DynamicConfigValidator {
      * Read and validate config files under config directory.
      * @param filePath path for config directory
      * @throws IOException IOException
-     * @throws ProcessingException
      */
-    public void readAndValidateConfigs(String filePath) throws IOException, ProcessingException {
+    public void readAndValidateConfigs(String filePath) throws IOException {
 
         this.setConfigDir(DynamicConfigHelpers.formatFilePath(filePath));
         this.readVariableConfig();
@@ -156,10 +150,9 @@ public class DynamicConfigValidator {
     /**
      * Read variable file config.
      * @return boolean true if variable config file exists else false
-     * @throws ProcessingException
      * @throws IOException
      */
-    private boolean readVariableConfig() throws ProcessingException, IOException {
+    private boolean readVariableConfig() throws IOException {
         boolean isVariableConfig = exists(this.configDir + DynamicConfigHelpers.VARIABLE_CONFIG_PATH);
         this.variables = isVariableConfig ? DynamicConfigHelpers.getVariablesPojo(this.configDir)
                 : Collections.<String, Object>emptyMap();
@@ -196,9 +189,8 @@ public class DynamicConfigValidator {
      * Read security config file and checks for any missing Handlebar variables.
      * @return boolean true if security config file exists else false
      * @throws IOException
-     * @throws ProcessingException
      */
-    private boolean readSecurityConfig() throws IOException, ProcessingException {
+    private boolean readSecurityConfig() throws IOException {
         String securityConfigPath = this.configDir + DynamicConfigHelpers.SECURITY_CONFIG_PATH;
         boolean isSecurityConfig = exists(securityConfigPath);
         if (isSecurityConfig) {
@@ -240,9 +232,8 @@ public class DynamicConfigValidator {
      * Read table config files and checks for any missing Handlebar variables.
      * @return boolean true if table config directory exists else false
      * @throws IOException
-     * @throws ProcessingException
      */
-    private boolean readTableConfig() throws IOException, ProcessingException {
+    private boolean readTableConfig() throws IOException {
         String tableConfigsPath = this.configDir + DynamicConfigHelpers.TABLE_CONFIG_PATH;
         boolean isTableConfig = exists(tableConfigsPath);
         if (isTableConfig) {

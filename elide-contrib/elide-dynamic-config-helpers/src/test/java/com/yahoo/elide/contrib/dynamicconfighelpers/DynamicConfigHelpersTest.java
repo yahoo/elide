@@ -7,21 +7,19 @@ package com.yahoo.elide.contrib.dynamicconfighelpers;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
-
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-
-import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
+
+import org.junit.jupiter.api.Test;
+
 public class DynamicConfigHelpersTest {
 
     @Test
-    public void testValidSecuritySchema() throws IOException, ProcessingException {
+    public void testValidSecuritySchema() throws IOException {
         String path = "src/test/resources/security/valid";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
@@ -33,7 +31,7 @@ public class DynamicConfigHelpersTest {
     }
 
     @Test
-    public void testValidVariableSchema() throws ProcessingException, IOException {
+    public void testValidVariableSchema() throws IOException {
         String path = "src/test/resources/variables/valid";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
@@ -43,7 +41,7 @@ public class DynamicConfigHelpersTest {
     }
 
     @Test
-    public void testValidTableSchema() throws IOException, ProcessingException {
+    public void testValidTableSchema() throws IOException {
         String path = "src/test/resources/tables";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
