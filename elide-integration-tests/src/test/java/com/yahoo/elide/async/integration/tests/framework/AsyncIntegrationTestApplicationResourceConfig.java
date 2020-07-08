@@ -59,6 +59,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 Map<String, Class<? extends Check>> checkMappings = new HashMap<>(TestCheckMappings.MAPPINGS);
                 checkMappings.put(AsyncQueryOperationChecks.AsyncQueryOwner.PRINCIPAL_IS_OWNER, AsyncQueryOperationChecks.AsyncQueryOwner.class);
                 checkMappings.put(AsyncQueryOperationChecks.AsyncQueryStatusValue.VALUE_IS_CANCELLED, AsyncQueryOperationChecks.AsyncQueryStatusValue.class);
+                checkMappings.put(AsyncQueryOperationChecks.AsyncQueryStatusQueuedValue.VALUE_IS_QUEUED, AsyncQueryOperationChecks.AsyncQueryStatusQueuedValue.class);
 
                 EntityDictionary dictionary = new EntityDictionary(checkMappings, injector::inject);
 
