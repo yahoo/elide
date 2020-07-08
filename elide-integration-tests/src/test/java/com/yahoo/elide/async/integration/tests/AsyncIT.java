@@ -435,6 +435,51 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
+     * Test for QueryStatus Set to PROCESSING instead of Queued
+     */
+    @Test
+    public void graphQLTestCreateFailOnQueryStatus() {
+
+        AsyncDelayStoreTransaction.sleep = true;
+        AsyncQuery queryObj = new AsyncQuery();
+        queryObj.setId("edc4a871-dff2-4054-804e-d80075cf839e");
+        queryObj.setAsyncAfterSeconds(0);
+        queryObj.setQueryType("GRAPHQL_V1_0");
+        queryObj.setStatus("PROCESSING");
+        queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        String graphQLRequest = document(
+                mutation(
+                        selection(
+                                field(
+                                        "asyncQuery",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", queryObj, UNQUOTED_VALUE)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("query"),
+                                                field("queryType"),
+                                                field("status")
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
+        ValidatableResponse response = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(graphQLJsonNode)
+                .post("/graphQL")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK);
+
+        assertEquals(true, response.extract().body().asString().contains("errors"));
+    }
+
+    /**
      * Various tests for an unknown collection (group) that does not exist JSONAPI query as a Async Request.
      * @throws InterruptedException
      */
