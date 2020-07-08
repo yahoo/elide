@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
@@ -23,7 +23,7 @@ import java.io.IOException;
  * Transaction handler for {@link AggregationDataStore}.
  */
 @ToString
-public class AggregationDataStoreTransaction extends DataStoreTransactionImplementation {
+public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private final QueryEngine queryEngine;
     private final Cache cache;
     private final QueryEngine.Transaction queryEngineTransaction;

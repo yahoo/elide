@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -129,7 +130,7 @@ public class PermissionExpressionBuilderTest {
      }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, elideSettings);
+        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, UUID.randomUUID(), elideSettings);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 }

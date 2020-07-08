@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -19,7 +18,7 @@ import java.io.Serializable;
 
 import javax.persistence.Entity;
 
-class TestDataStore extends DataStoreTransactionImplementation implements DataStore {
+class TestDataStore implements DataStore, DataStoreTransaction {
 
     private final Package beanPackage;
 
