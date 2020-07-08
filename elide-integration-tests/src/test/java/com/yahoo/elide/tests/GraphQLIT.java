@@ -16,24 +16,19 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import io.restassured.response.ValidatableResponse;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,12 +39,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.core.MediaType;
 
 /**
  * GraphQL integration tests.
  */
-public class GraphQLIT extends IntegrationTest {
+public class GraphQLIT extends GraphQLIntegrationTest {
 
     private static class Book {
         @Getter
@@ -633,42 +627,6 @@ public class GraphQLIT extends IntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
-    private void create(String query, Map<String, Object> variables) throws IOException {
-        runQuery(toJsonQuery(query, variables));
-    }
-
-    private void runQueryWithExpectedResult(
-            String graphQLQuery,
-            Map<String, Object> variables,
-            String expected
-    ) throws IOException {
-        compareJsonObject(runQuery(graphQLQuery, variables), expected);
-    }
-
-    private void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
-        runQueryWithExpectedResult(graphQLQuery, null, expected);
-    }
-
-    private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = mapper.readTree(response.extract().body().asString());
-        JsonNode expectedNode = mapper.readTree(expected);
-        assertEquals(expectedNode, responseNode);
-    }
-
-    private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
-        return runQuery(toJsonQuery(query, variables));
-    }
-
-    private ValidatableResponse runQuery(String query) {
-        return given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(query)
-                .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
     private String toJsonArray(JsonNode... nodes) throws IOException {
         ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
         for (JsonNode node : nodes) {
@@ -677,20 +635,7 @@ public class GraphQLIT extends IntegrationTest {
         return mapper.writeValueAsString(arrayNode);
     }
 
-    private String toJsonQuery(String query, Map<String, Object> variables) throws IOException {
-        return mapper.writeValueAsString(toJsonNode(query, variables));
-    }
-
     private JsonNode toJsonNode(String query) {
         return toJsonNode(query, null);
-    }
-
-    private JsonNode toJsonNode(String query, Map<String, Object> variables) {
-        ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
-        graphqlNode.put("query", query);
-        if (variables != null) {
-            graphqlNode.set("variables", mapper.valueToTree(variables));
-        }
-        return graphqlNode;
     }
 }

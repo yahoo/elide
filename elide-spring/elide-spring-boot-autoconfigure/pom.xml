@@ -40,8 +40,8 @@
     </scm>
 
     <properties>
-        <spring.boot.version>2.3.0.RELEASE</spring.boot.version>
-        <tomcat.version>9.0.35</tomcat.version>
+        <spring.boot.version>2.3.1.RELEASE</spring.boot.version>
+        <tomcat.version>9.0.37</tomcat.version>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
         <min_jdk_version>1.8</min_jdk_version>
         <max_jdk_version>1.8</max_jdk_version>

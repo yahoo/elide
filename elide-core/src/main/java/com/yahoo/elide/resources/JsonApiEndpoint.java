@@ -54,6 +54,7 @@ public class JsonApiEndpoint {
      * Create handler.
      *
      * @param path request path
+     * @param uriInfo URI info
      * @param securityContext security context
      * @param jsonapiDocument post data as jsonapi document
      * @return response
@@ -63,9 +64,11 @@ public class JsonApiEndpoint {
     @Consumes(JSONAPI_CONTENT_TYPE)
     public Response post(
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        return build(elide.post(path, jsonapiDocument, getUser.apply(securityContext)));
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        return build(elide.post(path, jsonapiDocument, queryParams, getUser.apply(securityContext)));
     }
 
     /**
@@ -92,6 +95,7 @@ public class JsonApiEndpoint {
      * @param contentType document MIME type
      * @param accept response MIME type
      * @param path request path
+     * @param uriInfo URI info
      * @param securityContext security context
      * @param jsonapiDocument patch data as jsonapi document
      * @return response
@@ -103,15 +107,19 @@ public class JsonApiEndpoint {
         @HeaderParam("Content-Type") String contentType,
         @HeaderParam("accept") String accept,
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        return build(elide.patch(contentType, accept, path, jsonapiDocument, getUser.apply(securityContext)));
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        return build(elide.patch(contentType, accept, path, jsonapiDocument,
+                                 queryParams, getUser.apply(securityContext)));
     }
 
     /**
      * Delete relationship handler (expects body with resource ids and types).
      *
      * @param path request path
+     * @param uriInfo URI info
      * @param securityContext security context
      * @param jsonApiDocument DELETE document
      * @return response
@@ -121,9 +129,11 @@ public class JsonApiEndpoint {
     @Consumes(JSONAPI_CONTENT_TYPE)
     public Response delete(
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
-        return build(elide.delete(path, jsonApiDocument, getUser.apply(securityContext)));
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        return build(elide.delete(path, jsonApiDocument, queryParams, getUser.apply(securityContext)));
     }
 
     private static Response build(ElideResponse response) {

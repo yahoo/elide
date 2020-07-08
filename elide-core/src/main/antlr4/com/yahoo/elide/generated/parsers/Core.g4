@@ -48,6 +48,8 @@ MARK
     | '.'
     | '!'
     | '~'
+    | '='  //For BASE64 IDs
+    | '%'  //For URL encoded IDs
     | '*'
     | '\''
     | '('
