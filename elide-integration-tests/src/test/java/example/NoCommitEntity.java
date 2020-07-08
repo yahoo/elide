@@ -12,6 +12,9 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Optional;
 
 import javax.persistence.Entity;
@@ -27,6 +30,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "nocommit")
 public class NoCommitEntity extends BaseId {
+    @Getter @Setter
+    private String value;
+
     static public class NoCommitCheck<T> extends OperationCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {

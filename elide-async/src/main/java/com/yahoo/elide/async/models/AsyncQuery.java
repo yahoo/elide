@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.models;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -56,6 +57,7 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     private String requestId; //Client provided
 
     @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
+    @CreatePermission(expression = "value is Queued")
     private QueryStatus status = QueryStatus.QUEUED;
 
     @Embedded
