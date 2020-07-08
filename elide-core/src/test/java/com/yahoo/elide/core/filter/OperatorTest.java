@@ -56,6 +56,7 @@ public class OperatorTest {
     OperatorTest() {
         dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Author.class);
+        dictionary.bindEntity(Book.class);
         requestScope = Mockito.mock(RequestScope.class);
         when(requestScope.getDictionary()).thenReturn(dictionary);
     }
@@ -167,6 +168,40 @@ public class OperatorTest {
         fn = Operator.NOTEMPTY.contextualize(constructPath(Author.class, "books"), null, requestScope);
         assertTrue(fn.test(author));
 
+    }
+
+    @Test
+    public void inOperatorTraversingToManyRelationshipTest() throws Exception {
+        Book book = new Book();
+        Author author1 = new Author();
+        author1.setName("Jon");
+        Author author2 = new Author();
+        author2.setName("Jane");
+        book.setAuthors(Arrays.asList(author1, author2));
+
+        fn = Operator.IN.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Jon"), requestScope);
+        assertTrue(fn.test(book));
+
+        fn = Operator.IN.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Nobody", "Jon"), requestScope);
+        assertTrue(fn.test(book));
+
+        fn = Operator.IN.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Jane", "Jon"), requestScope);
+        assertTrue(fn.test(book));
+
+        fn = Operator.IN.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Nobody1", "Nobody2"), requestScope);
+        assertFalse(fn.test(book));
+
+        fn = Operator.NOT.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Jon"), requestScope);
+        assertFalse(fn.test(book));
+
+        fn = Operator.NOT.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Nobody", "Jon"), requestScope);
+        assertFalse(fn.test(book));
+
+        fn = Operator.NOT.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Jane", "Jon"), requestScope);
+        assertFalse(fn.test(book));
+
+        fn = Operator.NOT.contextualize(constructPath(Book.class, "authors.name"), Arrays.asList("Nobody1", "Nobody2"), requestScope);
+        assertTrue(fn.test(book));
     }
 
     @Test
