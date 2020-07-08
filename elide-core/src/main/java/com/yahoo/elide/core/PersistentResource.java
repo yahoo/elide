@@ -147,7 +147,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         // Keep track of new resources for non-transferable resources
         requestScope.getNewPersistentResources().add(newResource);
-        //checkPermission(CreatePermission.class, newResource);
         checkUserPermission(CreatePermission.class, obj, requestScope);
 
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
@@ -1739,8 +1738,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private static <A extends Annotation> ExpressionResult checkUserPermission(
-            Class<A> annotationClass, Object resource, RequestScope requestScope) {
-        return requestScope.getPermissionExecutor().checkUserPermissions(resource.getClass(), annotationClass);
+            Class<A> annotationClass, Object obj, RequestScope requestScope) {
+        return requestScope.getPermissionExecutor().checkUserPermissions(obj.getClass(), annotationClass);
     }
 
     private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(Class<A> annotationClass) {
