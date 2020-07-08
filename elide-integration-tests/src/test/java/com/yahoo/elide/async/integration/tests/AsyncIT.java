@@ -204,8 +204,10 @@ public class AsyncIT extends IntegrationTest {
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/edc4a871-dff2-4054-804e-d80075cf830e");
 
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
             // If Async Query is created and completed
-            if (response.jsonPath().getString("data.attributes.status").equals("COMPLETE")) {
+            if (outputResponse.equals("COMPLETE")) {
 
                 // Validate AsyncQuery Response
                 response
@@ -223,9 +225,12 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.httpStatus", equalTo(200))
                         .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
-
+                break;
+            } else if (!(outputResponse.equals("PROCESSING"))) {
+                fail("Async Query has failed.");
                 break;
             }
+
             i++;
 
             if (i == 1000) {
@@ -350,6 +355,9 @@ public class AsyncIT extends IntegrationTest {
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
+            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
+                fail("Async Query has failed.");
+                break;
             }
             i++;
 
@@ -460,8 +468,10 @@ public class AsyncIT extends IntegrationTest {
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9263b");
 
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
             // If Async Query is created and completed then validate results
-            if (response.jsonPath().getString("data.attributes.status").equals("COMPLETE")) {
+            if (outputResponse.equals("COMPLETE")) {
                 // Validate AsyncQuery Response
                 response
                         .then()
@@ -474,6 +484,9 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.responseBody", equalTo("{\"errors\":[{\"detail\":\"Unknown collection group\"}]}"))
                         .body("data.attributes.result.httpStatus", equalTo(404));
 
+                break;
+            } else if (!(outputResponse.equals("PROCESSING"))) {
+                fail("Async Query has failed.");
                 break;
             }
             i++;
@@ -560,8 +573,10 @@ public class AsyncIT extends IntegrationTest {
                     .accept("application/vnd.api+json")
                     .get("/asyncQuery/0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
 
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
             // If Async Query is created and completed
-            if (response.jsonPath().getString("data.attributes.status").equals("COMPLETE")) {
+            if (outputResponse.equals("COMPLETE")) {
                 // Validate AsyncQuery Response
                 response
                         .then()
@@ -575,6 +590,9 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.httpStatus", equalTo(200))
                         .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
+                break;
+            } else if (!(outputResponse.equals("PROCESSING"))) {
+                fail("Async Query has failed.");
                 break;
             }
             i++;
