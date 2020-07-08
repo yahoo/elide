@@ -1652,6 +1652,30 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testExceptionOnEmptyOperator() throws JsonProcessingException {
+        JsonNode result;
+        // Typed Expression
+        result = getAsNode(String.format("/author/%s/books?filter[book.authors.name][notempty]", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "BadRequestException: Invalid predicate: book.authors.name NOTEMPTY []\n"
+                        + "Invalid query parameter: filter[book.authors.name][notempty]\n"
+                        + "Invalid toMany join. toMany association has to be the target collection.book.authors.name NOTEMPTY []\n"
+                        + "Invalid query parameter: filter[book.authors.name][notempty]",
+                result.get("errors").get(0).asText()
+        );
+
+        //RSQL
+        result = getAsNode(String.format("/author/%s/books?filter[book]=authors.name=isempty=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        assertEquals(
+                "BadRequestException: Invalid filter format: filter[book]\n"
+                        + "Invalid query parameter: filter[book]\n"
+                        + "Invalid filter format: filter[book]\n"
+                        + "Invalid association authors.name. toMany association has to be the target collection.",
+                result.get("errors").get(0).asText()
+        );
+    }
+
+    @Test
     @Tag("excludeOnHibernate3")
     void testMemberOfOnAttributes() {
         String filterString = "Booker Prize";
