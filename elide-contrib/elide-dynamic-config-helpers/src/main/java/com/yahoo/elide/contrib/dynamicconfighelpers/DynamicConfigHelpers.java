@@ -5,6 +5,20 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
+import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+
+import org.apache.commons.io.FileUtils;
+import org.hjson.JsonValue;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,19 +27,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
-import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
-
-import org.apache.commons.io.FileUtils;
-import org.hjson.JsonValue;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 /**
@@ -69,25 +70,37 @@ public class DynamicConfigHelpers {
      * @return Map of variables
      * @throws IOException
      */
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> getVariablesPojo(String basePath) throws IOException {
-        Map<String, Object> variables = null;
+    public static Map<String, Object> getVariablesPojo(String basePath)
+            throws IOException {
         String filePath = basePath + VARIABLE_CONFIG_PATH;
         File variableFile = new File(filePath);
         if (variableFile.exists()) {
-            String jsonConfig = hjsonToJson(readConfigFile(variableFile));
-            try {
-                if (DynamicConfigSchemaValidator.verifySchema(VARIABLE, jsonConfig)) {
-                    variables = getModelPojo(jsonConfig, Map.class);
-                }
-            } catch (ProcessingException e) {
-                log.error("Error Validating variable config : " + e.getMessage());
-                throw new IOException(e);
-            }
+            return stringToVariablesPojo(readConfigFile(variableFile));
         } else {
             log.info("Variables config file not found at " + filePath);
         }
-        return (variables == null ? new HashMap<String, Object>() : variables);
+        return new HashMap<>();
+    }
+
+    /**
+     * converts variables hjson string to map of variables.
+     * @param config
+     * @return Map of Variables
+     * @throws IOException
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> stringToVariablesPojo(String config)
+            throws IOException {
+        String jsonConfig = hjsonToJson(config);
+        try {
+            if (DynamicConfigSchemaValidator.verifySchema(VARIABLE, jsonConfig)) {
+                return getModelPojo(jsonConfig, Map.class);
+            }
+        } catch (ProcessingException e) {
+            log.error("Error Validating Variable config : " + e.getMessage());
+            throw new IOException(e);
+        }
+        return new HashMap<>();
     }
 
     /**

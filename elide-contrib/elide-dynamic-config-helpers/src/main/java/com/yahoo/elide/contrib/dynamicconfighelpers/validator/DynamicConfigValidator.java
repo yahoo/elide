@@ -5,6 +5,27 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,24 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
-
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.io.FileUtils;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import sun.misc.IOUtils;
-import sun.tools.jar.CommandLine;
 
 @Slf4j
 @Data
@@ -101,11 +104,10 @@ public class DynamicConfigValidator {
 
     /**
      * Read and validate config files under resources.
-     * @throws ProcessingException
      * @throws IOException
      */
     public void readAndValidateClasspathConfigs(String filePath)
-            throws ProcessingException, IOException {
+            throws IOException {
 
         this.setConfigDir(DynamicConfigHelpers.formatFilePath(formatClassPath(filePath)));
         ClassLoader classLoader = DynamicConfigValidator.class.getClassLoader();
@@ -162,10 +164,9 @@ public class DynamicConfigValidator {
     /**
      * Read variable file config from filesystem.
      * @param fs : path to variable file
-     * @throws ProcessingException
      * @throws IOException
      */
-    private void readVariableConfig(FileSystem fs) throws ProcessingException, IOException {
+    private void readVariableConfig(FileSystem fs) throws IOException {
         DirectoryStream<Path> directoryStream = null;
         InputStream inputStream = null;
         try {
@@ -206,9 +207,8 @@ public class DynamicConfigValidator {
      * Read security config file and checks for any missing Handlebar variables.
      * @param fs : FileSystem path to security file
      * @throws IOException
-     * @throws ProcessingException
      */
-    private void readSecurityConfig(FileSystem fs) throws IOException, ProcessingException {
+    private void readSecurityConfig(FileSystem fs) throws IOException {
         DirectoryStream<Path> directoryStream = null;
         try {
             directoryStream = Files.newDirectoryStream(fs.getPath(configDir));
@@ -262,9 +262,8 @@ public class DynamicConfigValidator {
      * Read table config files and checks for any missing Handlebar variables.
      * @param fs : FileSystem path to tables config
      * @throws IOException
-     * @throws ProcessingException
      */
-    private void readTableConfig(FileSystem fs) throws IOException, ProcessingException {
+    private void readTableConfig(FileSystem fs) throws IOException {
 
         DirectoryStream<Path> directoryStream = null;
         Set<Table> tables = new HashSet<>();

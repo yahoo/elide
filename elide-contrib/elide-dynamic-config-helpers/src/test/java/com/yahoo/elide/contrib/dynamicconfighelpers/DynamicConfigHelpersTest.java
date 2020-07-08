@@ -7,14 +7,14 @@ package com.yahoo.elide.contrib.dynamicconfighelpers;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 
 public class DynamicConfigHelpersTest {
 
