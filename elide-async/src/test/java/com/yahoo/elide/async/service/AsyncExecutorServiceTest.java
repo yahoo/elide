@@ -87,6 +87,7 @@ public class AsyncExecutorServiceTest {
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         when(queryObj.getQuery()).thenReturn(query);
         when(queryObj.getId()).thenReturn(id);
+        when(queryObj.getRequestId()).thenReturn(id);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
         when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
         service.executeQuery(queryObj, testUser, NO_VERSION);

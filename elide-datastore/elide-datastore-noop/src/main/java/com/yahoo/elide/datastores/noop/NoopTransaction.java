@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.noop;
 
-import com.yahoo.elide.core.DataStoreTransactionImplementation;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 
@@ -20,7 +20,7 @@ import java.util.Collections;
  * Noop transaction. Specifically, this transaction does not perform any actions (i.e. no operation).
  */
 @Slf4j
-public class NoopTransaction extends DataStoreTransactionImplementation {
+public class NoopTransaction implements DataStoreTransaction {
     /**
      * No-op transaction, do nothing.
      * @param entity - the object to save.
