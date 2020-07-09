@@ -21,9 +21,9 @@ import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.core.MediaType;
 
 /**
  * GraphQL integration tests.
@@ -490,8 +491,6 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
-<<<<<<< HEAD
-=======
     @Test
     public void testTypeIntrospection() throws Exception {
         String graphQLRequest = "{"
@@ -622,63 +621,11 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
     }
 
-
-    private void runQueryWithExpectedResult(
-            String graphQLQuery,
-            Map<String, Object> variables,
-            String expected
-    ) throws IOException {
-        compareJsonObject(runQuery(graphQLQuery, variables), expected);
-    }
-
-    private void runQueryWithExpectedResult(
-            String graphQLQuery,
-            Map<String, Object> variables,
-            String expected,
-            String apiVersion
-    ) throws IOException {
-        compareJsonObject(runQuery(graphQLQuery, variables, apiVersion), expected);
-    }
-
-    private void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
-        runQueryWithExpectedResult(graphQLQuery, null, expected);
-    }
-
-    private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = mapper.readTree(response.extract().body().asString());
-        JsonNode expectedNode = mapper.readTree(expected);
-        assertEquals(expectedNode, responseNode);
-    }
-
-    private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
-        return runQuery(toJsonQuery(query, variables), NO_VERSION);
-    }
-
-    private ValidatableResponse runQuery(String query, Map<String, Object> variables, String apiVersion)
-            throws IOException {
-        return runQuery(toJsonQuery(query, variables), apiVersion);
-    }
-
-    private ValidatableResponse runQuery(String query, String apiVersion) {
-        return given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .header("ApiVersion", apiVersion)
-                .body(query)
-                .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
     private String toJsonArray(JsonNode... nodes) throws IOException {
         ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
         for (JsonNode node : nodes) {
             arrayNode.add(node);
         }
         return mapper.writeValueAsString(arrayNode);
-    }
-
-    private JsonNode toJsonNode(String query) {
-        return toJsonNode(query, null);
     }
 }

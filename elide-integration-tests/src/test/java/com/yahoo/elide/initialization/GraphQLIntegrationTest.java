@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.initialization;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,6 +20,7 @@ import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
@@ -36,6 +38,15 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
         compareJsonObject(runQuery(graphQLQuery, variables), expected);
     }
 
+    protected void runQueryWithExpectedResult(
+            String graphQLQuery,
+            Map<String, Object> variables,
+            String expected,
+            String apiVersion
+    ) throws IOException {
+        compareJsonObject(runQuery(graphQLQuery, variables, apiVersion), expected);
+    }
+
     protected void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
         runQueryWithExpectedResult(graphQLQuery, null, expected);
     }
@@ -46,15 +57,21 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
         assertEquals(expectedNode, responseNode);
     }
 
-    protected ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
-        return runQuery(toJsonQuery(query, variables));
+    protected ValidatableResponse runQuery(String query, Map<String, Object> variables,
+                                           String apiVersion) throws IOException {
+        return runQuery(toJsonQuery(query, variables), apiVersion);
     }
 
-    protected ValidatableResponse runQuery(String query) {
+    protected ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
+        return runQuery(toJsonQuery(query, variables), NO_VERSION);
+    }
+
+    protected ValidatableResponse runQuery(String query, String apiVersion) {
         return given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(query)
+                .header("ApiVersion", apiVersion)
                 .post("/graphQL")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
@@ -62,6 +79,10 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
 
     protected String toJsonQuery(String query, Map<String, Object> variables) throws IOException {
         return mapper.writeValueAsString(toJsonNode(query, variables));
+    }
+
+    protected JsonNode toJsonNode(String query) {
+        return toJsonNode(query, new HashMap<>());
     }
 
     protected JsonNode toJsonNode(String query, Map<String, Object> variables) {

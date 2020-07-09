@@ -113,6 +113,7 @@ public class EntityDictionary {
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.apiVersions = new HashSet<>();
+        this.serdeLookup = CoerceUtil::lookup;
         initializeChecks();
 
         //Default injector only injects Elide internals.

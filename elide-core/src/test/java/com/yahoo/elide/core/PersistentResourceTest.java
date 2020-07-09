@@ -2270,7 +2270,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 "Hemingway"
         );
 
-        RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class), new User(1), queryParams);
+        RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class), new TestUser("1"),
+                queryParams);
 
         Optional<FilterExpression> filter = scope.getLoadFilterExpression(Book.class);
         FilterPredicate predicate = (FilterPredicate) filter.get();
