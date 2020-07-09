@@ -24,6 +24,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Operator enum for predicates.
@@ -418,6 +419,12 @@ public enum Operator {
                         .filter(Objects::nonNull)
                         .map(target -> PersistentResource.getValue(target, field.getFieldName(), requestScope))
                         .filter(Objects::nonNull)
+                        .flatMap(result -> {
+                            if (result instanceof Collection) {
+                                return ((Collection) result).stream();
+                            }
+                            return Stream.of(result);
+                        })
                         .collect(Collectors.toSet());
             } else {
                 val = PersistentResource.getValue(val, field.getFieldName(), requestScope);
