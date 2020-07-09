@@ -17,11 +17,8 @@ import java.util.List;
  * This class uses ThreadLocal list to be thread safe.
  */
 public abstract class AuditLogger {
-    protected final ThreadLocal<List<LogMessage>> messages;
-
-    public AuditLogger() {
-        messages = ThreadLocal.withInitial(ArrayList::new);
-    }
+    protected static final ThreadLocal<List<LogMessage>> messages =
+        ThreadLocal.withInitial(ArrayList::new);
 
     public void log(LogMessage message) {
         messages.get().add(message);
