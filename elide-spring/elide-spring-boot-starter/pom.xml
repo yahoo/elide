@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-spring-boot-starter</artifactId>
-    <version>4.6.6</version>
+    <version>4.6.7-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Spring Boot Starter</name>
     <description>Elide Spring Boot Starter</description>
@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>4.6.6</version>
+        <version>4.6.7-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -36,7 +36,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>4.6.6</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
@@ -50,31 +50,31 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>4.6.6</version>
+            <version>4.6.7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.6.6</version>
+            <version>4.6.7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>4.6.6</version>
+            <version>4.6.7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.6.6</version>
+            <version>4.6.7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>4.6.6</version>
+            <version>4.6.7-SNAPSHOT</version>
         </dependency>
 
         <!-- Jetty -->
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-spring-boot-autoconfigure</artifactId>
-            <version>4.6.6</version>
+            <version>4.6.7-SNAPSHOT</version>
         </dependency>
 
         <dependency>
