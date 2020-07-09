@@ -198,7 +198,6 @@ public class QueryRunner {
             }
             executionInput.variables(variables);
 
-            //accept and process the query here for logging
             queryRunnerAcceptQuery(requestScope, principal, query);
             queryRunnerProcessQuery(requestScope, projectionInfo, tx);
 
@@ -237,7 +236,6 @@ public class QueryRunner {
                     .body(mapper.writeValueAsString(result))
                     .build();
 
-            //call complete query here if operation = QUERY
             queryRunnerCompleteQuery(requestScope, response);
 
             return response;
@@ -330,7 +328,7 @@ public class QueryRunner {
     private static void queryRunnerAcceptQuery(GraphQLRequestScope requestScope, User principal, String query) {
         if (requestScope.getElideSettings() != null) {
             final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+            ql.acceptQuery(requestScope.getRequestId(),
                     principal.getPrincipal(),
                     requestScope.getHeaders(),
                     requestScope.getApiVersion(),
@@ -341,7 +339,7 @@ public class QueryRunner {
     private static void queryRunnerCompleteQuery(GraphQLRequestScope requestScope, ElideResponse response) {
         if (requestScope.getElideSettings() != null) {
             final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
+            ql.completeQuery(requestScope.getRequestId(), response);
         }
     }
 
@@ -351,7 +349,7 @@ public class QueryRunner {
         projections.forEach((k, projection) -> {
             if (requestScope.getElideSettings() != null) {
                 final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-                ql.processQuery(UUID.fromString(requestScope.getRequestId()), projection, requestScope, tx);
+                ql.processQuery(requestScope.getRequestId(), projection, requestScope, tx);
             }
         });
     }
