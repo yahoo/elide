@@ -117,19 +117,24 @@ public class DynamicConfigValidator {
             throw new IllegalStateException("Model Configs Directory doesn't exists");
         }
 
-        URL jar = DynamicConfigValidator.class.getProtectionDomain().getCodeSource().getLocation();
-        Path jarFile = Paths.get(jar.toString().substring(FILE_PREFIX_LENGTH));
-        FileSystem fs = FileSystems.newFileSystem(jarFile, null);
+        FileSystem fs = null;
 
-        // load variables
-        this.readVariableConfig(fs);
+        try {
+            URL jar = DynamicConfigValidator.class.getProtectionDomain().getCodeSource().getLocation();
+            Path jarFile = Paths.get(jar.toString().substring(FILE_PREFIX_LENGTH));
+            fs = FileSystems.newFileSystem(jarFile, null);
 
-        //load and resolve security
-        this.readSecurityConfig(fs);
+            // load variables
+            this.readVariableConfig(fs);
 
-        // load and resolve tables
-        this.readTableConfig(fs);
+            //load and resolve security
+            this.readSecurityConfig(fs);
 
+            // load and resolve tables
+            this.readTableConfig(fs);
+        } finally {
+            fs.close();
+        }
     }
 
     /**
