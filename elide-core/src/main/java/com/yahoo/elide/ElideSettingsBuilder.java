@@ -10,6 +10,8 @@ import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.NoopQueryLogger;
+import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
@@ -47,6 +49,7 @@ public class ElideSettingsBuilder {
     private int defaultMaxPageSize = PaginationImpl.MAX_PAGE_LIMIT;
     private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
     private int updateStatusCode;
+    private QueryLogger queryLogger;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -62,6 +65,7 @@ public class ElideSettingsBuilder {
         this.subqueryFilterDialects = new ArrayList<>();
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
         this.serdes = new HashMap<>();
+        this.queryLogger = new NoopQueryLogger();
 
         //By default, Elide supports epoch based dates.
         this.withEpochDates();
@@ -89,7 +93,8 @@ public class ElideSettingsBuilder {
                 defaultMaxPageSize,
                 defaultPageSize,
                 updateStatusCode,
-                serdes);
+                serdes,
+                queryLogger);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -155,6 +160,15 @@ public class ElideSettingsBuilder {
         serdes.put(java.sql.Date.class, new EpochToDateConverter<java.sql.Date>(java.sql.Date.class));
         serdes.put(java.sql.Time.class, new EpochToDateConverter<java.sql.Time>(java.sql.Time.class));
         serdes.put(java.sql.Timestamp.class, new EpochToDateConverter<java.sql.Timestamp>(java.sql.Timestamp.class));
+        return this;
+    }
+
+    /**
+     * Changes the default NoopQueryLogger to User Specified Logger
+     * @return Modified ElideSettingsBuilder object to now include the logger
+     */
+    public ElideSettingsBuilder withQueryLogger(QueryLogger logger) {
+        this.queryLogger = logger;
         return this;
     }
 }
