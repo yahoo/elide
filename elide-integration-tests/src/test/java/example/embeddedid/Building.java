@@ -9,6 +9,7 @@ package example.embeddedid;
 import com.yahoo.elide.annotation.Include;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Set;
 import javax.persistence.Embedded;
@@ -28,5 +29,6 @@ public class Building {
 
     @OneToMany
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<Building> neighbors;
 }

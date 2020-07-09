@@ -1154,7 +1154,6 @@ public class FilterIT extends IntegrationTest {
      * Verifies that issue 508 is closed.
      */
     @Test
-    @Tag("skipInMemory")
     void testIssue508() throws JsonProcessingException {
         JsonNode result = getAsNode("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default Publisher')&page[totals]");
 
@@ -1200,7 +1199,6 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
-    @Tag("skipInMemory")
     void testGetBooksFilteredByAuthors() throws JsonProcessingException {
         /* Test Default */
         JsonNode result = getAsNode("book?filter[book.authors.name]=Null Ned");
@@ -1224,7 +1222,6 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
-    @Tag("skipInMemory")
     void testGetBooksFilteredByAuthorsId() throws JsonProcessingException {
         String nullNedIdStr = String.valueOf(nullNedId);
         /* Test Default */

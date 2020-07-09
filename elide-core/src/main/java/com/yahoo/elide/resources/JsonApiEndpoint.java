@@ -13,6 +13,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.security.User;
 
+import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -68,7 +69,7 @@ public class JsonApiEndpoint {
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
         return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument, 
-                queryParams, user, safeApiVersion));
+                queryParams, user, safeApiVersion, UUID.randomUUID()));
     }
 
     /**
@@ -121,7 +122,7 @@ public class JsonApiEndpoint {
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
         return build(elide.patch(uriInfo.getBaseUri().toString(), contentType, accept, path, 
-                                 jsonapiDocument, queryParams, user, safeApiVersion));
+                                 jsonapiDocument, queryParams, user, safeApiVersion, UUID.randomUUID()));
     }
 
     /**
@@ -146,8 +147,7 @@ public class JsonApiEndpoint {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
-        return build(elide.delete(uriInfo.getBaseUri().toString(), path, jsonApiDocument, 
-                queryParams, user, safeApiVersion));
+        return build(elide.delete(uriInfo.getBaseUri(), path, jsonApiDocument, queryParams, user, safeApiVersion, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {
