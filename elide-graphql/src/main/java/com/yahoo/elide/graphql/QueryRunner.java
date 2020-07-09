@@ -10,6 +10,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.ErrorObjects;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -18,6 +19,7 @@ import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -184,8 +186,11 @@ public class QueryRunner {
             if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
                 executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
             }
-
             executionInput.variables(variables);
+
+            //accept and process the query here for logging
+            queryRunnerAcceptQuery(requestScope, principal, query);
+            queryRunnerProcessQuery(requestScope, projectionInfo, tx);
 
             ExecutionResult result = api.execute(executionInput);
 
@@ -217,10 +222,15 @@ public class QueryRunner {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
-            return ElideResponse.builder()
+            ElideResponse response = ElideResponse.builder()
                     .responseCode(HttpStatus.SC_OK)
                     .body(mapper.writeValueAsString(result))
                     .build();
+
+            //call complete query here if operation = QUERY
+            queryRunnerCompleteQuery(requestScope, response);
+
+            return response;
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), isVerbose);
@@ -305,5 +315,34 @@ public class QueryRunner {
                 .responseCode(error.getStatus())
                 .body(errorBody)
                 .build();
+    }
+
+    private static void queryRunnerAcceptQuery(GraphQLRequestScope requestScope, User principal, String query) {
+        if (requestScope.getElideSettings() != null) {
+            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                    principal.getPrincipal(),
+                    requestScope.getHeaders(),
+                    requestScope.getApiVersion(),
+                    query);
+        }
+    }
+
+    private static void queryRunnerCompleteQuery(GraphQLRequestScope requestScope, ElideResponse response) {
+        if (requestScope.getElideSettings() != null) {
+            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
+        }
+    }
+
+    private static void queryRunnerProcessQuery(GraphQLRequestScope requestScope, GraphQLProjectionInfo projectionInfo,
+                                                DataStoreTransaction tx) {
+        Map<String, EntityProjection> projections = projectionInfo.getProjections();
+        projections.forEach((k, projection) -> {
+            if (requestScope.getElideSettings() != null) {
+                final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+                ql.processQuery(UUID.fromString(requestScope.getRequestId()), projection, requestScope, tx);
+            }
+        });
     }
 }

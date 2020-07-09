@@ -9,6 +9,7 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
@@ -32,6 +33,7 @@ import com.yahoo.elide.parsers.GetVisitor;
 import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -57,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -169,9 +172,14 @@ public class Elide {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
                     tx, user, queryParams, elideSettings);
-            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
-                    requestScope).parsePath(path));
+            EntityProjection projection = new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path);
+            requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new GetVisitor(requestScope);
+
+            //accept and process the query here
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
+            elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
         });
 
@@ -190,9 +198,14 @@ public class Elide {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, apiVersion,
                     jsonApiDoc, tx, user, null, elideSettings);
-            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
-                    requestScope).parsePath(path));
+            EntityProjection projection = new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path);
+            requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new PostVisitor(requestScope);
+
+            //accept and process the query here
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
+            elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
         });
     }
@@ -217,6 +230,11 @@ public class Elide {
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
+                    //accept and process the query here
+                    elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
+                    if (requestScope.getEntityProjection() != null) {
+                        elideProcessQuery(requestScope.getEntityProjection(), requestScope, tx);
+                    }
                     return new HandlerResult(requestScope, responder);
                 } catch (RuntimeException e) {
                     return new HandlerResult(requestScope, e);
@@ -227,9 +245,14 @@ public class Elide {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
                 RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
                         tx, user, null, elideSettings);
-                requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
-                        requestScope).parsePath(path));
+                EntityProjection projection = new EntityProjectionMaker(elideSettings.getDictionary(),
+                        requestScope).parsePath(path);
+                requestScope.setEntityProjection(projection);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
+
+                //accept and process the query here
+                elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
+                elideProcessQuery(projection, requestScope, tx);
                 return visit(path, requestScope, visitor);
             };
         }
@@ -252,9 +275,14 @@ public class Elide {
                     : mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
                     tx, user, null, elideSettings);
-            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
-                    requestScope).parsePath(path));
+            EntityProjection projection = new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path);
+            requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
+
+            //accept and process the query here
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
+            elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
         });
     }
@@ -309,6 +337,8 @@ public class Elide {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
+            //call complete query here
+            elideCompleteQuery(requestScope, response);
             return response;
 
         } catch (WebApplicationException e) {
@@ -417,6 +447,43 @@ public class Elide {
 
         public RequestScope getRequestScope() {
             return requestScope;
+        }
+    }
+
+    private static void elideAcceptQuery(RequestScope requestScope, User opaqueUser,
+                                         Optional<MultivaluedMap<String, String>> queryParams, String path) {
+        if (requestScope.getElideSettings() != null) {
+            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            if (opaqueUser == null) {
+                ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                        null,
+                        requestScope.getHeaders(),
+                        requestScope.getApiVersion(),
+                        queryParams,
+                        path);
+            } else {
+                ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                        opaqueUser.getPrincipal(),
+                        requestScope.getHeaders(),
+                        requestScope.getApiVersion(),
+                        queryParams,
+                        path);
+            }
+        }
+    }
+
+    private static void elideCompleteQuery(RequestScope requestScope, ElideResponse response) {
+        if (requestScope.getElideSettings() != null) {
+            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.completeQuery(UUID.fromString(requestScope.getRequestId()), response);
+        }
+    }
+
+    private static void elideProcessQuery(EntityProjection projection, RequestScope requestScope,
+                                          DataStoreTransaction tx) {
+        if (requestScope.getElideSettings() != null) {
+            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.processQuery(UUID.fromString(requestScope.getRequestId()), projection, requestScope, tx);
         }
     }
 }

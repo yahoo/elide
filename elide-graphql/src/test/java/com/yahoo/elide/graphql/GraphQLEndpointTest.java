@@ -18,15 +18,23 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.toJson;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.QueryLogger;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.checks.Check;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,6 +64,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,6 +82,7 @@ public class GraphQLEndpointTest {
     private final SecurityContext user2 = Mockito.mock(SecurityContext.class);
     private final SecurityContext user3 = Mockito.mock(SecurityContext.class);
     private final AuditLogger audit = Mockito.mock(AuditLogger.class);
+    private final QueryLogger ql = Mockito.mock(QueryLogger.class);
 
     public static class User implements Principal {
         String log = "";
@@ -122,6 +132,7 @@ public class GraphQLEndpointTest {
                 new ElideSettingsBuilder(inMemoryStore)
                         .withEntityDictionary(new EntityDictionary(checkMappings))
                         .withAuditLogger(audit)
+                        .withQueryLogger(ql)
                         .build());
         endpoint = new GraphQLEndpoint(elide);
 
@@ -559,9 +570,9 @@ public class GraphQLEndpointTest {
 
         endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
 
-        Mockito.verify(audit, Mockito.times(1)).log(Mockito.any());
-        Mockito.verify(audit, Mockito.times(1)).commit();
-        Mockito.verify(audit, Mockito.times(1)).clear();
+        verify(audit, times(1)).log(any());
+        verify(audit, times(1)).commit();
+        verify(audit, times(1)).clear();
     }
 
     @Test
@@ -996,6 +1007,107 @@ public class GraphQLEndpointTest {
 
         Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest, variables));
         assert200EqualBody(response, graphQLResponse);
+    }
+
+    //QueryLogger Tests
+    @Test
+    public void testElideGraphQLPostQueryLoggerBasic() throws JSONException {
+        Mockito.reset(ql);
+
+        String graphQLRequest = document(
+                selections(
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("title"),
+                                        field(
+                                                "authors",
+                                                selection(
+                                                        field("name")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
+
+        verify(ql, times(1))
+                .acceptQuery(isA(UUID.class), isA(Principal.class),
+                        any(), any(), any());
+        verify(ql, times(1))
+                .processQuery(isA(UUID.class), isA(EntityProjection.class),
+                        isA(RequestScope.class), isA(DataStoreTransaction.class));
+        verify(ql, times(1))
+                .completeQuery(isA(UUID.class), any());
+    }
+
+    @Test
+    public void testElideGraphQLQueryLoggerComplex() throws JSONException {
+        Mockito.reset(ql);
+
+        String graphQLRequest = document(
+                query(
+                        "myQuery",
+                        variableDefinitions(
+                                variableDefinition("author1", "[String]"),
+                                variableDefinition("author2", "[String]")
+                        ),
+                        selections(
+                                field(
+                                        "Author_1",
+                                        "author",
+                                        arguments(
+                                                argument("ids", "$author1")
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("name"),
+                                                field(
+                                                        "books",
+                                                        selection(
+                                                                field("title")
+                                                        )
+                                                )
+                                        )
+                                ),
+                                field(
+                                        "Author_2",
+                                        "author",
+                                        arguments(
+                                                argument("ids", "$author2")
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("name"),
+                                                field(
+                                                        "books",
+                                                        selection(
+                                                                field("title")
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("author1", "1");
+        variables.put("author2", "2");
+
+        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest, variables));
+
+        verify(ql, times(1))
+                .acceptQuery(isA(UUID.class), isA(Principal.class),
+                        any(), any(), any());
+        verify(ql, times(2))
+                .processQuery(isA(UUID.class), isA(EntityProjection.class),
+                        isA(RequestScope.class), isA(DataStoreTransaction.class));
+        verify(ql, times(1))
+                .completeQuery(isA(UUID.class), any());
     }
 
     private static String graphQLRequestToJSON(String request) {
