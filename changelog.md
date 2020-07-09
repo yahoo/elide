@@ -1,5 +1,24 @@
 # Change Log
 
+## 4.6.6
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/4e06a82860911d870863bd3fb2cad94753b55ed2) Add support for composite IDs.  Issue756 (#1412) 
+   * [view commit](https://github.com/yahoo/elide/commit/3d229393b37023da2df7ef481a199da613aaf925) Add support for ISO8601 to java.time.Instant serialization/deserialization (#1417)
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/4edac24dee840bfe9f6bbf331ecbec4042970712) add queryParams variants for post(), patch() and delete() (#1411) 
+   * [view commit](https://github.com/yahoo/elide/commit/64fb49abcdbd0d683ef9dc4cb7b8dd30adab48b6) Bump ant from 1.10.7 to 1.10.8 (#1394) 
+   * [view commit](https://github.com/yahoo/elide/commit/51aa322e9b069f990ea626058e26c42d412399d5) Bump maven-shade-plugin from 3.2.3 to 3.2.4 (#1396) 
+   * [view commit](https://github.com/yahoo/elide/commit/7681ec1db3e516c85cc10b4948b4ff873b6e2d4d) Bump tomcat.version from 9.0.35 to 9.0.37 (#1418) 
+ 
+   * [view commit](https://github.com/yahoo/elide/commit/ffc7a96e30199a401500e4e67c513639d6441d9d) [README] - Fix the standalone README Java sample (#1415) 
+   * [view commit](https://github.com/yahoo/elide/commit/a06aae4650df64df8b168d66588565edc21c0cf6) Bump classgraph from 4.8.86 to 4.8.87 (#1419) 
+   * [view commit](https://github.com/yahoo/elide/commit/388e6a57bdf4cc55d01cc83a42ab824e774e1293) Bump spring.boot.version from 2.3.0.RELEASE to 2.3.1.RELEASE (#1395) 
+   * [view commit](https://github.com/yahoo/elide/commit/fd235f53233e18665657fd669497492b84c82271) Bump postgresql from 42.2.12 to 42.2.14 (#1392) 
+   * [view commit](https://github.com/yahoo/elide/commit/5fd439e5615f8aff2f2568ca2de9b702643f721a) Bump version.jetty from 9.4.29.v20200521 to 9.4.30.v20200611 (#1393) 
+   * [view commit](https://github.com/yahoo/elide/commit/fea32190fcaf46a911ecad3242817c373bdf8a43) Bump build-helper-maven-plugin from 3.1.0 to 3.2.0 (#1391) 
+   * [view commit](https://github.com/yahoo/elide/commit/dae9b09fc3bc3dcc14ee0bb14499bf55e0f3bced) Issue 683 (#1384).  In memory filter support for predicates that traverse to-many relationships. 
+
 ## 4.6.5
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/bd516473fbeeb47ca05eaf510734f06432c4280a) Disabling Legacy Filter Dialect in Swagger Documentation (#1363) 
