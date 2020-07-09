@@ -1353,21 +1353,35 @@ public class FilterIT extends IntegrationTest {
     void testFilterByAuthorBookByChapter() throws JsonProcessingException {
         /* Test default */
         given()
-                .get(String.format("/author/%s/books?filter[book.chapters.title]=doesn't matter", hemingwayId))
+                .get(String.format("/author/%s/books?filter[book.chapters.title]=Viva la Roma!", asimovId))
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body("data", hasSize(1));
+
+        /* Test RSQL */
+        given()
+                .get(String.format("/author/%s/books?filter[book]=chapters.title=='Viva la Roma!'", asimovId))
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body("data", hasSize(1));
+
+        /* Test default */
+        given()
+                .get(String.format("/author/%s/books?filter[book.chapters.title]=None", hemingwayId))
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body("data", hasSize(0));
 
         /* Test RSQL */
         given()
-                .get(String.format("/author/%s/books?filter[book]=chapters.title=='Borked'", hemingwayId))
+                .get(String.format("/author/%s/books?filter[book]=chapters.title=='None'", hemingwayId))
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body("data", hasSize(0));
     }
 
     @Test
-    void testFailFilterBookByAuthorAddress() throws JsonProcessingException {
+    void testFilterBookByAuthorAddress() throws JsonProcessingException {
         /* Test default */
         JsonNode result = getAsNode("book?filter[book.authors.homeAddress]=main&include=authors");
         JsonNode data = result.get("data");
