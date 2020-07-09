@@ -110,7 +110,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testGetInjector() {
         assertNotNull(getInjector());
     }
- 
+
     @Test
     public void testSetId() {
         Parent parent = new Parent();
