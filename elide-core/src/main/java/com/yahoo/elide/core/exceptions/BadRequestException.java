@@ -14,4 +14,8 @@ public class BadRequestException extends HttpStatusException {
     public BadRequestException(String message) {
         super(HttpStatus.SC_BAD_REQUEST, message);
     }
+
+    public BadRequestException(String message, Throwable cause) {
+        super(HttpStatus.SC_BAD_REQUEST, message, cause, null);
+    }
 }

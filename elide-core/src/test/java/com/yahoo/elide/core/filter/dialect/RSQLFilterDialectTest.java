@@ -53,13 +53,23 @@ public class RSQLFilterDialectTest {
                 "title==*foo*;title!=bar*;(genre=in=(sci-fi,action),publishDate>123)"
         );
 
+        queryParams.add(
+                "filter[author]",
+                "books.title=in=(foo,bar,baz)"
+        );
+
         Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
 
-        assertEquals(1, expressionMap.size());
+        assertEquals(2, expressionMap.size());
         assertEquals(
                 "((book.title INFIX_CASE_INSENSITIVE [foo] AND NOT (book.title PREFIX_CASE_INSENSITIVE [bar])) "
                         + "AND (book.genre IN_INSENSITIVE [sci-fi, action] OR book.publishDate GT [123]))",
                 expressionMap.get("book").toString()
+        );
+
+        assertEquals(
+                "author.books.title IN_INSENSITIVE [foo, bar, baz]",
+                expressionMap.get("author").toString()
         );
     }
 
