@@ -64,10 +64,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final int updateStatusCode;
     @Getter private final MultipleFilterDialect filterDialect;
     @Getter private final String apiVersion;
+    @Getter @Setter private Map<String, String> headers;
 
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
-    private final UUID requestId;
+    @Getter private final UUID requestId;
     private final Map<String, FilterExpression> expressionsByType;
 
     private PublishSubject<CRUDEvent> lifecycleEvents;
@@ -121,6 +122,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
+        this.headers = new HashMap<>();
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
@@ -208,6 +210,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
         this.requestId = outerRequestScope.requestId;
+        this.headers = outerRequestScope.headers;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
