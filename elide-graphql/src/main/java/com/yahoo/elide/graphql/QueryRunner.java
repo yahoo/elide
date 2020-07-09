@@ -197,7 +197,6 @@ public class QueryRunner {
                 executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
             }
             executionInput.variables(variables);
-
             queryRunnerAcceptQuery(requestScope, principal, query);
             queryRunnerProcessQuery(requestScope, projectionInfo, tx);
 
