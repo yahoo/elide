@@ -1032,7 +1032,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
+        endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest));
 
         verify(ql, times(1))
                 .acceptQuery(isA(UUID.class), isA(Principal.class),
@@ -1098,7 +1098,7 @@ public class GraphQLEndpointTest {
         variables.put("author1", "1");
         variables.put("author2", "2");
 
-        Response response = endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest, variables));
+        endpoint.post(NO_VERSION, user1, graphQLRequestToJSON(graphQLRequest, variables));
 
         verify(ql, times(1))
                 .acceptQuery(isA(UUID.class), isA(Principal.class),
