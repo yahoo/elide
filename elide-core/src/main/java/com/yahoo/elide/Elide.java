@@ -282,7 +282,7 @@ public class Elide {
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
-                    //accept and process the query here
+
                     elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
                     if (requestScope.getEntityProjection() != null) {
                         elideProcessQuery(requestScope.getEntityProjection(), requestScope, tx);
