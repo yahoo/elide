@@ -79,13 +79,17 @@ public class DefaultFilterDialectTest {
                 "Hemingway"
         );
 
+        queryParams.add(
+                "filter[author.books.title][in]",
+                "foo,bar,baz"
+        );
+
         Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
 
         assertEquals(2, expressionMap.size());
-        assertEquals(expressionMap.get("book").toString(),
-                "(book.title IN [foo, bar, baz] AND book.genre IN [scifi])"
-        );
-        assertEquals("author.name INFIX [Hemingway]", expressionMap.get("author").toString());
+        assertEquals("(book.title IN [foo, bar, baz] AND book.genre IN [scifi])", expressionMap.get("book").toString());
+        assertEquals("(author.books.title IN [foo, bar, baz] AND author.name INFIX [Hemingway])",
+                expressionMap.get("author").toString());
     }
 
     @Test
@@ -116,13 +120,16 @@ public class DefaultFilterDialectTest {
     public void testInvalidTypeQualifier() throws ParseException {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
-        /* This is OK for global but not OK for subqueries */
+        /* This is now OK for global and for subqueries */
         queryParams.add(
                 "filter[author.books.title][in]",
                 "foo,bar,baz"
         );
 
-        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/author", queryParams));
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
+
+        assertEquals(1, expressionMap.size());
+        assertEquals("author.books.title IN [foo, bar, baz]", expressionMap.get("author").toString());
     }
 
     @Test

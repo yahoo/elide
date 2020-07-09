@@ -47,6 +47,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import example.Author;
+import example.Book;
 import example.Child;
 import example.Color;
 import example.ComputedBean;
@@ -2231,6 +2232,27 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals(Arrays.asList("Hemingway"), predicate.getValues());
         assertEquals("[Author].name", predicate.getPath().toString());
     }
+
+    @Test
+    public void testFilterExpressionCollection() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[book.authors.name][infix]",
+                "Hemingway"
+        );
+
+        RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class), new User(1), queryParams);
+
+        Optional<FilterExpression> filter = scope.getLoadFilterExpression(Book.class);
+        FilterPredicate predicate = (FilterPredicate) filter.get();
+        assertEquals("name", predicate.getField());
+        assertEquals("authors.name", predicate.getFieldPath());
+        assertEquals(Operator.INFIX, predicate.getOperator());
+        assertEquals(Arrays.asList("Hemingway"), predicate.getValues());
+        assertEquals("[Book].authors/[Author].name", predicate.getPath().toString());
+    }
+
 
     @Test
     public void testSparseFields() {

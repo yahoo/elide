@@ -30,12 +30,15 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
 
+import example.Author.AuthorType;
+
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -121,6 +124,12 @@ public class Book {
 
     public void setAuthors(Collection<Author> authors) {
         this.authors = authors;
+    }
+
+    @ElementCollection(targetClass = AuthorType.class)
+    @FilterExpressionPath("authors.type")
+    public Collection<AuthorType> getAuthorTypes() {
+        return getAuthors().stream().map(Author::getType).distinct().collect(Collectors.toList());
     }
 
 
