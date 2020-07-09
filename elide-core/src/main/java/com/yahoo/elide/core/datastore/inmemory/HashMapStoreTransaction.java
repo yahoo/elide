@@ -154,7 +154,8 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
             if (data == null) {
                 return null;
             }
-            return data.get(id.toString());
+            Object obj = data.get(id.toString());
+            return obj;
         }
     }
 

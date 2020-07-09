@@ -222,8 +222,7 @@ public class Elide {
      * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument, 
-                              MultivaluedMap<String, String> queryParams, 
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument, MultivaluedMap<String, String> queryParams,
                               User opaqueUser, String apiVersion, UUID requestId) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
@@ -270,7 +269,7 @@ public class Elide {
      * @return Elide response object
      */
     public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
-                               String path, String jsonApiDocument, MultivaluedMap<String, String> queryParams, 
+                               String path, String jsonApiDocument, MultivaluedMap<String, String> queryParams,
                                User opaqueUser, String apiVersion, UUID requestId) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;

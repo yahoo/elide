@@ -59,7 +59,7 @@ public class RSQLFilterDialectTest {
                 "books.title=in=(foo,bar,baz)"
         );
 
-        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams< NO_VERSION);
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
 
         assertEquals(2, expressionMap.size());
         assertEquals(

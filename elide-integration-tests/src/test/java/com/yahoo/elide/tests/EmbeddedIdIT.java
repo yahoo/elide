@@ -36,6 +36,7 @@ import example.embeddedid.Address;
 import example.embeddedid.AddressSerde;
 import example.embeddedid.Building;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import lombok.Data;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 
+@Tag("skipInMemory")
 public class EmbeddedIdIT extends GraphQLIntegrationTest {
 
     protected Address address1 = new Address(0, "Bullion Blvd", 40121);
