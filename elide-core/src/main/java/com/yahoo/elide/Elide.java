@@ -59,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.Principal;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -177,7 +178,6 @@ public class Elide {
             requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new GetVisitor(requestScope);
 
-            //accept and process the query here
             elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
@@ -203,7 +203,6 @@ public class Elide {
             requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new PostVisitor(requestScope);
 
-            //accept and process the query here
             elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
@@ -230,7 +229,7 @@ public class Elide {
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
-                    //accept and process the query here
+
                     elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
                     if (requestScope.getEntityProjection() != null) {
                         elideProcessQuery(requestScope.getEntityProjection(), requestScope, tx);
@@ -250,7 +249,6 @@ public class Elide {
                 requestScope.setEntityProjection(projection);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
 
-                //accept and process the query here
                 elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
                 elideProcessQuery(projection, requestScope, tx);
                 return visit(path, requestScope, visitor);
@@ -280,7 +278,6 @@ public class Elide {
             requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
 
-            //accept and process the query here
             elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
@@ -454,21 +451,13 @@ public class Elide {
                                          Optional<MultivaluedMap<String, String>> queryParams, String path) {
         if (requestScope.getElideSettings() != null) {
             final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            if (opaqueUser == null) {
-                ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
-                        null,
-                        requestScope.getHeaders(),
-                        requestScope.getApiVersion(),
-                        queryParams,
-                        path);
-            } else {
-                ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
-                        opaqueUser.getPrincipal(),
-                        requestScope.getHeaders(),
-                        requestScope.getApiVersion(),
-                        queryParams,
-                        path);
-            }
+            Principal user = opaqueUser == null ? null : opaqueUser.getPrincipal();
+            ql.acceptQuery(UUID.fromString(requestScope.getRequestId()),
+                    user,
+                    requestScope.getHeaders(),
+                    requestScope.getApiVersion(),
+                    queryParams,
+                    path);
         }
     }
 
