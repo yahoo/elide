@@ -33,6 +33,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -92,8 +93,8 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                .post(pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
-                ElideResponse response = elide.post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
+                ElideResponse response = elide.post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams),
+                        user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -113,8 +114,8 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body, 
-                               new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
+                        .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
+                               new MultivaluedHashMap<>(allRequestParams), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -133,7 +134,8 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.delete(baseUrl, pathname, new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
+                ElideResponse response = elide.delete(baseUrl, pathname, null,
+                        new MultivaluedHashMap<>(allRequestParams), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -154,7 +156,8 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
+                        .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), user,
+                                apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
