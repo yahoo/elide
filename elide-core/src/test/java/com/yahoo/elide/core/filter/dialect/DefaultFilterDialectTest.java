@@ -79,11 +79,17 @@ public class DefaultFilterDialectTest {
                 "Hemingway"
         );
 
+        queryParams.add(
+                "filter[author.books.title][in]",
+                "foo,bar,baz"
+        );
+
         Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
 
         assertEquals(2, expressionMap.size());
         assertEquals("(book.title IN [foo, bar, baz] AND book.genre IN [scifi])", expressionMap.get("book").toString());
-        assertEquals("author.name INFIX [Hemingway]", expressionMap.get("author").toString());
+        assertEquals("(author.books.title IN [foo, bar, baz] AND author.name INFIX [Hemingway])",
+                expressionMap.get("author").toString());
     }
 
     @Test
