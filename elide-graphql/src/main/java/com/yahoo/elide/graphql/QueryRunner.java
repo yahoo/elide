@@ -160,6 +160,8 @@ public class QueryRunner {
     private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument, UUID requestId) {
         boolean isVerbose = false;
+        ElideResponse response = null;
+        GraphQLRequestScope requestScope = null;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (!jsonDocument.has(QUERY)) {
@@ -179,8 +181,7 @@ public class QueryRunner {
             //TODO - get API version.
             GraphQLProjectionInfo projectionInfo =
                     new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion).make(query);
-            GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope(tx, principal, apiVersion,
+            requestScope = new GraphQLRequestScope(tx, principal, apiVersion,
                             elide.getElideSettings(), projectionInfo, requestId);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -230,12 +231,10 @@ public class QueryRunner {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
-            ElideResponse response = ElideResponse.builder()
+            response = ElideResponse.builder()
                     .responseCode(HttpStatus.SC_OK)
                     .body(mapper.writeValueAsString(result))
                     .build();
-
-            queryRunnerCompleteQuery(requestScope, response);
 
             return response;
         } catch (JsonProcessingException e) {
@@ -292,6 +291,7 @@ public class QueryRunner {
             log.error("Unhandled error or exception.", e);
             throw e;
         } finally {
+            queryRunnerCompleteQuery(requestScope, response);
             elide.getTransactionRegistry().removeRunningTransaction(requestId);
             elide.getAuditLogger().clear();
         }
@@ -325,31 +325,25 @@ public class QueryRunner {
     }
 
     private static void queryRunnerAcceptQuery(GraphQLRequestScope requestScope, User principal, String query) {
-        if (requestScope.getElideSettings() != null) {
-            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            ql.acceptQuery(requestScope.getRequestId(),
-                    principal.getPrincipal(),
-                    requestScope.getHeaders(),
-                    requestScope.getApiVersion(),
-                    query);
-        }
+        final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+        ql.acceptQuery(requestScope.getRequestId(),
+                principal.getPrincipal(),
+                requestScope.getHeaders(),
+                requestScope.getApiVersion(),
+                query);
     }
 
     private static void queryRunnerCompleteQuery(GraphQLRequestScope requestScope, ElideResponse response) {
-        if (requestScope.getElideSettings() != null) {
-            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            ql.completeQuery(requestScope.getRequestId(), response);
-        }
+        final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+        ql.completeQuery(requestScope.getRequestId(), response);
     }
 
     private static void queryRunnerProcessQuery(GraphQLRequestScope requestScope, GraphQLProjectionInfo projectionInfo,
                                                 DataStoreTransaction tx) {
         Map<String, EntityProjection> projections = projectionInfo.getProjections();
         projections.forEach((k, projection) -> {
-            if (requestScope.getElideSettings() != null) {
-                final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-                ql.processQuery(requestScope.getRequestId(), projection, requestScope, tx);
-            }
+            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+            ql.processQuery(requestScope.getRequestId(), projection, requestScope, tx);
         });
     }
 }

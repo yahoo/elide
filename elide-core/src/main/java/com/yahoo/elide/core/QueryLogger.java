@@ -43,7 +43,7 @@ public interface QueryLogger {
                      Optional<MultivaluedMap<String, String>> queryParams, String path);
 
     /**
-     * Processes and logs all the queries from QueryDetail to STDOUT and an external file (target/trace.log)
+     * Processes and logs all the queries from QueryDetail
      * @param queryId The RequestScope requestId.
      * @param projection The Entity Projection of the current request
      * @param scope The RequestScope of the current request

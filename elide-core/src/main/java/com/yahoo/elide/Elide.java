@@ -345,12 +345,11 @@ public class Elide {
                     : mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
                     tx, user, null, requestId, elideSettings);
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             EntityProjection projection = new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path);
             requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
-
-            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
         });
@@ -379,10 +378,12 @@ public class Elide {
                                           Supplier<DataStoreTransaction> transaction, UUID requestId,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
         boolean isVerbose = false;
+        ElideResponse response = null;
+        RequestScope requestScope = null;
         try (DataStoreTransaction tx = transaction.get()) {
             transactionRegistry.addRunningTransaction(requestId, tx);
             HandlerResult result = handler.handle(tx, user);
-            RequestScope requestScope = result.getRequestScope();
+            requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             Supplier<Pair<Integer, JsonNode>> responder = result.getResponder();
             tx.preCommit();
@@ -395,7 +396,7 @@ public class Elide {
 
             requestScope.runQueuedPreCommitTriggers();
 
-            ElideResponse response = buildResponse(responder.get());
+            response = buildResponse(responder.get());
 
             auditLogger.commit();
             tx.commit(requestScope);
@@ -405,7 +406,6 @@ public class Elide {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
-            elideCompleteQuery(requestScope, response);
             return response;
 
         } catch (WebApplicationException e) {
@@ -443,6 +443,7 @@ public class Elide {
             log.error("Error or exception uncaught by Elide", e);
             throw e;
         } finally {
+            elideCompleteQuery(requestScope, response);
             transactionRegistry.removeRunningTransaction(requestId);
             auditLogger.clear();
         }
@@ -512,30 +513,24 @@ public class Elide {
 
     private static void elideAcceptQuery(RequestScope requestScope, User opaqueUser,
                                          Optional<MultivaluedMap<String, String>> queryParams, String path) {
-        if (requestScope.getElideSettings() != null) {
-            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            Principal user = opaqueUser == null ? null : opaqueUser.getPrincipal();
-            ql.acceptQuery(requestScope.getRequestId(),
-                    user,
-                    requestScope.getHeaders(),
-                    requestScope.getApiVersion(),
-                    queryParams,
-                    path);
-        }
+        final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+        Principal user = opaqueUser == null ? null : opaqueUser.getPrincipal();
+        ql.acceptQuery(requestScope.getRequestId(),
+                user,
+                requestScope.getHeaders(),
+                requestScope.getApiVersion(),
+                queryParams,
+                path);
     }
 
     private static void elideCompleteQuery(RequestScope requestScope, ElideResponse response) {
-        if (requestScope.getElideSettings() != null) {
-            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            ql.completeQuery(requestScope.getRequestId(), response);
-        }
+        final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+        ql.completeQuery(requestScope.getRequestId(), response);
     }
 
     private static void elideProcessQuery(EntityProjection projection, RequestScope requestScope,
                                           DataStoreTransaction tx) {
-        if (requestScope.getElideSettings() != null) {
-            final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
-            ql.processQuery(requestScope.getRequestId(), projection, requestScope, tx);
-        }
+        final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
+        ql.processQuery(requestScope.getRequestId(), projection, requestScope, tx);
     }
 }
