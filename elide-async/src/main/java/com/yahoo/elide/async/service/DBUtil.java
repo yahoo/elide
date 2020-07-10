@@ -16,6 +16,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -40,7 +41,7 @@ public class DBUtil {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
             RequestScope scope = new RequestScope("query", NO_VERSION, jsonApiDoc,
-                    tx, null, queryParams, elide.getElideSettings());
+                    tx, null, queryParams, UUID.randomUUID(), elide.getElideSettings());
             result = action.execute(tx, scope);
             tx.flush(scope);
             tx.commit(scope);

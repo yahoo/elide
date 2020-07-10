@@ -359,7 +359,7 @@ public class AsyncIT extends IntegrationTest {
             // If Async Query is created and completed
             if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
 
-                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                         + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf828e\","
                         + "\"httpStatus\":200,\"resultType\":\"DOWNLOAD\",\"contentLength\":177}}}]}}}";
 
