@@ -30,13 +30,14 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.collect.Sets;
 import example.embeddedid.Address;
 import example.embeddedid.AddressSerde;
 import example.embeddedid.Building;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import lombok.Data;
@@ -45,13 +46,17 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 
-@Tag("skipInMemory")
 public class EmbeddedIdIT extends GraphQLIntegrationTest {
 
     protected Address address1 = new Address(0, "Bullion Blvd", 40121);
     protected Address address2 = new Address(1409, "W Green St", 61801);
     protected Address address3 = new Address(1800, "South First Street", 61820);
     protected AddressSerde serde = new AddressSerde();
+
+    @BeforeAll
+    public void beforeAll() {
+        CoerceUtil.register(Address.class, serde);
+    }
 
     @BeforeEach
     public void setup() throws IOException {

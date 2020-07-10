@@ -97,6 +97,7 @@ public class EntityDictionary {
     @Getter
     protected final Injector injector;
 
+    @Getter
     protected final Function<Class, Serde> serdeLookup ;
 
     public final static String REGULAR_ID_NAME = "id";
