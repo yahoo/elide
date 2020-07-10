@@ -14,6 +14,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -149,13 +150,17 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     @Override
     public Object loadObject(EntityProjection projection, Serializable id, RequestScope scope) {
 
+        EntityDictionary dictionary = scope.getDictionary();
+
         synchronized (dataStore) {
             Map<String, Object> data = dataStore.get(projection.getType());
             if (data == null) {
                 return null;
             }
-            Object obj = data.get(id.toString());
-            return obj;
+            Serde serde = dictionary.getSerdeLookup().apply(id.getClass());
+
+            String idString = (serde == null) ? id.toString() : (String) serde.serialize(id);
+            return data.get(idString);
         }
     }
 
