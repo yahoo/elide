@@ -200,9 +200,6 @@ public class QueryRunner {
             queryRunnerAcceptQuery(requestScope, principal, query);
             queryRunnerProcessQuery(requestScope, projectionInfo, tx);
 
-            queryRunnerAcceptQuery(requestScope, principal, query);
-            queryRunnerProcessQuery(requestScope, projectionInfo, tx);
-
             ExecutionResult result = api.execute(executionInput);
 
             tx.preCommit();
