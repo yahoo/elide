@@ -34,6 +34,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -184,12 +185,6 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
 
-        pagination.ifPresent(p -> {
-            if (p.isGenerateTotals()) {
-                p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
-            }
-        });
-
         QueryWrapper query =
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper)
                         .withPossibleFilterExpression(filterExpression)
@@ -197,7 +192,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                         .withPossiblePagination(pagination)
                         .build();
 
-        return query.getQuery().getResultList();
+        List results = query.getQuery().getResultList();
+
+        pagination.ifPresent(p -> {
+            if (p.isGenerateTotals() && (results.size() > 0 || p.getLimit() == 0)) {
+                p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
+            }
+        });
+
+        return results;
     }
 
     @Override
