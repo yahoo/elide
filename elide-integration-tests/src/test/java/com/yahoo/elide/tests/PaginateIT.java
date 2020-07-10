@@ -631,4 +631,16 @@ class PaginateIT extends IntegrationTest {
                 "errors[0]", containsString("BadRequestException: Cannot paginate child")
             );
     }
+
+    @Test
+    void testPaginationTotalsOfEmptyCollection() {
+        /* Test RSQL Global */
+        String url = "/author?page[totals]&filter=books.title=in=('Does Not Exist')";
+        when()
+                .get(url)
+                .then()
+                .body("data", hasSize(0),
+                        "meta.page.totalRecords", equalTo(0)
+                );
+    }
 }

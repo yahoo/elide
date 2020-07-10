@@ -167,12 +167,6 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
 
-        pagination.ifPresent(p -> {
-            if (p.isGenerateTotals()) {
-                p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
-            }
-        });
-
         final QueryWrapper query =
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper)
                         .withPossibleFilterExpression(filterExpression)
@@ -180,11 +174,24 @@ public class HibernateTransaction implements DataStoreTransaction {
                         .withPossiblePagination(pagination)
                         .build();
 
-
+        Iterable results;
+        final boolean hasResults;
         if (isScrollEnabled) {
-            return new ScrollableIterator<>(query.getQuery().scroll());
+            results = new ScrollableIterator<>(query.getQuery().scroll());
+            hasResults = ((ScrollableIterator) results).hasNext();
+        } else {
+            results = query.getQuery().list();
+            hasResults = ! ((Collection) results).isEmpty();
         }
-        return (Iterable) query.getQuery().list();
+
+        pagination.ifPresent(p -> {
+            //Issue #1429
+            if (p.isGenerateTotals() && (hasResults || p.getLimit() == 0)) {
+                p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
+            }
+        });
+
+        return results;
     }
 
     @Override
