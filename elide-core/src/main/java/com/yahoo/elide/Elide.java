@@ -188,12 +188,11 @@ public class Elide {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
                     tx, user, queryParams, requestId, elideSettings);
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             EntityProjection projection = new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path);
             requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new GetVisitor(requestScope);
-
-            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
         });
@@ -229,12 +228,11 @@ public class Elide {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, apiVersion,
                     jsonApiDoc, tx, user, null, requestId, elideSettings);
+            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             EntityProjection projection = new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path);
             requestScope.setEntityProjection(projection);
             BaseVisitor visitor = new PostVisitor(requestScope);
-
-            elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
             elideProcessQuery(projection, requestScope, tx);
             return visit(path, requestScope, visitor);
         });
@@ -298,12 +296,11 @@ public class Elide {
 
                 RequestScope requestScope = new RequestScope(path, apiVersion, jsonApiDoc,
                         tx, user, null, requestId, elideSettings);
+                elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
                 EntityProjection projection = new EntityProjectionMaker(elideSettings.getDictionary(),
                         requestScope).parsePath(path);
                 requestScope.setEntityProjection(projection);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
-
-                elideAcceptQuery(requestScope, opaqueUser, requestScope.getQueryParams(), path);
                 elideProcessQuery(projection, requestScope, tx);
                 return visit(path, requestScope, visitor);
             };
