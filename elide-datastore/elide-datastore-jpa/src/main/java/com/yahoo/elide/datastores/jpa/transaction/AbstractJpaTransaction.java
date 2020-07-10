@@ -195,7 +195,8 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         List results = query.getQuery().getResultList();
 
         pagination.ifPresent(p -> {
-            if (p.isGenerateTotals() && (results.size() > 0 || p.getLimit() == 0)) {
+            //Issue #1429
+            if (p.isGenerateTotals() && (!results.isEmpty() || p.getLimit() == 0)) {
                 p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
             }
         });

@@ -170,14 +170,18 @@ public class HibernateTransaction implements DataStoreTransaction {
                         .build();
 
         Iterable results;
+        final boolean hasResults;
         if (isScrollEnabled) {
             results = new ScrollableIterator<>(query.getQuery().scroll());
+            hasResults = ((ScrollableIterator) results).hasNext();
         } else {
             results = query.getQuery().list();
+            hasResults = ! ((Collection) results).isEmpty();
         }
 
         pagination.ifPresent(p -> {
-            if (p.isGenerateTotals() && (results.iterator().hasNext() || p.getLimit() == 0)) {
+            //Issue #1429
+            if (p.isGenerateTotals() && (hasResults || p.getLimit() == 0)) {
                 p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
             }
         });
