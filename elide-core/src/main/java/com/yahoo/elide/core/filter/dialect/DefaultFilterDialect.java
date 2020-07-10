@@ -219,10 +219,6 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             case HASNOMEMBER:
                 memberOfOperatorConditions(filterPredicate);
                 break;
-            default:
-                if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
-                    throw new ParseException("Invalid toMany join: " + filterPredicate);
-                }
         }
     }
 

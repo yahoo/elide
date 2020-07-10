@@ -9,6 +9,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,6 +32,7 @@ import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -58,6 +60,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +104,11 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(Book.class);
 
         checkNames.forcePut("user has all access", Role.ALL.class);
+    }
+
+    @Test
+    public void testGetInjector() {
+        assertNotNull(getInjector());
     }
 
     @Test
@@ -161,6 +169,27 @@ public class EntityDictionaryTest extends EntityDictionary {
         testDictionary.scanForSecurityChecks();
 
         assertEquals("Filter Expression Injection Test", testDictionary.getCheckIdentifier(Foo.class));
+    }
+
+    @Test
+    public void testSerdeId() {
+
+        @Include
+        class EntityWithDateId {
+            @Id
+            private Date id;
+        }
+
+        EntityDictionary testDictionary = new EntityDictionary(
+                new HashMap<>(),
+                null,
+                (unused) -> { return new ISO8601DateSerde(); });
+
+        testDictionary.bindEntity(EntityWithDateId.class);
+
+        EntityWithDateId testModel = new EntityWithDateId();
+        testModel.id = new Date(0);
+        assertEquals("1970-01-01T00:00Z", testDictionary.getId(testModel));
     }
 
     @Test

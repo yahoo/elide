@@ -13,6 +13,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.security.User;
 
+import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -49,6 +50,7 @@ public class JsonApiEndpoint {
      * Create handler.
      *
      * @param path request path
+     * @param uriInfo URI info
      * @param apiVersion The api version
      * @param securityContext security context
      * @param jsonapiDocument post data as jsonapi document
@@ -59,12 +61,14 @@ public class JsonApiEndpoint {
     @Consumes(JSONAPI_CONTENT_TYPE)
     public Response post(
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @HeaderParam("ApiVersion") String apiVersion,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
-        return build(elide.post(path, jsonapiDocument, user, safeApiVersion));
+        return build(elide.post(path, jsonapiDocument, queryParams, user, safeApiVersion, UUID.randomUUID()));
     }
 
     /**
@@ -96,6 +100,7 @@ public class JsonApiEndpoint {
      * @param apiVersion the API version
      * @param accept response MIME type
      * @param path request path
+     * @param uriInfo URI info
      * @param securityContext security context
      * @param jsonapiDocument patch data as jsonapi document
      * @return response
@@ -108,17 +113,22 @@ public class JsonApiEndpoint {
         @HeaderParam("ApiVersion") String apiVersion,
         @HeaderParam("accept") String accept,
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
-        return build(elide.patch(contentType, accept, path, jsonapiDocument, user, safeApiVersion));
+        return build(elide.patch(contentType, accept, path, jsonapiDocument, queryParams,
+                user, safeApiVersion, UUID.randomUUID()));
     }
 
     /**
      * Delete relationship handler (expects body with resource ids and types).
      *
      * @param path request path
+     * @param uriInfo URI info
      * @param apiVersion the API version.
      * @param securityContext security context
      * @param jsonApiDocument DELETE document
@@ -129,12 +139,14 @@ public class JsonApiEndpoint {
     @Consumes(JSONAPI_CONTENT_TYPE)
     public Response delete(
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @HeaderParam("ApiVersion") String apiVersion,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
-        return build(elide.delete(path, jsonApiDocument, user, safeApiVersion));
+        return build(elide.delete(path, jsonApiDocument, queryParams, user, safeApiVersion, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {

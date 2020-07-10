@@ -174,29 +174,29 @@ To expose these models, follow the steps documented in [elide-standalone](https:
 
 ```java
 public class YourMain {
-  public static void main(String[] args) {
+    public static void main(String[] args) {
 
-    ElideStandaloneSettings settings = new ElideStandaloneSettings() {
+        ElideStandaloneSettings settings = new ElideStandaloneSettings() {
 
-        @Override
-        public String getModelPackageName() {
-            //This needs to be changed to the package where your models live.
-            return "your.model.package";
-        }
+            @Override
+            public String getModelPackageName() {
+                //This needs to be changed to the package where your models live.
+                return "your.model.package";
+            }
 
-        @Override
-        public Map<String, Class<? extends Check>> getCheckMappings() {
-            //Maps expression clauses to your security check functions & predicates
-            return new HashMap<String, Class<? extends Check>>() { {
-                put("Admin", IsAdminUser.class);
+            @Override
+            public Map<String, Class<? extends Check>> getCheckMappings() {
+                //Maps expression clauses to your security check functions & predicates
+                return new HashMap<String, Class<? extends Check>>() { {
+                    put("Admin", IsAdminUser.class);
+                } };
             }
         };
-    });
 
-    ElideStandalone elide = new ElideStandalone(settings);
+        ElideStandalone elide = new ElideStandalone(settings);
 
-    elide.start();
-  }
+        elide.start();
+    }
 }
 ```
 

@@ -245,7 +245,8 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Whether or not the transaction can sort the provided class.
-     * @param entityClass The entity class that is being sorted.
+     * @param entityClass The model type
+     * @param sorting Whether or not the store supports sorting for the given model
      * @return true if sorting is possible
      */
     default boolean supportsSorting(Class<?> entityClass, Sorting sorting) {

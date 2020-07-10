@@ -58,6 +58,8 @@ public class SwaggerBuilder {
     protected Map<Integer, Response> globalResponses;
     protected Set<Parameter> globalParams;
     protected Set<Operator> filterOperators;
+    protected boolean supportLegacyDialect;
+    protected boolean supportRSQLDialect;
 
     public static final Response UNAUTHORIZED_RESPONSE = new Response().description("Unauthorized");
     public static final Response FORBIDDEN_RESPONSE = new Response().description("Forbidden");
@@ -497,33 +499,39 @@ public class SwaggerBuilder {
 
             List<Parameter> params = new ArrayList<>();
 
-            /* Add RSQL Disjoint Filter Query Param */
-            params.add(new QueryParameter()
-                    .type("string")
-                    .name("filter[" + typeName + "]")
-                    .description("Filters the collection of " + typeName + " using a 'disjoint' RSQL expression"));
-
-            if (lineage.isEmpty()) {
-                 /* Add RSQL Joined Filter Query Param */
+            if (supportRSQLDialect) {
+                /* Add RSQL Disjoint Filter Query Param */
                 params.add(new QueryParameter()
                         .type("string")
-                        .name("filter")
-                        .description("Filters the collection of " + typeName + " using a 'joined' RSQL expression"));
+                        .name("filter[" + typeName + "]")
+                        .description("Filters the collection of " + typeName
+                                + " using a 'disjoint' RSQL expression"));
+
+                if (lineage.isEmpty()) {
+                    /* Add RSQL Joined Filter Query Param */
+                    params.add(new QueryParameter()
+                            .type("string")
+                            .name("filter")
+                            .description("Filters the collection of " + typeName
+                                    + " using a 'joined' RSQL expression"));
+                }
             }
 
-            for (Operator op : filterOperators) {
-                attributeNames.forEach((name) -> {
-                    Class<?> attributeClass = dictionary.getType(type, name);
+            if (supportLegacyDialect) {
+                for (Operator op : filterOperators) {
+                    attributeNames.forEach((name) -> {
+                        Class<?> attributeClass = dictionary.getType(type, name);
 
-                    /* Only filter attributes that can be assigned to strings or primitives */
-                    if (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass)) {
-                        params.add(new QueryParameter()
-                                .type("string")
-                                .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
-                                .description("Filters the collection of " + typeName + " by the attribute "
-                                        + name + " " + "using the operator " + op.getNotation()));
-                    }
-                });
+                        /* Only filter attributes that can be assigned to strings or primitives */
+                        if (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass)) {
+                            params.add(new QueryParameter()
+                                    .type("string")
+                                    .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
+                                    .description("Filters the collection of " + typeName + " by the attribute "
+                                            + name + " " + "using the operator " + op.getNotation()));
+                        }
+                    });
+                }
             }
 
             return params;
@@ -607,6 +615,8 @@ public class SwaggerBuilder {
      */
     public SwaggerBuilder(EntityDictionary dictionary, Info info) {
         this.dictionary = dictionary;
+        this.supportLegacyDialect = true;
+        this.supportRSQLDialect = true;
         globalResponses = new HashMap<>();
         globalParams = new HashSet<>();
         allClasses = new HashSet<>();
@@ -635,6 +645,26 @@ public class SwaggerBuilder {
      */
     public SwaggerBuilder withGlobalResponse(int code, Response response) {
         globalResponses.put(code, response);
+        return this;
+    }
+
+    /**
+     * Turns on or off the legacy filter dialect.
+     * @param enableLegacyDialect Whether or not to enable the legacy filter dialect.
+     * @return the builder
+     */
+    public SwaggerBuilder withLegacyFilterDialect(boolean enableLegacyDialect) {
+        supportLegacyDialect = enableLegacyDialect;
+        return this;
+    }
+
+    /**
+     * Turns on or off the RSQL filter dialect.
+     * @param enableRSQLDialect Whether or not to enable the RSQL filter dialect.
+     * @return the builder
+     */
+    public SwaggerBuilder withRSQLFilterDialect(boolean enableRSQLDialect) {
+        supportRSQLDialect = enableRSQLDialect;
         return this;
     }
 

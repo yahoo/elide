@@ -19,8 +19,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Operator enum for predicates.
@@ -180,8 +184,7 @@ public enum Operator {
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
             return entiry -> !hasMember(fieldPath, values, requestScope).test(entiry);
         }
-    }
-    ;
+    };
 
     public static final Function<String, String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
     @Getter private final String notation;
@@ -234,90 +237,90 @@ public enum Operator {
     // In with strict equality
     private static <T> Predicate<T> in(Path fieldPath, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
-            Object val = getFieldValue(entity, fieldPath, requestScope);
+            BiPredicate predicate = (a, b) -> a.equals(b);
 
-            return val != null && values.stream()
-                    .map(v -> CoerceUtil.coerce(v, val.getClass()))
-                    .anyMatch(val::equals);
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
     //
     // String-like In with optional transformation
     private static <T> Predicate<T> in(Path fieldPath, List<Object> values,
-                                       RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
-            Object fieldValue = getFieldValue(entity, fieldPath, requestScope);
 
-            if (fieldValue == null) {
-                return false;
-            }
+            BiPredicate predicate = (a, b) -> {
+                if (!a.getClass().isAssignableFrom(String.class)) {
+                    throw new IllegalStateException("Cannot case insensitive compare non-string values");
+                }
 
-            if (!fieldValue.getClass().isAssignableFrom(String.class)) {
-                throw new IllegalStateException("Cannot case insensitive compare non-string values");
-            }
+                String lhs = transform.apply((String) a);
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
-            String val = transform.apply((String) fieldValue);
-            return val != null && values.stream()
-                    .map(v -> transform.apply(CoerceUtil.coerce(v, String.class)))
-                    .anyMatch(val::equals);
+                return lhs.equals(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
     //
     // String-like prefix matching with optional transformation
     private static <T> Predicate<T> prefix(Path fieldPath, List<Object> values,
-                                           RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("PREFIX can only take one argument");
             }
 
-            Object val = getFieldValue(entity, fieldPath, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
-            return valStr != null
-                    && filterStr != null
-                    && transform.apply(valStr).startsWith(transform.apply(filterStr));
+                return lhs != null && rhs != null && lhs.startsWith(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
     //
     // String-like postfix matching with optional transformation
     private static <T> Predicate<T> postfix(Path fieldPath, List<Object> values,
-                                            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("POSTFIX can only take one argument");
             }
 
-            Object val = getFieldValue(entity, fieldPath, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
-            return valStr != null
-                    && filterStr != null
-                    && transform.apply(valStr).endsWith(transform.apply(filterStr));
+                return lhs != null && rhs != null && lhs.endsWith(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
     //
     // String-like infix matching with optional transformation
     private static <T> Predicate<T> infix(Path fieldPath, List<Object> values,
-                                          RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("INFIX can only take one argument");
             }
 
-            Object val = getFieldValue(entity, fieldPath, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+            BiPredicate predicate = (a, b) -> {
+                String lhs = transform.apply(CoerceUtil.coerce(a, String.class));
+                String rhs = transform.apply(CoerceUtil.coerce(b, String.class));
 
-            return valStr != null
-                    && filterStr != null
-                    && transform.apply(valStr).contains(transform.apply(filterStr));
+                return lhs != null && rhs != null && lhs.contains(rhs);
+            };
+
+            return evaluate(entity, fieldPath, values, predicate, requestScope);
         };
     }
 
@@ -355,7 +358,9 @@ public enum Operator {
         return (T entity) -> {
 
             Object val = getFieldValue(entity, fieldPath, requestScope);
-            if (val == null) { return false; }
+            if (val == null) {
+                return false;
+            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).isEmpty();
             }
@@ -377,7 +382,9 @@ public enum Operator {
                     .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
                     .orElse(CoerceUtil.coerce(values.get(0), String.class));
 
-            if (val == null) { return false; }
+            if (val == null) {
+                return false;
+            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).contains(filterStr);
             }
@@ -390,7 +397,7 @@ public enum Operator {
     }
 
     /**
-     * Return value of field/path for given entity.  For example this.book.author
+     * Return value of field/path for given entity. For example this.book.author
      *
      * @param <T> the type of entity to retrieve a value from
      * @param entity Entity bean
@@ -407,18 +414,42 @@ public enum Operator {
             if (val == null) {
                 break;
             }
-            val = PersistentResource.getValue(val, field.getFieldName(), requestScope);
+            if (val instanceof Collection) {
+                val = ((Collection) val).stream()
+                        .filter(Objects::nonNull)
+                        .map(target -> PersistentResource.getValue(target, field.getFieldName(), requestScope))
+                        .filter(Objects::nonNull)
+                        .flatMap(result -> {
+                            if (result instanceof Collection) {
+                                return ((Collection) result).stream();
+                            }
+                            return Stream.of(result);
+                        })
+                        .collect(Collectors.toSet());
+            } else {
+                val = PersistentResource.getValue(val, field.getFieldName(), requestScope);
+            }
         }
         return val;
     }
 
     private static <T> Predicate<T> getComparator(Path fieldPath, List<Object> values,
-                                                  RequestScope requestScope, Predicate<Integer> condition) {
+            RequestScope requestScope, Predicate<Integer> condition) {
         return (T entity) -> {
             if (values.size() == 0) {
                 throw new BadRequestException("No value to compare");
             }
             Object fieldVal = getFieldValue(entity, fieldPath, requestScope);
+
+            if (fieldVal instanceof Collection) {
+                return ((Collection) fieldVal).stream()
+                        .anyMatch((fieldValueElement) -> {
+                            return fieldValueElement != null
+                                    && values.stream()
+                                    .anyMatch(testVal -> condition.test(compare(fieldValueElement, testVal)));
+                        });
+            }
+
             return fieldVal != null
                     && values.stream()
                     .anyMatch(testVal -> condition.test(compare(fieldVal, testVal)));
@@ -432,6 +463,26 @@ public enum Operator {
         Comparable fieldComp = CoerceUtil.coerce(fieldValue, Comparable.class);
 
         return fieldComp.compareTo(testComp);
+    }
+
+    private static boolean evaluate(Object entity, Path fieldPath, List<Object> values,
+                             BiPredicate predicate, RequestScope requestScope) {
+        Class<?> valueClass = fieldPath.lastElement().get().getFieldType();
+
+        Object leftHandSide = getFieldValue(entity, fieldPath, requestScope);
+
+        if (leftHandSide instanceof Collection && !valueClass.isAssignableFrom(Collection.class)) {
+            return ((Collection) leftHandSide).stream()
+                    .anyMatch((leftHandSideElement) -> {
+                        return values.stream()
+                                .map(value -> CoerceUtil.coerce(value, valueClass))
+                                .anyMatch(value -> predicate.test(leftHandSideElement, value));
+                    });
+        } else {
+            return leftHandSide != null && values.stream()
+                    .map(value -> CoerceUtil.coerce(value, valueClass))
+                    .anyMatch(value -> predicate.test(leftHandSide, value));
+        }
     }
 
     public Operator negate() {

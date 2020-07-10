@@ -32,6 +32,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -79,6 +80,7 @@ public class JsonApiController {
 
     @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
     public Callable<ResponseEntity<String>> elidePost(@RequestHeader Map<String, String> requestHeaders,
+                                                      @RequestParam Map<String, String> allRequestParams,
                                                       @RequestBody String body,
                                                       HttpServletRequest request, Authentication authentication) {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
@@ -88,7 +90,8 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.post(pathname, body, user, apiVersion);
+                ElideResponse response = elide.post(pathname, body, new MultivaluedHashMap<>(allRequestParams),
+                        user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -96,6 +99,7 @@ public class JsonApiController {
 
     @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
     public Callable<ResponseEntity<String>> elidePatch(@RequestHeader Map<String, String> requestHeaders,
+                                                       @RequestParam Map<String, String> allRequestParams,
                                                        @RequestBody String body,
                                                        HttpServletRequest request, Authentication authentication) {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
@@ -106,7 +110,8 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .patch(request.getContentType(), request.getContentType(), pathname, body, user, apiVersion);
+                        .patch(request.getContentType(), request.getContentType(), pathname, body,
+                               new MultivaluedHashMap<>(allRequestParams), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -114,6 +119,7 @@ public class JsonApiController {
 
     @DeleteMapping(value = "/**")
     public Callable<ResponseEntity<String>> elideDelete(@RequestHeader Map<String, String> requestHeaders,
+                                                        @RequestParam Map<String, String> allRequestParams,
                                                         HttpServletRequest request,
                                                         Authentication authentication) {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
@@ -123,7 +129,8 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.delete(pathname, null, user, apiVersion);
+                ElideResponse response = elide.delete(pathname, null,
+                        new MultivaluedHashMap<>(allRequestParams), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -131,6 +138,7 @@ public class JsonApiController {
 
     @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
     public Callable<ResponseEntity<String>> elideDeleteRelationship(@RequestHeader Map<String, String> requestHeaders,
+                                                                    @RequestParam Map<String, String> allRequestParams,
                                                                     @RequestBody String body,
                                                                     HttpServletRequest request,
                                                                     Authentication authentication) {
@@ -142,7 +150,8 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .delete(pathname, body, user, apiVersion);
+                        .delete(pathname, body, new MultivaluedHashMap<>(allRequestParams), user,
+                                apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };

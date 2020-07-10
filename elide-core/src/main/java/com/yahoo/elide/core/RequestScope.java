@@ -164,7 +164,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                             errorMessage = errorMessage + "\n" + e.getMessage();
                         }
 
-                        throw new BadRequestException(errorMessage);
+                        throw new BadRequestException(errorMessage, e);
                     }
                 }
             }

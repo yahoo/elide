@@ -29,6 +29,7 @@ import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -96,6 +97,9 @@ public class EntityDictionary {
     @Getter
     protected final Injector injector;
 
+    @Getter
+    protected final Function<Class, Serde> serdeLookup ;
+
     public final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
@@ -110,6 +114,7 @@ public class EntityDictionary {
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.apiVersions = new HashSet<>();
+        this.serdeLookup = CoerceUtil::lookup;
         initializeChecks();
 
         //Default injector only injects Elide internals.
@@ -140,6 +145,13 @@ public class EntityDictionary {
      *                 initialize Elide models.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
+        this(checks, injector, CoerceUtil::lookup);
+    }
+
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                            Injector injector,
+                            Function<Class, Serde> serdeLookup) {
+        this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.apiVersions = new HashSet<>();
         initializeChecks();
@@ -444,6 +456,15 @@ public class EntityDictionary {
      */
     public List<String> getAttributes(Class<?> entityClass) {
         return getEntityBinding(entityClass).apiAttributes;
+    }
+
+    /**
+     * Get the Injector for this dictionary.
+     *
+     * @return Injector instance.
+     */
+    public Injector getInjector() {
+        return injector;
     }
 
     /**
@@ -1033,20 +1054,33 @@ public class EntityDictionary {
         }
         try {
             AccessibleObject idField = null;
-            for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
+            Class<?> valueClass = value.getClass();
+            for (; idField == null && valueClass != null; valueClass = valueClass.getSuperclass()) {
                 try {
-                    idField = getEntityBinding(cls).getIdField();
+                    idField = getEntityBinding(valueClass).getIdField();
                 } catch (NullPointerException e) {
-                    log.warn("Class: {} ID Field: {}", cls.getSimpleName(), idField);
+                    log.warn("Class: {} ID Field: {}", valueClass.getSimpleName(), idField);
                 }
             }
+
+            Class<?> idClass;
+            Object idValue;
             if (idField instanceof Field) {
-                return String.valueOf(((Field) idField).get(value));
+                idValue = ((Field) idField).get(value);
+                idClass = ((Field) idField).getType();
+            } else if (idField instanceof Method) {
+                idValue = ((Method) idField).invoke(value, (Object[]) null);
+                idClass = ((Method) idField).getReturnType();
+            } else {
+                return null;
             }
-            if (idField instanceof Method) {
-                return String.valueOf(((Method) idField).invoke(value, (Object[]) null));
+
+            Serde serde = serdeLookup.apply(idClass);
+            if (serde != null) {
+                return String.valueOf(serde.serialize(idValue));
             }
-            return null;
+
+            return String.valueOf(idValue);
         } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
             return null;
         }

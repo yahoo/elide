@@ -45,7 +45,7 @@ public class SwaggerResourceConfig extends ResourceConfig {
                         dictionary.bindEntity(Publisher.class);
                         Info info1 = new Info().title("Test Service");
 
-                        SwaggerBuilder builder1 = new SwaggerBuilder(dictionary, info1);
+                        SwaggerBuilder builder1 = new SwaggerBuilder(dictionary, info1).withLegacyFilterDialect(false);
                         Swagger swagger1 = builder1.build();
 
                         Info info2 = new Info().title("Test Service").version("1.0");

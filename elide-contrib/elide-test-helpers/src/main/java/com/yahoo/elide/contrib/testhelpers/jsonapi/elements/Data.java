@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
  */
 public class Data extends LinkedHashMap<String, Object> {
     static private final Gson GSON_INSTANCE = new GsonBuilder()
+            .disableHtmlEscaping()
             .serializeNulls().create();
 
     /**

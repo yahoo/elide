@@ -79,7 +79,7 @@
         <!-- dependency versions -->
         <version.antlr4>4.8-1</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.29.v20200521</version.jetty>
+        <version.jetty>9.4.30.v20200611</version.jetty>
         <version.restassured>4.3.0</version.restassured>
         <version.jackson>2.10.4</version.jackson>
         <version.jersey>2.31</version.jersey>
@@ -318,7 +318,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>8.32</version>
+                            <version>8.33</version>
                             <scope>compile</scope>
                         </dependency>
                     </dependencies>

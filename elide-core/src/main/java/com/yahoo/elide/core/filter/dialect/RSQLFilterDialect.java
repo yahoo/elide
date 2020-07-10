@@ -168,7 +168,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
                 String expressionText = paramValues.get(0);
 
-                FilterExpression filterExpression = parseFilterExpression(expressionText, entityType, false);
+                FilterExpression filterExpression = parseFilterExpression(expressionText, entityType, true);
                 expressionByType.put(typeName, filterExpression);
             } else {
                 throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
@@ -301,8 +301,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             //handles '=isempty=' op before coerce arguments
             // ToMany Association is allowed if the operation is IsEmpty
             if (op.equals(ISEMPTY_OP)) {
-                if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, path)
-                        && !allowNestedToManyAssociations) {
+                if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, path)) {
                     throw new RSQLParseException(
                             String.format("Invalid association %s. toMany association has to be the target collection.",
                                     relationship));
