@@ -239,16 +239,19 @@ public class QueryRunner {
             return response;
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
-            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), isVerbose);
+            response = buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), isVerbose);
+            return response;
         } catch (IOException e) {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
-            return buildErrorResponse(elide, new TransactionException(e), isVerbose);
+            response = buildErrorResponse(elide, new TransactionException(e), isVerbose);
+            return response;
         } catch (WebApplicationException e) {
             log.debug("WebApplicationException", e);
             String body = e.getResponse().getEntity() != null ? e.getResponse().getEntity().toString() : e.getMessage();
-            return ElideResponse.builder()
+            response = ElideResponse.builder()
                     .responseCode(e.getResponse().getStatus())
                     .body(body).build();
+            return response;
         } catch (HttpStatusException e) {
             if (e instanceof ForbiddenAccessException) {
                 if (log.isDebugEnabled()) {
@@ -257,7 +260,7 @@ public class QueryRunner {
             } else {
                 log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             }
-            return buildErrorResponse(elide, new HttpStatusException(200, e.getMessage()) {
+            response = buildErrorResponse(elide, new HttpStatusException(200, e.getMessage()) {
                 @Override
                 public int getStatus() {
                     return 200;
@@ -283,10 +286,12 @@ public class QueryRunner {
                     return e.toString();
                 }
             }, isVerbose);
+            return response;
         } catch (Exception | Error e) {
             if (e instanceof InterruptedException) {
                 log.debug("Request Thread interrupted.", e);
-                return buildErrorResponse(elide, new TimeoutException(e), isVerbose);
+                response = buildErrorResponse(elide, new TimeoutException(e), isVerbose);
+                return response;
             }
             log.error("Unhandled error or exception.", e);
             throw e;
@@ -334,6 +339,7 @@ public class QueryRunner {
     }
 
     private static void queryRunnerCompleteQuery(GraphQLRequestScope requestScope, ElideResponse response) {
+        if (requestScope == null) { return; }
         final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
         ql.completeQuery(requestScope.getRequestId(), response);
     }

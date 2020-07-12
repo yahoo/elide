@@ -5,9 +5,10 @@
  */
 package com.yahoo.elide.core;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,26 +16,9 @@ import java.util.List;
  * the queryText that the underlying datastore will eventually run
  */
 @Value
+@AllArgsConstructor
+@NoArgsConstructor(force = true)
 public class QueryDetail {
     private String modelName;
     private List<String> queryText;
-
-    public QueryDetail() {
-        modelName = "";
-        queryText = new ArrayList<String>();
-
-        queryText.add("");
-    }
-
-    public QueryDetail(String modelName) {
-        this.modelName = modelName;
-        queryText = new ArrayList<String>();
-
-        queryText.add("");
-    }
-
-    public QueryDetail(String modelName, List<String> queryText) {
-        this.modelName = modelName;
-        this.queryText = queryText;
-    }
 }

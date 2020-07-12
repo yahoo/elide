@@ -411,19 +411,24 @@ public class Elide {
             if (log.isDebugEnabled()) {
                 log.debug("{}", e.getLoggedMessage());
             }
-            return buildErrorResponse(e, isVerbose);
+            response = buildErrorResponse(e, isVerbose);
+            return response;
         } catch (JsonPatchExtensionException e) {
             log.debug("JSON patch extension exception caught", e);
-            return buildErrorResponse(e, isVerbose);
+            response = buildErrorResponse(e, isVerbose);
+            return response;
         } catch (HttpStatusException e) {
             log.debug("Caught HTTP status exception", e);
-            return buildErrorResponse(e, isVerbose);
+            response = buildErrorResponse(e, isVerbose);
+            return response;
         } catch (IOException e) {
             log.error("IO Exception uncaught by Elide", e);
-            return buildErrorResponse(new TransactionException(e), isVerbose);
+            response = buildErrorResponse(new TransactionException(e), isVerbose);
+            return response;
         } catch (ParseCancellationException e) {
             log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
-            return buildErrorResponse(new InvalidURLException(e), isVerbose);
+            response = buildErrorResponse(new InvalidURLException(e), isVerbose);
+            return response;
         } catch (ConstraintViolationException e) {
             log.debug("Constraint violation exception caught", e);
             String message = "Constraint violation";
@@ -431,11 +436,13 @@ public class Elide {
                 // Return error for the first constraint violation
                 message = IterableUtils.first(e.getConstraintViolations()).getMessage();
             }
-            return buildErrorResponse(new InvalidConstraintException(message), isVerbose);
+            response = buildErrorResponse(new InvalidConstraintException(message), isVerbose);
+            return response;
         } catch (Exception | Error e) {
             if (e instanceof InterruptedException) {
                 log.debug("Request Thread interrupted.", e);
-                return buildErrorResponse(new TimeoutException(e), isVerbose);
+                response = buildErrorResponse(new TimeoutException(e), isVerbose);
+                return response;
             }
             log.error("Error or exception uncaught by Elide", e);
             throw e;
@@ -521,6 +528,7 @@ public class Elide {
     }
 
     private static void elideCompleteQuery(RequestScope requestScope, ElideResponse response) {
+        if (requestScope == null) { return; }
         final QueryLogger ql = requestScope.getElideSettings().getQueryLogger();
         ql.completeQuery(requestScope.getRequestId(), response);
     }
