@@ -12,7 +12,6 @@ import com.google.common.collect.Sets;
 import lombok.Data;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,10 +26,10 @@ public class SQLQueryTemplate {
     private final SQLTable table;
     private final List<SQLMetricProjection> metrics;
     private final Set<SQLColumnProjection> nonTimeDimensions;
-    private final SQLTimeDimensionProjection timeDimension;
+    private final Set<SQLTimeDimensionProjection> timeDimension;
 
     public SQLQueryTemplate(SQLTable table, List<SQLMetricProjection> metrics,
-                     Set<SQLColumnProjection> nonTimeDimensions, SQLTimeDimensionProjection timeDimension) {
+                     Set<SQLColumnProjection> nonTimeDimensions, Set<SQLTimeDimensionProjection> timeDimension) {
         this.table = table;
         this.nonTimeDimensions = nonTimeDimensions;
         this.timeDimension = timeDimension;
@@ -40,9 +39,8 @@ public class SQLQueryTemplate {
     public SQLQueryTemplate(Query query) {
         table = (SQLTable) query.getTable();
         timeDimension = query.getTimeDimensions().stream()
-                .findFirst()
                 .map(SQLTimeDimensionProjection.class::cast)
-                .orElse(null);
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         nonTimeDimensions = query.getGroupByDimensions().stream()
                 .map(SQLColumnProjection.class::cast)
@@ -61,7 +59,7 @@ public class SQLQueryTemplate {
     public Set<SQLColumnProjection> getGroupByDimensions() {
         return getTimeDimension() == null
                 ? getNonTimeDimensions()
-                : Sets.union(getNonTimeDimensions(), Collections.singleton(getTimeDimension()));
+                : Sets.union(getNonTimeDimensions(), getTimeDimension());
     }
 
     /**
@@ -89,7 +87,7 @@ public class SQLQueryTemplate {
          columnProjections.addAll(metrics);
          columnProjections.addAll(nonTimeDimensions);
          if (timeDimension != null) {
-            columnProjections.add(timeDimension);
+            columnProjections.addAll(timeDimension);
          }
          return columnProjections;
      }
