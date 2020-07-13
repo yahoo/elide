@@ -54,10 +54,10 @@ public class InstantSerdeTest {
             serde.serialize(Instant.ofEpochMilli(1559382175123L))
         );
     }
-    
-    @Test(expected=IllegalArgumentException.class)
-    public void failsParsingWithIllegalArgumentException() {
 
+    @Test(expected = IllegalArgumentException.class)
+    public void failsParsingWithIllegalArgumentException() {
+        
         serde.deserialize("2019-06-01T09:42:55.12X3Z");
         fail("didn't raise exception");
 
