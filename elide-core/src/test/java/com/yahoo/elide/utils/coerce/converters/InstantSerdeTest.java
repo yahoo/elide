@@ -6,7 +6,7 @@
 package com.yahoo.elide.utils.coerce.converters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -58,8 +58,10 @@ public class InstantSerdeTest {
     @Test(expected = IllegalArgumentException.class)
     public void failsParsingWithIllegalArgumentException() {
 
-        serde.deserialize("2019-06-01T09:42:55.12X3Z");
-        fail("didn't raise exception");
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> serde.deserialize("2019-06-01T09:42:55.12X3Z")
+        );
 
     }
 }
