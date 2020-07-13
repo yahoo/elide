@@ -17,6 +17,6 @@ public class TestAuditLogger extends AuditLogger {
     }
 
     public List<LogMessage> getMessages() {
-        return new ArrayList<>(this.messages.get());
+        return new ArrayList<>(this.MESSAGES.get());
     }
 }

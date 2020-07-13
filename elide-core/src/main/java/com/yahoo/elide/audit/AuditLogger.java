@@ -17,17 +17,17 @@ import java.util.List;
  * This class uses ThreadLocal list to be thread safe.
  */
 public abstract class AuditLogger {
-    protected static final ThreadLocal<List<LogMessage>> messages =
+    protected static final ThreadLocal<List<LogMessage>> MESSAGES =
         ThreadLocal.withInitial(ArrayList::new);
 
     public void log(LogMessage message) {
-        messages.get().add(message);
+        MESSAGES.get().add(message);
     }
 
     public abstract void commit(RequestScope requestScope) throws IOException;
 
     public void clear() {
-        List<LogMessage> remainingMessages = messages.get();
+        List<LogMessage> remainingMessages = MESSAGES.get();
         if (remainingMessages != null) {
             remainingMessages.clear();
         }
