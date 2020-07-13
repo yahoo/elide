@@ -55,7 +55,7 @@ public class InstantSerdeTest {
         );
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void failsParsingWithIllegalArgumentException() {
 
         assertThrows(
