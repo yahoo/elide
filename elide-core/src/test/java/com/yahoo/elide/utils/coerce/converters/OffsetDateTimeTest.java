@@ -41,9 +41,10 @@ public class OffsetDateTimeTest {
 
     @Test
     public void failsParsingWithIllegalArgumentException() {
+        OffsetDateTimeSerde offsetDateTimeScalar = new OffsetDateTimeSerde();
         assertThrows(
             IllegalArgumentException.class,
-            () -> serde.deserialize("2019-06-01T09:42:55.12X3Z")
+            () -> offsetDateTimeScaler.deserialize("2019-06-01T09:42:55.12X3Z")
         );
     }
 }
