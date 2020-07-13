@@ -39,7 +39,7 @@ public class OffsetDateTimeTest {
         assertEquals(expected, actualDate);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void failsParsingWithIllegalArgumentException() {
         assertThrows(
             IllegalArgumentException.class,
