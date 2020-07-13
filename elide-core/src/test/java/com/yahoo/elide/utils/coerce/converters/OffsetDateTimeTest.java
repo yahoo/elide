@@ -6,6 +6,7 @@
 package com.yahoo.elide.utils.coerce.converters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
 
@@ -36,5 +37,11 @@ public class OffsetDateTimeTest {
         OffsetDateTimeSerde offsetDateTimeScalar = new OffsetDateTimeSerde();
         Object expected = offsetDateTimeScalar.deserialize(actual);
         assertEquals(expected, actualDate);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void failsParsingWithIllegalArgumentException() {
+        serde.deserialize("2019-06-01T09:42:55.12X3Z");
+        fail("didn't raise exception");
     }
 }
