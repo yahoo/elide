@@ -42,7 +42,7 @@ public class QueryWrapper implements Query {
     }
 
     @Override
-    public Query setParameterList(String name, Collection values) {
+    public Query setParameterList(String name, Collection<?> values) {
         this.query = query.setParameterList(name, values);
         return this;
     }

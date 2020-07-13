@@ -117,16 +117,15 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             if (SharePermission.class == annotationClass) {
                 if (requestScope.getDictionary().isShareable(resource.getResourceClass())) {
                     return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
-                } else {
-                    return PermissionExpressionBuilder.FAIL_EXPRESSION;
                 }
+                return PermissionExpressionBuilder.FAIL_EXPRESSION;
             }
             return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             // for newly created object in PatchRequest limit to User checks
-            if (requestScope.getNewPersistentResources().contains(resource)) {
+            if (resource.isNewlyCreated()) {
                 return executeUserChecksDeferInline(annotationClass, expression);
             }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
@@ -491,5 +490,32 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     @Override
     public boolean isVerbose() {
         return verbose;
+    }
+
+    /**
+     * Check strictly user permissions on an entity field.
+     *
+     * @param <A> type parameter
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param field The entity field
+     */
+    @Override
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+                                                                        Class<A> annotationClass,
+                                                                        String field) {
+        Supplier<Expression> expressionSupplier = () -> {
+            return expressionBuilder.buildUserCheckFieldExpressions(
+                    resourceClass,
+                    requestScope,
+                    annotationClass,
+                    field);
+        };
+
+        return checkOnlyUserPermissions(
+                resourceClass,
+                annotationClass,
+                Optional.of(field),
+                expressionSupplier);
     }
 }

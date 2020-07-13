@@ -5,29 +5,47 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
-import com.yahoo.elide.utils.JsonParser;
+import com.yahoo.elide.initialization.IntegrationTest;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.Response;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import io.restassured.response.Response;
 
-public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-    private final JsonParser jsonParser = new JsonParser();
+public class AnyPolymorphismIT extends IntegrationTest {
 
-    @BeforeClass
+    private static final Resource TRACTOR_PROPERTY = resource(
+            type("property"),
+            id("1"),
+            attributes(),
+            relationships(
+                    relation("myStuff", TO_ONE,
+                            linkage(type("tractor"), id("1"))
+                    )
+            )
+    );
+
+    @BeforeEach
     public void setUp() {
         //Create a tractor
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body("{\"data\": {\"type\": \"tractor\", \"attributes\": {\"horsepower\": 102 }}}")
@@ -36,8 +54,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .statusCode(HttpStatus.SC_CREATED);
 
         //Create a smartphone
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body("{\"data\": {\"type\": \"smartphone\", \"attributes\": {\"type\": \"android\" }}}")
@@ -48,12 +65,10 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
 
     @Test
     public void testAny() {
-
-        String id1 = RestAssured
-                .given()
+        String id1 = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
@@ -61,11 +76,22 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .extract()
                 .path("data.id");
 
-        String id2 = RestAssured
-                .given()
+        String id2 = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddSmartphoneProperty.json"))
+                .body(
+                        datum(
+                                resource(
+                                        type("property"),
+                                        attributes(),
+                                        relationships(
+                                                relation("myStuff", TO_ONE,
+                                                        linkage(type("smartphone"), id("1"))
+                                                )
+                                        )
+                                )
+                        )
+                )
                 .post("/property")
                 .then()
                 .assertThat()
@@ -73,8 +99,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .extract()
                 .path("data.id");
 
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id1)
@@ -84,8 +109,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .body("data.relationships.myStuff.data.type", equalTo("tractor"),
                         "data.relationships.myStuff.data.id", equalTo("1"));
 
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id2)
@@ -95,8 +119,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .body("data.relationships.myStuff.data.type", equalTo("smartphone"),
                         "data.relationships.myStuff.data.id", equalTo("1"));
 
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id1 + "?include=myStuff")
@@ -109,8 +132,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                         "included.size()", equalTo(1));
 
 
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id2 + "?include=myStuff")
@@ -123,8 +145,8 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                         "included.size()", equalTo(1),
                         "included[0].attributes.operatingSystem", equalTo("some dessert"));
 
-        RestAssured
-                .given()
+
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property")
@@ -136,11 +158,10 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
 
     @Test
     public void testAnyupdate() {
-        String id = RestAssured
-                .given()
+        String id = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
@@ -149,8 +170,8 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .extract()
                 .path("data.id");
 
-        RestAssured
-                .given()
+
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body("{\"data\": {\"id\": \"" + id + "\", \"type\": \"property\", \"relationships\": {\"myStuff\": {\"data\": {\"type\": \"smartphone\", \"id\": \"1\"}}}}}")
@@ -159,8 +180,8 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .assertThat()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        RestAssured
-                .given()
+
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id)
@@ -170,8 +191,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .body("data.relationships.myStuff.data.type", equalTo("smartphone"));
 
         //delete relation
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body("{\"data\": {\"id\": \"" + id + "\", \"type\": \"property\", \"relationships\": {\"myStuff\": {\"data\": null}}}}")
@@ -180,8 +200,8 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .assertThat()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        RestAssured
-                .given()
+
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id)
@@ -193,11 +213,10 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
 
     @Test
     public void testAnySubpaths() {
-        String id = RestAssured
-                .given()
+        String id = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
@@ -205,8 +224,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .extract()
                 .path("data.id");
 
-        Response response = RestAssured
-                .given()
+        Response response = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property?page[totals]")
@@ -218,10 +236,10 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
 
         Integer collectionSize = response.path("data.size()");
         Integer totalSize = response.path("meta.page.totalRecords");
-        Assert.assertEquals(collectionSize, totalSize);
+        assertEquals(totalSize, collectionSize);
 
-        RestAssured
-                .given()
+
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id + "/myStuff")
@@ -232,8 +250,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                         "data.id", equalTo("1"));
 
         //show that you can't get a relation by the interface type
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/device")
@@ -243,8 +260,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .body("errors[0]", containsString("Unknown collection"));
 
         //Filtering is not supported for these types.
-        RestAssured
-                .given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id + "?filter[tractor]=horsepower==103")

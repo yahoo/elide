@@ -7,12 +7,13 @@ package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 /**
  * Constructs a HQL query to fetch a hibernate collection proxy.
@@ -26,6 +27,24 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                                           Session session) {
         super(dictionary, session);
         this.relationship = relationship;
+    }
+
+    @Override
+    protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
+        Function<String, Boolean> shouldSkip = (relationshipName) -> {
+            String inverseRelationName = dictionary.getRelationInverse(entityClass, relationshipName);
+            if (inverseRelationName.isEmpty()) {
+                return false;
+            }
+
+            Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationshipName);
+
+            //We don't need (or want) to fetch join the parent object.
+            return relationshipClass.equals(relationship.getParentType())
+                    && inverseRelationName.equals(relationship.getRelationshipName());
+        };
+
+        return extractToOneMergeJoins(entityClass, alias, shouldSkip);
     }
 
     /**
@@ -50,7 +69,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
         Query query = filterExpression.map(fe -> {
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
             Collection<FilterPredicate> predicates = fe.accept(extractor);
-            String filterClause = new HQLFilterOperation().apply(fe, USE_ALIAS);
+            String filterClause = new FilterTranslator().apply(fe, USE_ALIAS);
 
             String joinClause =  getJoinClauseFromFilters(filterExpression.get())
                     + extractToOneMergeJoins(relationship.getChildType(), childAlias);

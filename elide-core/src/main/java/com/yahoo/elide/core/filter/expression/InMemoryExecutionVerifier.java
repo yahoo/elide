@@ -37,16 +37,18 @@ public class InMemoryExecutionVerifier implements FilterExpressionVisitor<Boolea
 
     @Override
     public Boolean visitAndExpression(AndFilterExpression expression) {
-        Boolean left = expression.getLeft().accept(this);
-        Boolean right = expression.getRight().accept(this);
-        return (left || right);
+        FilterExpression left = expression.getLeft();
+        FilterExpression right = expression.getRight();
+        // is either computed?
+        return (left.accept(this) || right.accept(this));
     }
 
     @Override
     public Boolean visitOrExpression(OrFilterExpression expression) {
-        Boolean left = expression.getLeft().accept(this);
-        Boolean right = expression.getRight().accept(this);
-        return (left || right);
+        FilterExpression left = expression.getLeft();
+        FilterExpression right = expression.getRight();
+        // is either computed?
+        return (left.accept(this) || right.accept(this));
     }
 
     @Override

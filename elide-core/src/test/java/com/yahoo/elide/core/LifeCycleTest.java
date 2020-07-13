@@ -5,20 +5,25 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -46,6 +51,8 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import example.Author;
@@ -54,8 +61,8 @@ import example.Editor;
 import example.Publisher;
 import example.TestCheckMappings;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,14 +72,13 @@ import java.util.Optional;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Transient
-
-        ;
+import javax.persistence.Transient;
+import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.
+ * Tests the invocation &amp; sequencing of DataStoreTransaction method invocations and life cycle events.
  */
 public class LifeCycleTest {
 
@@ -98,12 +104,12 @@ public class LifeCycleTest {
         }
 
         @Override
-        public Class<?> lookupEntityClass(Class<?> objClass) {
+        public Class<?> lookupBoundClass(Class<?> objClass) {
             // Special handling for mocked Book class which has Entity annotation
             if (objClass.getName().contains("$MockitoMock$")) {
                 objClass = objClass.getSuperclass();
             }
-            return super.lookupEntityClass(objClass);
+            return super.lookupBoundClass(objClass);
         }
 
     }
@@ -119,25 +125,21 @@ public class LifeCycleTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Editor.class);
-        dictionary.bindTrigger(Book.class, OnCreatePostCommit.class, callback);
-        dictionary.bindTrigger(Book.class, OnCreatePreCommit.class, callback);
-        dictionary.bindTrigger(Book.class, OnCreatePreSecurity.class, callback);
-        dictionary.bindTrigger(Book.class, OnReadPostCommit.class, callback);
-        dictionary.bindTrigger(Book.class, OnReadPreCommit.class, callback);
-        dictionary.bindTrigger(Book.class, OnReadPreSecurity.class, callback);
-        dictionary.bindTrigger(Book.class, OnDeletePostCommit.class, callback);
-        dictionary.bindTrigger(Book.class, OnDeletePreCommit.class, callback);
-        dictionary.bindTrigger(Book.class, OnDeletePreSecurity.class, callback);
-        dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, "title", callback);
-        dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, "title", callback);
-        dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, "title", callback);
+        ImmutableList.of(
+                OnCreatePostCommit.class, OnCreatePreCommit.class, OnCreatePreSecurity.class,
+                OnReadPostCommit.class, OnReadPreCommit.class, OnReadPreSecurity.class,
+                OnDeletePostCommit.class, OnDeletePreCommit.class, OnDeletePreSecurity.class)
+                .stream().forEach(cls -> dictionary.bindTrigger(Book.class, cls, callback));
+        ImmutableList.of(
+                OnUpdatePostCommit.class, OnUpdatePreCommit.class, OnUpdatePreSecurity.class)
+                .stream().forEach(cls -> dictionary.bindTrigger(Book.class, cls, "title", callback));
         dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, onUpdateDeferredCallback, true);
         dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, onUpdateImmediateCallback, true);
         dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, onUpdatePostCommitCallback, true);
         dictionary.bindTrigger(Author.class, OnUpdatePostCommit.class, onUpdatePostCommitAuthor, true);
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void clearMocks() {
         clearInvocations(onUpdatePostCommitAuthor, onUpdateImmediateCallback, onUpdatePostCommitCallback, onUpdatePostCommitAuthor);
     }
@@ -156,7 +158,7 @@ public class LifeCycleTest {
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
         ElideResponse response = elide.post("/book", bookBody, null);
-        assertEquals(response.getResponseCode(), HttpStatus.SC_CREATED);
+        assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
 
         /*
          * This gets called for :
@@ -177,6 +179,45 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void testElideCreateFailure() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+        doThrow(RuntimeException.class).when(book).setTitle(anyString());
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String bookBody = "{\"data\": {\"type\":\"book\",\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
+
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(Book.class)).thenReturn(book);
+
+        ElideResponse response = elide.post("/book", bookBody, null);
+        assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getResponseCode());
+        assertEquals(
+                "{\"errors\":[{\"detail\":\"InternalServerErrorException: Unexpected exception caught\"}]}",
+                response.getBody());
+
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - create pre-security for the book
+         *  - read pre-commit for the book
+         *  - create pre-commit for the book
+         *  - read post-commit for the book
+         *  - create post-commit for the book
+         */
+        verify(callback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(tx).accessUser(any());
+        verify(tx, never()).preCommit();
+        verify(tx, never()).createObject(eq(book), isA(RequestScope.class));
+        verify(tx, never()).flush(isA(RequestScope.class));
+        verify(tx, never()).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+
+    @Test
     public void testElideGet() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
@@ -185,11 +226,47 @@ public class LifeCycleTest {
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
-        when(store.beginReadTransaction()).thenReturn(tx);
+        when(store.beginReadTransaction()).thenCallRealMethod();
+        when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        elide.get("/book/1", headers, null);
+        ElideResponse response = elide.get("/book/1", headers, null);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - read pre-commit for the book
+         *  - read post-commit for the book
+         */
+        verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
+        verify(tx).accessUser(any());
+        verify(tx).preCommit();
+        verify(tx).flush(any());
+        verify(tx).commit(any());
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElideGetRelationship() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+        Author author = mock(Author.class);
+        when(book.getId()).thenReturn(1L);
+        when(author.getId()).thenReturn(2L);
+        when(book.getAuthors()).thenReturn(ImmutableSet.of(author));
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        when(store.beginReadTransaction()).thenCallRealMethod();
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        ElideResponse response = elide.get("/book/1/relationships/authors", headers, null);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         /*
          * This gets called for :
@@ -219,8 +296,10 @@ public class LifeCycleTest {
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
-        String contentType = "application/vnd.api+json";
-        elide.patch(contentType, contentType, "/book/1", bookBody, null);
+        String contentType = JSONAPI_CONTENT_TYPE;
+        ElideResponse response = elide.patch(contentType, contentType, "/book/1", bookBody, null);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+
         /*
          * This gets called for :
          *  - read pre-security for the book
@@ -245,6 +324,51 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void testElidePatchFailure() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        when(book.getId()).thenReturn(1L);
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+        doThrow(ConstraintViolationException.class).when(tx).flush(any());
+
+        String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
+
+        String contentType = JSONAPI_CONTENT_TYPE;
+        ElideResponse response = elide.patch(contentType, contentType, "/book/1", bookBody, null);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        assertEquals(
+                "{\"errors\":[{\"detail\":\"Constraint violation\"}]}",
+                response.getBody());
+
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - update pre-security for the book.title
+         *  - read pre-commit for the book
+         *  - update pre-commit for the book.title
+         *  - read post-commit for the book
+         *  - update post-commit for the book.title
+         */
+        verify(callback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(tx).accessUser(any());
+        verify(tx, times(1)).preCommit();
+
+        verify(tx, times(1)).save(eq(book), isA(RequestScope.class));
+        verify(tx, times(1)).flush(isA(RequestScope.class));
+        verify(tx, never()).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
     public void testElideDelete() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
@@ -256,7 +380,152 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
 
-        elide.delete("/book/1", "", null);
+        ElideResponse response = elide.delete("/book/1", "", null);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+
+        /*
+         * This gets called for :
+         *  - delete pre-security for the book
+         *  - delete pre-commit for the book
+         *  - delete post-commit for the book
+         */
+        verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
+        verify(tx).accessUser(any());
+        verify(tx).preCommit();
+
+        verify(tx).delete(eq(book), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElidePatchExtensionCreate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String bookBody = "[{\"op\": \"add\",\"path\": \"/book\",\"value\":{"
+                + "\"type\":\"book\",\"id\": \"A\",\"attributes\": {\"title\":\"Grapes of Wrath\"}}}]";
+
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(Book.class)).thenReturn(book);
+
+        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+        ElideResponse response = elide.patch(contentType, contentType, "/", bookBody, null);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - create pre-security for the book
+         *  - read pre-commit for the book
+         *  - create pre-commit for the book
+         *  - read post-commit for the book
+         *  - create post-commit for the book
+         */
+        verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
+        verify(tx).accessUser(any());
+        verify(tx).preCommit();
+        verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void failElidePatchExtensionCreate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String bookBody = "[{\"op\": \"add\",\"path\": \"/book\",\"value\":{"
+                + "\"type\":\"book\",\"attributes\": {\"title\":\"Grapes of Wrath\"}}}]";
+
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(Book.class)).thenReturn(book);
+
+        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+        ElideResponse response = elide.patch(contentType, contentType, "/", bookBody, null);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        assertEquals(
+                "{\"errors\":[{\"detail\":\"JsonPatchExtensionException\"}]}",
+                response.getBody());
+
+        verify(callback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(tx).accessUser(any());
+        verify(tx, never()).preCommit();
+        verify(tx, never()).flush(isA(RequestScope.class));
+        verify(tx, never()).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElidePatchExtensionUpdate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        when(book.getId()).thenReturn(1L);
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+
+        String bookBody = "[{\"op\": \"replace\",\"path\": \"/book/1\",\"value\":{"
+                + "\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}]";
+
+        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+        ElideResponse response = elide.patch(contentType, contentType, "/", bookBody, null);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        assertEquals("[{\"data\":null}]", response.getBody());
+
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - update pre-security for the book.title
+         *  - read pre-commit for the book
+         *  - update pre-commit for the book.title
+         *  - read post-commit for the book
+         *  - update post-commit for the book.title
+         */
+        verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(tx).accessUser(any());
+        verify(tx).preCommit();
+
+        verify(tx).save(eq(book), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testElidePatchExtensionDelete() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        Book book = mock(Book.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        when(book.getId()).thenReturn(1L);
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+
+        String bookBody = "[{\"op\": \"remove\",\"path\": \"/book\",\"value\":{"
+                + "\"type\":\"book\",\"id\": \"1\"}}]";
+
+        String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
+        ElideResponse response = elide.patch(contentType, contentType, "/", bookBody, null);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
         /*
          * This gets called for :
          *  - delete pre-security for the book
@@ -278,8 +547,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, Optional.of("uuid"));
         resource.setValueChecked("title", "should not affect calls since this is create!");
         resource.setValueChecked("genre", "boring books");
@@ -320,8 +588,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         resource.setValueChecked("title", "new title");
         verify(book, never()).onCreatePreSecurity(scope);
@@ -375,8 +642,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
         verify(book, never()).onCreatePreSecurity(scope);
@@ -445,9 +711,7 @@ public class LifeCycleTest {
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null,
-                getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
         verify(book, never()).onCreatePreSecurity(scope);
@@ -524,8 +788,7 @@ public class LifeCycleTest {
         when(tx.getRelation(any(), eq(author), eq("books"), any(), any(), any(), any())).then((i) -> author.getBooks());
         when(tx.getRelation(any(), eq(book), eq("authors"), any(), any(), any(), any())).then((i) -> book.getAuthors());
 
-        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource<Author> resourceBook = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         PersistentResource<Author> resourceAuthor = new PersistentResource(author, null, scope.getUUIDFor(book), scope);
 
@@ -562,8 +825,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         verify(book, never()).onCreatePreSecurity(scope);
         verify(book, never()).onDeletePreSecurity(scope);
@@ -604,8 +866,7 @@ public class LifeCycleTest {
     public void testOnRead() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
         resource.getValueChecked("title");
@@ -635,7 +896,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onReadPostCommit(scope);
     }
 
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test
     public void testPreSecurityLifecycleHookException() {
         @Entity
         @Include
@@ -653,14 +914,13 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
 
         Book book = new Book();
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
-        resource.updateAttribute("title", "New value");
+        assertThrows(IllegalStateException.class, () -> resource.updateAttribute("title", "New value"));
     }
 
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test
     public void testPreCommitLifeCycleHookException() {
         @Entity
         @Include
@@ -678,13 +938,12 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
 
         Book book = new Book();
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.updateAttribute("title", "New value");
 
-        scope.runQueuedPreCommitTriggers();
+        assertThrows(IllegalStateException.class, () -> scope.runQueuedPreCommitTriggers());
     }
 
     /**
@@ -733,21 +992,20 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
 
         Book book = new Book();
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.getAttribute("title");
 
-        assertEquals(book.readPreSecurityInvoked, 1);
-        assertEquals(book.readPreCommitInvoked, 0);
+        assertEquals(1, book.readPreSecurityInvoked);
+        assertEquals(0, book.readPreCommitInvoked);
         scope.runQueuedPreCommitTriggers();
-        assertEquals(book.readPreCommitInvoked, 1);
-        assertEquals(book.readPostCommitInvoked, 0);
+        assertEquals(1, book.readPreCommitInvoked);
+        assertEquals(0, book.readPostCommitInvoked);
         scope.runQueuedPostCommitTriggers();
-        assertEquals(book.readPreSecurityInvoked, 1);
-        assertEquals(book.readPreCommitInvoked, 1);
-        assertEquals(book.readPostCommitInvoked, 1);
+        assertEquals(1, book.readPreSecurityInvoked);
+        assertEquals(1, book.readPreCommitInvoked);
+        assertEquals(1, book.readPostCommitInvoked);
     }
 
     /**
@@ -796,21 +1054,20 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
 
         Book book = new Book();
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.updateAttribute("title", "foo");
 
-        assertEquals(book.updatePreSecurityInvoked, 1);
-        assertEquals(book.updatePreCommitInvoked, 0);
+        assertEquals(1, book.updatePreSecurityInvoked);
+        assertEquals(0, book.updatePreCommitInvoked);
         scope.runQueuedPreCommitTriggers();
-        assertEquals(book.updatePreCommitInvoked, 1);
-        assertEquals(book.updatePostCommitInvoked, 0);
+        assertEquals(1, book.updatePreCommitInvoked);
+        assertEquals(0, book.updatePostCommitInvoked);
         scope.runQueuedPostCommitTriggers();
-        assertEquals(book.updatePreSecurityInvoked, 1);
-        assertEquals(book.updatePreCommitInvoked, 1);
-        assertEquals(book.updatePostCommitInvoked, 1);
+        assertEquals(1, book.updatePreSecurityInvoked);
+        assertEquals(1, book.updatePreCommitInvoked);
+        assertEquals(1, book.updatePostCommitInvoked);
     }
 
     /**
@@ -860,22 +1117,21 @@ public class LifeCycleTest {
 
         Book book = new Book();
         when(tx.createNewObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource bookResource = PersistentResource.createObject(null, Book.class, scope, Optional.of("123"));
         bookResource.updateAttribute("title", "Foo");
 
-        assertEquals(book.createPreSecurityInvoked, 0);
+        assertEquals(0, book.createPreSecurityInvoked);
         scope.runQueuedPreSecurityTriggers();
-        assertEquals(book.createPreSecurityInvoked, 1);
-        assertEquals(book.createPreCommitInvoked, 0);
+        assertEquals(1, book.createPreSecurityInvoked);
+        assertEquals(0, book.createPreCommitInvoked);
         scope.runQueuedPreCommitTriggers();
-        assertEquals(book.createPreCommitInvoked, 1);
-        assertEquals(book.createPostCommitInvoked, 0);
+        assertEquals(1, book.createPreCommitInvoked);
+        assertEquals(0, book.createPostCommitInvoked);
         scope.runQueuedPostCommitTriggers();
-        assertEquals(book.createPreSecurityInvoked, 1);
-        assertEquals(book.createPreCommitInvoked, 1);
-        assertEquals(book.createPostCommitInvoked, 1);
+        assertEquals(1, book.createPreSecurityInvoked);
+        assertEquals(1, book.createPreCommitInvoked);
+        assertEquals(1, book.createPostCommitInvoked);
     }
 
     /**
@@ -925,21 +1181,20 @@ public class LifeCycleTest {
 
         Book book = new Book();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = buildRequestScope(dictionary, tx);
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.deleteResource();
 
-        assertEquals(book.deletePreSecurityInvoked, 1);
-        assertEquals(book.deletePreCommitInvoked, 0);
+        assertEquals(1, book.deletePreSecurityInvoked);
+        assertEquals(0, book.deletePreCommitInvoked);
         scope.runQueuedPreCommitTriggers();
-        assertEquals(book.deletePreCommitInvoked, 1);
-        assertEquals(book.deletePostCommitInvoked, 0);
+        assertEquals(1, book.deletePreCommitInvoked);
+        assertEquals(0, book.deletePostCommitInvoked);
         scope.runQueuedPostCommitTriggers();
-        assertEquals(book.deletePreSecurityInvoked, 1);
-        assertEquals(book.deletePreCommitInvoked, 1);
-        assertEquals(book.deletePostCommitInvoked, 1);
+        assertEquals(1, book.deletePreSecurityInvoked);
+        assertEquals(1, book.deletePreCommitInvoked);
+        assertEquals(1, book.deletePostCommitInvoked);
     }
 
     /**
@@ -955,8 +1210,7 @@ public class LifeCycleTest {
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
-
+        RequestScope scope = buildRequestScope(wrapped.getDictionary(), tx);
         PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
         PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
         publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book1Resource)));
@@ -971,7 +1225,7 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        scope = buildRequestScope(wrapped.getDictionary(), tx);
 
         PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
         publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
@@ -996,7 +1250,7 @@ public class LifeCycleTest {
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        RequestScope scope = buildRequestScope(wrapped.getDictionary(), tx);
 
         PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
         PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
@@ -1013,7 +1267,7 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        scope = buildRequestScope(wrapped.getDictionary(), tx);
 
         book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
         publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
@@ -1033,6 +1287,7 @@ public class LifeCycleTest {
         return new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withAuditLogger(auditLogger)
+                .withReturnErrorObjects(true)
                 .build();
     }
 
@@ -1041,5 +1296,9 @@ public class LifeCycleTest {
         verify(onUpdateImmediateCallback, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
         verify(onUpdatePostCommitCallback, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
         verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
+    }
+
+    private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx) {
+        return new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
     }
 }

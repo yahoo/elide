@@ -10,6 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.ResourceLineage;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.User;
 
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleContext;
@@ -120,6 +121,16 @@ public class LogMessage {
                 ctx.setVariable(name, expression);
                 singleElementContext.setVariable(name, singleElementExpression);
             }
+
+            final Object user = getUser();
+            if (user != null) {
+                final ValueExpression opaqueUserValueExpression = EXPRESSION_FACTORY
+                    .createValueExpression(
+                        user, Object.class
+                    );
+                ctx.setVariable("opaqueUser", opaqueUserValueExpression);
+                singleElementContext.setVariable("opaqueUser", opaqueUserValueExpression);
+            }
         }
 
         Object[] results = new Object[expressions.length];
@@ -162,6 +173,17 @@ public class LogMessage {
     public RequestScope getRequestScope() {
         if (record != null) {
             return record.getRequestScope();
+        }
+        return null;
+    }
+
+    public Object getUser() {
+        RequestScope requestScope = getRequestScope();
+        if (requestScope != null) {
+            User user = requestScope.getUser();
+            if (user != null) {
+                return user.getOpaqueUser();
+            }
         }
         return null;
     }

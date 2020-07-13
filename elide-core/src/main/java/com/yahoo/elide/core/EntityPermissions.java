@@ -13,9 +13,10 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.generated.parsers.ExpressionLexer;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -120,7 +121,7 @@ public class EntityPermissions implements CheckInstantiator {
     }
 
     public static ParseTree parseExpression(String expression) {
-        ANTLRInputStream is = new ANTLRInputStream(expression);
+        CharStream is = CharStreams.fromString(expression);
         ExpressionLexer lexer = new ExpressionLexer(is);
         lexer.removeErrorListeners();
         lexer.addErrorListener(new BaseErrorListener() {

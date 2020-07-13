@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -33,9 +35,9 @@ public class RequestScopeTest {
         queryParams.put("bar", Collections.singletonList("foo"));
 
         MultivaluedMap<String, String> filtered = (MultivaluedMap<String, String>) method.invoke(null, queryParams);
-        Assert.assertEquals(filtered.size(), 2);
-        Assert.assertTrue(filtered.containsKey("filter"));
-        Assert.assertTrue(filtered.containsKey("filter[xyz]"));
+        assertEquals(2, filtered.size());
+        assertTrue(filtered.containsKey("filter"));
+        assertTrue(filtered.containsKey("filter[xyz]"));
     }
 
     @Test
@@ -66,11 +68,11 @@ public class RequestScopeTest {
         RequestScope requestScope = new RequestScope("/", null, null, null, null,
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
-                        .build(), false);
+                        .build());
 
         String myId = "myId";
         // Test that a new inherited class is counted for base type
         requestScope.setUUIDForObject(dictionary.getJsonAliasFor(MyInheritedClass.class), myId, new MyInheritedClass());
-        Assert.assertNotNull(requestScope.getObjectById(dictionary.getJsonAliasFor(MyBaseClass.class), myId));
+        assertNotNull(requestScope.getObjectById(dictionary.getJsonAliasFor(MyBaseClass.class), myId));
     }
 }

@@ -50,6 +50,7 @@ public class ElideSettingsBuilder {
     private boolean useFilterExpressions;
     private int updateStatusCode;
     private boolean returnErrorObjects;
+    private boolean encodeErrorResponses;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -94,7 +95,8 @@ public class ElideSettingsBuilder {
                 useFilterExpressions,
                 updateStatusCode,
                 returnErrorObjects,
-                serdes);
+                serdes,
+                encodeErrorResponses);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -192,6 +194,11 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withReturnErrorObjects(boolean returnErrorObjects) {
         this.returnErrorObjects = returnErrorObjects;
+        return this;
+    }
+
+    public ElideSettingsBuilder withEncodeErrorResponses(boolean encodeErrorResponses) {
+        this.encodeErrorResponses = encodeErrorResponses;
         return this;
     }
 }

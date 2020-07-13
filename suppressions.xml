@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions
+    xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
+    <suppress until="2019-12-01Z">
+        <notes><![CDATA[file name: jackson-databind-2.9.9.3.jar]]></notes>
+        <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-databind.*$</gav>
+        <cve>CVE-2019-16335</cve>
+        <cve>CVE-2019-14540</cve>
+    </suppress>
+    <!-- Invalid web socket CVE (flagging wrong package) -->
+    <suppress until="2020-12-01Z">
+        <cve>CVE-2020-11050</cve>
+    </suppress>
+</suppressions>

@@ -33,6 +33,10 @@
       <property name="sortImportsInGroupAlphabetically" value="true"/>
       <property name="separateLineBetweenGroups" value="false"/>
     </module>
+    <module name="SuppressionXpathSingleFilter">
+      <property name="checks" value="CustomImportOrder"/>
+      <property name="message" value="^Extra separation in import group before.*"/>
+    </module>
     <module name="ConstantName">
       <metadata name="net.sf.eclipsecs.core.comment" value="Constants (static finals) must be uppercase letters/digits/underscore."/>
       <property name="severity" value="error"/>
@@ -126,25 +130,14 @@
       <metadata name="net.sf.eclipsecs.core.comment" value="Checks the Javadoc of a method or constructor."/>
       <property name="severity" value="warning"/>
       <property name="scope" value="protected"/>
-      <property name="allowUndeclaredRTE" value="true"/>
-      <property name="allowThrowsTagsForSubclasses" value="true"/>
+      <property name="validateThrows" value="true"/>
       <property name="allowMissingParamTags" value="true"/>
-      <property name="allowMissingThrowsTags" value="true"/>
-      <property name="allowMissingJavadoc" value="true"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="JavadocVariable">
       <metadata name="net.sf.eclipsecs.core.comment" value="Checks that variables have Javadoc comments."/>
       <property name="severity" value="ignore"/>
       <property name="scope" value="protected"/>
-      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
-    </module>
-    <module name="LineLength">
-      <metadata name="net.sf.eclipsecs.core.comment" value="Line length of 120 characters except for import lines."/>
-      <property name="severity" value="error"/>
-      <property name="ignorePattern" value="^import.*$"/>
-      <property name="max" value="120"/>
-      <property name="tabWidth" value="4"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="EqualsHashCode">
@@ -199,6 +192,15 @@
       <property name="checkFormat" value="$1"/>
     </module>
   </module>
+  <module name="SuppressWithPlainTextCommentFilter"/>
+  <module name="LineLength">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Line length of 120 characters except for import lines."/>
+    <property name="severity" value="error"/>
+    <property name="ignorePattern" value="^import.*$"/>
+    <property name="max" value="120"/>
+    <property name="tabWidth" value="4"/>
+    <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+  </module>
   <module name="RegexpSingleline">
     <metadata name="net.sf.eclipsecs.core.comment" value="Don't allow non-ASCII characters."/>
     <property name="severity" value="error"/>
@@ -209,6 +211,7 @@
     <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a yahoo/apache copyright block."/>
     <property name="severity" value="error"/>
     <property name="headerFile" value="java.header"/>
+    <property name="multiLines" value="2"/>
     <property name="fileExtensions" value="java,groovy,g4"/>
   </module>
   <module name="RegexpHeader">

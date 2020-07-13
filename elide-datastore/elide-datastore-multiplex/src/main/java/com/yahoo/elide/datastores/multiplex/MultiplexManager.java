@@ -47,7 +47,10 @@ public class MultiplexManager implements DataStore {
         this.dictionary = dictionary;
 
         for (DataStore dataStore : dataStores) {
-            EntityDictionary subordinateDictionary = new EntityDictionary(dictionary.getCheckMappings());
+            EntityDictionary subordinateDictionary = new EntityDictionary(
+                dictionary.getCheckMappings(),
+                dictionary.getInjector()
+            );
 
             dataStore.populateEntityDictionary(subordinateDictionary);
             for (Class<?> cls : subordinateDictionary.getBindings()) {
@@ -82,7 +85,7 @@ public class MultiplexManager implements DataStore {
      */
     protected <T> DataStore getSubManager(Class<T> cls) {
         // Follow for this class or super-class for Entity annotation
-        Class<T> type = (Class<T>) dictionary.lookupEntityClass(cls);
+        Class<T> type = (Class<T>) dictionary.lookupBoundClass(cls);
         return dataStoreMap.get(type);
     }
 }

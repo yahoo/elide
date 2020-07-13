@@ -5,12 +5,17 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
+import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
+import static com.yahoo.elide.utils.TypeHelper.isPrimitiveNumberType;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.IsEmptyPredicate;
 import com.yahoo.elide.core.filter.IsNullPredicate;
+import com.yahoo.elide.core.filter.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -21,6 +26,8 @@ import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.collect.ImmutableMap;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
@@ -33,6 +40,7 @@ import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +60,9 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
+    private static final ComparisonOperator ISEMPTY_OP = new ComparisonOperator("=isempty=", false);
+    private static final ComparisonOperator HASMEMBER_OP = new ComparisonOperator("=hasmember=", false);
+    private static final ComparisonOperator HASNOMEMBER_OP = new ComparisonOperator("=hasnomember=", false);
 
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
@@ -60,6 +71,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     .put(RSQLOperators.GREATER_THAN, Operator.GT)
                     .put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE)
                     .put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE)
+                    .put(HASMEMBER_OP, Operator.HASMEMBER)
+                    .put(HASNOMEMBER_OP, Operator.HASNOMEMBER)
                     .build();
 
 
@@ -81,6 +94,9 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private static Set<ComparisonOperator> getDefaultOperatorsWithIsnull() {
         Set<ComparisonOperator> operators = RSQLOperators.defaultOperators();
         operators.add(ISNULL_OP);
+        operators.add(ISEMPTY_OP);
+        operators.add(HASMEMBER_OP);
+        operators.add(HASNOMEMBER_OP);
         return operators;
     }
 
@@ -91,7 +107,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
-        MultivaluedMap.Entry<String, List<String>> entry = filterParams.entrySet().iterator().next();
+        MultivaluedMap.Entry<String, List<String>> entry = CollectionUtils.get(filterParams, 0);
         String queryParamName = entry.getKey();
 
         if (!"filter".equals(queryParamName)) {
@@ -122,13 +138,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             throw new ParseException("No such collection: " + lastPathComponent);
         }
 
-        try {
-            Node ast = parser.parse(queryParamValue);
-            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(true);
-            return ast.accept(visitor, entityType);
-        } catch (RSQLParserException e) {
-            throw new ParseException(e.getMessage());
-        }
+        return parseFilterExpression(queryParamValue, entityType, true);
     }
 
     @Override
@@ -155,19 +165,34 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 }
 
                 String expressionText = paramValues.get(0);
-                try {
-                    Node ast = parser.parse(expressionText);
-                    RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(false);
-                    FilterExpression filterExpression = ast.accept(visitor, entityType);
-                    expressionByType.put(typeName, filterExpression);
-                } catch (RSQLParserException e) {
-                    throw new ParseException(e.getMessage());
-                }
+
+                FilterExpression filterExpression = parseFilterExpression(expressionText, entityType, true);
+                expressionByType.put(typeName, filterExpression);
             } else {
                 throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
             }
         }
         return expressionByType;
+    }
+
+
+    /**
+     * Parses a RSQL string into an Elide FilterExpression.
+     * @param expressionText the RSQL string
+     * @param entityType The type associated with the predicate
+     * @return An elide FilterExpression abstract syntax tree
+     * @throws ParseException
+     */
+    public FilterExpression parseFilterExpression(String expressionText,
+                                                  Class<?> entityType,
+                                                  boolean allowNestedToManyAssociations) throws ParseException {
+        try {
+            Node ast = parser.parse(expressionText);
+            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(allowNestedToManyAssociations);
+            return ast.accept(visitor, entityType);
+        } catch (RSQLParserException e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     /**
@@ -204,6 +229,12 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             Class entityType = rootEntityType;
 
             for (String associationName : associationNames) {
+                // if the association name is "id", replaced it with real id field name
+                // id field name can be "id" or other string, but non-id field can't have name "id".
+                if (associationName.equals(REGULAR_ID_NAME)) {
+                    associationName = dictionary.getIdFieldName(entityType);
+                }
+
                 String typeName = dictionary.getJsonAliasFor(entityType);
                 Class fieldType = dictionary.getParameterizedType(entityType, associationName);
 
@@ -266,6 +297,27 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             List<String> arguments = node.getArguments();
             Path path = buildPath(entityType, relationship);
 
+            //handles '=isempty=' op before coerce arguments
+            // ToMany Association is allowed if the operation is IsEmpty
+            if (op.equals(ISEMPTY_OP)) {
+                if (FilterPredicate.toManyInPathExceptLastPathElement(dictionary, path)) {
+                    throw new RSQLParseException(
+                            String.format("Invalid association %s. toMany association has to be the target collection.",
+                                    relationship));
+                }
+                return buildIsEmptyOperator(path, arguments);
+            }
+
+            if (op.equals(HASMEMBER_OP) || op.equals(HASNOMEMBER_OP)) {
+                if (FilterPredicate.toManyInPath(dictionary, path)) {
+                    throw new RSQLParseException(
+                            "Invalid toMany join: member of operator cannot be used for toMany relationships");
+                }
+                if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, Collection.class)) {
+                    throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                }
+            }
+
             if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
                 throw new RSQLParseException(String.format("Invalid association %s", relationship));
             }
@@ -281,6 +333,11 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
             //Coerce arguments to their correct types
             List<Object> values = arguments.stream()
+                    .map(argument ->
+                            isPrimitiveNumberType(relationshipType) || Number.class.isAssignableFrom(relationshipType)
+                                    ? argument.replace("*", "") //Support filtering on number types
+                                    : argument
+                    )
                     .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
                     .collect(Collectors.toList());
 
@@ -345,5 +402,26 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
             }
         }
+
+        /**
+         * Returns Predicate for '=isempty=' case depending on its arguments.
+         * <p>
+         * NOTE: Filter Expression builder specially for '=isempty=' case.
+         *
+         * @return
+         */
+        private FilterExpression buildIsEmptyOperator(Path path, List<String> arguments) {
+            String arg = arguments.get(0);
+            try {
+                boolean wantsEmpty = CoerceUtil.coerce(arg, boolean.class);
+                if (wantsEmpty) {
+                    return new IsEmptyPredicate(path);
+                }
+                return new NotEmptyPredicate(path);
+            } catch (InvalidValueException ignored) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg));
+            }
+        }
+
     }
 }

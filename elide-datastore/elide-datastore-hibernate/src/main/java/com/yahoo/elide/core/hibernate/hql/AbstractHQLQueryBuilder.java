@@ -25,9 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.persistence.OneToOne;
 
 /**
  * Abstract class used to construct HQL queries.
@@ -49,9 +48,11 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final String FETCH = " FETCH ";
     protected static final String SELECT = "SELECT ";
     protected static final String AS = " AS ";
+    protected static final String DISTINCT = "DISTINCT ";
 
     protected static final boolean USE_ALIAS = true;
     protected static final boolean NO_ALIAS = false;
+    protected Set<String> alreadyJoined = new HashSet<>();
 
     /**
      * Represents a relationship between two entities.
@@ -65,7 +66,7 @@ public abstract class AbstractHQLQueryBuilder {
 
         public Object getParent();
 
-        public Collection getChildren();
+        public Collection<?> getChildren();
     }
 
     public AbstractHQLQueryBuilder(EntityDictionary dictionary, Session session) {
@@ -118,14 +119,22 @@ public abstract class AbstractHQLQueryBuilder {
      * @return an HQL join clause
      */
     protected String getJoinClauseFromFilters(FilterExpression filterExpression) {
+        return getJoinClauseFromFilters(filterExpression, false);
+    }
+
+    /**
+     * Extracts all the HQL JOIN clauses from given filter expression.
+     * @param filterExpression the filter expression to extract a join clause from
+     * @param skipFetches JOIN but don't FETCH JOIN a relationship.
+     * @return an HQL join clause
+     */
+    protected String getJoinClauseFromFilters(FilterExpression filterExpression, boolean skipFetches) {
         PredicateExtractionVisitor visitor = new PredicateExtractionVisitor(new ArrayList<>());
         Collection<FilterPredicate> predicates = filterExpression.accept(visitor);
 
-        Set<String> alreadyJoined = new HashSet<>();
-
         return predicates.stream()
-            .map(predicate -> extractJoinClause(predicate, alreadyJoined))
-            .collect(Collectors.joining(SPACE));
+                .map(predicate -> extractJoinClause(predicate, skipFetches))
+                .collect(Collectors.joining(SPACE));
     }
 
     /**
@@ -143,10 +152,10 @@ public abstract class AbstractHQLQueryBuilder {
     /**
      * Extracts a join clause from a filter predicate (if it exists).
      * @param predicate The predicate to examine
-     * @param alreadyJoined A set of joins that have already been computed.
+     * @param skipFetches Don't fetch join
      * @return A HQL string representing the join
      */
-    private String extractJoinClause(FilterPredicate predicate, Set<String> alreadyJoined) {
+    private String extractJoinClause(FilterPredicate predicate, boolean skipFetches) {
         StringBuilder joinClause = new StringBuilder();
 
         String previousAlias = null;
@@ -163,18 +172,28 @@ public abstract class AbstractHQLQueryBuilder {
 
             String alias = typeAlias + UNDERSCORE + fieldName;
 
-            String joinFragment;
+            String joinKey;
 
             //This is the first path element
             if (previousAlias == null) {
-                joinFragment = LEFT + JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE;
+                joinKey = typeAlias + PERIOD + fieldName;
             } else {
-                joinFragment = LEFT + JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
+                joinKey = previousAlias + PERIOD + fieldName;
             }
 
-            if (!alreadyJoined.contains(joinFragment)) {
+            String fetch = "";
+            RelationshipType type = dictionary.getRelationshipType(pathElement.getType(), fieldName);
+
+            //This is a to-One relationship belonging to the collection being retrieved.
+            if (!skipFetches && type.isToOne() && !type.isComputed() && previousAlias == null) {
+                fetch = "FETCH ";
+
+            }
+            String joinFragment = LEFT + JOIN + fetch + joinKey + SPACE + alias + SPACE;
+
+            if (!alreadyJoined.contains(joinKey)) {
                 joinClause.append(joinFragment);
-                alreadyJoined.add(joinFragment);
+                alreadyJoined.add(joinKey);
             }
 
             previousAlias = alias;
@@ -190,21 +209,27 @@ public abstract class AbstractHQLQueryBuilder {
      * @return The JOIN clause that can be added to the FROM clause.
      */
     protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
+        return extractToOneMergeJoins(entityClass, alias, (unused) -> false);
+    }
+
+    protected String extractToOneMergeJoins(Class<?> entityClass, String alias,
+                                            Function<String, Boolean> skipRelation) {
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
         StringBuilder joinString = new StringBuilder("");
         for (String relationshipName : relationshipNames) {
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
             if (type.isToOne() && !type.isComputed()) {
-                // fetch only OneToOne with mappedBy
-                OneToOne oneToOne = dictionary.getAttributeOrRelationAnnotation(
-                        entityClass, OneToOne.class, relationshipName);
-                if (oneToOne == null || oneToOne.mappedBy().isEmpty()) {
+                if (skipRelation.apply(relationshipName)) {
                     continue;
                 }
+                String joinKey = alias + PERIOD + relationshipName;
+
+                if (alreadyJoined.contains(joinKey)) {
+                    continue;
+                }
+
                 joinString.append(" LEFT JOIN FETCH ");
-                joinString.append(alias);
-                joinString.append(PERIOD);
-                joinString.append(relationshipName);
+                joinString.append(joinKey);
                 joinString.append(SPACE);
             }
         }
@@ -240,5 +265,18 @@ public abstract class AbstractHQLQueryBuilder {
             }
         }
         return sortingRules;
+    }
+
+    /**
+     * Returns whether filter expression contains toMany relationship
+     * @param filterExpression
+     * @return
+     */
+    protected boolean containsOneToMany(FilterExpression filterExpression) {
+        PredicateExtractionVisitor visitor = new PredicateExtractionVisitor(new ArrayList<>());
+        Collection<FilterPredicate> predicates = filterExpression.accept(visitor);
+
+        return predicates.stream()
+                .anyMatch(predicate -> FilterPredicate.toManyInPath(dictionary, predicate.getPath()));
     }
 }

@@ -1,42 +1,43 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.example;
 
-import com.yahoo.elide.resources.JsonApiEndpoint;
-
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.servlet.ServletContainer;
+import com.yahoo.elide.standalone.ElideStandalone;
 
 import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Properties;
 
 /**
- * Example backend using Elide library.
+ * Example app using Elide library.
  */
 @Slf4j
 public class Main {
     public static void main(String[] args) throws Exception {
-        final Server server = new Server(4080);
-        final ServletContextHandler servletContextHandler = new ServletContextHandler();
-        servletContextHandler.setContextPath("/");
-        server.setHandler(servletContextHandler);
+        ElideStandalone elide = new ElideStandalone(new CommonElideSettings() {
+            @Override
+            public Properties getDatabaseProperties() {
 
-        final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
-        servletHolder.setInitOrder(1);
-        servletHolder.setInitParameter("jersey.config.server.provider.packages",
-                JsonApiEndpoint.class.getPackage().getName());
-        servletHolder.setInitParameter("javax.ws.rs.Application",
-                ElideResourceConfig.class.getCanonicalName());
+                Properties dbProps;
+                try {
+                    dbProps = new Properties();
+                    dbProps.load(
+                            Main.class.getClassLoader().getResourceAsStream("dbconfig.properties")
+                    );
 
-        log.info("Web service starting...");
-        server.start();
+                    dbProps.setProperty("javax.persistence.jdbc.url", System.getenv("JDBC_DATABASE_URL"));
+                    dbProps.setProperty("javax.persistence.jdbc.user", System.getenv("JDBC_DATABASE_USERNAME"));
+                    dbProps.setProperty("javax.persistence.jdbc.password", System.getenv("JDBC_DATABASE_PASSWORD"));
+                    return dbProps;
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
 
-        log.info("Web service running...");
-        server.join();
-        server.destroy();
+        elide.start();
     }
 }

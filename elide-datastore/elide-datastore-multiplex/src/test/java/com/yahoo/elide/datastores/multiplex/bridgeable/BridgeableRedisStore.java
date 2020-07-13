@@ -21,7 +21,7 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.multiplex.BridgeableStoreIT;
+import com.yahoo.elide.datastores.multiplex.BridgeableStoreTest;
 import com.yahoo.elide.datastores.multiplex.BridgeableTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexTransaction;
 import com.yahoo.elide.example.beans.HibernateUser;
@@ -76,7 +76,7 @@ public class BridgeableRedisStore implements DataStore {
                 FilterExpression fe = filterExpression.get();
                 RedisFilter filter = fe.accept(new FilterExpressionParser());
                 if ("user_id".equals(filter.getFieldName())) {
-                    Iterable values = fetchValues(key,
+                    Iterable<?> values = fetchValues(key,
                             v -> v.equals("user" + filter.getValues().get(0) + ":" + id));
                     for (Object value : values) {
                         return value;
@@ -115,7 +115,7 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         private Iterable<Object> fetchValues(String key, java.util.function.Predicate<String> filterVal) {
-            Jedis client = BridgeableStoreIT.REDIS_CLIENT;
+            Jedis client = BridgeableStoreTest.REDIS_CLIENT;
             return client.hgetAll(key).entrySet().stream()
                     .filter(e -> filterVal.test(e.getKey()))
                     .map(this::deserializeAction)

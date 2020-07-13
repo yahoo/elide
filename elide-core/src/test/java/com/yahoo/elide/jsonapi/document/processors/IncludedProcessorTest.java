@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.ElideSettings;
@@ -19,16 +21,13 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
 
 import com.google.common.collect.Sets;
-
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
 import example.TestCheckMappings;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -57,7 +55,7 @@ public class IncludedProcessorTest {
 
     private PersistentResource<FunWithPermissions> funWithPermissionsRecord;
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
 
@@ -74,12 +72,12 @@ public class IncludedProcessorTest {
         RequestScope goodUserScope = new RequestScope(null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(1), null,
-                elideSettings, false);
+                elideSettings);
 
         RequestScope badUserScope = new RequestScope(null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(-1), null,
-                elideSettings, false);
+                elideSettings);
 
         //Create objects
         Parent parent1 = newParent(1);
@@ -127,7 +125,7 @@ public class IncludedProcessorTest {
         List<Resource> expectedIncluded = Collections.singletonList(childRecord1.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added single requested resource from 'include' query param");
     }
 
@@ -146,7 +144,7 @@ public class IncludedProcessorTest {
         List<Resource> expectedIncluded = Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added requested resource from all records");
     }
 
@@ -162,7 +160,7 @@ public class IncludedProcessorTest {
                 Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added single nested requested resources from 'include' query param");
     }
 
@@ -178,7 +176,7 @@ public class IncludedProcessorTest {
                 Arrays.asList(childRecord1.toResource(), parentRecord2.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added single requested resource from 'include' query param");
     }
 
@@ -199,7 +197,7 @@ public class IncludedProcessorTest {
                 );
         Set<Resource> actualIncluded = new HashSet<>(jsonApiDocument.getIncluded());
 
-        Assert.assertEquals(actualIncluded, expectedIncluded,
+        assertEquals(expectedIncluded, actualIncluded,
                 "Included Processor added multiple nested requested resource collections from 'include' query param");
     }
 
@@ -211,7 +209,7 @@ public class IncludedProcessorTest {
         queryParams.put(INCLUDE, Collections.singletonList("relation1"));
         includedProcessor.execute(jsonApiDocument, funWithPermissionsRecord, Optional.of(queryParams));
 
-        Assert.assertNull(jsonApiDocument.getIncluded(),
+        assertNull(jsonApiDocument.getIncluded(),
                 "Included Processor included forbidden relationship");
     }
 
@@ -220,7 +218,7 @@ public class IncludedProcessorTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.empty());
 
-        Assert.assertNull(jsonApiDocument.getIncluded(),
+        assertNull(jsonApiDocument.getIncluded(),
                 "Included Processor adds no resources when not given query params");
     }
 
@@ -233,7 +231,7 @@ public class IncludedProcessorTest {
         queryParams.put("unused", Collections.emptyList());
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
-        Assert.assertNull(jsonApiDocument.getIncluded(),
+        assertNull(jsonApiDocument.getIncluded(),
                 "Included Processor adds no resources when not given query params");
     }
 

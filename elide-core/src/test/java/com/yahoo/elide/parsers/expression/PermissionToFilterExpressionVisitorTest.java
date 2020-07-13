@@ -9,6 +9,9 @@ package com.yahoo.elide.parsers.expression;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -30,12 +33,12 @@ import com.yahoo.elide.security.checks.prefab.Role;
 
 import example.Author;
 import example.Book;
-
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @SuppressWarnings("StringEquality")
 public class PermissionToFilterExpressionVisitorTest {
@@ -76,7 +80,7 @@ public class PermissionToFilterExpressionVisitorTest {
     private RequestScope requestScope;
     private ElideSettings elideSettings;
 
-    @BeforeMethod
+    @BeforeEach
     public void setupEntityDictionary() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
         checks.put(AT_OP_ALLOW, Permissions.Succeeds.class);
@@ -101,107 +105,84 @@ public class PermissionToFilterExpressionVisitorTest {
     ///
     /// Test filter extraction
     ///
-    @DataProvider(name = "identity")
-    public Object[][] identityProvider() {
-        Object[][] tests = new Object[PERMISSIONS.size()][2];
-        int index = 0;
-        for (String expression : PERMISSIONS) {
-            tests[index][0] = expression;
-            tests[index][1] = filterFor(expression);
-            index += 1;
-        }
-        return tests;
+    public static Stream<Arguments> identityProvider() {
+        return PERMISSIONS.stream().map(expression -> Arguments.of(expression, filterFor(expression)));
     }
 
-    @Test(dataProvider = "identity")
+    @ParameterizedTest
+    @MethodSource("identityProvider")
     public void testSingleFilterExpression(String permission, FilterExpression expected) {
         FilterExpression computed = filterExpressionForPermissions(permission);
-        Assert.assertEquals(computed, expected, String.format("%s != %s", permission, expected.toString()));
+        assertEquals(expected, computed,  String.format("%s != %s", permission, expected.toString()));
     }
 
-    @DataProvider(name = "not_provider")
-    public Object[][] notExpressionProvider() {
-        Object[][] tests = new Object[PERMISSIONS.size()][2];
-        int index = 0;
-        for (String expression : PERMISSIONS) {
-            tests[index][0] = expression;
-            tests[index][1] = negate(filterFor(expression));
-            index += 1;
-        }
-        return tests;
+    public static Stream<Arguments> notExpressionProvider() {
+        return PERMISSIONS.stream().map(expression -> Arguments.of(expression, negate(filterFor(expression))));
     }
 
-    @Test(dataProvider = "not_provider")
+    @ParameterizedTest
+    @MethodSource("notExpressionProvider")
     public void testNotFilterExpression(String permission, FilterExpression expected) {
         String expression = String.format("NOT %s", permission);
         FilterExpression computed = filterExpressionForPermissions(expression);
-        Assert.assertEquals(computed, expected);
+        assertEquals(expected, computed);
     }
 
-    @DataProvider(name = "simple_provider")
-    public Object[][] simpleAndProvider() {
-        Object[][] tests = new Object[OPS.size() * PERMISSIONS.size() * PERMISSIONS.size()][4];
-        int index = 0;
-        for (String op : OPS) {
-            for (String left : PERMISSIONS) {
-                for (String right : PERMISSIONS) {
-                    tests[index][0] = left;
-                    tests[index][1] = op;
-                    tests[index][2] = right;
-                    tests[index][3] = buildFilter(left, op, right);
-                    index += 1;
-                }
-            }
-        }
-        return tests;
+    public static Stream<Arguments> simpleAndProvider() {
+        return OPS.stream().map(op ->
+                PERMISSIONS.stream().map(left ->
+                        PERMISSIONS.stream().map(right ->
+                                Arguments.of(left, op, right, buildFilter(left, op, right))
+                        )
+                ).reduce(Stream.empty(), Stream::concat)
+        ).reduce(Stream.empty(), Stream::concat);
     }
 
-    @Test(dataProvider = "simple_provider")
+    @ParameterizedTest
+    @MethodSource("simpleAndProvider")
     public void testSimpleExpression(String left, String op, String right, FilterExpression expected) {
         String permission = String.format("%s %s %s", left, op, right);
         FilterExpression computed = filterExpressionForPermissions(permission);
-        Assert.assertEquals(computed, expected, String.format("%s != %s", permission, expected));
+        assertEquals(expected, computed,  String.format("%s != %s", permission, expected));
 
         boolean specialCase = isSpecialCase(computed);
         boolean isFilterable = containsOnlyFilterableExpressions(computed);
-        Assert.assertTrue(specialCase || isFilterable, String.format("compound expression contains unfilterable clause '%s'", computed));
+        assertTrue(specialCase || isFilterable, String.format("compound expression contains unfilterable clause '%s'", computed));
     }
 
-    @DataProvider(name = "nested_provider")
-    public Object[][] nestedExpressionProvider() {
-        Object[][] tests = new Object[OPS.size() * PERMISSIONS.size() * (OPS.size() * PERMISSIONS.size() * PERMISSIONS.size())][4];
-        int index = 0;
-        for (String outerOp : OPS) {
-            for (String innerOp : OPS) {
-                for (String left : PERMISSIONS) {
-                    for (String innerLeft : PERMISSIONS) {
-                        for (String innerRight : PERMISSIONS) {
-                            String innerPerm = String.format("%s %s %s", innerLeft, innerOp, innerRight);
-                            FilterExpression innerExpr = buildFilter(innerLeft, innerOp, innerRight);
+    public static Stream<Arguments> nestedExpressionProvider() {
+        return OPS.stream().map(outerOp ->
+                OPS.stream().map(innerOp ->
+                        PERMISSIONS.stream().map(left ->
+                                PERMISSIONS.stream().map(innerLeft ->
+                                        PERMISSIONS.stream().map(innerRight -> {
+                                            String innerPerm =
+                                                    String.format("%s %s %s", innerLeft, innerOp, innerRight);
 
-                            tests[index][0] = left;
-                            tests[index][1] = outerOp;
-                            tests[index][2] = innerPerm;
-                            tests[index][3] = buildFilter(left, outerOp, innerExpr);
-                            index += 1;
-                        }
-                    }
+                                            FilterExpression innerExpr = buildFilter(innerLeft, innerOp, innerRight);
 
-                }
-            }
-        }
-        return tests;
+                                            return Arguments.of(
+                                                    left,
+                                                    outerOp,
+                                                    innerPerm,
+                                                    buildFilter(left, outerOp, innerExpr));
+                                        })
+                                ).reduce(Stream.empty(), Stream::concat)
+                        ).reduce(Stream.empty(), Stream::concat)
+                ).reduce(Stream.empty(), Stream::concat)
+        ).reduce(Stream.empty(), Stream::concat);
     }
 
-    @Test(dataProvider = "nested_provider")
+    @ParameterizedTest
+    @MethodSource("nestedExpressionProvider")
     public void testNestedExpressions(String left, String join, String compound, FilterExpression expected) {
         String permission = String.format("%s %s (%s)", left, join, compound);
         FilterExpression computed = filterExpressionForPermissions(permission);
-        Assert.assertEquals(computed, expected, String.format("%s != %s", permission, computed));
+        assertEquals(expected, computed,  String.format("%s != %s", permission, computed));
 
         boolean specialCase = isSpecialCase(computed);
         boolean isFilterable = containsOnlyFilterableExpressions(computed);
-        Assert.assertTrue(specialCase || isFilterable, String.format("compound expression contains unfilterable clause '%s'", computed));
+        assertTrue(specialCase || isFilterable, String.format("compound expression contains unfilterable clause '%s'", computed));
     }
 
     @Test
@@ -210,28 +191,28 @@ public class PermissionToFilterExpressionVisitorTest {
                 FALSE_USER_CHECK_EXPRESSION, TRUE_USER_CHECK_EXPRESSION, NO_EVALUATION_EXPRESSION);
 
         for (FilterExpression e : unfilterable) {
-            Assert.assertTrue(isSpecialCase(e), String.format("isSpecialCase(%s)", e));
+            assertTrue(isSpecialCase(e), String.format("isSpecialCase(%s)", e));
         }
 
 
-        Assert.assertTrue(containsOnlyFilterableExpressions(
+        assertTrue(containsOnlyFilterableExpressions(
                 new AndFilterExpression(IN_PREDICATE, NOT_IN_PREDICATE)
         ));
-        Assert.assertTrue(containsOnlyFilterableExpressions(
+        assertTrue(containsOnlyFilterableExpressions(
                 new OrFilterExpression(IN_PREDICATE, NOT_IN_PREDICATE)
         ));
 
-        Assert.assertFalse(containsOnlyFilterableExpressions(
+        assertFalse(containsOnlyFilterableExpressions(
                 new AndFilterExpression(IN_PREDICATE, FALSE_USER_CHECK_EXPRESSION)
         ));
-        Assert.assertFalse(containsOnlyFilterableExpressions(
+        assertFalse(containsOnlyFilterableExpressions(
                 new OrFilterExpression(IN_PREDICATE, FALSE_USER_CHECK_EXPRESSION)
         ));
 
-        Assert.assertFalse(containsOnlyFilterableExpressions(
+        assertFalse(containsOnlyFilterableExpressions(
                 new AndFilterExpression(IN_PREDICATE, new AndFilterExpression(IN_PREDICATE, TRUE_USER_CHECK_EXPRESSION))
         ));
-        Assert.assertFalse(containsOnlyFilterableExpressions(
+        assertFalse(containsOnlyFilterableExpressions(
                 new OrFilterExpression(IN_PREDICATE, new OrFilterExpression(IN_PREDICATE, TRUE_USER_CHECK_EXPRESSION))
         ));
 
@@ -239,7 +220,7 @@ public class PermissionToFilterExpressionVisitorTest {
 
         negated = negate(new OrFilterExpression(NOT_IN_PREDICATE, NOT_IN_PREDICATE));
         expected = new AndFilterExpression(IN_PREDICATE, IN_PREDICATE);
-        Assert.assertEquals(negated, expected);
+        assertEquals(expected, negated);
     }
 
     //
@@ -247,7 +228,7 @@ public class PermissionToFilterExpressionVisitorTest {
     //
     public RequestScope newRequestScope() {
         User john = new User("John");
-        return requestScope = new RequestScope(null, null, null, john, null, elideSettings, false);
+        return requestScope = new RequestScope(null, null, null, john, null, elideSettings);
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

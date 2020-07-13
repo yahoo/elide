@@ -8,9 +8,10 @@ package com.yahoo.elide.parsers;
 import com.yahoo.elide.generated.parsers.CoreLexer;
 import com.yahoo.elide.generated.parsers.CoreParser;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -55,7 +56,7 @@ public class JsonApiParser {
     public static ParseTree parse(String path) {
         String normalizedPath = normalizePath(path);
 
-        ANTLRInputStream is = new ANTLRInputStream(normalizedPath);
+        CharStream is = CharStreams.fromString(normalizedPath);
         CoreLexer lexer = new CoreLexer(is);
         lexer.removeErrorListeners();
         lexer.addErrorListener(new BaseErrorListener() {

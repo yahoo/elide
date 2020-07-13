@@ -1,0 +1,46 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno",
+          "priceRevisions": null
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "title": "Libro Dos",
+          "priceRevisions": [
+            {
+              "key" : "2020-05-22T22:48Z",
+              "value" : {
+                "units" : 210,
+                "currency" : {
+                  "currencyCode" : "USD"
+                }
+              }
+            },
+            {
+              "key" : "2020-05-22T22:46Z",
+              "value" : {
+                "units" : 200,
+                "currency" : {
+                  "currencyCode" : "USD"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "node": {
+          "id": "3",
+          "title": "Doctor Zhivago",
+          "priceRevisions": null
+        }
+      }
+    ]
+  }
+}

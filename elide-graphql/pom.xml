@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.4.2-SNAPSHOT</version>
+        <version>4.6.7-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,7 +44,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>4.4.2-SNAPSHOT</version>
+            <version>4.6.7-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-test-helpers</artifactId>
+            <version>4.6.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -59,6 +64,25 @@
 
         <!-- Test -->
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+         <dependency>
+             <groupId>org.apache.ant</groupId>
+             <artifactId>ant</artifactId>
+             <version>1.10.8</version>
+            <scope>test</scope>
+         </dependency>
+
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <scope>test</scope>
@@ -69,18 +93,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -90,9 +104,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-common</artifactId>
-            <version>2.25.1</version>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -109,7 +122,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.6</version>
+                <version>${version.antlr4}</version>
                 <configuration>
                     <visitor>true</visitor>
                 </configuration>

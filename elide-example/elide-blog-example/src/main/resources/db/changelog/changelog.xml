@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <changeSet author="admin" id="1539122071">
+        <sql>
+            CREATE TABLE blogger
+            (
+            id        SERIAL,
+            role      INT NOT NULL,
+            name      VARCHAR(255),
+            PRIMARY KEY (id)
+            );
+
+            CREATE TABLE post
+            (
+            id          SERIAL,
+            content     VARCHAR(2048),
+            author_id   INT NOT NULL,
+            PRIMARY KEY (id),
+            FOREIGN KEY (author_id) REFERENCES blogger(id)
+            );
+
+            CREATE TABLE comment
+            (
+            id           SERIAL,
+            author_id    INT NOT NULL,
+            post_id      INT NOT NULL,
+            content      VARCHAR(255),
+            PRIMARY KEY (id),
+            FOREIGN KEY (author_id) REFERENCES blogger(id),
+            FOREIGN KEY (post_id) REFERENCES post(id)
+            );
+        </sql>
+    </changeSet>
+    <changeSet author="admin" id="1539122270">
+        <sql>
+            INSERT INTO blogger (id, role, name)
+            VALUES
+            (1,1,'Jon Doe'),
+            (2,1,'Jane Doe');
+
+            INSERT INTO post (id, content, author_id)
+            VALUES
+            (1,'My first post',1),
+            (2,'The weather is terrible',2);
+
+            INSERT INTO comment (id, author_id, post_id, content)
+            VALUES
+            (1,1,1,'I think the weather is great');
+        </sql>
+    </changeSet>
+</databaseChangeLog>

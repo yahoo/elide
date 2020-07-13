@@ -6,6 +6,7 @@
 package com.yahoo.elide.contrib.testhelpers.jsonapi.elements;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * The type Attribute.
@@ -15,9 +16,11 @@ public class Attribute {
     /**
      * The Key.
      */
+    @Getter
     final String key;
     /**
      * The Value.
      */
+    @Getter
     final Object value;
 }

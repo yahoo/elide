@@ -5,42 +5,61 @@
  */
 package com.yahoo.elide.fieldLevelTest;
 
-import static com.jayway.restassured.RestAssured.given;
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
+import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.utils.JsonParser;
 
 import org.apache.http.HttpStatus;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class FieldLevelParentClassIdIT extends AbstractIntegrationTestInitializer {
+public class FieldLevelParentClassIdIT extends IntegrationTest {
     private final JsonParser jsonParser = new JsonParser();
 
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-
-    @Test(priority = 0)
+    @Test
     public void testResponseCodeOnUpdate() {
-        String request = jsonParser.getJson("/FieldLevelIT/createFieldLevelChildEntity.req.json");
-        String expected = jsonParser.getJson("/FieldLevelIT/createFieldLevelChildEntity.resp.json");
+        Resource original = resource(
+                type("fieldLevelChild"),
+                id("1"),
+                attributes(
+                        attr("childField", "someValue"),
+                        attr("parentField", "parentValue")
+                )
+        );
 
-        String actual = given()
+        Resource modified = resource(
+                type("fieldLevelChild"),
+                id("1"),
+                attributes(
+                        attr("childField", "someOtherValue"),
+                        attr("parentField", "aNewParentValue")
+                )
+        );
+
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(datum(original))
                 .post("/fieldLevelChild")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
-        assertEqualDocuments(actual, expected);
-
-        request = jsonParser.getJson("/FieldLevelIT/updateFieldLevelChildEntity.req.json");
+                .body(equalTo(datum(original).toJSON()));
 
         given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
-            .patch("/fieldLevelChild/1")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT);
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(datum(modified))
+                .patch("/fieldLevelChild/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 }

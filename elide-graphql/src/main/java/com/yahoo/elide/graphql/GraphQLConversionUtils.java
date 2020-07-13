@@ -13,6 +13,9 @@ import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -27,6 +30,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,8 +44,11 @@ public class GraphQLConversionUtils {
     protected static final String MAP = "Map";
     protected static final String KEY = "key";
     protected static final String VALUE = "value";
+    protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
 
-    protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+    private final Map<Class<?>, GraphQLScalarType> scalarMap = new HashMap<>();
+
+    protected NonEntityDictionary nonEntityDictionary;
     protected EntityDictionary entityDictionary;
 
     private final Map<Class, GraphQLObjectType> outputConversions = new HashMap<>();
@@ -49,8 +56,23 @@ public class GraphQLConversionUtils {
     private final Map<Class, GraphQLEnumType> enumConversions = new HashMap<>();
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
 
-    public GraphQLConversionUtils(EntityDictionary dictionary) {
-        this.entityDictionary = dictionary;
+    public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
+        this.entityDictionary = entityDictionary;
+        this.nonEntityDictionary = nonEntityDictionary;
+        registerCustomScalars();
+    }
+
+    private void registerCustomScalars() {
+        for (Class serdeType : CoerceUtil.getSerdes().keySet()) {
+            Serde serde = CoerceUtil.lookup(serdeType);
+            ElideTypeConverter elideTypeConverter = serde.getClass()
+                    .getAnnotation(ElideTypeConverter.class);
+            if (elideTypeConverter != null) {
+                SerdeCoercing serdeCoercing = new SerdeCoercing(ERROR_MESSAGE, serde);
+                scalarMap.put(elideTypeConverter.type(), new GraphQLScalarType(elideTypeConverter.name(),
+                        elideTypeConverter.description(), serdeCoercing));
+            }
+        }
     }
 
     /**
@@ -73,10 +95,13 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLShort;
         } else if (clazz.equals(String.class)) {
             return Scalars.GraphQLString;
+        } else if (clazz.equals(BigDecimal.class)) {
+            return Scalars.GraphQLBigDecimal;
         } else if (Date.class.isAssignableFrom(clazz)) {
             return GraphQLScalars.GRAPHQL_DATE_TYPE;
+        } else if (scalarMap.containsKey(clazz)) {
+            return scalarMap.get(clazz);
         }
-
         return null;
     }
 
@@ -151,7 +176,7 @@ public class GraphQLConversionUtils {
      */
     public GraphQLList classToInputMap(Class<?> keyClazz,
                                        Class<?> valueClazz) {
-        String mapName = toValidNameName("__input__" + keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+        String mapName = toValidNameName("_input__" + keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
 
         if (mapConversions.containsKey(mapName)) {
             return mapConversions.get(mapName);
@@ -393,7 +418,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLInputObjectType.Builder objectBuilder = newInputObject();
-        objectBuilder.name(toValidNameName("__input__" + clazz.getName()));
+        objectBuilder.name(toValidNameName("_input__" + clazz.getName()));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             log.info("Building input object attribute: {}", attribute);

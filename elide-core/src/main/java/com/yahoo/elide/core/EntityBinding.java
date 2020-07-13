@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
+
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
@@ -26,7 +28,7 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.functions.LifeCycleHook;
 
 import com.google.common.base.Throwables;
-
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -76,7 +78,7 @@ import javax.persistence.Transient;
  */
 public class EntityBinding {
 
-    private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
+    private static final List<Method> OBJ_METHODS = ImmutableList.copyOf(Object.class.getMethods());
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
@@ -115,7 +117,7 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
 
-    public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Object, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
     private static final String ALL_FIELDS = "*";
@@ -124,12 +126,12 @@ public class EntityBinding {
     private EntityBinding() {
         jsonApiType = null;
         entityName = null;
+        attributes = new ArrayList<>();
+        relationships = new ArrayList<>();
+        inheritedTypes = new ArrayList<>();
         idField = null;
         idType = null;
-        attributes = null;
-        relationships = null;
         entityClass = null;
-        inheritedTypes = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
         idGenerated = false;
     }
@@ -327,7 +329,7 @@ public class EntityBinding {
         String fieldName = getFieldName(fieldOrMethod);
         Class<?> fieldType = getFieldType(entityClass, fieldOrMethod);
 
-        if (fieldName == null || "id".equals(fieldName) || "class".equals(fieldName)
+        if (fieldName == null || REGULAR_ID_NAME.equals(fieldName) || "class".equals(fieldName)
                 || OBJ_METHODS.contains(fieldOrMethod)) {
             return; // Reserved
         }
@@ -564,15 +566,30 @@ public class EntityBinding {
      * @return the annotation
      */
     public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
-        Annotation annotation = annotations.get(annotationClass);
-        if (annotation == null) {
-            annotation = EntityDictionary.getFirstAnnotation(entityClass, Collections.singletonList(annotationClass));
-            if (annotation == null) {
-                annotation = NO_ANNOTATION;
+        Annotation annotation = annotations.computeIfAbsent(annotationClass, cls -> Optional.ofNullable(
+                EntityDictionary.getFirstAnnotation(entityClass, Collections.singletonList(annotationClass)))
+                .orElse(NO_ANNOTATION));
+        return annotation == NO_ANNOTATION ? null : annotationClass.cast(annotation);
+    }
+
+    /**
+     * Return annotation for provided method.
+     *
+     * @param annotationClass the annotation class
+     * @param method the method
+     * @param <A> annotation type
+     * @return the annotation
+     */
+    public <A extends Annotation> A getMethodAnnotation(Class<A> annotationClass, String method) {
+        Annotation annotation = annotations.computeIfAbsent(Pair.of(annotationClass, method), key -> {
+            try {
+                return Optional.ofNullable((Annotation) entityClass.getMethod(method).getAnnotation(annotationClass))
+                        .orElse(NO_ANNOTATION);
+            } catch (NoSuchMethodException | SecurityException e) {
+                throw new IllegalStateException(e);
             }
-            annotations.putIfAbsent(annotationClass, annotation);
-        }
-        return annotation == NO_ANNOTATION ? null : (A) annotation;
+        });
+        return annotation == NO_ANNOTATION ? null : annotationClass.cast(annotation);
     }
 
     private List<Class<?>> getInheritedTypes(Class<?> entityClass) {

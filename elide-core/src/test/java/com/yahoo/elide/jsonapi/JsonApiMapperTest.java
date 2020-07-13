@@ -6,26 +6,25 @@
 
 package com.yahoo.elide.jsonapi;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.TimeZone;
 
 public class JsonApiMapperTest {
-    private Serde oldSerde;
+    private static Serde oldSerde;
 
-    @BeforeClass
-    public void init() {
-
+    @BeforeAll
+    public static void init() {
         oldSerde = CoerceUtil.lookup(Date.class);
 
         CoerceUtil.register(Date.class, new ISO8601DateSerde(
@@ -34,8 +33,8 @@ public class JsonApiMapperTest {
                 java.sql.Date.class));
     }
 
-    @AfterClass
-    public void cleanup() {
+    @AfterAll
+    static void cleanup() {
         CoerceUtil.register(Date.class, oldSerde);
     }
 
@@ -46,7 +45,7 @@ public class JsonApiMapperTest {
         ObjectMapper mapper = jsonApiMapper.getObjectMapper();
 
         String result = mapper.writeValueAsString(new java.sql.Date(0));
-        Assert.assertEquals(result, "\"1970-01-01T00:00Z\"");
+        assertEquals("\"1970-01-01T00:00Z\"", result);
     }
 
     @Test
@@ -56,7 +55,7 @@ public class JsonApiMapperTest {
         ObjectMapper mapper = jsonApiMapper.getObjectMapper();
 
         String result = mapper.writeValueAsString(new Date(0));
-        Assert.assertEquals(result, "\"1970-01-01T00:00Z\"");
+        assertEquals("\"1970-01-01T00:00Z\"", result);
     }
 
     @Test
@@ -66,7 +65,7 @@ public class JsonApiMapperTest {
         ObjectMapper mapper = jsonApiMapper.getObjectMapper();
 
         String result = mapper.writeValueAsString(new java.sql.Timestamp(0));
-        Assert.assertEquals(result, "\"1970-01-01T00:00Z\"");
+        assertEquals("\"1970-01-01T00:00Z\"", result);
     }
 
     @Test
@@ -76,6 +75,6 @@ public class JsonApiMapperTest {
         ObjectMapper mapper = jsonApiMapper.getObjectMapper();
 
         String result = mapper.writeValueAsString(new java.sql.Time(0));
-        Assert.assertEquals(result, "\"1970-01-01T00:00Z\"");
+        assertEquals("\"1970-01-01T00:00Z\"", result);
     }
 }

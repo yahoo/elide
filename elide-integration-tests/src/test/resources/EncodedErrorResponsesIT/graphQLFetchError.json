@@ -1,0 +1,10 @@
+{
+  "errors":[
+    {
+      "message":"Invalid Syntax",
+      "locations":[
+        {"line":1,"column":43}
+      ]
+    }
+  ]
+}

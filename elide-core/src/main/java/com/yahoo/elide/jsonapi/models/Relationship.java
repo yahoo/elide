@@ -14,9 +14,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.apache.commons.collections4.MapUtils;
+
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +43,7 @@ public class Relationship {
             } else {
                 this.idData = new Data<>(
                         data.get().stream()
+                            .map(Objects::requireNonNull)
                             .map(Resource::toResourceIdentifier)
                             .collect(Collectors.toList())
                 );
@@ -51,7 +55,7 @@ public class Relationship {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Map<String, String> getLinks() {
-        return links == null || links.isEmpty() ? null : links;
+        return MapUtils.isEmpty(links) ? null : links;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -74,7 +78,7 @@ public class Relationship {
         if (resources != null) {
             for (Resource resource : resources) {
                 try {
-                    if (data.isToOne() && resource == null) {
+                    if (resource == null) {
                         continue;
                     }
                     res.add(resource.toPersistentResource(requestScope));

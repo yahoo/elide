@@ -5,13 +5,15 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+
 import io.swagger.models.Operation;
 
 /**
  * Operation that consumes and produces JSON API mime type.
  */
 public class JsonApiOperation extends Operation {
-    public static final String JSON_API_MIME = "application/vnd.api+json";
+    public static final String JSON_API_MIME = JSONAPI_CONTENT_TYPE;
 
     public JsonApiOperation() {
         super();

@@ -10,8 +10,14 @@ import lombok.Getter;
 
 @AllArgsConstructor
 class Operation {
+    enum OpType {
+        CREATE,
+        DELETE,
+        UPDATE
+    };
+
     @Getter private final String id;
     @Getter private final Object instance;
     @Getter private final Class<?> type;
-    @Getter private final Boolean delete;
+    @Getter private final OpType opType;
 }

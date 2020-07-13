@@ -86,6 +86,34 @@ public class Pagination {
     }
 
     /**
+     * TODO - Refactor Pagination.
+     * IMPORTANT - This method should only be used for testing until Pagination is refactored.  The
+     * member field values of this class change depending on evaluation later from the Pagination annotation.
+     * The existing implementation is too complex because logic resides in the wrong places.
+     *
+     * @param limit The page size
+     * @param offset The page offset
+     * @param generatePageTotals Whether or not to return page totals
+     * @return A new pagination object.
+     */
+    public static Pagination fromOffsetAndLimit(int limit, int offset, boolean generatePageTotals) {
+
+        ImmutableMap.Builder<PaginationKey, Integer> pageData = ImmutableMap.<PaginationKey, Integer>builder()
+                    .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
+                    .put(PAGE_KEYS.get(PAGE_LIMIT_KEY), limit);
+
+        if (generatePageTotals) {
+            pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
+        }
+
+        Pagination result = new Pagination(pageData.build(), MAX_PAGE_LIMIT, DEFAULT_PAGE_LIMIT);
+        result.offset = offset;
+        result.limit = limit;
+        result.generateTotals = generatePageTotals;
+        return result;
+    }
+
+    /**
      * Given an offset and first parameter from GraphQL, generate page and pageSize values.
      *
      * @param firstOpt Provided first string

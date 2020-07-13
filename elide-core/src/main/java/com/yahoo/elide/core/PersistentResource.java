@@ -13,13 +13,12 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -41,17 +40,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,14 +64,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.WebApplicationException;
-
 /**
  * Resource wrapper around Entity bean.
  *
  * @param <T> type of resource
  */
-@Slf4j
 public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     protected T obj;
     private final String type;
@@ -223,7 +215,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource(obj, null, requestScope.getUUIDFor(obj), requestScope);
+        PersistentResource<T> resource = new PersistentResource<>(
+                loadClass.cast(obj), null, requestScope.getUUIDFor(obj), requestScope);
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);
@@ -241,7 +234,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return a FilterExpression defined by FilterExpressionCheck.
      */
     private static <T> Optional<FilterExpression> getPermissionFilterExpression(Class<T> loadClass,
-                                                                      RequestScope requestScope) {
+            RequestScope requestScope) {
         try {
             return requestScope.getPermissionExecutor().getReadPermissionFilter(loadClass);
         } catch (ForbiddenAccessException e) {
@@ -274,15 +267,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
             if (ids.isEmpty()) {
                 return Collections.emptySet();
-            } else {
-                throw new InvalidObjectIdentifierException(ids.toString(), dictionary.getJsonAliasFor(loadClass));
             }
+            throw new InvalidObjectIdentifierException(ids.toString(), dictionary.getJsonAliasFor(loadClass));
         }
 
 
         if (pagination.isPresent() && !pagination.get().isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
-            throw new InvalidPredicateException(String.format("Cannot paginate %s",
+            throw new BadRequestException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(loadClass)));
         }
 
@@ -313,7 +305,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        Set<PersistentResource> existingResources = filter(ReadPermission.class,
+        Set<PersistentResource> existingResources = filter(ReadPermission.class, filter,
                 new PersistentResourceSet(tx.loadObjects(loadClass, Optional.ofNullable(filterExpression), sorting,
                 pagination.map(p -> p.evaluate(loadClass)), requestScope), requestScope));
 
@@ -340,7 +332,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
         Class<?> fieldClass = dictionary.getType(getResourceClass(), fieldName);
-        newVal =  coerce(newVal, fieldName, fieldClass);
+        newVal =  dictionary.coerce(obj, newVal, fieldName, fieldClass);
         Object val = getValueUnchecked(fieldName);
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
         if (!Objects.equals(val, newVal)) {
@@ -377,23 +369,24 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         RelationshipType type = getRelationshipType(fieldName);
-        Set<PersistentResource> resources = filter(ReadPermission.class,
+        Set<PersistentResource> resources = filter(ReadPermission.class, Optional.empty(),
                 getRelationUncheckedUnfiltered(fieldName));
         boolean isUpdated;
         if (type.isToMany()) {
+            List<Object> modifiedResources = CollectionUtils.isEmpty(resourceIdentifiers)
+                    ? Collections.emptyList()
+                    : resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList());
             checkFieldAwareDeferPermissions(
                     UpdatePermission.class,
                     fieldName,
-                    resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList()),
+                    modifiedResources,
                     resources.stream().map(PersistentResource::getObject).collect(Collectors.toList())
             );
             isUpdated = updateToManyRelation(fieldName, resourceIdentifiers, resources);
         } else { // To One Relationship
-            PersistentResource resource = (resources.isEmpty()) ? null : resources.iterator().next();
+            PersistentResource resource = firstOrNullIfEmpty(resources);
             Object original = (resource == null) ? null : resource.getObject();
-            PersistentResource modifiedResource =
-                    (resourceIdentifiers == null || resourceIdentifiers.isEmpty()) ? null
-                            : resourceIdentifiers.iterator().next();
+            PersistentResource modifiedResource = firstOrNullIfEmpty(resourceIdentifiers);
             Object modified = (modifiedResource == null) ? null : modifiedResource.getObject();
             checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, modified, original);
             isUpdated = updateToOneRelation(fieldName, resourceIdentifiers, resources);
@@ -409,8 +402,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return true if updated. false otherwise
      */
     protected boolean updateToManyRelation(String fieldName,
-                                           Set<PersistentResource> resourceIdentifiers,
-                                           Set<PersistentResource> mine) {
+            Set<PersistentResource> resourceIdentifiers,
+            Set<PersistentResource> mine) {
 
         Set<PersistentResource> requested;
         Set<PersistentResource> updated;
@@ -486,16 +479,16 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return true if updated. false otherwise
      */
     protected boolean updateToOneRelation(String fieldName,
-                                          Set<PersistentResource> resourceIdentifiers,
-                                          Set<PersistentResource> mine) {
+            Set<PersistentResource> resourceIdentifiers,
+            Set<PersistentResource> mine) {
         Object newValue = null;
         PersistentResource newResource = null;
-        if (resourceIdentifiers != null && !resourceIdentifiers.isEmpty()) {
-            newResource = resourceIdentifiers.iterator().next();
+        if (CollectionUtils.isNotEmpty(resourceIdentifiers)) {
+            newResource = IterableUtils.first(resourceIdentifiers);
             newValue = newResource.getObject();
         }
 
-        PersistentResource oldResource = !mine.isEmpty() ? mine.iterator().next() : null;
+        PersistentResource oldResource = firstOrNullIfEmpty(mine);
 
         if (oldResource == null) {
             if (newValue == null) {
@@ -534,7 +527,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return True if object updated, false otherwise
      */
     public boolean clearRelation(String relationName) {
-        Set<PersistentResource> mine = filter(ReadPermission.class, getRelationUncheckedUnfiltered(relationName));
+        Set<PersistentResource> mine = filter(ReadPermission.class, Optional.empty(),
+                getRelationUncheckedUnfiltered(relationName));
         checkFieldAwareDeferPermissions(UpdatePermission.class, relationName, Collections.emptySet(),
                 mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
 
@@ -553,7 +547,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 });
 
         if (type.isToOne()) {
-            PersistentResource oldValue = mine.iterator().next();
+            PersistentResource oldValue = IterableUtils.first(mine);
             if (oldValue != null && oldValue.getObject() != null) {
                 this.nullValue(relationName, oldValue);
                 oldValue.markDirty();
@@ -564,7 +558,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         } else {
             Collection collection = (Collection) getValueUnchecked(relationName);
-            if (collection != null && !collection.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(collection)) {
                 Set<Object> deletedRelationships = new LinkedHashSet<>();
                 mine.stream()
                         .forEach(toDelete -> {
@@ -609,14 +603,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, modified, original);
 
         if (relation instanceof Collection) {
-            if (!((Collection) relation).contains(removeResource.getObject())) {
+            if (removeResource == null || !((Collection) relation).contains(removeResource.getObject())) {
 
                 //Nothing to do
                 return;
             }
             delFromCollection((Collection) relation, fieldName, removeResource, false);
         } else {
-            if (relation == null || !relation.equals(removeResource.getObject())) {
+            if (relation == null || removeResource == null || !relation.equals(removeResource.getObject())) {
                 //Nothing to do
                 return;
             }
@@ -644,12 +638,36 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
+     * Checks whether the new entity is already a part of the relationship
+     * @param fieldName which relation link
+     * @param toAdd the new relation
+     * @return boolean representing the result of the check
+     *
+     * This method does not handle the case where the toAdd entity is newly created,
+     * since newly created entities have null id there is no easy way to check for identity
+     */
+    public boolean relationshipAlreadyExists(String fieldName, PersistentResource toAdd) {
+        Object relation = this.getValueUnchecked(fieldName);
+        String toAddId = toAdd.getId();
+        if (toAddId == null) {
+            return false;
+        }
+        if (relation instanceof Collection) {
+            return ((Collection) relation).stream().anyMatch((obj -> toAddId.equals(dictionary.getId(obj))));
+        }
+        return toAddId.equals(dictionary.getId(relation));
+    }
+
+    /**
      * Add relation link from a given parent resource to a child resource.
      *
      * @param fieldName which relation link
      * @param newRelation the new relation
      */
     public void addRelation(String fieldName, PersistentResource newRelation) {
+        if (!newRelation.isNewlyCreated() && relationshipAlreadyExists(fieldName, newRelation)) {
+            return;
+        }
         checkSharePermission(Collections.singleton(newRelation));
         Object relation = this.getValueUnchecked(fieldName);
 
@@ -799,10 +817,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return PersistentResource relation
      */
     public Set<PersistentResource> getRelation(String relation,
-                                          List<String> ids,
-                                          Optional<FilterExpression> filter,
-                                          Optional<Sorting> sorting,
-                                          Optional<Pagination> pagination) {
+            List<String> ids,
+            Optional<FilterExpression> filter,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
 
         FilterExpression filterExpression;
 
@@ -813,30 +831,29 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         /* If this is a bulk edit request and the ID we are fetching for is newly created... */
         if (entityType == null) {
             throw new InvalidAttributeException(relation, type);
+        }
+        if (!ids.isEmpty()) {
+            // Fetch our set of new resources that we know about since we can't find them in the datastore
+            newResources = requestScope.getNewPersistentResources().stream()
+                    .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
+                            && ids.contains(resource.getUUID().orElse("")))
+                    .collect(Collectors.toSet());
+
+            FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
+
+            // Combine filters if necessary
+            filterExpression = filter
+                    .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
+                    .orElse(idExpression);
         } else {
-            if (!ids.isEmpty()) {
-                // Fetch our set of new resources that we know about since we can't find them in the datastore
-                newResources = requestScope.getNewPersistentResources().stream()
-                        .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
-                                && ids.contains(resource.getUUID().orElse("")))
-                        .collect(Collectors.toSet());
-
-                FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
-
-                // Combine filters if necessary
-                filterExpression = filter
-                        .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
-                        .orElse(idExpression);
-            } else {
-                filterExpression = filter.orElse(null);
-            }
+            filterExpression = filter.orElse(null);
         }
 
         // TODO: Filter on new resources?
         // TODO: Update pagination to subtract the number of new resources created?
 
-        Set<PersistentResource> existingResources = filter(ReadPermission.class,
-            getRelation(relation, Optional.ofNullable(filterExpression), sorting, pagination, true));
+        Set<PersistentResource> existingResources = filter(ReadPermission.class, filter,
+                getRelation(relation, Optional.ofNullable(filterExpression), sorting, pagination, true));
 
         // TODO: Sort again in memory now that two sets are glommed together?
 
@@ -861,9 +878,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Filter expression for given ids and type.
      */
     private static FilterExpression buildIdFilterExpression(List<String> ids,
-                                                            Class entityType,
-                                                            EntityDictionary dictionary,
-                                                            RequestScope scope) {
+            Class<?> entityType,
+            EntityDictionary dictionary,
+            RequestScope scope) {
         Class<?> idType = dictionary.getIdType(entityType);
         String idField = dictionary.getIdFieldName(entityType);
         String typeAlias = dictionary.getJsonAliasFor(entityType);
@@ -891,11 +908,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return collection relation
      */
     public Set<PersistentResource> getRelationCheckedFiltered(String relationName,
-                                                              Optional<FilterExpression> filterExpression,
-                                                              Optional<Sorting> sorting,
-                                                              Optional<Pagination> pagination) {
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
 
-        return filter(ReadPermission.class,
+        return filter(ReadPermission.class, filterExpression,
                 getRelation(relationName, filterExpression, sorting, pagination, true));
     }
 
@@ -908,10 +925,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private Set<PersistentResource> getRelation(String relationName,
-                                                Optional<FilterExpression> filterExpression,
-                                                Optional<Sorting> sorting,
-                                                Optional<Pagination> pagination,
-                                                boolean checked) {
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            boolean checked) {
 
         if (checked && !checkRelation(relationName)) {
             return Collections.emptySet();
@@ -920,7 +937,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
         if (pagination.isPresent() && !pagination.get().isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope)) {
-            throw new InvalidPredicateException(String.format("Cannot paginate %s",
+            throw new BadRequestException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));
         }
 
@@ -958,9 +975,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return collection relation
      */
     protected Set<PersistentResource> getRelationChecked(String relationName,
-                                                         Optional<FilterExpression> filterExpression,
-                                                         Optional<Sorting> sorting,
-                                                         Optional<Pagination> pagination) {
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
         if (!checkRelation(relationName)) {
             return Collections.emptySet();
         }
@@ -978,9 +995,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return the resources in the relationship
      */
     private Set<PersistentResource> getRelationUnchecked(String relationName,
-                                                         Optional<FilterExpression> filterExpression,
-                                                         Optional<Sorting> sorting,
-                                                         Optional<Pagination> pagination) {
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
         if (relationClass == null) {
@@ -1013,10 +1030,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Iterable filteredVal = (Iterable) val;
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
-            resources = new SingleElementSet(
-                    new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
+            resources = new SingleElementSet<>(
+                    new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
         } else {
-            resources.add(new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
+            resources.add(new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
         }
 
         return resources;
@@ -1031,7 +1048,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return True if collection should be skipped (i.e. denied access), false otherwise
      */
     private static boolean shouldSkipCollection(Class<?> resourceClass, Class<? extends Annotation> annotationClass,
-                                                RequestScope requestScope) {
+            RequestScope requestScope) {
         try {
             requestScope.getPermissionExecutor().checkUserPermissions(resourceClass, annotationClass);
         } catch (ForbiddenAccessException e) {
@@ -1085,7 +1102,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     @Override
     @JsonIgnore
     public Class<T> getResourceClass() {
-        return (Class) dictionary.lookupEntityClass(obj.getClass());
+        return (Class) dictionary.lookupBoundClass(obj.getClass());
     }
 
     /**
@@ -1244,7 +1261,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Data<Resource> data;
             RelationshipType relationshipType = getRelationshipType(field);
             if (relationshipType.isToOne()) {
-                data = resources.isEmpty() ? new Data<>((Resource) null) : new Data<>(resources.iterator().next());
+                data = new Data<>(firstOrNullIfEmpty(resources));
             } else {
                 data = new Data<>(resources);
             }
@@ -1278,8 +1295,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void setValueChecked(String fieldName, Object newValue) {
         Object existingValue = getValueUnchecked(fieldName);
-        ChangeSpec spec = new ChangeSpec(this, fieldName, existingValue, newValue);
-        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
 
         // TODO: Need to refactor this logic. For creates this is properly converted in the executor. This logic
         // should be explicitly encapsulated here, not there.
@@ -1423,112 +1438,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param value the value to set
      */
     protected void setValue(String fieldName, Object value) {
-        Class<?> targetClass = obj.getClass();
         final Object original = getValueUnchecked(fieldName);
-        try {
-            Class<?> fieldClass = dictionary.getType(targetClass, fieldName);
-            String realName = dictionary.getNameFromAlias(obj, fieldName);
-            fieldName = (realName != null) ? realName : fieldName;
-            String setMethod = "set" + StringUtils.capitalize(fieldName);
-            Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
-            method.invoke(obj, coerce(value, fieldName, fieldClass));
-        } catch (IllegalAccessException e) {
-            throw new InvalidAttributeException(fieldName, type, e);
-        } catch (InvocationTargetException e) {
-            throw handleInvocationTargetException(e);
-        } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
-            AccessibleObject accessor = dictionary.getAccessibleObject(obj, fieldName);
-            if (accessor != null && accessor instanceof Field) {
-                Field field = (Field) accessor;
-                try {
-                    field.set(obj, coerce(value, fieldName, field.getType()));
-                } catch (IllegalAccessException noField) {
-                    throw new InvalidAttributeException(fieldName, type, noField);
-                }
-            } else {
-                throw new InvalidAttributeException(fieldName, type);
-            }
-        }
-
+        dictionary.setValue(obj, fieldName, value);
         triggerUpdate(fieldName, original, value);
-    }
-
-    /**
-     * Coerce provided value into expected class type.
-     *
-     * @param value provided value
-     * @param fieldName the field name
-     * @param fieldClass expected class type
-     * @return coerced value
-     */
-    private Object coerce(Object value, String fieldName, Class<?> fieldClass) {
-        if (fieldClass != null && Collection.class.isAssignableFrom(fieldClass) && value instanceof Collection) {
-            return coerceCollection((Collection) value, fieldName, fieldClass);
-        }
-
-        if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
-            return coerceMap((Map<?, ?>) value, fieldName, fieldClass);
-        }
-
-        return CoerceUtil.coerce(value, fieldClass);
-    }
-
-    private Collection coerceCollection(Collection<?> values, String fieldName, Class<?> fieldClass) {
-        Class<?> providedType = dictionary.getParameterizedType(obj, fieldName);
-
-        // check if collection is of and contains the correct types
-        if (fieldClass.isAssignableFrom(values.getClass())) {
-            boolean valid = true;
-            for (Object member : values) {
-                if (member != null && !providedType.isAssignableFrom(member.getClass())) {
-                    valid = false;
-                    break;
-                }
-            }
-            if (valid) {
-                return values;
-            }
-        }
-
-        ArrayList<Object> list = new ArrayList<>(values.size());
-        for (Object member : values) {
-            list.add(CoerceUtil.coerce(member, providedType));
-        }
-
-        if (Set.class.isAssignableFrom(fieldClass)) {
-            return new LinkedHashSet<>(list);
-        }
-
-        return list;
-    }
-
-    private Map coerceMap(Map<?, ?> values, String fieldName, Class<?> fieldClass) {
-        Class<?> keyType = dictionary.getParameterizedType(obj, fieldName, 0);
-        Class<?> valueType = dictionary.getParameterizedType(obj, fieldName, 1);
-
-        // Verify the existing Map
-        if (isValidParameterizedMap(values, keyType, valueType)) {
-            return values;
-        }
-
-        LinkedHashMap<Object, Object> result = new LinkedHashMap<>(values.size());
-        for (Map.Entry<?, ?> entry : values.entrySet()) {
-            result.put(CoerceUtil.coerce(entry.getKey(), keyType), CoerceUtil.coerce(entry.getValue(), valueType));
-        }
-
-        return result;
-    }
-
-    private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
-        for (Map.Entry<?, ?> entry : values.entrySet()) {
-            Object key = entry.getKey();
-            Object value = entry.getValue();
-            if ((key != null && !keyType.isAssignableFrom(key.getClass()))
-                    || (value != null && !valueType.isAssignableFrom(value.getClass()))) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -1540,24 +1452,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public static Object getValue(Object target, String fieldName, RequestScope requestScope) {
         EntityDictionary dictionary = requestScope.getDictionary();
-        AccessibleObject accessor = dictionary.getAccessibleObject(target, fieldName);
-        try {
-            if (accessor instanceof Method) {
-                // Pass RequestScope into @Computed fields if requested
-                if (dictionary.isMethodRequestScopeable(target, (Method) accessor)) {
-                    return ((Method) accessor).invoke(target, requestScope);
-                }
-                return ((Method) accessor).invoke(target);
-            }
-            if (accessor instanceof Field) {
-                return ((Field) accessor).get(target);
-            }
-        } catch (IllegalAccessException e) {
-            throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()), e);
-        } catch (InvocationTargetException e) {
-            throw handleInvocationTargetException(e);
-        }
-        throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()));
+        return dictionary.getValue(target, fieldName, requestScope);
     }
 
     /**
@@ -1595,8 +1490,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 transaction.updateToOneRelation(transaction, inverseEntity, inverseField, null, requestScope);
             } else {
                 //hook for updateToManyRelation
-                assert (inverseRelation == null || inverseRelation instanceof Collection)
-                        : inverseField + " not a collection";
+                assert (inverseRelation instanceof Collection) : inverseField + " not a collection";
                 transaction.updateToManyRelation(transaction, inverseEntity, inverseField,
                         new LinkedHashSet<>(), Sets.newHashSet(obj), requestScope);
             }
@@ -1605,7 +1499,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private boolean hasInverseRelation(String relationName) {
         String inverseField = getInverseRelationField(relationName);
-        return inverseField != null && !inverseField.isEmpty();
+        return StringUtils.isNotEmpty(inverseField);
     }
 
     private String getInverseRelationField(String relationName) {
@@ -1658,13 +1552,15 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     /**
      * Filter a set of PersistentResources.
+     * Verify fields have ReadPermission on filter join.
      *
      * @param permission the permission
      * @param resources  the resources
      * @return Filtered set of resources
      */
     protected static Set<PersistentResource> filter(Class<? extends Annotation> permission,
-                                                    Set<PersistentResource> resources) {
+            Optional<FilterExpression> filter,
+            Set<PersistentResource> resources) {
         Set<PersistentResource> filteredSet = new LinkedHashSet<>();
         for (PersistentResource resource : resources) {
             try {
@@ -1674,9 +1570,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 // retrieve the object id to return to the caller. If no fields on the object are readable by the caller
                 // then they will be filtered out and only the id is returned. Similarly, all future requests to this
                 // object will behave as expected.
-                boolean isMutation = resource.getRequestScope().isMutatingMultipleEntities();
-                if (!isMutation || !resource.getRequestScope().getNewResources().contains(resource)) {
+                if (!resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);
+                    // Verify fields have ReadPermission on filter join
+                    if (filter.isPresent()
+                            && !filter.get().accept(new VerifyFieldAccessFilterExpressionVisitor(resource))) {
+                        continue;
+                    }
                 }
                 filteredSet.add(resource);
             } catch (ForbiddenAccessException e) {
@@ -1716,8 +1616,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private void triggerUpdate(String fieldName, Object original, Object value) {
         ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
-        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
-        CRUDEvent.CRUDAction action = isNewlyCreated
+        CRUDEvent.CRUDAction action = isNewlyCreated()
                 ? CRUDEvent.CRUDAction.CREATE
                 : CRUDEvent.CRUDAction.UPDATE;
 
@@ -1741,9 +1640,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private <A extends Annotation> ExpressionResult checkFieldAwareDeferPermissions(Class<A> annotationClass,
-                                                                        String fieldName,
-                                                                        Object modified,
-                                                                        Object original) {
+            String fieldName,
+            Object modified,
+            Object original) {
         ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
@@ -1754,7 +1653,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
-                                                     String fieldName) {
+            String fieldName) {
         if (!sparseFields.isEmpty()) {
             if (!sparseFields.containsKey(type)) {
                 return false;
@@ -1825,7 +1724,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private Collection copyCollection(final Collection collection) {
         final ArrayList newCollection = new ArrayList();
-        if (collection == null || collection.isEmpty()) {
+        if (CollectionUtils.isEmpty(collection)) {
             return newCollection;
         }
         collection.iterator().forEachRemaining(newCollection::add);
@@ -1840,21 +1739,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Handle an invocation target exception.
-     *
-     * @param e Exception the exception encountered while reflecting on an object's field
-     * @return Equivalent runtime exception
-     */
-    private static RuntimeException handleInvocationTargetException(InvocationTargetException e) {
-        Throwable exception = e.getTargetException();
-        if (exception instanceof HttpStatusException || exception instanceof WebApplicationException) {
-            return (RuntimeException) exception;
-        }
-        log.error("Caught an unexpected exception (rethrowing as internal server error)", e);
-        return new InternalServerErrorException("Unexpected exception caught", e);
-    }
-
-    /**
      * Assign provided id if id field is not generated.
      *
      * @param persistentResource resource
@@ -1865,7 +1749,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
        //If id field is not a `@GeneratedValue` or mapped via a `@MapsId` attribute
        //then persist the provided id
        if (!persistentResource.isIdGenerated()) {
-            if (id != null && !id.isEmpty()) {
+            if (StringUtils.isNotEmpty(id)) {
                 persistentResource.setId(id);
             } else {
                 //If expecting id to persist and id is not present, throw exception
@@ -1875,5 +1759,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 );
             }
         }
+    }
+
+    private static <T> T firstOrNullIfEmpty(final Collection<T> coll) {
+        return CollectionUtils.isEmpty(coll) ? null : IterableUtils.first(coll);
     }
 }

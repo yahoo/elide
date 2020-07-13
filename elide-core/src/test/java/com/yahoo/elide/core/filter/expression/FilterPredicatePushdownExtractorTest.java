@@ -6,25 +6,35 @@
 
 package com.yahoo.elide.core.filter.expression;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.Path.PathElement;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.InPredicate;
+
+import com.google.common.collect.ImmutableList;
+
 import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 public class FilterPredicatePushdownExtractorTest {
 
-    private EntityDictionary dictionary;
+    private static EntityDictionary dictionary;
 
-    @BeforeTest
-    public void init() {
+    @BeforeAll
+    public static void init() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -39,7 +49,7 @@ public class FilterPredicatePushdownExtractorTest {
 
         FilterExpression extracted = FilterPredicatePushdownExtractor.extractPushDownPredicate(dictionary, expression);
 
-        Assert.assertEquals(extracted, expression);
+        assertEquals(expression, extracted);
     }
 
     @Test
@@ -54,7 +64,7 @@ public class FilterPredicatePushdownExtractorTest {
 
         FilterExpression extracted = FilterPredicatePushdownExtractor.extractPushDownPredicate(dictionary, finalExpression);
 
-        Assert.assertNull(extracted);
+        assertNull(extracted);
     }
 
     @Test
@@ -69,6 +79,41 @@ public class FilterPredicatePushdownExtractorTest {
 
         FilterExpression extracted = FilterPredicatePushdownExtractor.extractPushDownPredicate(dictionary, finalExpression);
 
-        Assert.assertEquals(extracted, ((InPredicate) dataStoreExpression).negate());
+        assertEquals(((InPredicate) dataStoreExpression).negate(), extracted);
+    }
+
+    @Test
+    public void testInvalidField() {
+        InvalidValueException e = assertThrows(
+                InvalidValueException.class,
+                () -> new InPredicate(new Path(Book.class, dictionary, "badfield"), "Literary Fiction"));
+        assertEquals("Invalid value: book doesn't contain the field badfield", e.getMessage());
+    }
+
+    @Test
+    public void testPath() {
+        Path path = new Path(Book.class, dictionary, "genre");
+
+        ImmutableList<PathElement> pathElements = ImmutableList.of(
+                new PathElement(Book.class, String.class, "genre"));
+
+        assertEquals("example_Book", path.getAlias());
+        assertEquals("genre", path.getFieldPath());
+        assertEquals(pathElements, path.getPathElements());
+        assertEquals(Optional.of(pathElements.get(0)), path.lastElement());
+        assertEquals("[Book].genre", path.toString());
+
+        path = new Path(Book.class, dictionary, "this.editor.firstName");
+
+        pathElements = ImmutableList.of(
+                new PathElement(Book.class, null, "this"),
+                new PathElement(Book.class, Editor.class, "editor"),
+                new PathElement(Editor.class, String.class, "firstName"));
+
+        assertEquals("example_Book_editor", path.getAlias());
+        assertEquals("this.editor.firstName", path.getFieldPath());
+        assertEquals(pathElements, path.getPathElements());
+        assertEquals(Optional.of(pathElements.get(2)), path.lastElement());
+        assertEquals("[Book].this/[Book].editor/[Editor].firstName", path.toString());
     }
 }

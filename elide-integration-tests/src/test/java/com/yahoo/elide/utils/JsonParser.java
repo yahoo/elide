@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.utils;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.testng.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +26,7 @@ public class JsonParser {
         try {
             return objectMapper.readTree(jsonString);
         } catch (IOException e) {
-            Assert.fail("Unable to parse JSON\n" + jsonString, e);
+            fail("Unable to parse JSON\n" + jsonString, e);
             throw new IllegalStateException(); // should not reach here
         }
     }
@@ -41,7 +41,7 @@ public class JsonParser {
         try (InputStream is = this.getClass().getResourceAsStream(resourceName)) {
             return String.valueOf(objectMapper.readTree(is));
         } catch (IOException e) {
-            Assert.fail("Unable to open test data " + resourceName, e);
+            fail("Unable to open test data " + resourceName, e);
             throw new IllegalStateException(); // should not reach here
         }
     }

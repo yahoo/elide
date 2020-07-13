@@ -7,22 +7,24 @@ package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
-import com.jayway.restassured.RestAssured;
-
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 
+import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Initialize API service.
  */
 @Slf4j
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractApiResourceInitializer {
     private static volatile Server server = null;
     private final String resourceConfig;
@@ -41,7 +43,7 @@ public abstract class AbstractApiResourceInitializer {
         this(resourceConfig, JsonApiEndpoint.class.getPackage().getName());
     }
 
-    @BeforeSuite
+    @BeforeAll
     public final void setUpServer() throws Exception {
         if (server != null) {
             server.stop();
@@ -54,7 +56,7 @@ public abstract class AbstractApiResourceInitializer {
         // port randomly picked in pom.xml
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         RestAssured.port =
-                Integer.parseInt(restassuredPort != null && !restassuredPort.isEmpty() ? restassuredPort : "9999");
+                Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
 
         // embedded jetty server
         server = new Server(RestAssured.port);
@@ -78,7 +80,7 @@ public abstract class AbstractApiResourceInitializer {
         server.start();
     }
 
-    @AfterSuite
+    @AfterAll
     public final void tearDownServer() {
         log.debug("...Stopping Server...");
         try {

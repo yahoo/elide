@@ -10,7 +10,7 @@
         "child": {
           "data": {
             "type": "child",
-            "id": "13"
+            "id": "6"
           }
         }
       }
@@ -19,7 +19,7 @@
   {
     "data": {
       "type": "child",
-      "id": "13",
+      "id": "6",
       "attributes": {
         "name": null
       },

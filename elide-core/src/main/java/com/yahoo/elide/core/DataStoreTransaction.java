@@ -102,11 +102,11 @@ public interface DataStoreTransaction extends Closeable {
      * @return a new instance of type T
      */
     default <T> T createNewObject(Class<T> entityClass) {
-        T obj = null;
+        T obj;
         try {
             obj = entityClass.newInstance();
         } catch (java.lang.InstantiationException | IllegalAccessException e) {
-            //do nothing
+            obj = null;
         }
         return obj;
     }
@@ -270,7 +270,8 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Whether or not the transaction can sort the provided class.
-     * @param entityClass
+     * @param entityClass The model type
+     * @param sorting Whether or not the store supports sorting for the given model
      * @return true if sorting is possible
      */
     default boolean supportsSorting(Class<?> entityClass, Sorting sorting) {

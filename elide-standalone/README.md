@@ -4,10 +4,6 @@ Table of Contents
   * [Overview](#overview)
   * [Who is this for?](#whofor)
   * [Getting Started](#gettingstarted)
-  * [Usage](#usage)
-    * [Settings Class](#settings-class)
-    * [Filters](#filters)
-    * [Additional Configuration](#additional-config)
   * [More Detailed Examples](#moredetail)
 
 ## <a name="overview"></a>Overview
@@ -15,234 +11,330 @@ Table of Contents
 The Elide standalone application is a configurable web server using Elide. While Elide is typically a pluggable **middleware** framework, we have constructed a flexible and complete service to allow you to get started quickly.
 
 The Elide standalone application takes an opinionated stance on its technology stack (i.e. jersey/jetty), but provides many opportunities for users to configure the behavior of their application. To use the Elide standalone application, there are only a few steps:
-  1. Configure ElideStandalone by either implementing the ElideStandaloneSettings interface, or providing basic security configuration.
+  1. Configure ElideStandalone by implementing the ElideStandaloneSettings interface.
   1. Build an uber jar containing `elide-standalone`, your models, security checks, and additional application configuration.
   1. Start your web service:
      * `$ java -jar YOUR_APP.jar`
 
-To include `elide-standalone` into your project, add the single dependency:
-```xml
-<dependency>
-  <groupId>com.yahoo.elide</groupId>
-  <artifactId>elide-standalone</artifactId>
-  <version>4.4.1</version>
-</dependency>
-```
-
-To actually start your Elide application, add the following to your main method:
-
-```java
-public class Main {
-  public static void main(String[] args) {
-    ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
-        @Override
-        public String getModelPackageName() {
-
-            //This needs to be changed to the package where your models live.
-            return "your.model.package";
-        }
-
-    });
-
-    elide.start();
-  }
-}
-```
-
 ## <a name="whofor"></a>Who is this for?
 
-The Elide standalone application is for all new and existing users of Elide. This is the **fastest way to setup an Elide web service** and we have provided several avenues of customization for Elide standalone. However, if you need even more flexibility in your application than what is provided, then you should consider using the Elide __middleware__ directly.
+The Elide standalone application is an alternative to Spring Boot for getting started quickly with Elide.  However, if you need more flexibility in your application than what is provided, then you should consider using the Elide __middleware__ directly.
 
 ## <a name="gettingstarted"></a>Getting Started
 
-Below we'll walk through a complete example of setting up an Elide service without security.
+This tutorial will use elide-standalone, and all of the code is [available here](https://github.com/yahoo/elide-standalone-example).  You can deploy and play with this example on Heroku or locally.  The landing page will let you toggle between the [swagger UI](https://swagger.io/tools/swagger-ui) and [Graphiql](https://github.com/graphql/graphiql) for the example service.
 
-**If you're interested in seeing a more complete example, check out our [ready-to-run example](https://github.com/DennisMcWherter/elide-example-blog-kotlin).**
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yahoo/elide-standalone-example)
 
-### Setup a Database (MySQL)
+### Add Elide as a Dependency
 
-In our example, we will suggest your create a MySQL database called `elide` that is accessible to the user `elide` with password `elide123`.
-
-### Create the Model
-
-```java
-package com.yourcompany.elide.models;
-
-import com.yahoo.elide.annotation.Include;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
-@Entity
-@Include(rootLevel = true)
-public class Post {
-    private long id;
-    private String content;
-    
-    @Id
-    public long getId() {
-        return id;
-    }
-    
-    public void setId(long id) {
-        this.id = id;
-    }
-    
-    @Column(nullable = false)
-    public String getContent() {
-        return content;
-    }
-    
-    public void setContent(String content) {
-        this.content = content;
-    }
-}
+To include `elide-standalone` into your project, add the single dependency:	
+```xml	
+<dependency>	
+  <groupId>com.yahoo.elide</groupId>	
+  <artifactId>elide-standalone</artifactId>	
+  <version>LATEST</version>	
+</dependency>	
 ```
 
-### Build the Models Package
+### Create Models
 
-An example `pom.xml` for building the model:
+Elide models are some of the most important code in any Elide project. Your models are the view of your data that you wish to expose. In this example we will be modeling a software artifact repository since most developers have a high-level familiarity with artifact repositories such as Maven, Artifactory, npm, and the like.
+ 
+The first models we’ll need are `ArtifactGroup`, `ArtifactProduct`, and `ArtifactVersion`.  For brevity we will omit package names and import statements. 
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+#### ArtifactGroup.java
 
-    <groupId>com.yourcompany.elide</groupId>
-    <artifactId>example-models</artifactId>
-    <version>1.0-SNAPSHOT</version>
+  ```java
+  @Include(rootLevel = true, type = "group")
+  @Entity
+  public class ArtifactGroup {
+      @Id
+      public String name = "";
 
-    <dependencies>
-        <!-- Elide -->
-        <dependency>
-            <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-standalone</artifactId>
-            <version>4.4.1</version>
-        </dependency>
-    </dependencies>
+      public String commonName = "";
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>com.yourcompany.elide.app.YourMain</mainClass>
-                         </transformer>
-                    </transformers>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-</project>
-```
+      public String description = "";
 
-then run:
-
-```
-$ mvn clean package
-```
-
-### Starting Elide
-
-To start Elide, just run the `start()` method somewhere in your main function:
-
-```java
-public class YourMain {
-  public static void main(String[] args) {
-    ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
-        @Override
-        public String getModelPackageName() {
-            //This needs to be changed to the package where your models live.
-            return "your.model.package";
-        }
-    });
-
-    elide.start();
+      @OneToMany(mappedBy = "group")
+      public List<ArtifactProduct> products = new ArrayList<>();
   }
-}
+  ```
+
+#### ArtifactProduct.java
+
+  ```java
+  @Include(type = "product")
+  @Entity
+  public class ArtifactProduct {
+      @Id
+      public String name = "";
+
+      public String commonName = "";
+
+      public String description = "";
+
+      @ManyToOne
+      public ArtifactGroup group = null;
+
+      @OneToMany(mappedBy = "artifact")
+      public List<ArtifactVersion> versions = new ArrayList<>();
+  }
+  ```
+
+#### ArtifactVersion.java
+
+  ```java
+  @Include(type = "version")
+  @Entity
+  public class ArtifactVersion {
+      @Id
+      public String name = "";
+
+      public Date createdAt = new Date();
+
+      @ManyToOne
+      public ArtifactProduct artifact;
+  }
+  ```
+
+### Spin up the API
+
+So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create the schema in the database that our models will use.   Our example uses liquibase to manage the schema.  When Heroku releases the application, our example will execute the [database migrations](https://github.com/yahoo/elide-standalone-example/blob/master/src/main/resources/db/changelog/changelog.xml) to configure the database with some test data automatically.  This demo uses Postgres.  Feel free to modify the migration script if you are using a different database provider.
+
+There may be more tables in your database than models in your project or vice versa.  Similarly, there may be more columns in a table than in a particular model or vice versa.  Not only will our models work just fine, but we expect that models will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building micro-services - each service in your system can expose only the slice of the database that it requires.
+
+### App & Settings
+
+Bringing life to our API is trivially easy. We need two new classes: Main and Settings.
+
+#### Main.java
+
+  ```java
+  public class Main {
+      public static void main(String[] args) throws Exception {
+          ElideStandalone app = new ElideStandalone(new Settings());
+          app.start();
+      }
+  }
+  ```
+
+#### Settings.java
+
+  ```java
+  public class Settings implements ElideStandaloneSettings {
+      /**
+       * Tells elide where our models live.
+       */
+      @Override
+      public String getModelPackageName() {
+          return ArtifactGroup.class.getPackage().getName();
+      }
+
+      /**
+       * Configuration properties for how to talk to the database.
+       */
+      @Override
+      public Properties getDatabaseProperties() {
+          Properties options = new Properties();
+          
+          //Here we use H2 in memory instead of Postgres 
+          options.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+          options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
+          options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1");
+          options.put("javax.persistence.jdbc.user", "sa");
+          options.put("javax.persistence.jdbc.password", "");
+             
+          return options;
+      }
+  } 
+  ```
+
+### Supporting Files
+
+Elide standalone uses a JPA data store (the thing that talks to the database) that is [configured programmatically](https://github.com/yahoo/elide-standalone-example/blob/master/src/main/java/example/Settings.java#L95-L111) (no persistence.xml required).
+
+If you want to see the logs from your shiny new API, you will also want a [log4j config](https://github.com/yahoo/elide-standalone-example/blob/master/src/main/resources/log4j2.xml).
+Your log4j config should go in `src/main/resources` so log4j can find it.
+
+### Running
+
+With these new classes, you have two options for running your project.  You can either run the `Main` class using your
+favorite IDE, or you can run the service from the command line:
+
+```mvn exec:java -Dexec.mainClass="example.Main"```
+
+Our example requires the following environment variables to be set to work correctly with Heroku and Postgres.  
+
+1. JDBC_DATABASE_URL
+2. JDBC_DATABASE_USERNAME
+3. JDBC_DATABASE_PASSWORD
+
+If running inside a Heroku dyno, Heroku sets these variables for us.  If you don't set them, the example will use the H2 in memory database.
+
+With the `Main` and `Settings` classes we can now run our API. 
+
+You can now run the following curl commands to see some of the sample data that the liquibase migrations added for us:
+Don't forget to replace localhost:8080 with your Heroku URL if running from Heroku!
+
+#### JSON-API
+
+  ```curl
+  curl http://localhost:8080/api/v1/group
+  ```
+
+#### GraphQL
+  ```curl
+  curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
+      "http://localhost:8080/graphql/api/v1" \
+      -d'{   
+             "query" : "{ group { edges { node { name commonName description } } } }"
+         }'
+  ```
+
+Here are the respective responses:
+
+#### JSON-API
+  ```json
+    {
+        "data": [
+        {    
+            "attributes": {
+            "commonName": "Example Repository",
+            "description": "The code for this project"
+            },
+            "id": "com.example.repository",
+            "relationships": {
+            "products": {
+                "data": [
+                {    
+                    "id": "elide-demo",
+                    "type": "product"
+                }
+                ]
+            }
+            },
+            "type": "group"
+        },
+        {   
+            "attributes": {
+            "commonName": "Elide",
+            "description": "The magical library powering this project"
+            },
+            "id": "com.yahoo.elide",
+            "relationships": {
+            "products": {
+                "data": [
+                {   
+                    "id": "elide-core",
+                    "type": "product"
+                },
+                {   
+                    "id": "elide-standalone",
+                    "type": "product"
+                },
+                {
+                    "id": "elide-datastore-hibernate5",
+                    "type": "product"
+                }
+                ]
+            }
+            },
+            "type": "group"
+        }
+        ]
+    }
+  ```
+
+
+#### GraphQL
+  ```json
+    {
+        "data": {
+            "group": {
+                "edges": [
+                {
+                    "node": {
+                    "commonName": "Example Repository",
+                    "description": "The code for this project",
+                    "name": "com.example.repository"
+                    }
+                },
+                {
+                    "node": {
+                    "commonName": "Elide",
+                    "description": "The magical library powering this project",
+                    "name": "com.yahoo.elide"
+                    }
+                }
+                ]
+            }
+        }
+    }
+  ```
+### Looking at more data
+
+You can navigate through the entity relationship graph defined in the models and explore relationships:
+
+```
+List groups:                 group/
+Show a group:                group/<group id>
+List a group's products:     group/<group id>/products/
+Show a product:              group/<group id>/products/<product id>
+List a product's versions:   group/<group id>/products/<product id>/versions/
+Show a version:              group/<group id>/products/<product id>/versions/<version id>
 ```
 
-### Configure Elide Standalone
+### Writing Data
 
-While you can provide a user extraction function and checks alone, more advanced configuration is done by implementing the `ElideStandaloneSettings` interface.
+So far we have defined our views on the database and exposed those views over HTTP. This is great progress, but so far
+we have only read data from the database.
 
-### Run Your Service
+#### Inserting Data
 
-You can now run your service.
+Fortunately for us adding data is just as easy as reading data. For now let’s use cURL to put data in the database.
 
-```
-$ java -jar YOUR_APP.jar
-```
+#### JSON-API
+  ```
+  curl -X POST http://localhost:8080/api/v1/group/com.example.repository/products -H"Content-Type: application/vnd.api+json" -H"Accept: application/vnd.api+json" -d '{"data": {"type": "product", "id": "elide-demo"}}'
+  ```
 
-### Query Your Service
+#### GraphQL
+  ```
+  curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" "http://localhost:8080/graphql/api/v1" -d'{ "query" : "mutation { group(ids: [\"com.example.repository\"]) { edges { node { products(op: UPSERT, data: {name: \"elide-demo\"}) { edges { node { name } } } } } } }" }'
+  ```
 
-#### Create a Post
+### Modifying Data
 
-Run the following curl request:
+Notice that, when we created it, we did not set any of the attributes of our new product record.  Updating our
+data to help our users is just as easy as it is to add new data. Let’s update our model with the following cURL call.
 
-```
-$ curl -X POST \
-       -H'Content-Type: application/vnd.api+json' \
-       -H'Accept: application/vnd.api+json' \
-       --data '{
-         "data": {
-           "type": "post",
-           "id": "0",
-           "attributes": {
-             "content": "This is my first post. woot."
-           }
-         }
-       }' \
-       http://localhost:8080/api/v1/post
-```
+#### JSON-API
+  ```curl
+    curl -X PATCH http://localhost:8080/api/v1/group/com.example.repository/products/elide-demo \
+      -H"Content-Type: application/vnd.api+json" -H"Accept: application/vnd.api+json" \
+      -d '{
+        "data": {
+          "type": "product",
+          "id": "elide-demo",
+          "attributes": {
+            "commonName": "demo application",
+            "description": "An example implementation of an Elide web service that showcases many Elide features"
+          }
+        }
+      }'
+  ```
 
-### Query Your Posts
+#### GraphQL
+  ```curl
+   curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
+      "http://localhost:8080/graphql/api/v1" \
+      -d'{   
+             "query" : "mutation { group(ids: [\"com.example.repository\"]) { edges { node { products(op: UPDATE, data: { name: \"elide-demo\", commonName: \"demo application\", description: \"An example implementation of an Elide web service that showcases many Elide features\" }) { edges { node { name } } } } } } }"
+         }'
+  ```
 
-Run the following curl request:
-
-```
-$ curl http://localhost:8080/api/v1/post
-```
-
-## <a name="usage"></a>Usage
-
-Using Elide standalone out of box is intended to require minimal effort. For persistence, you will minimally need a JPA compatible database (i.e. MySQL), a `Settings` class, and your JPA-annotated data models.
-
-### <a name="settings-class"></a>Settings Class
-
-ElideStandalone is configured by implementing the ElideStandaloneSettings interface. Please see the ElideStandaloneSettings class for documentation about fields.
-
-Similarly, if you need other metadata across your application, it is important to note that the injector is bound with the following:
-
-```java
-@Inject @Named("elideAllModels") Set<Class> entities;
-```
-
-Likewise, you can inject the hk2 `ServiceLocator` if you wish to use injection throughout your application.
+It’s just that easy to create and update data using Elide.
 
 ### <a name="filters"></a>Filters
 

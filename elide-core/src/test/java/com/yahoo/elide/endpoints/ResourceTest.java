@@ -5,12 +5,15 @@
  */
 package com.yahoo.elide.endpoints;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.parsers.JsonApiParser;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * The type Config resource test.
@@ -19,32 +22,52 @@ public class ResourceTest {
 
     @Test
     public void verifyParseRelationship() {
-        new CoreBaseVisitor().visit(parse("parent/123/relationships/children"));
+        assertNull(new CoreBaseVisitor().visit(parse("parent/123/relationships/children")));
     }
 
     @Test
     public void verifyParseRelation() {
-        new CoreBaseVisitor().visit(parse("company/123/cities/2/relationships/states/1"));
+        assertNull(new CoreBaseVisitor().visit(parse("company/123/cities/2/relationships/states/1")));
     }
 
-    @Test(expectedExceptions = ParseCancellationException.class)
+    @Test
+    public void verifyBase64ID() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/QWRkcmVzcyhudW1iZXI9MCwgc3RyZWV0PUJ1bGxpb24gQmx2ZCwgemlwQ29kZT00MDEyMSk=")));
+    }
+
+    @Test
+    public void verifyURLEncodedID() {
+        assertNull(new CoreBaseVisitor().visit(parse(
+                "company/abcdef%201234")));
+    }
+
+    @Test
     public void parseFailRelationship() {
-        new CoreBaseVisitor().visit(parse("company/123/relationships"));
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("company/123/relationships")));
     }
 
-    @Test(expectedExceptions = ParseCancellationException.class)
+    @Test
     public void parseFailRelationshipCollection() {
-        new CoreBaseVisitor().visit(parse("company/relationships"));
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("company/relationships")));
     }
 
-    @Test(expectedExceptions = ParseCancellationException.class)
+    @Test
     public void parseFailure() {
-        new CoreBaseVisitor().visit(parse("company/123|apps/2/links/foo"));
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("company/123|apps/2/links/foo")));
     }
 
-    @Test(expectedExceptions = ParseCancellationException.class)
+    @Test
     public void wrongPathSeparator() {
-        new CoreBaseVisitor().visit(parse("company\\123"));
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("company\\123")));
     }
 
     private static ParseTree parse(String path) {

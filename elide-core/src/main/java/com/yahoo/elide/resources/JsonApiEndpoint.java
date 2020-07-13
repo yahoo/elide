@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.resources;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
@@ -32,17 +34,18 @@ import javax.ws.rs.core.UriInfo;
  * Default endpoint/servlet for using Elide and JSONAPI.
  */
 @Singleton
-@Produces("application/vnd.api+json")
+@Produces(JSONAPI_CONTENT_TYPE)
 @Path("/")
 public class JsonApiEndpoint {
     protected final Elide elide;
     protected final Function<SecurityContext, Object> getUser;
 
-    private static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
+    public static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
 
     @Inject
-    public JsonApiEndpoint(@Named("elide") Elide elide,
-                           @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
+    public JsonApiEndpoint(
+            @Named("elide") Elide elide,
+            @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
         this.elide = elide;
         this.getUser = getUser == null ? DEFAULT_GET_USER : getUser;
     }
@@ -51,18 +54,21 @@ public class JsonApiEndpoint {
      * Create handler.
      *
      * @param path request path
+     * @param uriInfo URI info
      * @param securityContext security context
      * @param jsonapiDocument post data as jsonapi document
      * @return response
      */
     @POST
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response post(
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        return build(elide.post(path, jsonapiDocument, getUser.apply(securityContext)));
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        return build(elide.post(path, jsonapiDocument, queryParams, getUser.apply(securityContext)));
     }
 
     /**
@@ -89,38 +95,45 @@ public class JsonApiEndpoint {
      * @param contentType document MIME type
      * @param accept response MIME type
      * @param path request path
+     * @param uriInfo URI info
      * @param securityContext security context
      * @param jsonapiDocument patch data as jsonapi document
      * @return response
      */
     @PATCH
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response patch(
         @HeaderParam("Content-Type") String contentType,
         @HeaderParam("accept") String accept,
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
-        return build(elide.patch(contentType, accept, path, jsonapiDocument, getUser.apply(securityContext)));
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        return build(elide.patch(contentType, accept, path, jsonapiDocument,
+                                 queryParams, getUser.apply(securityContext)));
     }
 
     /**
      * Delete relationship handler (expects body with resource ids and types).
      *
      * @param path request path
+     * @param uriInfo URI info
      * @param securityContext security context
      * @param jsonApiDocument DELETE document
      * @return response
      */
     @DELETE
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response delete(
         @PathParam("path") String path,
+        @Context UriInfo uriInfo,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
-        return build(elide.delete(path, jsonApiDocument, getUser.apply(securityContext)));
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        return build(elide.delete(path, jsonApiDocument, queryParams, getUser.apply(securityContext)));
     }
 
     private static Response build(ElideResponse response) {

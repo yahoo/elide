@@ -11,7 +11,7 @@ import java.util.LinkedHashMap;
 /**
  * The type Attributes.
  */
-public class Attributes extends LinkedHashMap {
+public class Attributes extends LinkedHashMap<String, Object> {
 
     /**
      * Instantiates a new Attributes.

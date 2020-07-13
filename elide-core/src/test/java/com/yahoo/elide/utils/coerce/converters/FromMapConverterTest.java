@@ -5,16 +5,15 @@
  */
 package com.yahoo.elide.utils.coerce.converters;
 
-import static org.testng.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.commons.beanutils.Converter;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,7 +30,7 @@ public class FromMapConverterTest {
         public TestClass nestedField;
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws Exception {
         this.converter = new FromMapConverter();
     }
@@ -53,7 +52,7 @@ public class FromMapConverterTest {
         TestClass nestedClass = new TestClass("value3", "value4", null);
         TestClass testClass = new TestClass("value1", "value2", nestedClass);
 
-        assertEquals(converter.convert(TestClass.class, testMap), testClass,
+        assertEquals(testClass, converter.convert(TestClass.class, testMap),
                 "Map converter correctly converted Map to TestClass");
     }
 
@@ -69,7 +68,7 @@ public class FromMapConverterTest {
         testMap.put("field2", "value2");
         testMap.put("nestedField", nestedMap);
 
-        assertEquals(converter.convert(Map.class, testMap), testMap,
+        assertEquals(testMap, converter.convert(Map.class, testMap),
                 "Map converter correctly converted Map to Map");
     }
 }

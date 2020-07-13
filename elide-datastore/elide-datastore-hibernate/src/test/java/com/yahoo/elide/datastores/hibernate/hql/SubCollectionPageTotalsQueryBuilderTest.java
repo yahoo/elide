@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.EntityDictionary;
@@ -22,22 +24,24 @@ import example.Book;
 import example.Chapter;
 import example.Publisher;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SubCollectionPageTotalsQueryBuilderTest {
+
     private EntityDictionary dictionary;
 
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
 
-    @BeforeClass
+    @BeforeAll
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
@@ -77,10 +81,10 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 + "JOIN example_Author.books example_Author_books  "
                 + "WHERE example_Author.id IN (:id_XXX)";
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
-    @Test(expectedExceptions = UnsupportedOperationException.class)
+    @Test
     public void testSubCollectionPageTotalsWithSorting() {
         AbstractHQLQueryBuilder.Relationship relationship = mock(AbstractHQLQueryBuilder.Relationship.class);
         Sorting sorting = mock(Sorting.class);
@@ -88,10 +92,10 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
 
-        builder.withPossibleSorting(Optional.of(sorting)).build();
+        assertThrows(UnsupportedOperationException.class, () -> builder.withPossibleSorting(Optional.of(sorting)).build());
     }
 
-    @Test(expectedExceptions = UnsupportedOperationException.class)
+    @Test
     public void testSubCollectionPageTotalsWithPagination() {
         AbstractHQLQueryBuilder.Relationship relationship = mock(AbstractHQLQueryBuilder.Relationship.class);
         Pagination pagination = mock(Pagination.class);
@@ -99,7 +103,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
 
-        builder.withPossiblePagination(Optional.of(pagination));
+        assertThrows(UnsupportedOperationException.class, () -> builder.withPossiblePagination(Optional.of(pagination)));
     }
 
     @Test
@@ -146,6 +150,6 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         actual = actual.replaceFirst(":books_publisher_name_\\w+", ":books_publisher_name_XXX");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 }

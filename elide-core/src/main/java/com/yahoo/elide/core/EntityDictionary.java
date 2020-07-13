@@ -1,5 +1,6 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2018, Yahoo Inc.
+ * Copyright 2018, the original author or authors.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -13,14 +14,20 @@ import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
+import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.core.exceptions.HttpStatusException;
+import com.yahoo.elide.core.exceptions.InternalServerErrorException;
+import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common;
 import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.utils.ClassScanner;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -43,6 +50,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,6 +66,7 @@ import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -74,6 +84,9 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
     protected final Injector injector;
 
+    protected final Function<Class, Serde> serdeLookup ;
+
+    public final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
@@ -99,6 +112,13 @@ public class EntityDictionary {
      *                 initialize Elide models.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
+        this(checks, injector, CoerceUtil::lookup);
+    }
+
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                            Injector injector,
+                            Function<Class, Serde> serdeLookup) {
+        this.serdeLookup = serdeLookup;
         checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
 
         addPrefabCheck("Prefab.Role.All", Role.ALL.class);
@@ -130,12 +150,7 @@ public class EntityDictionary {
      * @return simple name
      */
     public static String getSimpleName(Class<?> cls) {
-        String simpleName = SIMPLE_NAMES.get(cls);
-        if (simpleName == null) {
-            simpleName = cls.getSimpleName();
-            SIMPLE_NAMES.putIfAbsent(cls, simpleName);
-        }
-        return simpleName;
+        return SIMPLE_NAMES.computeIfAbsent(cls, key -> cls.getSimpleName());
     }
 
     /**
@@ -160,13 +175,35 @@ public class EntityDictionary {
         return m;
     }
 
+    /**
+     * Returns an entity binding if the provided class has been bound in the dictionary.
+     * Otherwise the behavior depends on whether the unbound class is an Entity or not.
+     * If it is not an Entity, we return an EMPTY_BINDING.  This preserves existing behavior for relationships
+     * which are entities but not bound.  Otherwise, we throw an exception - which also preserves behavior
+     * for unbound non-entities.
+     * @param entityClass
+     * @return
+     */
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
-        return entityBindings.computeIfAbsent(entityClass, cls -> {
-            if (isMappedInterface(cls)) {
-                return EMPTY_BINDING;
-            }
-            return entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING);
-        });
+        if (isMappedInterface(entityClass)) {
+            return EMPTY_BINDING;
+        }
+
+        //Common case of no inheritance.  This lookup is a performance boost so we don't have to do reflection.
+        EntityBinding binding = entityBindings.get(entityClass);
+        if (binding != null) {
+            return binding;
+        }
+
+        Class<?> declaredClass = lookupBoundClass(entityClass);
+
+        if (declaredClass != null) {
+            return entityBindings.get(declaredClass);
+        }
+
+        //Will throw an exception if entityClass is not an entity.
+        lookupEntityClass(entityClass);
+        return EMPTY_BINDING;
     }
 
     public boolean isMappedInterface(Class<?> interfaceClass) {
@@ -253,24 +290,14 @@ public class EntityDictionary {
      * @return the {@link Check} mapped to the identifier or {@code null} if the given identifer is unmapped
      */
     public Class<? extends Check> getCheck(String checkIdentifier) {
-        Class<? extends Check> checkCls = checkNames.get(checkIdentifier);
-
-        if (checkCls == null) {
+        return checkNames.computeIfAbsent(checkIdentifier, cls -> {
             try {
-                checkCls = Class.forName(checkIdentifier).asSubclass(Check.class);
-                try {
-                    checkNames.putIfAbsent(checkIdentifier, checkCls);
-                } catch (IllegalArgumentException e) {
-                    log.error("HELP! {} {} {}", checkIdentifier, checkCls, checkNames.inverse().get(checkCls));
-                    throw e;
-                }
+                return Class.forName(checkIdentifier).asSubclass(Check.class);
             } catch (ClassNotFoundException | ClassCastException e) {
                 throw new IllegalArgumentException(
                         "Could not instantiate specified check '" + checkIdentifier + "'.", e);
             }
-        }
-
-        return checkCls;
+        });
     }
 
     /**
@@ -313,11 +340,10 @@ public class EntityDictionary {
      * @return  List of all inherited entity types
      */
     public List<Class<?>> getSubclassingEntities(Class entityClass) {
-        return subclassingEntities.computeIfAbsent(entityClass, (unused) -> {
-            return entityBindings.keySet().stream()
-                    .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
-                    .collect(Collectors.toList());
-        });
+        return subclassingEntities.computeIfAbsent(entityClass, unused -> entityBindings
+                .keySet().stream()
+                .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -426,6 +452,15 @@ public class EntityDictionary {
      */
     public List<String> getAttributes(Class<?> entityClass) {
         return getEntityBinding(entityClass).attributes;
+    }
+
+    /**
+     * Get the Injector for this dictionary.
+     *
+     * @return Injector instance.
+     */
+    public Injector getInjector() {
+        return injector;
     }
 
     /**
@@ -603,12 +638,62 @@ public class EntityDictionary {
 
     /**
      * Get a type for a field on an entity.
+     * <p>
+     * If this method is called on a bean such as the following
+     * <pre>
+     * {@code
+     * public class Address {
+     *     {@literal @}Id
+     *     private Long id
+     *
+     *     private String street1;
+     *
+     *     private String street2;
+     * }
+     * }
+     * </pre>
+     * then
+     * <pre>
+     * {@code
+     * getType(Address.class, "id") = Long.class
+     * getType(Address.class, "street1") = String.class
+     * getType(Address.class, "street2") = String.class
+     * }
+     * </pre>
+     * But if the ID field is not "id" and there is no such non-ID field called "id", i.e.
+     * <pre>
+     * {@code
+     * public class Address {
+     *     {@literal @}Id
+     *     private Long surrogateKey
+     *
+     *     private String street1;
+     *
+     *     private String street2;
+     * }
+     * }
+     * </pre>
+     * then
+     * <pre>
+     * {@code
+     * getType(Address.class, "id") = Long.class
+     * getType(Address.class, "surrogateKey") = Long.class
+     * getType(Address.class, "street1") = String.class
+     * getType(Address.class, "street2") = String.class
+     * }
+     * </pre>
+     * JSON-API spec does not allow "id" as non-ID field name. If, therefore, there is a non-ID field called "id",
+     * calling this method has undefined behavior
      *
      * @param entityClass Entity class
-     * @param identifier  Field to lookup type
+     * @param identifier  Identifier/Field to lookup type
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
+        if (identifier.equals(REGULAR_ID_NAME)) {
+            return getEntityBinding(entityClass).getIdType();
+        }
+
         ConcurrentHashMap<String, Class<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
         return fieldTypes == null ? null : fieldTypes.get(identifier);
     }
@@ -639,7 +724,7 @@ public class EntityDictionary {
      * Retrieve the parameterized type for the given field.
      *
      * @param entityClass the entity class
-     * @param identifier  the identifier
+     * @param identifier  the identifier/field name
      * @param paramIndex  the index of the parameterization
      * @return Entity type for field otherwise null.
      */
@@ -752,25 +837,20 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        if (entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING) != EMPTY_BINDING) {
-            return;
-        }
-        entityBindings.remove(lookupEntityClass(cls));
+        Class<?> declaredClass = lookupIncludeClass(cls);
 
-        Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
-        Include include = annotation instanceof Include ? (Include) annotation : null;
-        Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
-        Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
-
-        if (exclude != null) {
-            log.trace("Exclude {}", cls.getName());
+        if (declaredClass == null) {
+            log.trace("Missing include or excluded class {}", cls.getName());
             return;
         }
 
-        if (include == null) {
-            log.trace("Missing include {}", cls.getName());
+        if (isClassBound(declaredClass)) {
+            //Ignore duplicate bindings.
             return;
         }
+
+        Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
+        Entity entity = (Entity) getFirstAnnotation(declaredClass, Arrays.asList(Entity.class));
 
         String name;
         if (entity == null || "".equals(entity.name())) {
@@ -786,15 +866,10 @@ public class EntityDictionary {
             type = include.type();
         }
 
-        Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
-        if (duplicate != null && !duplicate.equals(cls)) {
-            log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
-            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
-        }
-
-        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(this, cls, type, name));
+        bindJsonApiToEntity.put(type, declaredClass);
+        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass, type, name));
         if (include.rootLevel()) {
-            bindEntityRoots.add(cls);
+            bindEntityRoots.add(declaredClass);
         }
     }
 
@@ -820,6 +895,18 @@ public class EntityDictionary {
      */
     public <A extends Annotation> A getAnnotation(Class<?> recordClass, Class<A> annotationClass) {
         return getEntityBinding(recordClass).getAnnotation(annotationClass);
+    }
+
+    /**
+     * Return annotation from class for provided method.
+     * @param recordClass the record class
+     * @param method the method
+     * @param annotationClass the annotation class
+     * @param <A> genericClass
+     * @return the annotation
+     */
+    public <A extends Annotation> A getMethodAnnotation(Class<?> recordClass, String method, Class<A> annotationClass) {
+        return getEntityBinding(recordClass).getMethodAnnotation(annotationClass, method);
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,
@@ -883,7 +970,7 @@ public class EntityDictionary {
         Annotation annotation = null;
         for (Class<?> cls = entityClass; annotation == null && cls != null; cls = cls.getSuperclass()) {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
-                annotation = cls.getAnnotation(annotationClass);
+                annotation = cls.getDeclaredAnnotation(annotationClass);
                 if (annotation != null) {
                     break;
                 }
@@ -892,7 +979,7 @@ public class EntityDictionary {
         // no class annotation, try packages
         for (Package pkg = entityClass.getPackage(); annotation == null && pkg != null; pkg = getParentPackage(pkg)) {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
-                annotation = pkg.getAnnotation(annotationClass);
+                annotation = pkg.getDeclaredAnnotation(annotationClass);
                 if (annotation != null) {
                     break;
                 }
@@ -923,16 +1010,33 @@ public class EntityDictionary {
         }
         try {
             AccessibleObject idField = null;
-            for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
-                idField = getEntityBinding(cls).getIdField();
+            Class<?> valueClass = value.getClass();
+            for (; idField == null && valueClass != null; valueClass = valueClass.getSuperclass()) {
+                try {
+                    idField = getEntityBinding(valueClass).getIdField();
+                } catch (NullPointerException e) {
+                    log.warn("Class: {} ID Field: {}", valueClass.getSimpleName(), idField);
+                }
             }
+
+            Class<?> idClass;
+            Object idValue;
             if (idField instanceof Field) {
-                return String.valueOf(((Field) idField).get(value));
+                idValue = ((Field) idField).get(value);
+                idClass = ((Field) idField).getType();
+            } else if (idField instanceof Method) {
+                idValue = ((Method) idField).invoke(value, (Object[]) null);
+                idClass = ((Method) idField).getReturnType();
+            } else {
+                return null;
             }
-            if (idField instanceof Method) {
-                return String.valueOf(((Method) idField).invoke(value, (Object[]) null));
+
+            Serde serde = serdeLookup.apply(idClass);
+            if (serde != null) {
+                return String.valueOf(serde.serialize(idValue));
             }
-            return null;
+
+            return String.valueOf(idValue);
         } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
             return null;
         }
@@ -974,13 +1078,85 @@ public class EntityDictionary {
      * @return class with Entity annotation
      */
     public Class<?> lookupEntityClass(Class<?> objClass) {
+        Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Entity.class);
+        if (declaringClass != null) {
+            return declaringClass;
+        }
+        throw new IllegalArgumentException("Unbound Entity " + objClass);
+    }
+
+    /**
+     * Follow for this class or super-class for Include annotation.
+     *
+     * @param objClass provided class
+     * @return class with Include annotation or
+     */
+    public Class<?> lookupIncludeClass(Class<?> objClass) {
+        Annotation first = getFirstAnnotation(objClass, Arrays.asList(Exclude.class, Include.class));
+        if (first instanceof Include) {
+            return objClass;
+        }
+        return null;
+    }
+
+    /**
+     * Search a class hierarchy to find the first instance of a declared annotation.
+     * @param objClass The class to start searching.
+     * @param annotationClass The annotation to search for.
+     * @return The class which declares the annotation or null.
+     */
+    public Class<?> lookupAnnotationDeclarationClass(Class<?> objClass, Class<? extends Annotation> annotationClass) {
         for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
-            if (entityBindings.containsKey(cls) || cls.isAnnotationPresent(Entity.class)) {
+            if (cls.getDeclaredAnnotation(annotationClass) != null) {
                 return cls;
             }
         }
-        throw new IllegalArgumentException("Unknown Entity " + objClass);
+        return null;
     }
+
+    /**
+     * Return bound entity or null.
+     *
+     * @param objClass provided class
+     * @return Bound class.
+     */
+    public Class<?> lookupBoundClass(Class<?> objClass) {
+        //Common case - we can avoid reflection by checking the map ...
+        EntityBinding binding = entityBindings.getOrDefault(objClass, EMPTY_BINDING);
+        if (binding != EMPTY_BINDING) {
+            return binding.entityClass;
+        }
+
+        Class<?> declaredClass = lookupIncludeClass(objClass);
+        if (declaredClass == null) {
+            return null;
+        }
+
+        binding = entityBindings.getOrDefault(declaredClass, EMPTY_BINDING);
+        if (binding != EMPTY_BINDING) {
+            return binding.entityClass;
+        }
+
+        try {
+            //Special Case for ORM proxied objects.  If the class is a proxy,
+            //and it is unbound, try the superclass.
+            return lookupEntityClass(declaredClass.getSuperclass());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Return if the class has been bound or not.  Only safe to call while binding an entity (does not consider
+     * ORM proxy objects).
+     *
+     * @param objClass provided class
+     * @return true if the class is already bound.
+     */
+    private boolean isClassBound(Class<?> objClass) {
+        return (entityBindings.getOrDefault(objClass, EMPTY_BINDING) != EMPTY_BINDING);
+    }
+
 
     /**
      * Retrieve the accessible object for a field from a target object.
@@ -1038,6 +1214,27 @@ public class EntityDictionary {
 
     public boolean isAttribute(Class<?> entityClass, String attributeName) {
         return getEntityBinding(entityClass).attributes.contains(attributeName);
+    }
+
+    /**
+     * Scan for security checks and automatically bind them to the dictionary.
+     */
+    public void scanForSecurityChecks() {
+
+        // Logic is based on https://github.com/illyasviel/elide-spring-boot/blob/master
+        // /elide-spring-boot-autoconfigure/src/main/java/org/illyasviel/elide
+        // /spring/boot/autoconfigure/ElideAutoConfiguration.java
+
+        for (Class<?> cls : ClassScanner.getAnnotatedClasses(SecurityCheck.class)) {
+            if (Check.class.isAssignableFrom(cls)) {
+                SecurityCheck securityCheckMeta = cls.getAnnotation(SecurityCheck.class);
+                log.debug("Register Elide Check [{}] with expression [{}]",
+                        cls.getCanonicalName(), securityCheckMeta.value());
+                checkNames.put(securityCheckMeta.value(), cls.asSubclass(Check.class));
+            } else {
+                throw new IllegalStateException("Class annotated with SecurityCheck is not a Check");
+            }
+        }
     }
 
     /**
@@ -1132,10 +1329,8 @@ public class EntityDictionary {
             for (String relationship : getElideBoundRelationships(clazz)) {
                 Class<?> relationshipClass = getParameterizedType(clazz, relationship);
 
-                try {
-                    lookupEntityClass(relationshipClass);
-                } catch (IllegalArgumentException e) {
 
+                if (lookupBoundClass(relationshipClass) == null) {
                     /* The relationship hasn't been bound */
                     continue;
                 }
@@ -1158,11 +1353,167 @@ public class EntityDictionary {
     }
 
     /**
+     * Invoke the get[fieldName] method on the target object OR get the field with the corresponding name.
+     * @param target the object to get
+     * @param fieldName the field name to get or invoke equivalent get method
+     * @return the value
+     */
+    public Object getValue(Object target, String fieldName, RequestScope scope) {
+        AccessibleObject accessor = getAccessibleObject(target, fieldName);
+        try {
+            if (accessor instanceof Method) {
+                // Pass RequestScope into @Computed fields if requested
+                if (isMethodRequestScopeable(target, (Method) accessor)) {
+                    return ((Method) accessor).invoke(target, scope);
+                }
+                return ((Method) accessor).invoke(target);
+            }
+            if (accessor instanceof Field) {
+                return ((Field) accessor).get(target);
+            }
+        } catch (IllegalAccessException e) {
+            throw new InvalidAttributeException(fieldName, getJsonAliasFor(target.getClass()), e);
+        } catch (InvocationTargetException e) {
+            throw handleInvocationTargetException(e);
+        }
+        throw new InvalidAttributeException(fieldName, getJsonAliasFor(target.getClass()));
+    }
+
+    /**
+     * Invoke the set[fieldName] method on the target object OR set the field with the corresponding name.
+     * @param fieldName the field name to set or invoke equivalent set method
+     * @param value the value to set
+     */
+    public void setValue(Object target, String fieldName, Object value) {
+        Class<?> targetClass = target.getClass();
+        String targetType = getJsonAliasFor(targetClass);
+
+        String fieldAlias = fieldName;
+        try {
+            Class<?> fieldClass = getType(targetClass, fieldName);
+            String realName = getNameFromAlias(target, fieldName);
+            fieldAlias = (realName != null) ? realName : fieldName;
+            String setMethod = "set" + StringUtils.capitalize(fieldAlias);
+            Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
+            method.invoke(target, coerce(target, value, fieldAlias, fieldClass));
+        } catch (IllegalAccessException e) {
+            throw new InvalidAttributeException(fieldAlias, targetType, e);
+        } catch (InvocationTargetException e) {
+            throw handleInvocationTargetException(e);
+        } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
+            AccessibleObject accessor = getAccessibleObject(target, fieldAlias);
+            if (accessor != null && accessor instanceof Field) {
+                Field field = (Field) accessor;
+                try {
+                    field.set(target, coerce(target, value, fieldAlias, field.getType()));
+                } catch (IllegalAccessException noField) {
+                    throw new InvalidAttributeException(fieldAlias, targetType, noField);
+                }
+            } else {
+                throw new InvalidAttributeException(fieldAlias, targetType);
+            }
+        }
+    }
+
+    /**
+     * Handle an invocation target exception.
+     *
+     * @param e Exception the exception encountered while reflecting on an object's field
+     * @return Equivalent runtime exception
+     */
+    private static RuntimeException handleInvocationTargetException(InvocationTargetException e) {
+        Throwable exception = e.getTargetException();
+        if (exception instanceof HttpStatusException || exception instanceof WebApplicationException) {
+            return (RuntimeException) exception;
+        }
+        log.error("Caught an unexpected exception (rethrowing as internal server error)", e);
+        return new InternalServerErrorException("Unexpected exception caught", e);
+    }
+
+    /**
+     * Coerce provided value into expected class type.
+     *
+     * @param value provided value
+     * @param fieldName the field name
+     * @param fieldClass expected class type
+     * @return coerced value
+     */
+    public Object coerce(Object target, Object value, String fieldName, Class<?> fieldClass) {
+        if (fieldClass != null && Collection.class.isAssignableFrom(fieldClass) && value instanceof Collection) {
+            return coerceCollection(target, (Collection) value, fieldName, fieldClass);
+        }
+
+        if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
+            return coerceMap(target, (Map<?, ?>) value, fieldName);
+        }
+
+        return CoerceUtil.coerce(value, fieldClass);
+    }
+
+    private Collection coerceCollection(Object target, Collection<?> values, String fieldName, Class<?> fieldClass) {
+        Class<?> providedType = getParameterizedType(target, fieldName);
+
+        // check if collection is of and contains the correct types
+        if (fieldClass.isAssignableFrom(values.getClass())) {
+            boolean valid = true;
+            for (Object member : values) {
+                if (member != null && !providedType.isAssignableFrom(member.getClass())) {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid) {
+                return values;
+            }
+        }
+
+        ArrayList<Object> list = new ArrayList<>(values.size());
+        for (Object member : values) {
+            list.add(CoerceUtil.coerce(member, providedType));
+        }
+
+        if (Set.class.isAssignableFrom(fieldClass)) {
+            return new LinkedHashSet<>(list);
+        }
+
+        return list;
+    }
+
+    private Map coerceMap(Object target, Map<?, ?> values, String fieldName) {
+        Class<?> keyType = getParameterizedType(target, fieldName, 0);
+        Class<?> valueType = getParameterizedType(target, fieldName, 1);
+
+        // Verify the existing Map
+        if (isValidParameterizedMap(values, keyType, valueType)) {
+            return values;
+        }
+
+        LinkedHashMap<Object, Object> result = new LinkedHashMap<>(values.size());
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            result.put(CoerceUtil.coerce(entry.getKey(), keyType), CoerceUtil.coerce(entry.getValue(), valueType));
+        }
+
+        return result;
+    }
+
+    private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if ((key != null && !keyType.isAssignableFrom(key.getClass()))
+                    || (value != null && !valueType.isAssignableFrom(value.getClass()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Binds the entity class if not yet bound.
      * @param entityClass the class to bind.
      */
     private void bindIfUnbound(Class<?> entityClass) {
-        if (! entityBindings.containsKey(lookupEntityClass(entityClass))) {
+        if (! isClassBound(entityClass)) {
             bindEntity(entityClass);
         }
     }

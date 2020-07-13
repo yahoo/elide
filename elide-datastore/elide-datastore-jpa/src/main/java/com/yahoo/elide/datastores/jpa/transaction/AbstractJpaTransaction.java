@@ -34,6 +34,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -184,12 +185,6 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
 
-        pagination.ifPresent(p -> {
-            if (p.isGenerateTotals()) {
-                p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
-            }
-        });
-
         QueryWrapper query =
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper)
                         .withPossibleFilterExpression(filterExpression)
@@ -197,7 +192,16 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                         .withPossiblePagination(pagination)
                         .build();
 
-        return query.getQuery().getResultList();
+        List results = query.getQuery().getResultList();
+
+        pagination.ifPresent(p -> {
+            //Issue #1429
+            if (p.isGenerateTotals() && (!results.isEmpty() || p.getLimit() == 0)) {
+                p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
+            }
+        });
+
+        return results;
     }
 
     @Override
@@ -215,6 +219,16 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         if (val instanceof Collection) {
             Collection<?> filteredVal = (Collection<?>) val;
             if (IS_PERSISTENT_COLLECTION.test(filteredVal)) {
+
+                /*
+                 * If there is no filtering or sorting required in the data store, and the pagination is default,
+                 * return the proxy and let the ORM manage the SQL generation.
+                 */
+                if (! filterExpression.isPresent() && ! sorting.isPresent()
+                    && (! pagination.isPresent() || (pagination.isPresent() && pagination.get().isDefaultInstance()))) {
+                    return val;
+                }
+
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
                 RelationshipImpl relationship = new RelationshipImpl(
@@ -268,7 +282,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
     /**
-     * Returns the total record count for a entity relationship
+     * Returns the total record count for a entity relationship.
      *
      * @param relationship     The relationship
      * @param filterExpression optional security and request filters

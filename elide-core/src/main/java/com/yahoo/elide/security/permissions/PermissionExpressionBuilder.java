@@ -124,22 +124,26 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * <p>
      * NOTE: This method returns _NO_ commit checks.
      *
-     * @param resource        Resource
+     * @param resourceClass   Resource Class
+     * @param scope           The request scope.
      * @param annotationClass Annotation class
      * @param field           Field to check (if null only check entity-level)
      * @param <A>             type parameter
      * @return User check expression to evaluate
      */
-    public <A extends Annotation> Expression buildUserCheckFieldExpressions(final PersistentResource resource,
+    public <A extends Annotation> Expression buildUserCheckFieldExpressions(final Class<?> resourceClass,
+                                                                             final RequestScope scope,
                                                                              final Class<A> annotationClass,
                                                                              final String field) {
-        Class<?> resourceClass = resource.getResourceClass();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
             return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> leafBuilderFn = leafBuilder(resource, null);
-        return buildSpecificFieldExpression(new PermissionCondition(annotationClass, resource, field), leafBuilderFn);
+        final Function<Check, Expression> leafBuilderFn = (check) ->
+                new CheckExpression(check, null, scope, null, cache);
+
+        return buildSpecificFieldExpression(new PermissionCondition(annotationClass, resourceClass, field),
+                leafBuilderFn);
     }
 
     /**

@@ -22,10 +22,18 @@ import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.RequestScope;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Builder;
+import lombok.Singular;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Entity;
@@ -39,6 +47,9 @@ import javax.persistence.Table;
 
 /**
  * Model for books.
+ * <p>
+ * <b>CAUTION: DO NOT DECORATE IT WITH {@link Builder}, which hides its no-args constructor. This will result in
+ * runtime error at places such as {@code entityClass.newInstance();}</b>
  */
 @Entity
 @SharePermission
@@ -49,18 +60,24 @@ import javax.persistence.Table;
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
 public class Book {
+
     private long id;
     private String title;
     private String genre;
     private String language;
+    @JsonIgnore
     private long publishDate = 0;
-    private Collection<Author> authors = new ArrayList<>();
+    @Singular private Collection<Author> authors = new ArrayList<>();
     private Publisher publisher = null;
     private Date publicationDate = null;
     private Date lastPurchasedDate = null;
     private Author.AuthorType authorTypeAtTimeOfPublication;
     private Set<PublicationFormat> publicationFormats = new HashSet<>();
     private Set<Preview> previews = new HashSet<>();
+    private BigDecimal weightLbs;
+    private Price price;
+    private List<Price> priceHistory;
+    private Map<Date, Price> priceRevisions;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -87,6 +104,31 @@ public class Book {
         this.genre = genre;
     }
 
+    public Price getPrice() {
+        return price;
+    }
+
+    public void setPriceHistory(List<Price> priceHistory) {
+        this.priceHistory = priceHistory;
+    }
+
+    public List<Price> getPriceHistory() {
+        return priceHistory;
+    }
+
+    public void setPriceRevisions(Map<Date, Price> priceRevisions) {
+        this.priceRevisions = priceRevisions;
+    }
+
+    public Map<Date, Price> getPriceRevisions() {
+        return priceRevisions;
+    }
+
+    public void setPrice(Price price) {
+        this.price = price;
+    }
+
+
     public String getLanguage() {
         return language;
     }
@@ -101,6 +143,14 @@ public class Book {
 
     public long getPublishDate() {
         return this.publishDate;
+    }
+
+    public void setWeightLbs(BigDecimal weight) {
+        this.weightLbs = weight;
+    }
+
+    public BigDecimal getWeightLbs() {
+        return this.weightLbs;
     }
 
     @ManyToMany

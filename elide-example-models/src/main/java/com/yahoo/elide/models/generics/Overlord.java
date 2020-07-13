@@ -9,6 +9,7 @@ package com.yahoo.elide.models.generics;
 import com.yahoo.elide.models.BaseId;
 
 import java.util.Set;
+
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 
