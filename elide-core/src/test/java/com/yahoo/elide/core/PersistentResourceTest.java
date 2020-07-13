@@ -1800,6 +1800,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals("UPDATE Child 5 Parent 7", message.getMessage(), "Logging template should match");
 
         assertEquals(1, message.getOperationCode(), "Operation code should match");
+        logger.clear(); // tidy up this thread's messages
     }
 
     @Test
@@ -1823,6 +1824,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals("CREATE Child 5 Parent 7", message.getMessage(), "Logging template should match");
 
         assertEquals(0, message.getOperationCode(), "Operation code should match");
+        logger.clear(); // tidy up this thread's messages
     }
 
     @Test
