@@ -21,7 +21,7 @@ public class InMemoryLogger extends AuditLogger {
 
     @Override
     public void commit(RequestScope requestScope) throws IOException {
-        for (LogMessage message : messages.get()) {
+        for (LogMessage message : MESSAGES.get()) {
             if (message.getChangeSpec().isPresent()) {
                 logMessages.add(changeSpecToString(message.getChangeSpec().get()));
             }
