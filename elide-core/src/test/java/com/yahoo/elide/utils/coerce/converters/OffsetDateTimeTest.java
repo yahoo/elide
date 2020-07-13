@@ -37,4 +37,9 @@ public class OffsetDateTimeTest {
         Object expected = offsetDateTimeScalar.deserialize(actual);
         assertEquals(expected, actualDate);
     }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void failsParsingWithIllegalArgumentException() {
+        serde.deserialize("2019-06-01T09:42:55.12X3Z");
+    }
 }
