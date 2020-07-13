@@ -86,12 +86,10 @@ public class AsyncQueryThreadTest {
 
         String csvStr = "[key][\"value\"]";
         String jsonStr = "{\"key\":\"value\"}";
-        AsyncQueryThread queryThread = mock(AsyncQueryThread.class);
-        when(queryResultObj.getResponseBody()).thenReturn(jsonStr);
-        when(queryThread.processQuery()).thenReturn(queryResultObj);
-        when(queryThread.convertJsonToCSV(queryResultObj.getResponseBody())).thenReturn(csvStr);
 
-        String jsonToCSV = queryThread.convertJsonToCSV(jsonStr);
+        AsyncQuery queryObj = new AsyncQuery();
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
+                resultStorageEngine);
 
         assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
     }

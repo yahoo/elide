@@ -26,14 +26,9 @@ import com.yahoo.elide.security.checks.Check;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Blob;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
-
-import javax.sql.rowset.serial.SerialBlob;
+import java.util.*;
 
 public class DefaultResultStorageEngineTest {
 
@@ -49,10 +44,9 @@ public class DefaultResultStorageEngineTest {
     @BeforeEach
     public void setupMocks() {
         dataStore = mock(DataStore.class);
-        asyncQuery = mock(AsyncQuery.class);
         tx = mock(DataStoreTransaction.class);
         asyncQueryResultStorage = mock(AsyncQueryResultStorage.class);
-
+        asyncQuery = mock(AsyncQuery.class);
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
         dictionary = new EntityDictionary(checkMappings);
@@ -69,42 +63,43 @@ public class DefaultResultStorageEngineTest {
         elide = new Elide(elideSettings);
 
         when(dataStore.beginTransaction()).thenReturn(tx);
-
-        asyncQueryDAO = new com.yahoo.elide.async.service.DefaultAsyncQueryDAO(elide, dataStore);
+        asyncQueryDAO = new DefaultAsyncQueryDAO(elide, dataStore);
         defaultResultStorageEngine = new com.yahoo.elide.async.service.DefaultResultStorageEngine(elide, dataStore, "http://localhost:8080");
     }
 
     @Test
-    public void testStoreResults() {
+    public void testStoreResults() throws MalformedURLException {
         String responseBody = "responseBody";
         byte[] testResponse = responseBody.getBytes();
-        Blob result = null;
-
-        try {
-            result = new SerialBlob(testResponse);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
+        when(asyncQueryResultStorage.getId()).thenReturn("asyncQueryID");
+        URL testURL = new URL("http://localhost:8080/AsyncQueryResultStorage/asyncQueryID");
 
         URL url = defaultResultStorageEngine.storeResults(
                 asyncQueryResultStorage.getId(), testResponse);
 
+        assertEquals(url, testURL);
         assertEquals(url.getClass(), URL.class);
     }
 
     @Test
     public void testGetResultsByID() {
         String id = "id";
-        AsyncQueryResultStorage n = new AsyncQueryResultStorage();
-        n.setId(id);
-        n.setResult(null);
-
-        Object loaded = n;
-        when(tx.loadObject(any(), any(), any())).thenReturn(loaded);
-
-        defaultResultStorageEngine.getResultsByID(n.getId());
+        defaultResultStorageEngine.getResultsByID(id);
 
         verify(tx, times(1)).loadObject(any(), any(), any());
+
+    }
+
+    @Test
+    public void testDeleteResultsCollection() {
+        Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
+        when(tx.loadObjects(any(), any())).thenReturn(loaded);
+
+        Collection<AsyncQuery> asyncQueryCollection = asyncQueryDAO.deleteAsyncQueryAndResultCollection("createdOn=le='2020-03-23T02:02Z'");
+
+        defaultResultStorageEngine.deleteResultsCollection(asyncQueryCollection);
+
+        verify(tx, times(3)).loadObject(any(), any(), any());
 
     }
 }

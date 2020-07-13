@@ -110,7 +110,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
             if (response.getResponseCode() == 200) {
                 String tableName = getTableNameFromQuery(queryObj.getQuery());
-                recCount = calculateRecordsGRAPHQL(response.getBody(), tableName);
+                recCount = calculateRecordsGraphQL(response.getBody(), tableName);
             }
         }
         if (response == null) {
@@ -131,15 +131,12 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         if (timeElapsed - asyncAfterMilliSeconds > 0) {
 
             URL url = null;
+            String tempResult = response.getBody();
             if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
-                String jsonToCSV = convertJsonToCSV(response.getBody());
-                byte[] temp = jsonToCSV.getBytes();
-                url = resultStorageEngine.storeResults(queryObj.getId(), temp);
+                tempResult = convertJsonToCSV(response.getBody());
             }
-            else {
-                byte[] temp = response.getBody().getBytes();
-                url = resultStorageEngine.storeResults(queryObj.getId(), temp);
-            }
+            byte[] temp = tempResult.getBytes();
+            url = resultStorageEngine.storeResults(queryObj.getId(), temp);
 
             queryResultObj.setResultType(ResultType.DOWNLOAD);
             queryResultObj.setResponseBody(url.toString());
@@ -174,7 +171,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @param table_name is the table from which we extract the data
      * @return rec is the recordCount
      */
-    protected Integer calculateRecordsGRAPHQL(String response, String table_name) {
+    protected Integer calculateRecordsGraphQL(String response, String table_name) {
         Integer rec;
         try {
             JSONObject j = new JSONObject(response);
