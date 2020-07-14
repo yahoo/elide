@@ -102,11 +102,13 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
 
                         return loaded;
                     });
-
-            Blob result = asyncQueryResultStorage.getResult();
-            byteResult = result.getBytes(1, (int) result.length());
+            if (asyncQueryResultStorage != null) {
+                Blob result = asyncQueryResultStorage.getResult();
+                byteResult = result.getBytes(1, (int) result.length());
+            }
         } catch (Exception e) {
             log.error("Exception: {}", e);
+            throw new IllegalStateException(e);
         }
 
         return byteResult;

@@ -28,7 +28,11 @@ import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 public class DefaultResultStorageEngineTest {
 
@@ -78,7 +82,6 @@ public class DefaultResultStorageEngineTest {
                 asyncQueryResultStorage.getId(), testResponse);
 
         assertEquals(url, testURL);
-        assertEquals(url.getClass(), URL.class);
     }
 
     @Test
