@@ -120,26 +120,24 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         Iterator<AsyncQuery> itr = asyncQueryList.iterator();
         while (itr.hasNext()) {
             AsyncQuery query = itr.next();
-            try {
-                asyncQueryResultStorage = (Collection<AsyncQueryResultStorage>) DBUtil.executeInTransaction(elide,
-                        dataStore, (tx, scope) -> {
 
-                            EntityProjection asyncQueryCollection = EntityProjection.builder()
-                                    .type(AsyncQueryResultStorage.class)
-                                    .build();
+            asyncQueryResultStorage = (Collection<AsyncQueryResultStorage>) DBUtil.executeInTransaction(elide,
+                    dataStore, (tx, scope) -> {
 
-                            Object loaded = null;
-                            loaded = tx.loadObject(asyncQueryCollection, query.getId(), scope);
+                EntityProjection asyncQueryCollection = EntityProjection.builder()
+                        .type(AsyncQueryResultStorage.class)
+                        .build();
 
-                            if (loaded != null) {
-                                tx.delete(loaded, scope);
-                            }
+                Object loaded = null;
+                loaded = tx.loadObject(asyncQueryCollection, query.getId(), scope);
 
-                            return loaded;
-                        });
-            } catch (Exception e) {
-                log.error("Exception: {}", e);
-            }
+                if (loaded != null) {
+                    tx.delete(loaded, scope);
+                }
+
+                return loaded;
+            });
+
         }
 
     }
