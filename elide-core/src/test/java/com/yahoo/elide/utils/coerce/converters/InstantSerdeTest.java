@@ -6,6 +6,7 @@
 package com.yahoo.elide.utils.coerce.converters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -52,5 +53,15 @@ public class InstantSerdeTest {
             "2019-06-01T09:42:55.123Z",
             serde.serialize(Instant.ofEpochMilli(1559382175123L))
         );
+    }
+
+    @Test
+    public void failsParsingWithIllegalArgumentException() {
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> serde.deserialize("2019-06-01T09:42:55.12X3Z")
+        );
+
     }
 }
