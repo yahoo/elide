@@ -26,19 +26,19 @@ public class SQLQueryTemplate {
     private final SQLTable table;
     private final List<SQLMetricProjection> metrics;
     private final Set<SQLColumnProjection> nonTimeDimensions;
-    private final Set<SQLTimeDimensionProjection> timeDimension;
+    private final Set<SQLTimeDimensionProjection> timeDimensions;
 
     public SQLQueryTemplate(SQLTable table, List<SQLMetricProjection> metrics,
                      Set<SQLColumnProjection> nonTimeDimensions, Set<SQLTimeDimensionProjection> timeDimension) {
         this.table = table;
         this.nonTimeDimensions = nonTimeDimensions;
-        this.timeDimension = timeDimension;
+        this.timeDimensions = timeDimension;
         this.metrics = metrics;
     }
 
     public SQLQueryTemplate(Query query) {
         table = (SQLTable) query.getTable();
-        timeDimension = query.getTimeDimensions().stream()
+        timeDimensions = query.getTimeDimensions().stream()
                 .map(SQLTimeDimensionProjection.class::cast)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
@@ -57,9 +57,9 @@ public class SQLQueryTemplate {
      * @return all GROUP BY dimensions
      */
     public Set<SQLColumnProjection> getGroupByDimensions() {
-        return getTimeDimension() == null
+        return getTimeDimensions() == null
                 ? getNonTimeDimensions()
-                : Sets.union(getNonTimeDimensions(), getTimeDimension());
+                : Sets.union(getNonTimeDimensions(), getTimeDimensions());
     }
 
     /**
@@ -75,7 +75,7 @@ public class SQLQueryTemplate {
          List<SQLMetricProjection> merged = new ArrayList<>(first.getMetrics());
          merged.addAll(second.getMetrics());
 
-         return new SQLQueryTemplate(first.getTable(), merged, first.getNonTimeDimensions(), first.getTimeDimension());
+         return new SQLQueryTemplate(first.getTable(), merged, first.getNonTimeDimensions(), first.getTimeDimensions());
      }
 
     /**
@@ -86,8 +86,8 @@ public class SQLQueryTemplate {
          ArrayList<SQLColumnProjection> columnProjections = new ArrayList<>();
          columnProjections.addAll(metrics);
          columnProjections.addAll(nonTimeDimensions);
-         if (timeDimension != null) {
-            columnProjections.addAll(timeDimension);
+         if (timeDimensions != null) {
+            columnProjections.addAll(timeDimensions);
          }
          return columnProjections;
      }
