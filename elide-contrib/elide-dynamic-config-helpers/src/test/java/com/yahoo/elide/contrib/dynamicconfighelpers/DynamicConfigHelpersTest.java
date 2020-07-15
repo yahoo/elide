@@ -10,17 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import org.junit.jupiter.api.Test;
-
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-@Slf4j
 public class DynamicConfigHelpersTest {
 
     @Test
@@ -36,7 +31,7 @@ public class DynamicConfigHelpersTest {
     }
 
     @Test
-    public void testValidVariableSchema() throws JsonProcessingException {
+    public void testValidVariableSchema() throws IOException {
         String path = "src/test/resources/variables/valid";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();

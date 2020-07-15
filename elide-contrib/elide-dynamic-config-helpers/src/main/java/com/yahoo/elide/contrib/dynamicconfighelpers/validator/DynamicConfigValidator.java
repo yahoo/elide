@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.Config;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
@@ -12,8 +13,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -23,12 +22,24 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,6 +49,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -53,11 +65,26 @@ public class DynamicConfigValidator {
     private static final String SQL_SPLIT_REGEX = "\\s+";
     private static final String SEMI_COLON = ";";
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
+    private static final String RESOURCES = "resources";
+    private static final int RESOURCE_LENGTH = 10; //"resources/".length()
+    private static final int FILE_PREFIX_LENGTH = 5; //"file:".length()
 
     private ElideTableConfig elideTableConfig;
     private ElideSecurityConfig elideSecurityConfig;
     private Map<String, Object> variables;
     private String configDir;
+    private boolean configInClassPath;
+
+    public DynamicConfigValidator(String configDir) {
+        File config = new File(configDir);
+
+        if (config.exists()) {
+            this.setConfigDir(DynamicConfigHelpers.formatFilePath(config.getAbsolutePath()));
+        } else {
+            this.setConfigDir(DynamicConfigHelpers.formatFilePath(formatClassPath(configDir)));
+            this.setConfigInClassPath(true);
+        }
+    }
 
     public static void main(String[] args) throws IOException, ParseException {
 
@@ -73,44 +100,112 @@ public class DynamicConfigValidator {
             throw new MissingOptionException("Missing required option");
         }
         String configDir = cli.getOptionValue("configDir");
-        File file = new File(configDir);
-        String absoluteBasePath = file.getAbsolutePath();
-        log.info("Absolute Path for Model Configs Directory: " + absoluteBasePath);
 
-        if (!file.isDirectory()) {
-            throw new IllegalStateException("Model Configs Directory doesn't exists");
-        }
-
-        DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator();
-        dynamicConfigValidator.readAndValidateConfigs(absoluteBasePath);
+        DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(configDir);
+        dynamicConfigValidator.readAndValidateConfigs();
 
         log.info("Configs Validation Passed!");
     }
 
     /**
-     * Read and validate config files under config directory
-     * @param filePath path for config directory
+     * Read and validate config files under config directory.
      * @throws IOException IOException
      */
-    public void readAndValidateConfigs(String filePath) throws IOException {
+    public void readAndValidateConfigs() throws IOException {
 
-        this.setConfigDir(DynamicConfigHelpers.formatFilePath(filePath));
-        this.readVariableConfig();
-        if (this.readSecurityConfig()) {
-            validateRoleInSecurityConfig(this.getElideSecurityConfig());
+        if (this.configInClassPath) {
+            readAndValidateClasspathConfigs();
+        } else {
+            this.readVariableConfig();
+            if (this.readSecurityConfig()) {
+                validateRoleInSecurityConfig(this.getElideSecurityConfig());
+            }
+            if (this.readTableConfig()) {
+                validateSqlInTableConfig(this.getElideTableConfig());
+            }
         }
-        if (this.readTableConfig()) {
-            validateSqlInTableConfig(this.getElideTableConfig());
+    }
+
+    /**
+     * Read and validate config files under resources.
+     * @throws IOException
+     */
+    public void readAndValidateClasspathConfigs() throws IOException {
+        log.info("config dir " + this.getConfigDir());
+
+        this.setVariables(DynamicConfigHelpers.stringToVariablesPojo(
+                readResource(this.configDir + Config.VARIABLE.getConfigPath())));
+
+        this.setElideSecurityConfig(DynamicConfigHelpers.stringToElideSecurityPojo(
+                readResource(this.configDir + Config.SECURITY.getConfigPath()),
+                this.variables));
+
+        this.setElideTableConfig(getTableConfig());
+    }
+
+    /**
+     * Read table config files and checks for any missing Handlebar variables.
+     * @param fs : FileSystem path to tables config
+     * @throws IOException
+     */
+    private ElideTableConfig getTableConfig() throws IOException {
+        DirectoryStream<Path> directoryStream = null;
+        Set<Table> tables = new HashSet<>();
+        FileSystem fs  = null;
+        try {
+            URL url = DynamicConfigValidator.class.getClassLoader()
+                    .getResource(this.configDir + Config.TABLE.getConfigPath());
+            if (url == null) {
+                throw new IllegalStateException("Model Configs Directory doesn't exists");
+            }
+            URL jar = DynamicConfigValidator.class.getProtectionDomain().getCodeSource().getLocation();
+            Path path = Paths.get(jar.toString().substring(FILE_PREFIX_LENGTH));
+            fs = FileSystems.newFileSystem(path, null);
+            directoryStream = Files.newDirectoryStream(fs.getPath(configDir + Config.TABLE.getConfigPath()));
+            for (Path config : directoryStream) {
+                String tableConfigContent = IOUtils.toString(DynamicConfigValidator.class.getResourceAsStream(
+                        config.toString()), StandardCharsets.UTF_8);
+                validateConfigForMissingVariables(tableConfigContent, this.variables);
+                ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(tableConfigContent, variables);
+                tables.addAll(table.getTables());
+            }
+            ElideTableConfig elideTableConfig = new ElideTableConfig();
+            elideTableConfig.setTables(tables);
+            return elideTableConfig;
+        } finally {
+            directoryStream.close();
+            fs.close();
         }
+    }
+
+    /**
+     * Read config from classpath.
+     * @param resourcePath : path to resource
+     * @return content of resource
+     * @throws IOException
+     */
+    private String readResource(String resourcePath) throws IOException {
+        InputStream stream = null;
+        BufferedReader reader = null;
+        String content = null;
+        try {
+            stream = this.getClass().getClassLoader().getResourceAsStream(resourcePath);
+            reader = new BufferedReader(new InputStreamReader(stream));
+            content =  reader.lines().collect(Collectors.joining(System.lineSeparator()));
+        } finally {
+            stream.close();
+            reader.close();
+        }
+        return content;
     }
 
     /**
      * Read variable file config.
      * @return boolean true if variable config file exists else false
-     * @throws JsonProcessingException
+     * @throws IOException
      */
-    private boolean readVariableConfig() throws JsonProcessingException {
-        boolean isVariableConfig = exists(this.configDir + DynamicConfigHelpers.VARIABLE_CONFIG_PATH);
+    private boolean readVariableConfig() throws IOException {
+        boolean isVariableConfig = new File(this.configDir + Config.VARIABLE.getConfigPath()).exists();
         this.variables = isVariableConfig ? DynamicConfigHelpers.getVariablesPojo(this.configDir)
                 : Collections.<String, Object>emptyMap();
         return isVariableConfig;
@@ -122,8 +217,8 @@ public class DynamicConfigValidator {
      * @throws IOException
      */
     private boolean readSecurityConfig() throws IOException {
-        String securityConfigPath = this.configDir + DynamicConfigHelpers.SECURITY_CONFIG_PATH;
-        boolean isSecurityConfig = exists(securityConfigPath);
+        String securityConfigPath = this.configDir + Config.SECURITY.getConfigPath();
+        boolean isSecurityConfig = new File(securityConfigPath).exists();
         if (isSecurityConfig) {
             String securityConfigContent = DynamicConfigHelpers.readConfigFile(new File(securityConfigPath));
             validateConfigForMissingVariables(securityConfigContent, this.variables);
@@ -139,8 +234,8 @@ public class DynamicConfigValidator {
      * @throws IOException
      */
     private boolean readTableConfig() throws IOException {
-        String tableConfigsPath = this.configDir + DynamicConfigHelpers.TABLE_CONFIG_PATH;
-        boolean isTableConfig = exists(tableConfigsPath);
+        String tableConfigsPath = this.configDir + Config.TABLE.getConfigPath();
+        boolean isTableConfig = new File(tableConfigsPath).exists();
         if (isTableConfig) {
             Collection<File> tableConfigs = FileUtils.listFiles(new File(tableConfigsPath), new String[] { "hjson" },
                     false);
@@ -161,15 +256,6 @@ public class DynamicConfigValidator {
             throw new IllegalStateException("Table Configs Directory doesn't exists at location: " + tableConfigsPath);
         }
         return isTableConfig;
-    }
-
-    /**
-     * Check if file or directory exists.
-     * @param filePath path of the file or directory
-     * @return boolean true if file or directory exists else false
-     */
-    private static boolean exists(String filePath) {
-        return new File(filePath).exists();
     }
 
     /**
@@ -269,13 +355,13 @@ public class DynamicConfigValidator {
         options.addOption(new Option("h", "help", false, "Print a help message and exit."));
         options.addOption(new Option("c", "configDir", true,
                 "Path for Model Configs Directory.\n"
-                + "Expected Directory Structure:\n"
-                + "./security.hjson(optional)\n"
-                + "./variables.hjson(optional)\n"
-                + "./tables/\n"
-                + "./tables/table1.hjson\n"
-                + "./tables/table2.hjson\n"
-                + "./tables/tableN.hjson\n"));
+                        + "Expected Directory Structure:\n"
+                        + "./security.hjson(optional)\n"
+                        + "./variables.hjson(optional)\n"
+                        + "./tables/\n"
+                        + "./tables/table1.hjson\n"
+                        + "./tables/table2.hjson\n"
+                        + "./tables/tableN.hjson\n"));
         return options;
     }
 
@@ -287,5 +373,17 @@ public class DynamicConfigValidator {
         formatter.printHelp(
                 "java -cp <Jar File> com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator",
                 options);
+    }
+
+    /**
+     * Remove src/.../resources/ from filepath.
+     * @param filePath
+     * @return Path to model dir
+     */
+    private String formatClassPath(String filePath) {
+        if (filePath.indexOf(RESOURCES) > -1) {
+            return filePath.substring(filePath.indexOf(RESOURCES) + RESOURCE_LENGTH);
+        }
+        return filePath;
     }
 }

@@ -12,6 +12,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.Handlebars
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import org.apache.commons.io.FileUtils;
 import org.hjson.JsonValue;
@@ -22,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -32,10 +34,7 @@ import java.util.Set;
  */
 public class DynamicConfigHelpers {
 
-    public static final String TABLE_CONFIG_PATH = "tables" + File.separator;
-    public static final String SECURITY_CONFIG_PATH = "security.hjson";
-    public static final String VARIABLE_CONFIG_PATH = "variables.hjson";
-    public static final String NEW_LINE = "\n";
+    private static final String NEW_LINE = "\n";
 
     /**
      * Checks whether input is null or empty.
@@ -63,19 +62,41 @@ public class DynamicConfigHelpers {
      * converts variable.hjson to map of variables.
      * @param basePath : root path to model dir
      * @return Map of variables
-     * @throws JsonProcessingException
+     * @throws IOException
      */
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> getVariablesPojo(String basePath) throws JsonProcessingException {
-        String filePath = basePath + VARIABLE_CONFIG_PATH;
+    public static Map<String, Object> getVariablesPojo(String basePath) throws IOException {
+        Map<String, Object> variables = new HashMap<>();
+        String filePath = basePath + Config.VARIABLE.getConfigPath();
         File variableFile = new File(filePath);
         if (variableFile.exists()) {
-            String jsonConfig = hjsonToJson(readConfigFile(variableFile));
-            return getModelPojo(jsonConfig, Map.class);
+            return stringToVariablesPojo(readConfigFile(variableFile));
         } else {
             log.info("Variables config file not found at " + filePath);
-            return null;
         }
+        return variables;
+    }
+
+    /**
+     * converts variables hjson string to map of variables.
+     * @param config
+     * @return Map of Variables
+     * @throws IOException
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> stringToVariablesPojo(String config)
+            throws IOException {
+        DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
+        Map<String, Object> variables = new HashMap<>();
+        String jsonConfig = hjsonToJson(config);
+        try {
+            if (schemaValidator.verifySchema(Config.VARIABLE, jsonConfig)) {
+                variables = getModelPojo(jsonConfig, Map.class);
+            }
+        } catch (ProcessingException e) {
+            log.error("Error Validating Variable config : " + e.getMessage());
+            throw new IOException(e);
+        }
+        return variables;
     }
 
     /**
@@ -87,7 +108,7 @@ public class DynamicConfigHelpers {
      */
     public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables)
             throws IOException {
-        return getElideTablePojo(basePath, variables, TABLE_CONFIG_PATH);
+        return getElideTablePojo(basePath, variables, Config.TABLE.getConfigPath());
     }
 
     /**
@@ -104,7 +125,8 @@ public class DynamicConfigHelpers {
                 new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {
-            ElideTableConfig table = stringToElideTablePojo(readConfigFile(tableConfig), variables);
+            ElideTableConfig table;
+            table = stringToElideTablePojo(readConfigFile(tableConfig), variables);
             tables.addAll(table.getTables());
         }
         ElideTableConfig elideTableConfig = new ElideTableConfig();
@@ -121,8 +143,18 @@ public class DynamicConfigHelpers {
      */
     public static ElideTableConfig stringToElideTablePojo(String content, Map<String, Object> variables)
             throws IOException {
+        DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
+        ElideTableConfig table = new ElideTableConfig();
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        return getModelPojo(jsonConfig, ElideTableConfig.class);
+        try {
+            if (schemaValidator.verifySchema(Config.TABLE, jsonConfig)) {
+                table = getModelPojo(jsonConfig, ElideTableConfig.class);
+            }
+        } catch (ProcessingException e) {
+            log.error("Error Validating Table config : " + e.getMessage());
+            throw new IOException(e);
+        }
+        return table;
     }
 
     /**
@@ -134,14 +166,15 @@ public class DynamicConfigHelpers {
      */
     public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
             throws IOException {
-        String filePath = basePath + SECURITY_CONFIG_PATH;
+        ElideSecurityConfig security = null;
+        String filePath = basePath + Config.SECURITY.getConfigPath();
         File securityFile = new File(filePath);
         if (securityFile.exists()) {
-            return stringToElideSecurityPojo(readConfigFile(securityFile), variables);
+            security = stringToElideSecurityPojo(readConfigFile(securityFile), variables);
         } else {
             log.info("Security config file not found at " + filePath);
-            return null;
         }
+        return security;
     }
 
     /**
@@ -153,8 +186,17 @@ public class DynamicConfigHelpers {
      */
     public static ElideSecurityConfig stringToElideSecurityPojo(String content, Map<String, Object> variables)
             throws IOException {
+        DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
-        return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+        try {
+            if (schemaValidator.verifySchema(Config.SECURITY, jsonConfig)) {
+                return getModelPojo(jsonConfig, ElideSecurityConfig.class);
+            }
+        } catch (ProcessingException e) {
+            log.error("Error Validating Security config : " + e.getMessage());
+            throw new IOException(e);
+        }
+        return null;
     }
 
     /**
@@ -169,14 +211,11 @@ public class DynamicConfigHelpers {
         return hydrator.hydrateConfigTemplate(jsonConfig, variables);
     }
 
-    private static String hjsonToJson(String hjson) {
-        return JsonValue.readHjson(hjson).toString();
-    }
-
-    private static <T> T getModelPojo(String jsonConfig, final Class<T> configPojo) throws JsonProcessingException {
-        return new ObjectMapper().readValue(jsonConfig, configPojo);
-    }
-
+    /**
+     * Read hjson config file.
+     * @param configFile : hjson file to read
+     * @return hjson file content
+     */
     public static String readConfigFile(File configFile) {
         StringBuffer sb = new StringBuffer();
         try {
@@ -189,5 +228,13 @@ public class DynamicConfigHelpers {
             log.error(e.getMessage());
         }
         return sb.toString();
+    }
+
+    private static String hjsonToJson(String hjson) {
+        return JsonValue.readHjson(hjson).toString();
+    }
+
+    private static <T> T getModelPojo(String jsonConfig, final Class<T> configPojo) throws JsonProcessingException {
+        return new ObjectMapper().readValue(jsonConfig, configPojo);
     }
 }
