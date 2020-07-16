@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.async.service;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
@@ -33,7 +33,8 @@ import javax.inject.Singleton;
 @Getter
 public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
-    @Setter private Elide elide;
+    //@Setter private Elide elide;
+    @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
     private EntityDictionary dictionary;
     private RSQLFilterDialect filterParser;
@@ -42,16 +43,17 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     public DefaultAsyncQueryDAO() {
     }
 
-    public DefaultAsyncQueryDAO(Elide elide, DataStore dataStore) {
-        this.elide = elide;
+    public DefaultAsyncQueryDAO(ElideSettings elideSettings, DataStore dataStore) {
+        this.elideSettings = elideSettings;
         this.dataStore = dataStore;
-        dictionary = elide.getElideSettings().getDictionary();
+        dictionary = elideSettings.getDictionary();
         filterParser = new RSQLFilterDialect(dictionary);
     }
 
     @Override
     public AsyncQuery updateStatus(String asyncQueryId, QueryStatus status) {
-        AsyncQuery queryObj = (AsyncQuery) DBUtil.executeInTransaction(elide, dataStore, (tx, scope) -> {
+        AsyncQuery queryObj = (AsyncQuery) DBUtil.executeInTransaction(elideSettings,
+                dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
                     .build();
@@ -88,7 +90,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         try {
             FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
                     AsyncQuery.class, false);
-            asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elide, dataStore,
+            asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elideSettings, dataStore,
                     (tx, scope) -> {
                         EntityProjection asyncQueryCollection = EntityProjection.builder()
                                 .type(AsyncQuery.class)
@@ -121,7 +123,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         try {
             FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
                     AsyncQuery.class, false);
-            asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elide, dataStore, (tx, scope) -> {
+            asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elideSettings,
+                    dataStore, (tx, scope) -> {
 
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
@@ -148,7 +151,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     @Override
     public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, String asyncQueryId) {
         log.debug("updateAsyncQueryResult");
-        AsyncQuery queryObj = (AsyncQuery) DBUtil.executeInTransaction(elide, dataStore, (tx, scope) -> {
+        AsyncQuery queryObj = (AsyncQuery) DBUtil.executeInTransaction(elideSettings,
+                dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
                     .build();

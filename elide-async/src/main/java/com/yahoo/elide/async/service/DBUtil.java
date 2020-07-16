@@ -8,7 +8,7 @@ package com.yahoo.elide.async.service;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
@@ -34,14 +34,15 @@ public class DBUtil {
      * @param action Functional interface to perform DB action
      * @return Object Returns Entity Object (AsyncQueryResult or AsyncResult)
      */
-    protected static Object executeInTransaction(Elide elide, DataStore dataStore, Transactional action) {
+    protected static Object executeInTransaction(ElideSettings elideSettings,
+        DataStore dataStore, Transactional action) {
         log.debug("executeInTransaction");
         Object result = null;
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
             RequestScope scope = new RequestScope("query", NO_VERSION, jsonApiDoc,
-                    tx, null, queryParams, UUID.randomUUID(), elide.getElideSettings());
+                    tx, null, queryParams, UUID.randomUUID(), elideSettings);
             result = action.execute(tx, scope);
             tx.flush(scope);
             tx.commit(scope);

@@ -93,10 +93,11 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
-                AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+                AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
-                ResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine(elide, elide.getDataStore(), "http://localhost:8080");
+                ResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(),
+                        elide.getDataStore(), "http://localhost:8080");
                 bind(resultStorageEngine).to(ResultStorageEngine.class);
 
                 AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);

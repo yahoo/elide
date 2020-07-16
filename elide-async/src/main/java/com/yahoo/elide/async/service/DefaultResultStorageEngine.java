@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.async.service;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResultStorage;
 import com.yahoo.elide.core.DataStore;
@@ -33,15 +33,16 @@ import javax.sql.rowset.serial.SerialBlob;
 @Getter
 public class DefaultResultStorageEngine implements ResultStorageEngine {
 
-    @Setter private Elide elide;
+    //@Setter private Elide elide;
+    @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
     private String baseURL;
 
     public DefaultResultStorageEngine() {
     }
 
-    public DefaultResultStorageEngine(Elide elide, DataStore dataStore, String baseURL) {
-        this.elide = elide;
+    public DefaultResultStorageEngine(ElideSettings elideSettings, DataStore dataStore, String baseURL) {
+        this.elideSettings = elideSettings;
         this.dataStore = dataStore;
         this.baseURL = baseURL;
     }
@@ -53,8 +54,8 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         try {
             Blob response = new SerialBlob(byteResponse);
 
-            asyncQueryResultStorage1 = (AsyncQueryResultStorage) DBUtil.executeInTransaction(elide, dataStore,
-                    (tx, scope) -> {
+            asyncQueryResultStorage1 = (AsyncQueryResultStorage) DBUtil.executeInTransaction(elideSettings,
+                    dataStore, (tx, scope) -> {
 
                         AsyncQueryResultStorage asyncQueryResultStorage = new AsyncQueryResultStorage();
                         asyncQueryResultStorage.setId(asyncQueryID);
@@ -92,7 +93,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         byte[] byteResult = null;
 
         try {
-            asyncQueryResultStorage = (AsyncQueryResultStorage) DBUtil.executeInTransaction(elide,
+            asyncQueryResultStorage = (AsyncQueryResultStorage) DBUtil.executeInTransaction(elideSettings,
                     dataStore, (tx, scope) -> {
 
                         EntityProjection asyncQueryCollection = EntityProjection.builder()
@@ -124,7 +125,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         while (itr.hasNext()) {
             AsyncQuery query = itr.next();
 
-            asyncQueryResultStorage = (Collection<AsyncQueryResultStorage>) DBUtil.executeInTransaction(elide,
+            asyncQueryResultStorage = (Collection<AsyncQueryResultStorage>) DBUtil.executeInTransaction(elideSettings,
                     dataStore, (tx, scope) -> {
 
                 EntityProjection asyncQueryCollection = EntityProjection.builder()

@@ -101,7 +101,7 @@ public class ElideAsyncConfiguration {
         // Creating a new ElideSettings and Elide object for Async services
         // which will have ISO8601 Dates. Used for DefaultAsyncQueryDAO.
         Elide asyncElide = getAsyncElideInstance(elide);
-        return new DefaultAsyncQueryDAO(asyncElide, asyncElide.getDataStore());
+        return new DefaultAsyncQueryDAO(asyncElide.getElideSettings(), asyncElide.getDataStore());
     }
 
     /**
@@ -116,7 +116,7 @@ public class ElideAsyncConfiguration {
         // Creating a new ElideSettings and Elide object for Async services
         // which will have ISO8601 Dates. Used for DefaultResultStorageEngine.
         Elide asyncElide = getAsyncElideInstance(elide);
-        return new DefaultResultStorageEngine(asyncElide, asyncElide.getDataStore(),
+        return new DefaultResultStorageEngine(asyncElide.getElideSettings(), asyncElide.getDataStore(),
                 settings.getAsync().getDownloadBaseURL());
     }
 

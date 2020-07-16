@@ -141,14 +141,15 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     AsyncQueryDAO asyncQueryDao = settings.getAsyncQueryDAO();
                     if (asyncQueryDao == null) {
-                        asyncQueryDao = new DefaultAsyncQueryDAO(asyncElide, asyncElide.getDataStore());
+                        asyncQueryDao = new DefaultAsyncQueryDAO(asyncElide.getElideSettings(),
+                                asyncElide.getDataStore());
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
                     ResultStorageEngine resultStorageEngine = settings.getResultStorageEngine();
                     if (resultStorageEngine == null) {
-                        resultStorageEngine = new DefaultResultStorageEngine(asyncElide, asyncElide.getDataStore(),
-                                settings.getAsyncDownloadBaseURL());
+                        resultStorageEngine = new DefaultResultStorageEngine(asyncElide.getElideSettings(),
+                                asyncElide.getDataStore(), settings.getAsyncDownloadBaseURL());
                     }
                     bind(resultStorageEngine).to(ResultStorageEngine.class);
 
