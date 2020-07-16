@@ -29,10 +29,10 @@ public class SQLQueryTemplate {
     private final Set<SQLTimeDimensionProjection> timeDimensions;
 
     public SQLQueryTemplate(SQLTable table, List<SQLMetricProjection> metrics,
-                     Set<SQLColumnProjection> nonTimeDimensions, Set<SQLTimeDimensionProjection> timeDimension) {
+                     Set<SQLColumnProjection> nonTimeDimensions, Set<SQLTimeDimensionProjection> timeDimensions) {
         this.table = table;
         this.nonTimeDimensions = nonTimeDimensions;
-        this.timeDimensions = timeDimension;
+        this.timeDimensions = timeDimensions;
         this.metrics = metrics;
     }
 
