@@ -19,6 +19,7 @@ import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.NoopQueryLogger;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -419,7 +420,7 @@ public interface ElideStandaloneSettings {
     default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
             Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
-                .queryEngine(queryEngine);
+                .queryEngine(queryEngine).queryLogger(new NoopQueryLogger());
 
         if (enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);

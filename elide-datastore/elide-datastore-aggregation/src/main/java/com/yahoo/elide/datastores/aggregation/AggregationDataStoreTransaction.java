@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
@@ -19,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.ToString;
 
 import java.io.IOException;
+import java.security.Principal;
+
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
@@ -27,11 +30,14 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private final QueryEngine queryEngine;
     private final Cache cache;
     private final QueryEngine.Transaction queryEngineTransaction;
+    private final QueryLogger queryLogger;
 
-    public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache) {
+    public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache,
+                                           QueryLogger queryLogger) {
         this.queryEngine = queryEngine;
         this.cache = cache;
         this.queryEngineTransaction = queryEngine.beginTransaction();
+        this.queryLogger = queryLogger;
     }
 
     @Override
@@ -74,6 +80,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         }
         if (result == null) {
             result = queryEngine.executeQuery(query, queryEngineTransaction);
+            queryEngine.explainQuery(query, queryLogger, scope,
+                    entityProjection.getType().getName());
             if (cacheKey != null) {
                 cache.put(cacheKey, result);
             }
@@ -81,6 +89,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
             entityProjection.getPagination().setPageTotals(result.getPageTotals());
         }
+        //ElideResponse = null (for now)
+        queryLogger.completeQuery(scope.getRequestId(), null);
         return result.getData();
     }
 
