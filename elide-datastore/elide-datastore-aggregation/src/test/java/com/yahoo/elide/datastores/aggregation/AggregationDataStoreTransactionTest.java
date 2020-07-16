@@ -11,7 +11,9 @@ import static com.yahoo.elide.request.Pagination.MAX_PAGE_LIMIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.QueryLogger;
@@ -87,6 +89,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.verify(cache).get(cacheKey);
         Mockito.verify(cache).put(cacheKey, queryResult);
         Mockito.verifyNoMoreInteractions(cache);
+        Mockito.verify(queryEngine, times(1)).explainQuery(eq(query), any(), any(), any());
     }
 
     @Test
@@ -104,6 +107,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.verify(queryEngine, never()).executeQuery(any(), any());
         Mockito.verify(cache).get(cacheKey);
         Mockito.verifyNoMoreInteractions(cache);
+        Mockito.verify(queryEngine, times(0)).explainQuery(eq(query), any(), any(), any());
     }
 
     @Test
@@ -125,6 +129,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.verify(queryEngine, never()).executeQuery(any(), any());
         Mockito.verify(cache).get(cacheKey);
         Mockito.verifyNoMoreInteractions(cache);
+        Mockito.verify(queryEngine, times(0)).explainQuery(eq(query), any(), any(), any());
     }
 
     @Test
@@ -138,6 +143,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         transaction.loadObjects(entityProjection, scope);
 
         Mockito.verifyNoInteractions(cache);
+        Mockito.verify(queryEngine, times(1)).explainQuery(eq(query), any(), any(), any());
     }
 
     @Test
@@ -154,5 +160,6 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         Mockito.verify(queryEngine, never()).getTableVersion(any(), any());
         Mockito.verifyNoInteractions(cache);
+        Mockito.verify(queryEngine, times(1)).explainQuery(eq(query), any(), any(), any());
     }
 }
