@@ -687,7 +687,6 @@ public class AsyncIT extends IntegrationTest {
                         .withAuditLogger(new TestAuditLogger()).build());
 
         User ownerUser = new User(() -> "owner-user");
-        User anyUser = new User(() -> "any-user");
         SecurityContextUser securityContextAdminUser = new SecurityContextUser(new SecurityContext() {
             @Override
             public Principal getUserPrincipal() {
@@ -733,9 +732,7 @@ public class AsyncIT extends IntegrationTest {
         response = elide.get("/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextAdminUser, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
-        // Any Other Principal
-        response = elide.get("/asyncQuery/" + id, new MultivaluedHashMap<>(), anyUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_FORBIDDEN, response.getResponseCode());
+        // Principal without Admin Role
         response = elide.get("/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
         assertEquals(HttpStatus.SC_FORBIDDEN, response.getResponseCode());
     }

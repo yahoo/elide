@@ -48,7 +48,10 @@ public class AsyncQueryInlineChecks {
 
         @Override
         public boolean ok(User user) {
-            return user.isInRole("admin");
+            if (user != null && user.getPrincipal() != null) {
+                return user.isInRole("admin");
+            }
+            return false;
         }
     }
 
