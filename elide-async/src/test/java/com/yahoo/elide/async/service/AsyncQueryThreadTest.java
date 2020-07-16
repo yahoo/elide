@@ -20,11 +20,8 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
-import org.apache.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.net.URISyntaxException;
 
 public class AsyncQueryThreadTest {
 
@@ -46,7 +43,7 @@ public class AsyncQueryThreadTest {
     }
 
     @Test
-    public void testProcessQueryJsonApi() throws NoHttpResponseException, URISyntaxException {
+    public void testProcessQueryJsonApi() throws Exception {
         AsyncQuery queryObj = new AsyncQuery();
         ElideResponse response = new ElideResponse(200, "ResponseBody");
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
@@ -64,7 +61,7 @@ public class AsyncQueryThreadTest {
     }
 
     @Test
-    public void testProcessQueryGraphQl() throws NoHttpResponseException, URISyntaxException {
+    public void testProcessQueryGraphQl() throws Exception {
         AsyncQuery queryObj = new AsyncQuery();
         ElideResponse response = new ElideResponse(200, "ResponseBody");
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
@@ -82,7 +79,7 @@ public class AsyncQueryThreadTest {
     }
 
     @Test
-    public void testConvertJsonToCSV() throws URISyntaxException, NoHttpResponseException {
+    public void testConvertJsonToCSV() throws Exception {
 
         String csvStr = "[key][\"value\"]";
         String jsonStr = "{\"key\":\"value\"}";

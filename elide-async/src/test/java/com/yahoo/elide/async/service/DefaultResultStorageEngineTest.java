@@ -68,7 +68,7 @@ public class DefaultResultStorageEngineTest {
 
         when(dataStore.beginTransaction()).thenReturn(tx);
         asyncQueryDAO = new DefaultAsyncQueryDAO(elide, dataStore);
-        defaultResultStorageEngine = new com.yahoo.elide.async.service.DefaultResultStorageEngine(elide, dataStore, "http://localhost:8080");
+        defaultResultStorageEngine = new DefaultResultStorageEngine(elide, dataStore, "http://localhost:8080");
     }
 
     @Test

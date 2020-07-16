@@ -17,7 +17,12 @@ import com.yahoo.elide.async.hooks.CompleteQueryHook;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.service.*;
+import com.yahoo.elide.async.service.AsyncCleanerService;
+import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.AsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultResultStorageEngine;
+import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.core.EntityDictionary;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -116,7 +121,7 @@ public class ElideAsyncConfiguration {
     }
 
     /**
-     * Creating a new Elide object for Async services
+     * Creating a new Elide object for Async services.
      * @param elide elideObject
      * @return Elide object
      */

@@ -49,11 +49,11 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     @Override
     public URL storeResults(String asyncQueryID, byte[] byteResponse) {
 
-        AsyncQueryResultStorage aQRS = null;
+        AsyncQueryResultStorage asyncQueryResultStorage1 = null;
         try {
             Blob response = new SerialBlob(byteResponse);
 
-            aQRS = (AsyncQueryResultStorage) DBUtil.executeInTransaction(elide, dataStore,
+            asyncQueryResultStorage1 = (AsyncQueryResultStorage) DBUtil.executeInTransaction(elide, dataStore,
                     (tx, scope) -> {
 
                         AsyncQueryResultStorage asyncQueryResultStorage = new AsyncQueryResultStorage();
@@ -69,6 +69,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
             throw new IllegalStateException(e);
         } catch (Exception e) {
             log.error("Exception: {}", e);
+            //throw new IllegalStateException(e);
         }
 
         URL url = null;
@@ -106,7 +107,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
                 Blob result = asyncQueryResultStorage.getResult();
                 byteResult = result.getBytes(1, (int) result.length());
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             log.error("Exception: {}", e);
             throw new IllegalStateException(e);
         }

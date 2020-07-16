@@ -16,17 +16,22 @@ import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
 import com.github.opendevl.JFlat;
-import com.jayway.jsonpath.PathNotFoundException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
@@ -57,7 +62,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     private ResultStorageEngine resultStorageEngine;
 
     @Override
-    public AsyncQueryResult call() throws NoHttpResponseException, URISyntaxException {
+    public AsyncQueryResult call() throws Exception {
         return processQuery();
     }
 
@@ -79,7 +84,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @throws URISyntaxException
      * @throws NoHttpResponseException
      */
-    protected AsyncQueryResult processQuery() throws URISyntaxException, NoHttpResponseException {
+    protected AsyncQueryResult processQuery() throws Exception {
         UUID requestId = UUID.fromString(queryObj.getRequestId());
 
         ElideResponse response = null;
@@ -109,8 +114,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                     response.getResponseCode(), response.getBody());
 
             if (response.getResponseCode() == 200) {
-                String tableName = getTableNameFromQuery(queryObj.getQuery());
-                recCount = calculateRecordsGraphQL(response.getBody(), tableName);
+                recCount = calculateRecordsGraphQL(response.getBody());
             }
         }
         if (response == null) {
@@ -154,65 +158,63 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @return rec is the recordCount
      */
     protected Integer calculateRecordsJSON(String jsonStr) {
-        Integer rec;
+        Integer rec = null;
         try {
-            JSONObject j = new JSONObject(jsonStr);
-            rec = j.getJSONArray("data").length();
+            JsonObject jsonObject = JsonParser.parseString(jsonStr).getAsJsonObject();
+            JsonElement jsonElement = jsonObject.get("data");
+            if (jsonElement.isJsonArray()) {
+                rec = jsonElement.getAsJsonArray().size();
+            }
 
-        } catch (JSONException e) {
-            rec = null;
+        } catch (IllegalStateException e) {
+            log.error("Exception: {}", e);
         }
+
         return rec;
     }
 
     /**
      * This method calculates the number of records from the response with GRAPHQL API.
-     * @param response is the response.getBody() we get from the response
-     * @param table_name is the table from which we extract the data
+     * @param jsonStr is the response.getBody() we get from the response
      * @return rec is the recordCount
      */
-    protected Integer calculateRecordsGraphQL(String response, String table_name) {
-        Integer rec;
+    protected Integer calculateRecordsGraphQL(String jsonStr) {
+        Integer rec = null;
+
         try {
-            JSONObject j = new JSONObject(response);
-            JSONObject j2 = j.getJSONObject("data");
-            JSONObject j3 = j2.getJSONObject(table_name);
-            rec = j3.getJSONArray("edges").length();
+            JsonReader jsonReader = new JsonReader(new StringReader(jsonStr));
+            JsonElement jsonTree = JsonParser.parseString(jsonStr);
+            JsonObject jsonObject = jsonTree.getAsJsonObject();
+            while (jsonReader.hasNext()) {
+                JsonToken nextToken = jsonReader.peek();
 
-        } catch (JSONException e) {
-            rec = null;
-        }
-        return rec;
-    }
+                if (JsonToken.BEGIN_OBJECT.equals(nextToken)) {
 
-    /**
-     * This method helps to extract the table name from the query.
-     * @param jsonStr is the query with which we are extracting the data
-     * @return the table name from the above query
-     */
-    protected String getTableNameFromQuery(String jsonStr) {
-        StringBuilder str = new StringBuilder();
-        try {
-            JSONObject j = new JSONObject(jsonStr);
-            String s = (String) j.get("query");
+                    jsonReader.beginObject();
+                    jsonObject = jsonTree.getAsJsonObject();
 
-            Integer countBrackets = 0;
-            for (int i = 0; i < s.length(); i++) {
-                if (s.charAt(i) == '{' || s.charAt(i) == '}') {
-                    countBrackets++;
-                    if (countBrackets == 2) {
+                } else if (JsonToken.NAME.equals(nextToken)) {
+
+                    String name  =  jsonReader.nextName();
+                    jsonTree = jsonObject.get(name);
+
+                    if (name.equals("edges")) {
+                        if (jsonTree.isJsonArray()) {
+                            JsonArray jsonArray = jsonTree.getAsJsonArray();
+                            rec = jsonArray.size();
+                        }
                         break;
                     }
-                }
-                else {
-                    str.append(s.charAt(i));
+
                 }
             }
-        } catch (JSONException e) {
+        } catch (IOException e) {
             log.error("Exception: {}", e);
-
+        } catch (IllegalStateException e) {
+            log.error("Exception: {}", e);
         }
-        return str.toString().trim().split("\\s+")[0];
+
+        return rec;
     }
 
     /**
@@ -220,27 +222,16 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @param jsonStr is the response.getBody() of the query
      * @return retuns a string which nis in CSV format
      */
-    protected String convertJsonToCSV(String jsonStr) {
+    protected String convertJsonToCSV(String jsonStr) throws Exception {
         if (jsonStr == null) {
             return null;
         }
         StringBuilder str = new StringBuilder();
+        JFlat flatMe = new JFlat(jsonStr);
+        List<Object[]> json2csv = flatMe.json2Sheet().headerSeparator("_").getJsonAsSheet();
 
-        try {
-            new JSONObject(jsonStr);
-            JFlat flatMe = new JFlat(jsonStr);
-            List<Object[]> json2csv = flatMe.json2Sheet().headerSeparator("_").getJsonAsSheet();
-
-            for (Object[] obj : json2csv) {
-                str.append(Arrays.toString(obj));
-            }
-
-        } catch (JSONException e) {
-            log.error("Exception: {}", e);
-        } catch (PathNotFoundException e) {
-            log.error("Exception: {}", e);
-        } catch (Exception e) {
-            log.error("Exception: {}", e);
+        for (Object[] obj : json2csv) {
+            str.append(Arrays.toString(obj));
         }
 
         return str.toString();

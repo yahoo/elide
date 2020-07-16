@@ -26,10 +26,10 @@ public interface ResultStorageEngine {
 
     /**
      * Searches for the query with ID as AsyncQueryID in the AsyncQueryResultStorage table and returns the record.
-     * @param AsyncQueryID is the query ID of the AsyncQuery
+     * @param asyncQueryID is the query ID of the AsyncQuery
      * @return returns the record associated with the AsyncQueryID
      */
-    public byte[] getResultsByID(String AsyncQueryID);
+    public byte[] getResultsByID(String asyncQueryID);
 
     /**
      * Deletes all the records from the AsyncQuery Collection .
