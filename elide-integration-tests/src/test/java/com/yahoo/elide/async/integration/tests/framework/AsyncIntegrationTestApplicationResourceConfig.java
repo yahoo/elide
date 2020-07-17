@@ -19,7 +19,7 @@ import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 import com.yahoo.elide.async.integration.tests.AsyncIT;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.security.AsyncQueryOperationChecks;
+import com.yahoo.elide.async.models.security.AsyncQueryInlineChecks;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
@@ -42,6 +42,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,18 +51,28 @@ import javax.inject.Inject;
 public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfig {
     public static final InMemoryLogger LOGGER = new InMemoryLogger();
 
+    public static final Map<String, Class<? extends Check>> MAPPINGS = defineMappings();
+
+    private static Map<String, Class<? extends Check>> defineMappings() {
+        Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
+        map.put(AsyncQueryInlineChecks.AsyncQueryOwner.PRINCIPAL_IS_OWNER,
+                        AsyncQueryInlineChecks.AsyncQueryOwner.class);
+        map.put(AsyncQueryInlineChecks.AsyncQueryAdmin.PRINCIPAL_IS_ADMIN,
+                        AsyncQueryInlineChecks.AsyncQueryAdmin.class);
+        map.put(AsyncQueryInlineChecks.AsyncQueryStatusValue.VALUE_IS_CANCELLED,
+                        AsyncQueryInlineChecks.AsyncQueryStatusValue.class);
+        map.put(AsyncQueryInlineChecks.AsyncQueryStatusQueuedValue.VALUE_IS_QUEUED,
+                        AsyncQueryInlineChecks.AsyncQueryStatusQueuedValue.class);
+        return Collections.unmodifiableMap(map);
+    }
+
     @Inject
     public AsyncIntegrationTestApplicationResourceConfig(ServiceLocator injector) {
         // Bind to injector
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                Map<String, Class<? extends Check>> checkMappings = new HashMap<>(TestCheckMappings.MAPPINGS);
-                checkMappings.put(AsyncQueryOperationChecks.AsyncQueryOwner.PRINCIPAL_IS_OWNER, AsyncQueryOperationChecks.AsyncQueryOwner.class);
-                checkMappings.put(AsyncQueryOperationChecks.AsyncQueryStatusValue.VALUE_IS_CANCELLED, AsyncQueryOperationChecks.AsyncQueryStatusValue.class);
-                checkMappings.put(AsyncQueryOperationChecks.AsyncQueryStatusQueuedValue.VALUE_IS_QUEUED, AsyncQueryOperationChecks.AsyncQueryStatusQueuedValue.class);
-
-                EntityDictionary dictionary = new EntityDictionary(checkMappings, injector::inject);
+                EntityDictionary dictionary = new EntityDictionary(MAPPINGS, injector::inject);
 
                 bind(dictionary).to(EntityDictionary.class);
 
