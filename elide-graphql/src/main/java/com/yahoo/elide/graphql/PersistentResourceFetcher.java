@@ -22,6 +22,7 @@ import com.yahoo.elide.request.Relationship;
 import com.google.common.collect.Sets;
 
 import graphql.language.Field;
+import graphql.language.FragmentSpread;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
@@ -121,11 +122,25 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param environment Environment encapsulating graphQL's request environment
      */
     private void logContext(RelationshipOp operation, Environment environment) {
-        List<Field> children = (environment.field.getSelectionSet() != null)
+        List<?> children = (environment.field.getSelectionSet() != null)
                 ? (List) environment.field.getSelectionSet().getChildren()
                 : new ArrayList<>();
-        String requestedFields = environment.field.getName() + (children.size() > 0
-                ? "(" + children.stream().map(Field::getName).collect(Collectors.toList()) + ")" : "");
+
+        List<String> fieldName = new ArrayList<String>();
+        if (children.size() > 0) {
+            children.stream().forEach(i -> { if (i.getClass().equals(Field.class)) {
+                    fieldName.add(((Field) i).getName());
+                } else if (i.getClass().equals(FragmentSpread.class)) {
+                    fieldName.add(((FragmentSpread) i).getName());
+                } else {
+                    log.debug("A new type of Selection, other than Field and FragmentSpread was encountered, {}",
+                            i.getClass());
+                }
+            });
+        }
+
+        String requestedFields = environment.field.getName() + fieldName.toString();
+
         GraphQLType parent = environment.parentType;
         if (log.isDebugEnabled()) {
             log.debug("{} {} fields with parent {}<{}>",
