@@ -11,7 +11,9 @@ import com.yahoo.elide.async.models.PrincipalOwned;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.security.checks.UserCheck;
 
 import java.security.Principal;
 import java.util.Optional;
@@ -19,7 +21,7 @@ import java.util.Optional;
 /**
  * Operation Checks on the Async Query and Result objects.
  */
-public class AsyncQueryOperationChecks {
+public class AsyncQueryInlineChecks {
     @SecurityCheck(AsyncQueryOwner.PRINCIPAL_IS_OWNER)
     public static class AsyncQueryOwner extends OperationCheck<Object> {
 
@@ -36,6 +38,20 @@ public class AsyncQueryOperationChecks {
                 status = principalName.equals(principal.getName());
             }
             return status;
+        }
+    }
+
+    @SecurityCheck(AsyncQueryAdmin.PRINCIPAL_IS_ADMIN)
+    public static class AsyncQueryAdmin extends UserCheck {
+
+        public static final String PRINCIPAL_IS_ADMIN = "Principal is Admin";
+
+        @Override
+        public boolean ok(User user) {
+            if (user != null && user.getPrincipal() != null) {
+                return user.isInRole("admin");
+            }
+            return false;
         }
     }
 
