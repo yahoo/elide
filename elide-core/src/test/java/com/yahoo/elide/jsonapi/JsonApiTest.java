@@ -166,8 +166,6 @@ public class JsonApiTest {
         jsonApiDocument.setData(new Data<>(pRec.toResource()));
         jsonApiDocument.addIncluded(new PersistentResource<>(child, pRec, userScope.getUUIDFor(child), userScope).toResource());
 
-        String expected1 = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}},\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
-
         String expected = "{\"data\":{"
                 + "\"type\":\"parent\","
                 + "\"id\":\"123\","
