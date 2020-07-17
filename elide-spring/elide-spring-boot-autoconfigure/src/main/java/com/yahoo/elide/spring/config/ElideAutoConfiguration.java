@@ -14,6 +14,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCo
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.NoopQueryLogger;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -193,6 +194,7 @@ public class ElideAutoConfiguration {
             aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
         }
         aggregationDataStoreBuilder.cache(cache);
+        aggregationDataStoreBuilder.queryLogger(new NoopQueryLogger());
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
         JpaDataStore jpaDataStore = new JpaDataStore(entityManagerFactory::createEntityManager,

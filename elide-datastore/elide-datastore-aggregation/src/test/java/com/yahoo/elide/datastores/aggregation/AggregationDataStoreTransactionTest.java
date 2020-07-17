@@ -11,7 +11,6 @@ import static com.yahoo.elide.request.Pagination.MAX_PAGE_LIMIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -25,6 +24,7 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 
@@ -76,9 +76,15 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
     @Test
     public void loadObjectsPopulatesCache() {
+        Mockito.reset(queryLogger);
+
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
+        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+                .fromClause(query.getTable().getName())
+                .projectionClause(" ").build();
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
         when(queryEngine.executeQuery(query, qeTransaction)).thenReturn(queryResult);
+        when(queryEngine.toSQL(query)).thenReturn(myQuery);
         AggregationDataStoreTransaction transaction =
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
@@ -89,15 +95,27 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.verify(cache).get(cacheKey);
         Mockito.verify(cache).put(cacheKey, queryResult);
         Mockito.verifyNoMoreInteractions(cache);
-        Mockito.verify(queryEngine, times(1)).explainQuery(eq(query), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).acceptQuery(
+                Mockito.eq(scope.getRequestId()),
+                any(), any(), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).processQuery(
+                Mockito.eq(scope.getRequestId()), any());
+        Mockito.verify(queryLogger, times(1)).completeQuery(
+                Mockito.eq(scope.getRequestId()), any());
     }
 
     @Test
     public void loadObjectsUsesCache() {
+        Mockito.reset(queryLogger);
+
         String cacheKey = "foo;" + queryKey;
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
+        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+                .fromClause(query.getTable().getName())
+                .projectionClause(" ").build();
         when(cache.get(cacheKey)).thenReturn(queryResult);
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
+        when(queryEngine.toSQL(query)).thenReturn(myQuery);
         AggregationDataStoreTransaction transaction =
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
@@ -107,14 +125,26 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.verify(queryEngine, never()).executeQuery(any(), any());
         Mockito.verify(cache).get(cacheKey);
         Mockito.verifyNoMoreInteractions(cache);
-        Mockito.verify(queryEngine, times(0)).explainQuery(eq(query), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).acceptQuery(
+                Mockito.eq(scope.getRequestId()),
+                any(), any(), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).processQuery(
+                Mockito.eq(scope.getRequestId()), any());
+        Mockito.verify(queryLogger, times(1)).completeQuery(
+                Mockito.eq(scope.getRequestId()), any());
     }
 
     @Test
     public void loadObjectsPassesPagination() {
+        Mockito.reset(queryLogger);
+
         QueryResult queryResult = QueryResult.builder().data(DATA).pageTotals(314L).build();
+        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+                .fromClause(query.getTable().getName())
+                .projectionClause(" ").build();
         when(cache.get(anyString())).thenReturn(queryResult);
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
+        when(queryEngine.toSQL(query)).thenReturn(myQuery);
         AggregationDataStoreTransaction transaction =
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         Pagination pagination = new PaginationImpl(
@@ -129,13 +159,25 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.verify(queryEngine, never()).executeQuery(any(), any());
         Mockito.verify(cache).get(cacheKey);
         Mockito.verifyNoMoreInteractions(cache);
-        Mockito.verify(queryEngine, times(0)).explainQuery(eq(query), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).acceptQuery(
+                Mockito.eq(scope.getRequestId()),
+                any(), any(), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).processQuery(
+                Mockito.eq(scope.getRequestId()), any());
+        Mockito.verify(queryLogger, times(1)).completeQuery(
+                Mockito.eq(scope.getRequestId()), any());
     }
 
     @Test
     public void loadObjectsNoTableVersion() {
+        Mockito.reset(queryLogger);
+
+        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+                .fromClause(query.getTable().getName())
+                .projectionClause(" ").build();
         when(queryEngine.executeQuery(query, qeTransaction))
                 .thenReturn(QueryResult.builder().data(Collections.emptyList()).build());
+        when(queryEngine.toSQL(query)).thenReturn(myQuery);
         AggregationDataStoreTransaction transaction =
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
@@ -143,15 +185,27 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         transaction.loadObjects(entityProjection, scope);
 
         Mockito.verifyNoInteractions(cache);
-        Mockito.verify(queryEngine, times(1)).explainQuery(eq(query), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).acceptQuery(
+                Mockito.eq(scope.getRequestId()),
+                any(), any(), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).processQuery(
+                Mockito.eq(scope.getRequestId()), any());
+        Mockito.verify(queryLogger, times(1)).completeQuery(
+                Mockito.eq(scope.getRequestId()), any());
     }
 
     @Test
     public void loadObjectsBypassCache() {
+        Mockito.reset(queryLogger);
+
         query = Query.builder().table(playerStatsTable).bypassingCache(true).build();
+        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+                .fromClause(query.getTable().getName())
+                .projectionClause(" ").build();
 
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
         when(queryEngine.executeQuery(query, qeTransaction)).thenReturn(queryResult);
+        when(queryEngine.toSQL(query)).thenReturn(myQuery);
         AggregationDataStoreTransaction transaction =
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
         EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
@@ -160,6 +214,12 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         Mockito.verify(queryEngine, never()).getTableVersion(any(), any());
         Mockito.verifyNoInteractions(cache);
-        Mockito.verify(queryEngine, times(1)).explainQuery(eq(query), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).acceptQuery(
+                Mockito.eq(scope.getRequestId()),
+                any(), any(), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).processQuery(
+                Mockito.eq(scope.getRequestId()), any());
+        Mockito.verify(queryLogger, times(1)).completeQuery(
+                Mockito.eq(scope.getRequestId()), any());
     }
 }

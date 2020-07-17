@@ -6,8 +6,11 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.QueryDetail;
 import com.yahoo.elide.core.QueryLogger;
+import com.yahoo.elide.core.QueryResponse;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -67,31 +70,41 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
-        Query query = buildQuery(entityProjection, scope);
         QueryResult result = null;
-
+        QueryResponse response = null;
         String cacheKey = null;
-        if (cache != null && !query.isBypassingCache()) {
-            String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
-            if (tableVersion != null) {
-                cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
-                result = cache.get(cacheKey);
+        try {
+            aggregationAcceptQuery(scope);
+            Query query = buildQuery(entityProjection, scope);
+            if (cache != null && !query.isBypassingCache()) {
+                String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
+                if (tableVersion != null) {
+                    cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
+                    result = cache.get(cacheKey);
+                }
             }
-        }
-        if (result == null) {
-            result = queryEngine.executeQuery(query, queryEngineTransaction);
-            queryEngine.explainQuery(query, queryLogger, scope,
-                    entityProjection.getType().getName());
-            if (cacheKey != null) {
-                cache.put(cacheKey, result);
+            aggregationProcessQuery(result, entityProjection.getType().getName(),
+                    query, scope);
+            if (result == null) {
+                result = queryEngine.executeQuery(query, queryEngineTransaction);
+                if (cacheKey != null) {
+                    cache.put(cacheKey, result);
+                }
             }
+            if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
+                entityProjection.getPagination().setPageTotals(result.getPageTotals());
+            }
+            response = new QueryResponse(200, result.getData(), null);
+            return result.getData();
+        } catch (HttpStatusException e) {
+            response = new QueryResponse(e.getStatus(), null, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            response = new QueryResponse(500, null, e.getMessage());
+            throw e;
+        } finally {
+            aggregationCompleteQuery(scope, response);
         }
-        if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
-            entityProjection.getPagination().setPageTotals(result.getPageTotals());
-        }
-        //ElideResponse = null (for now)
-        queryLogger.completeQuery(scope.getRequestId(), null);
-        return result.getData();
     }
 
     @Override
@@ -113,5 +126,21 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     @Override
     public void cancel() {
         queryEngineTransaction.cancel();
+    }
+
+    private void aggregationCompleteQuery(RequestScope scope, QueryResponse response) {
+        queryLogger.completeQuery(scope.getRequestId(), response);
+    }
+
+    private void aggregationProcessQuery(QueryResult result, String modelName, Query query, RequestScope scope) {
+        boolean isCached = result == null ? false : true;
+        QueryDetail qd = new QueryDetail(modelName, queryEngine.toSQL(query).toString(), isCached);
+        queryLogger.processQuery(scope.getRequestId(), qd);
+    }
+
+    private void aggregationAcceptQuery(RequestScope scope) {
+        Principal user = scope.getUser() == null ? null : scope.getUser().getPrincipal();
+        queryLogger.acceptQuery(scope.getRequestId(), user, scope.getHeaders(),
+                scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
     }
 }

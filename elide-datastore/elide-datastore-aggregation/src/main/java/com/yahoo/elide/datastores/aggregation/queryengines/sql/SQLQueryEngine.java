@@ -7,11 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
-import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.QueryDetail;
-import com.yahoo.elide.core.QueryLogger;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -47,7 +43,6 @@ import org.hibernate.jpa.QueryHints;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -165,8 +160,6 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     public QueryResult executeQuery(Query query, Transaction transaction) {
-
-        //aggregationAcceptQuery(scope, queryLogger);
         EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
 
         // Translate the query into SQL.
@@ -175,7 +168,6 @@ public class SQLQueryEngine extends QueryEngine {
         log.debug("SQL Query: " + queryString);
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(queryString);
 
-        //QueryDetail qd = new QueryDetail(modelName, queryString);
         QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
 
         Pagination pagination = query.getPagination();
@@ -189,7 +181,6 @@ public class SQLQueryEngine extends QueryEngine {
 
         // Supply the query parameters to the query
         supplyFilterQueryParameters(query, jpaQuery);
-        //aggregationProcessQuery(scope, queryLogger, qd);
 
         // Run the primary query and log the time spent.
         List<Object> results = new TimedFunction<List<Object>>(
@@ -197,37 +188,7 @@ public class SQLQueryEngine extends QueryEngine {
                 "Running Query: " + queryString).get();
 
         resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
-        //ElideResponse?, also what about Exceptions
-
-        //aggregationCompleteQuery(scope, queryLogger, null);
         return resultBuilder.build();
-    }
-
-    private void aggregationCompleteQuery(RequestScope scope, QueryLogger queryLogger, ElideResponse elideResponse) {
-        if (scope == null) { return; }
-        queryLogger.completeQuery(scope.getRequestId(), elideResponse);
-    }
-
-    private void aggregationProcessQuery(RequestScope scope, QueryLogger queryLogger, QueryDetail qd) {
-        if(scope == null) { return; }
-        queryLogger.processQuery(scope.getRequestId(), qd);
-    }
-
-    private void aggregationAcceptQuery(RequestScope scope, QueryLogger queryLogger) {
-        if(scope == null) { return; }
-        Principal user = scope.getUser() == null ? null : scope.getUser().getPrincipal();
-        queryLogger.acceptQuery(scope.getRequestId(), user, scope.getHeaders(),
-                scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
-    }
-
-    @Override
-    public void explainQuery(Query query, QueryLogger queryLogger,
-                               RequestScope scope, String modelName) {
-        aggregationAcceptQuery(scope, queryLogger);
-        QueryDetail qd = new QueryDetail(modelName, toSQL(query).toString());
-        aggregationProcessQuery(scope, queryLogger, qd);
-        //ElideResponse = null
-        aggregationCompleteQuery(scope, queryLogger, null);
     }
 
     private long getPageTotal(Query query, SQLQuery sql, EntityManager entityManager) {
@@ -267,13 +228,8 @@ public class SQLQueryEngine extends QueryEngine {
         return tableVersion;
     }
 
-    /**
-     * Translates the client query into SQL.
-     *
-     * @param query the client query.
-     * @return the SQL query.
-     */
-    private SQLQuery toSQL(Query query) {
+    @Override
+    public SQLQuery toSQL(Query query) {
         Set<ColumnProjection> groupByDimensions = new LinkedHashSet<>(query.getGroupByDimensions());
         Set<TimeDimensionProjection> timeDimensions = new LinkedHashSet<>(query.getTimeDimensions());
 

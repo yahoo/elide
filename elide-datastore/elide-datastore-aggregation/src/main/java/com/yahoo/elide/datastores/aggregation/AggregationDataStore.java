@@ -78,4 +78,9 @@ public class AggregationDataStore implements DataStore {
     public DataStoreTransaction beginTransaction() {
         return new AggregationDataStoreTransaction(queryEngine, cache, queryLogger);
     }
+
+    public AggregationDataStore setupCustomQueryLogger(QueryLogger logger) {
+        this.queryLogger = logger;
+        return this;
+    }
 }

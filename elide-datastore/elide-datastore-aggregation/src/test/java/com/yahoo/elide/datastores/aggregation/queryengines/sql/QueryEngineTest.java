@@ -6,14 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.QueryLogger;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.sort.SortingImpl;
@@ -40,18 +34,6 @@ import java.util.TreeMap;
 
 public class QueryEngineTest extends SQLUnitTest {
     private static Table playerStatsViewTable;
-
-    private void checkForQueryLogger(Query query) {
-        QueryLogger queryLogger = mock(QueryLogger.class);
-        RequestScope requestScope = mock(RequestScope.class);
-
-        engine.explainQuery(query, queryLogger, requestScope, "foo");
-
-        verify(queryLogger, times(1)).acceptQuery(any(), any(),
-                any(), any(), any(), any());
-        verify(queryLogger, times(1)).processQuery(any(), any());
-        verify(queryLogger, times(1)).completeQuery(any(), any());
-    }
 
     @BeforeAll
     public static void init() {
@@ -96,8 +78,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
         assertEquals(stats2, results.get(2));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -118,8 +98,6 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(1, results.size());
         assertEquals(stats2, results.get(0));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -152,8 +130,6 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(1, results.size());
         assertEquals(stats2, results.get(0));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -182,8 +158,6 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(1, results.size());
         assertEquals(stats1, results.get(0));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -208,8 +182,6 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(1, results.size());
         assertEquals(stats2, results.get(0));
-
-        checkForQueryLogger(query);
     }
 
     @Test
@@ -239,8 +211,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(2, results.size());
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -283,8 +253,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
         assertEquals(stats2, results.get(2));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -313,8 +281,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(1, data.size(), "Number of records returned does not match");
         assertEquals(stats1, data.get(0), "Returned record does not match");
         assertEquals(3, result.getPageTotals(), "Page totals does not match");
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -342,8 +308,6 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(1, results.size());
         assertEquals(stats1, results.get(0));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -379,8 +343,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(2, results.size());
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -424,8 +386,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
         assertEquals(stats2, results.get(2));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -454,8 +414,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(2, results.size());
         assertEquals(stats1, results.get(0));
         assertEquals(stats2, results.get(1));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -488,8 +446,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(2, results.size());
         assertEquals(stats1, results.get(0));
         assertEquals(stats2, results.get(1));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -533,8 +489,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats1, results.get(0));
         assertEquals(stats2, results.get(1));
         assertEquals(stats3, results.get(2));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -557,8 +511,6 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(1, results.size());
         assertEquals(stats0, results.get(0));
-
-        checkForQueryLogger(query);
     }
 
     /**
@@ -587,8 +539,6 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(1, results.size());
         assertEquals(stats0, results.get(0));
-
-        checkForQueryLogger(query);
     }
 
     @Test
@@ -628,8 +578,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(stats0, results.get(0));
         assertEquals(stats1, results.get(1));
         assertEquals(stats2, results.get(2));
-
-        checkForQueryLogger(query);
     }
 
     @Test
@@ -655,8 +603,6 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(2, results.size());
         assertEquals(stats1, results.get(0));
         assertEquals(stats2, results.get(1));
-
-        checkForQueryLogger(query);
     }
 
     @Test
@@ -682,7 +628,5 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(2, results.size());
         assertEquals(stats1, results.get(0));
         assertEquals(stats2, results.get(1));
-
-        checkForQueryLogger(query);
     }
 }

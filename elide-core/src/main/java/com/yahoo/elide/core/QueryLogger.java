@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.request.EntityProjection;
-
 import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
@@ -45,9 +42,7 @@ public interface QueryLogger {
     /**
      * Processes and logs all the queries from QueryDetail
      * @param queryId The RequestScope requestId.
-     * @param projection The Entity Projection of the current request
-     * @param scope The RequestScope of the current request
-     * @param tx DataStore Transaction for the underlying datastore
+     * @param qd The QueryDetail Object
      */
     void processQuery(UUID queryId, QueryDetail qd);
 
@@ -62,5 +57,5 @@ public interface QueryLogger {
      * @param queryId The RequestScope requestId.
      * @param response The ElideResponse object
      */
-    void completeQuery(UUID queryId, ElideResponse response);
+    void completeQuery(UUID queryId, QueryResponse response);
 }

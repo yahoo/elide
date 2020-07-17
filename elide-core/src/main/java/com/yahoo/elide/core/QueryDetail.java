@@ -20,4 +20,5 @@ import lombok.Value;
 public class QueryDetail {
     @Getter private String modelName;
     @Getter private String queryText;
+    @Getter private Boolean isCached;
 }

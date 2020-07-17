@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.request.EntityProjection;
-
 import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
@@ -42,7 +39,7 @@ public class NoopQueryLogger implements QueryLogger {
     }
 
     @Override
-    public void completeQuery(UUID queryId, ElideResponse response) {
+    public void completeQuery(UUID queryId, QueryResponse response) {
         //does nothing
     }
 }
