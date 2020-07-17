@@ -141,8 +141,11 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         if (children.size() > 0) {
             children.stream().forEach(i -> { if (i.getClass().equals(Field.class)) {
                     fieldName.add(((Field) i).getName());
-                } else {
+                } else if (i.getClass().equals(FragmentSpread.class)) {
                     fieldName.add(((FragmentSpread) i).getName());
+                } else {
+                    log.debug("A new type of Selection, other than Field and FragmentSpread was encountered, {}",
+                            i.getClass());
                 }
             });
         }
