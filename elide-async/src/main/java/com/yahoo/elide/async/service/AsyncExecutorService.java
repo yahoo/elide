@@ -9,6 +9,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
@@ -108,6 +109,12 @@ public class AsyncExecutorService {
         Future<AsyncQueryResult> task = executor.submit(queryWorker);
         try {
             queryObj.setStatus(QueryStatus.PROCESSING);
+            if (queryObj.getResultType() == null && resultStorageEngine.isDownloadOnly() == true) {
+                queryObj.setResultType(ResultType.DOWNLOAD);
+            }
+            else if (queryObj.getResultType() == null && resultStorageEngine.isDownloadOnly() == false) {
+                queryObj.setResultType(ResultType.EMBEDDED);
+            }
             AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
             queryObj.setResult(queryResultObj);
             queryObj.setStatus(QueryStatus.COMPLETE);

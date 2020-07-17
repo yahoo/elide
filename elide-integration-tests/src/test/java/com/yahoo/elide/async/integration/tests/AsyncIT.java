@@ -24,7 +24,6 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 
-
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -38,7 +37,6 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.contrib.testhelpers.graphql.EnumFieldSerializer;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
@@ -88,6 +86,9 @@ public class AsyncIT extends IntegrationTest {
 
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String status;
+
+        @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
+        private String resultType;
     }
 
     private static final Resource ENDERS_GAME = resource(
@@ -193,7 +194,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "0")
+                                                attr("asyncAfterSeconds", "0"),
+                                                attr("resultType", "DOWNLOAD")
                                         )
                                 )
                         ).toJSON())
@@ -207,8 +209,7 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.attributes.result.contentLength", nullValue())
                 .body("data.attributes.result.recordCount", nullValue())
                 .body("data.attributes.result.responseBody", nullValue())
-                .body("data.attributes.result.httpStatus", nullValue())
-                .body("data.attributes.result.resultType", nullValue());
+                .body("data.attributes.result.httpStatus", nullValue());
 
         int i = 0;
         while (i < 1000) {
@@ -234,8 +235,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.recordCount", equalTo(3))
                         .body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
                                 + "/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf830e"))
-                        .body("data.attributes.result.httpStatus", equalTo(200))
-                        .body("data.attributes.result.resultType", equalTo(ResultType.DOWNLOAD.toString()));
+                        .body("data.attributes.result.httpStatus", equalTo(200));
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
@@ -290,8 +290,7 @@ public class AsyncIT extends IntegrationTest {
                         + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                         + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                         + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
-                .body("data.attributes.result.httpStatus", equalTo(200))
-                .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
+                .body("data.attributes.result.httpStatus", equalTo(200));
 
     }
 
@@ -310,6 +309,7 @@ public class AsyncIT extends IntegrationTest {
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        queryObj.setResultType("DOWNLOAD");
         String graphQLRequest = document(
                  mutation(
                          selection(
@@ -323,7 +323,8 @@ public class AsyncIT extends IntegrationTest {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status")
+                                                 field("status"),
+                                                 field("resultType")
                                          )
                                  )
                          )
@@ -341,7 +342,7 @@ public class AsyncIT extends IntegrationTest {
 
         String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"DOWNLOAD\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
         int i = 0;
@@ -352,7 +353,7 @@ public class AsyncIT extends IntegrationTest {
                     .accept(MediaType.APPLICATION_JSON)
                     .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
                             + "{ edges { node { id queryType status result "
-                            + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                            + "{ responseBody httpStatus contentLength } } } } }\","
                             + "\"variables\":null}")
                     .post("/graphQL")
                     .asString();
@@ -361,7 +362,7 @@ public class AsyncIT extends IntegrationTest {
 
                 expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                         + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf828e\","
-                        + "\"httpStatus\":200,\"resultType\":\"DOWNLOAD\",\"contentLength\":177}}}]}}}";
+                        + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
@@ -391,6 +392,7 @@ public class AsyncIT extends IntegrationTest {
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        queryObj.setResultType("EMBEDDED");
         String graphQLRequest = document(
                  mutation(
                          selection(
@@ -404,7 +406,8 @@ public class AsyncIT extends IntegrationTest {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status")
+                                                 field("status"),
+                                                 field("resultType")
                                          )
                                  )
                          )
@@ -422,7 +425,7 @@ public class AsyncIT extends IntegrationTest {
 
         String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"EMBEDDED\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
         String responseGraphQL = given()
@@ -430,7 +433,7 @@ public class AsyncIT extends IntegrationTest {
                  .accept(MediaType.APPLICATION_JSON)
                  .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
                          + "{ edges { node { id queryType status result "
-                         + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                         + "{ responseBody httpStatus contentLength } } } } }\","
                          + "\"variables\":null}")
                  .post("/graphQL")
                  .asString();
@@ -439,7 +442,7 @@ public class AsyncIT extends IntegrationTest {
                  + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
                  + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
                  + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
-                 + "\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":177}}}]}}}";
+                 + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
     }
@@ -582,7 +585,7 @@ public class AsyncIT extends IntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263a\\\"]) "
                         + "{ edges { node { id createdOn updatedOn queryType status result "
-                        + "{ responseBody httpStatus resultType contentLength } } } } }\""
+                        + "{ responseBody httpStatus contentLength } } } } }\""
                         + ",\"variables\":null}")
                 .post("/graphQL")
                 .then()
@@ -642,8 +645,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.contentLength", notNullValue())
                         .body("data.attributes.result.recordCount", equalTo(0))
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":[]}"))
-                        .body("data.attributes.result.httpStatus", equalTo(200))
-                        .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
+                        .body("data.attributes.result.httpStatus", equalTo(200));
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {

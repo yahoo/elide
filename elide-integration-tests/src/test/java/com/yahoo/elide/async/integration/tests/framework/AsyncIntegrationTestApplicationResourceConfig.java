@@ -24,6 +24,8 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultResultStorageEngine;
+import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.audit.InMemoryLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
@@ -97,7 +99,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
                 ResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(),
-                        elide.getDataStore(), "http://localhost:8080");
+                        elide.getDataStore(), "http://localhost:8080/AsyncQueryResultStorage/");
                 bind(resultStorageEngine).to(ResultStorageEngine.class);
 
                 AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);

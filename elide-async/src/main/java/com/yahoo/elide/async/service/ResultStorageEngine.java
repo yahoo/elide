@@ -36,4 +36,10 @@ public interface ResultStorageEngine {
      */
     public void deleteResultsCollection(Collection<AsyncQuery> asyncQueryCollection);
 
+    /**
+     * This method tells about the resultType being DOWNLOAD, EMBEDDED.
+     * @return is boolean
+     */
+    public boolean isDownloadOnly();
+
 }

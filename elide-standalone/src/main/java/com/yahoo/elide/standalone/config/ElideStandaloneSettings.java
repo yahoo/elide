@@ -269,7 +269,7 @@ public interface ElideStandaloneSettings {
      * @return a URL in String format.
      */
     default String getAsyncDownloadBaseURL() {
-        return "http://localhost:8080";
+        return "http://localhost:8080/AsyncQueryResultStorage/";
     }
 
     /**

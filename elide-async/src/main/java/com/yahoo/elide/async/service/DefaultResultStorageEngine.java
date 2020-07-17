@@ -74,7 +74,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         }
 
         URL url = null;
-        String buildURL = baseURL + "/AsyncQueryResultStorage/" + asyncQueryID;
+        String buildURL = baseURL + asyncQueryID;
         try {
             url = new URL(buildURL);
         } catch (MalformedURLException e) {
@@ -144,5 +144,10 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
 
         }
 
+    }
+
+    @Override
+    public boolean isDownloadOnly() {
+        return false;
     }
 }

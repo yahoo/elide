@@ -90,8 +90,6 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         ElideResponse response = null;
         Integer recCount = null;
 
-        Date startTime = new Date();
-
         log.debug("AsyncQuery Object from request: {}", queryObj);
         if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
             MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
@@ -121,9 +119,6 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             throw new NoHttpResponseException("Response for request returned as null");
         }
 
-        long timeElapsed = ((new Date()).getTime() - startTime.getTime());
-        long asyncAfterMilliSeconds = queryObj.getAsyncAfterSeconds() * 1000;
-
         // Create AsyncQueryResult entry for AsyncQuery
 
         queryResultObj = new AsyncQueryResult();
@@ -132,21 +127,22 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         queryResultObj.setRecordCount(recCount);
         queryResultObj.setCompletedOn(new Date());
 
-        if (timeElapsed - asyncAfterMilliSeconds > 0) {
+        URL url = null;
+        String tempResult = response.getBody();
+        if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
+            tempResult = convertJsonToCSV(response.getBody());
+        }
+        byte[] temp = tempResult.getBytes();
 
-            URL url = null;
-            String tempResult = response.getBody();
-            if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
-                tempResult = convertJsonToCSV(response.getBody());
-            }
-            byte[] temp = tempResult.getBytes();
+        if (queryObj.getResultType() == ResultType.DOWNLOAD) {
             url = resultStorageEngine.storeResults(queryObj.getId(), temp);
-
-            queryResultObj.setResultType(ResultType.DOWNLOAD);
             queryResultObj.setResponseBody(url.toString());
-        } else {
-            queryResultObj.setResultType(ResultType.EMBEDDED);
-            queryResultObj.setResponseBody(response.getBody());
+        } else if (queryObj.getResultType() == ResultType.EMBEDDED) {
+            if (resultStorageEngine.isDownloadOnly() == true) {
+                queryResultObj.setResponseBody("Provided resultType is not supported.");
+            } else {
+                queryResultObj.setResponseBody(tempResult);
+            }
         }
 
         return queryResultObj;

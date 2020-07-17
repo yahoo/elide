@@ -10,8 +10,6 @@ import lombok.Data;
 import java.util.Date;
 
 import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 
 /**
  * Model for Async Query Result.
@@ -28,9 +26,6 @@ public class AsyncQueryResult {
     private String responseBody;  //URL or Response body
 
     private Integer httpStatus; // HTTP Status
-
-    @Enumerated(EnumType.STRING)
-    private ResultType resultType; //EMBEDDED, DOWNLOAD
 
     private Date completedOn = new Date();
 
