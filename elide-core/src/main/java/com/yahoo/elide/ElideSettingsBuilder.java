@@ -69,7 +69,6 @@ public class ElideSettingsBuilder {
         this.subqueryFilterDialects = new ArrayList<>();
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
         this.serdes = new HashMap<>();
-        //this.defaultJsonApiLinks = new DefaultJSONApiLinks();
         this.enableJsonLinks = false;
 
         //By default, Elide supports epoch based dates.
