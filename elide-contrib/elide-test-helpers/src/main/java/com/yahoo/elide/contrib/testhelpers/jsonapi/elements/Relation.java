@@ -24,6 +24,8 @@ public class Relation {
     @Expose(serialize = false)
     final boolean toOne;
 
+    final Links links;
+
     /**
      * The Resource linkages.
      */
@@ -36,7 +38,18 @@ public class Relation {
      * @param resourceLinkages the resource linkages
      */
     public Relation(String field, ResourceLinkage... resourceLinkages) {
-        this(field, TO_MANY, resourceLinkages);
+        this(field, TO_MANY, null, resourceLinkages);
+    }
+
+    /**
+     * Instantiates a new Relation.
+     *
+     * @param field            the field
+     * @param links              the links
+     * @param resourceLinkages the resource linkages
+     */
+    public Relation(String field, Links links, ResourceLinkage... resourceLinkages) {
+        this(field, TO_MANY, links, resourceLinkages);
     }
 
     /**
@@ -46,9 +59,10 @@ public class Relation {
      * @param toOne            whether or not the relation is toOne or toMany.
      * @param resourceLinkages the resource linkages
      */
-    public Relation(String field, boolean toOne, ResourceLinkage... resourceLinkages) {
+    public Relation(String field, boolean toOne, Links links, ResourceLinkage... resourceLinkages) {
         this.field = field;
         this.toOne = toOne;
+        this.links = links;
         this.resourceLinkages = resourceLinkages;
     }
 
@@ -61,6 +75,17 @@ public class Relation {
         this(field, TO_MANY);
     }
 
+
+    /**
+     * Instantiates a new Relation.
+     *
+     * @param field            the field
+     * @param links             the links
+     */
+    public Relation(String field, Links links) {
+        this(field, TO_MANY, links);
+    }
+
     /**
      * Instantiates a new Relation.
      *
@@ -70,6 +95,7 @@ public class Relation {
     public Relation(String field, boolean toOne) {
         this.field = field;
         this.toOne = toOne;
+        this.links = null;
         this.resourceLinkages = new ResourceLinkage[0];
     }
 }

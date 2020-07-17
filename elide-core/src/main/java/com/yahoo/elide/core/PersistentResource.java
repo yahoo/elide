@@ -1206,6 +1206,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 : dictionary.getId(obj));
         resource.setRelationships(relationshipSupplier.get());
         resource.setAttributes(attributeSupplier.get());
+        if (requestScope.getElideSettings().isEnableJsonLinks()) {
+            resource.setLinks(requestScope.getElideSettings().getDefaultJsonApiLinks().getResourceLevelLinks(this));
+        }
         return resource;
     }
 
@@ -1264,8 +1267,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             } else {
                 data = new Data<>(resources);
             }
-            // TODO - links
-            relationshipMap.put(field, new Relationship(null, data));
+            Map<String, String> links = null;
+            if (requestScope.getElideSettings().isEnableJsonLinks()) {
+                 links = requestScope.getElideSettings()
+                        .getDefaultJsonApiLinks()
+                        .getRelationshipLinks(this, field);
+            }
+            relationshipMap.put(field, new Relationship(links, data));
         }
 
         return relationshipMap;

@@ -12,6 +12,7 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Document;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Id;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Include;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Links;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperation;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchOperationType;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.PatchSet;
@@ -101,7 +102,34 @@ public class JsonApiDSL {
      * @return the resource
      */
     public static Resource resource(Type type, Id id, Attributes attributes, Relationships relationships) {
-        return new Resource(id, type, attributes, relationships);
+        return new Resource(id, type, attributes, null, relationships);
+    }
+
+    /**
+     * Resource resource.
+     *
+     * @param type          the type
+     * @param id            the id
+     * @param attributes    the attributes
+     * @param link          the link
+     * @param relationships the relationships
+     * @return the resource
+     */
+    public static Resource resource(Type type, Id id, Attributes attributes, Links link, Relationships relationships) {
+        return new Resource(id, type, attributes, link, relationships);
+    }
+
+    /**
+     * Resource resource.
+     *
+     * @param type          the type
+     * @param id            the id
+     * @param attributes    the attributes
+     * @param link          the link
+     * @return the resource
+     */
+    public static Resource resource(Type type, Id id, Attributes attributes, Links link) {
+        return new Resource(id, type, attributes, link, null);
     }
 
     /**
@@ -113,7 +141,7 @@ public class JsonApiDSL {
      * @return the resource
      */
     public static Resource resource(Type type, Id id, Attributes attributes) {
-        return new Resource(id, type, attributes, null);
+        return new Resource(id, type, attributes, null, null);
     }
 
     /**
@@ -125,7 +153,7 @@ public class JsonApiDSL {
      * @return the resource
      */
     public static Resource resource(Type type, Id id, Relationships relationships) {
-        return new Resource(id, type, null, relationships);
+        return new Resource(id, type, null, null, relationships);
     }
 
     /**
@@ -136,7 +164,7 @@ public class JsonApiDSL {
      * @return the resource
      */
     public static Resource resource(Type type, Id id) {
-        return new Resource(id, type, null, null);
+        return new Resource(id, type, null, null, null);
     }
 
     /**
@@ -147,7 +175,7 @@ public class JsonApiDSL {
      * @return the resource
      */
     public static Resource resource(Type type, Attributes attributes) {
-        return new Resource(id(null), type, attributes, null);
+        return new Resource(id(null), type, attributes, null, null);
     }
 
     /**
@@ -159,7 +187,7 @@ public class JsonApiDSL {
      * @return the resource
      */
     public static Resource resource(Type type, Attributes attributes, Relationships relationships) {
-        return new Resource(id(null), type, attributes, relationships);
+        return new Resource(id(null), type, attributes, null, relationships);
     }
 
     /**
@@ -190,6 +218,16 @@ public class JsonApiDSL {
      */
     public static Attributes attributes(Attribute... attrs) {
         return new Attributes(attrs);
+    }
+
+    /**
+     * Links links.
+     *
+     * @param attrs the attrs
+     * @return the attributes
+     */
+    public static Links links(Attribute... attrs) {
+        return new Links(attrs);
     }
 
     /**
@@ -233,7 +271,7 @@ public class JsonApiDSL {
      * @return the relation
      */
     public static Relation relation(String field, boolean toOne, ResourceLinkage... resourceLinkage) {
-        return new Relation(field, toOne, resourceLinkage);
+        return new Relation(field, toOne, null, resourceLinkage);
     }
 
     /**
@@ -244,6 +282,17 @@ public class JsonApiDSL {
      */
     public static Relation relation(String field) {
         return new Relation(field);
+    }
+
+    /**
+     * Relation relation.
+     *
+     * @param field           the field
+     * @param links           the links
+     * @return the relation
+     */
+    public static Relation relation(String field, Links links) {
+        return new Relation(field, links);
     }
 
     /**

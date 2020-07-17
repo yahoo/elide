@@ -22,6 +22,9 @@ public class Relationships extends LinkedHashMap<String, Map<String, ?>> {
     public Relationships(Relation... relations) {
         for (Relation relation : relations) {
             Map<String, Object> data = new LinkedHashMap<>();
+            if (relation.links != null) {
+                data.put("links", relation.links);
+            }
             if (relation.toOne) {
                 if (relation.resourceLinkages.length == 0) {
                     data.put("data", null);
