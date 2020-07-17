@@ -34,7 +34,7 @@ import javax.validation.constraints.Pattern;
  */
 @Entity
 @Include(type = "asyncQuery", rootLevel = true)
-@ReadPermission(expression = "Principal is Owner")
+@ReadPermission(expression = "Principal is Owner OR Principal is Admin")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
 @Data
@@ -57,7 +57,7 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Exclude
     private String requestId = UUID.randomUUID().toString();
 
-    @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
+    @UpdatePermission(expression = "(Principal is Admin OR Principal is Owner) AND value is Cancelled")
     @CreatePermission(expression = "value is Queued")
     private QueryStatus status = QueryStatus.QUEUED;
 
