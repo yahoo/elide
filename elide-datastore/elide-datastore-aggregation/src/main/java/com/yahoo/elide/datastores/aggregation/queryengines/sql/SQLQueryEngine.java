@@ -229,7 +229,17 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public SQLQuery toSQL(Query query) {
+    public String explain(Query query) {
+        return toSQL(query).toString();
+    }
+
+    /**
+     * Translates the client query into SQL.
+     *
+     * @param query the client query.
+     * @return the SQL query.
+     */
+    private SQLQuery toSQL(Query query) {
         Set<ColumnProjection> groupByDimensions = new LinkedHashSet<>(query.getGroupByDimensions());
         Set<TimeDimensionProjection> timeDimensions = new LinkedHashSet<>(query.getTimeDimensions());
 

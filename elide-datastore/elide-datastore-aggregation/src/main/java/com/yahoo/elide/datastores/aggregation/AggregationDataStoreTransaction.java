@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.QueryDetail;
 import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.QueryResponse;
@@ -74,7 +75,9 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         QueryResponse response = null;
         String cacheKey = null;
         try {
-            aggregationAcceptQuery(scope);
+            Principal user = scope.getUser() == null ? null : scope.getUser().getPrincipal();
+            queryLogger.acceptQuery(scope.getRequestId(), user, scope.getHeaders(),
+                    scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
             Query query = buildQuery(entityProjection, scope);
             if (cache != null && !query.isBypassingCache()) {
                 String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
@@ -83,8 +86,10 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                     result = cache.get(cacheKey);
                 }
             }
-            aggregationProcessQuery(result, entityProjection.getType().getName(),
-                    query, scope);
+            boolean isCached = result == null ? false : true;
+            QueryDetail qd = new QueryDetail(entityProjection.getType().getName(),
+                    queryEngine.explain(query), isCached);
+            queryLogger.processQuery(scope.getRequestId(), qd);
             if (result == null) {
                 result = queryEngine.executeQuery(query, queryEngineTransaction);
                 if (cacheKey != null) {
@@ -94,16 +99,16 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
                 entityProjection.getPagination().setPageTotals(result.getPageTotals());
             }
-            response = new QueryResponse(200, result.getData(), null);
+            response = new QueryResponse(HttpStatus.SC_OK, result.getData(), null);
             return result.getData();
         } catch (HttpStatusException e) {
             response = new QueryResponse(e.getStatus(), null, e.getMessage());
             throw e;
         } catch (Exception e) {
-            response = new QueryResponse(500, null, e.getMessage());
+            response = new QueryResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, null, e.getMessage());
             throw e;
         } finally {
-            aggregationCompleteQuery(scope, response);
+            queryLogger.completeQuery(scope.getRequestId(), response);
         }
     }
 
@@ -126,21 +131,5 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     @Override
     public void cancel() {
         queryEngineTransaction.cancel();
-    }
-
-    private void aggregationCompleteQuery(RequestScope scope, QueryResponse response) {
-        queryLogger.completeQuery(scope.getRequestId(), response);
-    }
-
-    private void aggregationProcessQuery(QueryResult result, String modelName, Query query, RequestScope scope) {
-        boolean isCached = result == null ? false : true;
-        QueryDetail qd = new QueryDetail(modelName, queryEngine.toSQL(query).toString(), isCached);
-        queryLogger.processQuery(scope.getRequestId(), qd);
-    }
-
-    private void aggregationAcceptQuery(RequestScope scope) {
-        Principal user = scope.getUser() == null ? null : scope.getUser().getPrincipal();
-        queryLogger.acceptQuery(scope.getRequestId(), user, scope.getHeaders(),
-                scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
     }
 }

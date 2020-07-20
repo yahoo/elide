@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.request.Argument;
 
 import com.google.common.base.Functions;
@@ -196,10 +195,9 @@ public abstract class QueryEngine {
     }
 
     /**
-     * Translates the client query into SQL.
-     *
-     * @param query the client query.
-     * @return the SQL query.
+     * Explains the specified query passed in
+     * @param query The query customized for a particular persistent storage or storage client
+     * @return SQL string corresponding to the given query
      */
-    public abstract SQLQuery toSQL(Query query);
+    public abstract String explain(Query query);
 }
