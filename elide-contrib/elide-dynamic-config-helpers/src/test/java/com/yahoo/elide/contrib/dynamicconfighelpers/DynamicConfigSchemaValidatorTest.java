@@ -20,7 +20,7 @@ import java.io.Reader;
 
 public class DynamicConfigSchemaValidatorTest {
 
-    DynamicConfigSchemaValidator testClass = new DynamicConfigSchemaValidator();
+    private DynamicConfigSchemaValidator testClass = new DynamicConfigSchemaValidator();
 
     // Security config test
     @DisplayName("Valid Security config")
