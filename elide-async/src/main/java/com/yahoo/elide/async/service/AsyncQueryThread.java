@@ -138,11 +138,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             url = resultStorageEngine.storeResults(queryObj.getId(), temp);
             queryResultObj.setResponseBody(url.toString());
         } else if (queryObj.getResultType() == ResultType.EMBEDDED) {
-            if (resultStorageEngine.isDownloadOnly() == true) {
-                queryResultObj.setResponseBody("Provided resultType is not supported.");
-            } else {
-                queryResultObj.setResponseBody(tempResult);
-            }
+            queryResultObj.setResponseBody(tempResult);
         }
 
         return queryResultObj;
@@ -155,15 +151,14 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      */
     protected Integer calculateRecordsJSON(String jsonStr) {
         Integer rec = null;
-        try {
-            JsonObject jsonObject = JsonParser.parseString(jsonStr).getAsJsonObject();
-            JsonElement jsonElement = jsonObject.get("data");
-            if (jsonElement.isJsonArray()) {
-                rec = jsonElement.getAsJsonArray().size();
-            }
-
-        } catch (IllegalStateException e) {
-            log.error("Exception: {}", e);
+        JsonElement jsonTree = JsonParser.parseString(jsonStr);
+        if (!jsonTree.isJsonObject()) {
+            return null;
+        }
+        JsonObject jsonObject = jsonTree.getAsJsonObject();
+        JsonElement jsonElement = jsonObject.get("data");
+        if (jsonElement.isJsonArray()) {
+            rec = jsonElement.getAsJsonArray().size();
         }
 
         return rec;
@@ -180,6 +175,9 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         try {
             JsonReader jsonReader = new JsonReader(new StringReader(jsonStr));
             JsonElement jsonTree = JsonParser.parseString(jsonStr);
+            if (!jsonTree.isJsonObject()) {
+                return null;
+            }
             JsonObject jsonObject = jsonTree.getAsJsonObject();
             while (jsonReader.hasNext()) {
                 JsonToken nextToken = jsonReader.peek();
@@ -206,10 +204,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             }
         } catch (IOException e) {
             log.error("Exception: {}", e);
-        } catch (IllegalStateException e) {
-            log.error("Exception: {}", e);
         }
-
         return rec;
     }
 

@@ -7,9 +7,11 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.ResultType;
 
 import java.net.URL;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Utility interface which uses the elide datastore to modify and create AsyncQueryResultStorage Object.
@@ -38,8 +40,8 @@ public interface ResultStorageEngine {
 
     /**
      * This method tells about the resultType being DOWNLOAD, EMBEDDED.
-     * @return is boolean
+     * @return is set of result types
      */
-    public boolean isDownloadOnly();
+    public Set<ResultType> supportedResultTypes();
 
 }

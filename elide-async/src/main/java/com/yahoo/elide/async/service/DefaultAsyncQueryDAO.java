@@ -33,7 +33,6 @@ import javax.inject.Singleton;
 @Getter
 public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
-    //@Setter private Elide elide;
     @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
     private EntityDictionary dictionary;

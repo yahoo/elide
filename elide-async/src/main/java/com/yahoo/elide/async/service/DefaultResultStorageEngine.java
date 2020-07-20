@@ -9,6 +9,7 @@ package com.yahoo.elide.async.service;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResultStorage;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.request.EntityProjection;
 import lombok.Getter;
@@ -20,7 +21,9 @@ import java.net.URL;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.inject.Singleton;
 import javax.sql.rowset.serial.SerialBlob;
@@ -33,7 +36,6 @@ import javax.sql.rowset.serial.SerialBlob;
 @Getter
 public class DefaultResultStorageEngine implements ResultStorageEngine {
 
-    //@Setter private Elide elide;
     @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
     private String baseURL;
@@ -68,10 +70,10 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         } catch (SQLException e) {
             log.error("Exception: {}", e);
             throw new IllegalStateException(e);
-        } catch (Exception e) {
+        } /*catch (Exception e) {
             log.error("Exception: {}", e);
             //throw new IllegalStateException(e);
-        }
+        }*/
 
         URL url = null;
         String buildURL = baseURL + asyncQueryID;
@@ -147,7 +149,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public boolean isDownloadOnly() {
-        return false;
+    public Set<ResultType> supportedResultTypes() {
+        return EnumSet.of(ResultType.EMBEDDED, ResultType.DOWNLOAD);
     }
 }

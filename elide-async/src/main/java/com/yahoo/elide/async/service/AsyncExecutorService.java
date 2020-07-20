@@ -9,7 +9,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
@@ -109,12 +108,13 @@ public class AsyncExecutorService {
         Future<AsyncQueryResult> task = executor.submit(queryWorker);
         try {
             queryObj.setStatus(QueryStatus.PROCESSING);
-            if (queryObj.getResultType() == null && resultStorageEngine.isDownloadOnly() == true) {
-                queryObj.setResultType(ResultType.DOWNLOAD);
+            if (queryObj.getResultType() == null) {
+                queryObj.setResultType(resultStorageEngine.supportedResultTypes().iterator().next());
+            } else if (queryObj.getResultType() != null
+                    && !resultStorageEngine.supportedResultTypes().contains(queryObj.getResultType())) {
+                throw new IllegalArgumentException(queryObj.getResultType() + "is not supported");
             }
-            else if (queryObj.getResultType() == null && resultStorageEngine.isDownloadOnly() == false) {
-                queryObj.setResultType(ResultType.EMBEDDED);
-            }
+
             AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
             queryObj.setResult(queryResultObj);
             queryObj.setStatus(QueryStatus.COMPLETE);
@@ -130,6 +130,7 @@ public class AsyncExecutorService {
             queryObj.setQueryUpdateWorker(new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao));
         } catch (Exception e) {
             log.error("Exception: {}", e);
+            System.out.println(queryObj.getResultType());
             queryObj.setStatus(QueryStatus.FAILURE);
         }
 

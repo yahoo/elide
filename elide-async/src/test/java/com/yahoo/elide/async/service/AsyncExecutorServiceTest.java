@@ -18,6 +18,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.security.User;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -85,6 +87,8 @@ public class AsyncExecutorServiceTest {
     public void testExecuteQueryComplete() throws InterruptedException {
 
         AsyncQuery queryObj = mock(AsyncQuery.class);
+        when(resultStorageEngine.supportedResultTypes()).thenReturn(EnumSet.of(ResultType.EMBEDDED,
+                ResultType.DOWNLOAD));
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         when(queryObj.getQuery()).thenReturn(query);
@@ -92,8 +96,8 @@ public class AsyncExecutorServiceTest {
         when(queryObj.getRequestId()).thenReturn(id);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
         when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
+        when(queryObj.getResultType()).thenReturn(ResultType.EMBEDDED);
         service.executeQuery(queryObj, testUser, NO_VERSION);
-        verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
         verify(queryObj, times(1)).setStatus(QueryStatus.COMPLETE);
     }
 
