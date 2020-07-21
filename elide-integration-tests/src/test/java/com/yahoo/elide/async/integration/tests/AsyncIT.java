@@ -196,7 +196,6 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
                                                 attr("asyncAfterSeconds", "0")
-                                                //attr("resultType", "DOWNLOAD")
                                         )
                                 )
                         ).toJSON())
@@ -272,7 +271,7 @@ public class AsyncIT extends IntegrationTest {
                         data(
                                 resource(
                                         type("asyncQuery"),
-                                        id("edc4a871-dff2-4054-804e-d80075cf830e"),
+                                        id("adc4a871-dff2-4054-804e-d80075cf830e"),
                                         attributes(
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
@@ -286,7 +285,7 @@ public class AsyncIT extends IntegrationTest {
                 .post("/asyncQuery")
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf830e"))
+                .body("data.id", equalTo("adc4a871-dff2-4054-804e-d80075cf830e"))
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("PROCESSING"))
                 .body("data.attributes.result.contentLength", nullValue())
@@ -299,7 +298,7 @@ public class AsyncIT extends IntegrationTest {
             Thread.sleep(10);
             Response response = given()
                     .accept("application/vnd.api+json")
-                    .get("/asyncQuery/edc4a871-dff2-4054-804e-d80075cf830e");
+                    .get("/asyncQuery/adc4a871-dff2-4054-804e-d80075cf830e");
 
             String outputResponse = response.jsonPath().getString("data.attributes.status");
 
@@ -310,14 +309,14 @@ public class AsyncIT extends IntegrationTest {
                 response
                         .then()
                         .statusCode(HttpStatus.SC_OK)
-                        .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf830e"))
+                        .body("data.id", equalTo("adc4a871-dff2-4054-804e-d80075cf830e"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
                         .body("data.attributes.result.recordCount", equalTo(3))
                         .body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
-                              + "/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf830e"))
+                              + "/AsyncQueryResultStorage/adc4a871-dff2-4054-804e-d80075cf830e"))
                         .body("data.attributes.result.httpStatus", equalTo(200));
 
                 break;
@@ -395,7 +394,7 @@ public class AsyncIT extends IntegrationTest {
                         data(
                                 resource(
                                         type("asyncQuery"),
-                                        id("edc4a871-dff2-4054-804e-d80075cf831f"),
+                                        id("adc4a871-dff2-4054-804e-d80075cf831f"),
                                         attributes(
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
@@ -409,13 +408,13 @@ public class AsyncIT extends IntegrationTest {
                 .post("/asyncQuery")
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf831f"))
+                .body("data.id", equalTo("adc4a871-dff2-4054-804e-d80075cf831f"))
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("COMPLETE"))
                 .body("data.attributes.result.contentLength", notNullValue())
                 .body("data.attributes.result.recordCount", equalTo(3))
                 .body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
-                        + "/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf831f"))
+                        + "/AsyncQueryResultStorage/adc4a871-dff2-4054-804e-d80075cf831f"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
     }
@@ -517,7 +516,7 @@ public class AsyncIT extends IntegrationTest {
 
         AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
-        queryObj.setId("edc4a871-dff2-4054-804e-d80075cf828e");
+        queryObj.setId("adc4a871-dff2-4054-804e-d80075cf828e");
         queryObj.setAsyncAfterSeconds(0);
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
@@ -553,7 +552,7 @@ public class AsyncIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK);
 
-        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"DOWNLOAD\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
@@ -564,7 +563,7 @@ public class AsyncIT extends IntegrationTest {
             String responseGraphQL = given()
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
-                    .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
+                    .body("{\"query\":\"{ asyncQuery(ids: [\\\"adc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
                             + "{ edges { node { id queryType status result "
                             + "{ responseBody httpStatus contentLength } } } } }\","
                             + "\"variables\":null}")
@@ -573,8 +572,8 @@ public class AsyncIT extends IntegrationTest {
             // If Async Query is created and completed
             if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
 
-                expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf828e\","
+                expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                        + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/adc4a871-dff2-4054-804e-d80075cf828e\","
                         + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
@@ -672,7 +671,7 @@ public class AsyncIT extends IntegrationTest {
 
         AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
-        queryObj.setId("edc4a871-dff2-4054-804e-d80075cf829e");
+        queryObj.setId("adc4a871-dff2-4054-804e-d80075cf829e");
         queryObj.setAsyncAfterSeconds(7);
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
@@ -708,7 +707,7 @@ public class AsyncIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK);
 
-        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf829e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"DOWNLOAD\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
@@ -716,15 +715,15 @@ public class AsyncIT extends IntegrationTest {
         String responseGraphQL = given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
+                .body("{\"query\":\"{ asyncQuery(ids: [\\\"adc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
                         + "{ edges { node { id queryType status result "
                         + "{ responseBody httpStatus contentLength } } } } }\","
                         + "\"variables\":null}")
                 .post("/graphQL")
                 .asString();
 
-        expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf829e\","
+        expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/adc4a871-dff2-4054-804e-d80075cf829e\","
                 + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
@@ -735,6 +734,7 @@ public class AsyncIT extends IntegrationTest {
      */
     @Test
     public void graphQLTestCreateFailOnQueryStatus() {
+
 
         AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
