@@ -54,7 +54,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Tag;
 
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
@@ -234,8 +238,6 @@ public class AsyncIT extends IntegrationTest {
                                 + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                                 + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
-                        //.body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
-                          //      + "/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf830e"))
                         .body("data.attributes.result.httpStatus", equalTo(200));
 
                 break;
@@ -314,10 +316,6 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
                         .body("data.attributes.result.recordCount", equalTo(3))
-                        /*.body("data.attributes.result.responseBody", equalTo("{\"data\":"
-                                + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
-                                + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
-                                + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))*/
                         .body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
                               + "/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf830e"))
                         .body("data.attributes.result.httpStatus", equalTo(200));
@@ -418,10 +416,6 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.attributes.result.recordCount", equalTo(3))
                 .body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
                         + "/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf831f"))
-                /*.body("data.attributes.result.responseBody", equalTo("{\"data\":"
-                        + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
-                        + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
-                        + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))*/
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
     }
@@ -497,9 +491,6 @@ public class AsyncIT extends IntegrationTest {
                         + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
                         + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
                         + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
-                /*expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf828e\","
-                        + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";*/
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
@@ -582,11 +573,6 @@ public class AsyncIT extends IntegrationTest {
             // If Async Query is created and completed
             if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
 
-                /*expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
-                        + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
-                        + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
-                        + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";*/
                 expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                         + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf828e\","
                         + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
@@ -736,12 +722,6 @@ public class AsyncIT extends IntegrationTest {
                         + "\"variables\":null}")
                 .post("/graphQL")
                 .asString();
-
-        /*expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
-                + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
-                + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
-                + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";*/
 
         expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                 + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/edc4a871-dff2-4054-804e-d80075cf829e\","
