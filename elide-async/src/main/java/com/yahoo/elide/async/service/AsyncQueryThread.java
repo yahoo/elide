@@ -204,6 +204,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             }
         } catch (IOException e) {
             log.error("Exception: {}", e);
+            throw new IllegalStateException(e);
         }
         return rec;
     }

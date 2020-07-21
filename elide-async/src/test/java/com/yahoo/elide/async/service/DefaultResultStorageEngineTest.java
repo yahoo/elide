@@ -36,24 +36,21 @@ import java.util.TimeZone;
 
 public class DefaultResultStorageEngineTest {
 
-    private com.yahoo.elide.async.service.DefaultAsyncQueryDAO asyncQueryDAO;
-    private Elide elide;
-    private DataStore dataStore;
+    private DefaultAsyncQueryDAO asyncQueryDAO;
     private AsyncQuery asyncQuery;
     private DataStoreTransaction tx;
-    private EntityDictionary dictionary;
-    private com.yahoo.elide.async.service.DefaultResultStorageEngine defaultResultStorageEngine;
+    private DefaultResultStorageEngine defaultResultStorageEngine;
     private AsyncQueryResultStorage asyncQueryResultStorage;
 
     @BeforeEach
     public void setupMocks() {
-        dataStore = mock(DataStore.class);
+        DataStore dataStore = mock(DataStore.class);
         tx = mock(DataStoreTransaction.class);
         asyncQueryResultStorage = mock(AsyncQueryResultStorage.class);
         asyncQuery = mock(AsyncQuery.class);
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
-        dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = new EntityDictionary(checkMappings);
         dictionary.bindEntity(AsyncQuery.class);
         dictionary.bindEntity(AsyncQueryResult.class);
 
@@ -64,7 +61,7 @@ public class DefaultResultStorageEngineTest {
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
 
-        elide = new Elide(elideSettings);
+        Elide elide = new Elide(elideSettings);
 
         when(dataStore.beginTransaction()).thenReturn(tx);
         asyncQueryDAO = new DefaultAsyncQueryDAO(elide.getElideSettings(), dataStore);

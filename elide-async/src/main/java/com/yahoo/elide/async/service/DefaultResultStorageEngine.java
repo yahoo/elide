@@ -52,11 +52,10 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     @Override
     public URL storeResults(String asyncQueryID, byte[] byteResponse) {
 
-        AsyncQueryResultStorage asyncQueryResultStorage1 = null;
         try {
             Blob response = new SerialBlob(byteResponse);
 
-            asyncQueryResultStorage1 = (AsyncQueryResultStorage) DBUtil.executeInTransaction(elideSettings,
+            DBUtil.executeInTransaction(elideSettings,
                     dataStore, (tx, scope) -> {
 
                         AsyncQueryResultStorage asyncQueryResultStorage = new AsyncQueryResultStorage();
@@ -70,10 +69,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         } catch (SQLException e) {
             log.error("Exception: {}", e);
             throw new IllegalStateException(e);
-        } /*catch (Exception e) {
-            log.error("Exception: {}", e);
-            //throw new IllegalStateException(e);
-        }*/
+        }
 
         URL url = null;
         String buildURL = baseURL + asyncQueryID;
@@ -122,12 +118,11 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     public void deleteResultsCollection(Collection<AsyncQuery> asyncQueryList) {
         log.debug("deleteResultsCollection");
 
-        Collection<AsyncQueryResultStorage> asyncQueryResultStorage = null;
         Iterator<AsyncQuery> itr = asyncQueryList.iterator();
         while (itr.hasNext()) {
             AsyncQuery query = itr.next();
 
-            asyncQueryResultStorage = (Collection<AsyncQueryResultStorage>) DBUtil.executeInTransaction(elideSettings,
+            DBUtil.executeInTransaction(elideSettings,
                     dataStore, (tx, scope) -> {
 
                 EntityProjection asyncQueryCollection = EntityProjection.builder()

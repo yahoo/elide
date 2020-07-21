@@ -130,7 +130,6 @@ public class AsyncExecutorService {
             queryObj.setQueryUpdateWorker(new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao));
         } catch (Exception e) {
             log.error("Exception: {}", e);
-            System.out.println(queryObj.getResultType());
             queryObj.setStatus(QueryStatus.FAILURE);
         }
 

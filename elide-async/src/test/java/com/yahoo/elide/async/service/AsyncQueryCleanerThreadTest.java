@@ -32,10 +32,11 @@ public class AsyncQueryCleanerThreadTest {
     private AsyncQueryCleanerThread cleanerThread;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
-    private ResultStorageEngine resultStorageEngine;
+
 
     @BeforeEach
     public void setupMocks() {
+
         HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
@@ -46,7 +47,7 @@ public class AsyncQueryCleanerThreadTest {
                         .build());
 
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
-        resultStorageEngine = mock(DefaultResultStorageEngine.class);
+        ResultStorageEngine resultStorageEngine = mock(DefaultResultStorageEngine.class);
         cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao,
                 resultStorageEngine);
     }

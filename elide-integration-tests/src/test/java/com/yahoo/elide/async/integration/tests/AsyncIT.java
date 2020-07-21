@@ -260,7 +260,7 @@ public class AsyncIT extends IntegrationTest {
      * @throws InterruptedException
      */
     @Test
-    @Tag("skipInMemory")
+    @Tag("skipInMemory") //Without an ORM, there is nothing to hydrate the excluded entity
     public void jsonApiHappyPath1Download() throws InterruptedException {
 
         AsyncDelayStoreTransaction.sleep = true;
@@ -356,8 +356,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "7")
-                                               // attr("resultType", "EMBEDDED")
+                                                attr("asyncAfterSeconds", "7"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())
@@ -383,7 +383,7 @@ public class AsyncIT extends IntegrationTest {
      * @throws InterruptedException
      */
     @Test
-    @Tag("skipInMemory")
+    @Tag("skipInMemory") //Without an ORM, there is nothing to hydrate the excluded entity
     public void jsonApiHappyPath2Download() throws InterruptedException {
 
         AsyncDelayStoreTransaction.sleep = true;
@@ -512,7 +512,7 @@ public class AsyncIT extends IntegrationTest {
      * @throws InterruptedException
      */
     @Test
-    @Tag("skipInMemory")
+    @Tag("skipInMemory") //Without an ORM, there is nothing to hydrate the excluded entity
     public void graphQLHappyPath1Download() throws InterruptedException {
 
         AsyncDelayStoreTransaction.sleep = true;
@@ -663,11 +663,11 @@ public class AsyncIT extends IntegrationTest {
 
     /**
      * Test for a GraphQL query as a Async Request with asyncAfterSeconds value set to 7.
-     * Happy Path Test Scenario 2
+     * Happy Path Test Scenario 2 with resultType as DOWNLOAD
      * @throws InterruptedException
      */
     @Test
-    @Tag("skipInMemory")
+    @Tag("skipInMemory") //Without an ORM, there is nothing to hydrate the excluded entity
     public void graphQLHappyPath2Download() throws InterruptedException {
 
         AsyncDelayStoreTransaction.sleep = true;
