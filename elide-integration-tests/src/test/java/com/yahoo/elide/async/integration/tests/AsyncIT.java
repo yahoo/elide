@@ -792,8 +792,7 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/group?sort=genre&fields%5Bgroup%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "10"),
-                                                attr("resultType", "EMBEDDED")
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
@@ -898,8 +897,7 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/noread"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "10"),
-                                                attr("resultType", "EMBEDDED")
+                                                attr("asyncAfterSeconds", "10")
                                         )
                                 )
                         ).toJSON())
