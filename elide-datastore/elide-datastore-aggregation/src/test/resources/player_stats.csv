@@ -1,4 +1,4 @@
-highScore,lowScore,overallRating,country_id,sub_country_id,player_id,player2_id,recordedDate
-1234,35,Good,840,840,1,2,2019-07-12 00:00:00
-2412,241,Great,840,840,2,3,2019-07-11 00:00:00
-1000,72,Good,344,344,3,1,2019-07-13 00:00:00
+highScore,lowScore,overallRating,country_id,sub_country_id,player_id,player2_id,recordedDate,updatedDate
+1234,35,Good,840,840,1,2,2019-07-12 00:00:00,2019-10-12 00:00:00
+2412,241,Great,840,840,2,3,2019-07-11 00:00:00,2020-07-12 00:00:00
+1000,72,Good,344,344,3,1,2019-07-13 00:00:00,2020-01-12 00:00:00
