@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS playerStats
       sub_country_id VARCHAR(255),
       player_id BIGINT,
       player2_id BIGINT,
-      recordedDate DATETIME
+      recordedDate DATETIME,
+      updatedDate DATETIME
     ) AS SELECT * FROM CSVREAD('classpath:player_stats.csv');
 
 CREATE TABLE IF NOT EXISTS countries
