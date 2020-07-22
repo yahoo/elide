@@ -7,13 +7,12 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.core.QueryDetail;
-import com.yahoo.elide.core.QueryLogger;
-import com.yahoo.elide.core.QueryResponse;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
+import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
+import com.yahoo.elide.datastores.aggregation.core.QueryResponse;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
@@ -87,9 +86,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 }
             }
             boolean isCached = result == null ? false : true;
-            QueryDetail qd = new QueryDetail(entityProjection.getType().getName(),
-                    queryEngine.explain(query), isCached);
-            queryLogger.processQuery(scope.getRequestId(), qd);
+            String queryText = queryEngine.explain(query);
+            queryLogger.processQuery(scope.getRequestId(), query, queryText, isCached);
             if (result == null) {
                 result = queryEngine.executeQuery(query, queryEngineTransaction);
                 if (cacheKey != null) {
@@ -129,7 +127,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void cancel() {
+    public void cancel(RequestScope scope) {
+        queryLogger.cancelQuery(scope.getRequestId());
         queryEngineTransaction.cancel();
     }
 }

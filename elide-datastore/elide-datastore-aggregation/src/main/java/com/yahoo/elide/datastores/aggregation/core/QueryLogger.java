@@ -3,7 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core;
+package com.yahoo.elide.datastores.aggregation.core;
+
+import com.yahoo.elide.datastores.aggregation.query.Query;
 
 import java.security.Principal;
 import java.util.Map;
@@ -42,9 +44,11 @@ public interface QueryLogger {
     /**
      * Processes and logs all the queries from QueryDetail
      * @param queryId The RequestScope requestId.
-     * @param qd The QueryDetail Object
+     * @param query The underlying Query
+     * @param apiQuery The output querytext
+     * @param isCached Whether the result came from a cache or not
      */
-    void processQuery(UUID queryId, QueryDetail qd);
+    void processQuery(UUID queryId, Query query, String apiQuery, boolean isCached);
 
     /**
      * Cancels all queries currently running for a particular requestId

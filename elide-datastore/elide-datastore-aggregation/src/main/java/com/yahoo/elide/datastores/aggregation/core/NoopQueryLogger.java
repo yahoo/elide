@@ -3,7 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core;
+package com.yahoo.elide.datastores.aggregation.core;
+
+import com.yahoo.elide.datastores.aggregation.query.Query;
 
 import java.security.Principal;
 import java.util.Map;
@@ -29,7 +31,7 @@ public class NoopQueryLogger implements QueryLogger {
     }
 
     @Override
-    public void processQuery(UUID queryId, QueryDetail qd) {
+    public void processQuery(UUID queryId, Query query, String apiQuery, boolean isCached) {
         //does nothing
     }
 

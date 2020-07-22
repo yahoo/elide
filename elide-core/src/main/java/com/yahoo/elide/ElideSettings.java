@@ -8,7 +8,6 @@ package com.yahoo.elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
@@ -39,5 +38,4 @@ public class ElideSettings {
     @Getter private final int defaultPageSize;
     @Getter private final int updateStatusCode;
     @Getter private final Map<Class, Serde> serdes;
-    @Getter private final QueryLogger queryLogger;
 }

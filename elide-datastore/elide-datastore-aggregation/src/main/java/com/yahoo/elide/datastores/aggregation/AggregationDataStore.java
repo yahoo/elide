@@ -9,9 +9,9 @@ import com.yahoo.elide.core.ArgumentType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
+import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -37,7 +37,7 @@ public class AggregationDataStore implements DataStore {
     @NonNull private final QueryEngine queryEngine;
     private final Cache cache;
     private final Set<Class<?>> dynamicCompiledClasses;
-    private QueryLogger queryLogger;
+    private final QueryLogger queryLogger;
 
     /**
      * These are the classes the Aggregation Store manages.
@@ -77,10 +77,5 @@ public class AggregationDataStore implements DataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         return new AggregationDataStoreTransaction(queryEngine, cache, queryLogger);
-    }
-
-    public AggregationDataStore setupCustomQueryLogger(QueryLogger logger) {
-        this.queryLogger = logger;
-        return this;
     }
 }

@@ -15,11 +15,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-import com.yahoo.elide.core.QueryLogger;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
+import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -99,7 +99,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 Mockito.eq(scope.getRequestId()),
                 any(), any(), any(), any(), any());
         Mockito.verify(queryLogger, times(1)).processQuery(
-                Mockito.eq(scope.getRequestId()), any());
+                Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(false));
         Mockito.verify(queryLogger, times(1)).completeQuery(
                 Mockito.eq(scope.getRequestId()), any());
     }
@@ -129,7 +129,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 Mockito.eq(scope.getRequestId()),
                 any(), any(), any(), any(), any());
         Mockito.verify(queryLogger, times(1)).processQuery(
-                Mockito.eq(scope.getRequestId()), any());
+                Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(true));
         Mockito.verify(queryLogger, times(1)).completeQuery(
                 Mockito.eq(scope.getRequestId()), any());
     }
@@ -163,7 +163,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 Mockito.eq(scope.getRequestId()),
                 any(), any(), any(), any(), any());
         Mockito.verify(queryLogger, times(1)).processQuery(
-                Mockito.eq(scope.getRequestId()), any());
+                Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(true));
         Mockito.verify(queryLogger, times(1)).completeQuery(
                 Mockito.eq(scope.getRequestId()), any());
     }
@@ -189,7 +189,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 Mockito.eq(scope.getRequestId()),
                 any(), any(), any(), any(), any());
         Mockito.verify(queryLogger, times(1)).processQuery(
-                Mockito.eq(scope.getRequestId()), any());
+                Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(false));
         Mockito.verify(queryLogger, times(1)).completeQuery(
                 Mockito.eq(scope.getRequestId()), any());
     }
@@ -218,7 +218,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 Mockito.eq(scope.getRequestId()),
                 any(), any(), any(), any(), any());
         Mockito.verify(queryLogger, times(1)).processQuery(
-                Mockito.eq(scope.getRequestId()), any());
+                Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(false));
         Mockito.verify(queryLogger, times(1)).completeQuery(
                 Mockito.eq(scope.getRequestId()), any());
     }
