@@ -133,6 +133,10 @@ public class DynamicConfigValidator {
     public void readAndValidateClasspathConfigs() throws IOException {
         log.info("config dir " + this.getConfigDir());
 
+        URL url = this.getClass().getClassLoader().getResource(this.configDir);
+        if (url == null) {
+            throw new IllegalStateException("Model Configs Directory doesn't exists");
+        }
         this.setVariables(DynamicConfigHelpers.stringToVariablesPojo(
                 readResource(this.configDir + Config.VARIABLE.getConfigPath())));
 

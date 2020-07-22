@@ -47,12 +47,12 @@ public class DynamicConfigValidatorTest {
         assertTrue(e.getMessage().startsWith("Missing argument for option"));
     }
 
-//    @Test
-//    public void testMissingConfigDir() {
-//        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
-//                .main(new String[] { "--configDir", "src/test/resources/validator/missing" }));
-//        assertEquals("Model Configs Directory doesn't exists", e.getMessage());
-//    }
+    @Test
+    public void testMissingConfigDir() {
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+                .main(new String[] { "--configDir", "src/test/resources/validator/missing" }));
+        assertEquals("Model Configs Directory doesn't exists", e.getMessage());
+    }
 
     @Test
     public void testValidConfigDir() {
@@ -125,5 +125,11 @@ public class DynamicConfigValidatorTest {
                 .main(new String[] { "--configDir", "src/test/resources/validator/undefined_handlebar" }));
         assertEquals(e.getMessage(),
                 "foobar is used as a variable in either table or security config files but is not defined in variables config file.");
+    }
+
+    @Test
+    public void testConfigDirParsing() {
+        DynamicConfigValidator validator = new DynamicConfigValidator("src/main/resources/validator/resources/model");
+        assertEquals("validator/resources/model/", validator.getConfigDir());
     }
 }
