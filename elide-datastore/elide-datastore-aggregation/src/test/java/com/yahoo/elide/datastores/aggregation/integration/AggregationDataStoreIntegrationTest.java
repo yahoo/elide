@@ -822,8 +822,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body(
                         "included.attributes.expression",
                         hasItems(
-                                "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
-                                "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')"));
+                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
+                                "PARSEDATETIME(FORMATDATETIME({{    }}, 'yyyy-MM-01'), 'yyyy-MM-dd')"));
     }
     @Test
     public void metricMetaDataTest() {
