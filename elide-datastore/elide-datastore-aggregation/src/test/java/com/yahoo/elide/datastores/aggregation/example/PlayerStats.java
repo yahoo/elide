@@ -41,8 +41,8 @@ import javax.persistence.Id;
 @Meta(description = "Player Statistics", category = "Sports Category")
 public class PlayerStats {
 
-    public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
-    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')";
+    public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
+    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME({{    }}, 'yyyy-MM-01'), 'yyyy-MM-dd')";
 
     /**
      * PK.
