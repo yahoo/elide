@@ -4,7 +4,6 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.datastores.aggregation.core;
-//live inside aggregation ds
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

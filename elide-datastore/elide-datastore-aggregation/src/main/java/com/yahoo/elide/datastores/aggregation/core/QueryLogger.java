@@ -19,17 +19,6 @@ import javax.ws.rs.core.MultivaluedMap;
 public interface QueryLogger {
 
     /**
-     * Accepts the incoming GraphQL query and notes the start time for the query
-     * @param queryId The RequestScope requestId.
-     * @param user The Principal user
-     * @param headers Http Request Headers
-     * @param apiVer API Version
-     * @param apiQuery QueryString of the requested URL request
-     */
-    void acceptQuery(UUID queryId, Principal user, Map<String, String> headers,
-                     String apiVer, String apiQuery);
-
-    /**
      * Accepts the incoming JSON API query and notes the start time for the query
      * @param queryId The RequestScope requestId.
      * @param user The Principal user
@@ -52,6 +41,7 @@ public interface QueryLogger {
 
     /**
      * Cancels all queries currently running for a particular requestId
+     * Implementation must be thread-safe.
      * @param queryId The RequestScope requestId.
      */
     void cancelQuery(UUID queryId);

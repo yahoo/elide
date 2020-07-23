@@ -11,6 +11,7 @@ import static com.yahoo.elide.request.Pagination.MAX_PAGE_LIMIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -20,6 +21,7 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
+import com.yahoo.elide.datastores.aggregation.core.QueryResponse;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -221,5 +223,48 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
                 Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(false));
         Mockito.verify(queryLogger, times(1)).completeQuery(
                 Mockito.eq(scope.getRequestId()), any());
+    }
+
+    @Test
+    public void loadObjectsExceptionThrownTest() throws Exception {
+        Mockito.reset(queryLogger);
+        Object result = null;
+        try {
+            query = Query.builder().table(playerStatsTable).bypassingCache(true).build();
+            SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+                    .fromClause(query.getTable().getName())
+                    .projectionClause(" ").build();
+
+            when(queryEngine.executeQuery(query, qeTransaction)).thenReturn(null);
+            when(queryEngine.explain(query)).thenReturn(myQuery.toString());
+            AggregationDataStoreTransaction transaction =
+                    new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
+            EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
+
+            transaction.loadObjects(entityProjection, scope);
+
+        } catch (Exception e) {
+                result = e.getMessage();
+        } finally {
+            Object finalResult = result;
+            Mockito.verify(queryLogger, times(1)).acceptQuery(
+                    Mockito.eq(scope.getRequestId()),
+                    any(), any(), any(), any(), any());
+            Mockito.verify(queryLogger, times(1)).processQuery(
+                    Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(false));
+            Mockito.verify(queryLogger, times(1)).completeQuery(
+                    Mockito.eq(scope.getRequestId()), any());
+            Mockito.verify(queryLogger).completeQuery(Mockito.eq(scope.getRequestId()),
+                    argThat((QueryResponse qResponse) -> qResponse.getErrorMessage() == finalResult));
+        }
+    }
+
+    @Test
+    public void aggregationQueryLoggerCancelQueryTest() {
+        Mockito.reset(queryLogger);
+        AggregationDataStoreTransaction transaction =
+                new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
+        transaction.cancel(scope);
+        Mockito.verify(queryLogger, times(1)).cancelQuery(Mockito.eq(scope.getRequestId()));
     }
 }

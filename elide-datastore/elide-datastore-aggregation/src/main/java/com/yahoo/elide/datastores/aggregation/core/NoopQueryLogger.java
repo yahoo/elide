@@ -19,12 +19,6 @@ import javax.ws.rs.core.MultivaluedMap;
 public class NoopQueryLogger implements QueryLogger {
 
     @Override
-    public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers,
-                            String apiVer, String apiQuery) {
-        //does nothing
-    }
-
-    @Override
     public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer,
                             Optional<MultivaluedMap<String, String>> queryParams, String path) {
         //does nothing
