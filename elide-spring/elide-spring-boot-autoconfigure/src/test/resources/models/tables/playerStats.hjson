@@ -42,7 +42,7 @@
                 {
                     grain :  MONTH
                     sql :  '''
-                    PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')
+                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
                     '''
                 }
                 ]
