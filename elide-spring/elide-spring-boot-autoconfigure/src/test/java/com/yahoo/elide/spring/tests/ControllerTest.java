@@ -32,7 +32,6 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
-import com.yahoo.elide.spring.models.ArtifactGroup;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -284,8 +283,6 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void graphqlTestForbiddenCreate() {
-        ArtifactGroup group = new ArtifactGroup();
-        group.setDeprecated(true);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -295,7 +292,7 @@ public class ControllerTest extends IntegrationTest {
                                         field("group",
                                                 arguments(
                                                         argument("op", "UPSERT"),
-                                                        argument("data", group)
+                                                        argument("data", "{name:\\\"Foo\\\", deprecated:true}")
                                                 ),
                                                 selections(
                                                         field("name"),

@@ -19,7 +19,6 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -1753,10 +1752,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 persistentResource.setId(id);
             } else {
                 //If expecting id to persist and id is not present, throw exception
-                throw new InvalidValueException(
-                        persistentResource.toResource(),
-                        "No id provided, cannot persist " + persistentResource.getObject()
-                );
+                throw new BadRequestException(
+                        "No id provided, cannot persist " + persistentResource.getType());
             }
         }
     }

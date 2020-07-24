@@ -46,6 +46,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import graphqlEndpointTestModels.Author;
 import graphqlEndpointTestModels.Book;
 import graphqlEndpointTestModels.DisallowShare;
+import graphqlEndpointTestModels.Incident;
 import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;
 
@@ -352,6 +353,33 @@ public class GraphQLEndpointTest {
         Response response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
         assert200DataEqual(response, expectedData);
+    }
+
+    @Test
+    void testCrypticErrorOnUpsert() throws IOException, JSONException {
+        Incident incident = new Incident();
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "incidents",
+                                arguments(
+                                        argument("op", "UPSERT"),
+                                        argument("data", incident)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        Response response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
+        JsonNode node = extract200Response(response);
+        Iterator<JsonNode> errors = node.get("errors").elements();
+        assertTrue(errors.hasNext());
+        assertTrue(errors.next().get("message").asText().contains("No id provided, cannot persist incidents"));
     }
 
     @Test
