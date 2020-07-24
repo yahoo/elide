@@ -22,7 +22,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+//import org.springframework.core.io.support.ResourcePatternUtils;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -33,13 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,7 +63,7 @@ public class DynamicConfigValidator {
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
     private static final String RESOURCES = "resources";
     private static final int RESOURCE_LENGTH = 10; //"resources/".length()
-    private static final int FILE_PREFIX_LENGTH = 5; //"file:".length()
+    private static final String TABLE_RESOURCE_PATTERN = "classpath*:models/tables/*.hjson";
 
     private ElideTableConfig elideTableConfig;
     private ElideSecurityConfig elideSecurityConfig;
@@ -144,42 +140,29 @@ public class DynamicConfigValidator {
                 readResource(this.configDir + Config.SECURITY.getConfigPath()),
                 this.variables));
 
-        this.setElideTableConfig(getTableConfig());
+        this.setElideTableConfig(getTableConfig(this.configDir + Config.TABLE.getConfigPath()));
     }
 
     /**
      * Read table config files and checks for any missing Handlebar variables.
-     * @param fs : FileSystem path to tables config
+     * @param tablePath : Path to the table config
+     * @return ElideTableConfig
      * @throws IOException
      */
-    private ElideTableConfig getTableConfig() throws IOException {
-        DirectoryStream<Path> directoryStream = null;
+    private ElideTableConfig getTableConfig(String tablePath) throws IOException {
         Set<Table> tables = new HashSet<>();
-        FileSystem fs  = null;
-        try {
-            URL url = DynamicConfigValidator.class.getClassLoader()
-                    .getResource(this.configDir + Config.TABLE.getConfigPath());
-            if (url == null) {
-                throw new IllegalStateException("Model Configs Directory doesn't exists");
-            }
-            URL jar = DynamicConfigValidator.class.getProtectionDomain().getCodeSource().getLocation();
-            Path path = Paths.get(jar.toString().substring(FILE_PREFIX_LENGTH));
-            fs = FileSystems.newFileSystem(path, null);
-            directoryStream = Files.newDirectoryStream(fs.getPath(configDir + Config.TABLE.getConfigPath()));
-            for (Path config : directoryStream) {
-                String tableConfigContent = IOUtils.toString(DynamicConfigValidator.class.getResourceAsStream(
-                        config.toString()), StandardCharsets.UTF_8);
-                validateConfigForMissingVariables(tableConfigContent, this.variables);
-                ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(tableConfigContent, variables);
-                tables.addAll(table.getTables());
-            }
-            ElideTableConfig elideTableConfig = new ElideTableConfig();
-            elideTableConfig.setTables(tables);
-            return elideTableConfig;
-        } finally {
-            directoryStream.close();
-            fs.close();
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
+        Resource[] tableResources = resolver.getResources(TABLE_RESOURCE_PATTERN);
+        for (Resource resource : tableResources) {
+            log.info("reading table config : " + tablePath + resource.getFilename());
+            String content = readResource(tablePath + resource.getFilename());
+            validateConfigForMissingVariables(content, this.variables);
+            ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(content, this.variables);
+            tables.addAll(table.getTables());
         }
+        ElideTableConfig elideTableConfig = new ElideTableConfig();
+        elideTableConfig.setTables(tables);
+        return elideTableConfig;
     }
 
     /**
