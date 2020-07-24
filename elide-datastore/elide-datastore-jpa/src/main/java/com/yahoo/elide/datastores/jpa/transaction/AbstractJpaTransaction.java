@@ -305,7 +305,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
     @Override
-    public void cancel() {
+    public void cancel(RequestScope scope) {
         jpaTransactionCancel.accept(em);
     }
 }

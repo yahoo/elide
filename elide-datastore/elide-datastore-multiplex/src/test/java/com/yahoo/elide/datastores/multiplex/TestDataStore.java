@@ -79,7 +79,7 @@ class TestDataStore implements DataStore, DataStoreTransaction {
     }
 
     @Override
-    public void cancel() {
+    public void cancel(RequestScope scope) {
         // Nothing
     }
 }
