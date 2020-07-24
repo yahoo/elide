@@ -307,7 +307,6 @@ public class ControllerTest extends IntegrationTest {
                 .when()
                 .post("/graphql")
                 .then()
-                .log().all()
                 .body("errors", contains("ForbiddenAccessException"))
                 .statusCode(200);
     }
