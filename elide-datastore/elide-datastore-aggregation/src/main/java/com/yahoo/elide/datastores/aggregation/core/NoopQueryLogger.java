@@ -6,8 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.core;
 
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.security.User;
 
-import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,7 +19,7 @@ import javax.ws.rs.core.MultivaluedMap;
 public class NoopQueryLogger implements QueryLogger {
 
     @Override
-    public void acceptQuery(UUID queryId, Principal user, Map<String, String> headers, String apiVer,
+    public void acceptQuery(UUID queryId, User user, Map<String, String> headers, String apiVer,
                             Optional<MultivaluedMap<String, String>> queryParams, String path) {
         //does nothing
     }

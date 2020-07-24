@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -228,35 +229,28 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     @Test
     public void loadObjectsExceptionThrownTest() throws Exception {
         Mockito.reset(queryLogger);
-        Object result = null;
+        String nullPointerExceptionMessage = "Cannot dereference an object with value Null";
         try {
             query = Query.builder().table(playerStatsTable).bypassingCache(true).build();
-            SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
-                    .fromClause(query.getTable().getName())
-                    .projectionClause(" ").build();
-
-            when(queryEngine.executeQuery(query, qeTransaction)).thenReturn(null);
-            when(queryEngine.explain(query)).thenReturn(myQuery.toString());
+            doThrow(new NullPointerException(nullPointerExceptionMessage))
+                    .when(queryEngine).executeQuery(query, qeTransaction);
             AggregationDataStoreTransaction transaction =
                     new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
             EntityProjection entityProjection = EntityProjection.builder().type(PlayerStats.class).build();
-
             transaction.loadObjects(entityProjection, scope);
-
         } catch (Exception e) {
-                result = e.getMessage();
-        } finally {
-            Object finalResult = result;
-            Mockito.verify(queryLogger, times(1)).acceptQuery(
-                    Mockito.eq(scope.getRequestId()),
-                    any(), any(), any(), any(), any());
-            Mockito.verify(queryLogger, times(1)).processQuery(
-                    Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(false));
-            Mockito.verify(queryLogger, times(1)).completeQuery(
-                    Mockito.eq(scope.getRequestId()), any());
-            Mockito.verify(queryLogger).completeQuery(Mockito.eq(scope.getRequestId()),
-                    argThat((QueryResponse qResponse) -> qResponse.getErrorMessage() == finalResult));
+                assertEquals(nullPointerExceptionMessage, e.getMessage());
+                Mockito.verify(queryLogger).completeQuery(Mockito.eq(scope.getRequestId()),
+                    argThat((QueryResponse qResponse) -> qResponse.getErrorMessage() == e.getMessage()));
         }
+
+        Mockito.verify(queryLogger, times(1)).acceptQuery(
+                Mockito.eq(scope.getRequestId()),
+                any(), any(), any(), any(), any());
+        Mockito.verify(queryLogger, times(1)).processQuery(
+                Mockito.eq(scope.getRequestId()), any(), any(), Mockito.eq(false));
+        Mockito.verify(queryLogger, times(1)).completeQuery(
+                Mockito.eq(scope.getRequestId()), any());
     }
 
     @Test

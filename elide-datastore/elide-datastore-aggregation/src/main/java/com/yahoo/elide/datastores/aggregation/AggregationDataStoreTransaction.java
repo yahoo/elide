@@ -23,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.ToString;
 
 import java.io.IOException;
-import java.security.Principal;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
@@ -74,8 +73,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         QueryResponse response = null;
         String cacheKey = null;
         try {
-            Principal user = scope.getUser() == null ? null : scope.getUser().getPrincipal();
-            queryLogger.acceptQuery(scope.getRequestId(), user, scope.getHeaders(),
+            queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), scope.getHeaders(),
                     scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
             Query query = buildQuery(entityProjection, scope);
             if (cache != null && !query.isBypassingCache()) {
