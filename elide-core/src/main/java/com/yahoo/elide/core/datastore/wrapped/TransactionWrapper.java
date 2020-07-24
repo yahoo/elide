@@ -126,7 +126,7 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public void cancel() {
-        tx.cancel();
+    public void cancel(RequestScope scope) {
+        tx.cancel(scope);
     }
 }
