@@ -19,6 +19,8 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
+import com.yahoo.elide.datastores.aggregation.core.NoopQueryLogger;
+import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -35,6 +37,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
@@ -180,9 +183,13 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory, QueryEngine queryEngine,
-            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings,
-            @Autowired(required = false) Cache cache)
+    @DependsOn({"buildQueryLogger"})
+    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
+                                    QueryEngine queryEngine,
+                                    ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler,
+                                    ElideConfigProperties settings,
+                                    @Autowired(required = false) Cache cache,
+                                    @Autowired(required = false) QueryLogger querylogger)
             throws ClassNotFoundException {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
                 .queryEngine(queryEngine);
@@ -193,6 +200,7 @@ public class ElideAutoConfiguration {
             aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
         }
         aggregationDataStoreBuilder.cache(cache);
+        aggregationDataStoreBuilder.queryLogger(querylogger);
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
         JpaDataStore jpaDataStore = new JpaDataStore(entityManagerFactory::createEntityManager,
@@ -218,6 +226,16 @@ public class ElideAutoConfiguration {
             }
         }
         return cache;
+    }
+
+    /**
+     * Creates a querylogger to be used by {@link #buildDataStore} for aggregation
+     * @return The default Noop QueryLogger.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public QueryLogger buildQueryLogger() {
+        return new NoopQueryLogger();
     }
 
     /**

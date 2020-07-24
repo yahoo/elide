@@ -189,7 +189,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void cancel() {
+    public void cancel(RequestScope scope) {
         //nothing to cancel in HashMap store transaction
     }
 }

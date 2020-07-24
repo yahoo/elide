@@ -24,6 +24,7 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
+import com.yahoo.elide.datastores.aggregation.core.NoopQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -419,7 +420,7 @@ public interface ElideStandaloneSettings {
     default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
             Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
-                .queryEngine(queryEngine);
+                .queryEngine(queryEngine).queryLogger(new NoopQueryLogger());
 
         if (enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);

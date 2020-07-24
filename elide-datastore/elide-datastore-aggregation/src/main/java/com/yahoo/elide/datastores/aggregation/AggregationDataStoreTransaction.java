@@ -6,9 +6,13 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
+import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
+import com.yahoo.elide.datastores.aggregation.core.QueryResponse;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
@@ -19,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.ToString;
 
 import java.io.IOException;
+
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
@@ -27,11 +32,14 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private final QueryEngine queryEngine;
     private final Cache cache;
     private final QueryEngine.Transaction queryEngineTransaction;
+    private final QueryLogger queryLogger;
 
-    public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache) {
+    public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache,
+                                           QueryLogger queryLogger) {
         this.queryEngine = queryEngine;
         this.cache = cache;
         this.queryEngineTransaction = queryEngine.beginTransaction();
+        this.queryLogger = queryLogger;
     }
 
     @Override
@@ -61,27 +69,43 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
-        Query query = buildQuery(entityProjection, scope);
         QueryResult result = null;
-
+        QueryResponse response = null;
         String cacheKey = null;
-        if (cache != null && !query.isBypassingCache()) {
-            String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
-            if (tableVersion != null) {
-                cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
-                result = cache.get(cacheKey);
+        try {
+            queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), scope.getHeaders(),
+                    scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
+            Query query = buildQuery(entityProjection, scope);
+            if (cache != null && !query.isBypassingCache()) {
+                String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
+                if (tableVersion != null) {
+                    cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
+                    result = cache.get(cacheKey);
+                }
             }
-        }
-        if (result == null) {
-            result = queryEngine.executeQuery(query, queryEngineTransaction);
-            if (cacheKey != null) {
-                cache.put(cacheKey, result);
+            boolean isCached = result == null ? false : true;
+            String queryText = queryEngine.explain(query);
+            queryLogger.processQuery(scope.getRequestId(), query, queryText, isCached);
+            if (result == null) {
+                result = queryEngine.executeQuery(query, queryEngineTransaction);
+                if (cacheKey != null) {
+                    cache.put(cacheKey, result);
+                }
             }
+            if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
+                entityProjection.getPagination().setPageTotals(result.getPageTotals());
+            }
+            response = new QueryResponse(HttpStatus.SC_OK, result.getData(), null);
+            return result.getData();
+        } catch (HttpStatusException e) {
+            response = new QueryResponse(e.getStatus(), null, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            response = new QueryResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, null, e.getMessage());
+            throw e;
+        } finally {
+            queryLogger.completeQuery(scope.getRequestId(), response);
         }
-        if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
-            entityProjection.getPagination().setPageTotals(result.getPageTotals());
-        }
-        return result.getData();
     }
 
     @Override
@@ -101,7 +125,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void cancel() {
+    public void cancel(RequestScope scope) {
+        queryLogger.cancelQuery(scope.getRequestId());
         queryEngineTransaction.cancel();
     }
 }
