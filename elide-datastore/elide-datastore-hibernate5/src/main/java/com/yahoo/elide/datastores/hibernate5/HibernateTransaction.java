@@ -302,7 +302,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void cancel() {
+    public void cancel(RequestScope scope) {
         session.cancelQuery();
     }
 }
