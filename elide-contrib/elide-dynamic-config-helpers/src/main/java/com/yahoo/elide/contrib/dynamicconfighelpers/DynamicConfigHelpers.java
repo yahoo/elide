@@ -125,8 +125,8 @@ public class DynamicConfigHelpers {
                 new String[] {"hjson"}, false);
         Set<Table> tables = new HashSet<>();
         for (File tableConfig : tableConfigs) {
-            ElideTableConfig table;
-            table = stringToElideTablePojo(readConfigFile(tableConfig), variables);
+            ElideTableConfig table = stringToElideTablePojo(
+                    readConfigFile(tableConfig), variables);
             tables.addAll(table.getTables());
         }
         ElideTableConfig elideTableConfig = new ElideTableConfig();
@@ -166,7 +166,7 @@ public class DynamicConfigHelpers {
      */
     public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
             throws IOException {
-        ElideSecurityConfig security = null;
+        ElideSecurityConfig security = new ElideSecurityConfig();
         String filePath = basePath + Config.SECURITY.getConfigPath();
         File securityFile = new File(filePath);
         if (securityFile.exists()) {

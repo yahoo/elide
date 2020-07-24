@@ -25,7 +25,6 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-//import org.springframework.core.io.support.ResourcePatternUtils;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +62,8 @@ public class DynamicConfigValidator {
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
     private static final String RESOURCES = "resources";
     private static final int RESOURCE_LENGTH = 10; //"resources/".length()
-    private static final String TABLE_RESOURCE_PATTERN = "classpath*:models/tables/*.hjson";
+    private static final String CLASSPATH_PATTERN = "classpath*:";
+    private static final String HJSON_EXTN = "*.hjson";
 
     private ElideTableConfig elideTableConfig;
     private ElideSecurityConfig elideSecurityConfig;
@@ -128,19 +128,29 @@ public class DynamicConfigValidator {
      */
     public void readAndValidateClasspathConfigs() throws IOException {
         log.info("config dir " + this.getConfigDir());
+        configExists();
 
+        String variableConfig = readResource(this.configDir + Config.VARIABLE.getConfigPath());
+        if (variableConfig != null) {
+            this.variables = DynamicConfigHelpers.stringToVariablesPojo(variableConfig);
+        }
+        String securityConfig = readResource(this.configDir + Config.SECURITY.getConfigPath());
+        if (securityConfig != null) {
+            this.setElideSecurityConfig(DynamicConfigHelpers.stringToElideSecurityPojo(securityConfig, this.variables));
+            validateRoleInSecurityConfig(this.getElideSecurityConfig());
+        }
+        this.setElideTableConfig(getTableConfig(this.configDir + Config.TABLE.getConfigPath()));
+        validateSqlInTableConfig(this.getElideTableConfig());
+    }
+
+    /**
+     * Check if the config exists in classpath.
+     */
+    private void configExists() {
         URL url = this.getClass().getClassLoader().getResource(this.configDir);
         if (url == null) {
             throw new IllegalStateException("Model Configs Directory doesn't exists");
         }
-        this.setVariables(DynamicConfigHelpers.stringToVariablesPojo(
-                readResource(this.configDir + Config.VARIABLE.getConfigPath())));
-
-        this.setElideSecurityConfig(DynamicConfigHelpers.stringToElideSecurityPojo(
-                readResource(this.configDir + Config.SECURITY.getConfigPath()),
-                this.variables));
-
-        this.setElideTableConfig(getTableConfig(this.configDir + Config.TABLE.getConfigPath()));
     }
 
     /**
@@ -152,7 +162,7 @@ public class DynamicConfigValidator {
     private ElideTableConfig getTableConfig(String tablePath) throws IOException {
         Set<Table> tables = new HashSet<>();
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
-        Resource[] tableResources = resolver.getResources(TABLE_RESOURCE_PATTERN);
+        Resource[] tableResources = resolver.getResources(CLASSPATH_PATTERN + tablePath + HJSON_EXTN);
         for (Resource resource : tableResources) {
             log.info("reading table config : " + tablePath + resource.getFilename());
             String content = readResource(tablePath + resource.getFilename());
@@ -177,11 +187,18 @@ public class DynamicConfigValidator {
         String content = null;
         try {
             stream = this.getClass().getClassLoader().getResourceAsStream(resourcePath);
+            if (stream == null) {
+                return null;
+            }
             reader = new BufferedReader(new InputStreamReader(stream));
             content =  reader.lines().collect(Collectors.joining(System.lineSeparator()));
         } finally {
-            stream.close();
-            reader.close();
+            if (stream != null) {
+                stream.close();
+            }
+            if (reader != null) {
+                reader.close();
+            }
         }
         return content;
     }
