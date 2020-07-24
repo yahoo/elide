@@ -284,8 +284,6 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void graphqlTestForbiddenCreate() {
-        ArtifactGroup group = new ArtifactGroup();
-        group.setDeprecated(true);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -295,7 +293,7 @@ public class ControllerTest extends IntegrationTest {
                                         field("group",
                                                 arguments(
                                                         argument("op", "UPSERT"),
-                                                        argument("data", group)
+                                                        argument("data", "{name:\\\"Foo\\\", deprecated:true}")
                                                 ),
                                                 selections(
                                                         field("name"),
@@ -310,6 +308,7 @@ public class ControllerTest extends IntegrationTest {
                 .when()
                 .post("/graphql")
                 .then()
+                .log().all()
                 .body("errors", contains("ForbiddenAccessException"))
                 .statusCode(200);
     }
