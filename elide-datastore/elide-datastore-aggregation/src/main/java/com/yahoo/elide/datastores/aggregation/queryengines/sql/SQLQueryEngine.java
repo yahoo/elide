@@ -228,6 +228,11 @@ public class SQLQueryEngine extends QueryEngine {
         return tableVersion;
     }
 
+    @Override
+    public String explain(Query query) {
+        return toSQL(query).toString();
+    }
+
     /**
      * Translates the client query into SQL.
      *

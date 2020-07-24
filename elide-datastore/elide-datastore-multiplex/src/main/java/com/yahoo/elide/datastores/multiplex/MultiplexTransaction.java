@@ -245,7 +245,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void cancel() {
-        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.cancel());
+    public void cancel(RequestScope scope) {
+        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.cancel(scope));
     }
 }

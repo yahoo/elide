@@ -193,4 +193,11 @@ public abstract class QueryEngine {
     public Table getTable(String classAlias) {
         return tables.get(classAlias);
     }
+
+    /**
+     * Explains the specified query passed in
+     * @param query The query customized for a particular persistent storage or storage client
+     * @return SQL string corresponding to the given query
+     */
+    public abstract String explain(Query query);
 }
