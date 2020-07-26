@@ -8,9 +8,9 @@ package com.yahoo.elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DefaultJSONApiLinks;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.JSONApiLinks;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
@@ -45,7 +45,7 @@ public class ElideSettingsBuilder {
     private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
-    private DefaultJSONApiLinks defaultJsonApiLinks;
+    private JSONApiLinks jsonApiLinks;
     private Map<Class, Serde> serdes;
     private int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
     private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
@@ -94,7 +94,7 @@ public class ElideSettingsBuilder {
                 permissionExecutorFunction,
                 joinFilterDialects,
                 subqueryFilterDialects,
-                defaultJsonApiLinks,
+                jsonApiLinks,
                 defaultMaxPageSize,
                 defaultPageSize,
                 useFilterExpressions,
@@ -208,9 +208,9 @@ public class ElideSettingsBuilder {
         return this;
     }
 
-    public ElideSettingsBuilder withJSONApiLinks(DefaultJSONApiLinks links) {
+    public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
         this.enableJsonLinks = true;
-        this.defaultJsonApiLinks = links;
+        this.jsonApiLinks = links;
         return this;
     }
 }

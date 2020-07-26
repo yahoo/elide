@@ -7,8 +7,8 @@ package com.yahoo.elide;
 
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DefaultJSONApiLinks;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.JSONApiLinks;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
@@ -35,7 +35,7 @@ public class ElideSettings {
     @Getter private final Function<RequestScope, PermissionExecutor> permissionExecutor;
     @Getter private final List<JoinFilterDialect> joinFilterDialects;
     @Getter private final List<SubqueryFilterDialect> subqueryFilterDialects;
-    @Getter private final DefaultJSONApiLinks defaultJsonApiLinks;
+    @Getter private final JSONApiLinks jsonApiLinks;
     @Getter private final int defaultMaxPageSize;
     @Getter private final int defaultPageSize;
     @Getter private final boolean useFilterExpressions;

@@ -1207,7 +1207,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         resource.setRelationships(relationshipSupplier.get());
         resource.setAttributes(attributeSupplier.get());
         if (requestScope.getElideSettings().isEnableJsonLinks()) {
-            resource.setLinks(requestScope.getElideSettings().getDefaultJsonApiLinks().getResourceLevelLinks(this));
+            resource.setLinks(requestScope.getElideSettings().getJsonApiLinks().getResourceLevelLinks(this));
         }
         return resource;
     }
@@ -1270,7 +1270,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Map<String, String> links = null;
             if (requestScope.getElideSettings().isEnableJsonLinks()) {
                  links = requestScope.getElideSettings()
-                        .getDefaultJsonApiLinks()
+                        .getJsonApiLinks()
                         .getRelationshipLinks(this, field);
             }
             relationshipMap.put(field, new Relationship(links, data));
