@@ -51,7 +51,7 @@ public class DynamicConfigValidatorTest {
     public void testMissingConfigDir() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/missing" }));
-        assertEquals("Model Configs Directory doesn't exists", e.getMessage());
+        assertTrue(e.getMessage().startsWith("No Table configs in classpath at"));
     }
 
     @Test

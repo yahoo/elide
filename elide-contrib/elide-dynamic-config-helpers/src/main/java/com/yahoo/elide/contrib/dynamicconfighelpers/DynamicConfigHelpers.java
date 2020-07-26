@@ -7,7 +7,6 @@ package com.yahoo.elide.contrib.dynamicconfighelpers;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,14 +18,15 @@ import org.hjson.JsonValue;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 /**
@@ -59,24 +59,6 @@ public class DynamicConfigHelpers {
     }
 
     /**
-     * converts variable.hjson to map of variables.
-     * @param basePath : root path to model dir
-     * @return Map of variables
-     * @throws IOException
-     */
-    public static Map<String, Object> getVariablesPojo(String basePath) throws IOException {
-        Map<String, Object> variables = new HashMap<>();
-        String filePath = basePath + Config.VARIABLE.getConfigPath();
-        File variableFile = new File(filePath);
-        if (variableFile.exists()) {
-            return stringToVariablesPojo(readConfigFile(variableFile));
-        } else {
-            log.info("Variables config file not found at " + filePath);
-        }
-        return variables;
-    }
-
-    /**
      * converts variables hjson string to map of variables.
      * @param config
      * @return Map of Variables
@@ -100,41 +82,6 @@ public class DynamicConfigHelpers {
     }
 
     /**
-     * converts all available table config to ElideTableConfig Pojo.
-     * @param basePath : root path to model dir
-     * @param variables : variables to resolve.
-     * @return ElideTableConfig pojo
-     * @throws IOException
-     */
-    public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables)
-            throws IOException {
-        return getElideTablePojo(basePath, variables, Config.TABLE.getConfigPath());
-    }
-
-    /**
-     * converts all available table config to ElideTableConfig Pojo.
-     * @param basePath : root path to model dir
-     * @param variables : variables to resolve.
-     * @param tableDirName : dir name for table configs
-     * @return ElideTableConfig pojo
-     * @throws IOException
-     */
-    public static ElideTableConfig getElideTablePojo(String basePath, Map<String, Object> variables,
-            String tableDirName) throws IOException {
-        Collection<File> tableConfigs = FileUtils.listFiles(new File(basePath + tableDirName),
-                new String[] {"hjson"}, false);
-        Set<Table> tables = new HashSet<>();
-        for (File tableConfig : tableConfigs) {
-            ElideTableConfig table = stringToElideTablePojo(
-                    readConfigFile(tableConfig), variables);
-            tables.addAll(table.getTables());
-        }
-        ElideTableConfig elideTableConfig = new ElideTableConfig();
-        elideTableConfig.setTables(tables);
-        return elideTableConfig;
-    }
-
-    /**
      * Generates ElideTableConfig Pojo from input String.
      * @param content : input string
      * @param variables : variables to resolve.
@@ -155,26 +102,6 @@ public class DynamicConfigHelpers {
             throw new IOException(e);
         }
         return table;
-    }
-
-    /**
-     * converts security.hjson to ElideSecurityConfig Pojo.
-     * @param basePath : root path to model dir.
-     * @param variables : variables to resolve.
-     * @return ElideSecurityConfig Pojo
-     * @throws IOException
-     */
-    public static ElideSecurityConfig getElideSecurityPojo(String basePath, Map<String, Object> variables)
-            throws IOException {
-        ElideSecurityConfig security = new ElideSecurityConfig();
-        String filePath = basePath + Config.SECURITY.getConfigPath();
-        File securityFile = new File(filePath);
-        if (securityFile.exists()) {
-            security = stringToElideSecurityPojo(readConfigFile(securityFile), variables);
-        } else {
-            log.info("Security config file not found at " + filePath);
-        }
-        return security;
     }
 
     /**
@@ -228,6 +155,34 @@ public class DynamicConfigHelpers {
             log.error(e.getMessage());
         }
         return sb.toString();
+    }
+
+    /**
+     * Read config from classpath.
+     * @param resourcePath : path to resource
+     * @return content of resource
+     * @throws IOException
+     */
+    public static String readResource(String resourcePath) throws IOException {
+        InputStream stream = null;
+        BufferedReader reader = null;
+        String content = null;
+        try {
+            stream = DynamicConfigHelpers.class.getClassLoader().getResourceAsStream(resourcePath);
+            if (stream == null) {
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(stream));
+            content =  reader.lines().collect(Collectors.joining(System.lineSeparator()));
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+            if (reader != null) {
+                reader.close();
+            }
+        }
+        return content;
     }
 
     private static String hjsonToJson(String hjson) {

@@ -29,12 +29,8 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -108,99 +103,15 @@ public class DynamicConfigValidator {
      * @throws IOException IOException
      */
     public void readAndValidateConfigs() throws IOException {
-
-        if (this.configInClassPath) {
-            readAndValidateClasspathConfigs();
-        } else {
-            this.readVariableConfig();
-            if (this.readSecurityConfig()) {
-                validateRoleInSecurityConfig(this.getElideSecurityConfig());
-            }
-            if (this.readTableConfig()) {
-                validateSqlInTableConfig(this.getElideTableConfig());
-            }
+        this.readVariableConfig();
+        this.readSecurityConfig();
+        if (this.isConfigInClassPath()) {
+            this.readClasspathTableConfig();
         }
-    }
-
-    /**
-     * Read and validate config files under resources.
-     * @throws IOException
-     */
-    public void readAndValidateClasspathConfigs() throws IOException {
-        log.info("config dir " + this.getConfigDir());
-        configExists();
-
-        String variableConfig = readResource(this.configDir + Config.VARIABLE.getConfigPath());
-        if (variableConfig != null) {
-            this.variables = DynamicConfigHelpers.stringToVariablesPojo(variableConfig);
+        else {
+            this.readTableConfig();
         }
-        String securityConfig = readResource(this.configDir + Config.SECURITY.getConfigPath());
-        if (securityConfig != null) {
-            this.setElideSecurityConfig(DynamicConfigHelpers.stringToElideSecurityPojo(securityConfig, this.variables));
-            validateRoleInSecurityConfig(this.getElideSecurityConfig());
-        }
-        this.setElideTableConfig(getTableConfig(this.configDir + Config.TABLE.getConfigPath()));
-        validateSqlInTableConfig(this.getElideTableConfig());
-    }
-
-    /**
-     * Check if the config exists in classpath.
-     */
-    private void configExists() {
-        URL url = this.getClass().getClassLoader().getResource(this.configDir);
-        if (url == null) {
-            throw new IllegalStateException("Model Configs Directory doesn't exists");
-        }
-    }
-
-    /**
-     * Read table config files and checks for any missing Handlebar variables.
-     * @param tablePath : Path to the table config
-     * @return ElideTableConfig
-     * @throws IOException
-     */
-    private ElideTableConfig getTableConfig(String tablePath) throws IOException {
-        Set<Table> tables = new HashSet<>();
-        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
-        Resource[] tableResources = resolver.getResources(CLASSPATH_PATTERN + tablePath + HJSON_EXTN);
-        for (Resource resource : tableResources) {
-            log.info("reading table config : " + tablePath + resource.getFilename());
-            String content = readResource(tablePath + resource.getFilename());
-            validateConfigForMissingVariables(content, this.variables);
-            ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(content, this.variables);
-            tables.addAll(table.getTables());
-        }
-        ElideTableConfig elideTableConfig = new ElideTableConfig();
-        elideTableConfig.setTables(tables);
-        return elideTableConfig;
-    }
-
-    /**
-     * Read config from classpath.
-     * @param resourcePath : path to resource
-     * @return content of resource
-     * @throws IOException
-     */
-    private String readResource(String resourcePath) throws IOException {
-        InputStream stream = null;
-        BufferedReader reader = null;
-        String content = null;
-        try {
-            stream = this.getClass().getClassLoader().getResourceAsStream(resourcePath);
-            if (stream == null) {
-                return null;
-            }
-            reader = new BufferedReader(new InputStreamReader(stream));
-            content =  reader.lines().collect(Collectors.joining(System.lineSeparator()));
-        } finally {
-            if (stream != null) {
-                stream.close();
-            }
-            if (reader != null) {
-                reader.close();
-            }
-        }
-        return content;
+        validateSqlInTableConfig(this.elideTableConfig);
     }
 
     /**
@@ -208,11 +119,15 @@ public class DynamicConfigValidator {
      * @return boolean true if variable config file exists else false
      * @throws IOException
      */
-    private boolean readVariableConfig() throws IOException {
-        boolean isVariableConfig = new File(this.configDir + Config.VARIABLE.getConfigPath()).exists();
-        this.variables = isVariableConfig ? DynamicConfigHelpers.getVariablesPojo(this.configDir)
-                : Collections.<String, Object>emptyMap();
-        return isVariableConfig;
+    private void readVariableConfig() throws IOException {
+        String variableConfigPath = this.configDir + Config.VARIABLE.getConfigPath();
+        File variableFile = new File(variableConfigPath);
+        String variableConfigContent = this.isConfigInClassPath()
+                ? DynamicConfigHelpers.readResource(variableConfigPath)
+                : (variableFile.exists() ? DynamicConfigHelpers.readConfigFile(variableFile) : null);
+
+        this.setVariables(variableConfigContent == null ? Collections.<String, Object>emptyMap()
+            : DynamicConfigHelpers.stringToVariablesPojo(variableConfigContent));
     }
 
     /**
@@ -220,16 +135,19 @@ public class DynamicConfigValidator {
      * @return boolean true if security config file exists else false
      * @throws IOException
      */
-    private boolean readSecurityConfig() throws IOException {
+    private void readSecurityConfig() throws IOException {
         String securityConfigPath = this.configDir + Config.SECURITY.getConfigPath();
-        boolean isSecurityConfig = new File(securityConfigPath).exists();
-        if (isSecurityConfig) {
-            String securityConfigContent = DynamicConfigHelpers.readConfigFile(new File(securityConfigPath));
-            validateConfigForMissingVariables(securityConfigContent, this.variables);
-            this.elideSecurityConfig = DynamicConfigHelpers.stringToElideSecurityPojo(securityConfigContent,
-                    this.variables);
+        File securityFile = new File(securityConfigPath);
+        String securityConfigContent = this.isConfigInClassPath()
+                ? DynamicConfigHelpers.readResource(securityConfigPath)
+                : (securityFile.exists() ? DynamicConfigHelpers.readConfigFile(securityFile) : null);
+
+        if (securityConfigContent != null) {
+             validateConfigForMissingVariables(securityConfigContent, this.variables);
+             this.setElideSecurityConfig(DynamicConfigHelpers.stringToElideSecurityPojo(securityConfigContent,
+                     this.variables));
+             validateRoleInSecurityConfig(this.getElideSecurityConfig());
         }
-        return isSecurityConfig;
     }
 
     /**
@@ -237,7 +155,7 @@ public class DynamicConfigValidator {
      * @return boolean true if table config directory exists else false
      * @throws IOException
      */
-    private boolean readTableConfig() throws IOException {
+    private void readTableConfig() throws IOException {
         String tableConfigsPath = this.configDir + Config.TABLE.getConfigPath();
         boolean isTableConfig = new File(tableConfigsPath).exists();
         if (isTableConfig) {
@@ -259,7 +177,33 @@ public class DynamicConfigValidator {
         } else {
             throw new IllegalStateException("Table Configs Directory doesn't exists at location: " + tableConfigsPath);
         }
-        return isTableConfig;
+    }
+
+    /**
+     * Read table config files and checks for any missing Handlebar variables.
+     * @param tablePath : Path to the table config
+     * @return ElideTableConfig
+     * @throws IOException
+     */
+    private void readClasspathTableConfig() throws IOException {
+        String tablePath = this.configDir + Config.TABLE.getConfigPath();
+        Set<Table> tables = new HashSet<>();
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
+        Resource[] tableResources = resolver.getResources(CLASSPATH_PATTERN + tablePath + HJSON_EXTN);
+        if (tableResources.length == 0) {
+            throw new IllegalStateException("No Table configs in classpath at: "
+                    + CLASSPATH_PATTERN + tablePath + HJSON_EXTN);
+        }
+        for (Resource resource : tableResources) {
+            log.info("reading table config : " + tablePath + resource.getFilename());
+            String content = DynamicConfigHelpers.readResource(tablePath + resource.getFilename());
+            validateConfigForMissingVariables(content, this.variables);
+            ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(content, this.variables);
+            tables.addAll(table.getTables());
+        }
+        ElideTableConfig elideTableConfig = new ElideTableConfig();
+        elideTableConfig.setTables(tables);
+        this.elideTableConfig = elideTableConfig;
     }
 
     /**

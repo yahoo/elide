@@ -14,41 +14,34 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 public class DynamicConfigHelpersTest {
 
     @Test
     public void testValidSecuritySchema() throws IOException {
-        String path = "src/test/resources/security/valid";
+        String path = "src/test/resources/security/valid/security.hjson";
         File file = new File(path);
-        String absolutePath = file.getAbsolutePath();
-        Map<String, Object> vars =  DynamicConfigHelpers.getVariablesPojo(
-                DynamicConfigHelpers.formatFilePath(absolutePath));
-        ElideSecurityConfig config =  DynamicConfigHelpers.getElideSecurityPojo(
-                DynamicConfigHelpers.formatFilePath(absolutePath), vars);
+        ElideSecurityConfig config =  DynamicConfigHelpers.stringToElideSecurityPojo(
+                DynamicConfigHelpers.readConfigFile(file), Collections.emptyMap());
         assertNotNull(config);
     }
 
     @Test
     public void testValidVariableSchema() throws IOException {
-        String path = "src/test/resources/variables/valid";
+        String path = "src/test/resources/variables/valid/variables.hjson";
         File file = new File(path);
-        String absolutePath = file.getAbsolutePath();
-        Map<String, Object> config =  DynamicConfigHelpers.getVariablesPojo(
-                DynamicConfigHelpers.formatFilePath(absolutePath));
+        String content = DynamicConfigHelpers.readConfigFile(file);
+        Map<String, Object> config =  DynamicConfigHelpers.stringToVariablesPojo(content);
         assertNotNull(config);
     }
 
     @Test
     public void testValidTableSchema() throws IOException {
-        String path = "src/test/resources/tables";
-        File file = new File(path);
-        String absolutePath = file.getAbsolutePath();
-        Map<String, Object> vars =  DynamicConfigHelpers.getVariablesPojo(
-                DynamicConfigHelpers.formatFilePath(absolutePath));
-        ElideTableConfig config =  DynamicConfigHelpers.getElideTablePojo(
-                DynamicConfigHelpers.formatFilePath(absolutePath), vars, "valid/");
+        String path = "src/test/resources/tables/valid/table.hjson";
+        String tableContent = DynamicConfigHelpers.readConfigFile(new File(path));
+        ElideTableConfig config =  DynamicConfigHelpers.stringToElideTablePojo(tableContent, Collections.emptyMap());
         assertNotNull(config);
     }
 }
