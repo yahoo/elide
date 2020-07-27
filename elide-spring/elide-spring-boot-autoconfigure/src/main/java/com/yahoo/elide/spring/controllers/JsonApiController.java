@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,7 +61,11 @@ public class JsonApiController {
                                            HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
-        ElideResponse response = elide.get(pathname, new MultivaluedHashMap<>(allRequestParams), authentication);
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+                + settings.getJsonApi().getPath() + "/";
+
+        ElideResponse response = elide
+                .get(baseUrl, pathname, new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
@@ -70,8 +75,11 @@ public class JsonApiController {
                                             HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
 
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+                + settings.getJsonApi().getPath() + "/";
+
         ElideResponse response = elide
-                .post(pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
+                .post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 

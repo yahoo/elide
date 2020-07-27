@@ -162,9 +162,25 @@ public class Elide {
      * @return Elide response object
      */
     public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
+        return get(null, path, queryParams, opaqueUser);
+
+    }
+
+    /**
+     * Handle GET.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @return Elide response object
+     */
+    public ElideResponse get(String baseUrlEndPoint, String path,
+                             MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
+            RequestScope requestScope = new RequestScope(
+                    baseUrlEndPoint, path, jsonApiDoc, tx, user, queryParams, elideSettings);
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -194,9 +210,25 @@ public class Elide {
      */
     public ElideResponse post(String path, String jsonApiDocument,
                               MultivaluedMap<String, String> queryParams, Object opaqueUser) {
+        return post(null, path, jsonApiDocument, queryParams, opaqueUser);
+    }
+
+    /**
+     * Handle POST.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param opaqueUser the opaque user
+     * @return Elide response object
+     */
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
+                              MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
+            RequestScope requestScope = new RequestScope(
+                    baseUrlEndPoint, path, jsonApiDoc, tx, user, queryParams, elideSettings);
             BaseVisitor visitor = new PostVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });

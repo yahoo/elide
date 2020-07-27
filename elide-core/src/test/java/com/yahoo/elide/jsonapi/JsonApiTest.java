@@ -62,7 +62,7 @@ public class JsonApiTest {
         dictionary.bindInitializer(Parent::doInit, Parent.class);
         mapper = new JsonApiMapper(dictionary);
         AuditLogger testLogger = new TestAuditLogger();
-        userScope = new RequestScope(null, new JsonApiDocument(),
+        userScope = new RequestScope("http://localhost:8080/json/", null, new JsonApiDocument(),
                 mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS), new User(0), null,
                 new ElideSettingsBuilder(null)
                         .withJsonApiMapper(mapper)
@@ -99,12 +99,12 @@ public class JsonApiTest {
                 + "\"attributes\":{\"firstName\":null},"
                 + "\"relationships\":{"
                 +   "\"children\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/children\",\"related\":\"parent/123/children\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
                 +       "\"data\":[]},"
                 +   "\"spouses\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/spouses\",\"related\":\"parent/123/spouses\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
                 +       "\"data\":[]}},"
-                + "\"links\":{\"self\":\"parent/123\"}}}";
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}}}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -134,12 +134,12 @@ public class JsonApiTest {
                 + "\"attributes\":{\"firstName\":\"bob\"},"
                 + "\"relationships\":{"
                 +   "\"children\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/children\",\"related\":\"parent/123/children\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
                 +       "\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},"
                 +   "\"spouses\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/spouses\",\"related\":\"parent/123/spouses\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
                 +       "\"data\":[]}},"
-                + "\"links\":{\"self\":\"parent/123\"}}}";
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}}}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -172,24 +172,24 @@ public class JsonApiTest {
                 + "\"attributes\":{\"firstName\":\"bob\"},"
                 + "\"relationships\":{"
                 +   "\"children\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/children\",\"related\":\"parent/123/children\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
                 +       "\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},"
                 +   "\"spouses\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/spouses\",\"related\":\"parent/123/spouses\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
                 +       "\"data\":[]}},"
-                + "\"links\":{\"self\":\"parent/123\"}},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}},"
                 + "\"included\":[{"
                 +   "\"type\":\"child\","
                 +   "\"id\":\"2\","
                 +   "\"attributes\":{\"name\":null},"
                 +   "\"relationships\":{"
                 +       "\"friends\":{"
-                +           "\"links\":{\"self\":\"parent/123child/2/relationships/friends\",\"related\":\"parent/123child/2/friends\"},"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/friends\",\"related\":\"http://localhost:8080/json/parent/123child/2/friends\"},"
                 +           "\"data\":[]},"
                 +       "\"parents\":{"
-                +           "\"links\":{\"self\":\"parent/123child/2/relationships/parents\",\"related\":\"parent/123child/2/parents\"},"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/parents\",\"related\":\"http://localhost:8080/json/parent/123child/2/parents\"},"
                 +           "\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}},"
-                +   "\"links\":{\"self\":\"parent/123child/2\"}}]}";
+                +   "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2\"}}]}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -221,12 +221,12 @@ public class JsonApiTest {
                 + "\"attributes\":{\"firstName\":\"bob\"},"
                 + "\"relationships\":{"
                 +   "\"children\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/children\",\"related\":\"parent/123/children\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
                 +       "\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},"
                 +   "\"spouses\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/spouses\",\"related\":\"parent/123/spouses\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
                 +       "\"data\":[]}},"
-                + "\"links\":{\"self\":\"parent/123\"}}]}";
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}}]}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -261,24 +261,24 @@ public class JsonApiTest {
                 + "\"attributes\":{\"firstName\":\"bob\"},"
                 + "\"relationships\":{"
                 +   "\"children\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/children\",\"related\":\"parent/123/children\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
                 +       "\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},"
                 +   "\"spouses\":{"
-                +       "\"links\":{\"self\":\"parent/123/relationships/spouses\",\"related\":\"parent/123/spouses\"},"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
                 +       "\"data\":[]}},"
-                + "\"links\":{\"self\":\"parent/123\"}}],"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}}],"
                 + "\"included\":[{"
                 +   "\"type\":\"child\","
                 +   "\"id\":\"2\","
                 +   "\"attributes\":{\"name\":null},"
                 +   "\"relationships\":{"
                 +       "\"friends\":{"
-                +           "\"links\":{\"self\":\"parent/123child/2/relationships/friends\",\"related\":\"parent/123child/2/friends\"},"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/friends\",\"related\":\"http://localhost:8080/json/parent/123child/2/friends\"},"
                 +           "\"data\":[]},"
                 +       "\"parents\":{"
-                +           "\"links\":{\"self\":\"parent/123child/2/relationships/parents\",\"related\":\"parent/123child/2/parents\"},"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/parents\",\"related\":\"http://localhost:8080/json/parent/123child/2/parents\"},"
                 +           "\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}},"
-                +   "\"links\":{\"self\":\"parent/123child/2\"}}]"
+                +   "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2\"}}]"
                 + "}";
 
         Data<Resource> data = jsonApiDocument.getData();

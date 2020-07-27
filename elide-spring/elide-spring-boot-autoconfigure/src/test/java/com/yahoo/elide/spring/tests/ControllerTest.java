@@ -50,11 +50,13 @@ import javax.ws.rs.core.MediaType;
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
         statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
 public class ControllerTest extends IntegrationTest {
+    private String hostname = "localhost";
     /**
      * This test demonstrates an example test using the JSON-API DSL.
      */
     @Test
     public void jsonApiGetTest() {
+        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         when()
                 .get("/json/group")
                 .then()
@@ -69,14 +71,14 @@ public class ControllerTest extends IntegrationTest {
                                                 attr("description", "The code for this project")
                                         ),
                                         links(
-                                                attr("self", "group/com.example.repository")
+                                                attr("self", baseUrl + "group/com.example.repository")
                                         ),
                                         relationships(
                                                 relation(
                                                         "products",
                                                         links(
-                                                                attr("self", "group/com.example.repository/relationships/products"),
-                                                                attr("related", "group/com.example.repository/products")
+                                                                attr("self", baseUrl + "group/com.example.repository/relationships/products"),
+                                                                attr("related", baseUrl + "group/com.example.repository/products")
                                                         )
                                                 )
                                         )
@@ -88,6 +90,7 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPatchTest() {
+        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         given()
             .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
             .body(
@@ -121,14 +124,14 @@ public class ControllerTest extends IntegrationTest {
                                                 attr("description", "The code for this project")
                                         ),
                                         links(
-                                                attr("self", "group/com.example.repository")
+                                                attr("self", baseUrl + "group/com.example.repository")
                                         ),
                                         relationships(
                                                 relation(
                                                         "products",
                                                             links(
-                                                                    attr("self", "group/com.example.repository/relationships/products"),
-                                                                    attr("related", "group/com.example.repository/products")
+                                                                    attr("self", baseUrl + "group/com.example.repository/relationships/products"),
+                                                                    attr("related", baseUrl + "group/com.example.repository/products")
                                                             )
 
                                                 )
@@ -187,6 +190,7 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPostTest() {
+        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
                 .body(
@@ -213,14 +217,14 @@ public class ControllerTest extends IntegrationTest {
                                         attr("description", "")
                                 ),
                                 links(
-                                        attr("self", "group/com.example.repository2")
+                                        attr("self", baseUrl + "group/com.example.repository2")
                                 ),
                                 relationships(
                                         relation(
                                                 "products",
                                                 links(
-                                                        attr("self", "group/com.example.repository2/relationships/products"),
-                                                        attr("related", "group/com.example.repository2/products")
+                                                        attr("self", baseUrl + "group/com.example.repository2/relationships/products"),
+                                                        attr("related", baseUrl + "group/com.example.repository2/products")
                                                 )
                                         )
                                 )

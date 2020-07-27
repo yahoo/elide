@@ -11,7 +11,6 @@ import com.yahoo.elide.Injector;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DefaultJSONApiLinks;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
@@ -54,7 +53,6 @@ public class ElideAutoConfiguration {
                 .withEntityDictionary(dictionary)
                 .withDefaultMaxPageSize(settings.getMaxPageSize())
                 .withDefaultPageSize(settings.getPageSize())
-                .withJSONApiLinks(new DefaultJSONApiLinks())
                 .withUseFilterExpressions(true)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
