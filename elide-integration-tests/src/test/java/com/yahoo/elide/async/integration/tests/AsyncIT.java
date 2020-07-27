@@ -37,6 +37,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.contrib.testhelpers.graphql.EnumFieldSerializer;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
@@ -195,7 +196,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "0")
+                                                attr("asyncAfterSeconds", "0"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())
@@ -792,7 +794,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/group?sort=genre&fields%5Bgroup%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "10")
+                                                attr("asyncAfterSeconds", "10"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())
@@ -897,7 +900,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/noread"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "10")
+                                                attr("asyncAfterSeconds", "10"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())
@@ -959,6 +963,7 @@ public class AsyncIT extends IntegrationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setPrincipalName("owner-user");
+        queryObj.setResultType(ResultType.EMBEDDED);
 
         dataStore.populateEntityDictionary(
                         new EntityDictionary(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS));

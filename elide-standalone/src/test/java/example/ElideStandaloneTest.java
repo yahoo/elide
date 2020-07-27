@@ -272,7 +272,8 @@ public class ElideStandaloneTest {
                                         attributes(
                                                 attr("query", "/post"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED")
+                                                attr("status", "QUEUED"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())

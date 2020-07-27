@@ -55,7 +55,8 @@ public class AsyncTest extends IntegrationTest {
                                                 attr("query", "/group"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "10")
+                                                attr("asyncAfterSeconds", "10"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())

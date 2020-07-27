@@ -15,13 +15,15 @@ import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.opendevl.JFlat;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
@@ -31,7 +33,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
@@ -151,14 +152,21 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      */
     protected Integer calculateRecordsJSON(String jsonStr) {
         Integer rec = null;
-        JsonElement jsonTree = JsonParser.parseString(jsonStr);
-        if (!jsonTree.isJsonObject()) {
-            return null;
-        }
-        JsonObject jsonObject = jsonTree.getAsJsonObject();
-        JsonElement jsonElement = jsonObject.get("data");
-        if (jsonElement.isJsonArray()) {
-            rec = jsonElement.getAsJsonArray().size();
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(jsonStr);
+            if (!jsonNode.isObject()) {
+                return null;
+            }
+             jsonNode = jsonNode.get("data");
+            if (jsonNode.isArray()) {
+                rec = jsonNode.size();
+            }
+
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
 
         return rec;
@@ -171,41 +179,47 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      */
     protected Integer calculateRecordsGraphQL(String jsonStr) {
         Integer rec = null;
-
         try {
-            JsonReader jsonReader = new JsonReader(new StringReader(jsonStr));
-            JsonElement jsonTree = JsonParser.parseString(jsonStr);
-            if (!jsonTree.isJsonObject()) {
+            JsonFactory factory = new JsonFactory();
+            com.fasterxml.jackson.core.JsonParser parser  = factory.createParser(jsonStr);
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(jsonStr);
+            if (!jsonNode.isObject()) {
                 return null;
             }
-            JsonObject jsonObject = jsonTree.getAsJsonObject();
-            while (jsonReader.hasNext()) {
-                JsonToken nextToken = jsonReader.peek();
+            while (!parser.isClosed()) {
+                com.fasterxml.jackson.core.JsonToken jsonToken = parser.nextToken();
 
-                if (JsonToken.BEGIN_OBJECT.equals(nextToken)) {
+                if (JsonToken.FIELD_NAME.equals(jsonToken)) {
+                    String fieldName = parser.getCurrentName();
+                    System.out.println(fieldName);
 
-                    jsonReader.beginObject();
-                    jsonObject = jsonTree.getAsJsonObject();
-
-                } else if (JsonToken.NAME.equals(nextToken)) {
-
-                    String name  =  jsonReader.nextName();
-                    jsonTree = jsonObject.get(name);
-
-                    if (name.equals("edges")) {
-                        if (jsonTree.isJsonArray()) {
-                            JsonArray jsonArray = jsonTree.getAsJsonArray();
-                            rec = jsonArray.size();
+                    if (fieldName.equals("edges")) {
+                        jsonNode = jsonNode.get(fieldName);
+                        if (jsonNode.isArray()) {
+                            rec = jsonNode.size();
                         }
                         break;
                     }
-
+                    if (jsonNode.isObject()) {
+                        jsonNode = jsonNode.get(fieldName);
+                        System.out.println(jsonNode);
+                    } else {
+                        return null;
+                    }
                 }
             }
+
+        } catch (JsonParseException e) {
+            log.error("Exception: {}", e);
+        } catch (JsonMappingException e) {
+            log.error("Exception: {}", e);
+        } catch (JsonProcessingException e) {
+            log.error("Exception: {}", e);
         } catch (IOException e) {
             log.error("Exception: {}", e);
-            throw new IllegalStateException(e);
         }
+
         return rec;
     }
 

@@ -103,19 +103,12 @@ public class AsyncExecutorService {
         if (runner == null) {
             throw new InvalidOperationException("Invalid API Version");
         }
-        Future<AsyncQueryResult> task = null;
-        try {
-            if (queryObj.getResultType() == null) {
-                queryObj.setResultType(resultStorageEngine.supportedResultTypes().iterator().next());
-            } else if (queryObj.getResultType() != null
-                    && !resultStorageEngine.supportedResultTypes().contains(queryObj.getResultType())) {
-                throw new IllegalArgumentException(queryObj.getResultType() + "is not supported");
-            }
-            AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao,
-                    apiVersion, resultStorageEngine);
-            task = executor.submit(queryWorker);
-            queryObj.setStatus(QueryStatus.PROCESSING);
+        AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao,
+                apiVersion, resultStorageEngine);
+        Future<AsyncQueryResult> task = executor.submit(queryWorker);
 
+        try {
+            queryObj.setStatus(QueryStatus.PROCESSING);
             AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
             queryObj.setResult(queryResultObj);
             queryObj.setStatus(QueryStatus.COMPLETE);
