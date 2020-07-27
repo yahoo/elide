@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.opendevl.JFlat;
 
 import org.apache.http.NameValuePair;
