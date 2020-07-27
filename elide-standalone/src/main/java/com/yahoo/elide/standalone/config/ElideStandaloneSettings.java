@@ -175,10 +175,19 @@ public interface ElideStandaloneSettings {
 
     /**
      * Enable the support for Dynamic Model Configuration. If false, the feature will be disabled.
-     *
+     * If enabled, ensure that Aggregation Data Store is also  enabled
      * @return Default: False
      */
     default boolean enableDynamicModelConfig() {
+        return false;
+    }
+
+    /**
+     * Enable the support for Aggregation Data Store. If false, the feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableAggregationDataStore() {
         return false;
     }
 
@@ -382,7 +391,7 @@ public interface ElideStandaloneSettings {
     default Optional<ElideDynamicEntityCompiler> getDynamicCompiler() {
         ElideDynamicEntityCompiler dynamicEntityCompiler = null;
 
-        if (enableDynamicModelConfig()) {
+        if (enableAggregationDataStore() && enableDynamicModelConfig()) {
             try {
                 dynamicEntityCompiler = new ElideDynamicEntityCompiler(getDynamicConfigPath());
             } catch (Exception e) { // thrown by in memory compiler
@@ -400,13 +409,19 @@ public interface ElideStandaloneSettings {
      * @param entityManagerFactory EntityManagerFactory object.
      * @return EntityDictionary object initialized.
      */
-    default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
-            EntityManagerFactory entityManagerFactory) {
+    default DataStore getDataStore(Optional<MetaDataStore> metaDataStore,
+            Optional<AggregationDataStore> aggregationDataStore, EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
 
-        DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
+        DataStore dataStore = null;
+
+        if (enableAggregationDataStore()) {
+            dataStore = new MultiplexManager(jpaDataStore, metaDataStore.get(), aggregationDataStore.get());
+        } else {
+            dataStore = new MultiplexManager(jpaDataStore);
+        }
 
         return dataStore;
     }
@@ -415,20 +430,26 @@ public interface ElideStandaloneSettings {
      * Gets the AggregationDataStore for elide.
      * @param queryEngine query engine object.
      * @param optionalCompiler optional dynamic compiler object.
-     * @return AggregationDataStore object initialized.
+     * @return Optional AggregationDataStore object initialized.
      */
-    default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
+    default Optional<AggregationDataStore> getAggregationDataStore(Optional<QueryEngine> queryEngine,
             Optional<ElideDynamicEntityCompiler> optionalCompiler) {
-        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
-                .queryEngine(queryEngine).queryLogger(new NoopQueryLogger());
+        AggregationDataStore aggregationDataStore = null;
 
-        if (enableDynamicModelConfig()) {
-            Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
-            annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
-            aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
+        if (enableAggregationDataStore()) {
+            AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore
+                            .builder().queryEngine(queryEngine.get()).queryLogger(new NoopQueryLogger());
+            if (enableDynamicModelConfig()) {
+                Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
+                annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
+                aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
+            }
+
+            aggregationDataStoreBuilder.cache(getQueryCache());
+            aggregationDataStore = aggregationDataStoreBuilder.build();
         }
-        aggregationDataStoreBuilder.cache(getQueryCache());
-        return aggregationDataStoreBuilder.build();
+
+        return Optional.ofNullable(aggregationDataStore);
     }
 
     /**
@@ -464,32 +485,39 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the metadatastore for elide.
      * @param optionalCompiler optional dynamic compiler object.
-     * @return MetaDataStore object initialized.
+     * @return Optional MetaDataStore object initialized.
      */
-    default MetaDataStore getMetaDataStore(Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+    default Optional<MetaDataStore> getMetaDataStore(Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         MetaDataStore metaDataStore = null;
 
-        if (optionalCompiler.isPresent()) {
-            try {
-                metaDataStore = new MetaDataStore(optionalCompiler.get());
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(e);
+        if (enableAggregationDataStore()) {
+            if (optionalCompiler.isPresent()) {
+                try {
+                    metaDataStore = new MetaDataStore(optionalCompiler.get());
+                } catch (ClassNotFoundException e) {
+                    throw new IllegalStateException(e);
+                }
+            } else {
+                metaDataStore = new MetaDataStore();
             }
-        } else {
-            metaDataStore = new MetaDataStore();
         }
 
-        return metaDataStore;
+        return Optional.ofNullable(metaDataStore);
     }
 
     /**
      * Gets the QueryEngine for elide.
      * @param metaDataStore MetaDataStore object.
      * @param entityManagerFactory EntityManagerFactory object.
-     * @return QueryEngine object initialized.
+     * @return Optional QueryEngine object initialized.
      */
-    default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, TXCANCEL);
+    default Optional<QueryEngine> getQueryEngine(Optional<MetaDataStore> metaDataStore,
+            EntityManagerFactory entityManagerFactory) {
+        QueryEngine queryEngine = null;
+        if (enableAggregationDataStore()) {
+            queryEngine = new SQLQueryEngine(metaDataStore.get(), entityManagerFactory, TXCANCEL);
+        }
+        return Optional.ofNullable(queryEngine);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,

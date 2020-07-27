@@ -18,7 +18,6 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -43,7 +42,7 @@ import javax.ws.rs.core.MediaType;
  * Tests ElideStandalone starts and works.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ElideStandaloneTest {
+public class ElideStandaloneDisableAggregationDataStoreTest {
     private ElideStandalone elide;
 
     @BeforeAll
@@ -118,12 +117,12 @@ public class ElideStandaloneTest {
 
             @Override
             public boolean enableDynamicModelConfig() {
-                return true;
+                return false;
             }
 
             @Override
             public boolean enableAggregationDataStore() {
-                return true;
+                return false;
             }
 
             @Override
@@ -137,39 +136,6 @@ public class ElideStandaloneTest {
     @AfterAll
     public void shutdown() throws Exception {
         elide.stop();
-    }
-
-    @Test
-    public void testJsonAPIPost() {
-        given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(
-                datum(
-                    resource(
-                        type("post"),
-                        id("1"),
-                        attributes(
-                            attr("content", "This is my first post. woot."),
-                            attr("date", "2019-01-01T00:00Z")
-                        )
-                    )
-                )
-            )
-            .post("/api/v1/post")
-            .then()
-            .statusCode(HttpStatus.SC_CREATED)
-            .extract().body().asString();
-
-        // Test the Dynamic Generated Analytical Model is accessible
-        given()
-            .when()
-            .get("/api/v1/postView")
-            .then()
-            .statusCode(200)
-            .body("data.id", hasItems("0"))
-            .body("data.attributes.content", hasItems("This is my first post. woot."));
-
     }
 
     @Test
@@ -254,9 +220,7 @@ public class ElideStandaloneTest {
                .get("/swagger/doc/test")
                 .then()
                 .statusCode(200)
-                .body("tags.name", containsInAnyOrder("post", "functionArgument", "metric",
-                        "metricFunction", "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "postView"));
+                .body("tags.name", containsInAnyOrder("post", "asyncQuery"));
     }
 
     @Test
