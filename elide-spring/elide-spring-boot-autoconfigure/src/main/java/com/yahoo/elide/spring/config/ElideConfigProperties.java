@@ -46,7 +46,7 @@ public class ElideConfigProperties {
     /**
      * Settings for the Aggregation Store.
      */
-    private ControllerProperties aggregationStore;
+    private AggregationStoreProperties aggregationStore;
 
     /**
      * Default pagination size for collections if the client doesn't paginate.

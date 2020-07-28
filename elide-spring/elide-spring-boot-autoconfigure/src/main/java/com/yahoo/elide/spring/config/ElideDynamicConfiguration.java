@@ -44,7 +44,6 @@ import javax.sql.DataSource;
 @Slf4j
 @Configuration
 @EnableConfigurationProperties(ElideConfigProperties.class)
-//@ConditionalOnExpression("${elide.dynamic-config.enabled}")
 @ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
 public class ElideDynamicConfiguration {
 
