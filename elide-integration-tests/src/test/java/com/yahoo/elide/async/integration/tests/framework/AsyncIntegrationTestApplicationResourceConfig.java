@@ -19,6 +19,7 @@ import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
 import com.yahoo.elide.async.integration.tests.AsyncIT;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.security.AsyncQueryFilterExpression;
 import com.yahoo.elide.async.models.security.AsyncQueryInlineChecks;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -55,8 +56,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
     private static Map<String, Class<? extends Check>> defineMappings() {
         Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
-        map.put(AsyncQueryInlineChecks.AsyncQueryOwner.PRINCIPAL_IS_OWNER,
-                        AsyncQueryInlineChecks.AsyncQueryOwner.class);
+        map.put(AsyncQueryFilterExpression.AsyncQueryPrincipalOwner.PRINCIPAL_IS_OWNER,
+                AsyncQueryFilterExpression.AsyncQueryPrincipalOwner.class);
         map.put(AsyncQueryInlineChecks.AsyncQueryAdmin.PRINCIPAL_IS_ADMIN,
                         AsyncQueryInlineChecks.AsyncQueryAdmin.class);
         map.put(AsyncQueryInlineChecks.AsyncQueryStatusValue.VALUE_IS_CANCELLED,

@@ -7,7 +7,6 @@ package com.yahoo.elide.async.models.security;
 
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.PrincipalOwned;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
@@ -15,31 +14,12 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 
-import java.security.Principal;
 import java.util.Optional;
 
 /**
  * Operation Checks on the Async Query and Result objects.
  */
 public class AsyncQueryInlineChecks {
-    @SecurityCheck(AsyncQueryOwner.PRINCIPAL_IS_OWNER)
-    public static class AsyncQueryOwner extends OperationCheck<Object> {
-
-        public static final String PRINCIPAL_IS_OWNER = "Principal is Owner";
-
-        @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            Principal principal = requestScope.getUser().getPrincipal();
-            boolean status = false;
-            String principalName = ((PrincipalOwned) object).getPrincipalName();
-            if (principalName == null && (principal == null || principal.getName() == null)) {
-                status = true;
-            } else if (principalName != null && principal != null && principal.getName() != null) {
-                status = principalName.equals(principal.getName());
-            }
-            return status;
-        }
-    }
 
     @SecurityCheck(AsyncQueryAdmin.PRINCIPAL_IS_ADMIN)
     public static class AsyncQueryAdmin extends UserCheck {
