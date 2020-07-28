@@ -79,7 +79,7 @@ public class ElideAutoConfiguration {
 
         ElideDynamicEntityCompiler compiler = null;
 
-        if (isDynamicConfigEnabled(settings)) {
+        if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
             compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
         }
         return compiler;
@@ -138,7 +138,7 @@ public class ElideAutoConfiguration {
 
         dictionary.scanForSecurityChecks();
 
-        if (isDynamicConfigEnabled(settings)) {
+        if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
             Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(SecurityCheck.class);
             dictionary.addSecurityChecks(annotatedClass);
@@ -161,21 +161,27 @@ public class ElideAutoConfiguration {
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
 
-        MetaDataStore metaDataStore = null;
+        QueryEngine queryEngine = null;
 
-        if (isDynamicConfigEnabled(settings)) {
-            metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
-        } else {
-            metaDataStore = new MetaDataStore();
+        if (isAggregationStoreEnabled(settings)) {
+
+            MetaDataStore metaDataStore = null;
+            if (isDynamicConfigEnabled(settings)) {
+                metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
+            } else {
+                metaDataStore = new MetaDataStore();
+            }
+
+            return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
         }
 
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
+        return queryEngine;
     }
 
     /**
      * Creates the DataStore Elide.  Override to use a different store.
      * @param entityManagerFactory The JPA factory which creates entity managers.
-     * @param queryEngine QueryEngine instance for aggregation data store.
+     * @param queryEngine An instance of objectprovider for QueryEngine instance for aggregation data store.
      * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
      * @param settings Elide configuration settings.
      * @return An instance of a JPA DataStore.
@@ -185,29 +191,35 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @DependsOn({"buildQueryLogger"})
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
-                                    QueryEngine queryEngine,
+                                    ObjectProvider<QueryEngine> queryEngine,
                                     ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler,
                                     ElideConfigProperties settings,
                                     @Autowired(required = false) Cache cache,
                                     @Autowired(required = false) QueryLogger querylogger)
             throws ClassNotFoundException {
-        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
-                .queryEngine(queryEngine);
-        if (isDynamicConfigEnabled(settings)) {
-            ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
-            Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
-            annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-            aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
-        }
-        aggregationDataStoreBuilder.cache(cache);
-        aggregationDataStoreBuilder.queryLogger(querylogger);
-        AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
         JpaDataStore jpaDataStore = new JpaDataStore(entityManagerFactory::createEntityManager,
                                                      (em) -> { return new NonJtaTransaction(em, txCancel); });
 
-        // meta data store needs to be put at first to populate meta data models
-        return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
+        if (isAggregationStoreEnabled(settings)) {
+            AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
+                            AggregationDataStore.builder().queryEngine(queryEngine.getIfAvailable());
+            if (isDynamicConfigEnabled(settings)) {
+                ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
+                Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
+                annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
+                aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
+            }
+            aggregationDataStoreBuilder.cache(cache);
+            aggregationDataStoreBuilder.queryLogger(querylogger);
+            AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
+
+            // meta data store needs to be put at first to populate meta data models
+            return new MultiplexManager(jpaDataStore, queryEngine.getIfAvailable().getMetaDataStore(),
+                            aggregationDataStore);
+        }
+
+        return new MultiplexManager(jpaDataStore);
     }
 
     /**
@@ -263,6 +275,17 @@ public class ElideAutoConfiguration {
         boolean enabled = false;
         if (settings.getDynamicConfig() != null) {
             enabled = settings.getDynamicConfig().isEnabled();
+        }
+
+        return enabled;
+
+    }
+
+    private boolean isAggregationStoreEnabled(ElideConfigProperties settings) {
+
+        boolean enabled = false;
+        if (settings.getAggregationStore() != null) {
+            enabled = settings.getAggregationStore().isEnabled();
         }
 
         return enabled;
