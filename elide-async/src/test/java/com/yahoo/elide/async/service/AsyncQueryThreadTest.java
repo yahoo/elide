@@ -13,7 +13,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -25,6 +24,7 @@ import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jayway.jsonpath.InvalidJsonException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +49,7 @@ public class AsyncQueryThreadTest {
         resultStorageEngine = mock(DefaultResultStorageEngine.class);
     }
 
+    //Test with record count = 3
     @Test
     public void testProcessQueryJsonApi() throws Exception {
         AsyncQuery queryObj = new AsyncQuery();
@@ -73,6 +74,7 @@ public class AsyncQueryThreadTest {
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
 
+    //Test with record count = 0
     @Test
     public void testProcessQueryJsonApi2() throws Exception {
         AsyncQuery queryObj = new AsyncQuery();
@@ -95,9 +97,10 @@ public class AsyncQueryThreadTest {
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
 
+    //Test with invalid input for responseBody. An exception will be thrown.
     @Test
     public void testProcessQueryJsonApi3() throws Exception {
-        Exception exception = assertThrows(JsonProcessingException.class, () -> {
+        assertThrows(JsonProcessingException.class, () -> {
         AsyncQuery queryObj = new AsyncQuery();
         ElideResponse response = new ElideResponse(200, "ResponseBody");
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
@@ -118,9 +121,10 @@ public class AsyncQueryThreadTest {
 
     }
 
+    //Test with invalid input for responseBody. An exception will be thrown.
     @Test
     public void testProcessQueryGraphQl() throws Exception {
-        Exception exception = assertThrows(JsonParseException.class, () -> {
+        assertThrows(JsonParseException.class, () -> {
             AsyncQuery queryObj = new AsyncQuery();
             ElideResponse response = new ElideResponse(200, "ResponseBody");
             String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
@@ -139,6 +143,7 @@ public class AsyncQueryThreadTest {
         });
     }
 
+    //Test with record count = 3
     @Test
     public void testProcessQueryGraphQl2() throws Exception {
 
@@ -164,6 +169,7 @@ public class AsyncQueryThreadTest {
 
     }
 
+    // Standard positive test case that converts json to csv format.
     @Test
     public void testConvertJsonToCSV() throws Exception {
 
@@ -175,5 +181,21 @@ public class AsyncQueryThreadTest {
                 resultStorageEngine);
 
         assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
+    }
+
+    //Invalid input for the json to csv conversion. This throws an exception.
+    @Test
+    public void testConvertJsonToCSV2() throws Exception {
+
+        String csvStr = "ResponseBody";
+        assertThrows(InvalidJsonException.class, () -> {
+            String jsonStr = "ResponseBody";
+
+            AsyncQuery queryObj = new AsyncQuery();
+            AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
+                    resultStorageEngine);
+
+            assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
+        });
     }
 }
