@@ -94,15 +94,17 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 EntityDictionary dictionary = settings.getEntityDictionary(injector, optionalCompiler);
 
-                Optional<MetaDataStore> optionalMetaDataStore = settings.getMetaDataStore(optionalCompiler);
+                DataStore dataStore;
 
-                Optional<QueryEngine> optionalQueryEngine =
-                                settings.getQueryEngine(optionalMetaDataStore, entityManagerFactory);
-
-                DataStore dataStore = settings.getDataStore(
-                        optionalMetaDataStore,
-                        settings.getAggregationDataStore(optionalQueryEngine, optionalCompiler),
-                        entityManagerFactory);
+                if (settings.enableAggregationDataStore()) {
+                    MetaDataStore metaDataStore = settings.getMetaDataStore(optionalCompiler);
+                    QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, entityManagerFactory);
+                    dataStore = settings.getDataStore(metaDataStore,
+                                    settings.getAggregationDataStore(queryEngine, optionalCompiler),
+                                    entityManagerFactory);
+                } else {
+                    dataStore = settings.getDataStore(entityManagerFactory);
+                }
 
                 ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore);
 
