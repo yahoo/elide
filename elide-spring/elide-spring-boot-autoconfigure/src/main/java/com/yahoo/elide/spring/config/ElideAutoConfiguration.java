@@ -181,8 +181,8 @@ public class ElideAutoConfiguration {
     /**
      * Creates the DataStore Elide.  Override to use a different store.
      * @param entityManagerFactory The JPA factory which creates entity managers.
-     * @param queryEngine An instance of objectprovider for QueryEngine instance for aggregation data store.
-     * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
+     * @param queryEngine QueryEngine instance for aggregation data store.
+     * @param compiler ElideDynamicEntityCompiler.
      * @param settings Elide configuration settings.
      * @return An instance of a JPA DataStore.
      * @throws ClassNotFoundException Exception thrown.
@@ -191,8 +191,8 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @DependsOn({"buildQueryLogger"})
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
-                                    ObjectProvider<QueryEngine> queryEngine,
-                                    ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler,
+                                    @Autowired(required = false) QueryEngine queryEngine,
+                                    @Autowired(required = false) ElideDynamicEntityCompiler compiler,
                                     ElideConfigProperties settings,
                                     @Autowired(required = false) Cache cache,
                                     @Autowired(required = false) QueryLogger querylogger)
@@ -203,9 +203,8 @@ public class ElideAutoConfiguration {
 
         if (isAggregationStoreEnabled(settings)) {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
-                            AggregationDataStore.builder().queryEngine(queryEngine.getIfAvailable());
+                            AggregationDataStore.builder().queryEngine(queryEngine);
             if (isDynamicConfigEnabled(settings)) {
-                ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
                 Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
                 annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
                 aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
@@ -215,8 +214,7 @@ public class ElideAutoConfiguration {
             AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder.build();
 
             // meta data store needs to be put at first to populate meta data models
-            return new MultiplexManager(jpaDataStore, queryEngine.getIfAvailable().getMetaDataStore(),
-                            aggregationDataStore);
+            return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
         }
 
         return jpaDataStore;
