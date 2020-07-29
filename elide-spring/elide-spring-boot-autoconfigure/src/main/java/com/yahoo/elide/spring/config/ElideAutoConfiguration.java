@@ -34,10 +34,10 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
@@ -75,11 +75,12 @@ public class ElideAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
 
         ElideDynamicEntityCompiler compiler = null;
 
-        if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
+        if (isDynamicConfigEnabled(settings)) {
             compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
         }
         return compiler;
@@ -157,25 +158,19 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public QueryEngine buildQueryEngine(EntityManagerFactory entityManagerFactory,
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
 
-        QueryEngine queryEngine = null;
-
-        if (isAggregationStoreEnabled(settings)) {
-
-            MetaDataStore metaDataStore = null;
-            if (isDynamicConfigEnabled(settings)) {
-                metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
-            } else {
-                metaDataStore = new MetaDataStore();
-            }
-
-            return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
+        MetaDataStore metaDataStore = null;
+        if (isDynamicConfigEnabled(settings)) {
+            metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
+        } else {
+            metaDataStore = new MetaDataStore();
         }
 
-        return queryEngine;
+        return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
     }
 
     /**
@@ -189,7 +184,6 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @DependsOn({"buildQueryLogger"})
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
                                     @Autowired(required = false) QueryEngine queryEngine,
                                     @Autowired(required = false) ElideDynamicEntityCompiler compiler,
@@ -227,6 +221,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public Cache buildQueryCache(ElideConfigProperties settings) {
         CaffeineCache cache = null;
         if (settings.getQueryCacheMaximumEntries() > 0) {
@@ -244,6 +239,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public QueryLogger buildQueryLogger() {
         return new NoopQueryLogger();
     }
