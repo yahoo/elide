@@ -219,7 +219,7 @@ public class ElideAutoConfiguration {
                             aggregationDataStore);
         }
 
-        return new MultiplexManager(jpaDataStore);
+        return jpaDataStore;
     }
 
     /**

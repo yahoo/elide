@@ -415,15 +415,9 @@ public interface ElideStandaloneSettings {
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
 
-        DataStore dataStore = null;
-
-        if (enableAggregationDataStore()) {
-            dataStore = new MultiplexManager(jpaDataStore, metaDataStore.get(), aggregationDataStore.get());
-        } else {
-            dataStore = new MultiplexManager(jpaDataStore);
-        }
-
-        return dataStore;
+        return (enableAggregationDataStore())
+                        ? new MultiplexManager(jpaDataStore, metaDataStore.get(), aggregationDataStore.get())
+                        : jpaDataStore;
     }
 
     /**
