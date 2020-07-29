@@ -53,7 +53,7 @@ public class LogMessageTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, null, null, new User(
+        final RequestScope requestScope = new RequestScope(null, null, null, null, new User(
             new Principal() {
                 @Override
                 public String getName() {

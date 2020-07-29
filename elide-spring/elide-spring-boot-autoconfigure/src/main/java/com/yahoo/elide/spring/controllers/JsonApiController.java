@@ -60,9 +60,7 @@ public class JsonApiController {
     public ResponseEntity<String> elideGet(@RequestParam Map<String, String> allRequestParams,
                                            HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
-                + settings.getJsonApi().getPath() + "/";
+        String baseUrl = getBaseUrlEndpoint();
 
         ElideResponse response = elide
                 .get(baseUrl, pathname, new MultivaluedHashMap<>(allRequestParams), authentication);
@@ -74,9 +72,7 @@ public class JsonApiController {
                                             @RequestParam Map<String, String> allRequestParams,
                                             HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
-                + settings.getJsonApi().getPath() + "/";
+        String baseUrl = getBaseUrlEndpoint();
 
         ElideResponse response = elide
                 .post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
@@ -88,9 +84,10 @@ public class JsonApiController {
                                              @RequestParam Map<String, String> allRequestParams,
                                              HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        String baseUrl = getBaseUrlEndpoint();
 
         ElideResponse response = elide
-                .patch(request.getContentType(), request.getContentType(), pathname, body,
+                .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
                        new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
@@ -100,9 +97,10 @@ public class JsonApiController {
                                              @RequestParam Map<String, String> allRequestParams,
                                              Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        String baseUrl = getBaseUrlEndpoint();
 
         ElideResponse response = elide
-                .delete(pathname, null, new MultivaluedHashMap<>(allRequestParams), authentication);
+                .delete(baseUrl, pathname, null, new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
@@ -111,9 +109,10 @@ public class JsonApiController {
                                                           @RequestParam Map<String, String> allRequestParams,
                                                           HttpServletRequest request, Principal authentication) {
         String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        String baseUrl = getBaseUrlEndpoint();
 
         ElideResponse response = elide
-                .delete(pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
+                .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 
@@ -122,5 +121,10 @@ public class JsonApiController {
                 .getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
 
         return pathname.replaceFirst(prefix, "");
+    }
+
+    private String getBaseUrlEndpoint() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+                + settings.getJsonApi().getPath() + "/";
     }
 }

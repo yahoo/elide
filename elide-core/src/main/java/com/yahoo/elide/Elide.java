@@ -156,19 +156,6 @@ public class Elide {
     /**
      * Handle GET.
      *
-     * @param path the path
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
-        return get(null, path, queryParams, opaqueUser);
-
-    }
-
-    /**
-     * Handle GET.
-     *
      * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the path
      * @param queryParams the query params
@@ -184,34 +171,21 @@ public class Elide {
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
-
     }
 
     /**
      * Handle POST.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse post(String path, String jsonApiDocument, Object opaqueUser) {
-        return post(path, jsonApiDocument, null, opaqueUser);
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument, Object opaqueUser) {
+        return post(baseUrlEndPoint, path, jsonApiDocument, null, opaqueUser);
     }
 
-    /**
-     * Handle POST.
-     *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse post(String path, String jsonApiDocument,
-                              MultivaluedMap<String, String> queryParams, Object opaqueUser) {
-        return post(null, path, jsonApiDocument, queryParams, opaqueUser);
-    }
 
     /**
      * Handle POST.
@@ -237,6 +211,7 @@ public class Elide {
     /**
      * Handle PATCH.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param contentType the content type
      * @param accept the accept
      * @param path the path
@@ -244,14 +219,15 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse patch(String contentType, String accept,
+    public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
                                String path, String jsonApiDocument, Object opaqueUser) {
-        return patch(contentType, accept, path, jsonApiDocument, null, opaqueUser);
+        return patch(baseUrlEndPoint, contentType, accept, path, jsonApiDocument, null, opaqueUser);
     }
 
     /**
      * Handle PATCH.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param contentType the content type
      * @param accept the accept
      * @param path the path
@@ -260,14 +236,14 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse patch(String contentType, String accept,
+    public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
                                String path, String jsonApiDocument,
                                MultivaluedMap<String, String> queryParams, Object opaqueUser) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
             handler = (tx, user) -> {
-                PatchRequestScope requestScope = new PatchRequestScope(path, tx, user, elideSettings);
+                PatchRequestScope requestScope = new PatchRequestScope(baseUrlEndPoint, path, tx, user, elideSettings);
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
@@ -279,7 +255,8 @@ public class Elide {
         } else {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
+                RequestScope requestScope = new RequestScope(
+                        baseUrlEndPoint, path, jsonApiDoc, tx, user, queryParams, elideSettings);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 return visit(path, requestScope, visitor);
             };
@@ -291,31 +268,34 @@ public class Elide {
     /**
      * Handle DELETE.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse delete(String path, String jsonApiDocument, Object opaqueUser) {
-        return delete(path, jsonApiDocument, null, opaqueUser);
+    public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument, Object opaqueUser) {
+        return delete(baseUrlEndPoint, path, jsonApiDocument, null, opaqueUser);
     }
 
     /**
      * Handle DELETE.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param queryParams the query params
      * @param opaqueUser the opaque user
      * @return Elide response object
      */
-    public ElideResponse delete(String path, String jsonApiDocument,
+    public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
                                 MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
+            RequestScope requestScope = new RequestScope(
+                    baseUrlEndPoint, path, jsonApiDoc, tx, user, queryParams, elideSettings);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });

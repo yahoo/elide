@@ -69,12 +69,12 @@ public class IncludedProcessorTest {
                 .withEntityDictionary(dictionary)
                 .build();
 
-        RequestScope goodUserScope = new RequestScope(null,
+        RequestScope goodUserScope = new RequestScope(null, null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(1), null,
                 elideSettings);
 
-        RequestScope badUserScope = new RequestScope(null,
+        RequestScope badUserScope = new RequestScope(null, null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(-1), null,
                 elideSettings);
