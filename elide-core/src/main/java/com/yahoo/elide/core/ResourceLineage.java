@@ -107,10 +107,7 @@ public class ResourceLineage {
                 return false;
             }
         }
-        if (!other.resourcePath.equals(this.resourcePath)) {
-            return false;
-        }
-        return true;
+        return other.resourcePath.equals(this.resourcePath);
     }
 
     private void addRecord(PersistentResource latest, String alias) {

@@ -24,6 +24,9 @@ public class Relation {
     @Expose(serialize = false)
     final boolean toOne;
 
+    /**
+     * The Field.
+     */
     final Links links;
 
     /**

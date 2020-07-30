@@ -140,8 +140,11 @@ public class QueryRunner {
         return executeRequest.apply(topLevel);
     }
 
-    private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, Object principal,
-                                                String graphQLDocument, JsonNode jsonDocument) {
+    private ElideResponse executeGraphQLRequest(String baseUrlEndPoint,
+                                                ObjectMapper mapper,
+                                                Object principal,
+                                                String graphQLDocument,
+                                                JsonNode jsonDocument) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             final User user = tx.accessUser(principal);
