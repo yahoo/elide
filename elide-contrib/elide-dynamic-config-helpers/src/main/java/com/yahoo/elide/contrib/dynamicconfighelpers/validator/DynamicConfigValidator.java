@@ -21,7 +21,6 @@ import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.FileUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -32,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
@@ -58,6 +56,7 @@ public class DynamicConfigValidator {
     private static final String RESOURCES = "resources";
     private static final int RESOURCE_LENGTH = 10; //"resources/".length()
     private static final String CLASSPATH_PATTERN = "classpath*:";
+    private static final String FILEPATH_PATTERN = "file://";
     private static final String HJSON_EXTN = "*.hjson";
 
     private ElideTableConfig elideTableConfig;
@@ -105,13 +104,7 @@ public class DynamicConfigValidator {
     public void readAndValidateConfigs() throws IOException {
         this.readVariableConfig();
         this.readSecurityConfig();
-        if (this.isConfigInClassPath()) {
-            this.readClasspathTableConfig();
-        }
-        else {
-            this.readTableConfig();
-        }
-        validateSqlInTableConfig(this.elideTableConfig);
+        this.readTableConfig();
     }
 
     /**
@@ -152,51 +145,31 @@ public class DynamicConfigValidator {
 
     /**
      * Read table config files and checks for any missing Handlebar variables.
-     * @return boolean true if table config directory exists else false
      * @throws IOException
      */
     private void readTableConfig() throws IOException {
-        String tableConfigsPath = this.configDir + Config.TABLE.getConfigPath();
-        boolean isTableConfig = new File(tableConfigsPath).exists();
-        if (isTableConfig) {
-            Collection<File> tableConfigs = FileUtils.listFiles(new File(tableConfigsPath), new String[] { "hjson" },
-                    false);
-            if (tableConfigs.isEmpty()) {
-                throw new IllegalStateException("No Table Configs found at location: " + tableConfigsPath);
-            }
-            Set<Table> tables = new HashSet<>();
-            for (File tableConfig : tableConfigs) {
-                String tableConfigContent = DynamicConfigHelpers.readConfigFile(tableConfig);
-                validateConfigForMissingVariables(tableConfigContent, this.variables);
-                ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(tableConfigContent, variables);
-                tables.addAll(table.getTables());
-            }
-            ElideTableConfig elideTableConfig = new ElideTableConfig();
-            elideTableConfig.setTables(tables);
-            this.elideTableConfig = elideTableConfig;
-        } else {
-            throw new IllegalStateException("Table Configs Directory doesn't exists at location: " + tableConfigsPath);
-        }
-    }
-
-    /**
-     * Read table config files and checks for any missing Handlebar variables.
-     * @param tablePath : Path to the table config
-     * @return ElideTableConfig
-     * @throws IOException
-     */
-    private void readClasspathTableConfig() throws IOException {
-        String tablePath = this.configDir + Config.TABLE.getConfigPath();
+        String tableDirPath = this.configDir + Config.TABLE.getConfigPath();
         Set<Table> tables = new HashSet<>();
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
-        Resource[] tableResources = resolver.getResources(CLASSPATH_PATTERN + tablePath + HJSON_EXTN);
+        Resource[] tableResources = null;
+        if (this.isConfigInClassPath()) {
+            log.info("read config from classpath");
+            tableResources = resolver.getResources(CLASSPATH_PATTERN + tableDirPath + HJSON_EXTN);
+        }
+        else {
+            log.info("read config from filepath");
+            tableResources = resolver.getResources(FILEPATH_PATTERN + tableDirPath + HJSON_EXTN);
+        }
         if (tableResources.length == 0) {
-            throw new IllegalStateException("No Table configs in classpath at: "
-                    + CLASSPATH_PATTERN + tablePath + HJSON_EXTN);
+            throw new IllegalStateException("No Table configs found at: "
+                    + CLASSPATH_PATTERN + tableDirPath + HJSON_EXTN);
         }
         for (Resource resource : tableResources) {
-            log.info("reading table config : " + tablePath + resource.getFilename());
-            String content = DynamicConfigHelpers.readResource(tablePath + resource.getFilename());
+            String resourceName = tableDirPath + resource.getFilename();
+            String content = this.isConfigInClassPath()
+                ? DynamicConfigHelpers.readResource(resourceName)
+                : DynamicConfigHelpers.readConfigFile(new File(resourceName));
+
             validateConfigForMissingVariables(content, this.variables);
             ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(content, this.variables);
             tables.addAll(table.getTables());
@@ -204,6 +177,7 @@ public class DynamicConfigValidator {
         ElideTableConfig elideTableConfig = new ElideTableConfig();
         elideTableConfig.setTables(tables);
         this.elideTableConfig = elideTableConfig;
+        validateSqlInTableConfig(this.elideTableConfig);
     }
 
     /**
