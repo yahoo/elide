@@ -23,13 +23,14 @@ import javax.ws.rs.core.MultivaluedHashMap;
 public class GraphQLRequestScope extends RequestScope {
     @Getter private final Map<String, Long> totalRecordCounts = new HashMap<>();
 
-    public GraphQLRequestScope(DataStoreTransaction transaction,
+    public GraphQLRequestScope(String baseUrlEndpoint,
+                               DataStoreTransaction transaction,
                                User user,
                                ElideSettings elideSettings) {
         // TODO: We're going to break out the two request scopes. `RequestScope` should become an interface and
         // we should have a GraphQLRequestScope and a JSONAPIRequestScope.
         // TODO: What should mutate multiple entity value be? There is a problem with this setting in practice.
         // Namely, we don't filter or paginate in the data store.
-        super(null, "/", null, transaction, user, new MultivaluedHashMap<>(), elideSettings);
+        super(baseUrlEndpoint, "/", null, transaction, user, new MultivaluedHashMap<>(), elideSettings);
     }
 }

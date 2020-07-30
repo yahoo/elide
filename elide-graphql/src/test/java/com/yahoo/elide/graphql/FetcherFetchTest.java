@@ -22,6 +22,8 @@ import graphql.ExecutionResult;
  */
 public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
+    private final String baseUrl = "http://localhost:8080/graphql";
+
     @Test
     public void testRootSingle() throws Exception {
         runComparisonTest("rootSingle");
@@ -115,7 +117,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testFailuresWithBody() throws Exception {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
 
         String graphQLRequest = "{ "
                 + "book(ids: [\"1\"], data: [{\"id\": \"1\"}]) { "
@@ -167,7 +169,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testSchemaIntrospection() throws Exception {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
 
         String graphQLRequest = "{"
             + "__schema {"
@@ -184,7 +186,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testTypeIntrospection() throws Exception {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(tx, null, settings);
+        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
 
         String graphQLRequest = "{"
             + "__type(name: \"author\") {"
