@@ -25,7 +25,7 @@ public class Relation {
     final boolean toOne;
 
     /**
-     * The Field.
+     * The Links.
      */
     final Links links;
 

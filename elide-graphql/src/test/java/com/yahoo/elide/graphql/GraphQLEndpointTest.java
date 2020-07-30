@@ -379,7 +379,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, user2, graphQLRequestToJSON(graphQLRequest));
         JsonNode node = extract200Response(response);
         Iterator<JsonNode> errors = node.get("errors").elements();
         assertTrue(errors.hasNext());
