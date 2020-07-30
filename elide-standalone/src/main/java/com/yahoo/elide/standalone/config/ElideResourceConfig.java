@@ -25,6 +25,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCo
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.standalone.Util;
@@ -98,10 +99,17 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 if (settings.enableAggregationDataStore()) {
                     MetaDataStore metaDataStore = settings.getMetaDataStore(optionalCompiler);
+                    if (metaDataStore == null) {
+                        throw new IllegalStateException("Aggregation Datastore is enabled but metaDataStore is null");
+                    }
                     QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, entityManagerFactory);
-                    dataStore = settings.getDataStore(metaDataStore,
-                                    settings.getAggregationDataStore(queryEngine, optionalCompiler),
-                                    entityManagerFactory);
+                    AggregationDataStore aggregationDataStore =
+                                    settings.getAggregationDataStore(queryEngine, optionalCompiler);
+                    if (aggregationDataStore == null) {
+                        throw new IllegalStateException(
+                                        "Aggregation Datastore is enabled but aggregationDataStore is null");
+                    }
+                    dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory);
                 } else {
                     dataStore = settings.getDataStore(entityManagerFactory);
                 }
