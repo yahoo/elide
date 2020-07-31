@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>5.0.0-pr14</version>
+        <version>5.0.0-pr15-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -35,7 +35,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>5.0.0-pr14</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencies>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>5.0.0-pr14</version>
+            <version>5.0.0-pr15-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
