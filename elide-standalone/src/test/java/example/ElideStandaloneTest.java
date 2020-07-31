@@ -44,7 +44,7 @@ import javax.ws.rs.core.MediaType;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneTest {
-    private ElideStandalone elide;
+    protected ElideStandalone elide;
 
     @BeforeAll
     public void init() throws Exception {
@@ -118,6 +118,11 @@ public class ElideStandaloneTest {
 
             @Override
             public boolean enableDynamicModelConfig() {
+                return true;
+            }
+
+            @Override
+            public boolean enableAggregationDataStore() {
                 return true;
             }
 
