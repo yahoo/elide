@@ -44,7 +44,7 @@ import javax.sql.DataSource;
 @Slf4j
 @Configuration
 @EnableConfigurationProperties(ElideConfigProperties.class)
-@ConditionalOnExpression("${elide.dynamic-config.enabled:false}")
+@ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
 public class ElideDynamicConfiguration {
 
     public static final String HIBERNATE_DDL_AUTO = "hibernate.hbm2ddl.auto";

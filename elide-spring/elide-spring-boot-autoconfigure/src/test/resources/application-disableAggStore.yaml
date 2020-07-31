@@ -23,7 +23,7 @@ elide:
     path: src/test/resources/models
     enabled: true
   aggregation-store:
-    enabled: true
+    enabled: false
 spring:
   jpa:
     show-sql: true
