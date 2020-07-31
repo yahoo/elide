@@ -8,6 +8,8 @@ package com.yahoo.elide.contrib.testhelpers.jsonapi.elements;
 
 import com.google.gson.annotations.Expose;
 
+import lombok.Getter;
+
 /**
  * The type Relation.
  */
@@ -19,20 +21,20 @@ public class Relation {
     /**
      * The Field.
      */
-    final String field;
+    @Getter private final String field;
 
     @Expose(serialize = false)
-    final boolean toOne;
+    @Getter private final boolean toOne;
 
     /**
      * The Links.
      */
-    final Links links;
+    @Getter private final Links links;
 
     /**
      * The Resource linkages.
      */
-    final ResourceLinkage[] resourceLinkages;
+    @Getter private final ResourceLinkage[] resourceLinkages;
 
     /**
      * Instantiates a new Relation.
