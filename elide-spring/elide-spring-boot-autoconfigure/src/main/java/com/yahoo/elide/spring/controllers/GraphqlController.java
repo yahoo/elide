@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,13 +37,15 @@ import java.security.Principal;
 public class GraphqlController {
 
     private final QueryRunner runner;
+    private final ElideConfigProperties settings;
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     @Autowired
-    public GraphqlController(Elide elide) {
+    public GraphqlController(Elide elide, ElideConfigProperties settings) {
         log.debug("Started ~~");
         this.runner = new QueryRunner(elide);
+        this.settings = settings;
     }
 
     /**
@@ -55,7 +58,10 @@ public class GraphqlController {
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
     public ResponseEntity<String> post(@RequestBody String graphQLDocument, Principal user) {
 
-        ElideResponse response = runner.run(graphQLDocument, user);
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+                + settings.getGraphql().getPath() + "/";
+
+        ElideResponse response = runner.run(baseUrl, graphQLDocument, user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
     }
 }

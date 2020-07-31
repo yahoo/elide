@@ -88,6 +88,8 @@ import javax.ws.rs.core.Response.Status;
 public class ResourceIT extends IntegrationTest {
     private final JsonParser jsonParser = new JsonParser();
 
+    private final String baseUrl = "http://localhost:8080/api";
+
     private static final Resource PARENT1 = resource(
             type("parent"),
             id("1"),
@@ -2508,7 +2510,7 @@ public class ResourceIT extends IntegrationTest {
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .build());
         ElideResponse response =
-                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1);
+                elide.get(baseUrl, "parent/1/children/1", new MultivaluedHashMap<>(), -1);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
         assertEquals(datum(child).toJSON(), response.getBody());
     }
@@ -2519,7 +2521,7 @@ public class ResourceIT extends IntegrationTest {
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .withAuditLogger(new TestAuditLogger())
                 .build());
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1);
+        ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }

@@ -17,6 +17,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.links;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.patchOperation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.patchSet;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
@@ -32,6 +33,7 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -48,11 +50,13 @@ import javax.ws.rs.core.MediaType;
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
         statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
 public class ControllerTest extends IntegrationTest {
+    private String hostname = "localhost";
     /**
      * This test demonstrates an example test using the JSON-API DSL.
      */
     @Test
     public void jsonApiGetTest() {
+        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         when()
                 .get("/json/group")
                 .then()
@@ -66,8 +70,17 @@ public class ControllerTest extends IntegrationTest {
                                                 attr("deprecated", false),
                                                 attr("description", "The code for this project")
                                         ),
+                                        links(
+                                                attr("self", baseUrl + "group/com.example.repository")
+                                        ),
                                         relationships(
-                                                relation("products")
+                                                relation(
+                                                        "products",
+                                                        links(
+                                                                attr("self", baseUrl + "group/com.example.repository/relationships/products"),
+                                                                attr("related", baseUrl + "group/com.example.repository/products")
+                                                        )
+                                                )
                                         )
                                 )
                         ).toJSON())
@@ -77,6 +90,7 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPatchTest() {
+        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         given()
             .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
             .body(
@@ -109,13 +123,23 @@ public class ControllerTest extends IntegrationTest {
                                                 attr("deprecated", false),
                                                 attr("description", "The code for this project")
                                         ),
+                                        links(
+                                                attr("self", baseUrl + "group/com.example.repository")
+                                        ),
                                         relationships(
-                                                relation("products")
+                                                relation(
+                                                        "products",
+                                                            links(
+                                                                    attr("self", baseUrl + "group/com.example.repository/relationships/products"),
+                                                                    attr("related", baseUrl + "group/com.example.repository/products")
+                                                            )
+
+                                                )
                                         )
                                 )
                         ).toJSON())
                 )
-                .statusCode(HttpStatus.SC_OK);
+                        .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
@@ -166,6 +190,7 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPostTest() {
+        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
                 .body(
@@ -191,8 +216,17 @@ public class ControllerTest extends IntegrationTest {
                                         attr("deprecated", false),
                                         attr("description", "")
                                 ),
+                                links(
+                                        attr("self", baseUrl + "group/com.example.repository2")
+                                ),
                                 relationships(
-                                        relation("products")
+                                        relation(
+                                                "products",
+                                                links(
+                                                        attr("self", baseUrl + "group/com.example.repository2/relationships/products"),
+                                                        attr("related", baseUrl + "group/com.example.repository2/products")
+                                                )
+                                        )
                                 )
                         )
                 ).toJSON()))

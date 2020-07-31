@@ -24,6 +24,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 /**
  * Default endpoint/servlet for using Elide and JSONAPI.
@@ -58,10 +59,12 @@ public class GraphQLEndpoint {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response post(
+            @Context UriInfo uriInfo,
             @Context SecurityContext securityContext,
             String graphQLDocument) {
 
-        ElideResponse response = runner.run(graphQLDocument, getUser.apply(securityContext));
+        ElideResponse response = runner.run(uriInfo.getBaseUri().toString(),
+                graphQLDocument, getUser.apply(securityContext));
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }
 }

@@ -10,6 +10,7 @@ import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.JSONApiLinks;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
@@ -44,6 +45,7 @@ public class ElideSettingsBuilder {
     private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
+    private JSONApiLinks jsonApiLinks;
     private Map<Class, Serde> serdes;
     private int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
     private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
@@ -51,6 +53,7 @@ public class ElideSettingsBuilder {
     private int updateStatusCode;
     private boolean returnErrorObjects;
     private boolean encodeErrorResponses;
+    private boolean enableJsonLinks;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -66,6 +69,7 @@ public class ElideSettingsBuilder {
         this.subqueryFilterDialects = new ArrayList<>();
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
         this.serdes = new HashMap<>();
+        this.enableJsonLinks = false;
 
         //By default, Elide supports epoch based dates.
         this.withEpochDates();
@@ -90,13 +94,15 @@ public class ElideSettingsBuilder {
                 permissionExecutorFunction,
                 joinFilterDialects,
                 subqueryFilterDialects,
+                jsonApiLinks,
                 defaultMaxPageSize,
                 defaultPageSize,
                 useFilterExpressions,
                 updateStatusCode,
                 returnErrorObjects,
                 serdes,
-                encodeErrorResponses);
+                encodeErrorResponses,
+                enableJsonLinks);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -199,6 +205,12 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withEncodeErrorResponses(boolean encodeErrorResponses) {
         this.encodeErrorResponses = encodeErrorResponses;
+        return this;
+    }
+
+    public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
+        this.enableJsonLinks = true;
+        this.jsonApiLinks = links;
         return this;
     }
 }

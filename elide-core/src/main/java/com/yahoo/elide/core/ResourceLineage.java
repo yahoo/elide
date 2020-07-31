@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -19,12 +20,14 @@ import java.util.List;
  */
 public class ResourceLineage {
     private final LinkedMap<String, List<PersistentResource>> resourceMap;
+    private final List<PersistentResource> resourcePath;
 
     /**
      * Empty lineage for objects rooted in the URL.
      */
     public ResourceLineage() {
         resourceMap = new LinkedMap<>();
+        resourcePath = new LinkedList<>();
     }
 
     /**
@@ -34,6 +37,7 @@ public class ResourceLineage {
      */
     public ResourceLineage(ResourceLineage sharedLineage, PersistentResource next) {
         resourceMap = new LinkedMap<>(sharedLineage.resourceMap);
+        resourcePath = new LinkedList<>(sharedLineage.resourcePath);
         addRecord(next);
     }
 
@@ -49,6 +53,7 @@ public class ResourceLineage {
      */
     public ResourceLineage(ResourceLineage sharedLineage, PersistentResource next, String nextAlias) {
         resourceMap = new LinkedMap<>(sharedLineage.resourceMap);
+        resourcePath = new LinkedList<>(sharedLineage.resourcePath);
         addRecord(next, nextAlias);
     }
 
@@ -70,6 +75,10 @@ public class ResourceLineage {
      */
     public List<String> getKeys() {
         return resourceMap.asList();
+    }
+
+    public List<PersistentResource> getResourcePath() {
+        return resourcePath;
     }
 
     private void addRecord(PersistentResource latest) {
@@ -98,7 +107,7 @@ public class ResourceLineage {
                 return false;
             }
         }
-        return true;
+        return other.resourcePath.equals(this.resourcePath);
     }
 
     private void addRecord(PersistentResource latest, String alias) {
@@ -110,5 +119,6 @@ public class ResourceLineage {
             resourceMap.put(alias, resources);
         }
         resources.add(latest);
+        resourcePath.add(latest);
     }
 }

@@ -71,6 +71,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final LinkedHashSet<PersistentResource> deletedResources;
+    @Getter private final String baseUrlEndPoint;
     @Getter private final String path;
     @Getter private final ElideSettings elideSettings;
     @Getter private final boolean useFilterExpressions;
@@ -89,6 +90,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     /**
      * Create a new RequestScope with specified update status code.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the URL path
      * @param jsonApiDocument the document for this request
      * @param transaction the transaction for this request
@@ -96,7 +98,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param queryParams the query parameters
      * @param elideSettings Elide settings object
      */
-    public RequestScope(String path,
+    public RequestScope(String baseUrlEndPoint,
+                        String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
@@ -108,6 +111,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.distinctLifecycleEvents.subscribe(queuedLifecycleEvents);
 
         this.path = path;
+        this.baseUrlEndPoint = baseUrlEndPoint;
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
         this.user = user;
@@ -193,6 +197,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      */
     protected RequestScope(String path, JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
         this.jsonApiDocument = jsonApiDocument;
+        this.baseUrlEndPoint = outerRequestScope.baseUrlEndPoint;
         this.path = path;
         this.transaction = outerRequestScope.transaction;
         this.user = outerRequestScope.user;

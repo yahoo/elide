@@ -83,6 +83,7 @@ import javax.ws.rs.core.MultivaluedMap;
 public class LifeCycleTest {
 
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
+    private final String baseUrl = "http://localhost:8080/api/v1";
     private EntityDictionary dictionary;
     private MockCallback callback;
     private MockCallback onUpdateDeferredCallback;
@@ -157,7 +158,7 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
-        ElideResponse response = elide.post("/book", bookBody, null);
+        ElideResponse response = elide.post(baseUrl, "/book", bookBody, null);
         assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
 
         /*
@@ -192,7 +193,7 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
-        ElideResponse response = elide.post("/book", bookBody, null);
+        ElideResponse response = elide.post(baseUrl, "/book", bookBody, null);
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getResponseCode());
         assertEquals(
                 "{\"errors\":[{\"detail\":\"InternalServerErrorException: Unexpected exception caught\"}]}",
@@ -231,7 +232,7 @@ public class LifeCycleTest {
         when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        ElideResponse response = elide.get("/book/1", headers, null);
+        ElideResponse response = elide.get(baseUrl, "/book/1", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         /*
@@ -265,7 +266,7 @@ public class LifeCycleTest {
         when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        ElideResponse response = elide.get("/book/1/relationships/authors", headers, null);
+        ElideResponse response = elide.get(baseUrl, "/book/1/relationships/authors", headers, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         /*
@@ -297,7 +298,7 @@ public class LifeCycleTest {
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
         String contentType = JSONAPI_CONTENT_TYPE;
-        ElideResponse response = elide.patch(contentType, contentType, "/book/1", bookBody, null);
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/book/1", bookBody, null);
         assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
 
         /*
@@ -339,7 +340,7 @@ public class LifeCycleTest {
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
         String contentType = JSONAPI_CONTENT_TYPE;
-        ElideResponse response = elide.patch(contentType, contentType, "/book/1", bookBody, null);
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/book/1", bookBody, null);
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
         assertEquals(
                 "{\"errors\":[{\"detail\":\"Constraint violation\"}]}",
@@ -380,7 +381,7 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
 
-        ElideResponse response = elide.delete("/book/1", "", null);
+        ElideResponse response = elide.delete(baseUrl, "/book/1", "", null);
         assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
 
         /*
@@ -414,7 +415,7 @@ public class LifeCycleTest {
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(contentType, contentType, "/", bookBody, null);
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", bookBody, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         /*
@@ -450,7 +451,7 @@ public class LifeCycleTest {
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(contentType, contentType, "/", bookBody, null);
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", bookBody, null);
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
         assertEquals(
                 "{\"errors\":[{\"detail\":\"JsonPatchExtensionException\"}]}",
@@ -480,7 +481,7 @@ public class LifeCycleTest {
                 + "\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}]";
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(contentType, contentType, "/", bookBody, null);
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", bookBody, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
         assertEquals("[{\"data\":null}]", response.getBody());
 
@@ -523,7 +524,7 @@ public class LifeCycleTest {
                 + "\"type\":\"book\",\"id\": \"1\"}}]";
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-        ElideResponse response = elide.patch(contentType, contentType, "/", bookBody, null);
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/", bookBody, null);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         /*
@@ -1299,6 +1300,7 @@ public class LifeCycleTest {
     }
 
     private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx) {
-        return new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
+        return new RequestScope(null, null, null, tx, new User(1),
+                null, getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
     }
 }

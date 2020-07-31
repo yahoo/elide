@@ -68,7 +68,8 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.post(path, jsonapiDocument, queryParams, getUser.apply(securityContext)));
+        return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument,
+                queryParams, getUser.apply(securityContext)));
     }
 
     /**
@@ -86,7 +87,7 @@ public class JsonApiEndpoint {
         @Context UriInfo uriInfo,
         @Context SecurityContext securityContext) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.get(path, queryParams, getUser.apply(securityContext)));
+        return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams, getUser.apply(securityContext)));
     }
 
     /**
@@ -111,7 +112,7 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.patch(contentType, accept, path, jsonapiDocument,
+        return build(elide.patch(uriInfo.getBaseUri().toString(), contentType, accept, path, jsonapiDocument,
                                  queryParams, getUser.apply(securityContext)));
     }
 
@@ -133,7 +134,8 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.delete(path, jsonApiDocument, queryParams, getUser.apply(securityContext)));
+        return build(elide.delete(uriInfo.getBaseUri().toString(), path, jsonApiDocument,
+                queryParams, getUser.apply(securityContext)));
     }
 
     private static Response build(ElideResponse response) {
