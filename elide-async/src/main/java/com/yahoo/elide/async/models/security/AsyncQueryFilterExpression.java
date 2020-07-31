@@ -14,6 +14,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 
+import java.security.Principal;
 import java.util.Collections;
 
 /**
@@ -25,6 +26,11 @@ public class AsyncQueryFilterExpression {
     static private FilterPredicate getPredicateOfPrincipalName(String principalName) {
         Path.PathElement path = new Path.PathElement(AsyncQuery.class, String.class, PRINCIPAL_NAME);
         return new FilterPredicate(path, Operator.IN, Collections.singletonList(principalName));
+    }
+
+    static private FilterPredicate getPredicateOfPrincipalNameNull() {
+        Path.PathElement path = new Path.PathElement(AsyncQuery.class, String.class, PRINCIPAL_NAME);
+        return new FilterPredicate(path, Operator.ISNULL, null);
     }
 
     /**
@@ -39,7 +45,12 @@ public class AsyncQueryFilterExpression {
          */
         @Override
         public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
-            return getPredicateOfPrincipalName(requestScope.getUser().getPrincipal().getName());
+            Principal principal = requestScope.getUser().getPrincipal();
+            if (principal == null || principal.getName() == null) {
+                 return getPredicateOfPrincipalNameNull();
+            } else {
+                return getPredicateOfPrincipalName(principal.getName());
+            }
         }
     }
 }
