@@ -21,7 +21,7 @@
       - "/^[0-9]+\\.[0-9]+(\\.[0-9]+|-(alpha|beta)-[0-9]+)/"
 
   install: true
-  script: mvn -B clean verify coveralls:report
+  script: mvn -B clean verify coveralls:report deploy --settings travis/settings.xml
   after_success:
     - echo "(${TRAVIS_TAG}) (${TRAVIS_PULL_REQUEST})"
-    - test "${TRAVIS_TAG}" != "" && mvn -B -DskipTests deploy --settings travis/settings.xml
+    - test "${TRAVIS_TAG}" != ""
