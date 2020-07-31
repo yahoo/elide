@@ -17,6 +17,7 @@ public class Resource extends ResourceLinkage {
      * @param id            the id
      * @param type          the type
      * @param attributes    the attributes
+     * @param links         the links
      * @param relationships the relationships
      */
     public Resource(Id id, Type type, Attributes attributes, Links links, Relationships relationships) {
