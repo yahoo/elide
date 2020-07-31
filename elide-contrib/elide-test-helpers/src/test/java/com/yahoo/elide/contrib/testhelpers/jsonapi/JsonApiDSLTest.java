@@ -327,6 +327,29 @@ public class JsonApiDSLTest {
     }
 
     @Test
+    public void verifyRequestWithLinks() {
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\",\"attributes\":"
+                + "{\"title\":\"Why You Should use Elide\",\"date\":\"2019-01-01\"},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/api/v1/blog/1\"}}}";
+
+        String actual = datum(
+                resource(
+                        type("blog"),
+                        id("1"),
+                        attributes(
+                                attr("title", "Why You Should use Elide"),
+                                attr("date", "2019-01-01")
+                        ),
+                        links(
+                                attr("self", "http://localhost:8080/json/api/v1/blog/1")
+                        )
+                )
+        ).toJSON();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void verifyRequestWithLinksRelationship() {
         String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\",\"attributes\":"
                 + "{\"title\":\"Why You Should use Elide\"},"
