@@ -175,10 +175,19 @@ public interface ElideStandaloneSettings {
 
     /**
      * Enable the support for Dynamic Model Configuration. If false, the feature will be disabled.
-     *
+     * If enabled, ensure that Aggregation Data Store is also  enabled
      * @return Default: False
      */
     default boolean enableDynamicModelConfig() {
+        return false;
+    }
+
+    /**
+     * Enable the support for Aggregation Data Store. If false, the feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableAggregationDataStore() {
         return false;
     }
 
@@ -382,7 +391,7 @@ public interface ElideStandaloneSettings {
     default Optional<ElideDynamicEntityCompiler> getDynamicCompiler() {
         ElideDynamicEntityCompiler dynamicEntityCompiler = null;
 
-        if (enableDynamicModelConfig()) {
+        if (enableAggregationDataStore() && enableDynamicModelConfig()) {
             try {
                 dynamicEntityCompiler = new ElideDynamicEntityCompiler(getDynamicConfigPath());
             } catch (Exception e) { // thrown by in memory compiler
@@ -398,7 +407,7 @@ public interface ElideStandaloneSettings {
      * @param metaDataStore MetaDataStore object.
      * @param aggregationDataStore AggregationDataStore object.
      * @param entityManagerFactory EntityManagerFactory object.
-     * @return EntityDictionary object initialized.
+     * @return DataStore object initialized.
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
@@ -409,6 +418,19 @@ public interface ElideStandaloneSettings {
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
         return dataStore;
+    }
+
+    /**
+     * Gets the DataStore for elide when aggregation store is disabled.
+     * @param entityManagerFactory EntityManagerFactory object.
+     * @return DataStore object initialized.
+     */
+    default DataStore getDataStore(EntityManagerFactory entityManagerFactory) {
+        DataStore jpaDataStore = new JpaDataStore(
+                () -> { return entityManagerFactory.createEntityManager(); },
+                (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
+
+        return jpaDataStore;
     }
 
     /**
