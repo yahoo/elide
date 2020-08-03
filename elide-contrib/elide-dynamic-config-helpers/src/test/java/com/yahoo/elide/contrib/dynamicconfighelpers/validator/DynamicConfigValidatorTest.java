@@ -126,10 +126,4 @@ public class DynamicConfigValidatorTest {
         assertEquals(e.getMessage(),
                 "foobar is used as a variable in either table or security config files but is not defined in variables config file.");
     }
-
-    @Test
-    public void testConfigDirParsing() {
-        DynamicConfigValidator validator = new DynamicConfigValidator("src/main/resources/validator/resources/model");
-        assertEquals("validator/resources/model/", validator.getConfigDir());
-    }
 }

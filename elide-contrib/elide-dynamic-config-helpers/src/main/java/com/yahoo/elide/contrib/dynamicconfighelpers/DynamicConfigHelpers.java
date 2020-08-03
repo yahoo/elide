@@ -13,28 +13,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
-import org.apache.commons.io.FileUtils;
 import org.hjson.JsonValue;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 /**
  * Util class for Dynamic config helper module.
  */
 public class DynamicConfigHelpers {
-
-    private static final String NEW_LINE = "\n";
 
     /**
      * Checks whether input is null or empty.
@@ -136,53 +128,6 @@ public class DynamicConfigHelpers {
     public static String resolveVariables(String jsonConfig, Map<String, Object> variables) throws IOException {
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
         return hydrator.hydrateConfigTemplate(jsonConfig, variables);
-    }
-
-    /**
-     * Read hjson config file.
-     * @param configFile : hjson file to read
-     * @return hjson file content
-     */
-    public static String readConfigFile(File configFile) {
-        StringBuffer sb = new StringBuffer();
-        try {
-            for (String line : FileUtils.readLines(configFile, StandardCharsets.UTF_8)) {
-                sb.append(line);
-                sb.append(NEW_LINE);
-            }
-        } catch (IOException e) {
-            log.error("error while reading config file " + configFile.getName());
-            log.error(e.getMessage());
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Read config from classpath.
-     * @param resourcePath : path to resource
-     * @return content of resource
-     * @throws IOException
-     */
-    public static String readResource(String resourcePath) throws IOException {
-        InputStream stream = null;
-        BufferedReader reader = null;
-        String content = null;
-        try {
-            stream = DynamicConfigHelpers.class.getClassLoader().getResourceAsStream(resourcePath);
-            if (stream == null) {
-                return null;
-            }
-            reader = new BufferedReader(new InputStreamReader(stream));
-            content =  reader.lines().collect(Collectors.joining(System.lineSeparator()));
-        } finally {
-            if (stream != null) {
-                stream.close();
-            }
-            if (reader != null) {
-                reader.close();
-            }
-        }
-        return content;
     }
 
     private static String hjsonToJson(String hjson) {
