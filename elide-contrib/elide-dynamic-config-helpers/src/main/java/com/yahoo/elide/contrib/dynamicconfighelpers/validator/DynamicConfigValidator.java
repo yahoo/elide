@@ -66,7 +66,7 @@ public class DynamicConfigValidator {
     private ElideSecurityConfig elideSecurityConfig = new ElideSecurityConfig();
     private Map<String, Object> variables = Collections.<String, Object>emptyMap();
     private String configDir;
-    private Map<String, String> configMap = new HashMap<>();
+    private Map<String, Resource> resourceMap = new HashMap<>();
 
     public DynamicConfigValidator(String configDir) {
         File config = new File(configDir);
@@ -112,13 +112,16 @@ public class DynamicConfigValidator {
         this.readTableConfig();
     }
 
+    /**
+     * Add all Hjson resources under configDir in resourceMap.
+     * @throws IOException
+     */
     private void loadConfigMap() throws IOException {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
                 this.getClass().getClassLoader());
         Resource[] modelResources = resolver.getResources(this.configDir);
         for (Resource resource : modelResources) {
-            this.configMap.put(resource.getFilename(),
-                IOUtils.toString(resource.getInputStream(), StandardCharsets.UTF_8));
+            this.resourceMap.put(resource.getFilename(), resource);
         }
     }
 
@@ -128,10 +131,11 @@ public class DynamicConfigValidator {
      * @throws IOException
      */
     private void readVariableConfig() throws IOException {
-        if (this.configMap.containsKey(Config.VARIABLE.getConfigPath())) {
-            this.setVariables(
-                    DynamicConfigHelpers.stringToVariablesPojo(this.configMap.get(Config.VARIABLE.getConfigPath())));
-            this.configMap.remove(Config.VARIABLE.getConfigPath());
+        String key = Config.VARIABLE.getConfigPath();
+        if (this.resourceMap.containsKey(key)) {
+            String content = IOUtils.toString(this.resourceMap.get(key).getInputStream(), StandardCharsets.UTF_8);
+            this.setVariables(DynamicConfigHelpers.stringToVariablesPojo(content));
+            this.resourceMap.remove(Config.VARIABLE.getConfigPath());
         }
     }
 
@@ -141,12 +145,13 @@ public class DynamicConfigValidator {
      * @throws IOException
      */
     private void readSecurityConfig() throws IOException {
-        if (this.configMap.containsKey(Config.SECURITY.getConfigPath())) {
-            String content = this.configMap.get(Config.SECURITY.getConfigPath());
+        String key = Config.SECURITY.getConfigPath();
+        if (this.resourceMap.containsKey(key)) {
+            String content = IOUtils.toString(this.resourceMap.get(key).getInputStream(), StandardCharsets.UTF_8);
             validateConfigForMissingVariables(content, this.variables);
             this.setElideSecurityConfig(DynamicConfigHelpers.stringToElideSecurityPojo(content, this.variables));
             validateRoleInSecurityConfig(this.getElideSecurityConfig());
-            this.configMap.remove(Config.SECURITY.getConfigPath());
+            this.resourceMap.remove(Config.SECURITY.getConfigPath());
         }
     }
 
@@ -156,11 +161,11 @@ public class DynamicConfigValidator {
      */
     private void readTableConfig() throws IOException {
         Set<Table> tables = new HashSet<>();
-        if (this.configMap.isEmpty()) {
+        if (this.resourceMap.isEmpty()) {
             throw new IllegalStateException("No Table configs found at: " + this.configDir);
         }
-        for (Entry<String, String> entry : this.configMap.entrySet()) {
-            String content = entry.getValue();
+        for (Entry<String, Resource> entry : this.resourceMap.entrySet()) {
+            String content = IOUtils.toString(entry.getValue().getInputStream(), StandardCharsets.UTF_8);
             validateConfigForMissingVariables(content, this.variables);
             ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(content, this.variables);
             tables.addAll(table.getTables());
