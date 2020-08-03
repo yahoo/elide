@@ -118,7 +118,7 @@ public class DynamicConfigValidator {
         Resource[] modelResources = resolver.getResources(this.configDir);
         for (Resource resource : modelResources) {
             this.configMap.put(resource.getFilename(),
-                IOUtils.toString(resource.getInputStream(), StandardCharsets.UTF_8.name()));
+                IOUtils.toString(resource.getInputStream(), StandardCharsets.UTF_8));
         }
     }
 
