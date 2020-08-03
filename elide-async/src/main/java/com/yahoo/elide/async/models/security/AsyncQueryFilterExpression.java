@@ -30,7 +30,7 @@ public class AsyncQueryFilterExpression {
 
     static private FilterPredicate getPredicateOfPrincipalNameNull() {
         Path.PathElement path = new Path.PathElement(AsyncQuery.class, String.class, PRINCIPAL_NAME);
-        return new FilterPredicate(path, Operator.ISNULL, null);
+        return new FilterPredicate(path, Operator.ISNULL, Collections.emptyList());
     }
 
     /**

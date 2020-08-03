@@ -81,7 +81,7 @@ public class AsyncIT extends IntegrationTest {
 
         private String id;
         private String query;
-
+        private String principalName;
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String queryType;
         private Integer asyncAfterSeconds;
@@ -734,7 +734,7 @@ public class AsyncIT extends IntegrationTest {
 
         // Principal without Admin Role
         response = elide.get("/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_FORBIDDEN, response.getResponseCode());
+        assertEquals(HttpStatus.SC_NOT_FOUND, response.getResponseCode());
     }
 
     /**
