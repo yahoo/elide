@@ -15,13 +15,8 @@ import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
+import com.jayway.jsonpath.JsonPath;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
@@ -29,6 +24,8 @@ import org.apache.http.client.utils.URIBuilder;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import net.minidev.json.JSONArray;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -148,19 +145,9 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @param jsonStr is the response.getBody() we get from the response
      * @return rec is the recordCount
      */
-    protected Integer calculateRecordsJSON(String jsonStr) throws JsonProcessingException {
+    protected Integer calculateRecordsJSON(String jsonStr) {
         Integer rec = null;
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(jsonStr);
-        if (!jsonNode.isObject()) {
-            return null;
-        }
-        jsonNode = jsonNode.get("data");
-        if (jsonNode.isArray()) {
-            rec = jsonNode.size();
-        }
-
+        rec = JsonPath.read(jsonStr, "$.data.length()");
         return rec;
     }
 
@@ -171,34 +158,8 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      */
     protected Integer calculateRecordsGraphQL(String jsonStr) throws IOException {
         Integer rec = null;
-        JsonFactory factory = new JsonFactory();
-        JsonParser parser  = factory.createParser(jsonStr);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(jsonStr);
-        if (!jsonNode.isObject()) {
-            return null;
-        }
-        while (!parser.isClosed()) {
-            JsonToken jsonToken = parser.nextToken();
-
-            if (JsonToken.FIELD_NAME.equals(jsonToken)) {
-                String fieldName = parser.getCurrentName();
-
-                if (fieldName.equals("edges")) {
-                    jsonNode = jsonNode.get(fieldName);
-                    if (jsonNode.isArray()) {
-                        rec = jsonNode.size();
-                    }
-                    break;
-                }
-                if (jsonNode.isObject()) {
-                    jsonNode = jsonNode.get(fieldName);
-                } else {
-                    return null;
-                }
-            }
-        }
-
+        JSONArray jsonArray =  JsonPath.read(jsonStr, "$.data.*.edges.length()");
+        rec = Integer.parseInt(jsonArray.get(0).toString());
         return rec;
     }
 

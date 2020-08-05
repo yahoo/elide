@@ -22,8 +22,6 @@ import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.InvalidJsonException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -100,7 +98,7 @@ public class AsyncQueryThreadTest {
     //Test with invalid input for responseBody. An exception will be thrown.
     @Test
     public void testProcessQueryJsonApi3() throws Exception {
-        assertThrows(JsonProcessingException.class, () -> {
+        assertThrows(InvalidJsonException.class, () -> {
         AsyncQuery queryObj = new AsyncQuery();
         ElideResponse response = new ElideResponse(200, "ResponseBody");
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
@@ -124,7 +122,7 @@ public class AsyncQueryThreadTest {
     //Test with invalid input for responseBody. An exception will be thrown.
     @Test
     public void testProcessQueryGraphQl() throws Exception {
-        assertThrows(JsonParseException.class, () -> {
+        assertThrows(InvalidJsonException.class, () -> {
             AsyncQuery queryObj = new AsyncQuery();
             ElideResponse response = new ElideResponse(200, "ResponseBody");
             String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
