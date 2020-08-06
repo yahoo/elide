@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.async.service;
 
+import static com.jayway.jsonpath.JsonPath.using;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -16,7 +18,9 @@ import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
 import com.github.opendevl.JFlat;
+import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
@@ -24,8 +28,6 @@ import org.apache.http.client.utils.URIBuilder;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import net.minidev.json.JSONArray;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -158,8 +160,15 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      */
     protected Integer calculateRecordsGraphQL(String jsonStr) throws IOException {
         Integer rec = null;
-        JSONArray jsonArray =  JsonPath.read(jsonStr, "$.data.*.edges.length()");
-        rec = Integer.parseInt(jsonArray.get(0).toString());
+
+        Configuration conf = Configuration.builder()
+                .options(Option.AS_PATH_LIST).build();
+
+        List<String> pathList = using(conf).parse(jsonStr).read("$..edges");
+        String modify = pathList.get(0).replace("[", ".");
+        modify = modify.replace("'", "");
+        modify = modify.replace("]", "") + ".length()";
+        rec = JsonPath.read(jsonStr, modify);
         return rec;
     }
 
