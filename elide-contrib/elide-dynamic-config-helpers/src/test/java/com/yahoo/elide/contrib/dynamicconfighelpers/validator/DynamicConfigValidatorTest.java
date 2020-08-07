@@ -10,12 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
-
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
 import org.hjson.ParseException;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 
 public class DynamicConfigValidatorTest {
 
@@ -51,7 +51,7 @@ public class DynamicConfigValidatorTest {
     public void testMissingConfigDir() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/missing" }));
-        assertEquals("Model Configs Directory doesn't exists", e.getMessage());
+        assertTrue(e.getMessage().startsWith("No Table configs found at"));
     }
 
     @Test
@@ -76,14 +76,14 @@ public class DynamicConfigValidatorTest {
     public void testMissingTableDir() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/missing_table_dir" }));
-        assertTrue(e.getMessage().startsWith("Table Configs Directory doesn't exists at location"));
+        assertTrue(e.getMessage().startsWith("No Table configs found at"));
     }
 
     @Test
     public void testMissingTableConfig() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/missing_table" }));
-        assertTrue(e.getMessage().startsWith("No Table Configs found at location"));
+        assertTrue(e.getMessage().startsWith("No Table configs found at"));
     }
 
     @Test
@@ -107,7 +107,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadTableConfigJoinType() {
-        assertThrows(ValueInstantiationException.class, () -> DynamicConfigValidator
+        assertThrows(IOException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type" }));
     }
 
