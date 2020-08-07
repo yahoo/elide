@@ -8,6 +8,8 @@ package com.yahoo.elide.utils.coerce.converters;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 
+import lombok.Data;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -15,6 +17,7 @@ import java.util.TimeZone;
 /**
  * Serializes ISO8601 Dates to Strings and vice versa.
  */
+@Data
 public class ISO8601DateSerde implements Serde<String, Date> {
 
     protected FastDateFormat df;

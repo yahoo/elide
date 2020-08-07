@@ -25,16 +25,16 @@ import javax.inject.Inject;
 public class AsyncCleanerService {
 
     private final int defaultCleanupDelayMinutes = 360;
-    private final int maxCleanupInitialDelayMinutes = 100;
+    private final int maxInitialDelayMinutes = 100;
 
     private static AsyncCleanerService asyncCleanerService = null;
 
     @Inject
-    private AsyncCleanerService(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays,
+    private AsyncCleanerService(Elide elide, Integer maxRunTimeSeconds, Integer queryCleanupDays,
             AsyncQueryDAO asyncQueryDao) {
 
         //If query is still running for twice than maxRunTime, then interrupt did not work due to host/app crash.
-        int queryRunTimeThresholdMinutes = maxRunTimeMinutes * 2;
+        int queryRunTimeThresholdMinutes = Math.round((maxRunTimeSeconds * 2) / 60);
 
         // Setting up query cleaner that marks long running query as TIMEDOUT.
         ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
@@ -44,7 +44,7 @@ public class AsyncCleanerService {
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.
         Random random = new Random();
-        int initialDelayMinutes = random.ints(0, maxCleanupInitialDelayMinutes).limit(1).findFirst().getAsInt();
+        int initialDelayMinutes = random.ints(0, maxInitialDelayMinutes).limit(1).findFirst().getAsInt();
         log.debug("Initial Delay for cleaner service is {}", initialDelayMinutes);
 
         //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
@@ -58,14 +58,14 @@ public class AsyncCleanerService {
      * Initialize the singleton AsyncCleanerService object.
      * If already initialized earlier, no new object is created.
      * @param elide Elide Instance
-     * @param maxRunTimeMinutes max run times in minutes
+     * @param maxRunTimeSeconds max run times in seconds
      * @param queryCleanupDays Async Query Clean up days
      * @param asyncQueryDao DAO Object
      */
-    public static void init(Elide elide, Integer maxRunTimeMinutes, Integer queryCleanupDays,
+    public static void init(Elide elide, Integer maxRunTimeSeconds, Integer queryCleanupDays,
             AsyncQueryDAO asyncQueryDao) {
         if (asyncCleanerService == null) {
-            asyncCleanerService = new AsyncCleanerService(elide, maxRunTimeMinutes, queryCleanupDays, asyncQueryDao);
+            asyncCleanerService = new AsyncCleanerService(elide, maxRunTimeSeconds, queryCleanupDays, asyncQueryDao);
         } else {
             log.debug("asyncCleanerService is already initialized.");
         }

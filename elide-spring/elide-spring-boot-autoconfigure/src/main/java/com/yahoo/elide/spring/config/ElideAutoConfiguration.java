@@ -104,7 +104,7 @@ public class ElideAutoConfiguration {
                 .withDefaultPageSize(settings.getPageSize())
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
-                .withAuditLogger(new Slf4jLogger())
+                .withAuditLogger(new Slf4jLogger())//;
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
 
         return new Elide(builder.build());
@@ -234,7 +234,7 @@ public class ElideAutoConfiguration {
     }
 
     /**
-     * Creates a querylogger to be used by {@link #buildDataStore} for aggregation
+     * Creates a querylogger to be used by {@link #buildDataStore} for aggregation.
      * @return The default Noop QueryLogger.
      */
     @Bean
