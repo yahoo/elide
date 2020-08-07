@@ -57,9 +57,9 @@ public class DynamicConfigSchemaValidator {
             break;
         default :
             log.error("Not a valid config type :" + configType);
-            return false;
+            break;
         }
-        isSuccess = results.isSuccess();
+        isSuccess = (results == null ? false : results.isSuccess());
 
         if (!isSuccess) {
             throw new ProcessingException("Schema validation failed");

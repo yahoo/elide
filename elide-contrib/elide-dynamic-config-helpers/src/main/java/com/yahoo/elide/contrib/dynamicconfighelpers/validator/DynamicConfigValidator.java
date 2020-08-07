@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -64,7 +63,7 @@ public class DynamicConfigValidator {
 
     private ElideTableConfig elideTableConfig = new ElideTableConfig();
     private ElideSecurityConfig elideSecurityConfig = new ElideSecurityConfig();
-    private Map<String, Object> variables = Collections.<String, Object>emptyMap();
+    private Map<String, Object> variables = new HashMap<>();;
     private String configDir;
     private Map<String, Resource> resourceMap = new HashMap<>();
 

@@ -13,15 +13,15 @@ public enum Config {
 
     TABLE("table",
           "tables" + File.separator,
-          "/elideTableSchema.json"),
+          File.separator + "elideTableSchema.json"),
 
     SECURITY("security",
             "security.hjson",
-            "/elideSecuritySchema.json"),
+            File.separator + "elideSecuritySchema.json"),
 
     VARIABLE("variable",
             "variables.hjson",
-            "/elideVariableSchema.json");
+            File.separator + "elideVariableSchema.json");
 
     private final String configType;
     private final String configPath;
