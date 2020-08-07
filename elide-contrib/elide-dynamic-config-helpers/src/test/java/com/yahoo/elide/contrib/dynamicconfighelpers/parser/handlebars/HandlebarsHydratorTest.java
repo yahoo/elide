@@ -246,8 +246,8 @@ public class HandlebarsHydratorTest {
         String absolutePath = file.getAbsolutePath();
         String hjsonPath = absolutePath + "/tables/table1.hjson";
 
-        DynamicConfigValidator testClass = new DynamicConfigValidator();
-        testClass.readAndValidateConfigs(path);
+        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
+        testClass.readAndValidateConfigs();
 
         Map<String, Object> map = testClass.getVariables();
 
@@ -262,8 +262,8 @@ public class HandlebarsHydratorTest {
         HandlebarsHydrator obj = new HandlebarsHydrator();
         String path = "src/test/resources/models";
 
-        DynamicConfigValidator testClass = new DynamicConfigValidator();
-        testClass.readAndValidateConfigs(path);
+        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
+        testClass.readAndValidateConfigs();
 
         Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
 
@@ -276,8 +276,8 @@ public class HandlebarsHydratorTest {
         HandlebarsHydrator obj = new HandlebarsHydrator();
         String path = "src/test/resources/models";
 
-        DynamicConfigValidator testClass = new DynamicConfigValidator();
-        testClass.readAndValidateConfigs(path);
+        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
+        testClass.readAndValidateConfigs();
 
         Map<String, String> securityClasses = obj.hydrateSecurityTemplate(testClass.getElideSecurityConfig());
 
