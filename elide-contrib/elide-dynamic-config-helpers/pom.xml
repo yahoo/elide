@@ -46,6 +46,7 @@
         <commons-io.version>2.6</commons-io.version>
         <commons-cli.version>1.4</commons-cli.version>
         <commons-compress.version>1.20</commons-compress.version>
+        <spring-core.verions>5.2.8.RELEASE</spring-core.verions>
     </properties>
 
     <dependencies>
@@ -82,6 +83,11 @@
             <version>${commons-compress.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring-core.verions}</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
@@ -93,7 +99,6 @@
             <groupId>com.github.java-json-tools</groupId>
             <artifactId>json-schema-validator</artifactId>
             <version>${json-schema-validator.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hjson</groupId>
@@ -108,6 +113,12 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
