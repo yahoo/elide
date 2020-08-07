@@ -165,9 +165,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                 .options(Option.AS_PATH_LIST).build();
 
         List<String> pathList = using(conf).parse(jsonStr).read("$..edges");
-        String modify = pathList.get(0).replace("[", ".");
-        modify = modify.replace("'", "");
-        modify = modify.replace("]", "") + ".length()";
+        String modify = pathList.get(0).replace("[", ".").replace("'", "").replace("]", "") + ".length()";
         rec = JsonPath.read(jsonStr, modify);
         return rec;
     }
