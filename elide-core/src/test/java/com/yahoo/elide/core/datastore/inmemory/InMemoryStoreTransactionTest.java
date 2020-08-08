@@ -514,4 +514,45 @@ public class InMemoryStoreTransactionTest {
         assertTrue(loaded.contains(book2));
         assertTrue(loaded.contains(book3));
     }
+
+    @Test
+    public void testInMemoryDataStore() {
+        HashMapDataStore wrapped = new HashMapDataStore(Book.class.getPackage());
+        InMemoryDataStore store = new InMemoryDataStore(wrapped);
+        DataStoreTransaction tx = store.beginReadTransaction();
+        assertEquals(InMemoryStoreTransaction.class, tx.getClass());
+
+        assertEquals(wrapped, wrapped.getDataStore());
+
+        String tos = store.toString();
+        assertTrue(tos.contains("Data store contents"));
+        assertTrue(tos.contains("Table class example.NoReadEntity contents"));
+        assertTrue(tos.contains("Table class example.Author contents"));
+        assertTrue(tos.contains("Table class example.Book contents"));
+        assertTrue(tos.contains("Table class example.Child contents"));
+        assertTrue(tos.contains("Table class example.ComputedBean contents"));
+        assertTrue(tos.contains("Table class example.Editor contents"));
+        assertTrue(tos.contains("Table class example.FieldAnnotations contents"));
+        assertTrue(tos.contains("Table class example.FirstClassFields contents"));
+        assertTrue(tos.contains("Table class example.FunWithPermissions contents"));
+        assertTrue(tos.contains("Table class example.Invoice contents"));
+        assertTrue(tos.contains("Table class example.Job contents"));
+        assertTrue(tos.contains("Table class example.Left contents"));
+        assertTrue(tos.contains("Table class example.LineItem contents"));
+        assertTrue(tos.contains("Table class example.MapColorShape contents"));
+        assertTrue(tos.contains("Table class example.NoDeleteEntity contents"));
+        assertTrue(tos.contains("Table class example.NoShareEntity contents"));
+        assertTrue(tos.contains("Table class example.NoUpdateEntity contents"));
+        assertTrue(tos.contains("Table class example.Parent contents"));
+        assertTrue(tos.contains("Table class example.Post contents"));
+        assertTrue(tos.contains("Table class example.PrimitiveId contents"));
+        assertTrue(tos.contains("Table class example.Publisher contents"));
+        assertTrue(tos.contains("Table class example.Right contents"));
+        assertTrue(tos.contains("Table class example.StringId contents"));
+        assertTrue(tos.contains("Table class example.UpdateAndCreate contents"));
+        assertTrue(tos.contains("Table class example.User contents"));
+        assertTrue(tos.contains("Table class example.packageshareable.ContainerWithPackageShare contents"));
+        assertTrue(tos.contains("Table class example.packageshareable.ShareableWithPackageShare contents"));
+        assertTrue(tos.contains("Table class example.packageshareable.UnshareableWithEntityUnshare contents"));
+    }
 }
