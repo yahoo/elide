@@ -131,7 +131,6 @@ class FieldTestModel {
         }
     }
 
-    private final String baseUrl = "http://localhost:8080/api/v1";
     static class ClassPreCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
@@ -298,6 +297,7 @@ class PropertyTestModel {
  */
 public class LifeCycleTest {
 
+    private final String baseUrl = "http://localhost:8080/api/v1";
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
     private EntityDictionary dictionary;
 
@@ -492,7 +492,7 @@ public class LifeCycleTest {
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        ElideResponse response = elide.get("/testModel/1/relationships/models", headers, null, NO_VERSION);
+        ElideResponse response = elide.get(baseUrl, "/testModel/1/relationships/models", headers, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());

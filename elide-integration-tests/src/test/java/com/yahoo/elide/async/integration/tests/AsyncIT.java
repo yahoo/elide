@@ -724,16 +724,17 @@ public class AsyncIT extends IntegrationTest {
             }
         });
 
+        String baseUrl = "/";
         // Principal is Owner
-        response = elide.get("/asyncQuery/" + id, new MultivaluedHashMap<>(), ownerUser, NO_VERSION);
+        response = elide.get(baseUrl, "/asyncQuery/" + id, new MultivaluedHashMap<>(), ownerUser, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         // Principal has Admin Role
-        response = elide.get("/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextAdminUser, NO_VERSION);
+        response = elide.get(baseUrl, "/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextAdminUser, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         // Principal without Admin Role
-        response = elide.get("/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
+        response = elide.get(baseUrl, "/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
         assertEquals(HttpStatus.SC_FORBIDDEN, response.getResponseCode());
     }
 
