@@ -156,6 +156,28 @@ public class GraphQLDSLTest {
     }
 
     @Test
+    public void verifyRequestWithQuotedArgument() {
+        String expected = "{book(desc: \"has \\\"quotes\\\"\") {edges {node {id title}}}}";
+
+        String actual = document(
+                selections(
+                        field(
+                                "book",
+                                argument(
+                                        argument("desc", "has \"quotes\"", QUOTE_VALUE)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void verifyRequestWithVariable() {
         String expected = "query myQuery($bookId: [String]) {book(ids: $bookId) {edges {node {id title authors {edges"
                 + " {node {name}}}}}}}";
