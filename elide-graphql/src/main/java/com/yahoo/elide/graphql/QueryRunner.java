@@ -93,7 +93,7 @@ public class QueryRunner {
      * @return The response.
      */
     public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user) {
-        return run(graphQLDocument, user, UUID.randomUUID());
+        return run(baseUrlEndPoint, graphQLDocument, user, UUID.randomUUID());
     }
 
     /**

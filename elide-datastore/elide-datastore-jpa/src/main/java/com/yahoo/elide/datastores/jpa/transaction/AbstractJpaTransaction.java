@@ -203,7 +203,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
 
         if (pagination != null) {
             //Issue #1429
-            if (pagination.returnPageTotals() && (!results.isEmpty() || p.getLimit() == 0)) {
+            if (pagination.returnPageTotals() && (!results.isEmpty() || pagination.getLimit() == 0)) {
                 pagination.setPageTotals(getTotalRecords(entityClass,
                     Optional.ofNullable(filterExpression), scope.getDictionary()));
             }
