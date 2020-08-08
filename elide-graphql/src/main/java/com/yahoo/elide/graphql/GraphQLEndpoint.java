@@ -76,7 +76,7 @@ public class GraphQLEndpoint {
         if (runner == null) {
             response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
-            response = runner.run(graphQLDocument, user);
+            response = runner.run(uriInfo.getBaseUri().toString(), graphQLDocument, user);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }

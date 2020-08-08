@@ -242,7 +242,7 @@ public class Elide {
      * @param apiVersion the API version
      * @return Elide response object
      */
-    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument, 
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
                               User opaqueUser, String apiVersion) {
         return post(baseUrlEndPoint, path, jsonApiDocument, null, opaqueUser, apiVersion, UUID.randomUUID());
     }
@@ -259,7 +259,8 @@ public class Elide {
      * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument, MultivaluedMap<String, String> queryParams,
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
+                              MultivaluedMap<String, String> queryParams,
                               User opaqueUser, String apiVersion, UUID requestId) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
@@ -302,7 +303,7 @@ public class Elide {
     public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
                                String path, String jsonApiDocument,
                                User opaqueUser, String apiVersion) {
-        return patch(baseUrlEndPoint, contentType, accept, path, jsonApiDocument, 
+        return patch(baseUrlEndPoint, contentType, accept, path, jsonApiDocument,
                      null, opaqueUser, apiVersion, UUID.randomUUID());
     }
 
@@ -423,7 +424,7 @@ public class Elide {
      * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument, 
+    public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
                                 MultivaluedMap<String, String> queryParams,
                                 User opaqueUser, String apiVersion, UUID requestId) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {

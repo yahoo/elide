@@ -94,7 +94,7 @@ public class ElideSettingsBuilder {
                 defaultMaxPageSize,
                 defaultPageSize,
                 updateStatusCode,
-                serdes, 
+                serdes,
                 enableJsonLinks);
     }
 
