@@ -34,7 +34,9 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
@@ -50,14 +52,22 @@ import javax.ws.rs.core.MediaType;
                 + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
         statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
+@Import(IntegrationTestSetup.class)
 public class ControllerTest extends IntegrationTest {
-    private String hostname = "localhost";
+    private String baseUrl;
+
+    @BeforeAll
+    @Override
+    public void setUp() {
+        super.setUp();
+        baseUrl = "http://localhost:" + port + "/json/";
+    }
+
     /**
      * This test demonstrates an example test using the JSON-API DSL.
      */
     @Test
     public void jsonApiGetTest() {
-        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         when()
                 .get("/json/group")
                 .then()
@@ -103,6 +113,9 @@ public class ControllerTest extends IntegrationTest {
                                         id("com.example.repository"),
                                         attributes(
                                                 attr("title", "Example Repository")
+                                        ),
+                                        links(
+                                                attr("self", baseUrl + "group/com.example.repository")
                                         )
                                 )
                         ).toJSON())
@@ -112,7 +125,6 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPatchTest() {
-        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         given()
             .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
             .body(
@@ -212,7 +224,6 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPostTest() {
-        String baseUrl = "http://" + hostname + ":" + port + "/json/";
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
                 .body(

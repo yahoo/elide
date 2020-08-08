@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.DefaultJSONApiLinks;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -50,6 +49,7 @@ import java.util.Map;
 public class JsonApiTest {
     private JsonApiMapper mapper;
     private User user = new TestUser("0");
+    private static String BASE_URL = "http://localhost:8080/json/";
 
     private EntityDictionary dictionary;
     private DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
@@ -67,7 +67,7 @@ public class JsonApiTest {
         Parent parent = new Parent();
         parent.setId(123L);
 
-        RequestScope userScope = new TestRequestScope(tx, user, dictionary);
+        RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource()));
@@ -104,7 +104,7 @@ public class JsonApiTest {
         child.setParents(Collections.singleton(parent));
         child.setFriends(new HashSet<>());
 
-        RequestScope userScope = new TestRequestScope(tx, user, dictionary);
+        RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource()));
@@ -141,7 +141,7 @@ public class JsonApiTest {
         child.setParents(Collections.singleton(parent));
         child.setFriends(new HashSet<>());
 
-        RequestScope userScope = new TestRequestScope(tx, user, dictionary);
+        RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
         PersistentResource<Parent> pRec = new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope);
 
@@ -195,7 +195,7 @@ public class JsonApiTest {
         parent.setFirstName("bob");
         child.setFriends(new HashSet<>());
 
-        RequestScope userScope = new TestRequestScope(tx, user, dictionary);
+        RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(
@@ -233,7 +233,7 @@ public class JsonApiTest {
         parent.setFirstName("bob");
         child.setFriends(new HashSet<>());
 
-        RequestScope userScope = new TestRequestScope(tx, user, dictionary);
+        RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
         PersistentResource<Parent> pRec = new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope);
 
@@ -475,7 +475,7 @@ public class JsonApiTest {
         Parent parent2 = new Parent();
         parent2.setId(456L);
 
-        RequestScope userScope = new TestRequestScope(tx, user, dictionary);
+        RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
         PersistentResource<Parent> pRec1 = new PersistentResource<>(parent1, null, userScope.getUUIDFor(parent1), userScope);
         PersistentResource<Parent> pRec2 = new PersistentResource<>(parent2, null, userScope.getUUIDFor(parent2), userScope);
