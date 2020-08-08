@@ -44,7 +44,7 @@ public class Field extends Selection {
     }
 
     public static String quoteValue(String value) {
-        return String.format("\"%s\"", value);
+        return String.format("\"%s\"", value.replace("\"", "\\\""));
     }
 
     @Getter(AccessLevel.PRIVATE)

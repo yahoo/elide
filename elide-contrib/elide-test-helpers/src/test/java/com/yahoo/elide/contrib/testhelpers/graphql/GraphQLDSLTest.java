@@ -17,6 +17,9 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDef
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+
 import org.junit.jupiter.api.Test;
 
 public class GraphQLDSLTest {
@@ -238,6 +241,27 @@ public class GraphQLDSLTest {
                                                         field("id", "1")
                                                 )
                                         )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        assertEquals(expected, actual);
+    }
+
+
+    @Test
+    public void verifyJsonStringField() {
+        String jsonField = new Gson().toJson(ImmutableMap.of("key", "value"));
+        String jsonNode = new Gson().toJson(ImmutableMap.of("json", jsonField));
+        String expected = "{\"data\":{\"container\":{\"edges\":[{\"node\":" + jsonNode + "}]}}}";
+
+        String actual = document(
+                selection(
+                        field(
+                                "container",
+                                selections(
+                                        field("json", jsonField)
                                 )
                         )
                 )
