@@ -210,7 +210,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                  * return the proxy and let Hibernate manage the SQL generation.
                  */
                 if (! filterExpression.isPresent() && ! sorting.isPresent()
-                    && (! pagination.isPresent() || (pagination.isPresent() && pagination.get().isDefaultInstance()))) {
+                    && (! pagination.isPresent() || pagination.get().isDefaultInstance())) {
                     return val;
                 }
 
