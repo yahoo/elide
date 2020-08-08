@@ -104,6 +104,9 @@ public class Field extends Selection {
     }
 
     private String selection() {
+        if (getSelectionSet() instanceof String) {
+            return getSelectionSet().toString();
+        }
         return getSelectionSet() == null ? "" : " " + ((SelectionSet) getSelectionSet()).toGraphQLSpec();
     }
 }

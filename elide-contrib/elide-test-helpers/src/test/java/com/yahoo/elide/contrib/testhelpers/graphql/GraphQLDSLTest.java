@@ -133,6 +133,29 @@ public class GraphQLDSLTest {
     }
 
     @Test
+    public void verifyRequestWithNonStringArguments() {
+        String expected = "{book(ids: [1,2] map: {key:\"value\"}) {edges {node {id title}}}}";
+
+        String actual = document(
+                selections(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("ids", new Long[]{ 1L, 2L }),
+                                        argument("map", ImmutableMap.of("key", "value"))
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void verifyRequestWithVariable() {
         String expected = "query myQuery($bookId: [String]) {book(ids: $bookId) {edges {node {id title authors {edges"
                 + " {node {name}}}}}}}";
