@@ -566,6 +566,35 @@
     </build>
     <profiles>
         <profile>
+            <id>coverage.report</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <reportSets>
+                            <reportSet>
+                                <id>coverage</id>
+                                <reports>
+                                    <report>report</report>
+                                </reports>
+                            </reportSet>
+                            <reportSet>
+                                <id>aggregate-coverage</id>
+                                <inherited>false</inherited>
+                                <reports>
+                                    <report>report-aggregate</report>
+                                </reports>
+                            </reportSet>
+                        </reportSets>
+                    </plugin>
+                </plugins>
+            </reporting>
+        </profile>
+        <profile>
             <id>sonar</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
