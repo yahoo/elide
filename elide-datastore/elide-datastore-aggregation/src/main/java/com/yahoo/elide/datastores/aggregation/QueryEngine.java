@@ -25,6 +25,7 @@ import com.google.common.base.Functions;
 
 import lombok.Getter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 /**
@@ -200,4 +201,14 @@ public abstract class QueryEngine {
      * @return SQL string corresponding to the given query
      */
     public abstract String explain(Query query);
+
+    /**
+     * Builds the specified {@link Query} against a specific persistent storage, which understand the provided
+     * {@link Query}.
+     *
+     * @param query The query customized for a particular persistent storage or storage client
+     * @return query string
+     */
+    public abstract List<String> showQueries(Query query);
+
 }
