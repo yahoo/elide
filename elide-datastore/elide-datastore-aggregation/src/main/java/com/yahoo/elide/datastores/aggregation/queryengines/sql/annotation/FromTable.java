@@ -27,4 +27,10 @@ public @interface FromTable {
      * @return The table or view name.
      */
     String name();
+
+    /**
+     * DB Connection Name for this table
+     * @return String DB Connection Name
+     */
+    String dbConnectionName() default "";
 }

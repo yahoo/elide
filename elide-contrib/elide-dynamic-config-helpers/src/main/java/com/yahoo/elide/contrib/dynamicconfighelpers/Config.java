@@ -12,16 +12,28 @@ import java.io.File;
 public enum Config {
 
     TABLE("table",
-          "tables" + File.separator,
+          "models" + File.separator + "tables" + File.separator,
           File.separator + "elideTableSchema.json"),
 
     SECURITY("security",
-            "security.hjson",
-            File.separator + "elideSecuritySchema.json"),
+             "models" + File.separator + "security.hjson",
+             File.separator + "elideSecuritySchema.json"),
 
-    VARIABLE("variable",
-            "variables.hjson",
-            File.separator + "elideVariableSchema.json");
+    MODELVARIABLE("variable",
+                  "models" + File.separator + "variables.hjson",
+                  File.separator + "elideVariableSchema.json"),
+
+    DBVARIABLE("variable",
+               "db" + File.separator + "variables.hjson",
+               File.separator + "elideVariableSchema.json"),
+
+    SQLDBConfig("sqldbconfig",
+                "db" + File.separator + "sql" + File.separator,
+                File.separator + "elideDBConfigSchema.json"),
+
+    NONSQLDBConfig("nonsqldbconfig",
+                   "db" + File.separator + "nonsql" + File.separator,
+                   File.separator + "elideDBConfigSchema.json");
 
     private final String configType;
     private final String configPath;

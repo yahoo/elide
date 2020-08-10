@@ -1,0 +1,18 @@
+{
+  dbconfigs:
+  [
+    {
+      name: NonSQLConnection
+      url: jdbc:db2:localhost:50000/testdb
+      driver: COM.ibm.db2.jdbc.net.DB2Driver
+      user: guestdb2
+      dialect: org.hibernate.dialect.DB2Dialect
+      propertyMap:
+      {
+        hibernate.show_sql: true
+        hibernate.default_batch_fetch_size: 100.1
+        hibernate.hbm2ddl.auto: create
+      }
+    }
+  ]
+}

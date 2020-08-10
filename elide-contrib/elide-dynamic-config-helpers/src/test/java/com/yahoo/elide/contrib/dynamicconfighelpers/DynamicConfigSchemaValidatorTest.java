@@ -52,10 +52,11 @@ public class DynamicConfigSchemaValidatorTest {
     @ValueSource(strings = {
             "/variables/valid/variables.json",
             "/variables/valid/variables.hjson",
-            "/models/variables.hjson"})
+            "/models/variables.hjson",
+            "/validator/valid/db/variables.hjson"})
     public void testValidVariableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
-        assertTrue(testClass.verifySchema(Config.VARIABLE, jsonConfig));
+        assertTrue(testClass.verifySchema(Config.MODELVARIABLE, jsonConfig));
     }
 
     @DisplayName("Invalid Variable config")
@@ -66,7 +67,7 @@ public class DynamicConfigSchemaValidatorTest {
     public void testInvalidVariableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
         Exception e = assertThrows(ProcessingException.class,
-                () -> testClass.verifySchema(Config.VARIABLE, jsonConfig));
+                () -> testClass.verifySchema(Config.MODELVARIABLE, jsonConfig));
         assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
     }
 
@@ -93,6 +94,30 @@ public class DynamicConfigSchemaValidatorTest {
         String jsonConfig = loadHjsonFromClassPath(resource);
         Exception e = assertThrows(ProcessingException.class,
                 () -> testClass.verifySchema(Config.TABLE, jsonConfig));
+        assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
+    }
+
+    // DB config test
+    @DisplayName("Valid DB config")
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/configs/db/sql/db1.hjson",
+            "/configs/db/sql/db2.hjson",
+            "/configs/db/nonsql/db1.hjson"})
+    public void testValidDbSchema(String resource) throws Exception {
+        String jsonConfig = loadHjsonFromClassPath(resource);
+        assertTrue(testClass.verifySchema(Config.SQLDBConfig, jsonConfig));
+    }
+
+    @DisplayName("Invalid DB config")
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/invalid_db/sql/db1.hjson",
+            "/invalid_db/nonsql/db1.hjson"})
+    public void testInvalidDbSchema(String resource) throws Exception {
+        String jsonConfig = loadHjsonFromClassPath(resource);
+        Exception e = assertThrows(ProcessingException.class,
+                () -> testClass.verifySchema(Config.SQLDBConfig, jsonConfig));
         assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
     }
 

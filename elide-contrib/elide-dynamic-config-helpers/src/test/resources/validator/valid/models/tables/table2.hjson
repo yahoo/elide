@@ -3,6 +3,7 @@
         name: Player
         table: player
         schema: playerdb
+        dbConnectionName: MySQLConnection
         description:
         '''
         A long description

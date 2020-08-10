@@ -41,7 +41,8 @@ import java.util.Set;
     "tags",
     "extend",
     "sql",
-    "table"
+    "table",
+    "dbConnectionName"
 })
 @Data
 @EqualsAndHashCode()
@@ -54,6 +55,9 @@ public class Table {
 
     @JsonProperty("schema")
     private String schema = "";
+
+    @JsonProperty("dbConnectionName")
+    private String dbConnectionName = "";
 
     @JsonProperty("hidden")
     private Boolean hidden = false;

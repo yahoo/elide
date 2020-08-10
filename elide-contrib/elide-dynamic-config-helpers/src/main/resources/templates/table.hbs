@@ -38,8 +38,8 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @Data
-<%#if table%>@FromTable(name = "<%#if schema%><%schema%>.<%/if%><%table%>")
-<%else if sql%>@FromSubquery(sql = "<%sql%>")
+<%#if table%>@FromTable(name = "<%#if schema%><%schema%>.<%/if%><%table%>", dbConnectionName = "<%dbConnectionName%>")
+<%else if sql%>@FromSubquery(sql = "<%sql%>", dbConnectionName = "<%dbConnectionName%>")
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
 <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>

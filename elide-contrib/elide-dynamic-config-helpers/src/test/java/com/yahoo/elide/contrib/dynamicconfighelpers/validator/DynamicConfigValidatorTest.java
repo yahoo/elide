@@ -15,8 +15,6 @@ import org.apache.commons.cli.MissingOptionException;
 import org.hjson.ParseException;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 public class DynamicConfigValidatorTest {
 
     @Test
@@ -107,7 +105,7 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadTableConfigJoinType() {
-        assertThrows(IOException.class, () -> DynamicConfigValidator
+        assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type" }));
     }
 
@@ -125,5 +123,27 @@ public class DynamicConfigValidatorTest {
                 .main(new String[] { "--configDir", "src/test/resources/validator/undefined_handlebar" }));
         assertEquals(e.getMessage(),
                 "foobar is used as a variable in either table or security config files but is not defined in variables config file.");
+    }
+
+    @Test
+    public void testDuplicateDBConfig() {
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+                .main(new String[] { "--configDir", "src/test/resources/validator/duplicate_dbconfig" }));
+        assertEquals(e.getMessage(), "Duplicate!! Same DB Config provided for both SQL and NonSQL.");
+    }
+
+    @Test
+    public void testDuplicateDBConfigName() {
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+                .main(new String[] { "--configDir", "src/test/resources/validator/duplicate_dbconfigname" }));
+        assertEquals(e.getMessage(), "Duplicate!! DB Configs have more than one connection with same name.");
+    }
+
+    @Test
+    public void testJoinedTablesDBConnectionNameMismatch() {
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+                .main(new String[] { "--configDir", "src/test/resources/validator/mismatch_dbconfig" }));
+        assertTrue(e.getMessage().contains("DBConnection name mismatch between table: "));
+        assertTrue(e.getMessage().contains(" and tables in its Join Clause."));
     }
 }

@@ -27,11 +27,13 @@ public class DynamicConfigSchemaValidator {
     private JsonSchema tableSchema;
     private JsonSchema securitySchema;
     private JsonSchema variableSchema;
+    private JsonSchema dbConfigSchema;
 
     public DynamicConfigSchemaValidator() {
         tableSchema = loadSchema(Config.TABLE.getConfigSchema());
         securitySchema = loadSchema(Config.SECURITY.getConfigSchema());
-        variableSchema = loadSchema(Config.VARIABLE.getConfigSchema());
+        variableSchema = loadSchema(Config.MODELVARIABLE.getConfigSchema());
+        dbConfigSchema = loadSchema(Config.SQLDBConfig.getConfigSchema());
     }
     /**
      *  Verify config against schema.
@@ -52,8 +54,13 @@ public class DynamicConfigSchemaValidator {
         case SECURITY :
             results = this.securitySchema.validate(new ObjectMapper().readTree(jsonConfig));
             break;
-        case VARIABLE :
+        case MODELVARIABLE :
+        case DBVARIABLE :
             results = this.variableSchema.validate(new ObjectMapper().readTree(jsonConfig));
+            break;
+        case SQLDBConfig :
+        case NONSQLDBConfig :
+            results = this.dbConfigSchema.validate(new ObjectMapper().readTree(jsonConfig));
             break;
         default :
             log.error("Not a valid config type :" + configType);
@@ -72,10 +79,7 @@ public class DynamicConfigSchemaValidator {
         Reader reader = new InputStreamReader(DynamicConfigHelpers.class.getResourceAsStream(resource));
         try {
             return FACTORY.getJsonSchema(objectMapper.readTree(reader));
-        } catch (IOException e) {
-            log.error("Error loading schema file " + resource + " to verify");
-            throw new IllegalStateException(e.getMessage());
-        } catch (ProcessingException e) {
+        } catch (IOException | ProcessingException e) {
             log.error("Error loading schema file " + resource + " to verify");
             throw new IllegalStateException(e.getMessage());
         }
