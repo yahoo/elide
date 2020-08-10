@@ -94,6 +94,8 @@ public abstract class SQLUnitTest {
     }
     protected static Map<TestQueryName, Query> testQueries;
 
+    protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
+
     public static void init(SQLDialect sqlDialect) {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         EntityManager em = emf.createEntityManager();
@@ -207,7 +209,6 @@ public abstract class SQLUnitTest {
     /**
      * Helper to remove repeated whitespace chars before comparing queries
      */
-    protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
     protected String combineWhitespace(String input) {
         return repeatedWhitespacePattern.matcher(input).replaceAll(" ");
     }

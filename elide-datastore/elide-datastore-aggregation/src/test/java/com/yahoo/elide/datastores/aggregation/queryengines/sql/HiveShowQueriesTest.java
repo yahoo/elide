@@ -11,9 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-
 /**
  * This class tests SQLQueryEngine.showQueries() with the Hive dialect.
  *

@@ -4,18 +4,13 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2D
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDialect;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  * A class with static methods to create an instance of all Dialects
  */
 public class SQLDialectFactory {
-
-    public SQLDialectFactory(){}
-
     public static SQLDialect getDefaultDialect(){ return new H2Dialect();}
 
     public static SQLDialect getH2Dialect(){ return new H2Dialect();}

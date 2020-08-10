@@ -211,10 +211,8 @@ public class SQLQueryEngine extends QueryEngine {
         SQLQuery sql = toSQL(query, dialect);
 
         Pagination pagination = query.getPagination();
-        if (pagination != null) {
-            if (pagination.returnPageTotals()) {
-                queries.add(toPageTotalSQL(sql, dialect).toString());
-            }
+        if (pagination != null && pagination.returnPageTotals()) {
+            queries.add(toPageTotalSQL(sql, dialect).toString());
         }
         queries.add(sql.toString());
         return queries;
