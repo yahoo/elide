@@ -73,11 +73,13 @@ public class DefaultResultStorageEngineTest {
     public void testStoreResults() throws MalformedURLException {
         String responseBody = "responseBody";
         byte[] testResponse = responseBody.getBytes();
-        when(asyncQueryResultStorage.getId()).thenReturn("asyncQueryID");
-        URL testURL = new URL("http://localhost:8080/api/v1/download/asyncQueryID");
+        String asyncQueryID = "asyncQueryID";
+        String downloadURL = "http://localhost:8080/api/v1/download";
+        when(asyncQueryResultStorage.getId()).thenReturn(asyncQueryID);
+        URL testURL = new URL(downloadURL + "/" + asyncQueryID);
 
         URL url = defaultResultStorageEngine.storeResults(
-                asyncQueryResultStorage.getId(), testResponse, "http://localhost:8080/api/v1/download");
+                asyncQueryResultStorage.getId(), testResponse, downloadURL);
 
         assertEquals(url, testURL);
     }
