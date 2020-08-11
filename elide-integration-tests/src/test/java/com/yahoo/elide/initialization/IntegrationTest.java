@@ -120,7 +120,7 @@ public abstract class IntegrationTest {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // port randomly picked in pom.xml
-        String restassuredPort = port != null ? port
+        String restassuredPort = StringUtils.isNotEmpty(port) ? port
                 : System.getProperty("restassured.port", System.getenv("restassured.port"));
         RestAssured.port =
                 Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
