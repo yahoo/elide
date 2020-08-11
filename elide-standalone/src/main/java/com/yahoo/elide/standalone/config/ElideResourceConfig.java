@@ -25,7 +25,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCo
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.standalone.Util;
@@ -95,24 +94,14 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 EntityDictionary dictionary = settings.getEntityDictionary(injector, optionalCompiler);
 
-                DataStore dataStore;
+                MetaDataStore metaDataStore = settings.getMetaDataStore(optionalCompiler);
 
-                if (settings.enableAggregationDataStore()) {
-                    MetaDataStore metaDataStore = settings.getMetaDataStore(optionalCompiler);
-                    if (metaDataStore == null) {
-                        throw new IllegalStateException("Aggregation Datastore is enabled but metaDataStore is null");
-                    }
-                    QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, entityManagerFactory);
-                    AggregationDataStore aggregationDataStore =
-                                    settings.getAggregationDataStore(queryEngine, optionalCompiler);
-                    if (aggregationDataStore == null) {
-                        throw new IllegalStateException(
-                                        "Aggregation Datastore is enabled but aggregationDataStore is null");
-                    }
-                    dataStore = settings.getDataStore(metaDataStore, aggregationDataStore, entityManagerFactory);
-                } else {
-                    dataStore = settings.getDataStore(entityManagerFactory);
-                }
+                QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, entityManagerFactory);
+
+                DataStore dataStore = settings.getDataStore(
+                        metaDataStore,
+                        settings.getAggregationDataStore(queryEngine, optionalCompiler),
+                        entityManagerFactory);
 
                 ElideSettings elideSettings = settings.getElideSettings(dictionary, dataStore);
 

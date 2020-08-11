@@ -1,34 +1,4 @@
 # Change Log
-## 4.6.7
-**Features**
-   * [view commit](https://github.com/yahoo/elide/commit/6ae9bd3623247f0da12c81798327abdb217c29ab) Added support for JSON-API links in entity response.  (#1445) 
-
-**Fixes**
-   * [view commit](https://github.com/yahoo/elide/commit/e86b48c5abf1f13478279515ac21d4f4df5c56e9) Process collection in operator getFieldValue (#1427) 
-   * [view commit](https://github.com/yahoo/elide/commit/7a62b3f0b5db5585ba1fd937c00d454ee047167e) Only issue page total query if data load returns records (#1429) 
-   * [view commit](https://github.com/yahoo/elide/commit/cafbd29d62b8878225530830ff107f67c9c341e1) Convert DateTimeParseException into IllegalArgumentException (#1440) 
-   * [view commit](https://github.com/yahoo/elide/commit/2925b681cb8defbcaa8067782945abcec1dcbcc2) make ThreadLocal usage static as per recommendations (#1441) 
-   * [view commit](https://github.com/yahoo/elide/commit/d36b17b973c9095b3c9df04eb44519da5f1e55cf) Bump liquibase-core from 3.10.0 to 3.10.1 (#1439) 
-   * [view commit](https://github.com/yahoo/elide/commit/858d33dacf84494b3e75604b9ba6df3d50d5b6c6) Bump swagger-core from 1.6.1 to 1.6.2 (#1438) 
-   * [view commit](https://github.com/yahoo/elide/commit/066b5d613e0c4c099117415eb379f964f62329d8) Bump mysql-connector-java from 8.0.20 to 8.0.21 (#1437) 
-   * [view commit](https://github.com/yahoo/elide/commit/e17877cb67226f7ec8db2a857ccb53b93b2d3b2d) Bump checkstyle from 8.33 to 8.34 (#1436) 
-   * [view commit](https://github.com/yahoo/elide/commit/ce8fbe7afa83609bffd1d892efb9c251ea385864) Bump jackson-module-jaxb-annotations from 2.11.0 to 2.11.1 (#1435) 
-   * [view commit](https://github.com/yahoo/elide/commit/eecb5641c8109c34dcc3e72a82b5225311702f2b) Bump version.jackson from 2.10.4 to 2.11.1 (#1413) 
-   * [view commit](https://github.com/yahoo/elide/commit/0061d91771b0b668edb60126e99fa6b21c1a7c26) Bump resteasy.version from 3.12.0.Final to 3.12.1.Final (#1433) 
-   * [view commit](https://github.com/yahoo/elide/commit/7ceb68872081104943bf69936b59365c950a87d7) Bump metrics.version from 4.1.9 to 4.1.10.1 (#1434) 
-   * [view commit](https://github.com/yahoo/elide/commit/add535fc209e36e9a9a4791c299187802869144e) Using spring's dependency management (#1442) 
-   * [view commit](https://github.com/yahoo/elide/commit/d6b46aefd442179ef43377daf851711b61e68089) Fix for Graphql Fragment Error in Debug Mode - Elide 4.x (#1446) 
-   * [view commit](https://github.com/yahoo/elide/commit/11ee675dd9545f7226a7ba658886ddd748946458) Fix CVE errors 21-Jul (#1457) 
-   * [view commit](https://github.com/yahoo/elide/commit/bc5fac28101c57d31cba58948b2929351f0a74c3) Bump commons-lang3 from 3.10 to 3.11 (#1456) 
-   * [view commit](https://github.com/yahoo/elide/commit/ca7c84d7b18871f1a20766769595b03bb140bf93) Bump groovy.version from 3.0.2 to 3.0.5 (#1458) 
-   * [view commit](https://github.com/yahoo/elide/commit/7ae7144f4d304544364355fedca9cfaf3ccbdc01) Bump liquibase-core from 3.10.1 to 4.0.0 (#1455) 
-   * [view commit](https://github.com/yahoo/elide/commit/bf6ed0af30e7019fd9d10b2082a4aee021abb6d2) Bump metrics.version from 4.1.10.1 to 4.1.11 (#1453) 
-   * [view commit](https://github.com/yahoo/elide/commit/53be250e7b7d4e66610cbb1e426b11893707ef15) Bump mockito-core from 3.3.3 to 3.4.4 (#1452) 
-   * [view commit](https://github.com/yahoo/elide/commit/02cb0de1c2dea224e5bcb9c10d86466485206ee8) Bump version.restassured from 4.3.0 to 4.3.1 (#1451) 
-   * [view commit](https://github.com/yahoo/elide/commit/305cea366065d0ea46972ffef4f583e6aeb85ed3) Bump resteasy.version from 3.12.1.Final to 3.13.0.Final (#1450) 
-   * [view commit](https://github.com/yahoo/elide/commit/afe843d9a888f7b015575c0cb389f1c6275ce9ad) Resolves #1461 (#1463) 
-   * [view commit](https://github.com/yahoo/elide/commit/5bc03c686721c8f4c2574acd539e644b60ee8010) Bump checkstyle from 8.34 to 8.35 (#1467) 
-   * [view commit](https://github.com/yahoo/elide/commit/95db95f92482eb102d7337d8af9e20624a436b5b) Bump spring-boot-dependencies from 2.3.1.RELEASE to 2.3.2.RELEASE (#1466) 
 
 ## 4.6.6
 **Features**

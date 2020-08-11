@@ -29,7 +29,7 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
     private final User goodUser;
     PersistentResourceNoopUpdateTest() {
         goodUser = new TestUser("1");
-        goodUserScope = new RequestScope(null, null, NO_VERSION, null,
+        goodUserScope = new RequestScope(null, NO_VERSION, null,
                 mock(DataStoreTransaction.class), goodUser, null, UUID.randomUUID(), elideSettings);
         initDictionary();
         reset(goodUserScope.getTransaction());
@@ -42,7 +42,7 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         //We do not want the update to one method to be called when we add the existing entity to the relation
@@ -58,7 +58,7 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         funResource.addRelation("relation3", childResource);
@@ -76,7 +76,7 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, null, goodScope);
         //We do not want the update to one method to be called when we add the existing entity to the relation
@@ -91,7 +91,7 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, null, goodScope);
         funResource.addRelation("relation1", childResource);

@@ -195,12 +195,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private EntityProjection createProjection(Class<?> entityType, Field entityField) {
         final EntityProjectionBuilder projectionBuilder = EntityProjection.builder()
-<<<<<<< HEAD
                 .type(entityType);
-=======
-                .type(entityType)
-                .pagination(PaginationImpl.getDefaultPagination(entityType, elideSettings));
->>>>>>> elide-5.x
 
         entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, projectionBuilder));
         entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));

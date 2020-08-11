@@ -7,7 +7,6 @@ package com.yahoo.elide.utils.coerce.converters;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 /**
  * Convert an Instant to/from an ISO-8601 string representation.
@@ -18,17 +17,12 @@ import java.time.format.DateTimeParseException;
 public class InstantSerde implements Serde<String, Instant> {
     @Override
     public Instant deserialize(final String value) {
-        try {
-            return Instant.from(
-                // NB. ideally we would use ISO_INSTANT here but there is a bug in JDK-8 that
-                // means that parsing an ISO offset time doesn't work :-(
-                // https://bugs.openjdk.java.net/browse/JDK-8166138
-                DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(value)
-            );
-        } catch (final DateTimeParseException ex) {
-            // Translate parsing exception to something CoerceUtil will handle appropriately
-            throw new IllegalArgumentException(ex);
-        }
+        return Instant.from(
+            // NB. ideally we would use ISO_INSTANT here but there is a bug in JDK-8 that
+            // means that parsing an ISO offset time doesn't work :-(
+            // https://bugs.openjdk.java.net/browse/JDK-8166138
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(value)
+        );
     }
 
     @Override

@@ -12,10 +12,7 @@ import com.google.common.collect.Sets;
 import lombok.Data;
 
 import java.util.ArrayList;
-<<<<<<< HEAD
 import java.util.Collections;
-=======
->>>>>>> elide-5.x
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +27,6 @@ public class SQLQueryTemplate {
     private final SQLTable table;
     private final List<SQLMetricProjection> metrics;
     private final Set<SQLColumnProjection> nonTimeDimensions;
-<<<<<<< HEAD
     private final SQLTimeDimensionProjection timeDimension;
 
     public SQLQueryTemplate(SQLTable table, List<SQLMetricProjection> metrics,
@@ -38,30 +34,15 @@ public class SQLQueryTemplate {
         this.table = table;
         this.nonTimeDimensions = nonTimeDimensions;
         this.timeDimension = timeDimension;
-=======
-    private final Set<SQLTimeDimensionProjection> timeDimensions;
-
-    public SQLQueryTemplate(SQLTable table, List<SQLMetricProjection> metrics,
-                     Set<SQLColumnProjection> nonTimeDimensions, Set<SQLTimeDimensionProjection> timeDimensions) {
-        this.table = table;
-        this.nonTimeDimensions = nonTimeDimensions;
-        this.timeDimensions = timeDimensions;
->>>>>>> elide-5.x
         this.metrics = metrics;
     }
 
     public SQLQueryTemplate(Query query) {
         table = (SQLTable) query.getTable();
-<<<<<<< HEAD
         timeDimension = query.getTimeDimensions().stream()
                 .findFirst()
                 .map(SQLTimeDimensionProjection.class::cast)
                 .orElse(null);
-=======
-        timeDimensions = query.getTimeDimensions().stream()
-                .map(SQLTimeDimensionProjection.class::cast)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
->>>>>>> elide-5.x
 
         nonTimeDimensions = query.getGroupByDimensions().stream()
                 .map(SQLColumnProjection.class::cast)
@@ -78,15 +59,9 @@ public class SQLQueryTemplate {
      * @return all GROUP BY dimensions
      */
     public Set<SQLColumnProjection> getGroupByDimensions() {
-<<<<<<< HEAD
         return getTimeDimension() == null
                 ? getNonTimeDimensions()
                 : Sets.union(getNonTimeDimensions(), Collections.singleton(getTimeDimension()));
-=======
-        return getTimeDimensions() == null
-                ? getNonTimeDimensions()
-                : Sets.union(getNonTimeDimensions(), getTimeDimensions());
->>>>>>> elide-5.x
     }
 
     /**
@@ -102,11 +77,7 @@ public class SQLQueryTemplate {
          List<SQLMetricProjection> merged = new ArrayList<>(first.getMetrics());
          merged.addAll(second.getMetrics());
 
-<<<<<<< HEAD
          return new SQLQueryTemplate(first.getTable(), merged, first.getNonTimeDimensions(), first.getTimeDimension());
-=======
-         return new SQLQueryTemplate(first.getTable(), merged, first.getNonTimeDimensions(), first.getTimeDimensions());
->>>>>>> elide-5.x
      }
 
     /**
@@ -117,13 +88,8 @@ public class SQLQueryTemplate {
          ArrayList<SQLColumnProjection> columnProjections = new ArrayList<>();
          columnProjections.addAll(metrics);
          columnProjections.addAll(nonTimeDimensions);
-<<<<<<< HEAD
          if (timeDimension != null) {
             columnProjections.add(timeDimension);
-=======
-         if (timeDimensions != null) {
-            columnProjections.addAll(timeDimensions);
->>>>>>> elide-5.x
          }
          return columnProjections;
      }

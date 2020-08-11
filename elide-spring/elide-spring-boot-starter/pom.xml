@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-spring-boot-starter</artifactId>
-    <version>5.0.0-pr16-SNAPSHOT</version>
+    <version>5.0.0-pr14-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Spring Boot Starter</name>
     <description>Elide Spring Boot Starter</description>
@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>5.0.0-pr16-SNAPSHOT</version>
+        <version>5.0.0-pr14-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -39,6 +39,10 @@
         <tag>HEAD</tag>
     </scm>
 
+    <properties>
+        <spring.boot.version>2.3.1.RELEASE</spring.boot.version>
+    </properties>
+
     <dependencies>
 
         <!-- Compile Dependencies -->
@@ -46,68 +50,73 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
 
         <!-- Jetty -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
+            <version>${version.jetty}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-server</artifactId>
+            <version>${version.jetty}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>javax-websocket-server-impl</artifactId>
+            <version>${version.jetty}</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-spring-boot-autoconfigure</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <version>${spring.boot.version}</version>
+
             <!-- No Tomcat -->
             <exclusions>
                 <exclusion>
@@ -139,6 +148,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jetty</artifactId>
+            <version>${spring.boot.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.eclipse.jetty</groupId>
@@ -158,17 +168,20 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${spring.boot.version}</version>
         </dependency>
 
         <!-- YAML for spring config -->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
+            <version>1.26</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-jaxb-annotations</artifactId>
+            <version>2.11.0</version>
         </dependency>
 
     </dependencies>

@@ -27,11 +27,6 @@ import java.util.TimeZone;
 @Value
 public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimension>, TimeDimensionProjection {
 
-<<<<<<< HEAD
-=======
-    private static final String TIME_DIMENSION_REPLACEMENT_REGEX = "\\{\\{(\\s*)}}";
-
->>>>>>> elide-5.x
     TimeDimension column;
     TimeDimensionGrain grain;
     TimeZone timeZone;
@@ -101,14 +96,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     @Override
     public String toSQL(SQLQueryTemplate queryTemplate) {
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
-<<<<<<< HEAD
         return String.format(
                 grain.getExpression(),
                 referenceTable.getResolvedReference(column.getTable(), column.getName()));
-=======
-        return grain.getExpression().replaceFirst(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        referenceTable.getResolvedReference(column.getTable(), column.getName()));
->>>>>>> elide-5.x
     }
 
     @Override

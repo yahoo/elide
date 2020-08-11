@@ -244,7 +244,7 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public void cancel(RequestScope scope) {
+        public void cancel() {
             // Nothing
         }
     }

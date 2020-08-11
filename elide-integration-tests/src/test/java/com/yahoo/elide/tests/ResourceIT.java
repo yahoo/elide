@@ -90,8 +90,6 @@ import javax.ws.rs.core.Response.Status;
 public class ResourceIT extends IntegrationTest {
     private final JsonParser jsonParser = new JsonParser();
 
-    private final String baseUrl = "http://localhost:8080/api";
-
     private static final Resource PARENT1 = resource(
             type("parent"),
             id("1"),
@@ -2497,7 +2495,7 @@ public class ResourceIT extends IntegrationTest {
                 .build());
 
         com.yahoo.elide.security.User user = new com.yahoo.elide.security.User(() -> "-1");
-        ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }

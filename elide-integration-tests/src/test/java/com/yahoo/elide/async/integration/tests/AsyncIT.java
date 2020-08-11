@@ -81,6 +81,7 @@ public class AsyncIT extends IntegrationTest {
 
         private String id;
         private String query;
+        private String principalName;
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String queryType;
         private Integer asyncAfterSeconds;

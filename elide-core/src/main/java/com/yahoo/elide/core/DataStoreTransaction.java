@@ -266,7 +266,6 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Cancel running transaction.
      * Implementation must be thread-safe.
-     * @param scope contains request level metadata.
      */
-    void cancel(RequestScope scope);
+    void cancel();
 }

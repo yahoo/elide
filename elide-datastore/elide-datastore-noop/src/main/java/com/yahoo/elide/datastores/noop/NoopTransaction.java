@@ -123,7 +123,7 @@ public class NoopTransaction implements DataStoreTransaction {
      * No-op transaction, do nothing.
      */
     @Override
-    public void cancel(RequestScope scope) {
+    public void cancel() {
         // No-op transaction, do nothing.
     }
 }

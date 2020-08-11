@@ -170,6 +170,11 @@ public class HibernateTransaction implements DataStoreTransaction {
         FilterExpression filterExpression = projection.getFilterExpression();
         Sorting sorting = projection.getSorting();
 
+        if (pagination != null && pagination.returnPageTotals()) {
+                pagination.setPageTotals(getTotalRecords(entityClass,
+                        Optional.ofNullable(filterExpression), scope.getDictionary()));
+        }
+
         final QueryWrapper query =
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper)
                         .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
@@ -177,24 +182,11 @@ public class HibernateTransaction implements DataStoreTransaction {
                         .withPossiblePagination(Optional.ofNullable(pagination))
                         .build();
 
-        Iterable results;
-        final boolean hasResults;
+
         if (isScrollEnabled) {
-            results = new ScrollableIterator<>(query.getQuery().scroll());
-            hasResults = ((ScrollableIterator) results).hasNext();
-        } else {
-            results = query.getQuery().list();
-            hasResults = ! ((Collection) results).isEmpty();
+            return new ScrollableIterator<>(query.getQuery().scroll());
         }
-
-        if (pagination != null) {
-            if (pagination.returnPageTotals() && (hasResults || pagination.getLimit() == 0)) {
-                pagination.setPageTotals(getTotalRecords(entityClass,
-                        Optional.ofNullable(filterExpression), scope.getDictionary()));
-            }
-        }
-
-        return results;
+        return (Iterable) query.getQuery().list();
     }
 
     @Override
@@ -302,7 +294,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void cancel(RequestScope scope) {
+    public void cancel() {
         session.cancelQuery();
     }
 }

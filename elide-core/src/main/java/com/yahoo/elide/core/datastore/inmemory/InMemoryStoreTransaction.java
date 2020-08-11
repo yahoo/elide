@@ -469,7 +469,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
    @Override
-   public void cancel(RequestScope scope) {
-       tx.cancel(scope);
+   public void cancel() {
+       tx.cancel();
    }
 }

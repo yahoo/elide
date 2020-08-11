@@ -54,13 +54,8 @@ public class ElideDynamicEntityCompiler {
         }
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
 
-<<<<<<< HEAD
         DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator();
         dynamicConfigValidator.readAndValidateConfigs(path);
-=======
-        DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(path);
-        dynamicConfigValidator.readAndValidateConfigs();
->>>>>>> elide-5.x
 
         ElideTableConfig tableConfig = dynamicConfigValidator.getElideTableConfig();
         ElideSecurityConfig securityConfig = dynamicConfigValidator.getElideSecurityConfig();

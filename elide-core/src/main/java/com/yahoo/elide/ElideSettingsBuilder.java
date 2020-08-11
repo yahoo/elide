@@ -10,7 +10,6 @@ import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.core.JSONApiLinks;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
@@ -44,12 +43,10 @@ public class ElideSettingsBuilder {
     private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
-    private JSONApiLinks jsonApiLinks;
     private Map<Class, Serde> serdes;
     private int defaultMaxPageSize = PaginationImpl.MAX_PAGE_LIMIT;
     private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
     private int updateStatusCode;
-    private boolean enableJsonLinks;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -65,7 +62,6 @@ public class ElideSettingsBuilder {
         this.subqueryFilterDialects = new ArrayList<>();
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
         this.serdes = new HashMap<>();
-        this.enableJsonLinks = false;
 
         //By default, Elide supports epoch based dates.
         this.withEpochDates();
@@ -90,12 +86,10 @@ public class ElideSettingsBuilder {
                 permissionExecutorFunction,
                 joinFilterDialects,
                 subqueryFilterDialects,
-                jsonApiLinks,
                 defaultMaxPageSize,
                 defaultPageSize,
                 updateStatusCode,
-                serdes,
-                enableJsonLinks);
+                serdes);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -161,12 +155,6 @@ public class ElideSettingsBuilder {
         serdes.put(java.sql.Date.class, new EpochToDateConverter<java.sql.Date>(java.sql.Date.class));
         serdes.put(java.sql.Time.class, new EpochToDateConverter<java.sql.Time>(java.sql.Time.class));
         serdes.put(java.sql.Timestamp.class, new EpochToDateConverter<java.sql.Timestamp>(java.sql.Timestamp.class));
-        return this;
-    }
-
-    public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
-        this.enableJsonLinks = true;
-        this.jsonApiLinks = links;
         return this;
     }
 }

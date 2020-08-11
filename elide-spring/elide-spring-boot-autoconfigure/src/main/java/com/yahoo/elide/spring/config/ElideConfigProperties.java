@@ -44,11 +44,6 @@ public class ElideConfigProperties {
     private DynamicConfigProperties dynamicConfig;
 
     /**
-     * Settings for the Aggregation Store.
-     */
-    private AggregationStoreProperties aggregationStore;
-
-    /**
      * Default pagination size for collections if the client doesn't paginate.
      */
     private int pageSize = 500;

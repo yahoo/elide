@@ -20,7 +20,7 @@ public class InMemoryLogger extends AuditLogger {
 
     @Override
     public void commit() throws IOException {
-        for (LogMessage message : MESSAGES.get()) {
+        for (LogMessage message : messages.get()) {
             if (message.getChangeSpec().isPresent()) {
                 logMessages.add(changeSpecToString(message.getChangeSpec().get()));
             }

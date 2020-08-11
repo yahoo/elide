@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-contrib-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>5.0.0-pr16-SNAPSHOT</version>
+        <version>5.0.0-pr14-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
     	    <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
     	    <artifactId>elide-integration-tests</artifactId>
-            <version>5.0.0-pr16-SNAPSHOT</version>
+            <version>5.0.0-pr14-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -86,7 +86,7 @@
        <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-core</artifactId>
-            <version>1.6.2</version>
+            <version>1.6.1</version>
        </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>

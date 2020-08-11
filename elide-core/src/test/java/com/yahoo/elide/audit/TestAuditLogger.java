@@ -10,17 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestAuditLogger extends AuditLogger {
-    public TestAuditLogger() {
-        // clean any prior test data for this thread
-        super.clear();
-    }
-
     @Override
     public void commit() throws IOException {
         //NOOP
     }
 
     public List<LogMessage> getMessages() {
-        return new ArrayList<>(this.MESSAGES.get());
+        return new ArrayList<>(this.messages.get());
     }
 }
