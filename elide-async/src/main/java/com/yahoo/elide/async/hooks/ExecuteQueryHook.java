@@ -34,7 +34,8 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
             throw new InvalidValueException("resultType is null", (Throwable) null);
         }
         if (query.getStatus() == QueryStatus.QUEUED && query.getResult() == null) {
-            asyncExecutorService.executeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
+            asyncExecutorService.executeQuery(query, requestScope.getUser(), requestScope.getApiVersion(),
+                    requestScope.getBaseUrlEndPoint());
         }
     }
 }

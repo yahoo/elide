@@ -268,8 +268,8 @@ public interface ElideStandaloneSettings {
      *
      * @return a URL in String format.
      */
-    default String getAsyncDownloadBaseURL() {
-        return "http://localhost:8080/AsyncQueryResultStorage/";
+    default String getAsyncDownloadPath() {
+        return "/download/api/v1";
     }
 
     /**
@@ -429,7 +429,7 @@ public interface ElideStandaloneSettings {
      * @return DataStore object initialized.
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
-        EntityManagerFactory entityManagerFactory) {
+            EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
@@ -459,7 +459,7 @@ public interface ElideStandaloneSettings {
      * @return AggregationDataStore object initialized.
      */
     default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
-        Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+            Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
                 .queryEngine(queryEngine).queryLogger(new NoopQueryLogger());
 
@@ -479,7 +479,7 @@ public interface ElideStandaloneSettings {
      * @return EntityDictionary object initialized.
      */
     default EntityDictionary getEntityDictionary(ServiceLocator injector,
-        Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+            Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
                 new Injector() {
                     @Override
@@ -534,7 +534,7 @@ public interface ElideStandaloneSettings {
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,
-        Class<?> classz) {
+            Class<?> classz) {
         Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
 
         if (!optionalCompiler.isPresent()) {

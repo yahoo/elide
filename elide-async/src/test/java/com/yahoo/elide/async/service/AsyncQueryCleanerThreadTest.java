@@ -33,7 +33,6 @@ public class AsyncQueryCleanerThreadTest {
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
 
-
     @BeforeEach
     public void setupMocks() {
 

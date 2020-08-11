@@ -65,7 +65,7 @@ public class AsyncQueryThreadTest {
 
         when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine);
+                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
         queryResultObj = queryThread.processQuery();
         assertEquals(queryResultObj.getRecordCount(), 3);
         assertEquals(queryResultObj.getResponseBody(), responseBody);
@@ -87,7 +87,7 @@ public class AsyncQueryThreadTest {
 
         when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine);
+                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
         queryResultObj = queryThread.processQuery();
 
         assertEquals(queryResultObj.getRecordCount(), 0);
@@ -110,7 +110,7 @@ public class AsyncQueryThreadTest {
 
         when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine);
+                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
         queryResultObj = queryThread.processQuery();
 
         assertEquals(queryResultObj.getRecordCount(), null);
@@ -134,7 +134,7 @@ public class AsyncQueryThreadTest {
 
             when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                    resultStorageEngine);
+                    resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
             queryResultObj = queryThread.processQuery();
             assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
             assertEquals(queryResultObj.getHttpStatus(), 200);
@@ -159,7 +159,7 @@ public class AsyncQueryThreadTest {
 
         when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine);
+                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
         queryResultObj = queryThread.processQuery();
         assertEquals(queryResultObj.getRecordCount(), 3);
         assertEquals(queryResultObj.getResponseBody(), responseBody);
@@ -176,7 +176,7 @@ public class AsyncQueryThreadTest {
 
         AsyncQuery queryObj = new AsyncQuery();
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine);
+                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
 
         assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
     }
@@ -191,7 +191,7 @@ public class AsyncQueryThreadTest {
 
             AsyncQuery queryObj = new AsyncQuery();
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                    resultStorageEngine);
+                    resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
 
             assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
         });

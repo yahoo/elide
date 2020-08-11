@@ -66,7 +66,7 @@ public class DefaultResultStorageEngineTest {
         when(dataStore.beginTransaction()).thenReturn(tx);
         asyncQueryDAO = new DefaultAsyncQueryDAO(elide.getElideSettings(), dataStore);
         defaultResultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(),
-                dataStore, "http://localhost:8080/AsyncQueryResultStorage/");
+                dataStore);
     }
 
     @Test
@@ -74,10 +74,10 @@ public class DefaultResultStorageEngineTest {
         String responseBody = "responseBody";
         byte[] testResponse = responseBody.getBytes();
         when(asyncQueryResultStorage.getId()).thenReturn("asyncQueryID");
-        URL testURL = new URL("http://localhost:8080/AsyncQueryResultStorage/asyncQueryID");
+        URL testURL = new URL("http://localhost:8080/api/v1/download/asyncQueryID");
 
         URL url = defaultResultStorageEngine.storeResults(
-                asyncQueryResultStorage.getId(), testResponse);
+                asyncQueryResultStorage.getId(), testResponse, "http://localhost:8080/api/v1/download");
 
         assertEquals(url, testURL);
     }

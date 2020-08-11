@@ -121,7 +121,7 @@ public class AsyncIT extends IntegrationTest {
     );
 
     public AsyncIT() {
-        super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+        super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName(), "50001");
     }
 
     @Override
@@ -211,7 +211,8 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.attributes.result.contentLength", nullValue())
                 .body("data.attributes.result.recordCount", nullValue())
                 .body("data.attributes.result.responseBody", nullValue())
-                .body("data.attributes.result.httpStatus", nullValue());
+                .body("data.attributes.result.httpStatus", nullValue())
+                .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
         int i = 0;
         while (i < 1000) {
@@ -239,7 +240,8 @@ public class AsyncIT extends IntegrationTest {
                                 + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                                 + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
-                        .body("data.attributes.result.httpStatus", equalTo(200));
+                        .body("data.attributes.result.httpStatus", equalTo(200))
+                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
@@ -317,8 +319,8 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
                         .body("data.attributes.result.recordCount", equalTo(3))
-                        .body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
-                              + "/AsyncQueryResultStorage/adc4a871-dff2-4054-804e-d80075cf830e"))
+                        .body("data.attributes.result.responseBody", equalTo("http://localhost:50001"
+                              + "/download/adc4a871-dff2-4054-804e-d80075cf830e"))
                         .body("data.attributes.result.httpStatus", equalTo(200));
 
                 break;
@@ -375,7 +377,8 @@ public class AsyncIT extends IntegrationTest {
                         + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                         + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                         + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
-                .body("data.attributes.result.httpStatus", equalTo(200));
+                .body("data.attributes.result.httpStatus", equalTo(200))
+                .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
     }
     /**
@@ -415,8 +418,8 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.attributes.status", equalTo("COMPLETE"))
                 .body("data.attributes.result.contentLength", notNullValue())
                 .body("data.attributes.result.recordCount", equalTo(3))
-                .body("data.attributes.result.responseBody", equalTo("http://localhost:8080"
-                        + "/AsyncQueryResultStorage/adc4a871-dff2-4054-804e-d80075cf831f"))
+                .body("data.attributes.result.responseBody", equalTo("http://localhost:50001"
+                        + "/download/adc4a871-dff2-4054-804e-d80075cf831f"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
     }
@@ -575,7 +578,7 @@ public class AsyncIT extends IntegrationTest {
             if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
 
                 expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/adc4a871-dff2-4054-804e-d80075cf828e\","
+                        + "\"result\":{\"responseBody\":\"http://localhost:50001/download/adc4a871-dff2-4054-804e-d80075cf828e\","
                         + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
@@ -725,7 +728,7 @@ public class AsyncIT extends IntegrationTest {
                 .asString();
 
         expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                + "\"result\":{\"responseBody\":\"http://localhost:8080/AsyncQueryResultStorage/adc4a871-dff2-4054-804e-d80075cf829e\","
+                + "\"result\":{\"responseBody\":\"http://localhost:50001/download/adc4a871-dff2-4054-804e-d80075cf829e\","
                 + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);

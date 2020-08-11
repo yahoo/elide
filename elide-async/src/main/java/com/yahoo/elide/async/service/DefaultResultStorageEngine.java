@@ -9,7 +9,6 @@ package com.yahoo.elide.async.service;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResultStorage;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.request.EntityProjection;
 import lombok.Getter;
@@ -21,15 +20,14 @@ import java.net.URL;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import javax.inject.Singleton;
 import javax.sql.rowset.serial.SerialBlob;
 
 /**
- * Utility class which implements ResultStorageEngine.
+ * Default implementation of ResultStorageEngine.
+ * It uses DB to store results.
  */
 @Singleton
 @Slf4j
@@ -38,19 +36,17 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
 
     @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
-    private String baseURL;
 
     public DefaultResultStorageEngine() {
     }
 
-    public DefaultResultStorageEngine(ElideSettings elideSettings, DataStore dataStore, String baseURL) {
+    public DefaultResultStorageEngine(ElideSettings elideSettings, DataStore dataStore) {
         this.elideSettings = elideSettings;
         this.dataStore = dataStore;
-        this.baseURL = baseURL;
     }
 
     @Override
-    public URL storeResults(String asyncQueryID, byte[] byteResponse) {
+    public URL storeResults(String asyncQueryID, byte[] byteResponse, String downloadBaseURL) {
 
         try {
             Blob response = new SerialBlob(byteResponse);
@@ -72,7 +68,8 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         }
 
         URL url = null;
-        String buildURL = baseURL + asyncQueryID;
+        String buildURL = downloadBaseURL.endsWith("/") ? downloadBaseURL + asyncQueryID
+                : downloadBaseURL + "/" + asyncQueryID;
         try {
             url = new URL(buildURL);
         } catch (MalformedURLException e) {
@@ -80,7 +77,6 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
             throw new IllegalStateException(e);
         }
         return url;
-
     }
 
     @Override
@@ -140,11 +136,5 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
             });
 
         }
-
-    }
-
-    @Override
-    public Set<ResultType> supportedResultTypes() {
-        return EnumSet.of(ResultType.EMBEDDED, ResultType.DOWNLOAD);
     }
 }

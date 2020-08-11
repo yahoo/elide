@@ -47,6 +47,6 @@ public class AsyncProperties {
     /**
      * The URL path prefix for the controller.
      */
-    private String downloadBaseURL = "/";
+    private String downloadPath = "/";
 
 }

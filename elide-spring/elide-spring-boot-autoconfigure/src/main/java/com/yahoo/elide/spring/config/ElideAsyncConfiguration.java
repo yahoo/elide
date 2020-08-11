@@ -56,9 +56,10 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
-        AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary, ResultStorageEngine resultStorageEngine) {
+            AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary, ResultStorageEngine resultStorageEngine) {
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao, resultStorageEngine);
+                settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao, resultStorageEngine,
+                settings.getAsync().getDownloadPath());
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
         // Binding AsyncQuery LifeCycleHook
@@ -83,7 +84,7 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
     public AsyncCleanerService buildAsyncCleanerService(Elide elide, ElideConfigProperties settings,
-        AsyncQueryDAO asyncQueryDao, ResultStorageEngine resultStorageEngine) {
+            AsyncQueryDAO asyncQueryDao, ResultStorageEngine resultStorageEngine) {
         AsyncCleanerService.init(elide, settings.getAsync().getMaxRunTimeMinutes(),
                 settings.getAsync().getQueryCleanupDays(), asyncQueryDao, resultStorageEngine);
         return AsyncCleanerService.getInstance();
@@ -116,8 +117,7 @@ public class ElideAsyncConfiguration {
         // Creating a new ElideSettings and Elide object for Async services
         // which will have ISO8601 Dates. Used for DefaultResultStorageEngine.
         Elide asyncElide = getAsyncElideInstance(elide);
-        return new DefaultResultStorageEngine(asyncElide.getElideSettings(), asyncElide.getDataStore(),
-                settings.getAsync().getDownloadBaseURL());
+        return new DefaultResultStorageEngine(asyncElide.getElideSettings(), asyncElide.getDataStore());
     }
 
     /**

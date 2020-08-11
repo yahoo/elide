@@ -58,6 +58,8 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     private AsyncQueryDAO asyncQueryDao;
     private String apiVersion;
     private ResultStorageEngine resultStorageEngine;
+    private String baseURLEndPoint;
+    private String downloadBasePath;
 
     @Override
     public AsyncQueryResult call() throws Exception {
@@ -65,7 +67,8 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     }
 
     public AsyncQueryThread(AsyncQuery queryObj, User user, Elide elide, QueryRunner runner,
-        AsyncQueryDAO asyncQueryDao, String apiVersion, ResultStorageEngine resultStorageEngine) {
+            AsyncQueryDAO asyncQueryDao, String apiVersion, ResultStorageEngine resultStorageEngine,
+            String baseURLEndPoint, String downloadBasePath) {
         this.queryObj = queryObj;
         this.user = user;
         this.elide = elide;
@@ -73,14 +76,16 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         this.asyncQueryDao = asyncQueryDao;
         this.apiVersion = apiVersion;
         this.resultStorageEngine = resultStorageEngine;
+        this.baseURLEndPoint = baseURLEndPoint;
+        this.downloadBasePath = downloadBasePath;
     }
 
     /**
      * This is the main method which processes the Async Query request, executes the query and updates
      * values for AsyncQuery and AsyncQueryResult models accordingly.
      * @return AsyncQueryResult
-     * @throws URISyntaxException
-     * @throws NoHttpResponseException
+     * @throws Exception Thrown by JFlat
+     * @throws NoHttpResponseException Thrown by processQuery
      */
     protected AsyncQueryResult processQuery() throws Exception {
         UUID requestId = UUID.fromString(queryObj.getRequestId());
@@ -93,7 +98,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
             log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
-            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+            //TODO - we need to add the baseURLEndpoint to the queryObject.
             response = elide.get("", getPath(queryObj.getQuery()), queryParams, user, apiVersion, requestId);
             log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                     response.getResponseCode(), response.getBody());
@@ -103,7 +108,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             }
         }
         else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+            //TODO - we need to add the baseURLEndpoint to the queryObject.
 
             response = runner.run("", queryObj.getQuery(), user, requestId);
             log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
@@ -130,10 +135,13 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
             tempResult = convertJsonToCSV(response.getBody());
         }
-        byte[] temp = tempResult.getBytes();
 
         if (queryObj.getResultType() == ResultType.DOWNLOAD) {
-            url = resultStorageEngine.storeResults(queryObj.getId(), temp);
+            String baseURL = baseURLEndPoint != null ? getBasePath(baseURLEndPoint) : null;
+            String downloadURL = baseURL != null && downloadBasePath != null ? baseURL + downloadBasePath : null;
+
+            byte[] temp = tempResult.getBytes();
+            url = resultStorageEngine.storeResults(queryObj.getId(), temp, downloadURL);
             queryResultObj.setResponseBody(url.toString());
         } else if (queryObj.getResultType() == ResultType.EMBEDDED) {
             queryResultObj.setResponseBody(tempResult);
@@ -157,6 +165,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * This method calculates the number of records from the response with GRAPHQL API.
      * @param jsonStr is the response.getBody() we get from the response
      * @return rec is the recordCount
+     * @throws IOException Exception thrown by JsonPath
      */
     protected Integer calculateRecordsGraphQL(String jsonStr) throws IOException {
         Integer rec = null;
@@ -174,6 +183,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * This method converts the JSON response to a CSV response type.
      * @param jsonStr is the response.getBody() of the query
      * @return retuns a string which nis in CSV format
+     * @throws Exception Exception thrown by JFlat
      */
     protected String convertJsonToCSV(String jsonStr) throws Exception {
         if (jsonStr == null) {
@@ -192,7 +202,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     }
 
     /**
-     * This method parses the url and gets the query params.
+     * This method parses the URL and gets the query params.
      * And adds them into a MultivaluedMap to be used by underlying Elide.get method
      * @param query query from the Async request
      * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
@@ -209,7 +219,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     }
 
     /**
-     * This method parses the url and gets the query params.
+     * This method parses the URL and gets the query params.
      * And retrieves path to be used by underlying Elide.get method
      * @param query query from the Async request
      * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
@@ -219,5 +229,20 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         URIBuilder uri;
         uri = new URIBuilder(query);
         return uri.getPath();
+    }
+
+    /**
+     * This method parses the URL and gets the scheme, host, port.
+     * @param URL URL from the Async request
+     * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
+     * @return BasePath extracted from URI
+     */
+    protected String getBasePath(String URL) throws URISyntaxException {
+        URIBuilder uri;
+        uri = new URIBuilder(URL);
+        if (uri.getPort() != -1) {
+            return uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
+        }
+        return uri.getScheme() + "://" + uri.getHost();
     }
 }

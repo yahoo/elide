@@ -19,7 +19,7 @@ elide:
     cleanupEnabled: true
     queryCleanupDays: 7
     defaultAsyncQueryDAO: true
-    downloadBaseURL: http://localhost:8080/AsyncQueryResultStorage/
+    downloadPath: /download
   dynamic-config:
     path: src/test/resources/models
     enabled: true

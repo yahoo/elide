@@ -149,12 +149,13 @@ public class ElideResourceConfig extends ResourceConfig {
                     ResultStorageEngine resultStorageEngine = settings.getResultStorageEngine();
                     if (resultStorageEngine == null) {
                         resultStorageEngine = new DefaultResultStorageEngine(asyncElide.getElideSettings(),
-                                asyncElide.getDataStore(), settings.getAsyncDownloadBaseURL());
+                                asyncElide.getDataStore());
                     }
                     bind(resultStorageEngine).to(ResultStorageEngine.class);
 
                     AsyncExecutorService.init(elide, settings.getAsyncThreadSize(),
-                            settings.getAsyncMaxRunTimeMinutes(), asyncQueryDao, resultStorageEngine);
+                            settings.getAsyncMaxRunTimeMinutes(), asyncQueryDao, resultStorageEngine,
+                            settings.getAsyncDownloadPath());
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook

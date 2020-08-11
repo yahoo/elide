@@ -66,7 +66,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Override
     public Collection<AsyncQuery> updateStatusAsyncQueryCollection(String filterExpression,
-        QueryStatus status) {
+            QueryStatus status) {
         return updateAsyncQueryCollection(filterExpression, (asyncQuery) -> {
             asyncQuery.setStatus(status);
         });
@@ -81,7 +81,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
      */
     @SuppressWarnings("unchecked")
     private Collection<AsyncQuery> updateAsyncQueryCollection(String filterExpression,
-        UpdateQuery updateFunction) {
+            UpdateQuery updateFunction) {
         log.debug("updateAsyncQueryCollection");
 
         Collection<AsyncQuery> asyncQueryList = null;
