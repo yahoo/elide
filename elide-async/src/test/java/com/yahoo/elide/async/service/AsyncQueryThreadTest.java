@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
 
 
 public class AsyncQueryThreadTest {
+    private static final String BASE_URL_ENDPOINT = "http://localhost:8080/api/v1";
+    private static final String DOWNLOAD_BASE_PATH = "/api/v1/download";
 
     private User user;
     private Elide elide;
@@ -65,7 +67,7 @@ public class AsyncQueryThreadTest {
 
         when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
+                resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
         queryResultObj = queryThread.processQuery();
         assertEquals(queryResultObj.getRecordCount(), 3);
         assertEquals(queryResultObj.getResponseBody(), responseBody);
@@ -87,7 +89,7 @@ public class AsyncQueryThreadTest {
 
         when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
+                resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
         queryResultObj = queryThread.processQuery();
 
         assertEquals(queryResultObj.getRecordCount(), 0);
@@ -110,7 +112,7 @@ public class AsyncQueryThreadTest {
 
         when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
+                resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
         queryResultObj = queryThread.processQuery();
 
         assertEquals(queryResultObj.getRecordCount(), null);
@@ -134,7 +136,7 @@ public class AsyncQueryThreadTest {
 
             when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                    resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
+                    resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
             queryResultObj = queryThread.processQuery();
             assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
             assertEquals(queryResultObj.getHttpStatus(), 200);
@@ -159,7 +161,7 @@ public class AsyncQueryThreadTest {
 
         when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
+                resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
         queryResultObj = queryThread.processQuery();
         assertEquals(queryResultObj.getRecordCount(), 3);
         assertEquals(queryResultObj.getResponseBody(), responseBody);
@@ -176,7 +178,7 @@ public class AsyncQueryThreadTest {
 
         AsyncQuery queryObj = new AsyncQuery();
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
+                resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
 
         assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
     }
@@ -191,7 +193,7 @@ public class AsyncQueryThreadTest {
 
             AsyncQuery queryObj = new AsyncQuery();
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                    resultStorageEngine, "http://localhost:8080/api/v1", "/api/v1/download");
+                    resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
 
             assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
         });

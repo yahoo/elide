@@ -33,6 +33,7 @@ import javax.sql.rowset.serial.SerialBlob;
 @Slf4j
 @Getter
 public class DefaultResultStorageEngine implements ResultStorageEngine {
+    private static final String FORWARD_SLASH = "/";
 
     @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
@@ -67,9 +68,15 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
             throw new IllegalStateException(e);
         }
 
-        URL url = null;
-        String buildURL = downloadBaseURL.endsWith("/") ? downloadBaseURL + asyncQueryID
-                : downloadBaseURL + "/" + asyncQueryID;
+        URL url;
+        String buildURL;
+        if (downloadBaseURL == null) {
+            buildURL = null;
+        } else {
+            buildURL = downloadBaseURL.endsWith(FORWARD_SLASH) ? downloadBaseURL + asyncQueryID
+                    : downloadBaseURL + FORWARD_SLASH + asyncQueryID;
+        }
+
         try {
             url = new URL(buildURL);
         } catch (MalformedURLException e) {

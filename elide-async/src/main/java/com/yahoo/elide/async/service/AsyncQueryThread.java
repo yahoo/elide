@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.async.service;
 
-import static com.jayway.jsonpath.JsonPath.using;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -18,9 +16,7 @@ import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
 import com.github.opendevl.JFlat;
-import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
@@ -156,9 +152,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @return rec is the recordCount
      */
     protected Integer calculateRecordsJSON(String jsonStr) {
-        Integer rec = null;
-        rec = JsonPath.read(jsonStr, "$.data.length()");
-        return rec;
+        return JsonPath.read(jsonStr, "$.data.length()");
     }
 
     /**
@@ -168,15 +162,8 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @throws IOException Exception thrown by JsonPath
      */
     protected Integer calculateRecordsGraphQL(String jsonStr) throws IOException {
-        Integer rec = null;
-
-        Configuration conf = Configuration.builder()
-                .options(Option.AS_PATH_LIST).build();
-
-        List<String> pathList = using(conf).parse(jsonStr).read("$..edges");
-        String modify = pathList.get(0).replace("[", ".").replace("'", "").replace("]", "") + ".length()";
-        rec = JsonPath.read(jsonStr, modify);
-        return rec;
+        List<Integer> countList = JsonPath.read(jsonStr, "$..edges.length()");
+        return countList.get(0);
     }
 
     /**
@@ -240,9 +227,10 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     protected String getBasePath(String URL) throws URISyntaxException {
         URIBuilder uri;
         uri = new URIBuilder(URL);
+        StringBuilder str = new StringBuilder(uri.getScheme() + "://" + uri.getHost());
         if (uri.getPort() != -1) {
-            return uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
+            str.append(":" + uri.getPort());
         }
-        return uri.getScheme() + "://" + uri.getHost();
+        return str.toString();
     }
 }
