@@ -35,6 +35,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -191,11 +192,6 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         FilterExpression filterExpression = projection.getFilterExpression();
         Sorting sorting = projection.getSorting();
 
-        if (pagination != null && pagination.returnPageTotals()) {
-            pagination.setPageTotals(getTotalRecords(entityClass,
-                    Optional.ofNullable(filterExpression), scope.getDictionary()));
-        }
-
         QueryWrapper query =
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper)
                         .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
@@ -203,7 +199,17 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                         .withPossiblePagination(Optional.ofNullable(pagination))
                         .build();
 
-        return query.getQuery().getResultList();
+        List results = query.getQuery().getResultList();
+
+        if (pagination != null) {
+            //Issue #1429
+            if (pagination.returnPageTotals() && (!results.isEmpty() || pagination.getLimit() == 0)) {
+                pagination.setPageTotals(getTotalRecords(entityClass,
+                    Optional.ofNullable(filterExpression), scope.getDictionary()));
+            }
+        }
+
+        return results;
     }
 
     @Override
@@ -305,7 +311,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
     @Override
-    public void cancel() {
+    public void cancel(RequestScope scope) {
         jpaTransactionCancel.accept(em);
     }
 }

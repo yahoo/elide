@@ -22,16 +22,19 @@ public class Relationships extends LinkedHashMap<String, Map<String, ?>> {
     public Relationships(Relation... relations) {
         for (Relation relation : relations) {
             Map<String, Object> data = new LinkedHashMap<>();
-            if (relation.toOne) {
-                if (relation.resourceLinkages.length == 0) {
+            if (relation.getLinks() != null) {
+                data.put("links", relation.getLinks());
+            }
+            if (relation.isToOne()) {
+                if (relation.getResourceLinkages().length == 0) {
                     data.put("data", null);
                 } else {
-                    data.put("data", relation.resourceLinkages[0]);
+                    data.put("data", relation.getResourceLinkages()[0]);
                 }
             } else {
-                data.put("data", relation.resourceLinkages);
+                data.put("data", relation.getResourceLinkages());
             }
-            this.put(relation.field, data);
+            this.put(relation.getField(), data);
         }
     }
 }

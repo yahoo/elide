@@ -44,7 +44,11 @@ import javax.ws.rs.core.MediaType;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneTest {
+<<<<<<< HEAD
     private ElideStandalone elide;
+=======
+    protected ElideStandalone elide;
+>>>>>>> elide-5.x
 
     @BeforeAll
     public void init() throws Exception {
@@ -122,6 +126,14 @@ public class ElideStandaloneTest {
             }
 
             @Override
+<<<<<<< HEAD
+=======
+            public boolean enableAggregationDataStore() {
+                return true;
+            }
+
+            @Override
+>>>>>>> elide-5.x
             public String getDynamicConfigPath() {
                 return "src/test/resources/models/";
             }

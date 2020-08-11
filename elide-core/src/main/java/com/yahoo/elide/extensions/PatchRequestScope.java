@@ -23,6 +23,7 @@ public class PatchRequestScope extends RequestScope {
     /**
      * Outer RequestScope constructor for use by Patch Extension.
      *
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the URL path
      * @param apiVersion client requested API version
      * @param transaction current database transaction
@@ -31,6 +32,7 @@ public class PatchRequestScope extends RequestScope {
      * @param elideSettings Elide settings object
      */
     public PatchRequestScope(
+            String baseUrlEndPoint,
             String path,
             String apiVersion,
             DataStoreTransaction transaction,
@@ -38,6 +40,7 @@ public class PatchRequestScope extends RequestScope {
             UUID requestId,
             ElideSettings elideSettings) {
         super(
+                baseUrlEndPoint,
                 path,
                 apiVersion,
                 (JsonApiDocument) null,

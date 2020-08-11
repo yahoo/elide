@@ -67,7 +67,7 @@ public class RequestScopeTest {
         dictionary.bindEntity(MyBaseClass.class);
         dictionary.bindEntity(MyInheritedClass.class);
 
-        RequestScope requestScope = new RequestScope("/", NO_VERSION, null, null, null, null, UUID.randomUUID(),
+        RequestScope requestScope = new RequestScope(null, "/", NO_VERSION, null, null, null, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());

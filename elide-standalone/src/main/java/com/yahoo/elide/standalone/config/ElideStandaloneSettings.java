@@ -24,6 +24,7 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
+import com.yahoo.elide.datastores.aggregation.core.NoopQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -174,10 +175,19 @@ public interface ElideStandaloneSettings {
 
     /**
      * Enable the support for Dynamic Model Configuration. If false, the feature will be disabled.
-     *
+     * If enabled, ensure that Aggregation Data Store is also  enabled
      * @return Default: False
      */
     default boolean enableDynamicModelConfig() {
+        return false;
+    }
+
+    /**
+     * Enable the support for Aggregation Data Store. If false, the feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableAggregationDataStore() {
         return false;
     }
 
@@ -381,7 +391,7 @@ public interface ElideStandaloneSettings {
     default Optional<ElideDynamicEntityCompiler> getDynamicCompiler() {
         ElideDynamicEntityCompiler dynamicEntityCompiler = null;
 
-        if (enableDynamicModelConfig()) {
+        if (enableAggregationDataStore() && enableDynamicModelConfig()) {
             try {
                 dynamicEntityCompiler = new ElideDynamicEntityCompiler(getDynamicConfigPath());
             } catch (Exception e) { // thrown by in memory compiler
@@ -397,7 +407,7 @@ public interface ElideStandaloneSettings {
      * @param metaDataStore MetaDataStore object.
      * @param aggregationDataStore AggregationDataStore object.
      * @param entityManagerFactory EntityManagerFactory object.
-     * @return EntityDictionary object initialized.
+     * @return DataStore object initialized.
      */
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
@@ -411,6 +421,19 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Gets the DataStore for elide when aggregation store is disabled.
+     * @param entityManagerFactory EntityManagerFactory object.
+     * @return DataStore object initialized.
+     */
+    default DataStore getDataStore(EntityManagerFactory entityManagerFactory) {
+        DataStore jpaDataStore = new JpaDataStore(
+                () -> { return entityManagerFactory.createEntityManager(); },
+                (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
+
+        return jpaDataStore;
+    }
+
+    /**
      * Gets the AggregationDataStore for elide.
      * @param queryEngine query engine object.
      * @param optionalCompiler optional dynamic compiler object.
@@ -419,7 +442,7 @@ public interface ElideStandaloneSettings {
     default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
             Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
-                .queryEngine(queryEngine);
+                .queryEngine(queryEngine).queryLogger(new NoopQueryLogger());
 
         if (enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);

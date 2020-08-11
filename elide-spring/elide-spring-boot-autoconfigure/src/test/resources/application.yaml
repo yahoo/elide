@@ -22,6 +22,8 @@ elide:
   dynamic-config:
     path: src/test/resources/models
     enabled: true
+  aggregation-store:
+    enabled: true
 spring:
   jpa:
     show-sql: true

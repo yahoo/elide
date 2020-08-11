@@ -78,12 +78,24 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
             MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
             log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
+<<<<<<< HEAD
             response = elide.get(getPath(queryObj.getQuery()), queryParams, user, apiVersion, requestId);
+=======
+
+            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+            response = elide.get("", getPath(queryObj.getQuery()), queryParams, user, apiVersion, requestId);
+>>>>>>> elide-5.x
             log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                     response.getResponseCode(), response.getBody());
         }
         else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+<<<<<<< HEAD
             response = runner.run(queryObj.getQuery(), user, requestId);
+=======
+            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+
+            response = runner.run("", queryObj.getQuery(), user, requestId);
+>>>>>>> elide-5.x
             log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                     response.getResponseCode(), response.getBody());
         }

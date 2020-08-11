@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,11 +68,12 @@ public class JsonApiController {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.get(pathname,
+                ElideResponse response = elide.get(baseUrl, pathname,
                         new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -86,11 +88,12 @@ public class JsonApiController {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.post(pathname, body, new MultivaluedHashMap<>(allRequestParams),
+                ElideResponse response = elide.post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams),
                         user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -105,12 +108,13 @@ public class JsonApiController {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .patch(request.getContentType(), request.getContentType(), pathname, body,
+                        .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
                                new MultivaluedHashMap<>(allRequestParams), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -125,11 +129,12 @@ public class JsonApiController {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.delete(pathname, null,
+                ElideResponse response = elide.delete(baseUrl, pathname, null,
                         new MultivaluedHashMap<>(allRequestParams), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -145,12 +150,13 @@ public class JsonApiController {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .delete(pathname, body, new MultivaluedHashMap<>(allRequestParams), user,
+                        .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), user,
                                 apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -162,5 +168,10 @@ public class JsonApiController {
                 .getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
 
         return pathname.replaceFirst(prefix, "");
+    }
+
+    private String getBaseUrlEndpoint() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+                + settings.getJsonApi().getPath() + "/";
     }
 }

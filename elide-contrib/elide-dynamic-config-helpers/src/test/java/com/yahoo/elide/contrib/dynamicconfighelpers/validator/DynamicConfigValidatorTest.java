@@ -10,13 +10,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 
+=======
+>>>>>>> elide-5.x
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
 import org.hjson.ParseException;
 import org.junit.jupiter.api.Test;
 
+<<<<<<< HEAD
+=======
+import java.io.IOException;
+
+>>>>>>> elide-5.x
 public class DynamicConfigValidatorTest {
 
     @Test
@@ -51,7 +59,11 @@ public class DynamicConfigValidatorTest {
     public void testMissingConfigDir() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/missing" }));
+<<<<<<< HEAD
         assertEquals("Model Configs Directory doesn't exists", e.getMessage());
+=======
+        assertTrue(e.getMessage().startsWith("No Table configs found at"));
+>>>>>>> elide-5.x
     }
 
     @Test
@@ -76,14 +88,22 @@ public class DynamicConfigValidatorTest {
     public void testMissingTableDir() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/missing_table_dir" }));
+<<<<<<< HEAD
         assertTrue(e.getMessage().startsWith("Table Configs Directory doesn't exists at location"));
+=======
+        assertTrue(e.getMessage().startsWith("No Table configs found at"));
+>>>>>>> elide-5.x
     }
 
     @Test
     public void testMissingTableConfig() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/missing_table" }));
+<<<<<<< HEAD
         assertTrue(e.getMessage().startsWith("No Table Configs found at location"));
+=======
+        assertTrue(e.getMessage().startsWith("No Table configs found at"));
+>>>>>>> elide-5.x
     }
 
     @Test
@@ -107,7 +127,11 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadTableConfigJoinType() {
+<<<<<<< HEAD
         assertThrows(ValueInstantiationException.class, () -> DynamicConfigValidator
+=======
+        assertThrows(IOException.class, () -> DynamicConfigValidator
+>>>>>>> elide-5.x
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type" }));
     }
 

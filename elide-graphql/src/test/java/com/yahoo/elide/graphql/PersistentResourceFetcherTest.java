@@ -63,6 +63,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQL api;
     protected ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
+    private final String baseUrl = "http://localhost:8080/graphql";
 
     protected HashMapDataStore hashMapDataStore;
     protected InMemoryDataStore inMemoryDataStore;
@@ -192,7 +193,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo =
                 new GraphQLEntityProjectionMaker(settings, variables, NO_VERSION).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
@@ -218,7 +219,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         if (isMutation) {
@@ -251,7 +252,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected ExecutionResult runGraphQLRequest(String graphQLRequest, Map<String, Object> variables) {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings,
+                projectionInfo, UUID.randomUUID());
 
         return api.execute(graphQLRequest, requestScope, variables);
     }

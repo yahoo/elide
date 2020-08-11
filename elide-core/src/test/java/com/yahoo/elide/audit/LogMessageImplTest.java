@@ -54,7 +54,7 @@ public class LogMessageImplTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, NO_VERSION, null, null,
+        final RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null,
                 new TestUser("aaron"), null,
                 UUID.randomUUID(),
                 new ElideSettingsBuilder(null)

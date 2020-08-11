@@ -17,6 +17,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.links;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.patchOperation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.patchSet;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
@@ -33,9 +34,9 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
-import example.models.jpa.ArtifactGroup;
-
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
@@ -51,7 +52,17 @@ import javax.ws.rs.core.MediaType;
                 + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
         statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
+@Import(IntegrationTestSetup.class)
 public class ControllerTest extends IntegrationTest {
+    private String baseUrl;
+
+    @BeforeAll
+    @Override
+    public void setUp() {
+        super.setUp();
+        baseUrl = "http://localhost:" + port + "/json/";
+    }
+
     /**
      * This test demonstrates an example test using the JSON-API DSL.
      */
@@ -70,8 +81,17 @@ public class ControllerTest extends IntegrationTest {
                                                 attr("deprecated", false),
                                                 attr("description", "The code for this project")
                                         ),
+                                        links(
+                                                attr("self", baseUrl + "group/com.example.repository")
+                                        ),
                                         relationships(
-                                                relation("products")
+                                                relation(
+                                                        "products",
+                                                        links(
+                                                                attr("self", baseUrl + "group/com.example.repository/relationships/products"),
+                                                                attr("related", baseUrl + "group/com.example.repository/products")
+                                                        )
+                                                )
                                         )
                                 )
                         ).toJSON())
@@ -93,6 +113,9 @@ public class ControllerTest extends IntegrationTest {
                                         id("com.example.repository"),
                                         attributes(
                                                 attr("title", "Example Repository")
+                                        ),
+                                        links(
+                                                attr("self", baseUrl + "group/com.example.repository")
                                         )
                                 )
                         ).toJSON())
@@ -134,13 +157,23 @@ public class ControllerTest extends IntegrationTest {
                                                 attr("deprecated", false),
                                                 attr("description", "The code for this project")
                                         ),
+                                        links(
+                                                attr("self", baseUrl + "group/com.example.repository")
+                                        ),
                                         relationships(
-                                                relation("products")
+                                                relation(
+                                                        "products",
+                                                            links(
+                                                                    attr("self", baseUrl + "group/com.example.repository/relationships/products"),
+                                                                    attr("related", baseUrl + "group/com.example.repository/products")
+                                                            )
+
+                                                )
                                         )
                                 )
                         ).toJSON())
                 )
-                .statusCode(HttpStatus.SC_OK);
+                        .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
@@ -216,8 +249,17 @@ public class ControllerTest extends IntegrationTest {
                                         attr("deprecated", false),
                                         attr("description", "")
                                 ),
+                                links(
+                                        attr("self", baseUrl + "group/com.example.repository2")
+                                ),
                                 relationships(
-                                        relation("products")
+                                        relation(
+                                                "products",
+                                                links(
+                                                        attr("self", baseUrl + "group/com.example.repository2/relationships/products"),
+                                                        attr("related", baseUrl + "group/com.example.repository2/products")
+                                                )
+                                        )
                                 )
                         )
                 ).toJSON()))
@@ -389,8 +431,6 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void graphqlTestForbiddenCreate() {
-        ArtifactGroup group = new ArtifactGroup();
-        group.setDeprecated(true);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -400,7 +440,7 @@ public class ControllerTest extends IntegrationTest {
                                         field("group",
                                                 arguments(
                                                         argument("op", "UPSERT"),
-                                                        argument("data", group)
+                                                        argument("data", "{name:\\\"Foo\\\", deprecated:true}")
                                                 ),
                                                 selections(
                                                         field("name"),

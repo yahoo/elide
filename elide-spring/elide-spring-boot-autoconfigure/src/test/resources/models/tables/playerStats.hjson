@@ -42,7 +42,11 @@
                 {
                     grain :  MONTH
                     sql :  '''
+<<<<<<< HEAD
                     PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')
+=======
+                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+>>>>>>> elide-5.x
                     '''
                 }
                 ]

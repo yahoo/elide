@@ -232,7 +232,7 @@ public class PermissionToFilterExpressionVisitorTest {
     //
     public RequestScope newRequestScope() {
         User john = new TestUser("John");
-        return requestScope = new RequestScope(null, NO_VERSION, null, null, john, null, UUID.randomUUID(), elideSettings);
+        return requestScope = new RequestScope(null, null, NO_VERSION, null, null, john, null, UUID.randomUUID(), elideSettings);
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,14 +45,16 @@ import java.util.concurrent.Callable;
 @ConditionalOnExpression("${elide.graphql.enabled:false}")
 public class GraphqlController {
 
+    private final ElideConfigProperties settings;
     private final Map<String, QueryRunner> runners;
     private final Elide elide;
 
     private static final String JSON_CONTENT_TYPE = "application/json";
 
     @Autowired
-    public GraphqlController(Elide elide) {
+    public GraphqlController(Elide elide, ElideConfigProperties settings) {
         log.debug("Started ~~");
+        this.settings = settings;
         this.elide = elide;
         this.runners = new HashMap<>();
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
@@ -73,6 +76,9 @@ public class GraphqlController {
         final User user = new AuthenticationUser(principal);
         final String apiVersion = Utils.getApiVersion(requestHeaders);
         final QueryRunner runner = runners.get(apiVersion);
+        final String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+                + settings.getGraphql().getPath() + "/";
+
 
         return new Callable<ResponseEntity<String>>() {
             @Override
@@ -81,7 +87,7 @@ public class GraphqlController {
                 if (runner == null) {
                     response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
                 } else {
-                    response = runner.run(graphQLDocument, user);
+                    response = runner.run(baseUrl, graphQLDocument, user);
                 }
 
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());

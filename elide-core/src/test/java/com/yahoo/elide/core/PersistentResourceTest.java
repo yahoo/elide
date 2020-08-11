@@ -707,7 +707,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         @SuppressWarnings("resource")
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, UUID.randomUUID(), elideSettings);
 
         // null resource in toMany relationship is not valid
         List<Resource> idList = new ArrayList<>();
@@ -1837,6 +1837,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals("UPDATE Child 5 Parent 7", message.getMessage(), "Logging template should match");
 
         assertEquals(1, message.getOperationCode(), "Operation code should match");
+        logger.clear(); // tidy up this thread's messages
     }
 
     @Test
@@ -1859,6 +1860,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals("CREATE Child 5 Parent 7", message.getMessage(), "Logging template should match");
 
         assertEquals(0, message.getOperationCode(), "Operation code should match");
+        logger.clear(); // tidy up this thread's messages
     }
 
     @Test
@@ -2222,7 +2224,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        PatchRequestScope parentScope = new PatchRequestScope("/book", NO_VERSION, tx, new TestUser("1"), UUID.randomUUID(), elideSettings);
+        PatchRequestScope parentScope = new PatchRequestScope(null, "/book", NO_VERSION, tx, new TestUser("1"), UUID.randomUUID(), elideSettings);
         PatchRequestScope scope = new PatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works

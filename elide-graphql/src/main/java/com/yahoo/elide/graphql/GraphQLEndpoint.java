@@ -30,6 +30,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 /**
  * Default endpoint/servlet for using Elide and JSONAPI.
@@ -62,8 +63,11 @@ public class GraphQLEndpoint {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response post(
+            @Context UriInfo uriInfo,
             @HeaderParam("ApiVersion") String apiVersion,
-            @Context SecurityContext securityContext, String graphQLDocument) {
+            @Context SecurityContext securityContext,
+            String graphQLDocument) {
+
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
         QueryRunner runner = runners.getOrDefault(safeApiVersion, null);
@@ -72,7 +76,7 @@ public class GraphQLEndpoint {
         if (runner == null) {
             response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
-            response = runner.run(graphQLDocument, user);
+            response = runner.run(uriInfo.getBaseUri().toString(), graphQLDocument, user);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }

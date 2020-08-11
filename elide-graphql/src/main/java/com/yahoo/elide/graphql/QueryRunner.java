@@ -87,12 +87,13 @@ public class QueryRunner {
 
     /**
      * Execute a GraphQL query and return the response.
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param graphQLDocument The graphQL document (wrapped in JSON payload).
      * @param user The user who issued the query.
      * @return The response.
      */
-    public ElideResponse run(String graphQLDocument, User user) {
-        return run(graphQLDocument, user, UUID.randomUUID());
+    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user) {
+        return run(baseUrlEndPoint, graphQLDocument, user, UUID.randomUUID());
     }
 
     /**
@@ -102,7 +103,7 @@ public class QueryRunner {
      * @param requestId the Request ID.
      * @return The response.
      */
-    public ElideResponse run(String graphQLDocument, User user, UUID requestId) {
+    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -117,7 +118,7 @@ public class QueryRunner {
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(mapper, user, graphQLDocument, node, requestId);
+                (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user, graphQLDocument, node, requestId);
 
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
@@ -155,7 +156,7 @@ public class QueryRunner {
         return executeRequest.apply(topLevel);
     }
 
-    private ElideResponse executeGraphQLRequest(ObjectMapper mapper, User principal,
+    private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument, UUID requestId) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
@@ -178,7 +179,7 @@ public class QueryRunner {
             GraphQLProjectionInfo projectionInfo =
                     new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion).make(query);
             GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope(tx, principal, apiVersion,
+                    new GraphQLRequestScope(baseUrlEndPoint, tx, principal, apiVersion,
                             elide.getElideSettings(), projectionInfo, requestId);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();

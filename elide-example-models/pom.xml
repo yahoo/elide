@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>5.0.0-pr14-SNAPSHOT</version>
+        <version>5.0.0-pr16-SNAPSHOT</version>
     </parent>
 
     <licenses>

@@ -365,6 +365,29 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
+    public void testIsGeneratedId() {
+        @Include
+        class GeneratedIdModel {
+            @Id
+            @GeneratedValue
+            private long id;
+
+        }
+
+        @Include
+        class NonGeneratedIdModel {
+            @Id
+            private long id;
+
+        }
+        bindEntity(GeneratedIdModel.class);
+        bindEntity(NonGeneratedIdModel.class);
+
+        assertTrue(isIdGenerated(GeneratedIdModel.class));
+        assertFalse(isIdGenerated(NonGeneratedIdModel.class));
+    }
+
+    @Test
     public void testGetInverseRelationshipOwningSide() {
         assertEquals(
                 "parents",

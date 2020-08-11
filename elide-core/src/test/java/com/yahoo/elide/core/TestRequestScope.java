@@ -22,10 +22,28 @@ public class TestRequestScope extends RequestScope {
 
     private MultivaluedMap queryParamOverrides = null;
 
+<<<<<<< HEAD
     public TestRequestScope(DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary) {
         super(null, NO_VERSION, new JsonApiDocument(), transaction, user, null, UUID.randomUUID(),
+=======
+    public TestRequestScope(String baseURL,
+                            DataStoreTransaction transaction,
+                            User user,
+                            EntityDictionary dictionary) {
+        super(baseURL, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, UUID.randomUUID(),
+                new ElideSettingsBuilder(null)
+                        .withEntityDictionary(dictionary)
+                        .withJSONApiLinks(new DefaultJSONApiLinks())
+                        .build());
+    }
+
+    public TestRequestScope(DataStoreTransaction transaction,
+                        User user,
+                        EntityDictionary dictionary) {
+        super(null, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, UUID.randomUUID(),
+>>>>>>> elide-5.x
                 new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build());
@@ -34,7 +52,11 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(EntityDictionary dictionary,
                             String path,
                             MultivaluedMap<String, String> queryParams) {
+<<<<<<< HEAD
         super(path, NO_VERSION, new JsonApiDocument(), null, null, queryParams, UUID.randomUUID(),
+=======
+        super(null, path, NO_VERSION, new JsonApiDocument(), null, null, queryParams, UUID.randomUUID(),
+>>>>>>> elide-5.x
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());

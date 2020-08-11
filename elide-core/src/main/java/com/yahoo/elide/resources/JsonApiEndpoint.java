@@ -68,7 +68,8 @@ public class JsonApiEndpoint {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
-        return build(elide.post(path, jsonapiDocument, queryParams, user, safeApiVersion, UUID.randomUUID()));
+        return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument,
+                queryParams, user, safeApiVersion, UUID.randomUUID()));
     }
 
     /**
@@ -90,7 +91,7 @@ public class JsonApiEndpoint {
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         User user = new SecurityContextUser(securityContext);
-        return build(elide.get(path, queryParams, user, safeApiVersion));
+        return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams, user, safeApiVersion));
     }
 
     /**
@@ -120,8 +121,8 @@ public class JsonApiEndpoint {
 
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
-        return build(elide.patch(contentType, accept, path, jsonapiDocument, queryParams,
-                user, safeApiVersion, UUID.randomUUID()));
+        return build(elide.patch(uriInfo.getBaseUri().toString(), contentType, accept, path,
+                                 jsonapiDocument, queryParams, user, safeApiVersion, UUID.randomUUID()));
     }
 
     /**
@@ -146,7 +147,8 @@ public class JsonApiEndpoint {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
-        return build(elide.delete(path, jsonApiDocument, queryParams, user, safeApiVersion, UUID.randomUUID()));
+        return build(elide.delete(uriInfo.getBaseUri().toString(), path, jsonApiDocument, queryParams,
+                user, safeApiVersion, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {

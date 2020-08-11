@@ -21,6 +21,8 @@ import java.util.HashMap;
  */
 public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
+    private final String baseUrl = "http://localhost:8080/graphql";
+
     @Test
     public void testRootSingle() throws Exception {
         runComparisonTest("rootSingle");

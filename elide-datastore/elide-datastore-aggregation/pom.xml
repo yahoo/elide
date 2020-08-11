@@ -14,7 +14,11 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
+<<<<<<< HEAD
         <version>5.0.0-pr14-SNAPSHOT</version>
+=======
+        <version>5.0.0-pr16-SNAPSHOT</version>
+>>>>>>> elide-5.x
     </parent>
 
     <licenses>
@@ -46,31 +50,51 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
+<<<<<<< HEAD
             <version>5.0.0-pr14-SNAPSHOT</version>
+=======
+            <version>5.0.0-pr16-SNAPSHOT</version>
+>>>>>>> elide-5.x
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
+<<<<<<< HEAD
             <version>5.0.0-pr14-SNAPSHOT</version>
+=======
+            <version>5.0.0-pr16-SNAPSHOT</version>
+>>>>>>> elide-5.x
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
+<<<<<<< HEAD
             <version>5.0.0-pr14-SNAPSHOT</version>
+=======
+            <version>5.0.0-pr16-SNAPSHOT</version>
+>>>>>>> elide-5.x
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
+<<<<<<< HEAD
             <version>5.0.0-pr14-SNAPSHOT</version>
+=======
+            <version>5.0.0-pr16-SNAPSHOT</version>
+>>>>>>> elide-5.x
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-dynamic-config-helpers</artifactId>
+<<<<<<< HEAD
             <version>5.0.0-pr14-SNAPSHOT</version>
+=======
+            <version>5.0.0-pr16-SNAPSHOT</version>
+>>>>>>> elide-5.x
         </dependency>
 
         <dependency>
@@ -146,7 +170,11 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
+<<<<<<< HEAD
             <version>5.0.0-pr14-SNAPSHOT</version>
+=======
+            <version>5.0.0-pr16-SNAPSHOT</version>
+>>>>>>> elide-5.x
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>

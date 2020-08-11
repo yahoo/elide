@@ -17,15 +17,19 @@ public class Resource extends ResourceLinkage {
      * @param id            the id
      * @param type          the type
      * @param attributes    the attributes
+     * @param links         the links
      * @param relationships the relationships
      */
-    public Resource(Id id, Type type, Attributes attributes, Relationships relationships) {
+    public Resource(Id id, Type type, Attributes attributes, Links links, Relationships relationships) {
         super(id, type);
         if (attributes != null) {
             this.put("attributes", attributes);
         }
         if (relationships != null) {
             this.put("relationships", relationships);
+        }
+        if (links != null) {
+            this.put("links", links);
         }
     }
 }

@@ -17,11 +17,11 @@ public class Slf4jLogger extends AuditLogger {
     @Override
     public void commit() throws IOException {
         try {
-            for (LogMessage message : messages.get()) {
+            for (LogMessage message : MESSAGES.get()) {
                 log.info("{} {} {}", System.currentTimeMillis(), message.getOperationCode(), message.getMessage());
             }
         } finally {
-            messages.get().clear();
+            MESSAGES.get().clear();
         }
     }
 }
