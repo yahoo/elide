@@ -63,7 +63,7 @@ public class AsyncQueryThreadTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setResultType(ResultType.EMBEDDED);
 
-        when(elide.get(anyString(), any(), any(), anyString(), any())).thenReturn(response);
+        when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
         queryResultObj = queryThread.processQuery();
@@ -85,7 +85,7 @@ public class AsyncQueryThreadTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setResultType(ResultType.EMBEDDED);
 
-        when(elide.get(anyString(), any(), any(), anyString(), any())).thenReturn(response);
+        when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
         queryResultObj = queryThread.processQuery();
@@ -108,7 +108,7 @@ public class AsyncQueryThreadTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setResultType(ResultType.EMBEDDED);
 
-        when(elide.get(anyString(), any(), any(), anyString(), any())).thenReturn(response);
+        when(elide.get(any(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
         queryResultObj = queryThread.processQuery();
@@ -132,7 +132,7 @@ public class AsyncQueryThreadTest {
             queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
             queryObj.setResultType(ResultType.EMBEDDED);
 
-            when(runner.run(eq(query), eq(user), any())).thenReturn(response);
+            when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                     resultStorageEngine);
             queryResultObj = queryThread.processQuery();
@@ -157,7 +157,7 @@ public class AsyncQueryThreadTest {
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.EMBEDDED);
 
-        when(runner.run(eq(query), eq(user), any())).thenReturn(response);
+        when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
         queryResultObj = queryThread.processQuery();
