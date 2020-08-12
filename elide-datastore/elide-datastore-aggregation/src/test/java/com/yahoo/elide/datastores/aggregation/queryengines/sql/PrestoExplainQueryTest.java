@@ -38,7 +38,6 @@ import java.util.List;
 public class PrestoExplainQueryTest extends SQLUnitTest{
     private static Table playerStatsViewTable;
 
-
     @BeforeAll
     public static void init() {
         SQLUnitTest.init(new SQLDialectFactory().getPrestoDialect());
@@ -47,8 +46,8 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
     }
 
     @Test
-    public void testexplainWhereMetricsOnly() throws Exception {
-        Query query = testQueries.get(TestQueryName.WHERE_METRICS_ONLY);
+    public void testExplainWhereMetricsOnly() throws Exception {
+        Query query = TestQuery.WHERE_METRICS_ONLY.getQuery();
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)query.getWhereFilter()).getParameters();
         String expectedQueryStr =
                 "SELECT highScore AS highScoreNoAgg,"
@@ -60,17 +59,17 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
     }
 
     @Test
-    public void testexplainWhereDimsOnly() throws Exception {
+    public void testExplainWhereDimsOnly() throws Exception {
         String expectedQueryStr =
                 "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "WHERE com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL";
-        compareQueryLists(expectedQueryStr, engine.explain(testQueries.get(TestQueryName.WHERE_DIMS_ONLY)));
+        compareQueryLists(expectedQueryStr, engine.explain(TestQuery.WHERE_DIMS_ONLY.getQuery()));
     }
 
     @Test
-    public void testexplainWhereMetricsAndDims() throws Exception {
-        Query query = testQueries.get(TestQueryName.WHERE_METRICS_AND_DIMS);
+    public void testExplainWhereMetricsAndDims() throws Exception {
+        Query query = TestQuery.WHERE_METRICS_AND_DIMS.getQuery();
         AndFilterExpression andFilter = ((AndFilterExpression)query.getWhereFilter());
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)andFilter.getRight()).getParameters();
         String expectedQueryStr =
@@ -85,8 +84,8 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
     }
 
     @Test
-    public void testexplainWhereMetricsOrDims() throws Exception {
-        Query query = testQueries.get(TestQueryName.WHERE_METRICS_OR_DIMS);
+    public void testExplainWhereMetricsOrDims() throws Exception {
+        Query query = TestQuery.WHERE_METRICS_OR_DIMS.getQuery();
         OrFilterExpression orFilter = ((OrFilterExpression)query.getWhereFilter());
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)orFilter.getRight()).getParameters();
         String expectedQueryStr =
@@ -103,8 +102,8 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
     /**
      * // TODO: UDFS / Aggregations not allowed in where/groupby clause
      @Test
-     public void testexplainWhereMetricsAggregation() throws Exception {
-     Query query = testQueries.get(TestQueryName.WHERE_METRICS_AGGREGATION);
+     public void testExplainWhereMetricsAggregation() throws Exception {
+     Query query = TestQuery.WHERE_METRICS_AGGREGATION);
      OrFilterExpression orFilter = ((OrFilterExpression)query.getWhereFilter());
      List<FilterPredicate.FilterParameter> params = ((FilterPredicate)orFilter.getRight()).getParameters();
      String expectedQueryStr =
@@ -120,8 +119,8 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
      */
 
     @Test
-    public void testexplainHavingMetricsOnly() throws Exception {
-        Query query = testQueries.get(TestQueryName.HAVING_METRICS_ONLY);
+    public void testExplainHavingMetricsOnly() throws Exception {
+        Query query = TestQuery.HAVING_METRICS_ONLY.getQuery();
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)query.getHavingFilter()).getParameters();
         String expectedQueryStr =
                 "SELECT highScore AS highScoreNoAgg,"
@@ -133,17 +132,17 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
     }
 
     @Test
-    public void testexplainHavingDimsOnly() throws Exception {
+    public void testExplainHavingDimsOnly() throws Exception {
         String expectedQueryStr =
                 "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL";
-        compareQueryLists(expectedQueryStr, engine.explain(testQueries.get(TestQueryName.HAVING_DIMS_ONLY)));
+        compareQueryLists(expectedQueryStr, engine.explain(TestQuery.HAVING_DIMS_ONLY.getQuery()));
     }
 
     @Test
-    public void testexplainHavingMetricsAndDims() throws Exception {
-        Query query = testQueries.get(TestQueryName.HAVING_METRICS_AND_DIMS);
+    public void testExplainHavingMetricsAndDims() throws Exception {
+        Query query = TestQuery.HAVING_METRICS_AND_DIMS.getQuery();
         AndFilterExpression andFilter = ((AndFilterExpression)query.getHavingFilter());
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)andFilter.getRight()).getParameters();
         String expectedQueryStr =
@@ -158,8 +157,8 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
     }
 
     @Test
-    public void testexplainHavingMetricsOrDims() throws Exception {
-        Query query = testQueries.get(TestQueryName.HAVING_METRICS_OR_DIMS);
+    public void testExplainHavingMetricsOrDims() throws Exception {
+        Query query = TestQuery.HAVING_METRICS_OR_DIMS.getQuery();
         OrFilterExpression orFilter = ((OrFilterExpression)query.getHavingFilter());
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)orFilter.getRight()).getParameters();
         String expectedQueryStr =
@@ -177,7 +176,7 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
      * This test validates that generateCountDistinctClause() is called in the PrestoDialect (same as default/H2).
      */
     @Test
-    public void testexplainPagination() {
+    public void testExplainPagination() {
         String expectedQueryStr1 =
                 "SELECT COUNT(DISTINCT(com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, " +
                         "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate)) FROM " +
@@ -196,39 +195,39 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
-        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.PAGINATION_TOTAL)));
+        compareQueryLists(expectedQueryList, engine.explain(TestQuery.PAGINATION_TOTAL.getQuery()));
     }
 
     /* TODO - Query generation needs to support aliases in ORDER BY to make these pass
     @Test
-    public void testShowQuerySortingAscending(){
+    public void testExplainSortingAscending(){
         String expectedQueryStr =
                 "SELECT highScore AS highScoreNoAgg " +
                         "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats   " +
                         "ORDER BY highScore ASC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SORT_METRIC_ASC)));
+        compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_ASC.getQuery()));
     }
 
     @Test
-    public void testShowQuerySortingDecending(){
+    public void testExplainSortingDecending(){
         String expectedQueryStr =
                 "SELECT highScore AS highScoreNoAgg " +
                         "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats   " +
                         "ORDER BY highScore DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SORT_METRIC_DESC)));
+        compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_DESC.getQuery()));
     }
     */
 
     @Test
-    public void testShowQuerySortingByDimensionDesc(){
+    public void testExplainSortingByDimensionDesc(){
         String expectedQueryStr =
                 "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS " +
                         "overallRating FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats      " +
                         "ORDER BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SORT_DIM_DESC)));
+        compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_DIM_DESC.getQuery()));
     }
 
     /* TODO: This test won't work because:
@@ -237,7 +236,7 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
      * Using aliases in ORDER BY will fix this.
      *
     @Test
-    public void testShowQuerySortingByMetricAndDimension(){
+    public void testExplainSortingByMetricAndDimension(){
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) " +
                         "AS highScore,com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS " +
@@ -245,13 +244,13 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
                         "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating " +
                         "ORDER BY MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SORT_METRIC_AND_DIM_DESC)));
+        compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_AND_DIM_DESC.getQuery()));
     }
     */
 
 
     @Test
-    public void testShowQuerySelectFromSubquery() {
+    public void testExplainSelectFromSubquery() {
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStatsView.highScore) AS " +
                         "highScore FROM (SELECT stats.highScore, stats.player_id, c.name as countryName FROM " +
@@ -259,24 +258,25 @@ public class PrestoExplainQueryTest extends SQLUnitTest{
                         "WHERE stats.overallRating = 'Great') AS " +
                         "com_yahoo_elide_datastores_aggregation_example_PlayerStatsView";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SUBQUERY)));
+        compareQueryLists(expectedQueryList, engine.explain(TestQuery.SUBQUERY.getQuery()));
     }
 
-
+    /* TODO: Presto doesn't support this. To make this work, we'd need to push the ORDER BY field into the SELECT
+             then drop it before returning the data.
     @Test
-    public void testShowQueryGroupByNotInSelect() {
+    public void testExplainOrderByNotInSelect() {
         String expectedQueryStr =
-                "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore," +
-                        "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating " +
+                "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore " +
                         "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats " +
-                        "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
+                        "ORDER BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.GROUP_BY_DIMENSION_NOT_IN_SELECT)));
+        compareQueryLists(expectedQueryList, engine.explain(TestQuery.ORDER_BY_DIMENSION_NOT_IN_SELECT.getQuery()));
     }
+    */
 
     @Test
-    public void testShowQueryComplicated() {
-        Query query = testQueries.get(TestQueryName.COMPLICATED);
+    public void testExplainComplicated() {
+        Query query = TestQuery.COMPLICATED.getQuery();
         List<FilterPredicate.FilterParameter> whereParams = ((FilterPredicate)query.getWhereFilter()).getParameters();
         List<FilterPredicate.FilterParameter> havingParams = ((FilterPredicate)query.getHavingFilter()).getParameters();
 
