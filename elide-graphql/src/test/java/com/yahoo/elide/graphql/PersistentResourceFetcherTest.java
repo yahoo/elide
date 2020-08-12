@@ -23,11 +23,14 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
+
 import example.Author;
 import example.Book;
 import example.Price;
 import example.Pseudonym;
 import example.Publisher;
+
 import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -48,7 +52,6 @@ import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -169,8 +172,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         author2.setBooks(new ArrayList<>(Collections.singletonList(book3)));
 
-        publisher1.setBooks(new HashSet<>(Arrays.asList(book1, book2)));
-        publisher2.setBooks(new HashSet<>(Arrays.asList(book3)));
+        publisher1.setBooks(ImmutableSet.of(book1, book2));
+        publisher2.setBooks(ImmutableSet.of(book3));
 
         tx.save(author1, null);
         tx.save(authorOne, null);

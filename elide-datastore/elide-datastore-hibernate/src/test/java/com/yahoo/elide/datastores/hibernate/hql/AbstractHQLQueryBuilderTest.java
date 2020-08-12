@@ -28,6 +28,9 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
+
+import com.google.common.collect.ImmutableList;
+
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -164,13 +167,13 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
         Query query = mock(Query.class);
         FilterPredicate predicate = new InPredicate(idPath, ABC, DEF);
-        supplyFilterQueryParameters(query, Arrays.asList(predicate));
+        supplyFilterQueryParameters(query, ImmutableList.of(predicate));
 
         verify(query, times(2)).setParameter(anyString(), any());
 
         query = mock(Query.class);
         predicate = new InfixPredicate(idPath, ABC);
-        supplyFilterQueryParameters(query, Arrays.asList(predicate));
+        supplyFilterQueryParameters(query, ImmutableList.of(predicate));
 
         verify(query, times(1)).setParameter(anyString(), any());
     }

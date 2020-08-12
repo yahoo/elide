@@ -14,7 +14,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +46,7 @@ import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.junit.jupiter.api.Test;
 
 import lombok.Getter;
@@ -1258,7 +1258,7 @@ public class LifeCycleTest {
         PersistentResource resource = PersistentResource.createObject(PropertyTestModel.class, scope, Optional.of("1"));
         PersistentResource resourceToAdd = new PersistentResource(modelToAdd, null, scope.getUUIDFor(mockModel), scope);
 
-        resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
+        resource.updateRelation("models", ImmutableSet.of(resourceToAdd));
 
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
@@ -1272,7 +1272,7 @@ public class LifeCycleTest {
         resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
 
-        resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
+        resource.updateRelation("models", ImmutableSet.of(resourceToAdd));
 
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
@@ -1299,7 +1299,7 @@ public class LifeCycleTest {
         PersistentResource childResource1 = new PersistentResource(childModel1, null, "2", scope);
         PersistentResource childResource2 = new PersistentResource(childModel2, null, "3", scope);
 
-        resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1, childResource2)));
+        resource.updateRelation("models", ImmutableSet.of(childResource1, childResource2));
 
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
@@ -1321,7 +1321,7 @@ public class LifeCycleTest {
 
         when(tx.getRelation(tx, mockModel, relationship, scope)).thenReturn(Arrays.asList(childModel1, childModel2));
 
-        resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1)));
+        resource.updateRelation("models", ImmutableSet.of(childResource1));
 
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();

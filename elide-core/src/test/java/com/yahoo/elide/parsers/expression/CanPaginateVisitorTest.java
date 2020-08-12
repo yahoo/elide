@@ -24,7 +24,8 @@ import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -341,11 +343,11 @@ public class CanPaginateVisitorTest {
 
         assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
 
-        sparseFields.put("book", Sets.newHashSet("title", "publicationDate"));
+        sparseFields.put("book", ImmutableSet.of("title", "publicationDate"));
 
         assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
 
-        sparseFields.put("book", Sets.newHashSet("outOfPrint"));
+        sparseFields.put("book", ImmutableSet.of("outOfPrint"));
 
         assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
     }

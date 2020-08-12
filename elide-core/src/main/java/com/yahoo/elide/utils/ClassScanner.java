@@ -5,12 +5,13 @@
  */
 package com.yahoo.elide.utils;
 
+import com.google.common.collect.ImmutableList;
+
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -67,7 +68,7 @@ public class ClassScanner {
 
     @SafeVarargs
     static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ...annotations) {
-        return getAnnotatedClasses(Arrays.asList(annotations));
+        return getAnnotatedClasses(ImmutableList.copyOf(annotations));
     }
 
     /**

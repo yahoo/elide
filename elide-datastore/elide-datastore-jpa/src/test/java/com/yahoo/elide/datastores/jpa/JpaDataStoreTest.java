@@ -18,7 +18,8 @@ import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.JPQLPredicateGenerator;
 import com.yahoo.elide.core.filter.Operator;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -55,7 +56,7 @@ public class JpaDataStoreTest {
         when(mockType.getJavaType()).thenReturn(Test.class);
 
         Metamodel mockModel = mock(Metamodel.class);
-        when(mockModel.getEntities()).thenReturn(Sets.newHashSet(mockType));
+        when(mockModel.getEntities()).thenReturn(ImmutableSet.of(mockType));
 
         EntityManager managerMock = mock(EntityManager.class);
         when(managerMock.getMetamodel()).thenReturn(mockModel);
@@ -86,7 +87,7 @@ public class JpaDataStoreTest {
         }
 
         Metamodel mockModel = mock(Metamodel.class);
-        when(mockModel.getEntities()).thenReturn(Sets.newHashSet());
+        when(mockModel.getEntities()).thenReturn(ImmutableSet.of());
 
         EntityManager managerMock = mock(EntityManager.class);
         when(managerMock.getMetamodel()).thenReturn(mockModel);
