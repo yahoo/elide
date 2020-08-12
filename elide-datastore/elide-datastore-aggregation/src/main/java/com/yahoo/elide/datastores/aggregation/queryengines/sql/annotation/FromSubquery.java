@@ -32,5 +32,6 @@ public @interface FromSubquery {
      * DB Connection Name for this query
      * @return String DB Connection Name
      */
+    // TO DO
     String type() default "";
 }

@@ -32,5 +32,6 @@ public @interface FromTable {
      * DB Connection Name for this table
      * @return String DB Connection Name
      */
+    // TO DO
     String dbConnectionName() default "";
 }
