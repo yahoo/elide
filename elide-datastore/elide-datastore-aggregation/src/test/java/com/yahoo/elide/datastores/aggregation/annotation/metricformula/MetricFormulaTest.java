@@ -11,13 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
+
 import org.junit.jupiter.api.Test;
 
 public class MetricFormulaTest {
     @Test
     public void testReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(Loop.class));
+        MetaDataStore metaDataStore = new MetaDataStore(ImmutableSet.of(Loop.class));
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
