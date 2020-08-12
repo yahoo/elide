@@ -30,8 +30,7 @@ import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 
-import com.google.common.collect.ImmutableList;
-
+import com.google.common.collect.Lists;
 import org.h2.store.fs.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -108,7 +107,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of());
+        assertListContains(loaded, Lists.newArrayList());
 
         /* This query should hit the underlying store */
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());
@@ -127,7 +126,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of(6L));
+        assertListContains(loaded, Lists.newArrayList(6L));
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -142,7 +141,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of());
+        assertListContains(loaded, Lists.newArrayList());
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -160,7 +159,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of());
+        assertListContains(loaded, Lists.newArrayList());
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -177,7 +176,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of(1L));
+        assertListContains(loaded, Lists.newArrayList(1L));
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -194,7 +193,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of(7L));
+        assertListContains(loaded, Lists.newArrayList(7L));
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -211,7 +210,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of(1L, 3L));
+        assertListContains(loaded, Lists.newArrayList(1L, 3L));
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -227,7 +226,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of(1L));
+        assertListContains(loaded, Lists.newArrayList(1L));
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -243,7 +242,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of());
+        assertListContains(loaded, Lists.newArrayList());
 
         /* This query should hit the underlying store */
         verify(wrappedTransaction, times(1)).loadObjects(any(), any());
@@ -261,7 +260,7 @@ public class DataStoreLoadTest {
                 .filterExpression(filter)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of(1L, 2L, 3L));
+        assertListContains(loaded, Lists.newArrayList(1L, 2L, 3L));
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -283,7 +282,7 @@ public class DataStoreLoadTest {
                 .sorting(sorting)
                 .build(), mockScope);
 
-        assertListContains(loaded, ImmutableList.of(4L, 5L, 2L));
+        assertListContains(loaded, Lists.newArrayList(4L, 5L, 2L));
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -305,7 +304,7 @@ public class DataStoreLoadTest {
                 .sorting(sorting)
                 .build(), mockScope);
 
-        assertListMatches(loaded, ImmutableList.of(2L, 5L, 4L));
+        assertListMatches(loaded, Lists.newArrayList(2L, 5L, 4L));
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
@@ -334,7 +333,7 @@ public class DataStoreLoadTest {
                 .pagination(pagination)
                 .build(), mockScope);
 
-        assertListMatches(loaded, ImmutableList.of(2L));
+        assertListMatches(loaded, Lists.newArrayList(2L));
         assertEquals(pagination.getPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
@@ -364,7 +363,7 @@ public class DataStoreLoadTest {
                 .pagination(pagination)
                 .build(), mockScope);
 
-        assertListMatches(loaded, ImmutableList.of(5L));
+        assertListMatches(loaded, Lists.newArrayList(5L));
         assertEquals(pagination.getPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any());
     }

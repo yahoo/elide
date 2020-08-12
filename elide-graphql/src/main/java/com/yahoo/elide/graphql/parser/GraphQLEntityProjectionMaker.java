@@ -33,10 +33,8 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.EntityProjection.EntityProjectionBuilder;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
+
 import com.yahoo.elide.request.Sorting;
-
-import com.google.common.collect.ImmutableList;
-
 import graphql.language.Argument;
 import graphql.language.Document;
 import graphql.language.Field;
@@ -48,8 +46,8 @@ import graphql.language.SelectionSet;
 import graphql.language.SourceLocation;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
-
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -545,7 +543,7 @@ public class GraphQLEntityProjectionMaker {
                 if (typeName.isPresent()) {
                     filterKey += "[" + typeName + "]";
                 }
-                put(filterKey, ImmutableList.of(filterStr));
+                put(filterKey, Arrays.asList(filterStr));
             }
         };
     }

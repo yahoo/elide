@@ -18,13 +18,12 @@ import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
-import com.google.common.collect.ImmutableList;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class DataStoreTransactionTest implements DataStoreTransaction {
     private static final String NAME = "name";
@@ -123,7 +122,7 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
 
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
-        return ImmutableList.of(ENTITY);
+        return Arrays.asList(ENTITY);
     }
 
     @Override
