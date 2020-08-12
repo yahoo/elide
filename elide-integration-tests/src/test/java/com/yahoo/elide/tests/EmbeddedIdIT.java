@@ -32,6 +32,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import example.embeddedid.Address;
@@ -45,7 +46,6 @@ import org.junit.jupiter.api.Test;
 import lombok.Data;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class EmbeddedIdIT extends GraphQLIntegrationTest {
@@ -282,7 +282,7 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
                         field(
                                 "building",
                                 arguments(
-                                        argument("ids", Arrays.asList(addressId))
+                                        argument("ids", ImmutableList.of(addressId))
                                 ),
                                 selections(
                                         field("address"),
@@ -318,7 +318,7 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
                         field(
                                 "building",
                                 arguments(
-                                        argument("ids", Arrays.asList(address1Id))
+                                        argument("ids", ImmutableList.of(address1Id))
                                 ),
                                 selections(
                                         field("neighbors",

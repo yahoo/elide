@@ -91,7 +91,7 @@ public class IncludedProcessorTest {
         child1.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
         //Parent with multiple children each with a friend
-        parent3.setChildren(new HashSet<>(Arrays.asList(child3, child4)));
+        parent3.setChildren(ImmutableSet.of(child3, child4));
         child3.setFriends(new HashSet<>(Collections.singletonList(child1)));
         child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 

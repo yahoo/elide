@@ -25,6 +25,7 @@ import com.yahoo.elide.security.checks.Check;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 
 import example.Author;
 import example.Book;
@@ -93,13 +94,13 @@ public class DataStoreIT extends IntegrationTest {
 
             Book book1 = new Book();
             book1.setTitle(SONG_OF_ICE_AND_FIRE);
-            book1.setAuthors(Arrays.asList(georgeMartin));
+            book1.setAuthors(ImmutableList.of(georgeMartin));
             Book book2 = new Book();
             book2.setTitle(CLASH_OF_KINGS);
-            book2.setAuthors(Arrays.asList(georgeMartin));
+            book2.setAuthors(ImmutableList.of(georgeMartin));
             Book book3 = new Book();
             book3.setTitle(STORM_OF_SWORDS);
-            book3.setAuthors(Arrays.asList(georgeMartin));
+            book3.setAuthors(ImmutableList.of(georgeMartin));
 
             georgeMartin.setBooks(Arrays.asList(book1, book2, book3));
 
