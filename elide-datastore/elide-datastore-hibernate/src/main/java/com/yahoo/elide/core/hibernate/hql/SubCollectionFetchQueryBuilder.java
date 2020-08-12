@@ -10,9 +10,11 @@ import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
+import com.yahoo.elide.request.EntityProjection;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -24,10 +26,11 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
     private final Relationship relationship;
 
-    public SubCollectionFetchQueryBuilder(Relationship relationship,
+    public SubCollectionFetchQueryBuilder(EntityProjection entityProjection,
+                                          Relationship relationship,
                                           EntityDictionary dictionary,
                                           Session session) {
-        super(dictionary, session);
+        super(entityProjection, dictionary, session);
         this.relationship = relationship;
     }
 
@@ -58,8 +61,8 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
     @Override
     public Query build() {
 
-        if (!filterExpression.isPresent() && !pagination.isPresent()
-                && (!sorting.isPresent() || sorting.get().isDefaultInstance())) {
+        if (entityProjection.getFilterExpression() == null && entityProjection.getPagination() == null
+                && (entityProjection.getSorting() == null || entityProjection.getSorting().isDefaultInstance())) {
             return null;
         }
 
@@ -68,43 +71,46 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
         String parentName = relationship.getParentType().getCanonicalName();
         String relationshipName = relationship.getRelationshipName();
 
-        Query query = filterExpression.map(fe -> {
+        FilterExpression filterExpression = entityProjection.getFilterExpression();
+        Query query;
+        if (filterExpression != null) {
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
-            Collection<FilterPredicate> predicates = fe.accept(extractor);
-            String filterClause = new FilterTranslator().apply(fe, USE_ALIAS);
+            Collection<FilterPredicate> predicates = filterExpression.accept(extractor);
+            String filterClause = new FilterTranslator().apply(filterExpression, USE_ALIAS);
 
-            String joinClause =  getJoinClauseFromFilters(filterExpression.get())
-                    + getJoinClauseFromSort(sorting)
+            String joinClause =  getJoinClauseFromFilters(filterExpression)
+                    + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(relationship.getChildType(), childAlias);
 
             //SELECT parent_children from Parent parent JOIN parent.children parent_children
-            Query q = session.createQuery(SELECT
-                            + childAlias
-                            + FROM
-                            + parentName + SPACE + parentAlias
-                            + JOIN
-                            + parentAlias + PERIOD + relationshipName + SPACE + childAlias
-                            + joinClause
-                            + WHERE
-                            + filterClause
-                            + " AND " + parentAlias + "=:" + parentAlias
-                            + SPACE
-                            + getSortClause(sorting)
+            query = session.createQuery(SELECT
+                    + childAlias
+                    + FROM
+                    + parentName + SPACE + parentAlias
+                    + JOIN
+                    + parentAlias + PERIOD + relationshipName + SPACE + childAlias
+                    + joinClause
+                    + WHERE
+                    + filterClause
+                    + " AND " + parentAlias + "=:" + parentAlias
+                    + SPACE
+                    + getSortClause(entityProjection.getSorting())
             );
 
-            supplyFilterQueryParameters(q, predicates);
-            return q;
-        }).orElse(session.createQuery(SELECT
-                            + childAlias
-                            + FROM
-                            + parentName + SPACE + parentAlias
-                            + JOIN
-                            + parentAlias + PERIOD + relationshipName + SPACE + childAlias
-                            + getJoinClauseFromSort(sorting)
-                            + extractToOneMergeJoins(relationship.getChildType(), childAlias)
-                            + " WHERE " + parentAlias + "=:" + parentAlias
-                            + getSortClause(sorting)
-        ));
+            supplyFilterQueryParameters(query, predicates);
+        } else {
+            query = session.createQuery(SELECT
+                    + childAlias
+                    + FROM
+                    + parentName + SPACE + parentAlias
+                    + JOIN
+                    + parentAlias + PERIOD + relationshipName + SPACE + childAlias
+                    + getJoinClauseFromSort(entityProjection.getSorting())
+                    + extractToOneMergeJoins(relationship.getChildType(), childAlias)
+                    + " WHERE " + parentAlias + "=:" + parentAlias
+                    + getSortClause(entityProjection.getSorting())
+            );
+        }
 
         query.setParameter(parentAlias, relationship.getParent());
 

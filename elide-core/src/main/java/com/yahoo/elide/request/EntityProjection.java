@@ -17,6 +17,7 @@ import lombok.NonNull;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
 
@@ -52,6 +53,11 @@ public class EntityProjection {
                 .filterExpression(this.filterExpression)
                 .sorting(this.sorting)
                 .pagination(this.pagination);
+    }
+
+    public Set<String> getIncludedRelationsName() {
+        return getRelationships().stream()
+                .map(relationship -> relationship.getName()).collect(Collectors.toSet());
     }
 
     /**
