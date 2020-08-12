@@ -32,10 +32,13 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+
 import example.embeddedid.Address;
 import example.embeddedid.AddressSerde;
 import example.embeddedid.Building;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +46,6 @@ import org.junit.jupiter.api.Test;
 import lombok.Data;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class EmbeddedIdIT extends GraphQLIntegrationTest {
@@ -71,8 +73,8 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
         building2.setAddress(address3);
         building2.setName("Assembly Hall");
 
-        building1.setNeighbors(Sets.newHashSet(building2));
-        building2.setNeighbors(Sets.newHashSet(building1));
+        building1.setNeighbors(ImmutableSet.of(building2));
+        building2.setNeighbors(ImmutableSet.of(building1));
 
         tx.createObject(building1, null);
         tx.createObject(building2, null);
@@ -280,7 +282,7 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
                         field(
                                 "building",
                                 arguments(
-                                        argument("ids", Arrays.asList(addressId))
+                                        argument("ids", ImmutableList.of(addressId))
                                 ),
                                 selections(
                                         field("address"),
@@ -316,7 +318,7 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
                         field(
                                 "building",
                                 arguments(
-                                        argument("ids", Arrays.asList(address1Id))
+                                        argument("ids", ImmutableList.of(address1Id))
                                 ),
                                 selections(
                                         field("neighbors",

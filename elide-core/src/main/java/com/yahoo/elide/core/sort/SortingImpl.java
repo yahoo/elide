@@ -8,13 +8,14 @@ package com.yahoo.elide.core.sort;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-
 import com.yahoo.elide.request.Sorting;
+
+import com.google.common.collect.ImmutableList;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +137,7 @@ public class SortingImpl implements Sorting {
      * @return Sorting object.
      */
     public static Sorting parseSortRule(String sortRule, Class<?> type, EntityDictionary dictionary) {
-        return parseSortRules(Arrays.asList(sortRule), type, dictionary);
+        return parseSortRules(ImmutableList.of(sortRule), type, dictionary);
     }
 
     /**
