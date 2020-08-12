@@ -1310,7 +1310,7 @@ public class EntityDictionary {
      */
     public void addSecurityChecks(Set<Class<?>> classes) {
 
-        if (classes == null && classes.size() == 0) {
+        if (classes == null || classes.size() == 0) {
             return;
         }
 
