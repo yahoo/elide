@@ -6,11 +6,11 @@
 
 package com.yahoo.elide.contrib.testhelpers.jsonapi.elements;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Pat Set.
@@ -26,7 +26,7 @@ public class PatchSet extends ArrayList {
     * @param patchOperations the set of patch operations
     */
    public PatchSet(PatchOperation... patchOperations) {
-      this.addAll(Arrays.asList(patchOperations));
+      this.addAll(ImmutableList.copyOf(patchOperations));
    }
 
    /**
