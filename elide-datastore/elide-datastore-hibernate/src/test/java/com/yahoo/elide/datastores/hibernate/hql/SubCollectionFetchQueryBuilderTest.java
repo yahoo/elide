@@ -16,11 +16,9 @@ import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
+
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
-
-import com.google.common.collect.ImmutableList;
-
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -70,7 +68,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Book.class,
                 BOOKS,
                 author,
-                ImmutableList.of(book));
+                Arrays.asList(book));
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
@@ -93,7 +91,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Book.class,
                 BOOKS,
                 author,
-                ImmutableList.of(book));
+                Arrays.asList(book));
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
@@ -127,7 +125,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Book.class,
                 BOOKS,
                 author,
-                ImmutableList.of(book)
+                Arrays.asList(book)
         );
 
         List<Path.PathElement>  publisherNamePath = Arrays.asList(
@@ -169,7 +167,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Book.class,
                 BOOKS,
                 author,
-                ImmutableList.of(book)
+                Arrays.asList(book)
         );
 
         List<Path.PathElement>  publisherNamePath = Arrays.asList(
@@ -217,7 +215,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Book.class,
                 BOOKS,
                 publisher,
-                ImmutableList.of(book)
+                Arrays.asList(book)
         );
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
@@ -253,7 +251,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 Book.class,
                 BOOKS,
                 author,
-                ImmutableList.of(book));
+                Arrays.asList(book));
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());

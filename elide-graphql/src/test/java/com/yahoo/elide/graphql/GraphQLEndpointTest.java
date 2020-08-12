@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
@@ -140,11 +140,11 @@ public class GraphQLEndpointTest {
 
         book1.setId(1L);
         book1.setTitle("My first book");
-        book1.setAuthors(ImmutableSet.of(author1));
+        book1.setAuthors(Sets.newHashSet(author1));
 
         author1.setId(1L);
         author1.setName("Ricky Carmichael");
-        author1.setBooks(ImmutableSet.of(book1));
+        author1.setBooks(Sets.newHashSet(book1));
         author1.setBookTitlesAndAwards(
                 Stream.of(
                         new AbstractMap.SimpleImmutableEntry<>("Bookz", "Pulitzer Prize"),
@@ -375,7 +375,7 @@ public class GraphQLEndpointTest {
         Book book = new Book();
         book.setId(1);
         book.setTitle("my new book!");
-        book.setAuthors(ImmutableSet.of(author));
+        book.setAuthors(Sets.newHashSet(author));
 
         String graphQLRequest = document(
                 selection(
@@ -604,7 +604,7 @@ public class GraphQLEndpointTest {
         Book book = new Book();
         book.setId(123);
         book.setTitle("my new book!");
-        book.setAuthors(ImmutableSet.of(author));
+        book.setAuthors(Sets.newHashSet(author));
 
         String graphQLRequest = document(
                 mutation(
