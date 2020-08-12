@@ -19,12 +19,10 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.TestUser;
 
-import com.google.common.collect.ImmutableSet;
-
+import com.google.common.collect.Sets;
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -35,7 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -91,7 +88,7 @@ public class IncludedProcessorTest {
         child1.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
         //Parent with multiple children each with a friend
-        parent3.setChildren(ImmutableSet.of(child3, child4));
+        parent3.setChildren(new HashSet<>(Arrays.asList(child3, child4)));
         child3.setFriends(new HashSet<>(Collections.singletonList(child1)));
         child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
@@ -189,7 +186,7 @@ public class IncludedProcessorTest {
         includedProcessor.execute(jsonApiDocument, parentRecord3, Optional.of(queryParams));
 
         Set<Resource> expectedIncluded =
-                ImmutableSet.of(
+                Sets.newHashSet(
                         childRecord1.toResource(),
                         childRecord2.toResource(),
                         childRecord3.toResource(),

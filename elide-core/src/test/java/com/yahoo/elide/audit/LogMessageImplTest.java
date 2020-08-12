@@ -18,11 +18,9 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.TestUser;
 
-import com.google.common.collect.ImmutableSet;
-
+import com.google.common.collect.Sets;
 import example.Child;
 import example.Parent;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +52,7 @@ public class LogMessageImplTest {
 
         final Child friend = new Child();
         friend.setId(9);
-        child.setFriends(ImmutableSet.of(friend));
+        child.setFriends(Sets.newHashSet(friend));
 
         final RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null,
                 new TestUser("aaron"), null,

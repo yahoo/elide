@@ -10,11 +10,10 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityBinding;
 import com.yahoo.elide.core.EntityDictionary;
 
-import com.google.common.collect.ImmutableList;
-
 import lombok.AccessLevel;
 import lombok.Setter;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,7 +45,7 @@ public final class MultiplexManager implements DataStore {
      * @param dataStores list of sub-managers
      */
     public MultiplexManager(DataStore... dataStores) {
-        this.dataStores = ImmutableList.copyOf(dataStores);
+        this.dataStores = Arrays.asList(dataStores);
     }
 
     @Override

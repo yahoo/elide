@@ -17,13 +17,12 @@ import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+
 import com.yahoo.elide.request.Sorting;
-
-import com.google.common.collect.ImmutableSet;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -49,7 +48,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        Set<String> allFields = ImmutableSet.of("id", "overallRating", "lowScore");
+        Set<String> allFields = new HashSet<>(Arrays.asList("id", "overallRating", "lowScore"));
         QueryValidator validator = new QueryValidator(query, allFields, dictionary);
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
@@ -68,7 +67,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        Set<String> allFields = ImmutableSet.of("overallRating", "lowScore");
+        Set<String> allFields = new HashSet<>(Arrays.asList("overallRating", "lowScore"));
         QueryValidator validator = new QueryValidator(query, allFields, dictionary);
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
@@ -87,7 +86,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        Set<String> allFields = ImmutableSet.of("overallRating", "lowScore");
+        Set<String> allFields = new HashSet<>(Arrays.asList("overallRating", "lowScore"));
         QueryValidator validator = new QueryValidator(query, allFields, dictionary);
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);

@@ -46,9 +46,9 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import example.Author;
@@ -1631,7 +1631,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .build();
 
         when(tx.loadObjects(eq(collection), any(RequestScope.class)))
-                .thenReturn(ImmutableList.of(child1, child2, child3, child4, child5));
+                .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
         goodScope.setEntityProjection(collection);
@@ -2125,7 +2125,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         // Set data to empty
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("testColl").apply(spec,
                 (original, modified) -> original.equals(Arrays.asList("a", "b", "c")) && modified.isEmpty());
-        assertTrue(model.updateAttribute("testColl", ImmutableList.of()));
+        assertTrue(model.updateAttribute("testColl", Lists.newArrayList()));
 
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("testColl")
                 .apply(spec, (original, modified) -> original.isEmpty() && modified.equals(Arrays.asList("final", "List")));
