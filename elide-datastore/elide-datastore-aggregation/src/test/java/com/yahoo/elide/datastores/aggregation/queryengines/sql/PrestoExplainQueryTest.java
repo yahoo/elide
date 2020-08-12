@@ -4,6 +4,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,27 +13,33 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 
 /**
- * This class tests SQLQueryEngine.showQueries() with the Hive dialect.
+ * This class tests a Presto SQL generation of the engine.
+ * This class only covers known differences/ use cases and will continue to grow as relavent differences are discovered.
  *
  * *** KEY ASSUMPTIONS ***
- *      * `from_unixtime(unix_timestamp())` shall be used instead of `PARSEDATETIME(FORMATDATETIME())`
- *           when defining a datastore a real Hive environment.
+ *      * `parse_datetime(format_datetime())` shall be used instead of `parse_datetime(format_datetime())`
+ *           when defining a datastore a real Presto environment.
  *        - PlayerStats.DAY_FORMAT provides an example of where this logic would have to be updated
  *        - com/yahoo/elide/datastores/aggregation/example/PlayerStats.java
  *
  *      * UDAFs (User-defined Aggregation Functions) such as MIN and MAX will be supported in the Hive environment
+ *      * WHERE clause cannot contain aggregations, window functions or grouping operations in Presto
  * *** * * * * * * * * ***
  *
  */
-public class HiveShowQueriesTest extends SQLUnitTest{
+public class PrestoExplainQueryTest extends SQLUnitTest{
+    private static Table playerStatsViewTable;
+
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init(new SQLDialectFactory().getHiveDialect());
+        SQLUnitTest.init(new SQLDialectFactory().getPrestoDialect());
+
+        playerStatsViewTable = engine.getTable("playerStatsView");
     }
 
     @Test
-    public void testShowQueriesWhereMetricsOnly() throws Exception {
+    public void testexplainWhereMetricsOnly() throws Exception {
         Query query = testQueries.get(TestQueryName.WHERE_METRICS_ONLY);
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)query.getWhereFilter()).getParameters();
         String expectedQueryStr =
@@ -41,20 +48,20 @@ public class HiveShowQueriesTest extends SQLUnitTest{
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "WHERE highScore > "
                         + params.get(0).getPlaceholder();
-        compareQueryLists(expectedQueryStr, engine.showQueries(query));
+        compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
     @Test
-    public void testShowQueriesWhereDimsOnly() throws Exception {
+    public void testexplainWhereDimsOnly() throws Exception {
         String expectedQueryStr =
                 "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "WHERE com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL";
-        compareQueryLists(expectedQueryStr, engine.showQueries(testQueries.get(TestQueryName.WHERE_DIMS_ONLY)));
+        compareQueryLists(expectedQueryStr, engine.explain(testQueries.get(TestQueryName.WHERE_DIMS_ONLY)));
     }
 
     @Test
-    public void testShowQueriesWhereMetricsAndDims() throws Exception {
+    public void testexplainWhereMetricsAndDims() throws Exception {
         Query query = testQueries.get(TestQueryName.WHERE_METRICS_AND_DIMS);
         AndFilterExpression andFilter = ((AndFilterExpression)query.getWhereFilter());
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)andFilter.getRight()).getParameters();
@@ -66,14 +73,12 @@ public class HiveShowQueriesTest extends SQLUnitTest{
                         + "AND MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
                         + params.get(0).getPlaceholder()
                         + ") GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
-        compareQueryLists(expectedQueryStr, engine.showQueries(query));
+        compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
-    /**
-     * // TODO: UDFS / Aggregations not allowed in where/groupby clause
     @Test
-    public void testShowQueriesWhereMetricsAggregation() throws Exception {
-        Query query = testQueries.get(TestQueryName.WHERE_METRICS_AGGREGATION);
+    public void testexplainWhereMetricsOrDims() throws Exception {
+        Query query = testQueries.get(TestQueryName.WHERE_METRICS_OR_DIMS);
         OrFilterExpression orFilter = ((OrFilterExpression)query.getWhereFilter());
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)orFilter.getRight()).getParameters();
         String expectedQueryStr =
@@ -84,35 +89,52 @@ public class HiveShowQueriesTest extends SQLUnitTest{
                         + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
                         + params.get(0).getPlaceholder()
                         + ") GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
-        compareQueryLists(expectedQueryStr, engine.showQueries(query));
+        compareQueryLists(expectedQueryStr, engine.explain(query));
     }
-    */
 
-    /* // TODO Group By is needed before a having clause in Hive
+    /**
+     * // TODO: UDFS / Aggregations not allowed in where/groupby clause
+     @Test
+     public void testexplainWhereMetricsAggregation() throws Exception {
+     Query query = testQueries.get(TestQueryName.WHERE_METRICS_AGGREGATION);
+     OrFilterExpression orFilter = ((OrFilterExpression)query.getWhereFilter());
+     List<FilterPredicate.FilterParameter> params = ((FilterPredicate)orFilter.getRight()).getParameters();
+     String expectedQueryStr =
+     "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
+     +"com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
+     + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
+     + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
+     + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
+     + params.get(0).getPlaceholder()
+     + ") GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
+     compareQueryLists(expectedQueryStr, engine.explain(query));
+     }
+     */
+
     @Test
-    public void testShowQueriesHavingMetricsOnly() throws Exception {
+    public void testexplainHavingMetricsOnly() throws Exception {
         Query query = testQueries.get(TestQueryName.HAVING_METRICS_ONLY);
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)query.getHavingFilter()).getParameters();
         String expectedQueryStr =
-                "SELECT highScore AS highScoreNoAgg, " +
-                        "MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore " +
-                        "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats " +
-                        "GROUP BY highscore HAVING highScore > 0"
+                "SELECT highScore AS highScoreNoAgg,"
+                        + "MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore "
+                        + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
+                        + "HAVING highScore > "
                         + params.get(0).getPlaceholder();
-        compareQueryLists(expectedQueryStr, engine.showQueries(query));
-    }*/
+        compareQueryLists(expectedQueryStr, engine.explain(query));
+    }
 
     @Test
-    public void testShowQueriesHavingDimsOnly() throws Exception {
+    public void testexplainHavingDimsOnly() throws Exception {
         String expectedQueryStr =
                 "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL";
-        compareQueryLists(expectedQueryStr, engine.showQueries(testQueries.get(TestQueryName.HAVING_DIMS_ONLY)));
+        compareQueryLists(expectedQueryStr, engine.explain(testQueries.get(TestQueryName.HAVING_DIMS_ONLY)));
     }
 
     @Test
-    public void testShowQueriesHavingMetricsAndDims() throws Exception {
+    public void testexplainHavingMetricsAndDims() throws Exception {
         Query query = testQueries.get(TestQueryName.HAVING_METRICS_AND_DIMS);
         AndFilterExpression andFilter = ((AndFilterExpression)query.getHavingFilter());
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)andFilter.getRight()).getParameters();
@@ -124,11 +146,11 @@ public class HiveShowQueriesTest extends SQLUnitTest{
                         + "HAVING (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
                         + "AND MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
                         + params.get(0).getPlaceholder() + ")";
-        compareQueryLists(expectedQueryStr, engine.showQueries(query));
+        compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
     @Test
-    public void testShowQueriesHavingMetricsOrDims() throws Exception {
+    public void testexplainHavingMetricsOrDims() throws Exception {
         Query query = testQueries.get(TestQueryName.HAVING_METRICS_OR_DIMS);
         OrFilterExpression orFilter = ((OrFilterExpression)query.getHavingFilter());
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate)orFilter.getRight()).getParameters();
@@ -140,18 +162,17 @@ public class HiveShowQueriesTest extends SQLUnitTest{
                         + "HAVING (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
                         + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
                         + params.get(0).getPlaceholder() + ")";
-        compareQueryLists(expectedQueryStr, engine.showQueries(query));
+        compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
     /**
-     * This test validates that generateCountDistinctClause() is called in the HiveDialect. The difference between this
-     * and the default dialect is an omitted parentheses on the inner DISTINCT clause. (expectedQueryStr1)
+     * This test validates that generateCountDistinctClause() is called in the PrestoDialect (same as default/H2).
      */
     @Test
-    public void testShowQueriesPagination() {
+    public void testexplainPagination() {
         String expectedQueryStr1 =
-                "SELECT COUNT(DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, " +
-                        "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate) FROM " +
+                "SELECT COUNT(DISTINCT(com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, " +
+                        "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate)) FROM " +
                         "playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats     ";
         String expectedQueryStr2 =
                 "SELECT MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS " +
@@ -167,7 +188,7 @@ public class HiveShowQueriesTest extends SQLUnitTest{
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
-        compareQueryLists(expectedQueryList, engine.showQueries(testQueries.get(TestQueryName.PAGINATION_TOTAL)));
+        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.PAGINATION_TOTAL)));
     }
 
     /* TODO - Query generation needs to support aliases in ORDER BY to make these pass
@@ -176,9 +197,9 @@ public class HiveShowQueriesTest extends SQLUnitTest{
         String expectedQueryStr =
                 "SELECT highScore AS highScoreNoAgg " +
                         "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats   " +
-                        "ORDER BY highScoreNoAgg ASC";
+                        "ORDER BY highScore ASC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.showQueries(testQueries.get(TestQueryName.SORT_METRIC_ASC)));
+        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SORT_METRIC_ASC)));
     }
 
     @Test
@@ -186,21 +207,20 @@ public class HiveShowQueriesTest extends SQLUnitTest{
         String expectedQueryStr =
                 "SELECT highScore AS highScoreNoAgg " +
                         "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats   " +
-                        "ORDER BY highScoreNoAgg DESC";
+                        "ORDER BY highScore DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.showQueries(testQueries.get(TestQueryName.SORT_METRIC_DESC)));
+        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SORT_METRIC_DESC)));
     }
     */
 
     @Test
     public void testShowQuerySortingByDimensionDesc(){
         String expectedQueryStr =
-                "SELECT DISTINCT " +
-                        "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating " +
-                        "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats " +
+                "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS " +
+                        "overallRating FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats      " +
                         "ORDER BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.showQueries(testQueries.get(TestQueryName.SORT_DIM_DESC)));
+        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SORT_DIM_DESC)));
     }
 
     /* TODO: This test won't work because:
@@ -208,16 +228,6 @@ public class HiveShowQueriesTest extends SQLUnitTest{
      * 2) metrics aggregations are expanded in ORDER BY.
      * Using aliases in ORDER BY will fix this.
      *
-     * Sample string that would resolve this
-     * String expectedQueryStr =
-                "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore," +
-                        "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating," +
-                        "MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore " +
-                        "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats " +
-                        "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating " +
-                        "ORDER BY lowScore DESC";
-     *
-
     @Test
     public void testShowQuerySortingByMetricAndDimension(){
         String expectedQueryStr =
@@ -227,8 +237,9 @@ public class HiveShowQueriesTest extends SQLUnitTest{
                         "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating " +
                         "ORDER BY MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.showQueries(testQueries.get(TestQueryName.SORT_METRIC_AND_DIM_DESC)));
-    }*/
+        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SORT_METRIC_AND_DIM_DESC)));
+    }
+    */
 
 
     @Test
@@ -240,8 +251,9 @@ public class HiveShowQueriesTest extends SQLUnitTest{
                         "WHERE stats.overallRating = 'Great') AS " +
                         "com_yahoo_elide_datastores_aggregation_example_PlayerStatsView";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.showQueries(testQueries.get(TestQueryName.SUBQUERY)));
+        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.SUBQUERY)));
     }
+
 
     @Test
     public void testShowQueryGroupByNotInSelect() {
@@ -251,7 +263,7 @@ public class HiveShowQueriesTest extends SQLUnitTest{
                         "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats " +
                         "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
-        compareQueryLists(expectedQueryList, engine.showQueries(testQueries.get(TestQueryName.GROUP_BY_DIMENSION_NOT_IN_SELECT)));
+        compareQueryLists(expectedQueryList, engine.explain(testQueries.get(TestQueryName.GROUP_BY_DIMENSION_NOT_IN_SELECT)));
     }
 
     @Test
@@ -261,8 +273,8 @@ public class HiveShowQueriesTest extends SQLUnitTest{
         List<FilterPredicate.FilterParameter> havingParams = ((FilterPredicate)query.getHavingFilter()).getParameters();
 
         String expectedQueryStr1 =
-                "SELECT COUNT(DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, " +
-                        "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate) " +
+                "SELECT COUNT(DISTINCT(com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, " +
+                        "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate)) " +
                         "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats " +
                         "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country " +
                         "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = " +
@@ -291,8 +303,7 @@ public class HiveShowQueriesTest extends SQLUnitTest{
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
 
-        compareQueryLists(expectedQueryList, engine.showQueries(query));
+        compareQueryLists(expectedQueryList, engine.explain(query));
     }
-
 
 }

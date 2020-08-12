@@ -199,25 +199,6 @@ public class SQLQueryEngine extends QueryEngine {
         return resultBuilder.build();
     }
 
-    /**
-     * Generate the query string(s) in the appropriate SQL dialect.
-     * Includes both the main query and pagination query, if specified.
-     * @param query
-     * @return List of SQL query strings
-     */
-    @Override
-    public List<String> showQueries(Query query) {
-        List<String> queries = new ArrayList<String>();
-        SQLQuery sql = toSQL(query, dialect);
-
-        Pagination pagination = query.getPagination();
-        if (pagination != null && pagination.returnPageTotals()) {
-            queries.add(toPageTotalSQL(sql, dialect).toString());
-        }
-        queries.add(sql.toString());
-        return queries;
-    }
-
     private long getPageTotal(Query query, SQLQuery sql, EntityManager entityManager) {
         String paginationSQL = toPageTotalSQL(sql, dialect).toString();
 
@@ -256,8 +237,16 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public String explain(Query query) {
-        return toSQL(query, dialect).toString();
+    public List<String> explain(Query query) {
+        List<String> queries = new ArrayList<String>();
+        SQLQuery sql = toSQL(query, dialect);
+
+        Pagination pagination = query.getPagination();
+        if (pagination != null && pagination.returnPageTotals()) {
+            queries.add(toPageTotalSQL(sql, dialect).toString());
+        }
+        queries.add(sql.toString());
+        return queries;
     }
 
     /**

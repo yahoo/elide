@@ -196,19 +196,11 @@ public abstract class QueryEngine {
     }
 
     /**
-     * Explains the specified query passed in
-     * @param query The query customized for a particular persistent storage or storage client
-     * @return SQL string corresponding to the given query
-     */
-    public abstract String explain(Query query);
-
-    /**
-     * Builds the specified {@link Query} against a specific persistent storage, which understand the provided
-     * {@link Query}.
+     * Returns the actual query string(s) that would be executed for the input {@link Query}.
      *
      * @param query The query customized for a particular persistent storage or storage client
-     * @return query string
+     * @return List of SQL string(s) corresponding to the given query
      */
-    public abstract List<String> showQueries(Query query);
+    public abstract List<String> explain(Query query);
 
 }
