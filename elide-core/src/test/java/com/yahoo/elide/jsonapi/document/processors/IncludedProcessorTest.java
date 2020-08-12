@@ -19,10 +19,12 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.TestUser;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
+
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -33,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -186,7 +189,7 @@ public class IncludedProcessorTest {
         includedProcessor.execute(jsonApiDocument, parentRecord3, Optional.of(queryParams));
 
         Set<Resource> expectedIncluded =
-                Sets.newHashSet(
+                ImmutableSet.of(
                         childRecord1.toResource(),
                         childRecord2.toResource(),
                         childRecord3.toResource(),

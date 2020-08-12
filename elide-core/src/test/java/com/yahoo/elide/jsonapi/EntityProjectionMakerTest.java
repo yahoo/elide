@@ -22,12 +22,14 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
+
 import example.Address;
 import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -765,7 +767,7 @@ public class EntityProjectionMakerTest {
         assertEquals(projection1.getPagination(), projection2.getPagination());
 
         //Ignore order
-        assertEquals(Sets.newHashSet(projection1.getAttributes()), Sets.newHashSet(projection2.getAttributes()));
+        assertEquals(ImmutableSet.of(projection1.getAttributes()), ImmutableSet.of(projection2.getAttributes()));
 
         assertEquals(projection1.getRelationships().size(), projection2.getRelationships().size());
 

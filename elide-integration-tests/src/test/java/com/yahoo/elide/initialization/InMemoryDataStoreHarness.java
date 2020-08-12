@@ -12,7 +12,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 import example.Parent;
 import example.models.generics.Manager;
@@ -29,7 +29,7 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
     private HashMapDataStore mapStore;
 
     public InMemoryDataStoreHarness() {
-        Set<Package> beanPackages = Sets.newHashSet(
+        Set<Package> beanPackages = ImmutableSet.of(
                 Parent.class.getPackage(),
                 Invoice.class.getPackage(),
                 Manager.class.getPackage(),

@@ -25,11 +25,12 @@ import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import example.Child;
 import example.Parent;
+
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -188,7 +189,7 @@ public class JsonApiTest {
         Parent parent = new Parent();
         Child child = new Child();
         parent.setId(123L);
-        parent.setSpouses(Sets.newHashSet());
+        parent.setSpouses(ImmutableSet.of());
         child.setId(2);
         parent.setChildren(Collections.singleton(child));
         child.setParents(Collections.singleton(parent));

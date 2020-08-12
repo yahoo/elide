@@ -12,15 +12,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 
-import com.google.common.collect.Sets;
-import org.junit.jupiter.api.Test;
+import com.google.common.collect.ImmutableSet;
 
-import java.util.Arrays;
+import org.junit.jupiter.api.Test;
 
 public class DimensionFormulaTest {
     @Test
     public void testReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(Loop.class));
+        MetaDataStore metaDataStore = new MetaDataStore(ImmutableSet.of(Loop.class));
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
@@ -32,7 +31,7 @@ public class DimensionFormulaTest {
 
     @Test
     public void testJoinToLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(JoinToLoop.class));
+        MetaDataStore metaDataStore = new MetaDataStore(ImmutableSet.of(JoinToLoop.class));
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
@@ -44,8 +43,7 @@ public class DimensionFormulaTest {
 
     @Test
     public void testCrossClassReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(
-                Sets.newLinkedHashSet(Arrays.asList(LoopCountryA.class, LoopCountryB.class)));
+        MetaDataStore metaDataStore = new MetaDataStore(ImmutableSet.of(LoopCountryA.class, LoopCountryB.class));
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
