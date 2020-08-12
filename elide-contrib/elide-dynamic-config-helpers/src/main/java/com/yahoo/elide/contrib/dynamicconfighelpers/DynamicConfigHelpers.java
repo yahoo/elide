@@ -44,11 +44,11 @@ public class DynamicConfigHelpers {
      * @return formatted file path.
      */
     public static String formatFilePath(String basePath) {
-        String path = basePath;
-        if (!path.endsWith(File.separator)) {
-            path += File.separator;
+        if (isNullOrEmpty(basePath) || basePath.endsWith(File.separator)) {
+            return basePath;
+        } else {
+            return basePath += File.separator;
         }
-        return path;
     }
 
     /**

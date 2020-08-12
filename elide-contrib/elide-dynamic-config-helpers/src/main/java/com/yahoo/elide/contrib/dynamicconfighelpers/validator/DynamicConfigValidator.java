@@ -20,8 +20,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
-import com.google.common.collect.Sets;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -63,7 +61,7 @@ public class DynamicConfigValidator {
     private static final String SEMI_COLON = ";";
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
     private static final String RESOURCES = "resources";
-    private static final int RESOURCE_LENGTH = 10; //"resources/".length()
+    private static final int RESOURCES_LENGTH = 9; //"resources".length()
     private static final String CLASSPATH_PATTERN = "classpath*:";
     private static final String FILEPATH_PATTERN = "file:";
     private static final String HJSON_EXTN = "**/*.hjson";
@@ -120,7 +118,7 @@ public class DynamicConfigValidator {
         this.setDbVariables(readVariableConfig(Config.DBVARIABLE));
         this.elideSQLDBConfig.setDbconfigs(readDbConfig(Config.SQLDBConfig));
         this.elideNonSQLDBConfig.setDbconfigs(readDbConfig(Config.NONSQLDBConfig));
-        validateDBConfigUniqueness(this.elideSQLDBConfig.getDbconfigs(), this.elideNonSQLDBConfig.getDbconfigs());
+        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), this.elideNonSQLDBConfig.getDbconfigs());
         this.elideTableConfig.setTables(readTableConfig());
         validateNameUniqueness(this.elideTableConfig.getTables());
         validateSqlInTableConfig(this.elideTableConfig);
@@ -134,9 +132,14 @@ public class DynamicConfigValidator {
     private void loadConfigMap() throws IOException {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
                 this.getClass().getClassLoader());
+        if (resolver.getResources(this.configDir).length == 0) {
+            throw new IllegalStateException(this.configDir + " : config path does not exist");
+        }
+        int configDirURILength = resolver.getResources(this.configDir)[0].getURI().toString().length();
+
         Resource[] hjsonResources = resolver.getResources(this.configDir + HJSON_EXTN);
         for (Resource resource : hjsonResources) {
-            this.resourceMap.put(resource.getURI().toString().substring(configDir.length()), resource);
+            this.resourceMap.put(resource.getURI().toString().substring(configDirURILength), resource);
         }
     }
 
@@ -301,37 +304,34 @@ public class DynamicConfigValidator {
     }
 
     /**
-     * Validates DB configs are unique across SQL and NONSQL configs.
+     * Validates db connection name is unique across all the dynamic db connection configs.
      */
-    private void validateDBConfigUniqueness(Set<DBConfig> sqlDBConfigs, Set<DBConfig> nonSQLDBConfigs) {
-        if (sqlDBConfigs.size() > 0 && nonSQLDBConfigs.size() > 0
-                        && sqlDBConfigs.size() != Sets.difference(sqlDBConfigs, nonSQLDBConfigs).size()) {
-            throw new IllegalStateException("Duplicate!! Same DB Config provided for both SQL and NonSQL.");
-        }
-        validateNameUniqueness(
-                        Sets.union(this.elideSQLDBConfig.getDbconfigs(), this.elideNonSQLDBConfig.getDbconfigs()));
-    }
-
-    /**
-     * Validates table(or db connection) name is unique across all the dynamic table (or db connection) configs.
-     */
-    private void validateNameUniqueness(Set<? extends Object> configs) {
+    private void validateNameUniqueness(Set<DBConfig> sqlDBConfigs, Set<DBConfig> nonSQLDBConfigs) {
 
         Set<String> names = new HashSet<>();
 
-        configs.forEach(obj -> {
-            if (obj instanceof Table) {
-                String name = ((Table) obj).getName().toLowerCase(Locale.ENGLISH);
-                if (!names.add(name)) {
-                    throw new IllegalStateException(
-                                    "Duplicate!! Table Configs have more than one table with same name.");
-                }
-            } else if (obj instanceof DBConfig) {
-                String name = ((DBConfig) obj).getName().toLowerCase(Locale.ENGLISH);
-                if (!names.add(name)) {
-                    throw new IllegalStateException(
-                                    "Duplicate!! DB Configs have more than one connection with same name.");
-                }
+        sqlDBConfigs.forEach(dbconfig -> {
+            if (!names.add(dbconfig.getName().toLowerCase(Locale.ENGLISH))) {
+                throw new IllegalStateException("Duplicate!! DB Configs have more than one connection with same name.");
+            }
+        });
+        nonSQLDBConfigs.forEach(dbconfig -> {
+            if (!names.add(dbconfig.getName().toLowerCase(Locale.ENGLISH))) {
+                throw new IllegalStateException("Duplicate!! DB Configs have more than one connection with same name.");
+            }
+        });
+    }
+
+    /**
+     * Validates table name is unique across all the dynamic table configs.
+     */
+    private void validateNameUniqueness(Set<Table> configs) {
+
+        Set<String> names = new HashSet<>();
+
+        configs.forEach(table -> {
+            if (!names.add(table.getName().toLowerCase(Locale.ENGLISH))) {
+                throw new IllegalStateException("Duplicate!! Table Configs have more than one table with same name.");
             }
         });
     }
@@ -429,8 +429,10 @@ public class DynamicConfigValidator {
      * @return Path to model dir
      */
     private String formatClassPath(String filePath) {
-        if (filePath.indexOf(RESOURCES) > -1) {
-            return filePath.substring(filePath.indexOf(RESOURCES) + RESOURCE_LENGTH);
+        if (filePath.indexOf(RESOURCES + File.separator) > -1) {
+            return filePath.substring(filePath.indexOf(RESOURCES + File.separator) + RESOURCES_LENGTH + 1);
+        } else if (filePath.indexOf(RESOURCES) > -1) {
+            return filePath.substring(filePath.indexOf(RESOURCES) + RESOURCES_LENGTH);
         }
         return filePath;
     }

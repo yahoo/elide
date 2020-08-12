@@ -49,7 +49,7 @@ public class DynamicConfigValidatorTest {
     public void testMissingConfigDir() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/missing" }));
-        assertTrue(e.getMessage().startsWith("No Table configs found at"));
+        assertTrue(e.getMessage().contains("config path does not exist"));
     }
 
     @Test
@@ -129,7 +129,7 @@ public class DynamicConfigValidatorTest {
     public void testDuplicateDBConfig() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/duplicate_dbconfig" }));
-        assertEquals(e.getMessage(), "Duplicate!! Same DB Config provided for both SQL and NonSQL.");
+        assertEquals(e.getMessage(), "Duplicate!! DB Configs have more than one connection with same name.");
     }
 
     @Test
