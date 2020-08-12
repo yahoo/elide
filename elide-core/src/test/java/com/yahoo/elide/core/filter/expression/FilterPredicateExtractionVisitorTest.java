@@ -12,11 +12,9 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 
-import com.google.common.collect.ImmutableSet;
-
+import com.google.common.collect.Sets;
 import example.Author;
 import example.Book;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -61,7 +59,8 @@ public class FilterPredicateExtractionVisitorTest {
         PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
         Collection<FilterPredicate> filterPredicates = not.accept(visitor);
 
-        assertEquals(ImmutableSet.of(p1, p2, p3), filterPredicates);
+        assertTrue(filterPredicates.containsAll(Sets.newHashSet(p1, p2, p3)));
+        assertEquals(filterPredicates.size(), 3);
 
         //Second test collecting the predicates in a List
         visitor = new PredicateExtractionVisitor(new ArrayList<>());

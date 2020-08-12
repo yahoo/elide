@@ -13,8 +13,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.generated.parsers.ExpressionLexer;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 
-import com.google.common.collect.ImmutableList;
-
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
@@ -91,7 +89,7 @@ public class EntityPermissions implements CheckInstantiator {
     }
 
     private ParseTree bindClassPermissions(Class<?> cls, Class<? extends Annotation> annotationClass) {
-        Annotation annotation = EntityDictionary.getFirstAnnotation(cls, ImmutableList.of(annotationClass));
+        Annotation annotation = EntityDictionary.getFirstAnnotation(cls, Arrays.asList(annotationClass));
         return (annotation == null) ? null : getPermissionExpressionTree(annotationClass, annotation);
     }
 

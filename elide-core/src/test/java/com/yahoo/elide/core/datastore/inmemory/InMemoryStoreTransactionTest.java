@@ -7,6 +7,7 @@ package com.yahoo.elide.core.datastore.inmemory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -31,14 +32,13 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.request.Sorting;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -96,7 +96,7 @@ public class InMemoryStoreTransactionTest {
                 "Literary Fiction",
                 "English",
                 System.currentTimeMillis(),
-                ImmutableSet.of(author),
+                Sets.newHashSet(author),
                 publisher1,
                 Arrays.asList("Prize1"));
 
@@ -105,7 +105,7 @@ public class InMemoryStoreTransactionTest {
                 "Science Fiction",
                 "English",
                 System.currentTimeMillis(),
-                ImmutableSet.of(author),
+                Sets.newHashSet(author),
                 publisher1,
                 Arrays.asList("Prize1", "Prize2"));
 
@@ -114,7 +114,7 @@ public class InMemoryStoreTransactionTest {
                 "Literary Fiction",
                 "English",
                 System.currentTimeMillis(),
-                ImmutableSet.of(author),
+                Sets.newHashSet(author),
                 publisher2,
                 Arrays.asList());
 
@@ -149,7 +149,10 @@ public class InMemoryStoreTransactionTest {
 
         verify(wrappedTransaction, times(1)).loadObjects(eq(projection), eq(scope));
 
-        assertEquals(ImmutableSet.of(book1, book2, book3), loaded);
+        assertEquals(3, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book2));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -168,7 +171,7 @@ public class InMemoryStoreTransactionTest {
 
         ArgumentCaptor<Relationship> relationshipArgument = ArgumentCaptor.forClass(Relationship.class);
 
-        when(scope.getNewPersistentResources()).thenReturn(ImmutableSet.of(mock(PersistentResource.class)));
+        when(scope.getNewPersistentResources()).thenReturn(Sets.newHashSet(mock(PersistentResource.class)));
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
         when(wrappedTransaction.getRelation(eq(inMemoryStoreTransaction), eq(author), any(), eq(scope))).thenReturn(books);
@@ -186,7 +189,9 @@ public class InMemoryStoreTransactionTest {
         assertNull(relationshipArgument.getValue().getProjection().getSorting());
         assertNull(relationshipArgument.getValue().getProjection().getPagination());
 
-        assertEquals(ImmutableSet.of(book1, book3), ImmutableSet.copyOf(loaded));
+        assertEquals(2, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -215,7 +220,9 @@ public class InMemoryStoreTransactionTest {
         assertNull(projectionArgument.getValue().getFilterExpression());
         assertNull(projectionArgument.getValue().getPagination());
         assertNull(projectionArgument.getValue().getSorting());
-        assertEquals(ImmutableSet.of(book1, book3), ImmutableSet.copyOf(loaded));
+        assertEquals(2, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -248,7 +255,8 @@ public class InMemoryStoreTransactionTest {
         assertEquals(projectionArgument.getValue().getFilterExpression(), expression1);
         assertNull(projectionArgument.getValue().getPagination());
         assertNull(projectionArgument.getValue().getSorting());
-        assertEquals(ImmutableList.of(book3), loaded);
+        assertEquals(1, loaded.size());
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -305,7 +313,7 @@ public class InMemoryStoreTransactionTest {
                 any())).thenReturn(false);
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
-        Collection<Book> loaded = (Collection) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 projection,
                 scope);
 
@@ -318,8 +326,8 @@ public class InMemoryStoreTransactionTest {
         assertNull(projectionArgument.getValue().getSorting());
         assertEquals(3, loaded.size());
 
-        List<String> bookTitles = loaded.stream().map(Book::getTitle).collect(Collectors.toList());
-        assertEquals(ImmutableList.of("Book 1", "Book 2", "Book 3"), bookTitles);
+        List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
+        assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 2", "Book 3"));
     }
 
     @Test
@@ -360,7 +368,7 @@ public class InMemoryStoreTransactionTest {
         assertEquals(2, loaded.size());
 
         List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
-        assertEquals(ImmutableList.of("Book 1", "Book 3"), bookTitles);
+        assertEquals(Lists.newArrayList("Book 1", "Book 3"), bookTitles);
     }
 
     @Test
@@ -422,7 +430,10 @@ public class InMemoryStoreTransactionTest {
         assertNull(projectionArgument.getValue().getFilterExpression());
         assertNull(projectionArgument.getValue().getPagination());
         assertNull(projectionArgument.getValue().getSorting());
-        assertEquals(ImmutableSet.of(book1, book2, book3), ImmutableSet.copyOf(loaded));
+        assertEquals(3, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book2));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -457,7 +468,9 @@ public class InMemoryStoreTransactionTest {
         assertNull(projectionArgument.getValue().getFilterExpression());
         assertNull(projectionArgument.getValue().getPagination());
         assertNull(projectionArgument.getValue().getSorting());
-        assertEquals(ImmutableSet.of(book1, book3), ImmutableSet.copyOf(loaded));
+        assertEquals(2, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -496,7 +509,10 @@ public class InMemoryStoreTransactionTest {
         assertNull(projectionArgument.getValue().getFilterExpression());
         assertNull(projectionArgument.getValue().getPagination());
         assertNull(projectionArgument.getValue().getSorting());
-        assertEquals(ImmutableSet.of(book1, book2, book3), ImmutableSet.copyOf(loaded));
+        assertEquals(3, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book2));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test

@@ -226,7 +226,7 @@ public final class GraphQLDSL {
      * @return a serializable GraphQL query object
      */
     public static Document document(Definition... definitions) {
-        return new Document(ImmutableList.copyOf(definitions));
+        return new Document(Arrays.asList(definitions));
     }
 
     /**
@@ -313,7 +313,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/queries/#variables">Variables</a>
      */
     public static VariableDefinitions variableDefinitions(VariableDefinition... variableDefinitions) {
-        return new VariableDefinitions(ImmutableList.copyOf(variableDefinitions));
+        return new VariableDefinitions(Arrays.asList(variableDefinitions));
     }
 
     /**
@@ -413,11 +413,11 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
     public static Selection field(String name, Arguments arguments, SelectionSet... selectionSet) {
-        return new Field(null, name, arguments, relayWrap(ImmutableList.copyOf(selectionSet)));
+        return new Field(null, name, arguments, relayWrap(Arrays.asList(selectionSet)));
     }
 
     public static Selection field(String alias, String name, Arguments arguments, SelectionSet... selectionSet) {
-        return new Field(alias, name, arguments, relayWrap(ImmutableList.copyOf(selectionSet)));
+        return new Field(alias, name, arguments, relayWrap(Arrays.asList(selectionSet)));
     }
 
     /**
@@ -447,7 +447,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/queries/#arguments">Arguments</a>
      */
     public static Arguments arguments(Argument... arguments) {
-        return new Arguments(ImmutableList.copyOf(arguments));
+        return new Arguments(Arrays.asList(arguments));
     }
 
     /**
