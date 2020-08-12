@@ -8,8 +8,7 @@ package com.yahoo.elide.core.filter;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 
-import com.google.common.collect.ImmutableList;
-
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +23,7 @@ public class PrefixInsensitivePredicate extends FilterPredicate {
 
     @SafeVarargs
     public <T> PrefixInsensitivePredicate(Path path, T... a) {
-        this(path, ImmutableList.copyOf(a));
+        this(path, Arrays.asList(a));
     }
 
     public PrefixInsensitivePredicate(PathElement pathElement, List<Object> values) {
@@ -33,6 +32,6 @@ public class PrefixInsensitivePredicate extends FilterPredicate {
 
     @SafeVarargs
     public <T> PrefixInsensitivePredicate(PathElement pathElement, T... a) {
-        this(pathElement, ImmutableList.copyOf(a));
+        this(pathElement, Arrays.asList(a));
     }
 }
