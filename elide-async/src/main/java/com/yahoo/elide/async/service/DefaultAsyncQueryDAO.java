@@ -13,10 +13,7 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.dialect.ParseException;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
@@ -44,8 +41,6 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Setter private Elide elide;
     @Setter private DataStore dataStore;
-    private EntityDictionary dictionary;
-    private RSQLFilterDialect filterParser;
 
     // Default constructor is needed for standalone implementation for override in getAsyncQueryDao
     public DefaultAsyncQueryDAO() {
@@ -54,8 +49,6 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     public DefaultAsyncQueryDAO(Elide elide, DataStore dataStore) {
         this.elide = elide;
         this.dataStore = dataStore;
-        dictionary = elide.getElideSettings().getDictionary();
-        filterParser = new RSQLFilterDialect(dictionary);
     }
 
     @Override
@@ -73,7 +66,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public Collection<AsyncQuery> updateStatusAsyncQueryCollection(String filterExpression,
+    public Collection<AsyncQuery> updateStatusAsyncQueryCollection(FilterExpression filterExpression,
             QueryStatus status) {
         return updateAsyncQueryCollection(filterExpression, (asyncQuery) -> {
             asyncQuery.setStatus(status);
@@ -88,69 +81,53 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
      * @return query object list updated
      */
     @SuppressWarnings("unchecked")
-    private Collection<AsyncQuery> updateAsyncQueryCollection(String filterExpression,
+    private Collection<AsyncQuery> updateAsyncQueryCollection(FilterExpression filterExpression,
             UpdateQuery updateFunction) {
         log.debug("updateAsyncQueryCollection");
 
         Collection<AsyncQuery> asyncQueryList = null;
+         asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
+                    (tx, scope) -> {
+             EntityProjection asyncQueryCollection = EntityProjection.builder()
+                     .type(AsyncQuery.class)
+                     .filterExpression(filterExpression)
+                     .build();
 
-        try {
-             FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
-                    AsyncQuery.class, false);
-             asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
-                        (tx, scope) -> {
-                 EntityProjection asyncQueryCollection = EntityProjection.builder()
-                         .type(AsyncQuery.class)
-                         .filterExpression(filter)
-                         .build();
+             Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
+             Iterator<Object> itr = loaded.iterator();
 
-                 Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
-                 Iterator<Object> itr = loaded.iterator();
-
-                 while (itr.hasNext()) {
-                     AsyncQuery query = (AsyncQuery) itr.next();
-                     updateFunction.update(query);
-                     tx.save(query, scope);
-                 }
-                 return loaded;
-             });
-        } catch (ParseException e) {
-            log.error("Exception: {}", e);
-        }
+             while (itr.hasNext()) {
+                 AsyncQuery query = (AsyncQuery) itr.next();
+                 updateFunction.update(query);
+                 tx.save(query, scope);
+             }
+             return loaded;
+         });
         return asyncQueryList;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(String filterExpression) {
+    public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(FilterExpression filterExpression) {
         log.debug("deleteAsyncQueryAndResultCollection");
-
         Collection<AsyncQuery> asyncQueryList = null;
+        asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .filterExpression(filterExpression)
+                    .build();
 
-        try {
-            FilterExpression filter = filterParser.parseFilterExpression(filterExpression,
-                    AsyncQuery.class, false);
-            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
+            Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
+            Iterator<Object> itr = loaded.iterator();
 
-                EntityProjection asyncQueryCollection = EntityProjection.builder()
-                        .type(AsyncQuery.class)
-                        .filterExpression(filter)
-                        .build();
-
-                Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
-                Iterator<Object> itr = loaded.iterator();
-
-                while (itr.hasNext()) {
-                    AsyncQuery query = (AsyncQuery) itr.next();
-                    if (query != null) {
-                        tx.delete(query, scope);
-                    }
+            while (itr.hasNext()) {
+                AsyncQuery query = (AsyncQuery) itr.next();
+                if (query != null) {
+                    tx.delete(query, scope);
                 }
-                return loaded;
-            });
-        } catch (ParseException e) {
-            log.error("Exception: {}", e);
-        }
+            }
+            return loaded;
+        });
         return asyncQueryList;
     }
 
@@ -194,5 +171,27 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             throw new IllegalStateException(e);
         }
         return result;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Collection<AsyncQuery> loadAsyncQueryCollection(FilterExpression filterExpression) {
+        Collection<AsyncQuery> asyncQueryList = null;
+        log.debug("loadAsyncQueryCollection");
+        try {
+            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
+
+                EntityProjection asyncQueryCollection = EntityProjection.builder()
+                        .type(AsyncQuery.class)
+                        .filterExpression(filterExpression)
+                        .build();
+                Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
+                return loaded;
+            });
+        } catch (Exception e) {
+            log.error("Exception: {}", e);
+            throw new IllegalStateException(e);
+        }
+        return asyncQueryList;
     }
 }

@@ -9,18 +9,16 @@ import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 /**
 * Transaction Registry class.
 */
 @Getter
 public class TransactionRegistry {
     private Map<UUID, DataStoreTransaction> transactionMap = new HashMap<>();
-    public Set<DataStoreTransaction> getRunningTransactions() {
-        Set<DataStoreTransaction> transactions = transactionMap.values().stream().collect(Collectors.toSet());
-        return transactions;
+
+    public Map<UUID, DataStoreTransaction> getRunningTransactions() {
+        return transactionMap;
     }
 
     public DataStoreTransaction getRunningTransaction(UUID requestId) {

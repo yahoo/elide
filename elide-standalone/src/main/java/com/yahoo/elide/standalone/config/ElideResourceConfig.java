@@ -128,18 +128,10 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 // Binding async service
                 if (settings.enableAsync()) {
-                    // Creating a new ElideSettings and Elide object for Async services
-                    // which will have ISO8601 Dates. Used for DefaultAsyncQueryDAO.
-                    ElideSettings asyncElideSettings = new ElideSettingsBuilder(elideSettings.getDataStore())
-                            .withEntityDictionary(elideSettings.getDictionary())
-                            .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
-                            .build();
-
-                    Elide asyncElide = new Elide(asyncElideSettings);
 
                     AsyncQueryDAO asyncQueryDao = settings.getAsyncQueryDAO();
                     if (asyncQueryDao == null) {
-                        asyncQueryDao = new DefaultAsyncQueryDAO(asyncElide, asyncElide.getDataStore());
+                        asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 

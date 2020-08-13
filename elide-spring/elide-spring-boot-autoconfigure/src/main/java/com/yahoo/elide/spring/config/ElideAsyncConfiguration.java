@@ -96,13 +96,6 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncQueryDAO", matchIfMissing = true)
     public AsyncQueryDAO buildAsyncQueryDAO(Elide elide) {
-        // Creating a new ElideSettings and Elide object for Async services
-        // which will have ISO8601 Dates. Used for DefaultAsyncQueryDAO.
-        ElideSettings asyncElideSettings = new ElideSettingsBuilder(elide.getDataStore())
-                .withEntityDictionary(elide.getElideSettings().getDictionary())
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
-                .build();
-        Elide asyncElide = new Elide(asyncElideSettings);
-        return new DefaultAsyncQueryDAO(asyncElide, asyncElide.getDataStore());
+        return new DefaultAsyncQueryDAO(elide, elide.getDataStore());
     }
 }
