@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
 
 /**
- * H2 SQLDialect
+ * H2 SQLDialect.
  */
 public class H2Dialect extends AbstractSqlDialect {
     @Override

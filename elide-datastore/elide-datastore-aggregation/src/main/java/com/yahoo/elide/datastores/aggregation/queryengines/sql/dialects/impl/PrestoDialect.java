@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
 
 /**
- * Presto SQLDialect
+ * Presto SQLDialect.
  */
 public class PrestoDialect extends AbstractSqlDialect {
     @Override

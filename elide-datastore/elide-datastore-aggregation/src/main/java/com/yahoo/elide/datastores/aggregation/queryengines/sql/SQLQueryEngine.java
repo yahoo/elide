@@ -71,7 +71,8 @@ public class SQLQueryEngine extends QueryEngine {
         this(metaDataStore, eMFactory, txC, SQLDialectFactory.getDefaultDialect());
     }
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory eMFactory, Consumer<EntityManager> txC, SQLDialect sqlDialect) {
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory eMFactory, Consumer<EntityManager> txC,
+                          SQLDialect sqlDialect) {
         super(metaDataStore);
         this.entityManagerFactory = eMFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);

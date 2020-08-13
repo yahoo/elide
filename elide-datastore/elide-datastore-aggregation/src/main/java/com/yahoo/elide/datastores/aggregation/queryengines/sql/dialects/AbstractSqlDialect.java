@@ -6,12 +6,11 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 /**
- * Common code for {@link SQLDialect} implementations
+ * Common code for {@link SQLDialect} implementations.
  */
 public abstract class AbstractSqlDialect implements SQLDialect {
 
-    public String generateCountDistinctClause(String dimensions){
+    public String generateCountDistinctClause(String dimensions) {
         return String.format("COUNT(DISTINCT(%s))", dimensions);
     }
-
 }
