@@ -78,7 +78,7 @@ public class AsyncQueryCancelThreadTest {
         Collection<AsyncQuery> asyncCollection = new ArrayList<AsyncQuery>();
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
-        when(cancelThread.asyncQueryDao.loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
+        when(cancelThread.getAsyncQueryDao().loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
         cancelThread.cancelAsyncQuery();
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any());
@@ -101,7 +101,7 @@ public class AsyncQueryCancelThreadTest {
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
         asyncCollection.add(asyncQuery3);
-        when(cancelThread.asyncQueryDao.loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
+        when(cancelThread.getAsyncQueryDao().loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
         cancelThread.cancelAsyncQuery();
         ArgumentCaptor<FilterExpression> fltStatusCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         verify(asyncQueryDao, times(1)).loadAsyncQueryCollection(fltStatusCaptor.capture());
@@ -124,7 +124,7 @@ public class AsyncQueryCancelThreadTest {
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
         asyncCollection.add(asyncQuery3);
-        when(cancelThread.asyncQueryDao.loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
+        when(cancelThread.getAsyncQueryDao().loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
         cancelThread.cancelAsyncQuery();
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any());

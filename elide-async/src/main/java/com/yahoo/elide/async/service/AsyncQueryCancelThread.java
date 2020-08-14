@@ -48,7 +48,7 @@ public class AsyncQueryCancelThread implements Runnable {
 
     private int maxRunTimeSeconds;
     private Elide elide;
-    AsyncQueryDAO asyncQueryDao;
+    private AsyncQueryDAO asyncQueryDao;
 
     @Override
     public void run() {
