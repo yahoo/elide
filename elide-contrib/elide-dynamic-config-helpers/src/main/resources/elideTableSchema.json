@@ -381,17 +381,17 @@
           },
           {
             "properties": {
-              "extends": {
+              "extend": {
                 "title": "Table Extends",
                 "description": "Extends another logical table.",
                 "type": "string",
+                "pattern": "^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$",
                 "default": ""
               }
             },
             "required": [
               "name",
-              "extends",
-              "dimensions"
+              "extend"
             ]
           }
         ]
