@@ -1,0 +1,13 @@
+{
+  tables:
+  [
+    {
+      name: PlayerExtend
+      schema: playerdb
+      table: player
+      extend: Player
+      description: Player Extend
+      cardinality: large
+    }
+  ]
+}
