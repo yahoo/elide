@@ -38,7 +38,7 @@ public class Data<T> {
      * @param value singleton resource
      */
     public Data(T value) {
-        this.values = new SingleElementSet<>(value);
+        this.values = new SingleElementObservable<>(value);
         this.relationshipType = RelationshipType.MANY_TO_ONE; // Any "toOne"
     }
 
@@ -89,7 +89,7 @@ public class Data<T> {
      */
     public T getSingleValue() {
         if (isToOne()) {
-            return ((SingleElementSet<T>) values).getValue();
+            return ((SingleElementObservable<T>) values).getValue();
         }
 
         throw new IllegalAccessError("Data is not toOne");

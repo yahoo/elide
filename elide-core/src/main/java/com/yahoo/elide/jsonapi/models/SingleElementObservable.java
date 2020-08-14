@@ -8,38 +8,35 @@ package com.yahoo.elide.jsonapi.models;
 import com.yahoo.elide.jsonapi.serialization.SingletonSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
 
 import java.util.AbstractSet;
 import java.util.Collections;
 import java.util.Iterator;
 
 /**
- * Single object treated as a Set.
+ * Single object treated as an Observable.
  *
- * @param <T>  the type of element to treat as a set
+ * @param <T>  the type of element to treat as an Observable.
  */
 @JsonSerialize(using = SingletonSerializer.class)
-public class SingleElementSet<T> extends AbstractSet<T> {
+public class SingleElementObservable<T> extends Observable<T> {
 
     private final T value;
 
-    public SingleElementSet(T v) {
+    public SingleElementObservable(T v) {
         value = v;
     }
-
     public T getValue() {
         return value;
     }
 
     @Override
-    public int size() {
-        return value == null ? 0 : 1;
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return value == null
-                ? Collections.emptyIterator()
-                : Collections.singleton(value).iterator();
+    protected void subscribeActual(Observer<? super T> observer) {
+        if (value != null) {
+            observer.onNext(value);
+        }
+        observer.onComplete();
     }
 }
