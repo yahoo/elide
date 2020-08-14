@@ -63,7 +63,7 @@ public class ExpressionScopingVisitorTest {
             assertTrue(predicateCopy != predicateOriginal);
         }
 
-        assertEquals("example_Author_name", predicates.get(0).getAlias());
+        assertEquals("example_Author_name", predicates.get(0).getPath().getAlias());
         assertTrue(predicates.get(0).getParameters().get(0).getPlaceholder().startsWith(":name_name_"));
         assertEquals("blah\\%", predicates.get(0).getParameters().get(0).escapeMatching());
     }
