@@ -31,6 +31,7 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import io.reactivex.Observable;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -70,7 +72,7 @@ public class CollectionTerminalState extends BaseState {
         RequestScope requestScope = state.getRequestScope();
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
-        Set<PersistentResource> collection = getResourceCollection(requestScope);
+        Set<PersistentResource> collection = getResourceCollection(requestScope).toList(TreeSet::new).blockingGet();
         // Set data
         jsonApiDocument.setData(getData(collection));
 
@@ -125,8 +127,8 @@ public class CollectionTerminalState extends BaseState {
         };
     }
 
-    private Set<PersistentResource> getResourceCollection(RequestScope requestScope) {
-        final Set<PersistentResource> collection;
+    private Observable<PersistentResource> getResourceCollection(RequestScope requestScope) {
+        final Observable<PersistentResource> collection;
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
 

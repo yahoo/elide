@@ -18,12 +18,13 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.permissions.ExpressionResult;
+import io.reactivex.Observable;
 
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Enforce read permission on filter join.
@@ -69,7 +70,11 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
             try {
                 val = val.stream()
                         .filter(Objects::nonNull)
-                        .flatMap(x -> getValueChecked(x, fieldName, requestScope))
+                        .flatMap(x ->
+                                getValueChecked(x, fieldName, requestScope)
+                                        .toList(TreeSet::new)
+                                        .blockingGet()
+                                        .stream())
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
             } catch (ForbiddenAccessException e) {
@@ -84,8 +89,8 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         return true;
     }
 
-    private Stream<PersistentResource> getValueChecked(PersistentResource<?> resource, String fieldName,
-            RequestScope requestScope) {
+    private Observable<PersistentResource> getValueChecked(PersistentResource<?> resource, String fieldName,
+                                                           RequestScope requestScope) {
 
         EntityDictionary dictionary = resource.getDictionary();
 
@@ -95,7 +100,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         Object entity = resource.getObject();
         if (entity == null || resource.getDictionary()
                 .getRelationshipType(entity.getClass(), fieldName) == RelationshipType.NONE) {
-            return Stream.empty();
+            return Observable.empty();
         }
 
         Relationship relationship = Relationship.builder()
@@ -106,7 +111,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                         .build())
                 .build();
         // use no filter to allow the read directly from loaded resource
-        return resource.getRelationChecked(relationship).stream();
+        return resource.getRelationChecked(relationship);
     }
 
     /**

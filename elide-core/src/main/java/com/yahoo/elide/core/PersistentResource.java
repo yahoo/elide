@@ -47,11 +47,11 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import io.reactivex.Observable;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import io.reactivex.Observable;
 import lombok.NonNull;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -59,7 +59,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -784,8 +783,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
             String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
             if (!"".equals(inverseRelationName)) {
-                for (PersistentResource inverseResource :
-                        getRelationCheckedUnfiltered(relationName).toList().blockingGet()) {
+                for (PersistentResource inverseResource : getRelationCheckedUnfiltered(relationName)
+                        .toList().blockingGet()) {
                     if (hasInverseRelation(relationName)) {
                         deleteInverseRelation(relationName, inverseResource.getObject());
                         inverseResource.markDirty();
@@ -964,7 +963,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param relationship relationship
      * @return collection relation
      */
-    public Observable<PersistentResource> getRelationCheckedFiltered(com.yahoo.elide.request.Relationship relationship) {
+    public Observable<PersistentResource> getRelationCheckedFiltered(
+            com.yahoo.elide.request.Relationship relationship) {
         return filter(ReadPermission.class,
                 Optional.ofNullable(relationship.getProjection().getFilterExpression()),
                 getRelation(relationship, true));
@@ -1361,7 +1361,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         new ResourceIdentifier(relationship.getType(), relationship.getId()).castToResource());
 
             }
-            Collection<Resource> resources = orderedById.values();
+            Observable<Resource> resources = Observable.fromIterable(orderedById.values());
 
             Data<Resource> data;
             RelationshipType relationshipType = getRelationshipType(field);
@@ -1884,5 +1884,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private static <T> T firstOrNullIfEmpty(final Collection<T> coll) {
         return CollectionUtils.isEmpty(coll) ? null : IterableUtils.first(coll);
+    }
+
+    private static <T> T firstOrNullIfEmpty(final Observable<T> coll) {
+        return firstOrNullIfEmpty(coll.toList().blockingGet());
     }
 }

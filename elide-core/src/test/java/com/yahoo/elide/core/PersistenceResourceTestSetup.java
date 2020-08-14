@@ -48,6 +48,7 @@ import example.nontransferable.ContainerWithPackageShare;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.Untransferable;
 
+import io.reactivex.Observable;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 
@@ -58,6 +59,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -257,7 +259,10 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
-        return resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
+        Observable<PersistentResource> resources =
+                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
+
+        return resources.toList(TreeSet::new).blockingGet();
     }
 
     public com.yahoo.elide.request.Relationship getRelationship(Class<?> type, String name) {

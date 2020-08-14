@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -90,7 +91,7 @@ public class IncludedProcessor implements DocumentProcessor {
         Set<PersistentResource> collection;
         Relationship relationship = projection.getRelationship(relation).orElseThrow(IllegalStateException::new);
         try {
-            collection = rec.getRelationCheckedFiltered(relationship);
+            collection = rec.getRelationCheckedFiltered(relationship).toList(TreeSet::new).blockingGet();
 
         } catch (ForbiddenAccessException e) {
             return;

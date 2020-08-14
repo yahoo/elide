@@ -11,10 +11,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 
-import java.util.AbstractSet;
-import java.util.Collections;
-import java.util.Iterator;
-
 /**
  * Single object treated as an Observable.
  *

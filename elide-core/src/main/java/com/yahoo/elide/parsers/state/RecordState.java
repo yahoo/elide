@@ -17,9 +17,9 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
 import com.google.common.base.Preconditions;
+import io.reactivex.Observable;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Record Read State.
@@ -62,7 +62,7 @@ public class RecordState extends BaseState {
         final CollectionTerminalState collectionTerminalState =
                 new CollectionTerminalState(entityClass, Optional.of(resource),
                         Optional.of(subCollection), projection);
-        Set<PersistentResource> collection = null;
+        Observable<PersistentResource> collection = null;
         if (type.isToOne()) {
             collection = resource.getRelationCheckedFiltered(projection.getRelationship(subCollection)
                     .orElseThrow(IllegalStateException::new));
