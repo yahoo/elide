@@ -39,7 +39,7 @@ import java.util.Set;
     "measures",
     "dimensions",
     "tags",
-    "extends",
+    "extend",
     "sql",
     "table"
 })
@@ -83,7 +83,7 @@ public class Table {
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<String>();
 
-    @JsonProperty("extends")
+    @JsonProperty("extend")
     private String extend = "";
 
     @JsonProperty("sql")
