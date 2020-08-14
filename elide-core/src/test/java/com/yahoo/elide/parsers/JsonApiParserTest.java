@@ -27,5 +27,8 @@ public class JsonApiParserTest {
 
         normalizedPath = JsonApiParser.normalizePath("///books///1///author////");
         assertEquals("books/1/author", normalizedPath,  "it deduplicates path separators");
+
+        normalizedPath = JsonApiParser.normalizePath("//books//1//author//");
+        assertEquals("books/1/author", normalizedPath,  "it deduplicates path separators");
     }
 }

@@ -63,7 +63,7 @@ public class DataStoreIT extends IntegrationTest {
 
     public DataStoreIT() {
         mapper = new ObjectMapper();
-        Map<String, Class<? extends Check>> checks = new HashMap(TestCheckMappings.MAPPINGS);
+        Map<String, Class<? extends Check>> checks = new HashMap<>(TestCheckMappings.MAPPINGS);
         checks.put("filterCheck", Filtered.FilterCheck.class);
         checks.put("filterCheck3", Filtered.FilterCheck3.class);
 
