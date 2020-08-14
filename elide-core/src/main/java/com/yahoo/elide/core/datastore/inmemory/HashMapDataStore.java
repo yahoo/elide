@@ -64,10 +64,9 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Data store contents ");
-        for (Class<?> cls : dataStore.keySet()) {
-            sb.append("\n Table ").append(cls).append(" contents \n");
-            Map<String, Object> data = dataStore.get(cls);
-            for (Map.Entry<String, Object> e : data.entrySet()) {
+        for (Map.Entry<Class<?>, Map<String, Object>> dse : dataStore.entrySet()) {
+            sb.append("\n Table ").append(dse.getKey()).append(" contents \n");
+            for (Map.Entry<String, Object> e : dse.getValue().entrySet()) {
                 sb.append(" Id: ").append(e.getKey()).append(" Value: ").append(e.getValue());
             }
         }
