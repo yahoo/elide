@@ -1,8 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-spring-boot-starter</artifactId>
-    <version>5.0.0-pr16-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Spring Boot Starter</name>
     <description>Elide Spring Boot Starter</description>
