@@ -12,7 +12,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideNonSQLDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSQLDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
@@ -71,7 +70,6 @@ public class DynamicConfigValidator {
     private Map<String, Object> modelVariables;
     private Map<String, Object> dbVariables;
     private ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
-    private ElideDBConfig elideNonSQLDBConfig = new ElideNonSQLDBConfig();
     private String configDir;
     private Map<String, Resource> resourceMap = new HashMap<>();
 
@@ -116,9 +114,8 @@ public class DynamicConfigValidator {
         this.setElideSecurityConfig(readSecurityConfig());
         validateRoleInSecurityConfig(this.elideSecurityConfig);
         this.setDbVariables(readVariableConfig(Config.DBVARIABLE));
-        this.elideSQLDBConfig.setDbconfigs(readDbConfig(Config.SQLDBConfig));
-        this.elideNonSQLDBConfig.setDbconfigs(readDbConfig(Config.NONSQLDBConfig));
-        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), this.elideNonSQLDBConfig.getDbconfigs());
+        this.elideSQLDBConfig.setDbconfigs(readDbConfig());
+        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         this.elideTableConfig.setTables(readTableConfig());
         validateNameUniqueness(this.elideTableConfig.getTables());
         validateSqlInTableConfig(this.elideTableConfig);
@@ -145,6 +142,7 @@ public class DynamicConfigValidator {
 
     /**
      * Read variable file config.
+     * @param config Config Enum
      * @return Map<String, Object> A map containing all the variables if variable config exists else empty map
      */
     private Map<String, Object> readVariableConfig(Config config) {
@@ -191,12 +189,13 @@ public class DynamicConfigValidator {
      * Read and validates db config files.
      * @return Set<DBConfig> Set of SQL DB Configs
      */
-    private Set<DBConfig> readDbConfig(Config config) {
+    private Set<DBConfig> readDbConfig() {
 
         return this.resourceMap
                         .entrySet()
                         .stream()
-                        .filter(entry -> entry.getKey().startsWith(config.getConfigPath())).map(entry -> {
+                        .filter(entry -> entry.getKey().startsWith(Config.SQLDBConfig.getConfigPath()))
+                        .map(entry -> {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
                                 validateConfigForMissingVariables(content, this.dbVariables);
@@ -217,7 +216,8 @@ public class DynamicConfigValidator {
         Set<Table> tables = this.resourceMap
                         .entrySet()
                         .stream()
-                        .filter(entry -> entry.getKey().startsWith(Config.TABLE.getConfigPath())).map(entry -> {
+                        .filter(entry -> entry.getKey().startsWith(Config.TABLE.getConfigPath()))
+                        .map(entry -> {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
                                 validateConfigForMissingVariables(content, this.modelVariables);
@@ -304,34 +304,23 @@ public class DynamicConfigValidator {
     }
 
     /**
-     * Validates db connection name is unique across all the dynamic db connection configs.
+     * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private void validateNameUniqueness(Set<DBConfig> sqlDBConfigs, Set<DBConfig> nonSQLDBConfigs) {
+    private void validateNameUniqueness(Set<? extends Object> configs) {
 
         Set<String> names = new HashSet<>();
 
-        sqlDBConfigs.forEach(dbconfig -> {
-            if (!names.add(dbconfig.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! DB Configs have more than one connection with same name.");
-            }
-        });
-        nonSQLDBConfigs.forEach(dbconfig -> {
-            if (!names.add(dbconfig.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! DB Configs have more than one connection with same name.");
-            }
-        });
-    }
-
-    /**
-     * Validates table name is unique across all the dynamic table configs.
-     */
-    private void validateNameUniqueness(Set<Table> configs) {
-
-        Set<String> names = new HashSet<>();
-
-        configs.forEach(table -> {
-            if (!names.add(table.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! Table Configs have more than one table with same name.");
+        configs.forEach(obj -> {
+            if (obj instanceof Table) {
+                if (!names.add(((Table) obj).getName().toLowerCase(Locale.ENGLISH))) {
+                    throw new IllegalStateException(
+                                    "Duplicate!! Table Configs have more than one table with same name.");
+                }
+            } else if (obj instanceof DBConfig) {
+                if (!names.add(((DBConfig) obj).getName().toLowerCase(Locale.ENGLISH))) {
+                    throw new IllegalStateException(
+                                    "Duplicate!! DB Configs have more than one connection with same name.");
+                }
             }
         });
     }
@@ -405,10 +394,8 @@ public class DynamicConfigValidator {
                         + "./db/variables.hjson(optional)\n"
                         + "./db/sql/(optional)\n"
                         + "./db/sql/db1.hjson\n"
-                        + "./db/sql/dbN.hjson\n"
-                        + "./db/nonsql/(optional)\n"
-                        + "./db/nonsql/db1.hjson\n"
-                        + "./db/nonsql/dbN.hjson\n"));
+                        + "./db/sql/db2.hjson\n"
+                        + "./db/sql/dbN.hjson\n"));
 
         return options;
     }
@@ -428,7 +415,7 @@ public class DynamicConfigValidator {
      * @param filePath
      * @return Path to model dir
      */
-    private String formatClassPath(String filePath) {
+    public static String formatClassPath(String filePath) {
         if (filePath.indexOf(RESOURCES + File.separator) > -1) {
             return filePath.substring(filePath.indexOf(RESOURCES + File.separator) + RESOURCES_LENGTH + 1);
         } else if (filePath.indexOf(RESOURCES) > -1) {

@@ -59,7 +59,6 @@ public class DynamicConfigSchemaValidator {
             results = this.variableSchema.validate(new ObjectMapper().readTree(jsonConfig));
             break;
         case SQLDBConfig :
-        case NONSQLDBConfig :
             results = this.dbConfigSchema.validate(new ObjectMapper().readTree(jsonConfig));
             break;
         default :

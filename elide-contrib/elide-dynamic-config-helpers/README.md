@@ -25,9 +25,5 @@ Expected Configs Directory Structure:
 │   │   │   ├── db1.hjson
 │   │   │   ├── ...
 │   │   │   ├── dbN.hjson
-│   │   ├── nonsql (optional)
-│   │   │   ├── db1.hjson
-│   │   │   ├── ...
-│   │   │   ├── dbN.hjson
 │   │   ├── variables.hjson (optional)
 ```

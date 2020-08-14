@@ -29,11 +29,7 @@ public enum Config {
 
     SQLDBConfig("sqldbconfig",
                 "db" + File.separator + "sql" + File.separator,
-                File.separator + "elideDBConfigSchema.json"),
-
-    NONSQLDBConfig("nonsqldbconfig",
-                   "db" + File.separator + "nonsql" + File.separator,
-                   File.separator + "elideDBConfigSchema.json");
+                File.separator + "elideDBConfigSchema.json");
 
     private final String configType;
     private final String configPath;

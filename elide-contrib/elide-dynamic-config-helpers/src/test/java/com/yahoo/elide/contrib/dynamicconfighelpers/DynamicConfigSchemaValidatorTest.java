@@ -102,8 +102,7 @@ public class DynamicConfigSchemaValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "/configs/db/sql/db1.hjson",
-            "/configs/db/sql/db2.hjson",
-            "/configs/db/nonsql/db1.hjson"})
+            "/configs/db/sql/db2.hjson"})
     public void testValidDbSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
         assertTrue(testClass.verifySchema(Config.SQLDBConfig, jsonConfig));
@@ -112,8 +111,7 @@ public class DynamicConfigSchemaValidatorTest {
     @DisplayName("Invalid DB config")
     @ParameterizedTest
     @ValueSource(strings = {
-            "/invalid_db/sql/db1.hjson",
-            "/invalid_db/nonsql/db1.hjson"})
+            "/invalid_db/sql/db1.hjson"})
     public void testInvalidDbSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
         Exception e = assertThrows(ProcessingException.class,

@@ -126,13 +126,6 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testDuplicateDBConfig() {
-        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
-                .main(new String[] { "--configDir", "src/test/resources/validator/duplicate_dbconfig" }));
-        assertEquals(e.getMessage(), "Duplicate!! DB Configs have more than one connection with same name.");
-    }
-
-    @Test
     public void testDuplicateDBConfigName() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/duplicate_dbconfigname" }));
@@ -145,5 +138,15 @@ public class DynamicConfigValidatorTest {
                 .main(new String[] { "--configDir", "src/test/resources/validator/mismatch_dbconfig" }));
         assertTrue(e.getMessage().contains("DBConnection name mismatch between table: "));
         assertTrue(e.getMessage().contains(" and tables in its Join Clause."));
+    }
+
+    @Test
+    public void testFormatClassPath() {
+        assertEquals("anydir", DynamicConfigValidator.formatClassPath("src/test/resources/anydir"));
+        assertEquals("anydir/configs", DynamicConfigValidator.formatClassPath("src/test/resources/anydir/configs"));
+        assertEquals("src/test/resourc", DynamicConfigValidator.formatClassPath("src/test/resourc"));
+        assertEquals("", DynamicConfigValidator.formatClassPath("src/test/resources/"));
+        assertEquals("", DynamicConfigValidator.formatClassPath("src/test/resources"));
+        assertEquals("anydir/configs", DynamicConfigValidator.formatClassPath("src/test/resourcesanydir/configs"));
     }
 }
