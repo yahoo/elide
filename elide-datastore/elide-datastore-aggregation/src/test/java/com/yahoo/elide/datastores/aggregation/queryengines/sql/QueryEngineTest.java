@@ -22,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.request.Sorting;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -74,10 +75,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setHighScore(1000);
         stats2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
 
-        assertEquals(3, results.size());
-        assertEquals(stats0, results.get(0));
-        assertEquals(stats1, results.get(1));
-        assertEquals(stats2, results.get(2));
+        assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
     }
 
     /**
@@ -96,8 +94,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setId("0");
         stats2.setHighScore(2412);
 
-        assertEquals(1, results.size());
-        assertEquals(stats2, results.get(0));
+        assertEquals(ImmutableList.of(stats2), results);
     }
 
     /**
@@ -128,8 +125,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setHighScore(2412);
         stats2.setCountryName("United States");
 
-        assertEquals(1, results.size());
-        assertEquals(stats2, results.get(0));
+        assertEquals(ImmutableList.of(stats2), results);
     }
 
     /**
@@ -156,8 +152,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setOverallRating("Great");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
-        assertEquals(1, results.size());
-        assertEquals(stats1, results.get(0));
+        assertEquals(ImmutableList.of(stats1), results);
     }
 
     /**
@@ -180,8 +175,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setId("0");
         stats2.setHighScore(2412);
 
-        assertEquals(1, results.size());
-        assertEquals(stats2, results.get(0));
+        assertEquals(ImmutableList.of(stats2), results);
     }
 
     @Test
@@ -208,9 +202,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setLowScore(35);
         stats1.setOverallRating("Good");
 
-        assertEquals(2, results.size());
-        assertEquals(stats0, results.get(0));
-        assertEquals(stats1, results.get(1));
+        assertEquals(ImmutableList.of(stats0, stats1), results);
     }
 
     /**
@@ -249,10 +241,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setOverallRating("Good");
         stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        assertEquals(3, results.size());
-        assertEquals(stats0, results.get(0));
-        assertEquals(stats1, results.get(1));
-        assertEquals(stats2, results.get(2));
+        assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
     }
 
     /**
@@ -278,8 +267,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        assertEquals(1, data.size(), "Number of records returned does not match");
-        assertEquals(stats1, data.get(0), "Returned record does not match");
+        assertEquals(ImmutableList.of(stats1), data, "Returned record does not match");
         assertEquals(3, result.getPageTotals(), "Page totals does not match");
     }
 
@@ -306,8 +294,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setOverallRating("Good");
         stats1.setHighScore(1234);
 
-        assertEquals(1, results.size());
-        assertEquals(stats1, results.get(0));
+        assertEquals(ImmutableList.of(stats1), results);
     }
 
     /**
@@ -340,9 +327,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setCountryIsoCode("USA");
         stats1.setHighScore(1234);
 
-        assertEquals(2, results.size());
-        assertEquals(stats0, results.get(0));
-        assertEquals(stats1, results.get(1));
+        assertEquals(ImmutableList.of(stats0, stats1), results);
     }
 
     /**
@@ -382,10 +367,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setOverallRating("Good");
         stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
-        assertEquals(3, results.size());
-        assertEquals(stats0, results.get(0));
-        assertEquals(stats1, results.get(1));
-        assertEquals(stats2, results.get(2));
+        assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
     }
 
     /**
@@ -411,9 +393,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setHighScore(1000);
         stats2.setCountryIsoCode("HKG");
 
-        assertEquals(2, results.size());
-        assertEquals(stats1, results.get(0));
-        assertEquals(stats2, results.get(1));
+        assertEquals(ImmutableList.of(stats1, stats2), results);
     }
 
     /**
@@ -443,9 +423,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setOverallRating("Great");
         stats2.setHighScore(2412);
 
-        assertEquals(2, results.size());
-        assertEquals(stats1, results.get(0));
-        assertEquals(stats2, results.get(1));
+        assertEquals(ImmutableList.of(stats1, stats2), results);
     }
 
     /**
@@ -485,10 +463,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats3.setCountryIsoCode("USA");
         stats3.setHighScore(2412);
 
-        assertEquals(3, results.size());
-        assertEquals(stats1, results.get(0));
-        assertEquals(stats2, results.get(1));
-        assertEquals(stats3, results.get(2));
+        assertEquals(ImmutableList.of(stats1, stats2, stats3), results);
     }
 
     /**
@@ -509,8 +484,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats0.setHighScore(2412);
         stats0.setRecordedDate(Timestamp.valueOf("2019-07-01 00:00:00"));
 
-        assertEquals(1, results.size());
-        assertEquals(stats0, results.get(0));
+        assertEquals(ImmutableList.of(stats0), results);
     }
 
     /**
@@ -537,8 +511,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats0.setHighScore(2412);
         stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
-        assertEquals(1, results.size());
-        assertEquals(stats0, results.get(0));
+        assertEquals(ImmutableList.of(stats0), results);
     }
 
     @Test
@@ -574,10 +547,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setPlayerName("Jane Doe");
         stats2.setPlayer2Name("Han");
 
-        assertEquals(3, results.size());
-        assertEquals(stats0, results.get(0));
-        assertEquals(stats1, results.get(1));
-        assertEquals(stats2, results.get(2));
+        assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
     }
 
     @Test
@@ -600,9 +570,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setHighScore(1000);
         stats2.setCountryNickName(null);
 
-        assertEquals(2, results.size());
-        assertEquals(stats1, results.get(0));
-        assertEquals(stats2, results.get(1));
+        assertEquals(ImmutableList.of(stats1, stats2), results);
     }
 
     @Test
@@ -625,8 +593,6 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setHighScore(1000);
         stats2.setCountryUnSeats(0);
 
-        assertEquals(2, results.size());
-        assertEquals(stats1, results.get(0));
-        assertEquals(stats2, results.get(1));
+        assertEquals(ImmutableList.of(stats1, stats2), results);
     }
 }
