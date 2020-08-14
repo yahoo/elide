@@ -12,7 +12,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.hooks.CompleteQueryHook;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
@@ -43,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
@@ -136,7 +134,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
                     AsyncExecutorService.init(elide, settings.getAsyncThreadSize(),
-                            settings.getAsyncMaxRunTimeMinutes(), asyncQueryDao);
+                            settings.getAsyncMaxRunTimeSeconds(), asyncQueryDao);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
@@ -150,8 +148,9 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     // Binding async cleanup service
                     if (settings.enableAsyncCleanup()) {
-                        AsyncCleanerService.init(elide, settings.getAsyncMaxRunTimeMinutes(),
-                                settings.getAsyncQueryCleanupDays(), asyncQueryDao);
+                        AsyncCleanerService.init(elide, settings.getAsyncMaxRunTimeSeconds(),
+                                settings.getAsyncQueryCleanupDays(),
+                                settings.getAsyncQueryCancelCheckIntervalSeconds(), asyncQueryDao);
                         bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
                     }
                 }

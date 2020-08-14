@@ -11,8 +11,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.hooks.CompleteQueryHook;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
 import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
@@ -30,8 +28,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.TimeZone;
 
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
@@ -82,8 +78,9 @@ public class ElideAsyncConfiguration {
     @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
     public AsyncCleanerService buildAsyncCleanerService(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDao) {
-        AsyncCleanerService.init(elide, settings.getAsync().getMaxRunTimeMinutes(),
-                settings.getAsync().getQueryCleanupDays(), asyncQueryDao);
+        AsyncCleanerService.init(elide, settings.getAsync().getMaxRunTimeSeconds(),
+                settings.getAsync().getQueryCleanupDays(),
+                settings.getAsync().getQueryCancellationIntervalSeconds(), asyncQueryDao);
         return AsyncCleanerService.getInstance();
     }
 

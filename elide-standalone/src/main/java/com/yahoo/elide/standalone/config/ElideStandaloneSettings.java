@@ -231,7 +231,7 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: 60
      */
-    default Integer getAsyncMaxRunTimeMinutes() {
+    default Integer getAsyncMaxRunTimeSeconds() {
         return 60;
     }
 
@@ -242,6 +242,15 @@ public interface ElideStandaloneSettings {
      */
     default Integer getAsyncQueryCleanupDays() {
         return 7;
+    }
+
+    /**
+     * Number of seconds  between async query cancellation checks.
+     *
+     * @return Default: 300
+     */
+    default Integer getAsyncQueryCancelCheckIntervalSeconds() {
+        return 300;
     }
 
     /**

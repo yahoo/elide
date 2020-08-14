@@ -141,7 +141,11 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
                     .build();
             AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
             query.setResult(asyncQueryResult);
-            query.setStatus(QueryStatus.COMPLETE);
+            if (query.getStatus().equals(QueryStatus.CANCELLED)) {
+                query.setStatus(QueryStatus.CANCEL_COMPLETE);
+            } else if (!(query.getStatus().equals(QueryStatus.CANCEL_COMPLETE))) {
+                query.setStatus(QueryStatus.COMPLETE);
+            }
             tx.save(query, scope);
             return query;
         });

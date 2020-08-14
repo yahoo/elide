@@ -42,7 +42,6 @@ public class AsyncQueryCleanerThread implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("CLEANUP QUERY ***");
         deleteAsyncQuery();
         timeoutAsyncQuery();
     }
