@@ -21,9 +21,9 @@ import com.yahoo.elide.security.permissions.ExpressionResult;
 import io.reactivex.Observable;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -72,7 +72,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                         .filter(Objects::nonNull)
                         .flatMap(x ->
                                 getValueChecked(x, fieldName, requestScope)
-                                        .toList(TreeSet::new)
+                                        .toList(LinkedHashSet::new)
                                         .blockingGet()
                                         .stream())
                         .filter(Objects::nonNull)

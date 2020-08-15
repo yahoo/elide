@@ -37,11 +37,11 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -72,7 +72,9 @@ public class CollectionTerminalState extends BaseState {
         RequestScope requestScope = state.getRequestScope();
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
-        Set<PersistentResource> collection = getResourceCollection(requestScope).toList(TreeSet::new).blockingGet();
+        Set<PersistentResource> collection =
+                getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
+
         // Set data
         jsonApiDocument.setData(getData(collection));
 

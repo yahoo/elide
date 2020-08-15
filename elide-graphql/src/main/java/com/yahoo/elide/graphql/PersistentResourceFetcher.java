@@ -39,7 +39,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 
@@ -190,7 +189,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             return PersistentResource.loadRecords(projection, idList, requestScope);
         }).orElseGet(() -> PersistentResource.loadRecords(projection, new ArrayList<>(), requestScope));
 
-        return new ConnectionContainer(records.toList(TreeSet::new).blockingGet(),
+        return new ConnectionContainer(records.toList(LinkedHashSet::new).blockingGet(),
                 Optional.ofNullable(projection.getPagination()), typeName);
     }
 
@@ -214,10 +213,10 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         Set<PersistentResource> relationResources;
         if (ids.isPresent()) {
             relationResources =
-                    parentResource.getRelation(ids.get(), relationship).toList(TreeSet::new).blockingGet();
+                    parentResource.getRelation(ids.get(), relationship).toList(LinkedHashSet::new).blockingGet();
         } else {
             relationResources =
-                    parentResource.getRelationCheckedFiltered(relationship).toList(TreeSet::new).blockingGet();
+                    parentResource.getRelationCheckedFiltered(relationship).toList(LinkedHashSet::new).blockingGet();
         }
 
         return new ConnectionContainer(

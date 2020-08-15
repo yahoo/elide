@@ -90,11 +90,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -384,7 +384,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             Set<PersistentResource> results =
                     PersistentResource.filter(
                             ReadPermission.class,
-                            Optional.empty(), resources).toList(TreeSet::new).blockingGet();
+                            Optional.empty(), resources).toList(LinkedHashSet::new).blockingGet();
 
             assertEquals(2, results.size(), "Only a subset of the children are readable");
             assertTrue(results.contains(child1Resource), "Readable children includes children with positive IDs");
@@ -402,7 +402,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                     Observable.fromArray(child1Resource, child2Resource, child3Resource, child4Resource);
 
             Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class,
-                    Optional.empty(), resources).toList(TreeSet::new).blockingGet();
+                    Optional.empty(), resources).toList(LinkedHashSet::new).blockingGet();
 
             assertEquals(0, results.size(), "No children are readable by an invalid user");
         }
@@ -728,7 +728,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         // However null toOne relationship is valid
         Relationship toOneRelationship = new Relationship(Collections.emptyMap(), new Data<>((Resource) null));
-        assertEquals(Collections.emptySet(), toOneRelationship.getData().get());
+        assertTrue(toOneRelationship.getData().get().isEmpty());
         assertNull(toOneRelationship.toPersistentResources(goodScope));
 
         // no Data
@@ -1646,7 +1646,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Set<PersistentResource> loaded = PersistentResource.loadRecords(EntityProjection.builder()
                 .type(Child.class)
-                .build(), new ArrayList<>(), goodScope).toList(TreeSet::new).blockingGet();
+                .build(), new ArrayList<>(), goodScope).toList(LinkedHashSet::new).blockingGet();
 
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);
 

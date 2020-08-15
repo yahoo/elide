@@ -56,10 +56,10 @@ import nocreate.NoCreateEntity;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -262,7 +262,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         Observable<PersistentResource> resources =
                 resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
 
-        return resources.toList(TreeSet::new).blockingGet();
+        return resources.toList(LinkedHashSet::new).blockingGet();
     }
 
     public com.yahoo.elide.request.Relationship getRelationship(Class<?> type, String name) {

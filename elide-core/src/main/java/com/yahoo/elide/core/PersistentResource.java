@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -67,7 +68,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -358,12 +358,21 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         );
 
         Observable<PersistentResource> allResources =
-                existingResources.mergeWith(Observable.fromIterable(newResources));
+                Observable.fromIterable(newResources).mergeWith(existingResources);
 
-        allResources.doOnNext((resource) -> {
+        Set<String> foundIds = new HashSet<>();
+
+        allResources = allResources.doOnNext((resource) -> {
             String id = (String) (resource.getUUID().orElseGet(resource::getId));
-            if (! ids.contains(id)) {
-                throw new InvalidObjectIdentifierException(id, dictionary.getJsonAliasFor(loadClass));
+            if (ids.contains(id)) {
+                foundIds.add(id);
+            }
+        });
+
+        allResources = allResources.doOnComplete(() -> {
+            Set<String> missedIds = Sets.difference(new HashSet<>(ids), foundIds);
+            if (! missedIds.isEmpty()) {
+                throw new InvalidObjectIdentifierException(missedIds.toString(), dictionary.getJsonAliasFor(loadClass));
             }
         });
 
@@ -423,7 +432,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         RelationshipType type = getRelationshipType(fieldName);
         Set<PersistentResource> resources = filter(ReadPermission.class, Optional.empty(),
-                getRelationUncheckedUnfiltered(fieldName)).toList(TreeSet::new).blockingGet();
+                getRelationUncheckedUnfiltered(fieldName)).toList(LinkedHashSet::new).blockingGet();
         boolean isUpdated;
         if (type.isToMany()) {
             List<Object> modifiedResources = CollectionUtils.isEmpty(resourceIdentifiers)
@@ -581,7 +590,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean clearRelation(String relationName) {
         Set<PersistentResource> mine = filter(ReadPermission.class, Optional.empty(),
-                getRelationUncheckedUnfiltered(relationName)).toList(TreeSet::new).blockingGet();
+                getRelationUncheckedUnfiltered(relationName)).toList(LinkedHashSet::new).blockingGet();
 
         checkFieldAwareDeferPermissions(UpdatePermission.class, relationName, Collections.emptySet(),
                 mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
@@ -913,14 +922,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         // TODO: Sort again in memory now that two sets are glommed together?
 
-        Observable<PersistentResource> allResources = existingResources.mergeWith(
-                Observable.fromIterable(newResources)
-        );
+        Observable<PersistentResource> allResources =
+                Observable.fromIterable(newResources).mergeWith(existingResources);
 
-        allResources.doOnNext((resource) -> {
+        Set<String> foundIds = new HashSet<>();
+
+        allResources = allResources.doOnNext((resource) -> {
             String id = (String) (resource.getUUID().orElseGet(resource::getId));
-            if (! ids.contains(id)) {
-                throw new InvalidObjectIdentifierException(id, relationship.getName());
+            if (ids.contains(id)) {
+                foundIds.add(id);
+            }
+        });
+
+        allResources = allResources.doOnComplete(() -> {
+            Set<String> missedIds = Sets.difference(new HashSet<>(ids), foundIds);
+            if (! missedIds.isEmpty()) {
+                throw new InvalidObjectIdentifierException(missedIds.toString(), relationship.getName());
             }
         });
 
