@@ -33,7 +33,6 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-import com.yahoo.elide.jsonapi.models.SingleElementObservable;
 import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
@@ -1122,10 +1121,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (val instanceof Iterable) {
             Iterable filteredVal = (Iterable) val;
             resources = Observable.fromIterable(new PersistentResourceSet(this, filteredVal, requestScope));
-        } else if (type.isToOne()) {
-            resources = new SingleElementObservable(
-                    new PersistentResource(val, this,
-                            requestScope.getUUIDFor(val), requestScope));
         } else {
             resources = Observable.fromArray(new PersistentResource(val, this,
                     requestScope.getUUIDFor(val), requestScope));
@@ -1903,7 +1898,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return CollectionUtils.isEmpty(coll) ? null : IterableUtils.first(coll);
     }
 
-    private static <T> T firstOrNullIfEmpty(final Observable<T> coll) {
+    public static <T> T firstOrNullIfEmpty(final Observable<T> coll) {
         return firstOrNullIfEmpty(coll.toList().blockingGet());
     }
 }

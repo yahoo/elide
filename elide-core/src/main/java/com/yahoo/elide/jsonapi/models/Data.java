@@ -36,7 +36,11 @@ public class Data<T> {
      * @param value singleton resource
      */
     public Data(T value) {
-        this.values = new SingleElementObservable<>(value);
+        if (value == null) {
+            this.values = Observable.empty();
+        } else {
+            this.values = Observable.fromArray(value);
+        }
         this.relationshipType = RelationshipType.MANY_TO_ONE; // Any "toOne"
     }
 
@@ -110,7 +114,10 @@ public class Data<T> {
      */
     public T getSingleValue() {
         if (isToOne()) {
-            return ((SingleElementObservable<T>) values).getValue();
+            if (values.isEmpty().blockingGet()) {
+                return null;
+            }
+            return values.blockingSingle();
         }
 
         throw new IllegalAccessError("Data is not toOne");
