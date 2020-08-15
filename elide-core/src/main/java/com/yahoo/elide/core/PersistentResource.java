@@ -357,6 +357,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         new PersistentResourceSet(tx.loadObjects(modifiedProjection, requestScope), requestScope))
         );
 
+        // TODO: Sort again in memory now that two sets are glommed together?
         Observable<PersistentResource> allResources =
                 Observable.fromIterable(newResources).mergeWith(existingResources);
 
@@ -921,7 +922,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                             .build(), true));
 
         // TODO: Sort again in memory now that two sets are glommed together?
-
         Observable<PersistentResource> allResources =
                 Observable.fromIterable(newResources).mergeWith(existingResources);
 
