@@ -46,8 +46,18 @@ public class Data<T> {
      * @param values List of resources
      */
     public Data(Observable<T> values) {
+        this(values, RelationshipType.MANY_TO_MANY);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param values List of resources
+     * @param relationshipType toOne or toMany
+     */
+    public Data(Observable<T> values, RelationshipType relationshipType) {
         this.values = values;
-        this.relationshipType = RelationshipType.MANY_TO_MANY; // Any "toMany"
+        this.relationshipType = relationshipType;
     }
 
     /**
@@ -56,8 +66,18 @@ public class Data<T> {
      * @param values List of resources
      */
     public Data(Collection<T> values) {
+        this(values, RelationshipType.MANY_TO_MANY);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param values List of resources
+     * @param relationshipType toOne or toMany
+     */
+    public Data(Collection<T> values, RelationshipType relationshipType) {
         this.values = Observable.fromIterable(values);
-        this.relationshipType = RelationshipType.MANY_TO_MANY; // Any "toMany"
+        this.relationshipType = relationshipType;
     }
 
     /**

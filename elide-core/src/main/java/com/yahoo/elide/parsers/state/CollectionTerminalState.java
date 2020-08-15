@@ -5,8 +5,10 @@
  */
 package com.yahoo.elide.parsers.state;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
@@ -76,7 +78,7 @@ public class CollectionTerminalState extends BaseState {
                 getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
 
         // Set data
-        jsonApiDocument.setData(getData(collection));
+        jsonApiDocument.setData(getData(collection, requestScope.getDictionary()));
 
         // Run include processor
         DocumentProcessor includedProcessor = new IncludedProcessor();
@@ -147,9 +149,17 @@ public class CollectionTerminalState extends BaseState {
         return collection;
     }
 
-    private Data getData(Set<PersistentResource> collection) {
+    private Data getData(Set<PersistentResource> collection, EntityDictionary dictionary) {
         Preconditions.checkNotNull(collection);
         List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
+
+        if (parent.isPresent()) {
+            Class<?> parentClass = parent.get().getResourceClass();
+            String relationshipName = relationName.get();
+            RelationshipType type = dictionary.getRelationshipType(parentClass, relationshipName);
+
+            return new Data<>(resources, type);
+        }
         return new Data<>(resources);
     }
 
