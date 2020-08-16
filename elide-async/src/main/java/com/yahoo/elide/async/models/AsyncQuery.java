@@ -64,7 +64,7 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Embedded
     private AsyncQueryResult result;
 
-    @Exclude
+    @CreatePermission(expression = "Prefab.Role.None")
     private String principalName;
 
     @Transient
