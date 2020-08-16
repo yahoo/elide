@@ -74,8 +74,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationshipProjection
         );
 
-        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -110,8 +113,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationshipProjection
         );
 
-        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -152,8 +158,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationshipProjection
         );
 
-        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -188,8 +197,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationshipProjection
         );
 
-        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -233,8 +245,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationshipProjection
         );
 
-        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -282,8 +297,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationshipProjection
         );
 
-        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -319,8 +337,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationshipProjection
         );
 
-        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -357,8 +378,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationshipProjection
         );
 
-        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 

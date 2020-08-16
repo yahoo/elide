@@ -229,7 +229,6 @@ public class HibernateTransaction implements DataStoreTransaction {
 
                 final QueryWrapper query =
                     (QueryWrapper) new SubCollectionFetchQueryBuilder(
-                            relation.getProjection(),
                             relationship,
                             dictionary,
                             sessionWrapper)
@@ -270,9 +269,11 @@ public class HibernateTransaction implements DataStoreTransaction {
                                      EntityDictionary dictionary) {
 
         QueryWrapper query =
-                (QueryWrapper) new SubCollectionPageTotalsQueryBuilder(entityProjection, relationship,
-                        dictionary, sessionWrapper)
-                        .build();
+                (QueryWrapper) new SubCollectionPageTotalsQueryBuilder(
+                        relationship,
+                        dictionary,
+                        sessionWrapper
+                ).build();
 
         return (Long) query.getQuery().uniqueResult();
     }

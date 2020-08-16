@@ -19,7 +19,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import java.util.ArrayList;
@@ -32,10 +31,10 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
 
     private final Relationship relationship;
 
-    public SubCollectionPageTotalsQueryBuilder(EntityProjection entityProjection, Relationship relationship,
+    public SubCollectionPageTotalsQueryBuilder(Relationship relationship,
                                                EntityDictionary dictionary,
                                                Session session) {
-        super(entityProjection, dictionary, session);
+        super(relationship.getRelationship().getProjection(), dictionary, session);
         this.relationship = relationship;
     }
 

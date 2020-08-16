@@ -226,15 +226,13 @@ public class HibernateTransaction implements DataStoreTransaction {
 
                 if (pagination != null && pagination.returnPageTotals()) {
                     pagination.setPageTotals(getTotalRecords(
-                            relation.getProjection(),
                             relationship,
                             scope.getDictionary()
                     ));
                 }
 
                 final QueryWrapper query = (QueryWrapper)
-                        new SubCollectionFetchQueryBuilder(relation.getProjection(), relationship,
-                                dictionary, sessionWrapper).build();
+                        new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper).build();
 
                 if (query != null) {
                     return query.getQuery().list();
@@ -268,12 +266,11 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @param <T> The type of entity
      * @return The total row count.
      */
-    private <T> Long getTotalRecords(EntityProjection entityProjection,
-                                     AbstractHQLQueryBuilder.Relationship relationship,
+    private <T> Long getTotalRecords(AbstractHQLQueryBuilder.Relationship relationship,
                                      EntityDictionary dictionary) {
 
         QueryWrapper query = (QueryWrapper)
-                new SubCollectionPageTotalsQueryBuilder(entityProjection, relationship, dictionary, sessionWrapper)
+                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper)
                 .build();
 
         return (Long) query.getQuery().uniqueResult();

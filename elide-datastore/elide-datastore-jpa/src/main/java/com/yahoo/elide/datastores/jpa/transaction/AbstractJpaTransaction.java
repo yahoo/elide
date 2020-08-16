@@ -240,16 +240,11 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                 );
 
                 if (pagination != null && pagination.returnPageTotals()) {
-                    pagination.setPageTotals(getTotalRecords(
-                            relation.getProjection(),
-                            relationship,
-                            scope.getDictionary()
-                    ));
+                    pagination.setPageTotals(getTotalRecords(relationship, scope.getDictionary()));
                 }
 
                 QueryWrapper query = (QueryWrapper)
-                        new SubCollectionFetchQueryBuilder(relation.getProjection(), relationship,
-                                dictionary, emWrapper)
+                        new SubCollectionFetchQueryBuilder(relationship, dictionary, emWrapper)
                                 .build();
 
                 if (query != null) {
@@ -286,12 +281,11 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
      * @param <T>              The type of entity
      * @return The total row count.
      */
-    private <T> Long getTotalRecords(EntityProjection entityProjection,
-                                     AbstractHQLQueryBuilder.Relationship relationship,
+    private <T> Long getTotalRecords(AbstractHQLQueryBuilder.Relationship relationship,
                                      EntityDictionary dictionary) {
 
         QueryWrapper query = (QueryWrapper)
-                new SubCollectionPageTotalsQueryBuilder(entityProjection, relationship, dictionary, emWrapper)
+                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, emWrapper)
                         .build();
 
         return (Long) query.getQuery().getSingleResult();

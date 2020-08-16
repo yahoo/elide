@@ -14,7 +14,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.request.EntityProjection;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -26,11 +25,10 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
     private final Relationship relationship;
 
-    public SubCollectionFetchQueryBuilder(EntityProjection entityProjection,
-                                          Relationship relationship,
+    public SubCollectionFetchQueryBuilder(Relationship relationship,
                                           EntityDictionary dictionary,
                                           Session session) {
-        super(entityProjection, dictionary, session);
+        super(relationship.getRelationship().getProjection(), dictionary, session);
         this.relationship = relationship;
     }
 

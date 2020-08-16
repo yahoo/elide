@@ -67,7 +67,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         );
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(
-                entityProjection, relationship, dictionary, new TestSessionWrapper()
+                relationship, dictionary, new TestSessionWrapper()
         );
 
         TestQueryWrapper query = (TestQueryWrapper) builder
@@ -108,9 +108,11 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 relationshipProjection
         );
 
-        TestQueryWrapper query = (TestQueryWrapper) new SubCollectionPageTotalsQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper())
-                .build();
+        TestQueryWrapper query = (TestQueryWrapper) new SubCollectionPageTotalsQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        ).build();
 
         String expected =
                 "SELECT COUNT(DISTINCT example_Author_books) "
@@ -144,9 +146,11 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 relationshipProjection
         );
 
-        TestQueryWrapper query = (TestQueryWrapper) new SubCollectionPageTotalsQueryBuilder(entityProjection, relationship,
-                dictionary, new TestSessionWrapper())
-                .build();
+        TestQueryWrapper query = (TestQueryWrapper) new SubCollectionPageTotalsQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        ).build();
 
         String expected =
                 "SELECT COUNT(DISTINCT example_Author_books) "
@@ -191,7 +195,10 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         );
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(
-                entityProjection, relationship, dictionary, new TestSessionWrapper());
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
