@@ -22,7 +22,7 @@ import javax.persistence.ManyToOne;
 @Entity
 @Include(rootLevel = true, type = "specialread")
 @ReadPermission(expression = "specialValue")
-@UpdatePermission(expression = "deny all")
+@UpdatePermission(expression = "Prefab.Role.None")
 @CreatePermission(expression = "allow all")
 public class SpecialRead extends BaseId {
     private String value;

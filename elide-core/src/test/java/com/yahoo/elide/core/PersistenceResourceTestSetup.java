@@ -188,14 +188,14 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     @Include
     @CreatePermission(expression = "allow all")
     @ReadPermission(expression = "allow all")
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @DeletePermission(expression = "allow all")
     public static final class ChangeSpecModel {
         @Id
         public long id;
 
-        @ReadPermission(expression = "deny all")
-        @UpdatePermission(expression = "deny all")
+        @ReadPermission(expression = "Prefab.Role.None")
+        @UpdatePermission(expression = "Prefab.Role.None")
         public Function<ChangeSpec, Boolean> checkFunction;
 
         @UpdatePermission(expression = "changeSpecNonCollection")

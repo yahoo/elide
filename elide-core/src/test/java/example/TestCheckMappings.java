@@ -23,7 +23,7 @@ public class TestCheckMappings {
     public static final ImmutableMap<String, Class<? extends Check>> MAPPINGS =
             ImmutableMap.<String, Class<? extends Check>>builder()
                     .put("allow all", Role.ALL.class)
-                    .put("deny all", Role.NONE.class)
+                    .put("Prefab.Role.None", Role.NONE.class)
                     .put("changeSpecCollection", PersistentResourceTest.ChangeSpecCollection.class)
                     .put("changeSpecNonCollection", PersistentResourceTest.ChangeSpecNonCollection.class)
                     .put("initCheck", Child.InitCheck.class)

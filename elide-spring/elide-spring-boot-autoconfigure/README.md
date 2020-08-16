@@ -44,7 +44,7 @@ A typical override would add some checks and life cycle hooks.  *This is likely 
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory) {
         HashMap<String, Class<? extends Check>> checkMappings = new HashMap<>();
         checkMappings.put("allow all", Role.ALL.class);
-        checkMappings.put("deny all", Role.NONE.class);
+        checkMappings.put("Prefab.Role.None", Role.NONE.class);
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings, beanFactory::autowireBean);
         dictionary.bindTrigger(Book.class, OnCreatePostCommit.class, (book, scope, changes) -> { /* DO SOMETHING */ }); 

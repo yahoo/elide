@@ -59,7 +59,7 @@ public class Left extends BaseId {
         return one2many;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             targetEntity = Right.class,
             mappedBy = "noUpdateOne2One",
