@@ -52,7 +52,7 @@ public class ElideAsyncConfiguration {
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary) {
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                settings.getAsync().getMaxRunTimeMinutes(), asyncQueryDao);
+                settings.getAsync().getMaxRunTimeSeconds(), asyncQueryDao);
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
         // Binding AsyncQuery LifeCycleHook
