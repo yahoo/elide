@@ -42,7 +42,6 @@ public class DefaultAsyncQueryDAOTest {
     private AsyncQuery asyncQuery;
     private AsyncQueryResult asyncQueryResult;
     private DataStoreTransaction tx;
-    private EntityDictionary dictionary;
     private FilterExpression filter;
 
     @BeforeEach
@@ -55,7 +54,7 @@ public class DefaultAsyncQueryDAOTest {
 
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
-        dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = new EntityDictionary(checkMappings);
         dictionary.bindEntity(AsyncQuery.class);
         dictionary.bindEntity(AsyncQueryResult.class);
 

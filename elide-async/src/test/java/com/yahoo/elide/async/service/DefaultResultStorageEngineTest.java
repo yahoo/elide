@@ -40,7 +40,6 @@ import javax.sql.rowset.serial.SerialException;
 public class DefaultResultStorageEngineTest {
     private DataStoreTransaction tx;
     private DefaultResultStorageEngine defaultResultStorageEngine;
-    private ElideSettings elideSettings;
     private Elide elide;
     private DataStore dataStore;
 
@@ -54,7 +53,7 @@ public class DefaultResultStorageEngineTest {
         dictionary.bindEntity(AsyncQuery.class);
         dictionary.bindEntity(AsyncQueryResult.class);
 
-        elideSettings = new ElideSettingsBuilder(dataStore)
+        ElideSettings elideSettings = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))

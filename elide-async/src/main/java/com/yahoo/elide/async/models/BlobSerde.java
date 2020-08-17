@@ -23,8 +23,8 @@ public class BlobSerde implements Serde<String, Blob> {
     @Override
     public Blob deserialize(String val) {
         try {
-            val = val == null ? EMPTY_STRING : val;
-            return new SerialBlob(val.getBytes());
+            String newVal = val == null ? EMPTY_STRING : val;
+            return new SerialBlob(newVal.getBytes());
         } catch (SQLException e) {
             throw new IllegalArgumentException(e);
         }

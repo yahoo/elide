@@ -110,7 +110,6 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     @Override
     public void deleteResultsCollection(Collection<AsyncQuery> asyncQueryList) {
         log.debug("deleteAsyncQueryResultsCollection");
-        return;
     }
 
     @Override
