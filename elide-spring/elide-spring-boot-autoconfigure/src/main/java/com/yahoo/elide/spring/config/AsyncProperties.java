@@ -24,11 +24,6 @@ public class AsyncProperties {
     private int maxRunTimeSeconds = 3600;
 
     /**
-     * Default max query run time.
-     */
-    private int maxRunTimeMinutes = 60;
-
-    /**
      * Whether or not the cleanup is enabled.
      */
     private boolean cleanupEnabled = false;

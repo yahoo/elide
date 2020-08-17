@@ -50,7 +50,7 @@ public class AsyncCleanerService {
         //Or maxRunTimeMinutes * 2 so that this process does not coincides with query
         //interrupt process.
 
-        cleaner.scheduleWithFixedDelay(cleanUpTask, 0, Math.max(defaultCleanupDelayMinutes,
+        cleaner.scheduleWithFixedDelay(cleanUpTask, initialDelayMinutes, Math.max(defaultCleanupDelayMinutes,
                 queryRunTimeThresholdMinutes), TimeUnit.MINUTES);
 
         //Setting up query cancel service that cancels long running queries based on status or runtime
