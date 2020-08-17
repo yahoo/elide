@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.async.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -72,6 +74,21 @@ public class AsyncQueryCleanerThreadTest {
         assertEquals("asyncQuery.createdOn LE [" + new Date(date) + "]", filterCaptor.getValue().toString());
 
         verify(resultStorageEngine, times(1)).deleteResultsCollection(any());
+    }
+
+    //When AsyncQueryDao gets exception, resultstorageengine will not execute delete and no exception thrown.
+    @Test
+    public void testDeleteAsyncQueryException() {
+        when(asyncQueryDao.deleteAsyncQueryAndResultCollection(any())).thenThrow(IllegalStateException.class);
+        assertDoesNotThrow(() -> cleanerThread.deleteAsyncQuery());
+        verify(resultStorageEngine, times(0)).deleteResultsCollection(any());
+    }
+
+    //When AsyncQueryDao gets exception, no exception is thrown
+    @Test
+    public void testTimeoutAsyncQueryException() {
+        when(asyncQueryDao.updateStatusAsyncQueryCollection(any(), any())).thenThrow(IllegalStateException.class);
+        assertDoesNotThrow(() -> cleanerThread.timeoutAsyncQuery());
     }
 
     @Test
