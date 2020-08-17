@@ -140,6 +140,9 @@ public class PlayerStats {
     public long getHighScoreNoAgg() {
         return highScore;
     }
+    public void setHighScoreNoAgg(final long highScore) {
+        this.highScore = highScore;
+    }
 
     @MetricAggregation(function = SqlMin.class)
     @Meta(description = "very low score", category = "Score Category")
