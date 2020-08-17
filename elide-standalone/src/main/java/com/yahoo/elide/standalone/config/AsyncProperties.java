@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.standalone.config;
 
+import com.yahoo.elide.async.service.AsyncQueryDAO;
+
 import lombok.Data;
 
 /**
@@ -21,7 +23,7 @@ public class AsyncProperties {
     /**
      * Default max query run time.
      */
-    private int maxRunTimeMinutes = 60;
+    private int maxRunTimeSeconds = 3600;
 
     /**
      * Whether or not the cleanup is enabled.
@@ -34,19 +36,24 @@ public class AsyncProperties {
     private int queryCleanupDays = 7;
 
     /**
-     * Whether or not to use the default implementation of AsyncQueryDAO.
-     * If false, the user will provide custom implementation of AsyncQueryDAO.
+     * Which implementation of AsyncQueryDAO to use.
      */
-    private boolean defaultAsyncQueryDAO = true;
+    private AsyncQueryDAO asyncQueryDAO = null;
 
     /**
-     * Whether or not the controller is enabled.
+     * Default time interval for cancelling async query transactions
+     * that are in cancelled status or running beyond max runtime.
+     */
+    private int queryCancellationIntervalSeconds = 300;
+
+    /**
+     * Whether or not the async is enabled.
      */
     private boolean enabled = false;
 
     /**
-     * Settings for the Download controller.
+     * Settings for the Download API.
      */
-    private AsyncDownloadProperties download;
+    private AsyncDownloadProperties download = new AsyncDownloadProperties();
 
 }

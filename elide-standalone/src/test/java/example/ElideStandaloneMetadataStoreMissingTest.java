@@ -7,10 +7,10 @@ package example;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.AsyncProperties;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
 
@@ -69,33 +69,16 @@ public class ElideStandaloneMetadataStoreMissingTest {
             }
 
             @Override
-            public boolean enableAsync() {
-                return true;
-            }
-
-            @Override
-            public boolean enableAsyncCleanup() {
-                return true;
-            }
-
-            @Override
-            public Integer getAsyncThreadSize() {
-                return 3;
-            }
-
-            @Override
-            public Integer getAsyncMaxRunTimeSeconds() {
-                return 1800;
-            }
-
-            @Override
-            public Integer getAsyncQueryCleanupDays() {
-                return 3;
-            }
-
-            @Override
-            public AsyncQueryDAO getAsyncQueryDAO() {
-                return null;
+            public AsyncProperties getAsyncProperties() {
+                //Default Properties
+                AsyncProperties asyncPropeties = new AsyncProperties();
+                asyncPropeties.setEnabled(true);
+                asyncPropeties.setCleanupEnabled(true);
+                asyncPropeties.setThreadPoolSize(3);
+                asyncPropeties.setMaxRunTimeSeconds(1800);
+                asyncPropeties.setQueryCleanupDays(3);
+                asyncPropeties.getDownload().setEnabled(true);
+                return asyncPropeties;
             }
 
             @Override

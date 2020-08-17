@@ -16,8 +16,8 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
-import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.AsyncProperties;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
 import org.apache.http.HttpStatus;
@@ -75,38 +75,16 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
             }
 
             @Override
-            public boolean enableAsync() {
-                return true;
-            }
-
-            @Override
-            public boolean enableAsyncDownload() {
-                return false;
-            }
-
-            @Override
-            public boolean enableAsyncCleanup() {
-                return true;
-            }
-
-            @Override
-            public Integer getAsyncThreadSize() {
-                return 3;
-            }
-
-            @Override
-            public Integer getAsyncMaxRunTimeSeconds() {
-                return 1800;
-            }
-
-            @Override
-            public Integer getAsyncQueryCleanupDays() {
-                return 3;
-            }
-
-            @Override
-            public AsyncQueryDAO getAsyncQueryDAO() {
-                return null;
+            public AsyncProperties getAsyncProperties() {
+                //Default Properties
+                AsyncProperties asyncPropeties = new AsyncProperties();
+                asyncPropeties.setEnabled(true);
+                asyncPropeties.setCleanupEnabled(true);
+                asyncPropeties.setThreadPoolSize(3);
+                asyncPropeties.setMaxRunTimeSeconds(1800);
+                asyncPropeties.setQueryCleanupDays(3);
+                asyncPropeties.getDownload().setEnabled(false);
+                return asyncPropeties;
             }
 
             @Override

@@ -101,9 +101,9 @@ public class ElideStandalone {
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
-        if (elideStandaloneSettings.enableAsyncDownload()) {
+        if (elideStandaloneSettings.getAsyncProperties().getDownload().isEnabled()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
-                    elideStandaloneSettings.getDownloadApiPathSpec());
+                    elideStandaloneSettings.getAsyncProperties().getDownload().getPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.async.resources");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());

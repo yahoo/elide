@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.standalone.config;
 
+import com.yahoo.elide.async.service.ResultStorageEngine;
+
 import lombok.Data;
 
 /**
@@ -14,15 +16,14 @@ import lombok.Data;
 public class AsyncDownloadProperties {
 
     /**
-     * The URL path prefix for the controller.
+     * API root path specification for the download endpoint.
      */
-    private String path = "/download";
+    private String pathSpec = "/download/*";
 
     /**
-     * Whether or not to use the default implementation of ResultStorageEngine.
-     * If false, the user will provide custom implementation of ResultStorageEngine.
+     * Which implementation of ResultStorageEngine to use.
      */
-    private boolean defaultResultStorageEngine = true;
+    private ResultStorageEngine resultStorageEngine = null;
 
     /**
      * Whether or not the controller is enabled.

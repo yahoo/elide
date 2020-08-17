@@ -11,8 +11,6 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.async.service.AsyncQueryDAO;
-import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
@@ -157,15 +155,6 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * API root path specification for Async Results Download.
-     *
-     * @return Default: /download/*
-     */
-    default String getDownloadApiPathSpec() {
-        return "/download/*";
-    }
-
-    /**
      * Enable the JSONAPI endpoint. If false, the endpoint will be disabled.
      *
      * @return Default: True
@@ -181,15 +170,6 @@ public interface ElideStandaloneSettings {
      */
     default boolean enableGraphQL() {
         return true;
-    }
-
-    /**
-     * Enable the Async Download endpoint. If false, the endpoint will be disabled.
-     *
-     * @return Default: false
-     */
-    default boolean enableAsyncDownload() {
-        return false;
     }
 
     /**
@@ -219,75 +199,13 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Enable the support for Async querying feature. If false, the async feature will be disabled.
+     * Async Properties.
      *
-     * @return Default: False
+     * @return AsyncProperties type object.
      */
-    default boolean enableAsync() {
-        return false;
-    }
-
-    /**
-     * Enable the support for cleaning up Async query history. If false, the async cleanup feature will be disabled.
-     *
-     * @return Default: False
-     */
-    default boolean enableAsyncCleanup() {
-        return false;
-    }
-
-    /**
-     * Thread Size for Async queries to run in parallel.
-     *
-     * @return Default: 5
-     */
-    default Integer getAsyncThreadSize() {
-        return 5;
-    }
-
-    /**
-     * Maximum Query Run time for Async Queries to mark as TIMEDOUT.
-     *
-     * @return Default: 60
-     */
-    default Integer getAsyncMaxRunTimeSeconds() {
-        return 60;
-    }
-
-    /**
-     * Number of days history to retain for async query executions and results.
-     *
-     * @return Default: 7
-     */
-    default Integer getAsyncQueryCleanupDays() {
-        return 7;
-    }
-
-    /**
-     * Number of seconds  between async query cancellation checks.
-     *
-     * @return Default: 300
-     */
-    default Integer getAsyncQueryCancelCheckIntervalSeconds() {
-        return 300;
-    }
-
-    /**
-     * Implementation of AsyncQueryDAO to use.
-     *
-     * @return AsyncQueryDAO type object.
-     */
-    default AsyncQueryDAO getAsyncQueryDAO() {
-        return null;
-    }
-
-    /**
-     * Implementation of ResultStorageEngine to use.
-     *
-     * @return ResultStorageEngine type object.
-     */
-    default ResultStorageEngine getResultStorageEngine() {
-        return null;
+    default AsyncProperties getAsyncProperties() {
+        //Default Properties
+        return new AsyncProperties();
     }
 
     /**
