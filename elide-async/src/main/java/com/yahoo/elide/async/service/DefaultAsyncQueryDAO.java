@@ -10,14 +10,6 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.DataStore;
-<<<<<<< HEAD
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
-=======
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.ParseException;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
->>>>>>> Adding record count to AsyncQueryResult and related changes
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.request.EntityProjection;
 
@@ -86,7 +78,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         log.debug("updateAsyncQueryCollection");
 
         Collection<AsyncQuery> asyncQueryList = null;
-        asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(dataStore,
+        asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elideSettings, dataStore,
                     (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
@@ -111,7 +103,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(FilterExpression filterExpression) {
         log.debug("deleteAsyncQueryAndResultCollection");
         Collection<AsyncQuery> asyncQueryList = null;
-        asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(dataStore, (tx, scope) -> {
+        asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elideSettings, dataStore,
+                (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
                     .filterExpression(filterExpression)
@@ -158,8 +151,8 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         Collection<AsyncQuery> asyncQueryList = null;
         log.debug("loadAsyncQueryCollection");
         try {
-            asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(dataStore, (tx, scope) -> {
-
+            asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elideSettings, dataStore,
+                    (tx, scope) -> {
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
                         .filterExpression(filterExpression)
