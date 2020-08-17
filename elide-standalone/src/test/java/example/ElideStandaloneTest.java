@@ -95,6 +95,7 @@ public class ElideStandaloneTest {
                 asyncPropeties.setThreadPoolSize(3);
                 asyncPropeties.setMaxRunTimeSeconds(30);
                 asyncPropeties.setQueryCleanupDays(3);
+              //Since AsyncExecutorService is singleton we can not disable Download in 1 test and enable in another.
                 asyncPropeties.getDownload().setEnabled(true);
                 return asyncPropeties;
             }
@@ -328,7 +329,7 @@ public class ElideStandaloneTest {
     @Test
     public void testAsyncDownloadSuccessful() throws InterruptedException {
         //Create Async Request
-        String test = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .body(
                         data(
@@ -345,8 +346,6 @@ public class ElideStandaloneTest {
                         ).toJSON())
                 .when()
                 .post("/api/v1/asyncQuery").asString();
-
-        assertEquals("test", test);
 
         int i = 0;
         while (i < 1000) {
@@ -378,12 +377,12 @@ public class ElideStandaloneTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\\\"]) "
                                 + "{ edges { node { id queryType status resultType result "
-                                + "{ responseBody httpStatus contentLength } } } } }\","
+                                + "{ responseBody httpStatus } } } } }\","
                                 + "\"variables\":null}")
                         .post("/graphql/api/v1/")
                         .asString();
 
-                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"DOWNLOAD\",\"result\":{\"responseBody\":\"http://localhost:8080/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\",\"httpStatus\":200,\"contentLength\":272}}}]}}}";
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"DOWNLOAD\",\"result\":{\"responseBody\":\"http://localhost:8080/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\",\"httpStatus\":200}}}]}}}";
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
@@ -401,6 +400,6 @@ public class ElideStandaloneTest {
                 .when()
                 .get("/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d")
                 .then()
-                .statusCode(200);
+                .statusCode(HttpStatus.SC_OK);
     }
 }
