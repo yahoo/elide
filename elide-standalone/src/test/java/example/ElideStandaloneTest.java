@@ -328,7 +328,7 @@ public class ElideStandaloneTest {
     @Test
     public void testAsyncDownloadSuccessful() throws InterruptedException {
         //Create Async Request
-        given()
+        String test = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .body(
                         data(
@@ -344,9 +344,9 @@ public class ElideStandaloneTest {
                                 )
                         ).toJSON())
                 .when()
-                .post("/api/v1/asyncQuery")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
+                .post("/api/v1/asyncQuery").asString();
+
+        assertEquals("test", test);
 
         int i = 0;
         while (i < 1000) {
