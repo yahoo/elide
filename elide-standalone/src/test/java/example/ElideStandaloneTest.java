@@ -270,7 +270,9 @@ public class ElideStandaloneTest {
                                 )
                         ).toJSON())
                 .when()
-                .post("/api/v1/asyncQuery").asString();
+                .post("/api/v1/asyncQuery")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
 
         int i = 0;
         while (i < 1000) {
@@ -342,7 +344,9 @@ public class ElideStandaloneTest {
                                 )
                         ).toJSON())
                 .when()
-                .post("/api/v1/asyncQuery").asString();
+                .post("/api/v1/asyncQuery")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
 
         int i = 0;
         while (i < 1000) {
@@ -394,9 +398,9 @@ public class ElideStandaloneTest {
         }
 
         given()
-        .when()
-        .get("/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d")
-        .then()
-        .statusCode(200);
+                .when()
+                .get("/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d")
+                .then()
+                .statusCode(200);
     }
 }
