@@ -80,6 +80,11 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
             }
 
             @Override
+            public boolean enableAsyncDownload() {
+                return false;
+            }
+
+            @Override
             public boolean enableAsyncCleanup() {
                 return true;
             }
@@ -154,5 +159,27 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
         .then()
         .statusCode(HttpStatus.SC_CREATED)
         .extract().body().asString();
+    }
+
+    @Override
+    @Test
+    public void testDownloadEndpoint() throws Exception {
+        given()
+                .when()
+                .get("/download/test")
+                .then()
+                .statusCode(404);
+    }
+
+    @Override
+    @Test
+    public void testAsyncDownloadSuccessful() throws InterruptedException {
+        testAsyncApiEndpoint();
+
+        given()
+        .when()
+        .get("/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9263d")
+        .then()
+        .statusCode(404);
     }
 }

@@ -108,15 +108,12 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.download", name = "defaultResultStorageEngine", matchIfMissing = true)
     public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings) {
-        // Creating a new ElideSettings and Elide object for Async services
-        // which will have ISO8601 Dates. Used for DefaultResultStorageEngine.
-        if (!settings.getAsync().getDownload().isEnabled()) {
-            return null;
-        } else {
-            String downloadURI = settings.getAsync().getDownload().isEnabled()
-                    ? settings.getAsync().getDownload().getPath() : null;
-            return new DefaultResultStorageEngine(downloadURI, elide.getElideSettings(),
+        DefaultResultStorageEngine resultStorageEngine = null;
+        if (settings.getAsync().getDownload().isEnabled()) {
+            String downloadURI = settings.getAsync().getDownload().getPath();
+            resultStorageEngine = new DefaultResultStorageEngine(downloadURI, elide.getElideSettings(),
                     elide.getDataStore());
         }
+        return resultStorageEngine;
     }
 }

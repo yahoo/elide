@@ -104,7 +104,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
             log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
-            //TODO - we need to add the baseURLEndpoint to the queryObject.
+            //TODO - we need to add the baseUrlEndpoint to the queryObject.
             response = elide.get("", getPath(queryObj.getQuery()), queryParams, user, apiVersion, requestId);
             responseBody = response.getBody();
             isError = checkJsonStrErrorMessage(responseBody);
@@ -173,7 +173,8 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      */
     protected Integer calculateRecordsGraphQL(String jsonStr) throws IOException {
         List<Integer> countList = JsonPath.read(jsonStr, "$..edges.length()");
-        return countList.get(0);
+        Integer count = countList.size() > 0 ? countList.get(0) : 0;
+        return count;
     }
 
     /**

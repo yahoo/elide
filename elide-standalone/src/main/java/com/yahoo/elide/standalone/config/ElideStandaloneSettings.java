@@ -159,10 +159,10 @@ public interface ElideStandaloneSettings {
     /**
      * API root path specification for Async Results Download.
      *
-     * @return Default: /api/v1/download
+     * @return Default: /download/*
      */
     default String getDownloadApiPathSpec() {
-        return "/api/v1/download";
+        return "/download/*";
     }
 
     /**
@@ -288,15 +288,6 @@ public interface ElideStandaloneSettings {
      */
     default ResultStorageEngine getResultStorageEngine() {
         return null;
-    }
-
-    /**
-     * Generates a default a baseURL.
-     *
-     * @return a URL in String format.
-     */
-    default String getAsyncDownloadPath() {
-        return "/download/api/v1";
     }
 
     /**

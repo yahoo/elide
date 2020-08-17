@@ -92,6 +92,11 @@ public class ElideStandaloneTest {
             }
 
             @Override
+            public boolean enableAsyncDownload() {
+                return true;
+            }
+
+            @Override
             public boolean enableAsyncCleanup() {
                 return true;
             }
@@ -249,6 +254,15 @@ public class ElideStandaloneTest {
     }
 
     @Test
+    public void testDownloadEndpoint() throws Exception {
+        given()
+                .when()
+                .get("/download/test")
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
     public void swaggerDocumentTest() {
         when()
                .get("/swagger/doc/test")
@@ -329,5 +343,82 @@ public class ElideStandaloneTest {
                 fail("Async Query not completed.");
             }
         }
+    }
+
+    @Test
+    public void testAsyncDownloadSuccessful() throws InterruptedException {
+        //Create Async Request
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("asyncQuery"),
+                                        id("ba31ca4e-ed8f-4be0-a0f3-12088fa9264d"),
+                                        attributes(
+                                                attr("query", "/post"),
+                                                attr("queryType", "JSONAPI_V1_0"),
+                                                attr("status", "QUEUED"),
+                                                attr("resultType", "DOWNLOAD")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/api/v1/asyncQuery").asString();
+
+        int i = 0;
+        while (i < 1000) {
+            Thread.sleep(10);
+            Response response = given()
+                    .accept("application/vnd.api+json")
+                    .get("/api/v1/asyncQuery/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d");
+
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
+            // If Async Query is created and completed
+            if (outputResponse.equals("COMPLETE")) {
+
+                // Validate AsyncQuery Response
+                response
+                        .then()
+                        .statusCode(com.yahoo.elide.core.HttpStatus.SC_OK)
+                        .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9264d"))
+                        .body("data.type", equalTo("asyncQuery"))
+                        .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                        .body("data.attributes.status", equalTo("COMPLETE"))
+                        .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.responseBody",
+                                equalTo("http://localhost:8080/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d"));
+
+                // Validate GraphQL Response
+                String responseGraphQL = given()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\\\"]) "
+                                + "{ edges { node { id queryType status resultType result "
+                                + "{ responseBody httpStatus contentLength } } } } }\","
+                                + "\"variables\":null}")
+                        .post("/graphql/api/v1/")
+                        .asString();
+
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"DOWNLOAD\",\"result\":{\"responseBody\":\"http://localhost:8080/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d\",\"httpStatus\":200,\"contentLength\":272}}}]}}}";
+                assertEquals(expectedResponse, responseGraphQL);
+                break;
+            } else if (!(outputResponse.equals("PROCESSING"))) {
+                fail("Async Query has failed.");
+                break;
+            }
+            i++;
+
+            if (i == 1000) {
+                fail("Async Query not completed.");
+            }
+        }
+
+        given()
+        .when()
+        .get("/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d")
+        .then()
+        .statusCode(200);
     }
 }

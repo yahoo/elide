@@ -45,8 +45,6 @@ public class DownloadController {
 
         ///************* Getresults from ResultStorageEngine
         byte[] temp = resultStorageEngine.getResultsByID(asyncQueryId);
-        //Blob blob = new SerialBlob(temp);
-        //String reconstructedStr = new String(blob.getBytes((long) 1, (int) blob.length()));
         PrintWriter writer = response.getWriter();
         String reconstructedStr = "";
         if (temp == null) {

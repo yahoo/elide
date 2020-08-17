@@ -95,7 +95,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
 
                         return loaded;
                     });
-            if (asyncQuery != null) {
+            if (asyncQuery != null && asyncQuery.getResult().getAttachment() != null) {
                 Blob result = asyncQuery.getResult().getAttachment();
                 byteResult = result.getBytes(1, (int) result.length());
             }
