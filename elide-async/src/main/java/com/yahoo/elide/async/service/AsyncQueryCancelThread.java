@@ -104,12 +104,15 @@ public class AsyncQueryCancelThread implements Runnable {
             //Cancel Transactions
             queryUUIDsToCancel.stream()
                .forEach((uuid) -> {
-                   JsonApiDocument jsonApiDoc = new JsonApiDocument();
-                   MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-                   RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
-                           transactionRegistry.getRunningTransaction(uuid), null, queryParams,
-                           uuid, elide.getElideSettings());
-                   transactionRegistry.getRunningTransaction(uuid).cancel(scope);
+                   DataStoreTransaction runningTransaction = transactionRegistry.getRunningTransaction(uuid);
+                   if (runningTransaction != null) {
+                       JsonApiDocument jsonApiDoc = new JsonApiDocument();
+                       MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+                       RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
+                               runningTransaction, null, queryParams,
+                               uuid, elide.getElideSettings());
+                       runningTransaction.cancel(scope);
+                   }
                });
 
             //Change queryStatus for cancelled queries
