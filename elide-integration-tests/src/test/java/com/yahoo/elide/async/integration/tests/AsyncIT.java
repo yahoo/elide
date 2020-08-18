@@ -211,10 +211,6 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf830e"))
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", notNullValue())
-                .body("data.attributes.result.contentLength", nullValue())
-                .body("data.attributes.result.recordCount", nullValue())
-                .body("data.attributes.result.responseBody", nullValue())
-                .body("data.attributes.result.httpStatus", nullValue())
                 .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
         int i = 0;
