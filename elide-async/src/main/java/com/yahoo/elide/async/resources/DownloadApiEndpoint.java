@@ -45,7 +45,7 @@ public class DownloadApiEndpoint {
         byte[] temp = resultStorageEngine.getResultsByID(asyncQueryId);
         ResponseBuilder response;
         if (temp == null) {
-            response = Response.noContent();
+            response = Response.status(Response.Status.NOT_FOUND).entity("Result not found");
         } else {
             response = Response.ok(new String(temp), MediaType.APPLICATION_OCTET_STREAM);
             response.header("Content-Disposition", "attachment; filename=" + asyncQueryId);

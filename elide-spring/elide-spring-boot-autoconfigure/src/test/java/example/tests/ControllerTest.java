@@ -414,7 +414,7 @@ public class ControllerTest extends IntegrationTest {
         when()
                 .get("/download/asyncQueryId")
                 .then()
-                .statusCode(HttpStatus.SC_NO_CONTENT);
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test

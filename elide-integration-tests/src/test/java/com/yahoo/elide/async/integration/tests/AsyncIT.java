@@ -430,7 +430,7 @@ public class AsyncIT extends IntegrationTest {
 
     /**
      * Various tests for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 7.
-     * Happy Path Test Scenario 3, CSV Type
+     * Happy Path Test Scenario 3, CSV Type.
      * @throws InterruptedException
      */
     @Test
@@ -445,7 +445,7 @@ public class AsyncIT extends IntegrationTest {
                         data(
                                 resource(
                                         type("asyncQuery"),
-                                        id("edc4a871-dff2-4054-804e-d80075cf831f"),
+                                        id("edc4a871-dff2-4055-804e-d80075cf831f"),
                                         attributes(
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
@@ -460,15 +460,15 @@ public class AsyncIT extends IntegrationTest {
                 .post("/asyncQuery")
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf831f"))
+                .body("data.id", equalTo("edc4a871-dff2-4055-804e-d80075cf831f"))
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("COMPLETE"))
                 .body("data.attributes.result.contentLength", notNullValue())
                 .body("data.attributes.result.recordCount", equalTo(3))
-                .body("data.attributes.result.responseBody", equalTo("data_type, data_id, data_attributes_title\n" +
-                        "\"book\", \"3\", \"For Whom the Bell Tolls\"\n" +
-                        "\"book\", \"2\", \"Song of Ice and Fire\"\n" +
-                        "\"book\", \"1\", \"Ender's Game\"\n"))
+                .body("data.attributes.result.responseBody", equalTo("data_type, data_id, data_attributes_title\n"
+                        + "\"book\", \"3\", \"For Whom the Bell Tolls\"\n"
+                        + "\"book\", \"2\", \"Song of Ice and Fire\"\n"
+                        + "\"book\", \"1\", \"Ender's Game\"\n"))
                 .body("data.attributes.result.httpStatus", equalTo(200))
                 .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
@@ -786,7 +786,7 @@ public class AsyncIT extends IntegrationTest {
 
     /**
      * Test for a GraphQL query as a Async Request with asyncAfterSeconds value set to 7.
-     * Happy Path Test Scenario 3, CSV
+     * Happy Path Test Scenario 3, CSV.
      * @throws InterruptedException
      */
     @Test
@@ -794,7 +794,7 @@ public class AsyncIT extends IntegrationTest {
 
         AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
-        queryObj.setId("edc4a871-dff2-4054-804e-d80075cf829e");
+        queryObj.setId("edc4a871-dff2-4154-804e-d80076cf829e");
         queryObj.setAsyncAfterSeconds(7);
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
@@ -831,7 +831,7 @@ public class AsyncIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK);
 
-        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4154-804e-d80076cf829e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"EMBEDDED\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
@@ -839,25 +839,25 @@ public class AsyncIT extends IntegrationTest {
         String responseGraphQL = given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
+                .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4154-804e-d80076cf829e\\\"]) "
                         + "{ edges { node { id queryType status result "
                         + "{ responseBody httpStatus contentLength } } } } }\","
                         + "\"variables\":null}")
                 .post("/graphQL")
                 .asString();
 
-        expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                + "\"result\":{\"responseBody\":\"data_book_edges_node_id, data_book_edges_node_title\\n" +
-                "\\\"1\\\", \\\"Ender's Game\\\"\\n" +
-                "\\\"2\\\", \\\"Song of Ice and Fire\\\"\\n" +
-                "\\\"3\\\", \\\"For Whom the Bell Tolls\\\"\\n\","
+        expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4154-804e-d80076cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"responseBody\":\"data_book_edges_node_id, data_book_edges_node_title\\n"
+                + "\\\"1\\\", \\\"Ender's Game\\\"\\n"
+                + "\\\"2\\\", \\\"Song of Ice and Fire\\\"\\n"
+                + "\\\"3\\\", \\\"For Whom the Bell Tolls\\\"\\n\","
                 + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
     }
 
     /**
-     * Test for QueryStatus Set to PROCESSING instead of Queued
+     * Test for QueryStatus Set to PROCESSING instead of Queued.
      */
     @Test
     public void graphQLTestCreateFailOnQueryStatus() {
@@ -1073,8 +1073,8 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
-     * Tests Read Permissions on Async Model for Admin Role
-     * @throws InterruptedException
+     * Tests Read Permissions on Async Model for Admin Role.
+     * @throws IOException IOException
      */
     @Test
     public void asyncModelAdminReadPermissions() throws IOException {
@@ -1155,7 +1155,7 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
-     * Reset sleep delay flag after each test
+     * Reset sleep delay flag after each test.
      */
     @AfterEach
     public void sleepDelayReset() {

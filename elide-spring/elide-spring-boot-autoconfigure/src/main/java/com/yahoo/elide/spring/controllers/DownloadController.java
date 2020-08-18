@@ -23,6 +23,7 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
 
 @Slf4j
 @Configuration
@@ -48,10 +49,11 @@ public class DownloadController {
         PrintWriter writer = response.getWriter();
         String reconstructedStr = "";
         if (temp == null) {
-            response.sendError(HttpServletResponse.SC_NO_CONTENT);
+            response.setContentType(MediaType.APPLICATION_JSON);
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Result not found");
         } else {
             reconstructedStr = new String(temp);
-            response.setContentType("application/octet-stream");
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             response.setHeader("Content-Disposition", "attachment; filename=" + asyncQueryId);
         }
         writer.write(reconstructedStr);

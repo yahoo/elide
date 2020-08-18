@@ -234,11 +234,14 @@ public class ElideStandaloneTest {
 
     @Test
     public void testDownloadEndpoint() throws Exception {
-        given()
+        String responseApi = given()
                 .when()
                 .get("/download/test")
                 .then()
-                .statusCode(204);
+                .statusCode(404)
+                .extract().asString();
+
+        assertEquals("Result not found", responseApi);
     }
 
     @Test
