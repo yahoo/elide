@@ -290,11 +290,8 @@ public class AsyncIT extends IntegrationTest {
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED)
                 .body("data.id", equalTo("adc4a871-dff2-4054-804e-d80075cf830e"))
                 .body("data.type", equalTo("asyncQuery"))
-                .body("data.attributes.status", equalTo("PROCESSING"))
-                .body("data.attributes.result.contentLength", nullValue())
-                .body("data.attributes.result.recordCount", nullValue())
-                .body("data.attributes.result.responseBody", nullValue())
-                .body("data.attributes.result.httpStatus", nullValue());
+                .body("data.attributes.status", notNullValue())
+                .body("data.attributes.resultType", equalTo("DOWNLOAD"));
 
         int i = 0;
         while (i < 1000) {
@@ -499,7 +496,6 @@ public class AsyncIT extends IntegrationTest {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status"),
                                                  field("resultType")
                                          )
                                  )
@@ -518,7 +514,7 @@ public class AsyncIT extends IntegrationTest {
 
         String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"EMBEDDED\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"EMBEDDED\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
         int i = 0;
@@ -586,7 +582,6 @@ public class AsyncIT extends IntegrationTest {
                                                 field("id"),
                                                 field("query"),
                                                 field("queryType"),
-                                                field("status"),
                                                 field("resultType")
                                         )
                                 )
@@ -605,7 +600,7 @@ public class AsyncIT extends IntegrationTest {
 
         String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"DOWNLOAD\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"DOWNLOAD\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
         int i = 0;
