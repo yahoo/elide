@@ -188,7 +188,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             isError = (Integer) JsonPath.read(jsonStr, "$.errors.length()") >= 1;
         } catch (PathNotFoundException e) {
             //ignore when not an error message
-            log.error(e.getMessage());
+            log.debug(e.getMessage());
         }
         return isError;
     }

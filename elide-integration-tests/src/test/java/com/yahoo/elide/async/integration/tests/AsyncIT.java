@@ -91,6 +91,9 @@ public class AsyncIT extends IntegrationTest {
 
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String resultType;
+
+        @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
+        private String resultFormatType;
     }
 
     private static final Resource ENDERS_GAME = resource(
@@ -381,6 +384,7 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
     }
+
     /**
      * Various tests for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 7.
      * Happy Path Test Scenario 2 with resultType as DOWNLOAD
@@ -421,6 +425,52 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.attributes.result.responseBody", equalTo("http://localhost:50001"
                         + "/download/adc4a871-dff2-4054-804e-d80075cf831f"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
+
+    }
+
+    /**
+     * Various tests for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 7.
+     * Happy Path Test Scenario 3, CSV Type
+     * @throws InterruptedException
+     */
+    @Test
+    public void jsonApiHappyPath3() throws InterruptedException {
+
+        AsyncDelayStoreTransaction.sleep = true;
+
+        //Create Async Request
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("asyncQuery"),
+                                        id("edc4a871-dff2-4054-804e-d80075cf831f"),
+                                        attributes(
+                                                attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
+                                                attr("queryType", "JSONAPI_V1_0"),
+                                                attr("status", "QUEUED"),
+                                                attr("asyncAfterSeconds", "7"),
+                                                attr("resultType", "EMBEDDED"),
+                                                attr("resultFormatType", "CSV")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/asyncQuery")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf831f"))
+                .body("data.type", equalTo("asyncQuery"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
+                .body("data.attributes.result.contentLength", notNullValue())
+                .body("data.attributes.result.recordCount", equalTo(3))
+                .body("data.attributes.result.responseBody", equalTo("data_type, data_id, data_attributes_title\n" +
+                        "\"book\", \"3\", \"For Whom the Bell Tolls\"\n" +
+                        "\"book\", \"2\", \"Song of Ice and Fire\"\n" +
+                        "\"book\", \"1\", \"Ender's Game\"\n"))
+                .body("data.attributes.result.httpStatus", equalTo(200))
+                .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
     }
 
@@ -729,6 +779,78 @@ public class AsyncIT extends IntegrationTest {
 
         expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                 + "\"result\":{\"responseBody\":\"http://localhost:50001/download/adc4a871-dff2-4054-804e-d80075cf829e\","
+                + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
+
+        assertEquals(expectedResponse, responseGraphQL);
+    }
+
+    /**
+     * Test for a GraphQL query as a Async Request with asyncAfterSeconds value set to 7.
+     * Happy Path Test Scenario 3, CSV
+     * @throws InterruptedException
+     */
+    @Test
+    public void graphQLHappyPath3() throws InterruptedException {
+
+        AsyncDelayStoreTransaction.sleep = true;
+        AsyncQuery queryObj = new AsyncQuery();
+        queryObj.setId("edc4a871-dff2-4054-804e-d80075cf829e");
+        queryObj.setAsyncAfterSeconds(7);
+        queryObj.setQueryType("GRAPHQL_V1_0");
+        queryObj.setStatus("QUEUED");
+        queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        queryObj.setResultType("EMBEDDED");
+        queryObj.setResultFormatType("CSV");
+        String graphQLRequest = document(
+                mutation(
+                        selection(
+                                field(
+                                        "asyncQuery",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", queryObj, UNQUOTED_VALUE)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("query"),
+                                                field("queryType"),
+                                                field("status"),
+                                                field("resultType")
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
+        ValidatableResponse response = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(graphQLJsonNode)
+                .post("/graphQL")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK);
+
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"EMBEDDED\"}}]}}}";
+        assertEquals(expectedResponse, response.extract().body().asString());
+
+        String responseGraphQL = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
+                        + "{ edges { node { id queryType status result "
+                        + "{ responseBody httpStatus contentLength } } } } }\","
+                        + "\"variables\":null}")
+                .post("/graphQL")
+                .asString();
+
+        expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"responseBody\":\"data_book_edges_node_id, data_book_edges_node_title\\n" +
+                "\\\"1\\\", \\\"Ender's Game\\\"\\n" +
+                "\\\"2\\\", \\\"Song of Ice and Fire\\\"\\n" +
+                "\\\"3\\\", \\\"For Whom the Bell Tolls\\\"\\n\","
                 + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
