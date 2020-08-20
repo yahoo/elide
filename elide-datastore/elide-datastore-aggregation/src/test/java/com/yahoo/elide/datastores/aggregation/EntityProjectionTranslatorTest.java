@@ -112,6 +112,6 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
         List<TimeDimensionProjection> timeDimensions = new ArrayList<>(query.getTimeDimensions());
         assertEquals(1, timeDimensions.size());
         assertEquals("recordedDate", timeDimensions.get(0).getAlias());
-        assertEquals(TimeGrain.DATE, timeDimensions.get(0).getGrain());
+        assertEquals(TimeGrain.SIMPLEDATE, timeDimensions.get(0).getGrain());
     }
 }

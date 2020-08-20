@@ -163,7 +163,7 @@ public class PlayerStatsWithView {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.DATE, expression = ""), timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = ""), timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }

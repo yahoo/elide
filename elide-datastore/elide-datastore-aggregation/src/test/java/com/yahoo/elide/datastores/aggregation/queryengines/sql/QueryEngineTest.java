@@ -53,7 +53,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -140,7 +140,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
                         PlayerStats.class, false))
                 .build();
@@ -218,7 +218,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -254,7 +254,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .pagination(new ImmutablePagination(0, 1, false, true))
                 .build();
 
@@ -344,7 +344,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -475,7 +475,7 @@ public class QueryEngineTest extends SQLUnitTest {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .build();
 
         //Change for monthly column
@@ -512,7 +512,7 @@ public class QueryEngineTest extends SQLUnitTest {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .whereFilter(predicate)
                 .build();
 

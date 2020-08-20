@@ -102,7 +102,7 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLString;
         } else if (clazz.equals(BigDecimal.class)) {
             return Scalars.GraphQLBigDecimal;
-        } else if (Date.class.isAssignableFrom(clazz)) {
+        } else if (Date.class.isAssignableFrom(clazz) && scalarMap.get(clazz) == null) {
             return GraphQLScalars.GRAPHQL_DATE_TYPE;
         } else if (scalarMap.containsKey(clazz)) {
             return scalarMap.get(clazz);

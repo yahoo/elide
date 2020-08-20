@@ -811,9 +811,9 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.columnType",  equalTo("FIELD"))
                 .body("data.attributes.expression",  equalTo("recordedDate"))
                 .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
-                .body("data.relationships.supportedGrain.data.id", hasItem("playerStats.recordedDate.date"))
-                .body("included.id", hasItem("playerStats.recordedDate.date"))
-                .body("included.attributes.grain", hasItem("DATE"))
+                .body("data.relationships.supportedGrain.data.id", hasItem("playerStats.recordedDate.simpledate"))
+                .body("included.id", hasItem("playerStats.recordedDate.simpledate"))
+                .body("included.attributes.grain", hasItem("SIMPLEDATE"))
                 .body("included.attributes.expression",
                         hasItem("PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"));
     }

@@ -10,7 +10,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.enums;
  */
 public enum TimeGrain {
 
-    DATE("yyyy-MM-dd"),
+    SIMPLEDATE("yyyy-MM-dd"),
     DATETIME("yyyy-MM-dd HH:mm:ss")
     ;
 

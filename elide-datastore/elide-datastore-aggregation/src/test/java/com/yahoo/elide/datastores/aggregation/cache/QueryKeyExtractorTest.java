@@ -63,7 +63,7 @@ public class QueryKeyExtractorTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .whereFilter(filterParser.parseFilterExpression("countryNickName=='Uncle Sam'",
                         PlayerStats.class, false))
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300",
@@ -120,14 +120,14 @@ public class QueryKeyExtractorTest {
                 QueryKeyExtractor.extractKey(Query.builder()
                         .table(playerStatsTable)
                         .metric(invoke(playerStatsTable.getMetric("highScore")))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.DATE))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.SIMPLEDATE))
                         .build()),
                 QueryKeyExtractor.extractKey(Query.builder()
                         .table(playerStatsTable)
                         .metric(invoke(playerStatsTable.getMetric("highScore")))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DATE))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.DATE))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.SIMPLEDATE))
                         .build()));
     }
 }

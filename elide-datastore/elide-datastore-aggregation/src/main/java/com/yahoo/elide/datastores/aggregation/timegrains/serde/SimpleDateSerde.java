@@ -5,28 +5,26 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 
-import com.yahoo.elide.datastores.aggregation.timegrains.Date;
+import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
-
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 /**
- * Serde class for bidirectional conversion from Elide Date type to java.util.Date.
+ * Serde class for bidirectional conversion from Elide SimpleDate type to java.util.Date.
  */
-@ElideTypeConverter(type = Date.class, name = "Date")
-public class DateSerde implements Serde<String, Date> {
+@ElideTypeConverter(type = SimpleDate.class, name = "SimpleDate")
+public class SimpleDateSerde implements Serde<String, SimpleDate> {
 
     SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
-    public Date deserialize(String dateString) {
-        System.out.println(dateString);
-        Date date;
+    public SimpleDate deserialize(String dateString) {
+        SimpleDate date;
         try {
-            date = new Date(dateFormatter.parse(dateString));
+            date = new SimpleDate(dateFormatter.parse(dateString));
         } catch (ParseException e) {
             throw new IllegalArgumentException("Date strings must be formated as " + dateFormatter.toString());
         }
@@ -34,7 +32,7 @@ public class DateSerde implements Serde<String, Date> {
     }
 
     @Override
-    public String serialize(Date dateObj) {
+    public String serialize(SimpleDate dateObj) {
         String formattedDate = dateFormatter.format(dateObj);
         return formattedDate;
     }
