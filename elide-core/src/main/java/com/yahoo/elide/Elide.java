@@ -292,7 +292,7 @@ public class Elide {
                                MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return patch(null, contentType, accept, path, jsonApiDocument, queryParams, opaqueUser);
     }
-    
+
     /**
      * Handle PATCH.
      *
@@ -372,7 +372,7 @@ public class Elide {
                                 MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return delete(null, path, jsonApiDocument, queryParams, opaqueUser);
     }
-    
+
     /**
      * Handle DELETE.
      *
