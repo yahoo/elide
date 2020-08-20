@@ -8,6 +8,7 @@ package com.yahoo.elide.async.service;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 
 import java.util.Collection;
 
@@ -39,7 +40,7 @@ public interface AsyncQueryDAO {
      * @param filterExpression filter expression to delete AsyncQuery Objects based on
      * @return query object list deleted
      */
-    public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(String filterExpression);
+    public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(FilterExpression filterExpression);
 
     /**
      * This method updates the status for a collection of AsyncQuery objects from database and
@@ -48,7 +49,13 @@ public interface AsyncQueryDAO {
      * @param status status to be updated
      * @return query object list updated
      */
-    public Collection<AsyncQuery> updateStatusAsyncQueryCollection(String filterExpression,
+    public Collection<AsyncQuery> updateStatusAsyncQueryCollection(FilterExpression filterExpression,
             QueryStatus status);
-
+    /**
+     * This method gets a collection of AsyncQuery objects from database and
+     * returns the objects.
+     * @param filterExpression filter expression to cancel AsyncQuery Objects based on
+     * @return query object list updated
+     */
+    public Collection<AsyncQuery> loadAsyncQueryCollection(FilterExpression filterExpression);
 }

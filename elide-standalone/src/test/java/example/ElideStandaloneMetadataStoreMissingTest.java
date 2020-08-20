@@ -84,8 +84,8 @@ public class ElideStandaloneMetadataStoreMissingTest {
             }
 
             @Override
-            public Integer getAsyncMaxRunTimeMinutes() {
-                return 30;
+            public Integer getAsyncMaxRunTimeSeconds() {
+                return 1800;
             }
 
             @Override

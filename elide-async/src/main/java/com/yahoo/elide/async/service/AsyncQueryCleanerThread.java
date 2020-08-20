@@ -6,16 +6,24 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
+
+import com.yahoo.elide.core.Path.PathElement;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.LEPredicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.text.Format;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Runnable thread for updating AsyncQueryThread status.
@@ -31,6 +39,7 @@ public class AsyncQueryCleanerThread implements Runnable {
     private Elide elide;
     private int queryCleanupDays;
     private AsyncQueryDAO asyncQueryDao;
+    private DateUtil dateUtil = new DateUtil();
 
     @Override
     public void run() {
@@ -41,45 +50,37 @@ public class AsyncQueryCleanerThread implements Runnable {
     /**
      * This method deletes the historical queries based on threshold.
      * */
-    @SuppressWarnings("unchecked")
     protected void deleteAsyncQuery() {
 
-        String cleanupDateFormatted = evaluateFormattedFilterDate(Calendar.DATE, queryCleanupDays);
-
-        String filterExpression = "createdOn=le='" + cleanupDateFormatted + "'";
-
-        asyncQueryDao.deleteAsyncQueryAndResultCollection(filterExpression);
-
+        try {
+            Date cleanupDate = dateUtil.calculateFilterDate(Calendar.DATE, queryCleanupDays);
+            PathElement createdOnPathElement = new PathElement(AsyncQuery.class, Long.class, "createdOn");
+            FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
+            asyncQueryDao.deleteAsyncQueryAndResultCollection(fltDeleteExp);
+        } catch (Exception e) {
+            log.error("Exception in scheduled cleanup: {}", e);
+        }
     }
 
     /**
      * This method updates the status of long running async query which
      * were interrupted due to host crash/app shutdown to TIMEDOUT.
      * */
-    @SuppressWarnings("unchecked")
     protected void timeoutAsyncQuery() {
 
-        String filterDateFormatted = evaluateFormattedFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
-        String filterExpression = "status=in=(" + QueryStatus.PROCESSING.toString() + ","
-                + QueryStatus.QUEUED.toString() + ");createdOn=le='" + filterDateFormatted + "'";
-
-        asyncQueryDao.updateStatusAsyncQueryCollection(filterExpression, QueryStatus.TIMEDOUT);
-    }
-
-    /**
-     * Evaluates and subtracts the amount based on the calendar unit and amount from current date.
-     * @param calendarUnit Enum such as Calendar.DATE or Calendar.MINUTE
-     * @param amount Amount of days to be subtracted from current time
-     * @return formatted filter date
-     */
-     private String evaluateFormattedFilterDate(int calendarUnit, int amount) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.add(calendarUnit, -(amount));
-        Date filterDate = cal.getTime();
-        Format dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-        String filterDateFormatted = dateFormat.format(filterDate);
-        log.debug("FilterDateFormatted = {}", filterDateFormatted);
-        return filterDateFormatted;
+        try {
+            Date filterDate = dateUtil.calculateFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
+            PathElement createdOnPathElement = new PathElement(AsyncQuery.class, Long.class, "createdOn");
+            PathElement statusPathElement = new PathElement(AsyncQuery.class, String.class, "status");
+            List<QueryStatus> statusList = new ArrayList<QueryStatus>();
+            statusList.add(QueryStatus.PROCESSING);
+            statusList.add(QueryStatus.QUEUED);
+            FilterPredicate inPredicate = new InPredicate(statusPathElement, statusList);
+            FilterPredicate lePredicate = new LEPredicate(createdOnPathElement, filterDate);
+            AndFilterExpression fltTimeoutExp = new AndFilterExpression(inPredicate, lePredicate);
+            asyncQueryDao.updateStatusAsyncQueryCollection(fltTimeoutExp, QueryStatus.TIMEDOUT);
+        } catch (Exception e) {
+            log.error("Exception in scheduled cleanup: {}", e);
+        }
     }
 }
