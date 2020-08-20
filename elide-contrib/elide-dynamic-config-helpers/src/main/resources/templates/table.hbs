@@ -52,11 +52,9 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%#each dimensions%>
 
 <%#ifTypeMatches type "TIME"%>
-    @Temporal(grains = {
-    <%#each grains%>
-            @TimeGrainDefinition(grain = TimeGrain.<%grain%>, expression = "<%sql%>")<%#if @last%><%else%>, <%/if%>
-    <%/each%>
-    }, timeZone = "UTC")
+<%#with grain%>
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.<%type%>, expression = "<%sql%>"), timeZone = "UTC")
+<%/with%>
 <%/ifTypeMatches%>
 
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>

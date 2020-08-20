@@ -41,21 +41,20 @@
                 "name" : "createdOn",
                 "type" : "TIME",
                 "definition" : "create_on",
-                "grains":[{
+                "grain": {
 
-                    "grain": "MONTH",
-                    "sql": "PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')"
-                 }]
+                    "type": "DATE",
+                    "sql": "PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"
+                }
                 },
                 {
                 "name" : "createdOn",
                 "type" : "TIME",
                 "definition" : "create_on",
-                "grains":[{
-
-                    "grain": "MONTH",
-                    "sql": "PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')"
-                 }]
+                "grain": {
+                    "type": "DATE",
+                    "sql": "PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"
+                }
                 }
             ]
         }

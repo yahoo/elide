@@ -66,20 +66,13 @@ public class HandlebarsHydratorTest {
             + "           name : createdOn\n"
             + "           type : TIME\n"
             + "           definition : create_on\n"
-            + "           grains: [\n"
+            + "           grain:\n"
             + "            {\n"
-            + "             grain :  DAY\n"
+            + "             type :  DATE\n"
             + "             sql :  '''\n"
             + "             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n"
             + "             '''\n"
-            + "            },\n"
-            + "            {\n"
-            + "             grain :  MONTH\n"
-            + "             sql :  '''\n"
-            + "             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')\n"
-            + "             '''\n"
             + "            }\n"
-            + "           ]\n"
             + "         }\n"
             + "      ]\n"
             + "  }]\n"
@@ -150,13 +143,9 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "\n"
             + "\n"
-            + "    @Temporal(grains = {\n"
-            + "    \n"
-            + "            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = \"PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\"), \n"
-            + "    \n"
-            + "            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = \"PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')\")\n"
-            + "    \n"
-            + "    }, timeZone = \"UTC\")\n"
+            + "\n"
+            + "    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.DATE, expression = \"PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\"), timeZone = \"UTC\")\n"
+            + "\n"
             + "\n"
             + "\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
@@ -268,6 +257,7 @@ public class HandlebarsHydratorTest {
         Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
+        System.out.println(tableClasses.get(VALID_TABLE_JAVA_NAME));
         assertEquals(VALID_TABLE_JAVA, tableClasses.get(VALID_TABLE_JAVA_NAME));
     }
 
