@@ -19,7 +19,7 @@ import javax.persistence.PreUpdate;
 @MappedSuperclass
 public abstract class AsyncBase {
 
-    @Getter private Date createdOn = new Date();
+    @Getter @Setter private Date createdOn = new Date();
 
     @Getter @Setter private Date updatedOn = new Date();
 

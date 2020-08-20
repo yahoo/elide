@@ -102,7 +102,7 @@ public class ElideStandaloneTest {
             }
 
             @Override
-            public Integer getAsyncMaxRunTimeMinutes() {
+            public Integer getAsyncMaxRunTimeSeconds() {
                 return 30;
             }
 
