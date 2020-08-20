@@ -138,7 +138,9 @@ public class HandlebarsHydratorTest {
             + "    @Meta(description = \"countryIsoCode\", category=\"country detail\")\n"
             + "    \n"
             + "    @DimensionFormula(\"{{playerCountry.isoCode}}\")\n"
+            + "\n"
             + "    private String countryIsoCode;\n"
+            + "\n"
             + "\n"
             + "\n"
             + "\n"
@@ -152,7 +154,9 @@ public class HandlebarsHydratorTest {
             + "    @Meta(description = \"createdOn\")\n"
             + "    \n"
             + "    @DimensionFormula(\"create_on\")\n"
-            + "    private Date createdOn;\n"
+            + "\n"
+            + "    private com.yahoo.elide.datastores.aggregation.timegrains.Date createdOn;\n"
+            + "\n"
             + "\n"
             + "\n"
             + "\n"
@@ -257,7 +261,6 @@ public class HandlebarsHydratorTest {
         Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
-        System.out.println(tableClasses.get(VALID_TABLE_JAVA_NAME));
         assertEquals(VALID_TABLE_JAVA, tableClasses.get(VALID_TABLE_JAVA_NAME));
     }
 
