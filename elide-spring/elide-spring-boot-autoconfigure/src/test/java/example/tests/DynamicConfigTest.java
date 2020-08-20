@@ -58,7 +58,7 @@ public class DynamicConfigTest extends IntegrationTest {
                                         id("0"),
                                         attributes(
                                                 attr("countryCode", "USA"),
-                                                attr("createdOn", "2000-10-01T00:00Z"),
+                                                attr("createdOn", "2000-10-01"),
                                                 attr("highScore", null),
                                                 attr("name", "SerenaWilliams")
                                         )
@@ -66,7 +66,7 @@ public class DynamicConfigTest extends IntegrationTest {
                         ).toJSON())
                 )
                 .statusCode(HttpStatus.SC_OK).extract().response().asString();
-        String apiGetViewExpected = "{\"data\":[{\"type\":\"playerStats\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-01T00:00Z\",\"highScore\":null,\"name\":\"SerenaWilliams\"}}]}";
+        String apiGetViewExpected = "{\"data\":[{\"type\":\"playerStats\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-01\",\"highScore\":null,\"name\":\"SerenaWilliams\"}}]}";
         assertEquals(apiGetViewExpected, apiGetViewRequest);
     }
 

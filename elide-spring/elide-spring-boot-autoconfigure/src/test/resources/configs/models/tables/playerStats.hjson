@@ -42,7 +42,7 @@
                 {
                     type :  DATE
                     sql :  '''
-                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+                    FORMATDATETIME({{}}, 'yyyy-MM-dd')
                     '''
                 }
             }
