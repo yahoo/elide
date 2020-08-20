@@ -81,8 +81,11 @@ public class AsyncQueryCancelThreadTest {
         when(cancelThread.getAsyncQueryDao().loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
         cancelThread.cancelAsyncQuery();
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
-        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any());
+        ArgumentCaptor<QueryStatus> statusCaptor = ArgumentCaptor.forClass(QueryStatus.class);
+        verify(asyncQueryDao, times(1)).loadAsyncQueryCollection(any());
+        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), statusCaptor.capture());
         assertEquals("asyncQuery.id IN [[edc4a871-dff2-4054-804e-d80075cf828d]]", filterCaptor.getValue().toString());
+        assertEquals("CANCEL_COMPLETE", statusCaptor.getValue().toString());
     }
 
     @Test
@@ -106,6 +109,7 @@ public class AsyncQueryCancelThreadTest {
         ArgumentCaptor<FilterExpression> fltStatusCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         verify(asyncQueryDao, times(1)).loadAsyncQueryCollection(fltStatusCaptor.capture());
         assertEquals("asyncQuery.status IN [[CANCELLED, PROCESSING, QUEUED]]", fltStatusCaptor.getValue().toString());
+        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(any(), any());
 
     }
 
@@ -127,8 +131,10 @@ public class AsyncQueryCancelThreadTest {
         when(cancelThread.getAsyncQueryDao().loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
         cancelThread.cancelAsyncQuery();
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
-        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any());
+        ArgumentCaptor<QueryStatus> statusCaptor = ArgumentCaptor.forClass(QueryStatus.class);
+        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), statusCaptor.capture());
         assertEquals("asyncQuery.id IN [[edc4a871-dff2-4054-804e-d80075cf827d]]", filterCaptor.getValue().toString());
+        assertEquals("CANCEL_COMPLETE", statusCaptor.getValue().toString());
 
     }
 

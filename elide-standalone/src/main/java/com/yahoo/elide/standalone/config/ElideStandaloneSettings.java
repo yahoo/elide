@@ -245,12 +245,12 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Number of seconds  between async query cancellation checks.
+     * Polling interval to identify async queries that should be canceled.
      *
-     * @return Default: 300
+     * @return Default: 10
      */
     default Integer getAsyncQueryCancelCheckIntervalSeconds() {
-        return 300;
+        return 10;
     }
 
     /**
