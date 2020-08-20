@@ -43,8 +43,8 @@
            type : TIME
            definition : create_on
            grain:
-            {
-             type :  DATE
+           {
+             type :  SIMPLEDATE
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''

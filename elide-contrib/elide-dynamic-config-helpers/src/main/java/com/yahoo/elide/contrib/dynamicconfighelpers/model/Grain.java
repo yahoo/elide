@@ -43,7 +43,7 @@ public class Grain {
 
     public enum GrainType {
 
-        DATE("DATE"),
+        SIMPLEDATE("SIMPLEDATE"),
         DATETIME("DATETIME");
 
         private final String value;

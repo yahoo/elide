@@ -14,7 +14,7 @@
           "type": "string",
           "enum": [
             "DATETIME",
-            "DATE"
+            "SIMPLEDATE"
           ]
         },
         "sql": {

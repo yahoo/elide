@@ -22,6 +22,7 @@ public class HandlebarsHelper {
     private static final String EMPTY_STRING = "";
     private static final String STRING = "String";
     private static final String DATE = "Date";
+    private static final String SIMPLEDATE = "SimpleDate";
     private static final String DATETIME = "DateTime";
     private static final String BIGDECIMAL = "BigDecimal";
     private static final String LONG = "Long";
@@ -133,8 +134,8 @@ public class HandlebarsHelper {
         switch (grain.getType()) {
             case DATETIME:
                 return DATETIME;
-            case DATE:
-                return DATE;
+            case SIMPLEDATE:
+                return SIMPLEDATE;
             default:
                 return DATE;
         }
