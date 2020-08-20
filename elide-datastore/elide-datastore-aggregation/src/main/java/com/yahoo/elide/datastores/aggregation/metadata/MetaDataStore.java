@@ -148,7 +148,6 @@ public class MetaDataStore extends HashMapDataStore {
         addMetaData(column);
 
         if (column instanceof TimeDimension) {
-            //((TimeDimension) column).getSupportedGrains().forEach(this::addTimeDimensionGrain);
             addTimeDimensionGrain(((TimeDimension) column).getSupportedGrain());
         } else if (column instanceof Metric) {
             addMetricFunction(((Metric) column).getMetricFunction());

@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.request.Argument;
@@ -47,13 +46,6 @@ public interface TimeDimensionProjection extends ColumnProjection<TimeDimension>
      * @return a new projection
      */
     default TimeDimensionProjection toTimeGrain(TimeGrain newGrain) {
-        /*if (getColumn().getSupportedGrains().stream()
-                .noneMatch(supportedGrain -> supportedGrain.getGrain().equals(newGrain))) {
-            throw new InvalidValueException(getColumn().getId() + " doesn't support grain " + newGrain);
-        }*/
-        if (!getColumn().getSupportedGrain().getGrain().equals(newGrain)) {
-            throw new InvalidValueException(getColumn().getId() + " doesn't support grain " + newGrain);
-        }
 
         TimeDimensionProjection projection = this;
 

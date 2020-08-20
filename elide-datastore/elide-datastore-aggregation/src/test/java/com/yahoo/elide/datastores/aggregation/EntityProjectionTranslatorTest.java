@@ -114,26 +114,4 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
         assertEquals("recordedDate", timeDimensions.get(0).getAlias());
         assertEquals(TimeGrain.DATE, timeDimensions.get(0).getGrain());
     }
-
-    // Arguments not supported
-    /*@Test
-    public void testUnsupportedTimeGrain() {
-        EntityProjection projection = basicProjection.copyOf()
-                .attribute(Attribute.builder()
-                        .type(Date.class)
-                        .name("recordedDate")
-                        .argument(Argument.builder()
-                                .name("grain")
-                                .value("year")
-                                .build())
-                        .build())
-                .build();
-
-        assertThrows(InvalidOperationException.class, () -> new EntityProjectionTranslator(
-                engine,
-                playerStatsTable,
-                projection,
-                dictionary
-        ));
-    }*/
 }

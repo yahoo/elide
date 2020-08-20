@@ -63,28 +63,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
                                       SQLReferenceTable referenceTable,
                                       String alias,
                                       Map<String, Argument> arguments) {
-
-        //Argument grainArgument = arguments.get("grain");
-
-        TimeDimensionGrain resolvedGrain;
-        /*if (grainArgument == null) {
-            //The first grain is the default.
-            resolvedGrain = column.getSupportedGrains().stream()
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            String.format("Requested default grain, no grain defined on %s", column.getName())));
-        } else {
-            String requestedGrainName = grainArgument.getValue().toString().toLowerCase(Locale.ENGLISH);
-
-            resolvedGrain = column.getSupportedGrains().stream()
-                    .filter(supportedGrain -> supportedGrain.getGrain().name().toLowerCase(Locale.ENGLISH)
-                    .equals(requestedGrainName))
-                    .findFirst()
-                    .orElseThrow(() -> new InvalidOperationException(String.format("Unsupported grain %s for field %s",
-                            requestedGrainName,
-                            column.getName())));
-        }*/
-
+        //TODO remove arguments
         this.column = column;
         this.referenceTable = referenceTable;
         this.arguments = arguments;
