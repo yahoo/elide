@@ -105,7 +105,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         ElideSettings elideSettings) {
         this(null, path, jsonApiDocument, transaction, user, queryParams, elideSettings);
     }
-    
     /**
      * Create a new RequestScope with specified update status code.
      *
