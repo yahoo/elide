@@ -16,6 +16,7 @@ import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -90,7 +91,7 @@ public class IncludedProcessor implements DocumentProcessor {
         Set<PersistentResource> collection;
         Relationship relationship = projection.getRelationship(relation).orElseThrow(IllegalStateException::new);
         try {
-            collection = rec.getRelationCheckedFiltered(relationship);
+            collection = rec.getRelationCheckedFiltered(relationship).toList(LinkedHashSet::new).blockingGet();
 
         } catch (ForbiddenAccessException e) {
             return;
