@@ -14,5 +14,6 @@ public enum QueryStatus {
     PROCESSING,
     CANCELLED,
     TIMEDOUT,
-    FAILURE
+    FAILURE,
+    CANCEL_COMPLETE
 }
