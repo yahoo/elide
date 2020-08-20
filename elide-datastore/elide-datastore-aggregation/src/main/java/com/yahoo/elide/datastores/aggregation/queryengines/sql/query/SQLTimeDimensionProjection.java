@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
@@ -17,7 +16,6 @@ import com.yahoo.elide.request.Argument;
 import lombok.Value;
 
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -66,10 +64,10 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
                                       String alias,
                                       Map<String, Argument> arguments) {
 
-        Argument grainArgument = arguments.get("grain");
+        //Argument grainArgument = arguments.get("grain");
 
         TimeDimensionGrain resolvedGrain;
-        if (grainArgument == null) {
+        /*if (grainArgument == null) {
             //The first grain is the default.
             resolvedGrain = column.getSupportedGrains().stream()
                     .findFirst()
@@ -85,13 +83,13 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
                     .orElseThrow(() -> new InvalidOperationException(String.format("Unsupported grain %s for field %s",
                             requestedGrainName,
                             column.getName())));
-        }
+        }*/
 
         this.column = column;
         this.referenceTable = referenceTable;
         this.arguments = arguments;
         this.alias = alias;
-        this.grain = resolvedGrain;
+        this.grain = column.getSupportedGrain();;
         this.timeZone = timeZone;
     }
 

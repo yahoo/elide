@@ -5,22 +5,32 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
-import java.time.Period;
+//import java.time.Period;
 
 /**
  * {@link TimeGrain} is a set of concrete {@link TimeGrain} implementations which support "natural" time buckets.
  */
 public enum TimeGrain {
 
-    DAY(Period.ofDays(1)),
-    WEEK(Period.ofWeeks(1)),
-    MONTH(Period.ofMonths(1)),
-    YEAR(Period.ofYears(1))
+    DATE("yyyy-MM-dd"),
+    DATETIME("yyyy-MM-dd HH:mm:ss")
     ;
 
-    private final Period period;
+    private final String format;
 
-    TimeGrain(final Period period) {
-        this.period = period;
+    TimeGrain(final String format) {
+        this.format = format;
     }
+
+    /*DATE(Period.ofDays(1)),
+    DATETIME(Period.ofWeeks(1)),
+    MONTH(Period.ofMonths(1)),
+    YEAR(Period.ofYears(1))
+    ;*/
+
+    //private final Period period;
+
+    //TimeGrain(final Period period) {
+    //    this.period = period;
+    //}
 }

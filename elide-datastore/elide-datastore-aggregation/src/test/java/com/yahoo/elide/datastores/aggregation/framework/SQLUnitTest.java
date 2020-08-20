@@ -367,7 +367,8 @@ public abstract class SQLUnitTest {
         return engine.constructTimeDimensionProjection(
                 dimension,
                 dimension.getName(),
-                Collections.singletonMap("grain", Argument.builder().name("grain").value(grain).build()));
+                Collections.emptyMap());
+                //Collections.singletonMap("grain", Argument.builder().name("grain").value(grain).build()));
     }
 
     public static MetricProjection invoke(Metric metric) {

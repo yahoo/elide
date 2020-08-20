@@ -23,10 +23,12 @@ public class TimeDimensionGrain {
     @Id String id;
     TimeGrain grain;
     String expression;
+    String format;
 
     public TimeDimensionGrain(String fieldName, TimeGrainDefinition definition) {
         this.id = fieldName + "." + definition.grain().name().toLowerCase(Locale.ENGLISH);
         this.grain = definition.grain();
         this.expression = definition.expression();
+        this.format = definition.grain().toString();
     }
 }

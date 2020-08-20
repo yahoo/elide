@@ -6,9 +6,7 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -19,7 +17,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
@@ -115,10 +112,11 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
         List<TimeDimensionProjection> timeDimensions = new ArrayList<>(query.getTimeDimensions());
         assertEquals(1, timeDimensions.size());
         assertEquals("recordedDate", timeDimensions.get(0).getAlias());
-        assertEquals(TimeGrain.DAY, timeDimensions.get(0).getGrain());
+        assertEquals(TimeGrain.DATE, timeDimensions.get(0).getGrain());
     }
 
-    @Test
+    // Arguments not supported
+    /*@Test
     public void testUnsupportedTimeGrain() {
         EntityProjection projection = basicProjection.copyOf()
                 .attribute(Attribute.builder()
@@ -137,5 +135,5 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 projection,
                 dictionary
         ));
-    }
+    }*/
 }
