@@ -82,11 +82,12 @@ public class QueryRunner {
 
     /**
      * Execute a GraphQL query and return the response.
+     * @param baseUrlEndPoint base URL with prefix endpoint
      * @param graphQLDocument The graphQL document (wrapped in JSON payload).
      * @param user The user who issued the query.
      * @return The response.
      */
-    public ElideResponse run(String graphQLDocument, Object user) {
+    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, Object user) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -101,7 +102,7 @@ public class QueryRunner {
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(mapper, user, graphQLDocument, node);
+                (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user, graphQLDocument, node);
 
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
@@ -139,12 +140,16 @@ public class QueryRunner {
         return executeRequest.apply(topLevel);
     }
 
-    private ElideResponse executeGraphQLRequest(ObjectMapper mapper, Object principal,
-                                                String graphQLDocument, JsonNode jsonDocument) {
+    private ElideResponse executeGraphQLRequest(String baseUrlEndPoint,
+                                                ObjectMapper mapper,
+                                                Object principal,
+                                                String graphQLDocument,
+                                                JsonNode jsonDocument) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             final User user = tx.accessUser(principal);
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, elide.getElideSettings());
+            GraphQLRequestScope requestScope = new GraphQLRequestScope(
+                    baseUrlEndPoint, tx, user, elide.getElideSettings());
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             if (!jsonDocument.has(QUERY)) {

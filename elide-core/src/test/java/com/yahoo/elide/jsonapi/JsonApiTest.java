@@ -14,6 +14,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.DefaultJSONApiLinks;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -61,12 +62,13 @@ public class JsonApiTest {
         dictionary.bindInitializer(Parent::doInit, Parent.class);
         mapper = new JsonApiMapper(dictionary);
         AuditLogger testLogger = new TestAuditLogger();
-        userScope = new RequestScope(null, new JsonApiDocument(),
+        userScope = new RequestScope("http://localhost:8080/json/", null, new JsonApiDocument(),
                 mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS), new User(0), null,
                 new ElideSettingsBuilder(null)
                         .withJsonApiMapper(mapper)
                         .withAuditLogger(testLogger)
                         .withEntityDictionary(dictionary)
+                        .withJSONApiLinks(new DefaultJSONApiLinks())
                         .build());
     }
 
@@ -91,7 +93,18 @@ public class JsonApiTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource()));
 
-        String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":null},\"relationships\":{\"children\":{\"data\":[]},\"spouses\":{\"data\":[]}}}}";
+        String expected = "{\"data\":{"
+                + "\"type\":\"parent\","
+                + "\"id\":\"123\","
+                + "\"attributes\":{\"firstName\":null},"
+                + "\"relationships\":{"
+                +   "\"children\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
+                +       "\"data\":[]},"
+                +   "\"spouses\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
+                +       "\"data\":[]}},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}}}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -115,7 +128,18 @@ public class JsonApiTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource()));
 
-        String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}}";
+        String expected = "{\"data\":{"
+                + "\"type\":\"parent\","
+                + "\"id\":\"123\","
+                + "\"attributes\":{\"firstName\":\"bob\"},"
+                + "\"relationships\":{"
+                +   "\"children\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
+                +       "\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},"
+                +   "\"spouses\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
+                +       "\"data\":[]}},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}}}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -142,7 +166,30 @@ public class JsonApiTest {
         jsonApiDocument.setData(new Data<>(pRec.toResource()));
         jsonApiDocument.addIncluded(new PersistentResource<>(child, pRec, userScope.getUUIDFor(child), userScope).toResource());
 
-        String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}},\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
+        String expected = "{\"data\":{"
+                + "\"type\":\"parent\","
+                + "\"id\":\"123\","
+                + "\"attributes\":{\"firstName\":\"bob\"},"
+                + "\"relationships\":{"
+                +   "\"children\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
+                +       "\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},"
+                +   "\"spouses\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
+                +       "\"data\":[]}},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}},"
+                + "\"included\":[{"
+                +   "\"type\":\"child\","
+                +   "\"id\":\"2\","
+                +   "\"attributes\":{\"name\":null},"
+                +   "\"relationships\":{"
+                +       "\"friends\":{"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/friends\",\"related\":\"http://localhost:8080/json/parent/123child/2/friends\"},"
+                +           "\"data\":[]},"
+                +       "\"parents\":{"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/parents\",\"related\":\"http://localhost:8080/json/parent/123child/2/parents\"},"
+                +           "\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}},"
+                +   "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2\"}}]}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -168,7 +215,18 @@ public class JsonApiTest {
         jsonApiDocument.setData(
             new Data<>(Collections.singletonList(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource())));
 
-        String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}]}";
+        String expected = "{\"data\":[{"
+                + "\"type\":\"parent\","
+                + "\"id\":\"123\","
+                + "\"attributes\":{\"firstName\":\"bob\"},"
+                + "\"relationships\":{"
+                +   "\"children\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
+                +       "\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},"
+                +   "\"spouses\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
+                +       "\"data\":[]}},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}}]}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -197,7 +255,31 @@ public class JsonApiTest {
         // duplicate will be ignored
         jsonApiDocument.addIncluded(new PersistentResource<>(child, pRec, userScope.getUUIDFor(child), userScope).toResource());
 
-        String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}],\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
+        String expected = "{\"data\":[{"
+                + "\"type\":\"parent\","
+                + "\"id\":\"123\","
+                + "\"attributes\":{\"firstName\":\"bob\"},"
+                + "\"relationships\":{"
+                +   "\"children\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/children\",\"related\":\"http://localhost:8080/json/parent/123/children\"},"
+                +       "\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},"
+                +   "\"spouses\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/relationships/spouses\",\"related\":\"http://localhost:8080/json/parent/123/spouses\"},"
+                +       "\"data\":[]}},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/parent/123\"}}],"
+                + "\"included\":[{"
+                +   "\"type\":\"child\","
+                +   "\"id\":\"2\","
+                +   "\"attributes\":{\"name\":null},"
+                +   "\"relationships\":{"
+                +       "\"friends\":{"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/friends\",\"related\":\"http://localhost:8080/json/parent/123child/2/friends\"},"
+                +           "\"data\":[]},"
+                +       "\"parents\":{"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/parents\",\"related\":\"http://localhost:8080/json/parent/123child/2/parents\"},"
+                +           "\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}},"
+                +   "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2\"}}]"
+                + "}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);

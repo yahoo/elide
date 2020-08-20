@@ -14,6 +14,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.include;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.links;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.patchOperation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.patchSet;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
@@ -318,6 +319,75 @@ public class JsonApiDSLTest {
                         resource(
                                 type("child"),
                                 id("2")
+                        )
+                )
+        ).toJSON();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void verifyRequestWithLinks() {
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\",\"attributes\":"
+                + "{\"title\":\"Why You Should use Elide\",\"date\":\"2019-01-01\"},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/api/v1/blog/1\"}}}";
+
+        String actual = datum(
+                resource(
+                        type("blog"),
+                        id("1"),
+                        attributes(
+                                attr("title", "Why You Should use Elide"),
+                                attr("date", "2019-01-01")
+                        ),
+                        links(
+                                attr("self", "http://localhost:8080/json/api/v1/blog/1")
+                        )
+                )
+        ).toJSON();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void verifyRequestWithLinksRelationship() {
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\",\"attributes\":"
+                + "{\"title\":\"Why You Should use Elide\"},"
+                + "\"relationships\":{"
+                +   "\"author\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/api/v1/blog/1/relationships/author\",\"related\":\"http://localhost:8080/json/api/v1/blog/1/author\"},"
+                +       "\"data\":[{\"type\":\"author\",\"id\":\"1\"}]"
+                +   "},"
+                +   "\"comments\":{"
+                +       "\"links\":{\"self\":\"http://localhost:8080/json/api/v1/blog/1/relationships/comments\",\"related\":\"http://localhost:8080/json/api/v1/blog/1/comments\"},"
+                +       "\"data\":[]"
+                +   "}},"
+                + "\"links\":{\"self\":\"http://localhost:8080/json/api/v1/blog/1\"}}}";
+
+        String actual = datum(
+                resource(
+                        type("blog"),
+                        id("1"),
+                        attributes(
+                                attr("title", "Why You Should use Elide")
+                        ),
+                        links(
+                                attr("self", "http://localhost:8080/json/api/v1/blog/1")
+                        ),
+                        relationships(
+                                relation("author",
+                                        links(
+                                                attr("self", "http://localhost:8080/json/api/v1/blog/1/relationships/author"),
+                                                attr("related", "http://localhost:8080/json/api/v1/blog/1/author")
+                                        ),
+                                        linkage(type("author"), id("1"))
+                                ),
+                                relation("comments",
+                                        links(
+                                                attr("self", "http://localhost:8080/json/api/v1/blog/1/relationships/comments"),
+                                                attr("related", "http://localhost:8080/json/api/v1/blog/1/comments")
+                                        )
+                                )
                         )
                 )
         ).toJSON();

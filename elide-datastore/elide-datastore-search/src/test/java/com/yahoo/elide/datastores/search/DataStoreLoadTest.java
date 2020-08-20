@@ -236,7 +236,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        Map<String, Sorting.SortOrder> sortRules = new HashMap<>();
         sortRules.put("name", Sorting.SortOrder.asc);
         sortRules.put("modifiedDate", Sorting.SortOrder.desc);
         Sorting sorting = new Sorting(sortRules);
@@ -254,7 +254,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        Map<String, Sorting.SortOrder> sortRules = new HashMap<>();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new Sorting(sortRules);
@@ -272,7 +272,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        Map<String, Sorting.SortOrder> sortRules = new HashMap<>();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new Sorting(sortRules);
@@ -294,7 +294,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        Map<String, Sorting.SortOrder> sortRules = new HashMap<>();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new Sorting(sortRules);

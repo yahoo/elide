@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.IterableUtils;
 
 import graphql.language.Field;
+import graphql.language.FragmentSpread;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
@@ -132,11 +133,25 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param environment Environment encapsulating graphQL's request environment
      */
     private void logContext(RelationshipOp operation, Environment environment) {
-        List<Field> children = (environment.field.getSelectionSet() != null)
+        List<?> children = (environment.field.getSelectionSet() != null)
                 ? (List) environment.field.getSelectionSet().getChildren()
                 : new ArrayList<>();
-        String requestedFields = environment.field.getName() + (children.size() > 0
-                ? "(" + children.stream().map(Field::getName).collect(Collectors.toList()) + ")" : "");
+
+        List<String> fieldName = new ArrayList<String>();
+        if (children.size() > 0) {
+            children.stream().forEach(i -> { if (i.getClass().equals(Field.class)) {
+                    fieldName.add(((Field) i).getName());
+                } else if (i.getClass().equals(FragmentSpread.class)) {
+                    fieldName.add(((FragmentSpread) i).getName());
+                } else {
+                    log.debug("A new type of Selection, other than Field and FragmentSpread was encountered, {}",
+                            i.getClass());
+                }
+            });
+        }
+
+        String requestedFields = environment.field.getName() + fieldName.toString();
+
         GraphQLType parent = environment.parentType;
         if (log.isDebugEnabled()) {
             log.debug("{} {} fields with parent {}<{}>",
@@ -385,6 +400,8 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
+        EntityDictionary dictionary = requestScope.getDictionary();
+
         PersistentResource<?> upsertedResource;
         PersistentResource<?> parentResource;
         if (!entity.getParentResource().isPresent()) {
@@ -394,8 +411,13 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         }
 
         if (!id.isPresent()) {
-            entity.setId();
-            id = entity.getId();
+
+            //If the ID is generated, it is safe to assign a temporary UUID.  Otherwise the client must provide one.
+            if (dictionary.isIdGenerated(entity.getEntityClass())) {
+                entity.setId(); //Assign a temporary UUID.
+                id = entity.getId();
+            }
+
             upsertedResource = PersistentResource.createObject(parentResource,
                     entity.getEntityClass(),
                     requestScope,

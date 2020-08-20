@@ -34,7 +34,7 @@ public abstract class CommonElideSettings implements ElideStandaloneSettings {
 
     @Override
     public Map<String, Swagger> enableSwagger() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap());
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
         dictionary.bindEntity(User.class);
         dictionary.bindEntity(Post.class);

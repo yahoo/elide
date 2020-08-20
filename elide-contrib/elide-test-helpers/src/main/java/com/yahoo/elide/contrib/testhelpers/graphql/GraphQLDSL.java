@@ -486,7 +486,7 @@ public final class GraphQLDSL {
      */
     public static Argument argument(String name, Object value, boolean quoted) {
         if (value instanceof String) {
-            value = quoted ? String.format("\"%s\"", value) : value;
+            value = quoted ? Field.quoteValue(value.toString()) : value;
             return new Argument(name, value);
         }
         // this is an object which needs to be Jackson-serialized

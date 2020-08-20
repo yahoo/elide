@@ -17,6 +17,9 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDef
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+
 import org.junit.jupiter.api.Test;
 
 public class GraphQLDSLTest {
@@ -117,6 +120,51 @@ public class GraphQLDSLTest {
                                 arguments(
                                         argument("sort", "-id", QUOTE_VALUE),
                                         argument("id", "5", QUOTE_VALUE)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void verifyRequestWithNonStringArguments() {
+        String expected = "{book(ids: [1,2] map: {key:\"value\"}) {edges {node {id title}}}}";
+
+        String actual = document(
+                selections(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("ids", new Long[]{ 1L, 2L }),
+                                        argument("map", ImmutableMap.of("key", "value"))
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void verifyRequestWithQuotedArgument() {
+        String expected = "{book(desc: \"has \\\"quotes\\\"\") {edges {node {id title}}}}";
+
+        String actual = document(
+                selections(
+                        field(
+                                "book",
+                                argument(
+                                        argument("desc", "has \"quotes\"", QUOTE_VALUE)
                                 ),
                                 selections(
                                         field("id"),
@@ -238,6 +286,27 @@ public class GraphQLDSLTest {
                                                         field("id", "1")
                                                 )
                                         )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        assertEquals(expected, actual);
+    }
+
+
+    @Test
+    public void verifyJsonStringField() {
+        String jsonField = new Gson().toJson(ImmutableMap.of("key", "value"));
+        String jsonNode = new Gson().toJson(ImmutableMap.of("json", jsonField));
+        String expected = "{\"data\":{\"container\":{\"edges\":[{\"node\":" + jsonNode + "}]}}}";
+
+        String actual = document(
+                selection(
+                        field(
+                                "container",
+                                selections(
+                                        field("json", jsonField)
                                 )
                         )
                 )

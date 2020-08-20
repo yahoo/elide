@@ -225,7 +225,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                  * return the proxy and let the ORM manage the SQL generation.
                  */
                 if (! filterExpression.isPresent() && ! sorting.isPresent()
-                    && (! pagination.isPresent() || (pagination.isPresent() && pagination.get().isDefaultInstance()))) {
+                    && (! pagination.isPresent() || pagination.get().isDefaultInstance())) {
                     return val;
                 }
 

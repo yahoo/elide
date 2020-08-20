@@ -30,7 +30,7 @@ import java.util.Properties;
 public class IntegrationTest {
     private ElideStandalone elide;
 
-    protected static final String JDBC_URL = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE";
+    protected static final String JDBC_URL = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1";
     protected static final String JDBC_USER = "sa";
     protected static final String JDBC_PASSWORD = "";
 

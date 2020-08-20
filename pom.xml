@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>4.6.7-SNAPSHOT</version>
+    <version>4.6.8-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -80,13 +80,13 @@
         <version.antlr4>4.8-1</version.antlr4>
         <version.logback>1.2.3</version.logback>
         <version.jetty>9.4.30.v20200611</version.jetty>
-        <version.restassured>4.3.0</version.restassured>
+        <version.restassured>4.3.1</version.restassured>
         <version.jackson>2.11.1</version.jackson>
         <version.jersey>2.31</version.jersey>
         <version.junit>5.6.2</version.junit>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <version.mysql>8.0.21</version.mysql>
-        <hibernate5.version>5.4.15.Final</hibernate5.version>
+        <hibernate5.version>5.4.18.Final</hibernate5.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
@@ -103,12 +103,12 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>4.6.7-SNAPSHOT</version>
+                <version>4.6.8-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-example-models</artifactId>
-                <version>4.6.7-SNAPSHOT</version>
+                <version>4.6.8-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -144,7 +144,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.10</version>
+                <version>3.11</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
@@ -215,13 +215,13 @@
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>1.4.199</version>
+                <version>1.4.200</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>3.3.3</version>
+                <version>3.4.4</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -309,7 +309,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>8.34</version>
+                            <version>8.35</version>
                             <scope>compile</scope>
                         </dependency>
                     </dependencies>
