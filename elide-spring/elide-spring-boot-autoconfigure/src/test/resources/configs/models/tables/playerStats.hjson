@@ -38,14 +38,13 @@
                 name : createdOn
                 type : TIME
                 definition : createdOn
-                grains: [
+                grain:
                 {
-                    grain :  MONTH
+                    type :  DATE
                     sql :  '''
-                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
                     '''
                 }
-                ]
             }
         ]
     }]
