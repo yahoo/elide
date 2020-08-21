@@ -5,8 +5,19 @@
  */
 package com.yahoo.elide.datastores.aggregation.framework;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
@@ -24,23 +35,34 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.request.Argument;
+import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
 
 import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -62,7 +84,221 @@ public abstract class SQLUnitTest {
 
     protected QueryEngine.Transaction transaction;
 
-    public static void init() {
+    // Standard set of test queries used in dialect tests
+    protected enum TestQuery {
+        WHERE_METRICS_ONLY (() -> {
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScoreNoAgg")))
+                    .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                    .whereFilter(new FilterPredicate(
+                            new Path(PlayerStats.class, dictionary, "highScoreNoAgg"),
+                            Operator.GT,
+                            Arrays.asList(9000)))
+                    .build();
+        }),
+        WHERE_DIMS_ONLY (() -> {
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .whereFilter(new FilterPredicate(
+                            new Path(PlayerStats.class, dictionary, "overallRating"),
+                            Operator.NOTNULL,
+                            new ArrayList<Object>()))
+                    .build();
+        }),
+        WHERE_METRICS_AND_DIMS (() -> {
+            FilterPredicate ratingFilter = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "overallRating"),
+                    Operator.NOTNULL, new ArrayList<Object>());
+            FilterPredicate highScoreFilter = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "highScore"),
+                    Operator.GT,
+                    Arrays.asList(9000));
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .whereFilter(new AndFilterExpression(ratingFilter, highScoreFilter))
+                    .build();
+        }),
+        WHERE_METRICS_OR_DIMS (() -> {
+            FilterPredicate ratingFilter = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "overallRating"),
+                    Operator.NOTNULL, new ArrayList<Object>());
+            FilterPredicate highScoreFilter = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "highScore"),
+                    Operator.GT,
+                    Arrays.asList(9000));
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .whereFilter(new OrFilterExpression(ratingFilter, highScoreFilter))
+                    .build();
+        }),
+        WHERE_METRICS_AGGREGATION (() -> {
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                    .whereFilter(new FilterPredicate(
+                            new Path(PlayerStats.class, dictionary, "highScore"),
+                            Operator.GT,
+                            Arrays.asList(9000)))
+                    .build();
+        }),
+        HAVING_METRICS_ONLY (() -> {
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScoreNoAgg")))
+                    .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                    .havingFilter(new FilterPredicate(
+                            new Path(PlayerStats.class, dictionary, "highScoreNoAgg"),
+                            Operator.GT,
+                            Arrays.asList(9000)))
+                    .build();
+        }),
+        HAVING_DIMS_ONLY (() -> {
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .havingFilter(new FilterPredicate(
+                            new Path(PlayerStats.class, dictionary, "overallRating"),
+                            Operator.NOTNULL,
+                            new ArrayList<Object>()))
+                    .build();
+        }),
+        HAVING_METRICS_AND_DIMS (() -> {
+            FilterPredicate ratingFilter = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "overallRating"),
+                    Operator.NOTNULL, new ArrayList<Object>());
+            FilterPredicate highScoreFilter = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "highScore"),
+                    Operator.GT,
+                    Arrays.asList(9000));
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .havingFilter(new AndFilterExpression(ratingFilter, highScoreFilter))
+                    .build();
+        }),
+        HAVING_METRICS_OR_DIMS (() -> {
+            FilterPredicate ratingFilter = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "overallRating"),
+                    Operator.NOTNULL, new ArrayList<Object>());
+            FilterPredicate highScoreFilter = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "highScore"),
+                    Operator.GT,
+                    Arrays.asList(9000));
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .havingFilter(new OrFilterExpression(ratingFilter, highScoreFilter))
+                    .build();
+        }),
+        PAGINATION_TOTAL (() -> {
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                    .pagination(new ImmutablePagination(0, 1, false, true))
+                    .build();
+        }),
+        SORT_METRIC_ASC (() -> {
+            Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+            sortMap.put("highScoreNoAgg", Sorting.SortOrder.asc);
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScoreNoAgg")))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .build();
+        }),
+        SORT_METRIC_DESC (() -> {
+            Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+            sortMap.put("highScoreNoAgg", Sorting.SortOrder.desc);
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScoreNoAgg")))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .build();
+        }),
+        SORT_DIM_DESC (() -> {
+            Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+            sortMap.put("overallRating", Sorting.SortOrder.desc);
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .build();
+        }),
+        SORT_METRIC_AND_DIM_DESC (() -> {
+            Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+            sortMap.put("highScore", Sorting.SortOrder.desc);
+            sortMap.put("overallRating", Sorting.SortOrder.desc);
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .build();
+        }),
+        SUBQUERY (() -> {
+            Table playerStatsViewTable = engine.getTable("playerStatsView");
+            return Query.builder()
+                    .table(playerStatsViewTable)
+                    .metric(invoke(playerStatsViewTable.getMetric("highScore")))
+                    .build();
+        }),
+        ORDER_BY_DIMENSION_NOT_IN_SELECT (() -> {
+            Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+            sortMap.put("overallRating", Sorting.SortOrder.desc);
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .build();
+        }),
+        COMPLICATED (() -> {
+            // Sorting
+            Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+            sortMap.put("highScoreNoAgg", Sorting.SortOrder.desc);
+            // WHERE filter
+            FilterPredicate predicate = new FilterPredicate(
+                    new Path(PlayerStats.class, dictionary, "highScoreNoAgg"),
+                    Operator.GT,
+                    Arrays.asList(9000));
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                    .pagination(new ImmutablePagination(0, 1, false, true))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .whereFilter(predicate)
+                    // force a join to look up countryIsoCode
+                    .havingFilter(parseFilterExpression("countryIsoCode==USA",
+                            PlayerStats.class, false))
+                    .build();
+        });
+
+        private Provider<Query> queryProvider;
+
+        TestQuery(Provider<Query> p) {
+            queryProvider = p;
+        }
+
+        public Query getQuery() {
+            return queryProvider.get();
+        }
+    }
+
+    protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
+
+    public static void init(SQLDialect sqlDialect) {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
@@ -86,7 +322,7 @@ public abstract class SQLUnitTest {
 
         metaDataStore.populateEntityDictionary(dictionary);
         Consumer<EntityManager> txCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
-        engine = new SQLQueryEngine(metaDataStore, emf, txCancel);
+        engine = new SQLQueryEngine(metaDataStore, emf, txCancel, sqlDialect);
 
         playerStatsTable = engine.getTable("playerStats");
 
@@ -105,6 +341,10 @@ public abstract class SQLUnitTest {
         USA.setName("United States");
         USA.setId("840");
         USA.setContinent(NA);
+    }
+
+    public static void init() {
+        init(new SQLDialectFactory().getDefaultDialect());
     }
 
     @BeforeEach
@@ -135,5 +375,50 @@ public abstract class SQLUnitTest {
     protected static List<Object> toList(Iterable<Object> data) {
         return StreamSupport.stream(data.spliterator(), false)
                 .collect(Collectors.toList());
+    }
+
+    /*
+     * Automatically convert a single expected string into a List with one element.
+     */
+    protected void compareQueryLists(String expected, List<String> actual) {
+        compareQueryLists(Arrays.asList(expected), actual);
+    }
+
+    /*
+     * Helper for comparing lists of queries.
+     */
+    protected void compareQueryLists(List<String> expected, List<String> actual) {
+        if (expected == null && actual == null) {
+            return;
+        } else if (expected == null) {
+            fail("Expected a null query List, but actual was non-null");
+        } else if (actual == null) {
+            fail("Expected a non-null query List, but actual was null");
+        }
+        assertEquals(expected.size(), actual.size(), "Query List sizes do not match");
+        for (int i = 0; i < expected.size(); i++) {
+            assertEquals(combineWhitespace(expected.get(i).trim()), combineWhitespace(actual.get(i).trim()));
+        }
+    }
+
+    /*
+     * Helper to remove repeated whitespace chars before comparing queries.
+     */
+    protected String combineWhitespace(String input) {
+        return repeatedWhitespacePattern.matcher(input).replaceAll(" ");
+    }
+
+    /*
+     * Helper that wraps parseFilterExpression and converts ParseException to IllegalStateException.
+     * Because this is for unit testing, the only time a ParseException should occur
+     * is when a test is incorrectly configured.
+     */
+    private static FilterExpression parseFilterExpression(String expressionText, Class<?> entityType,
+                                                          boolean allowNestedToManyAssociations) {
+        try {
+            return filterParser.parseFilterExpression(expressionText, entityType, allowNestedToManyAssociations);
+        } catch (ParseException pe) {
+            throw new IllegalStateException(pe);
+        }
     }
 }

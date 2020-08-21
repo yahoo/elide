@@ -25,6 +25,8 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLMetric;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -63,12 +65,19 @@ public class SQLQueryEngine extends QueryEngine {
     private final EntityManagerFactory entityManagerFactory;
     private final Consumer<EntityManager> transactionCancel;
     private final SQLReferenceTable referenceTable;
+    private final SQLDialect dialect;
 
     public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory eMFactory, Consumer<EntityManager> txC) {
+        this(metaDataStore, eMFactory, txC, SQLDialectFactory.getDefaultDialect());
+    }
+
+    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory eMFactory, Consumer<EntityManager> txC,
+                          SQLDialect sqlDialect) {
         super(metaDataStore);
         this.entityManagerFactory = eMFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
         this.transactionCancel = txC;
+        this.dialect = sqlDialect;
     }
 
     @Override
@@ -163,7 +172,7 @@ public class SQLQueryEngine extends QueryEngine {
         EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
 
         // Translate the query into SQL.
-        SQLQuery sql = toSQL(query);
+        SQLQuery sql = toSQL(query, dialect);
         String queryString = sql.toString();
         log.debug("SQL Query: " + queryString);
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(queryString);
@@ -192,7 +201,7 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     private long getPageTotal(Query query, SQLQuery sql, EntityManager entityManager) {
-        String paginationSQL = toPageTotalSQL(sql).toString();
+        String paginationSQL = toPageTotalSQL(sql, dialect).toString();
 
         javax.persistence.Query pageTotalQuery =
                 entityManager.createNativeQuery(paginationSQL)
@@ -229,17 +238,26 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public String explain(Query query) {
-        return toSQL(query).toString();
+    public List<String> explain(Query query) {
+        List<String> queries = new ArrayList<String>();
+        SQLQuery sql = toSQL(query, dialect);
+
+        Pagination pagination = query.getPagination();
+        if (pagination != null && pagination.returnPageTotals()) {
+            queries.add(toPageTotalSQL(sql, dialect).toString());
+        }
+        queries.add(sql.toString());
+        return queries;
     }
 
     /**
      * Translates the client query into SQL.
      *
      * @param query the client query.
+     * @param sqlDialect the SQL dialect.
      * @return the SQL query.
      */
-    private SQLQuery toSQL(Query query) {
+    private SQLQuery toSQL(Query query, SQLDialect sqlDialect) {
         Set<ColumnProjection> groupByDimensions = new LinkedHashSet<>(query.getGroupByDimensions());
         Set<TimeDimensionProjection> timeDimensions = new LinkedHashSet<>(query.getTimeDimensions());
 
@@ -255,7 +273,7 @@ public class SQLQueryEngine extends QueryEngine {
                 .reduce(SQLQueryTemplate::merge)
                 .orElse(new SQLQueryTemplate(query));
 
-        return new SQLQueryConstructor(referenceTable).resolveTemplate(
+        return new SQLQueryConstructor(referenceTable, sqlDialect).resolveTemplate(
                 query,
                 queryTemplate,
                 query.getSorting(),
@@ -297,9 +315,10 @@ public class SQLQueryEngine extends QueryEngine {
      * query.
      *
      * @param sql The original query
+     * @param sqlDialect the SQL dialect
      * @return A new query that returns the total number of records.
      */
-    private SQLQuery toPageTotalSQL(SQLQuery sql) {
+    private SQLQuery toPageTotalSQL(SQLQuery sql, SQLDialect sqlDialect) {
         // TODO: refactor this method
         String groupByDimensions =
                 extractSQLDimensions(sql.getClientQuery(), sql.getClientQuery().getTable())
@@ -309,7 +328,7 @@ public class SQLQueryEngine extends QueryEngine {
                                 dimension.getName()))
                         .collect(Collectors.joining(", "));
 
-        String projectionClause = String.format("COUNT(DISTINCT(%s))", groupByDimensions);
+        String projectionClause = sqlDialect.generateCountDistinctClause(groupByDimensions);
 
         return SQLQuery.builder()
                 .clientQuery(sql.getClientQuery())
@@ -317,6 +336,7 @@ public class SQLQueryEngine extends QueryEngine {
                 .fromClause(sql.getFromClause())
                 .joinClause(sql.getJoinClause())
                 .whereClause(sql.getWhereClause())
+                .havingClause(sql.getHavingClause())
                 .build();
     }
 
