@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.Optional;
 
 
 /**
@@ -144,10 +143,13 @@ public class HibernateTransaction implements DataStoreTransaction {
                     ? new AndFilterExpression(filterExpression, idExpression)
                     : idExpression;
 
-            QueryWrapper query =
-                    (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)
-                    .withPossibleFilterExpression(Optional.of(joinedExpression))
+            projection = projection
+                    .copyOf()
+                    .filterExpression(joinedExpression)
                     .build();
+
+            QueryWrapper query =
+                    (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, sessionWrapper).build();
 
             return query.getQuery().uniqueResult();
         } catch (ObjectNotFoundException e) {
@@ -159,18 +161,10 @@ public class HibernateTransaction implements DataStoreTransaction {
     public Iterable<Object> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
-
-
-        Class<?> entityClass = projection.getType();
         Pagination pagination = projection.getPagination();
-        FilterExpression filterExpression = projection.getFilterExpression();
-        Sorting sorting = projection.getSorting();
 
         final QueryWrapper query =
-                (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper)
-                        .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
-                        .withPossibleSorting(Optional.ofNullable(sorting))
-                        .withPossiblePagination(Optional.ofNullable(pagination))
+                (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, scope.getDictionary(), sessionWrapper)
                         .build();
 
         Iterable results;
@@ -186,8 +180,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (pagination != null) {
             //Issue #1429
             if (pagination.returnPageTotals() && (hasResults || pagination.getLimit() == 0)) {
-                pagination.setPageTotals(getTotalRecords(entityClass,
-                        Optional.ofNullable(filterExpression), scope.getDictionary()));
+                pagination.setPageTotals(getTotalRecords(projection, scope.getDictionary()));
             }
         }
 
@@ -220,25 +213,24 @@ public class HibernateTransaction implements DataStoreTransaction {
                     return val;
                 }
 
-                Class<?> relationClass = dictionary.getParameterizedType(entity, relation.getName());
-
                 RelationshipImpl relationship = new RelationshipImpl(
                         dictionary.lookupEntityClass(entity.getClass()),
-                        relationClass,
-                        relation.getName(),
                         entity,
-                        filteredVal);
+                        relation
+                );
 
                 if (pagination != null && pagination.returnPageTotals()) {
-                    pagination.setPageTotals(getTotalRecords(relationship,
-                            Optional.ofNullable(filterExpression), scope.getDictionary()));
+                    pagination.setPageTotals(getTotalRecords(
+                            relationship,
+                            scope.getDictionary())
+                    );
                 }
 
                 final QueryWrapper query =
-                    (QueryWrapper) new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper)
-                                .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
-                                .withPossibleSorting(Optional.ofNullable(sorting))
-                                .withPossiblePagination(Optional.ofNullable(pagination))
+                    (QueryWrapper) new SubCollectionFetchQueryBuilder(
+                            relationship,
+                            dictionary,
+                            sessionWrapper)
                                 .build();
 
                 if (query != null) {
@@ -251,38 +243,35 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     /**
      * Returns the total record count for a root entity and an optional filter expression.
-     * @param entityClass The entity type to count
-     * @param filterExpression optional security and request filters
+     * @param entityProjection The entity projection to count
      * @param <T> The type of entity
      * @return The total row count.
      */
-    private <T> Long getTotalRecords(Class<T> entityClass,
-                                     Optional<FilterExpression> filterExpression,
+    private <T> Long getTotalRecords(EntityProjection entityProjection,
                                      EntityDictionary dictionary) {
 
         QueryWrapper query =
-                (QueryWrapper) new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, sessionWrapper)
-                        .withPossibleFilterExpression(filterExpression)
-                        .build();
+                (QueryWrapper) new RootCollectionPageTotalsQueryBuilder(entityProjection,
+                        dictionary, sessionWrapper).build();
 
         return (Long) query.getQuery().uniqueResult();
     }
 
     /**
-     * Returns the total record count for a entity relationship
+     * Returns the total record count for a entity relationship.
      * @param relationship The relationship to count
-     * @param filterExpression optional security and request filters
      * @param <T> The type of entity
      * @return The total row count.
      */
     private <T> Long getTotalRecords(AbstractHQLQueryBuilder.Relationship relationship,
-                                     Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
 
         QueryWrapper query =
-                (QueryWrapper) new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper)
-                        .withPossibleFilterExpression(filterExpression)
-                        .build();
+                (QueryWrapper) new SubCollectionPageTotalsQueryBuilder(
+                        relationship,
+                        dictionary,
+                        sessionWrapper
+                ).build();
 
         return (Long) query.getQuery().uniqueResult();
     }

@@ -11,9 +11,11 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
+import com.yahoo.elide.request.EntityProjection;
 
 import java.util.Collection;
 
@@ -22,13 +24,10 @@ import java.util.Collection;
  */
 public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
-    private Class<?> entityClass;
-
-    public RootCollectionFetchQueryBuilder(Class<?> entityClass,
+    public RootCollectionFetchQueryBuilder(EntityProjection entityProjection,
                                            EntityDictionary dictionary,
                                            Session session) {
-        super(dictionary, session);
-        this.entityClass = dictionary.lookupEntityClass(entityClass);
+        super(entityProjection, dictionary, session);
     }
 
     /**
@@ -38,26 +37,30 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
      */
     @Override
     public Query build() {
+        Class<?> entityClass = this.entityProjection.getType();
         String entityName = entityClass.getCanonicalName();
         String entityAlias = getTypeAlias(entityClass);
 
         Query query;
-        if (filterExpression.isPresent()) {
+        FilterExpression filterExpression = entityProjection.getFilterExpression();
+        if (filterExpression != null) {
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
-            Collection<FilterPredicate> predicates = filterExpression.get().accept(extractor);
+            Collection<FilterPredicate> predicates = filterExpression.accept(extractor);
 
             //Build the WHERE clause
-            String filterClause = WHERE + new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
+            String filterClause = WHERE + new FilterTranslator().apply(filterExpression, USE_ALIAS);
 
             //Build the JOIN clause
-            String joinClause =  getJoinClauseFromFilters(filterExpression.get())
-                    + getJoinClauseFromSort(sorting)
+            String joinClause =  getJoinClauseFromFilters(filterExpression)
+                    + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(entityClass, entityAlias);
 
-            boolean requiresDistinct = pagination.isPresent() && containsOneToMany(filterExpression.get());
-            Boolean sortOverRelationship = sorting.map(sort -> sort.getSortingPaths().keySet()
-                            .stream().anyMatch(path -> path.getPathElements().size() > 1))
-                    .orElse(false);
+            boolean requiresDistinct = entityProjection.getPagination() != null
+                    && containsOneToMany(filterExpression);
+
+            Boolean sortOverRelationship = entityProjection.getSorting() != null
+                    && entityProjection.getSorting().getSortingPaths().keySet()
+                            .stream().anyMatch(path -> path.getPathElements().size() > 1);
             if (requiresDistinct && sortOverRelationship) {
                 //SQL does not support distinct and order by on columns which are not selected
                 throw new InvalidValueException("Combination of pagination, sorting over relationship and"
@@ -76,7 +79,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                         + SPACE
                         + filterClause
                         + SPACE
-                        + getSortClause(sorting)
+                        + getSortClause(entityProjection.getSorting())
             );
 
             //Fill in the query parameters
@@ -89,11 +92,11 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + AS
                     + entityAlias
                     + SPACE
-                    + getJoinClauseFromSort(sorting)
+                    + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(entityClass, entityAlias)
                     + explicitSortJoins(sorting, entityClass)
                     + SPACE
-                    + getSortClause(sorting));
+                    + getSortClause(entityProjection.getSorting()));
         }
 
         addPaginationToQuery(query);
