@@ -36,7 +36,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -171,9 +170,13 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     ? new AndFilterExpression(filterExpression, idExpression)
                     : idExpression;
 
+            projection = projection
+                    .copyOf()
+                    .filterExpression(joinedExpression)
+                    .build();
+
             QueryWrapper query =
-                    (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, emWrapper)
-                            .withPossibleFilterExpression(Optional.of(joinedExpression))
+                    (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, emWrapper)
                             .build();
 
             return query.getQuery().getSingleResult();
@@ -186,17 +189,10 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     public Iterable<Object> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
-
-        Class<?> entityClass = projection.getType();
         Pagination pagination = projection.getPagination();
-        FilterExpression filterExpression = projection.getFilterExpression();
-        Sorting sorting = projection.getSorting();
 
         QueryWrapper query =
-                (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper)
-                        .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
-                        .withPossibleSorting(Optional.ofNullable(sorting))
-                        .withPossiblePagination(Optional.ofNullable(pagination))
+                (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, scope.getDictionary(), emWrapper)
                         .build();
 
         List results = query.getQuery().getResultList();
@@ -204,8 +200,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         if (pagination != null) {
             //Issue #1429
             if (pagination.returnPageTotals() && (!results.isEmpty() || pagination.getLimit() == 0)) {
-                pagination.setPageTotals(getTotalRecords(entityClass,
-                    Optional.ofNullable(filterExpression), scope.getDictionary()));
+                pagination.setPageTotals(getTotalRecords(projection, scope.getDictionary()));
             }
         }
 
@@ -238,25 +233,18 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     return val;
                 }
 
-                Class<?> relationClass = dictionary.getParameterizedType(entity, relation.getName());
-
                 RelationshipImpl relationship = new RelationshipImpl(
                         dictionary.lookupEntityClass(entity.getClass()),
-                        relationClass,
-                        relation.getName(),
                         entity,
-                        filteredVal);
+                        relation
+                );
 
                 if (pagination != null && pagination.returnPageTotals()) {
-                    pagination.setPageTotals(getTotalRecords(relationship,
-                            Optional.ofNullable(filterExpression), scope.getDictionary()));
+                    pagination.setPageTotals(getTotalRecords(relationship, scope.getDictionary()));
                 }
 
                 QueryWrapper query = (QueryWrapper)
                         new SubCollectionFetchQueryBuilder(relationship, dictionary, emWrapper)
-                                .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
-                                .withPossibleSorting(Optional.ofNullable(sorting))
-                                .withPossiblePagination(Optional.ofNullable(pagination))
                                 .build();
 
                 if (query != null) {
@@ -270,21 +258,17 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     /**
      * Returns the total record count for a root entity and an optional filter expression.
      *
-     * @param entityClass      The entity type to count
-     * @param filterExpression optional security and request filters
+     * @param entityProjection The entity projection to count
      * @param dictionary       the entity dictionary
      * @param <T>              The type of entity
      * @return The total row count.
      */
-    private <T> Long getTotalRecords(Class<T> entityClass,
-                                     Optional<FilterExpression> filterExpression,
+    private <T> Long getTotalRecords(EntityProjection entityProjection,
                                      EntityDictionary dictionary) {
 
 
         QueryWrapper query = (QueryWrapper)
-                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, emWrapper)
-                        .withPossibleFilterExpression(filterExpression)
-                        .build();
+                new RootCollectionPageTotalsQueryBuilder(entityProjection, dictionary, emWrapper).build();
 
         return (Long) query.getQuery().getSingleResult();
     }
@@ -293,18 +277,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
      * Returns the total record count for a entity relationship.
      *
      * @param relationship     The relationship
-     * @param filterExpression optional security and request filters
      * @param dictionary       the entity dictionary
      * @param <T>              The type of entity
      * @return The total row count.
      */
     private <T> Long getTotalRecords(AbstractHQLQueryBuilder.Relationship relationship,
-                                     Optional<FilterExpression> filterExpression,
                                      EntityDictionary dictionary) {
 
         QueryWrapper query = (QueryWrapper)
                 new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, emWrapper)
-                        .withPossibleFilterExpression(filterExpression)
                         .build();
 
         return (Long) query.getQuery().getSingleResult();

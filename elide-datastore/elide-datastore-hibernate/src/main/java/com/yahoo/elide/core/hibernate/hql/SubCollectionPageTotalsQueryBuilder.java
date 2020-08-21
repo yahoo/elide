@@ -19,13 +19,10 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * Constructs a HQL query to fetch the size of a hibernate collection proxy.
@@ -37,18 +34,8 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
     public SubCollectionPageTotalsQueryBuilder(Relationship relationship,
                                                EntityDictionary dictionary,
                                                Session session) {
-        super(dictionary, session);
+        super(relationship.getRelationship().getProjection(), dictionary, session);
         this.relationship = relationship;
-    }
-
-    @Override
-    public AbstractHQLQueryBuilder withPossiblePagination(Optional<Pagination> ignored) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public AbstractHQLQueryBuilder withPossibleSorting(Optional<Sorting> ignored) {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -86,13 +73,16 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
         String parentAlias = getTypeAlias(parentType);
         String relationshipAlias = appendAlias(parentAlias, relationshipName);
 
-        if (filterExpression.isPresent()) {
+        FilterExpression filterExpression = entityProjection.getFilterExpression();
+        if (filterExpression != null) {
             // Copy and scope the filter expression for the join clause
             ExpressionScopingVisitor visitor = new ExpressionScopingVisitor(
                     new PathElement(parentType, relationship.getChildType(), relationship.getRelationshipName()));
-            FilterExpression scoped = filterExpression
-                    .map(fe -> fe.accept(visitor))
-                    .orElseThrow(() -> new IllegalStateException("Filter expression cloned to null"));
+            if (filterExpression == null) {
+                throw new IllegalStateException("Filter expression cloned to null");
+            }
+
+            FilterExpression scoped = filterExpression.accept(visitor);
 
             //For each filter predicate, prepend the predicate with the parent:
             //books.title = 'Foobar' becomes author.books.title = 'Foobar'

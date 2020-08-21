@@ -16,6 +16,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 
@@ -26,7 +27,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,10 +37,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractHQLQueryBuilder {
     protected final Session session;
     protected final EntityDictionary dictionary;
-
-    protected Optional<Sorting> sorting;
-    protected Optional<Pagination> pagination;
-    protected Optional<FilterExpression> filterExpression;
+    protected EntityProjection entityProjection;
     protected static final String SPACE = " ";
     protected static final String PERIOD = ".";
     protected static final String COMMA = ",";
@@ -61,42 +58,29 @@ public abstract class AbstractHQLQueryBuilder {
      * Represents a relationship between two entities.
      */
     public interface Relationship {
-        public Class<?> getParentType();
 
-        public Class<?> getChildType();
+        com.yahoo.elide.request.Relationship getRelationship();
 
-        public String getRelationshipName();
+        Class<?> getParentType();
 
-        public Object getParent();
+        default Class<?> getChildType() {
+            return getRelationship().getProjection().getType();
+        }
 
-        public Collection<?> getChildren();
+        default String getRelationshipName() {
+            return getRelationship().getName();
+        }
+
+        Object getParent();
     }
 
-    public AbstractHQLQueryBuilder(EntityDictionary dictionary, Session session) {
+    public AbstractHQLQueryBuilder(EntityProjection entityProjection, EntityDictionary dictionary, Session session) {
         this.session = session;
         this.dictionary = dictionary;
-
-        sorting = Optional.empty();
-        pagination = Optional.empty();
-        filterExpression = Optional.empty();
+        this.entityProjection = entityProjection;
     }
 
     public abstract Query build();
-
-    public AbstractHQLQueryBuilder withPossibleFilterExpression(Optional<FilterExpression> filterExpression) {
-        this.filterExpression = filterExpression;
-        return this;
-    }
-
-    public AbstractHQLQueryBuilder withPossibleSorting(final Optional<Sorting> possibleSorting) {
-        this.sorting = possibleSorting;
-        return this;
-    }
-
-    public AbstractHQLQueryBuilder withPossiblePagination(final Optional<Pagination> possiblePagination) {
-        this.pagination = possiblePagination;
-        return this;
-    }
 
     /**
      * Given a collection of filter predicates and a Hibernate query, populates the named parameters in the
@@ -146,7 +130,7 @@ public abstract class AbstractHQLQueryBuilder {
      * @param sorting the sort expression to extract a join clause from
      * @return an HQL join clause
      */
-    protected String getJoinClauseFromSort(Optional<Sorting> sorting) {
+    protected String getJoinClauseFromSort(Sorting sorting) {
         return getJoinClauseFromSort(sorting, false);
     }
 
@@ -156,9 +140,9 @@ public abstract class AbstractHQLQueryBuilder {
      * @param skipFetches JOIN but don't FETCH JOIN a relationship.
      * @return an HQL join clause
      */
-    protected String getJoinClauseFromSort(Optional<Sorting> sorting, boolean skipFetches) {
-        if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
-            Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getSortingPaths();
+    protected String getJoinClauseFromSort(Sorting sorting, boolean skipFetches) {
+        if (sorting != null && !sorting.isDefaultInstance()) {
+            Map<Path, Sorting.SortOrder> validSortingRules = sorting.getSortingPaths();
             return validSortingRules.keySet().stream()
                     .map(path -> extractJoinClause(path, skipFetches))
                     .collect(Collectors.joining(SPACE));
@@ -172,8 +156,8 @@ public abstract class AbstractHQLQueryBuilder {
      * @param query The HQL query object
      */
     protected void addPaginationToQuery(Query query) {
-        if (pagination.isPresent()) {
-            Pagination pagination = this.pagination.get();
+        Pagination pagination = entityProjection.getPagination();
+        if (pagination != null) {
             query.setFirstResult(pagination.getOffset());
             query.setMaxResults(pagination.getLimit());
         }
@@ -217,7 +201,8 @@ public abstract class AbstractHQLQueryBuilder {
             RelationshipType type = dictionary.getRelationshipType(pathElement.getType(), fieldName);
 
             //This is a to-One relationship belonging to the collection being retrieved.
-            if (!skipFetches && type.isToOne() && !type.isComputed() && previousAlias == null) {
+            if (!skipFetches && entityProjection.getIncludedRelationsName().contains(fieldName) && type.isToOne()
+                    && !type.isComputed() && previousAlias == null) {
                 fetch = "FETCH ";
 
             }
@@ -249,6 +234,9 @@ public abstract class AbstractHQLQueryBuilder {
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
         StringBuilder joinString = new StringBuilder("");
         for (String relationshipName : relationshipNames) {
+            if (!entityProjection.getIncludedRelationsName().contains(relationshipName)) {
+                continue;
+            }
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
             if (type.isToOne() && !type.isComputed()) {
                 if (skipRelation.apply(relationshipName)) {
@@ -274,10 +262,10 @@ public abstract class AbstractHQLQueryBuilder {
      * @param sorting The sorting object passed from the client
      * @return The sorting clause
      */
-    protected String getSortClause(final Optional<Sorting> sorting) {
+    protected String getSortClause(final Sorting sorting) {
         String sortingRules = "";
-        if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
-            final Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getSortingPaths();
+        if (sorting != null && !sorting.isDefaultInstance()) {
+            final Map<Path, Sorting.SortOrder> validSortingRules = sorting.getSortingPaths();
             if (!validSortingRules.isEmpty()) {
                 final List<String> ordering = new ArrayList<>();
                 // pass over the sorting rules
@@ -309,7 +297,7 @@ public abstract class AbstractHQLQueryBuilder {
     }
 
     /**
-     * Returns whether filter expression contains toMany relationship
+     * Returns whether filter expression contains toMany relationship.
      * @param filterExpression
      * @return
      */
