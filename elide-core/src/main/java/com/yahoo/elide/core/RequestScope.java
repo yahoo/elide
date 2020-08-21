@@ -87,6 +87,24 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
 
+   /**
+     * Create a new RequestScope with specified update status code.
+     *
+     * @param path the URL path
+     * @param jsonApiDocument the document for this request
+     * @param transaction the transaction for this request
+     * @param user the user making this request
+     * @param queryParams the query parameters
+     * @param elideSettings Elide settings object
+     */
+    public RequestScope(String path,
+                        JsonApiDocument jsonApiDocument,
+                        DataStoreTransaction transaction,
+                        User user,
+                        MultivaluedMap<String, String> queryParams,
+                        ElideSettings elideSettings) {
+        this(null, path, jsonApiDocument, transaction, user, queryParams, elideSettings);
+    }
     /**
      * Create a new RequestScope with specified update status code.
      *
