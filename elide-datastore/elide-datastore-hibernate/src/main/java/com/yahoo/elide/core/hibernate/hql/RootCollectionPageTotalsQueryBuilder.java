@@ -10,38 +10,24 @@ import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Sorting;
+import com.yahoo.elide.request.EntityProjection;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
 
 /**
  * Constructs a HQL query to fetch the size of a root collection.
  */
 public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder {
 
-    private Class<?> entityClass;
-
-    public RootCollectionPageTotalsQueryBuilder(Class<?> entityClass,
+    public RootCollectionPageTotalsQueryBuilder(EntityProjection entityProjection,
                                                 EntityDictionary dictionary,
                                                 Session session) {
-        super(dictionary, session);
-        this.entityClass = dictionary.lookupEntityClass(entityClass);
-    }
-
-    @Override
-    public AbstractHQLQueryBuilder withPossiblePagination(Optional<Pagination> ignored) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public AbstractHQLQueryBuilder withPossibleSorting(Optional<Sorting> ignored) {
-        throw new UnsupportedOperationException();
+        super(entityProjection, dictionary, session);
     }
 
     /**
@@ -56,6 +42,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
      */
     @Override
     public Query build() {
+        Class<?> entityClass = entityProjection.getType();
         String entityName = entityClass.getCanonicalName();
         String entityAlias = getTypeAlias(entityClass);
 
@@ -64,15 +51,16 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
         String filterClause;
         String joinClause;
 
-        if (filterExpression.isPresent()) {
+        FilterExpression filterExpression = entityProjection.getFilterExpression();
+        if (filterExpression != null) {
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
-            predicates = filterExpression.get().accept(extractor);
+            predicates = filterExpression.accept(extractor);
 
             //Build the WHERE clause
-            filterClause = WHERE + new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
+            filterClause = WHERE + new FilterTranslator().apply(filterExpression, USE_ALIAS);
 
             //Build the JOIN clause
-            joinClause =  getJoinClauseFromFilters(filterExpression.get(), true);
+            joinClause =  getJoinClauseFromFilters(filterExpression, true);
 
         } else {
             predicates = new HashSet<>();
