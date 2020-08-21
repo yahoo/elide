@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -270,22 +271,18 @@ public abstract class SQLUnitTest {
                     new Path(PlayerStats.class, dictionary, "highScoreNoAgg"),
                     Operator.GT,
                     Arrays.asList(9000));
-            try {
-                return Query.builder()
-                        .table(playerStatsTable)
-                        .metric(invoke(playerStatsTable.getMetric("highScore")))
-                        .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
-                        .pagination(new ImmutablePagination(0, 1, false, true))
-                        .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
-                        .whereFilter(predicate)
-                        // force a join to look up countryIsoCode
-                        .havingFilter(filterParser.parseFilterExpression("countryIsoCode==USA",
-                                PlayerStats.class, false))
-                        .build();
-            } catch (ParseException pe) {
-                throw new RuntimeException(pe);
-            }
+            return Query.builder()
+                    .table(playerStatsTable)
+                    .metric(invoke(playerStatsTable.getMetric("highScore")))
+                    .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                    .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                    .pagination(new ImmutablePagination(0, 1, false, true))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .whereFilter(predicate)
+                    // force a join to look up countryIsoCode
+                    .havingFilter(parseFilterExpression("countryIsoCode==USA",
+                            PlayerStats.class, false))
+                    .build();
         });
 
         private Provider<Query> queryProvider;
@@ -409,5 +406,19 @@ public abstract class SQLUnitTest {
      */
     protected String combineWhitespace(String input) {
         return repeatedWhitespacePattern.matcher(input).replaceAll(" ");
+    }
+
+    /*
+     * Helper that wraps parseFilterExpression and converts ParseException to IllegalStateException.
+     * Because this is for unit testing, the only time a ParseException should occur
+     * is when a test is incorrectly configured.
+     */
+    private static FilterExpression parseFilterExpression(String expressionText, Class<?> entityType,
+                                                          boolean allowNestedToManyAssociations) {
+        try {
+            return filterParser.parseFilterExpression(expressionText, entityType, allowNestedToManyAssociations);
+        } catch (ParseException pe) {
+            throw new IllegalStateException(pe);
+        }
     }
 }

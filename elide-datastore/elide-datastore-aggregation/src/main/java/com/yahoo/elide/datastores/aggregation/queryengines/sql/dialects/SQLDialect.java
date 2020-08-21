@@ -10,7 +10,16 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
  */
 public interface SQLDialect {
 
+    /**
+     * Returns the name of the Dialect.
+     * @return dialect name.
+     */
     String getDialectType();
 
+    /**
+     * Generates an SQL clause that requests the count of distinct values for the input dimensions.
+     * @param dimensions for which to request a distinct count.
+     * @return the SQL clause as a string.
+     */
     String generateCountDistinctClause(String dimensions);
 }
