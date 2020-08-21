@@ -26,10 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-<<<<<<< HEAD
-=======
 import java.util.Calendar;
->>>>>>> upstream/elide-5.x
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;

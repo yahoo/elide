@@ -166,26 +166,4 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         }
         return asyncQueryList;
     }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Collection<AsyncQuery> loadAsyncQueryCollection(FilterExpression filterExpression) {
-        Collection<AsyncQuery> asyncQueryList = null;
-        log.debug("loadAsyncQueryCollection");
-        try {
-            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
-
-                EntityProjection asyncQueryCollection = EntityProjection.builder()
-                        .type(AsyncQuery.class)
-                        .filterExpression(filterExpression)
-                        .build();
-                Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
-                return loaded;
-            });
-        } catch (Exception e) {
-            log.error("Exception: {}", e);
-            throw new IllegalStateException(e);
-        }
-        return asyncQueryList;
-    }
 }
