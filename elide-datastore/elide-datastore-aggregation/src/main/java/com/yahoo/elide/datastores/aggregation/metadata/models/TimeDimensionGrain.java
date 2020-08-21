@@ -29,6 +29,6 @@ public class TimeDimensionGrain {
         this.id = fieldName + "." + definition.grain().name().toLowerCase(Locale.ENGLISH);
         this.grain = definition.grain();
         this.expression = definition.expression();
-        this.format = definition.grain().toString();
+        this.format = definition.grain().getFormat();
     }
 }

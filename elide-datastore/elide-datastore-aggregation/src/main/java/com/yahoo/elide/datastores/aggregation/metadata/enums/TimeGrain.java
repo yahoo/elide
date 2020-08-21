@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
+import lombok.Getter;
+
 /**
  * {@link TimeGrain} is a set of concrete {@link TimeGrain} implementations which support "natural" time buckets.
  */
@@ -14,7 +16,7 @@ public enum TimeGrain {
     DATETIME("yyyy-MM-dd HH:mm:ss")
     ;
 
-    private final String format;
+    @Getter private final String format;
 
     TimeGrain(final String format) {
         this.format = format;
