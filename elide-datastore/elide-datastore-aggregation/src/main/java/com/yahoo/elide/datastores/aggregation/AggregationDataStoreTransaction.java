@@ -23,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.ToString;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
@@ -84,7 +85,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 }
             }
             boolean isCached = result == null ? false : true;
-            String queryText = queryEngine.explain(query);
+            List<String> queryText = queryEngine.explain(query);
             queryLogger.processQuery(scope.getRequestId(), query, queryText, isCached);
             if (result == null) {
                 result = queryEngine.executeQuery(query, queryEngineTransaction);

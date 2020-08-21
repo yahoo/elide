@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.core;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.security.User;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class NoopQueryLogger implements QueryLogger {
     }
 
     @Override
-    public void processQuery(UUID queryId, Query query, String apiQuery, boolean isCached) {
+    public void processQuery(UUID queryId, Query query, List<String> apiQuery, boolean isCached) {
         //does nothing
     }
 
