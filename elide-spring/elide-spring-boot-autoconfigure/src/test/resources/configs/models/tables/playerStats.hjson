@@ -40,9 +40,9 @@
                 definition : createdOn
                 grain:
                 {
-                    type :  DATE
+                    type :  SIMPLEDATE
                     sql :  '''
-                    FORMATDATETIME({{}}, 'yyyy-MM-dd')
+                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
                     '''
                 }
             }

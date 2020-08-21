@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class SimpleDateTest {
 
@@ -31,12 +32,14 @@ public class SimpleDateTest {
     @Test
     public void testDateDeserialize() throws ParseException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        String dateInString = "2020-01-01";
+        String dateInString = "2020-08-20";
         SimpleDate expectedDate = new SimpleDate(formatter.parse(dateInString));
         //Date expectedDate = new Date();
-        String actual = "2020-01-01";
+//        String actual = "2020-01-01";
+        java.sql.Timestamp sqlTimestamp = new java.sql.Timestamp(new Date().getTime());
         SimpleDateSerde dateSerde = new SimpleDateSerde();
-        Object actualDate = dateSerde.deserialize(actual);
+        Object actualDate = dateSerde.deserialize(sqlTimestamp);
+//        System.out.println(actualDate);
         assertEquals(expectedDate, actualDate);
     }
 }
