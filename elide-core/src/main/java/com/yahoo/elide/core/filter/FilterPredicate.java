@@ -171,7 +171,6 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         }
 
         public String escapeMatching() {
-            // It is unclear why replaceAll here breaks our tests
             return value.toString().replace("%", "\\%");
         }
     }

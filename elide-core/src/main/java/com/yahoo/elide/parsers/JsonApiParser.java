@@ -17,6 +17,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Pattern;
 
@@ -25,7 +26,7 @@ import java.util.regex.Pattern;
  */
 public class JsonApiParser {
 
-    private final static Pattern DUPLICATE_SEPARATOR_PATTERN = Pattern.compile("/+");
+    private final static Pattern DUPLICATE_SEPARATOR_PATTERN = Pattern.compile("//+");
 
     /**
      * Normalize request path
@@ -36,15 +37,9 @@ public class JsonApiParser {
     public static String normalizePath(String path) {
         String normalizedPath = DUPLICATE_SEPARATOR_PATTERN.matcher(path).replaceAll("/");
 
-        if (normalizedPath.endsWith("/")) {
-            normalizedPath = normalizedPath.substring(0, normalizedPath.length() - 1);
-        }
+        normalizedPath = StringUtils.removeEnd(normalizedPath, "/");
 
-        if (normalizedPath.startsWith("/")) {
-            normalizedPath = normalizedPath.substring(1);
-        }
-
-        return normalizedPath;
+        return StringUtils.removeStart(normalizedPath, "/");
     }
 
     /**

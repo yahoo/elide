@@ -41,4 +41,9 @@ public class InMemoryDataStore implements DataStore {
     public DataStoreTransaction beginReadTransaction() {
         return new InMemoryStoreTransaction(wrappedStore.beginReadTransaction());
     }
+
+    @Override
+    public String toString() {
+        return "Wrapped:[" + String.valueOf(wrappedStore) + "]";
+    }
 }

@@ -26,6 +26,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+<<<<<<< HEAD
+=======
+import java.util.Calendar;
+>>>>>>> upstream/elide-5.x
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +41,8 @@ public class AsyncQueryCleanerThreadTest {
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
     private ResultStorageEngine resultStorageEngine;
+    private DateUtil dateUtil;
+    private Date testDate = new Date(1577883661000L);
 
     @BeforeEach
     public void setupMocks() {
@@ -51,8 +57,8 @@ public class AsyncQueryCleanerThreadTest {
                         .build());
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         resultStorageEngine = mock(DefaultResultStorageEngine.class);
-        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao,
-                resultStorageEngine);
+        dateUtil = mock(DateUtil.class);
+        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao, resultStorageEngine, dateUtil);
     }
 
     @Test
@@ -66,13 +72,11 @@ public class AsyncQueryCleanerThreadTest {
 
     @Test
     public void testDeleteAsyncQuery() {
+        when(dateUtil.calculateFilterDate(Calendar.DATE, cleanerThread.getQueryCleanupDays())).thenReturn(testDate);
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.deleteAsyncQuery();
-
         verify(asyncQueryDao, times(1)).deleteAsyncQueryAndResultCollection(filterCaptor.capture());
-        Long date = System.currentTimeMillis() - (cleanerThread.getQueryCleanupDays() * 24 * 3600 * 1000);
-        assertEquals("asyncQuery.createdOn LE [" + new Date(date) + "]", filterCaptor.getValue().toString());
-
+        assertEquals("asyncQuery.createdOn LE [" + testDate + "]", filterCaptor.getValue().toString());
         verify(resultStorageEngine, times(1)).deleteResultsCollection(any());
     }
 
@@ -93,10 +97,9 @@ public class AsyncQueryCleanerThreadTest {
 
     @Test
     public void testTimeoutAsyncQuery() {
+        when(dateUtil.calculateFilterDate(Calendar.MINUTE, cleanerThread.getMaxRunTimeMinutes())).thenReturn(testDate);
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.timeoutAsyncQuery();
         verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any(QueryStatus.class));
-        Long date = System.currentTimeMillis() - (cleanerThread.getMaxRunTimeMinutes() * 60 * 1000);
-        assertEquals("(asyncQuery.status IN [[PROCESSING, QUEUED]] AND asyncQuery.createdOn LE [" + new Date(date) + "])", filterCaptor.getValue().toString());
     }
 }

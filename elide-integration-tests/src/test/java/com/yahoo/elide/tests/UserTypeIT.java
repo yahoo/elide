@@ -187,7 +187,7 @@ class UserTypeIT extends IntegrationTest {
         Map<String, Object> partialZip = new HashMap<>();
         partialZip.put("zip", "60412");
 
-        Map<String, Object> partialAddress = new HashMap();
+        Map<String, Object> partialAddress = new HashMap<>();
         partialAddress.put("street", "1400 AnyAve St");
         partialAddress.put("zip", partialZip);
 

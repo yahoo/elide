@@ -12,14 +12,13 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionC
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
-import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
 
 import com.google.common.base.Preconditions;
+import io.reactivex.Observable;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Record Read State.
@@ -62,13 +61,11 @@ public class RecordState extends BaseState {
         final CollectionTerminalState collectionTerminalState =
                 new CollectionTerminalState(entityClass, Optional.of(resource),
                         Optional.of(subCollection), projection);
-        Set<PersistentResource> collection = null;
+        Observable<PersistentResource> collection = null;
         if (type.isToOne()) {
             collection = resource.getRelationCheckedFiltered(projection.getRelationship(subCollection)
                     .orElseThrow(IllegalStateException::new));
-        }
-        if (collection instanceof SingleElementSet) {
-            PersistentResource record = ((SingleElementSet<PersistentResource>) collection).getValue();
+            PersistentResource record = PersistentResource.firstOrNullIfEmpty(collection);
             nextState = new RecordTerminalState(record, collectionTerminalState);
         } else {
             nextState = collectionTerminalState;

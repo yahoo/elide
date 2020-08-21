@@ -42,6 +42,7 @@ public class DefaultAsyncQueryDAOTest {
     private AsyncQuery asyncQuery;
     private AsyncQueryResult asyncQueryResult;
     private DataStoreTransaction tx;
+    private EntityDictionary dictionary;
     private FilterExpression filter;
 
     @BeforeEach
@@ -67,7 +68,6 @@ public class DefaultAsyncQueryDAOTest {
 
         elide = new Elide(elideSettings);
         when(dataStore.beginTransaction()).thenReturn(tx);
-
         asyncQueryDAO = new DefaultAsyncQueryDAO(elide.getElideSettings(), dataStore);
     }
 

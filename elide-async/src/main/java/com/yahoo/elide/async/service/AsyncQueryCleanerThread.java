@@ -41,6 +41,7 @@ public class AsyncQueryCleanerThread implements Runnable {
     private int queryCleanupDays;
     private AsyncQueryDAO asyncQueryDao;
     private ResultStorageEngine resultStorageEngine;
+    private DateUtil dateUtil = new DateUtil();
 
     @Override
     public void run() {
@@ -54,7 +55,7 @@ public class AsyncQueryCleanerThread implements Runnable {
     protected void deleteAsyncQuery() {
 
         try {
-            Date cleanupDate = DateUtil.calculateFilterDate(Calendar.DATE, queryCleanupDays);
+            Date cleanupDate = dateUtil.calculateFilterDate(Calendar.DATE, queryCleanupDays);
             PathElement createdOnPathElement = new PathElement(AsyncQuery.class, Long.class, "createdOn");
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
             Collection<AsyncQuery> asyncQueryList = asyncQueryDao.deleteAsyncQueryAndResultCollection(fltDeleteExp);
@@ -71,7 +72,7 @@ public class AsyncQueryCleanerThread implements Runnable {
     protected void timeoutAsyncQuery() {
 
         try {
-            Date filterDate = DateUtil.calculateFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
+            Date filterDate = dateUtil.calculateFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
             PathElement createdOnPathElement = new PathElement(AsyncQuery.class, Long.class, "createdOn");
             PathElement statusPathElement = new PathElement(AsyncQuery.class, String.class, "status");
             List<QueryStatus> statusList = new ArrayList<QueryStatus>();

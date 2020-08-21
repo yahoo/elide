@@ -34,10 +34,9 @@ public class AsyncProperties {
     private int queryCleanupDays = 7;
 
     /**
-     * Default time interval for cancelling async query transactions
-     * that are in cancelled status or running beyond max runtime.
+     * Polling interval to identify async queries that should be canceled.
      */
-    private int queryCancellationIntervalSeconds = 300;
+    private int queryCancellationIntervalSeconds = 10;
 
     /**
      * Whether or not to use the default implementation of AsyncQueryDAO.

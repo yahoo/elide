@@ -23,7 +23,7 @@ public class DateUtil {
      * @param amount Amount of days to be subtracted from current time
      * @return filter date
      */
-     protected static Date calculateFilterDate(int calendarUnit, int amount) {
+     public Date calculateFilterDate(int calendarUnit, int amount) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         cal.add(calendarUnit, -(amount));
