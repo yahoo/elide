@@ -194,55 +194,55 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.PAGINATION_TOTAL.getQuery()));
     }
 
-    /* TODO - Query generation needs to support aliases in ORDER BY to make these pass
+    // TODO - Query generation needs to support aliases in ORDER BY to make these pass
     @Test
-    public void testExplainSortingAscending(){
+    public void testExplainSortingAscending() {
         String expectedQueryStr =
                 "SELECT highScore AS highScoreNoAgg "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats   "
-                        + "ORDER BY highScore ASC";
+                        + "ORDER BY highScoreNoAgg ASC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_ASC.getQuery()));
     }
 
     @Test
-    public void testExplainSortingDecending(){
+    public void testExplainSortingDecending() {
         String expectedQueryStr =
                 "SELECT highScore AS highScoreNoAgg "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats   "
-                        + "ORDER BY highScore DESC";
+                        + "ORDER BY highScoreNoAgg DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_DESC.getQuery()));
     }
-    */
+
 
     @Test
     public void testExplainSortingByDimensionDesc() {
         String expectedQueryStr =
                 "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS "
                         + "overallRating FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "ORDER BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating DESC";
+                        + "ORDER BY overallRating DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_DIM_DESC.getQuery()));
     }
 
-    /* TODO: This test won't work because:
-     * 1) dims can only be added in aggregations, which means metrics must be aggregated
-     * 2) metrics aggregations are expanded in ORDER BY.
-     * Using aliases in ORDER BY will fix this.
-     *
+//    TODO: This test won't work because:
+//     * 1) dims can only be added in aggregations, which means metrics must be aggregated
+//     * 2) metrics aggregations are expanded in ORDER BY.
+//     * Using aliases in ORDER BY will fix this.
+//     *
     @Test
-    public void testExplainSortingByMetricAndDimension(){
+    public void testExplainSortingByMetricAndDimension() {
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) "
                         + "AS highScore,com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS "
                         + "overallRating FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating "
-                        + "ORDER BY MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) DESC";
+                        + "ORDER BY highScore DESC,overallRating DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_AND_DIM_DESC.getQuery()));
     }
-    */
+
 
     @Test
     public void testExplainSelectFromSubquery() {
