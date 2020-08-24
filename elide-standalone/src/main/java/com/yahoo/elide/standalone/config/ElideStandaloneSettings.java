@@ -203,9 +203,9 @@ public interface ElideStandaloneSettings {
      *
      * @return AsyncProperties type object.
      */
-    default AsyncProperties getAsyncProperties() {
+    default ElideStandaloneAsyncSettings getAsyncProperties() {
         //Default Properties
-        return new AsyncProperties();
+        return new ElideStandaloneAsyncSettings() { };
     }
 
     /**

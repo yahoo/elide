@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.standalone.ElideStandalone;
-import com.yahoo.elide.standalone.config.AsyncProperties;
+import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
 
@@ -69,15 +69,39 @@ public class ElideStandaloneMetadataStoreMissingTest {
             }
 
             @Override
-            public AsyncProperties getAsyncProperties() {
-                //Default Properties
-                AsyncProperties asyncPropeties = new AsyncProperties();
-                asyncPropeties.setEnabled(true);
-                asyncPropeties.setCleanupEnabled(true);
-                asyncPropeties.setThreadPoolSize(3);
-                asyncPropeties.setMaxRunTimeSeconds(1800);
-                asyncPropeties.setQueryCleanupDays(3);
-                asyncPropeties.getDownload().setEnabled(true);
+            public ElideStandaloneAsyncSettings getAsyncProperties() {
+                ElideStandaloneAsyncSettings asyncPropeties = new ElideStandaloneAsyncSettings() {
+                    @Override
+                    public boolean enabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean enableCleanup() {
+                        return true;
+                    }
+
+                    @Override
+                    public Integer getThreadSize() {
+                        return 5;
+                    }
+
+                    @Override
+                    public Integer getMaxRunTimeSeconds() {
+                        return 1800;
+                    }
+
+                    @Override
+                    public Integer getQueryCleanupDays() {
+                        return 3;
+                    }
+
+                    //Since AsyncExecutorService is singleton we can not disable Download in 1 test and enable in another.
+                    @Override
+                    public boolean enableDownload() {
+                        return true;
+                    }
+                };
                 return asyncPropeties;
             }
 

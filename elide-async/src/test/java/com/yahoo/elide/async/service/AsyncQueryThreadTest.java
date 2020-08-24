@@ -238,7 +238,8 @@ public class AsyncQueryThreadTest {
         URL url = new URL(BASE_URL_ENDPOINT + "/download/" + id);
 
         when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
-        resultStorageEngine = new DefaultResultStorageEngine(DOWNLOAD_BASE_PATH, elide.getElideSettings(), mock(DataStore.class));
+        resultStorageEngine = new DefaultResultStorageEngine(DOWNLOAD_BASE_PATH, elide.getElideSettings(), mock(DataStore.class),
+                asyncQueryDao);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine, BASE_URL_ENDPOINT);
         queryResultObj = queryThread.processQuery();
@@ -326,7 +327,8 @@ public class AsyncQueryThreadTest {
         queryObj.setResultType(ResultType.DOWNLOAD);
 
         when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
-        resultStorageEngine = new DefaultResultStorageEngine(DOWNLOAD_BASE_PATH, elide.getElideSettings(), mock(DataStore.class));
+        resultStorageEngine = new DefaultResultStorageEngine(DOWNLOAD_BASE_PATH, elide.getElideSettings(), mock(DataStore.class),
+                asyncQueryDao);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 null, BASE_URL_ENDPOINT);
         assertThrows(IllegalStateException.class, () -> {

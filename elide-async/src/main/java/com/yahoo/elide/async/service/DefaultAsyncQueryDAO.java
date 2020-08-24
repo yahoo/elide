@@ -5,22 +5,31 @@
  */
 package com.yahoo.elide.async.service;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.UUID;
 
 import javax.inject.Singleton;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Utility class which implements AsyncQueryDAO.
@@ -44,7 +53,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Override
     public AsyncQuery updateStatus(String asyncQueryId, QueryStatus status) {
-        AsyncQuery queryObj = (AsyncQuery) DBUtil.executeInTransaction(elideSettings,
+        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(elideSettings,
                 dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
@@ -78,7 +87,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         log.debug("updateAsyncQueryCollection");
 
         Collection<AsyncQuery> asyncQueryList = null;
-        asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elideSettings, dataStore,
+        asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(elideSettings, dataStore,
                     (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
@@ -103,7 +112,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(FilterExpression filterExpression) {
         log.debug("deleteAsyncQueryAndResultCollection");
         Collection<AsyncQuery> asyncQueryList = null;
-        asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elideSettings, dataStore,
+        asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(elideSettings, dataStore,
                 (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
@@ -127,7 +136,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     @Override
     public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, String asyncQueryId) {
         log.debug("updateAsyncQueryResult");
-        AsyncQuery queryObj = (AsyncQuery) DBUtil.executeInTransaction(elideSettings,
+        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(elideSettings,
                 dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
@@ -151,7 +160,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         Collection<AsyncQuery> asyncQueryList = null;
         log.debug("loadAsyncQueryCollection");
         try {
-            asyncQueryList = (Collection<AsyncQuery>) DBUtil.executeInTransaction(elideSettings, dataStore,
+            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(elideSettings, dataStore,
                     (tx, scope) -> {
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
@@ -165,5 +174,31 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             throw new IllegalStateException(e);
         }
         return asyncQueryList;
+    }
+
+    /**
+     * This method creates a transaction from the datastore, performs the DB action using
+     * a generic functional interface and closes the transaction.
+     * @param dataStore Elide datastore retrieved from Elide object
+     * @param action Functional interface to perform DB action
+     * @return Object Returns Entity Object (AsyncQueryResult or AsyncResult)
+     */
+    protected static Object executeInTransaction(ElideSettings elideSettings,
+        DataStore dataStore, Transactional action) {
+        log.debug("executeInTransaction");
+        Object result = null;
+        try (DataStoreTransaction tx = dataStore.beginTransaction()) {
+            JsonApiDocument jsonApiDoc = new JsonApiDocument();
+            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+            RequestScope scope = new RequestScope(null, "query", NO_VERSION, jsonApiDoc,
+                    tx, null, queryParams, UUID.randomUUID(), elideSettings);
+            result = action.execute(tx, scope);
+            tx.flush(scope);
+            tx.commit(scope);
+        } catch (IOException e) {
+            log.error("IOException: {}", e);
+            throw new IllegalStateException(e);
+        }
+        return result;
     }
 }

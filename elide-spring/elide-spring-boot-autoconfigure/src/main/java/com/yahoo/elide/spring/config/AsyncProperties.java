@@ -45,13 +45,13 @@ public class AsyncProperties {
     private boolean defaultAsyncQueryDAO = true;
 
     /**
-     * Whether or not the controller is enabled.
+     * Whether or not the async feature is enabled.
      */
     private boolean enabled = false;
 
     /**
      * Settings for the Download controller.
      */
-    private AsyncDownloadProperties download;
+    private ControllerProperties download;
 
 }

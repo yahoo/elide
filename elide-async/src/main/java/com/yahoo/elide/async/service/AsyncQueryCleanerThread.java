@@ -59,7 +59,6 @@ public class AsyncQueryCleanerThread implements Runnable {
             PathElement createdOnPathElement = new PathElement(AsyncQuery.class, Long.class, "createdOn");
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
             Collection<AsyncQuery> asyncQueryList = asyncQueryDao.deleteAsyncQueryAndResultCollection(fltDeleteExp);
-            resultStorageEngine.deleteResultsCollection(asyncQueryList);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e);
         }

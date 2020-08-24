@@ -99,7 +99,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
                 ResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine("/download", elide.getElideSettings(),
-                        elide.getDataStore());
+                        elide.getDataStore(), asyncQueryDao);
                 bind(resultStorageEngine).to(ResultStorageEngine.class);
 
                 AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);

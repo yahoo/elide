@@ -39,8 +39,7 @@ public class DownloadApiEndpoint {
      */
     @GET
     @Path("/{asyncQueryId}")
-    public Response get(
-        @PathParam("asyncQueryId") String asyncQueryId) {
+    public Response get(@PathParam("asyncQueryId") String asyncQueryId) {
         ///************* Getresults from ResultStorageEngine
         byte[] temp = resultStorageEngine.getResultsByID(asyncQueryId);
         ResponseBuilder response;

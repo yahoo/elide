@@ -10,7 +10,9 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.core.Path.PathElement;
+import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 
 import org.apache.http.client.utils.URIBuilder;
 
@@ -24,6 +26,9 @@ import java.net.URL;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Singleton;
 import javax.sql.rowset.serial.SerialBlob;
@@ -41,6 +46,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     @Setter private String downloadURI;
     @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
+    @Setter private AsyncQueryDAO defaultAsyncQueryDAO;
 
     public DefaultResultStorageEngine() {
     }
@@ -51,11 +57,13 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
      * @param elideSettings ElideSettings object
      * @param dataStore DataStore Object
      */
-    public DefaultResultStorageEngine(String downloadURI, ElideSettings elideSettings, DataStore dataStore) {
+    public DefaultResultStorageEngine(String downloadURI, ElideSettings elideSettings, DataStore dataStore,
+            AsyncQueryDAO defaultAsyncQueryDAO) {
         this.downloadURI = downloadURI != null && !downloadURI.startsWith(FORWARD_SLASH)
                 ? FORWARD_SLASH + downloadURI : downloadURI;
         this.elideSettings = elideSettings;
         this.dataStore = dataStore;
+        this.defaultAsyncQueryDAO = defaultAsyncQueryDAO;
     }
 
     @Override
@@ -80,36 +88,31 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     public byte[] getResultsByID(String asyncQueryID) {
         log.debug("getAsyncResultsByID");
 
-        AsyncQuery asyncQuery = null;
+        Optional<AsyncQuery> asyncQuery = null;
         byte[] byteResult = null;
 
-        try {
-            asyncQuery = (AsyncQuery) DBUtil.executeInTransaction(elideSettings,
-                    dataStore, (tx, scope) -> {
+        PathElement idPathElement = new PathElement(AsyncQuery.class, String.class, "id");
+        List<String> idList =  Collections.singletonList(asyncQueryID);
+        FilterExpression fltStatusExpression =
+                new InPredicate(idPathElement, idList);
 
-                        EntityProjection asyncQueryCollection = EntityProjection.builder()
-                                .type(AsyncQuery.class)
-                                .build();
+        Collection<AsyncQuery> asyncQueryCollection =
+                defaultAsyncQueryDAO.loadAsyncQueryCollection(fltStatusExpression);
 
-                        Object loaded = tx.loadObject(asyncQueryCollection, asyncQueryID, scope);
-
-                        return loaded;
-                    });
-            if (asyncQuery != null && asyncQuery.getResult().getAttachment() != null) {
-                Blob result = asyncQuery.getResult().getAttachment();
-                byteResult = result.getBytes(1, (int) result.length());
+        if (asyncQueryCollection != null && asyncQueryCollection.size() > 0) {
+            asyncQuery = asyncQueryCollection.stream().findAny();
+            AsyncQueryResult queryResult = asyncQuery.get().getResult();
+            if (queryResult != null && queryResult.getAttachment() != null) {
+                Blob result = queryResult.getAttachment();
+                try {
+                    byteResult = queryResult.getAttachment().getBytes(1, (int) result.length());
+                } catch (SQLException e) {
+                    log.error("Exception: {}", e);
+                    throw new IllegalStateException(e);
+                }
             }
-        } catch (SQLException e) {
-            log.error("Exception: {}", e);
-            throw new IllegalStateException(e);
         }
-
         return byteResult;
-    }
-
-    @Override
-    public void deleteResultsCollection(Collection<AsyncQuery> asyncQueryList) {
-        log.debug("deleteAsyncQueryResultsCollection");
     }
 
     @Override

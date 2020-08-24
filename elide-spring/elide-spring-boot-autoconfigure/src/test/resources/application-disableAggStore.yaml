@@ -22,7 +22,6 @@ elide:
     download:
       path: /download
       enabled: true
-      defaultResultStorageEngine: true
   dynamic-config:
     path: src/test/resources/models
     enabled: true

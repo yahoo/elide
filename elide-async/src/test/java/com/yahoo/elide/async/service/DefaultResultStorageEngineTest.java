@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
@@ -30,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -42,10 +42,12 @@ public class DefaultResultStorageEngineTest {
     private DefaultResultStorageEngine defaultResultStorageEngine;
     private Elide elide;
     private DataStore dataStore;
+    private AsyncQueryDAO asyncQueryDAO;
 
     @BeforeEach
     public void setupMocks() {
         dataStore = mock(DataStore.class);
+        asyncQueryDAO = mock(DefaultAsyncQueryDAO.class);
         tx = mock(DataStoreTransaction.class);
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
@@ -64,7 +66,7 @@ public class DefaultResultStorageEngineTest {
 
         when(dataStore.beginTransaction()).thenReturn(tx);
         defaultResultStorageEngine = new DefaultResultStorageEngine("/api/v1/download", elide.getElideSettings(),
-                dataStore);
+                dataStore, asyncQueryDAO);
     }
 
     @Test
@@ -94,7 +96,7 @@ public class DefaultResultStorageEngineTest {
         String requestURL = "http://localhost:8080/";
 
         defaultResultStorageEngine = new DefaultResultStorageEngine(null, elide.getElideSettings(),
-                dataStore);
+                dataStore, asyncQueryDAO);
 
         assertThrows(IllegalStateException.class, () -> {
             defaultResultStorageEngine.generateDownloadUrl(requestURL, asyncQueryID);
@@ -121,11 +123,12 @@ public class DefaultResultStorageEngineTest {
         result.setAttachment(new SerialBlob(test.getBytes()));
         query.setResult(result);
 
-        when(tx.loadObject(any(), any(), any())).thenReturn(query);
+        Collection<AsyncQuery> asyncCollection = new ArrayList<AsyncQuery>();
+        asyncCollection.add(query);
+        when(asyncQueryDAO.loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
 
         byte[] blob = defaultResultStorageEngine.getResultsByID(id);
 
         assertEquals(new String(blob), test);
-        verify(tx, times(1)).loadObject(any(), any(), any());
     }
 }

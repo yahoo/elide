@@ -6,11 +6,9 @@
 
 package com.yahoo.elide.async.service;
 
-import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 
 import java.net.URL;
-import java.util.Collection;
 
 /**
  * Utility interface used for storing the results of AsyncQuery for downloads.
@@ -40,10 +38,4 @@ public interface ResultStorageEngine {
      * @return returns the result associated with the AsyncQueryID
      */
     public byte[] getResultsByID(String asyncQueryID);
-
-    /**
-     * Deletes all the async results from the storage engine.
-     * @param asyncQueryCollection Collection of AsyncQuery to delete
-     */
-    public void deleteResultsCollection(Collection<AsyncQuery> asyncQueryCollection);
 }

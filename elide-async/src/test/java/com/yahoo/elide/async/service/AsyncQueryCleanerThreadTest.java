@@ -74,15 +74,6 @@ public class AsyncQueryCleanerThreadTest {
         cleanerThread.deleteAsyncQuery();
         verify(asyncQueryDao, times(1)).deleteAsyncQueryAndResultCollection(filterCaptor.capture());
         assertEquals("asyncQuery.createdOn LE [" + testDate + "]", filterCaptor.getValue().toString());
-        verify(resultStorageEngine, times(1)).deleteResultsCollection(any());
-    }
-
-    //When AsyncQueryDao gets exception, resultstorageengine will not execute delete and no exception thrown.
-    @Test
-    public void testDeleteAsyncQueryException() {
-        when(asyncQueryDao.deleteAsyncQueryAndResultCollection(any())).thenThrow(IllegalStateException.class);
-        assertDoesNotThrow(() -> cleanerThread.deleteAsyncQuery());
-        verify(resultStorageEngine, times(0)).deleteResultsCollection(any());
     }
 
     //When AsyncQueryDao gets exception, no exception is thrown
@@ -98,5 +89,7 @@ public class AsyncQueryCleanerThreadTest {
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.timeoutAsyncQuery();
         verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any(QueryStatus.class));
+        assertEquals("(asyncQuery.status IN [[PROCESSING, QUEUED]] AND asyncQuery.createdOn LE [" + testDate + "])",
+                filterCaptor.getValue().toString());
     }
 }

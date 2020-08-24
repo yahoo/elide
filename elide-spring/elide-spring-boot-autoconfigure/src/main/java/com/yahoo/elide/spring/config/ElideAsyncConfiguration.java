@@ -107,14 +107,12 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "elide.async.download", name = "defaultResultStorageEngine", matchIfMissing = true)
-    public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings) {
-        DefaultResultStorageEngine resultStorageEngine = null;
-        if (settings.getAsync().getDownload().isEnabled()) {
-            String downloadURI = settings.getAsync().getDownload().getPath();
-            resultStorageEngine = new DefaultResultStorageEngine(downloadURI, elide.getElideSettings(),
-                    elide.getDataStore());
-        }
+    @ConditionalOnProperty(prefix = "elide.async.download", name = "enabled", matchIfMissing = false)
+    public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
+            AsyncQueryDAO asyncQueryDAO) {
+        String downloadURI = settings.getAsync().getDownload().getPath();
+        DefaultResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine(downloadURI,
+                elide.getElideSettings(), elide.getDataStore(), asyncQueryDAO);
         return resultStorageEngine;
     }
 }

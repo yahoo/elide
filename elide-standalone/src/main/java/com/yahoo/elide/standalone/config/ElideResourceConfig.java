@@ -81,9 +81,9 @@ public class ElideResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                AsyncProperties asyncProperties = settings.getAsyncProperties();
+                ElideStandaloneAsyncSettings asyncProperties = settings.getAsyncProperties();
                 bind(Util.combineModelEntities(optionalCompiler, settings.getModelPackageName(),
-                        asyncProperties.isEnabled())).to(Set.class).named("elideAllModels");
+                        asyncProperties.enabled())).to(Set.class).named("elideAllModels");
             }
         });
 
@@ -91,9 +91,9 @@ public class ElideResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                AsyncProperties asyncProperties = settings.getAsyncProperties();
+                ElideStandaloneAsyncSettings asyncProperties = settings.getAsyncProperties();
                 EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(settings.getModelPackageName(),
-                        asyncProperties.isEnabled(), optionalCompiler, settings.getDatabaseProperties());
+                        asyncProperties.enabled(), optionalCompiler, settings.getDatabaseProperties());
 
                 EntityDictionary dictionary = settings.getEntityDictionary(injector, optionalCompiler);
 
@@ -129,26 +129,26 @@ public class ElideResourceConfig extends ResourceConfig {
                 bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
 
                 // Binding async service
-                if (asyncProperties.isEnabled()) {
+                if (asyncProperties.enabled()) {
 
-                    AsyncQueryDAO asyncQueryDao = asyncProperties.getAsyncQueryDAO();
+                    AsyncQueryDAO asyncQueryDao = asyncProperties.getQueryDAO();
                     if (asyncQueryDao == null) {
                         asyncQueryDao = new DefaultAsyncQueryDAO(elide.getElideSettings(),
                                 elide.getDataStore());
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
-                    ResultStorageEngine resultStorageEngine = asyncProperties.getDownload().getResultStorageEngine();
-                    if (resultStorageEngine == null && asyncProperties.getDownload().isEnabled()) {
+                    ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
+                    if (resultStorageEngine == null && asyncProperties.enableDownload()) {
                         resultStorageEngine = new DefaultResultStorageEngine(
-                                asyncProperties.getDownload().getPathSpec().replaceAll("/\\*", ""),
-                                elide.getElideSettings(), elide.getDataStore());
+                                asyncProperties.getDownloadApiPathSpec().replaceAll("/\\*", ""),
+                                elide.getElideSettings(), elide.getDataStore(), asyncQueryDao);
                     }
                     if (resultStorageEngine != null) {
                         bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
                     }
 
-                    AsyncExecutorService.init(elide, asyncProperties.getThreadPoolSize(),
+                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(),
                             asyncProperties.getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
@@ -162,10 +162,10 @@ public class ElideResourceConfig extends ResourceConfig {
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
 
                     // Binding async cleanup service
-                    if (asyncProperties.isCleanupEnabled()) {
+                    if (asyncProperties.enableCleanup()) {
                         AsyncCleanerService.init(elide, asyncProperties.getMaxRunTimeSeconds(),
                                 asyncProperties.getQueryCleanupDays(),
-                                asyncProperties.getQueryCancellationIntervalSeconds(), asyncQueryDao,
+                                asyncProperties.getQueryCancelCheckIntervalSeconds(), asyncQueryDao,
                                 resultStorageEngine);
                         bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
                     }
