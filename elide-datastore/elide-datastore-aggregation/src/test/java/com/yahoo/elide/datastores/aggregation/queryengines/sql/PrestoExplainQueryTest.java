@@ -194,7 +194,6 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.PAGINATION_TOTAL.getQuery()));
     }
 
-    // TODO - Query generation needs to support aliases in ORDER BY to make these pass
     @Test
     public void testExplainSortingAscending() {
         String expectedQueryStr =
@@ -226,11 +225,6 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_DIM_DESC.getQuery()));
     }
 
-//    TODO: This test won't work because:
-//     * 1) dims can only be added in aggregations, which means metrics must be aggregated
-//     * 2) metrics aggregations are expanded in ORDER BY.
-//     * Using aliases in ORDER BY will fix this.
-//     *
     @Test
     public void testExplainSortingByMetricAndDimension() {
         String expectedQueryStr =
