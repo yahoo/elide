@@ -310,7 +310,10 @@ public class SQLQueryConstructor {
                     Path.PathElement last = path.lastElement().get();
 
                     SQLColumnProjection projection = fieldToColumnProjection(template, last.getFieldName());
-                    String orderByClause = projection.toSQL(template);
+                    String orderByClause = (template.getColumnProjections().contains(projection)
+                            && dialect.useAliasForOrderByClause())
+                            ? projection.getAlias()
+                            : projection.toSQL(template);
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
