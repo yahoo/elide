@@ -24,6 +24,10 @@ public class HandlebarsHelper {
     private static final String DATE = "Date";
     private static final String SIMPLEDATE = "SimpleDate";
     private static final String DATETIME = "DateTime";
+    private static final String MONTHYEAR = "MonthYear";
+    private static final String YEARMONTH = "YearMonth";
+    private static final String YEAR = "Year";
+    private static final String WEEKDATE = "WeekDate";
     private static final String BIGDECIMAL = "BigDecimal";
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
@@ -136,6 +140,14 @@ public class HandlebarsHelper {
                 return DATETIME;
             case SIMPLEDATE:
                 return SIMPLEDATE;
+            case YEARMONTH:
+                return YEARMONTH;
+            case YEAR:
+                return YEAR;
+            case MONTHYEAR:
+                return MONTHYEAR;
+            case WEEKDATE:
+                return WEEKDATE;
             default:
                 return DATE;
         }

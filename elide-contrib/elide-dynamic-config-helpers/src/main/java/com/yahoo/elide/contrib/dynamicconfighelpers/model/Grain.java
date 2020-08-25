@@ -44,7 +44,11 @@ public class Grain {
     public enum GrainType {
 
         SIMPLEDATE("SIMPLEDATE"),
-        DATETIME("DATETIME");
+        DATETIME("DATETIME"),
+        YEARMONTH("YEARMONTH"),
+        YEAR("YEAR"),
+        MONTHYEAR("MONTHYEAR"),
+        WEEKDATE("WEEKDATE");
 
         private final String value;
         private final static Map<String, Grain.GrainType> CONSTANTS = new HashMap<String, Grain.GrainType>();

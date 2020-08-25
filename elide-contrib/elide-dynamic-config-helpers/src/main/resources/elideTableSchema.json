@@ -14,7 +14,11 @@
           "type": "string",
           "enum": [
             "DATETIME",
-            "SIMPLEDATE"
+            "SIMPLEDATE",
+            "YEARMONTH",
+            "YEAR",
+            "MONTHYEAR",
+            "WEEKDATE"
           ]
         },
         "sql": {
