@@ -43,7 +43,6 @@ import javax.persistence.Id;
 public class PlayerStats {
 
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
-    //public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME({{    }}, 'yyyy-MM-01'), 'yyyy-MM-dd')";
 
     /**
      * PK.

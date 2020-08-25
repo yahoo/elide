@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.timegrains.DateTime;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
@@ -19,7 +20,7 @@ import java.util.Date;
 @ElideTypeConverter(type = DateTime.class, name = "DateTime")
 public class DateTimeSerde implements Serde<Object, Date> {
 
-    SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    SimpleDateFormat dateFormatter = new SimpleDateFormat(TimeGrain.DATETIME.getFormat());
 
     @Override
     public Date deserialize(Object val) {
@@ -30,10 +31,10 @@ public class DateTimeSerde implements Serde<Object, Date> {
             if (val instanceof String) {
                 date = new Date(dateFormatter.parse((String) val).getTime());
             } else {
-                date = new DateTime(dateFormatter.parse(val.toString()));
+                date = new DateTime(dateFormatter.parse(dateFormatter.format(val)));
             }
         } catch (ParseException e) {
-            throw new IllegalArgumentException("Date strings must be formated as " + dateFormatter.toString());
+            throw new IllegalArgumentException("Date strings must be formated as " + dateFormatter.toPattern());
         }
 
         return date;

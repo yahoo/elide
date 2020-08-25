@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-public class SimpleDate extends java.util.Date {
+public class WeekDate extends java.util.Date {
 
-    private static final long serialVersionUID = 6443998660242635314L;
+    private static final long serialVersionUID = -8590233329032795743L;
 
-    public SimpleDate() {
+    public WeekDate() {
         super();
     }
 
-    public SimpleDate(java.util.Date date) {
+    public WeekDate(java.util.Date date) {
         super(date.getTime());
     }
 }

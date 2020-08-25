@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 
 public class DateTime extends java.util.Date {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -4541422985328136461L;
 
     public DateTime() {
         super();

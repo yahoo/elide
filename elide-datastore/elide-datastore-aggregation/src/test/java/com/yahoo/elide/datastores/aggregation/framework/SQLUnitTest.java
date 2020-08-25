@@ -43,7 +43,6 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
 
@@ -205,7 +204,7 @@ public abstract class SQLUnitTest {
                     .table(playerStatsTable)
                     .metric(invoke(playerStatsTable.getMetric("lowScore")))
                     .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                    .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                    .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                     .pagination(new ImmutablePagination(0, 1, false, true))
                     .build();
         }),
@@ -276,7 +275,7 @@ public abstract class SQLUnitTest {
                     .table(playerStatsTable)
                     .metric(invoke(playerStatsTable.getMetric("highScore")))
                     .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                    .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                    .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                     .pagination(new ImmutablePagination(0, 1, false, true))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .whereFilter(predicate)

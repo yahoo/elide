@@ -13,7 +13,11 @@ import lombok.Getter;
 public enum TimeGrain {
 
     SIMPLEDATE("yyyy-MM-dd"),
-    DATETIME("yyyy-MM-dd HH:mm:ss")
+    DATETIME("yyyy-MM-dd HH:mm:ss"),
+    MONTHYEAR("MMM yyyy"),
+    YEARMONTH("yyyy-MM"),
+    YEAR("yyyy"),
+    WEEKDATE("yyyy-MM-dd")
     ;
 
     @Getter private final String format;

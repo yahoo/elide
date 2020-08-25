@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-public class SimpleDate extends java.util.Date {
+public class Year extends java.util.Date {
 
-    private static final long serialVersionUID = 6443998660242635314L;
+    private static final long serialVersionUID = -4697241489345142589L;
 
-    public SimpleDate() {
+    public Year() {
         super();
     }
 
-    public SimpleDate(java.util.Date date) {
+    public Year(java.util.Date date) {
         super(date.getTime());
     }
 }
