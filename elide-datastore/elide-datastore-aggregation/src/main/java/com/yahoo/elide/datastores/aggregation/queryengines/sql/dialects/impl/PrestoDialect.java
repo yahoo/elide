@@ -15,4 +15,9 @@ public class PrestoDialect extends AbstractSqlDialect {
     public String getDialectType() {
         return "Presto";
     }
+
+    @Override
+    public boolean useAliasForOrderByClause() {
+        return true;
+    }
 }
