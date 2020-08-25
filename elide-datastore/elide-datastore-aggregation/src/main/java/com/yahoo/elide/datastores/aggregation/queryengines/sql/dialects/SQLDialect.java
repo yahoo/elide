@@ -17,6 +17,12 @@ public interface SQLDialect {
     String getDialectType();
 
     /**
+     * Checks whether we need to use alias for orderby
+     * @return boolean.
+     */
+    boolean useAliasForOrderByClause();
+
+    /**
      * Generates an SQL clause that requests the count of distinct values for the input dimensions.
      * @param dimensions for which to request a distinct count.
      * @return the SQL clause as a string.
