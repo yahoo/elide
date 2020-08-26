@@ -27,7 +27,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "filterExpressionCheckObj")
 @Include(rootLevel = true)
-@ReadPermission(expression = "checkLE OR deny all")  //ReadPermission for object id <= 2
+@ReadPermission(expression = "checkLE OR Prefab.Role.None")  //ReadPermission for object id <= 2
 public class FilterExpressionCheckObj extends BaseId {
     private String name;
 

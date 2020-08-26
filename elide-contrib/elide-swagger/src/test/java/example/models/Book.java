@@ -25,7 +25,7 @@ import javax.validation.constraints.Size;
 @Include(rootLevel = true)
 @ReadPermission(expression = "Principal is author OR Principal is publisher")
 @CreatePermission(expression = "Principal is author")
-@DeletePermission(expression = "Deny All")
+@DeletePermission(expression = "Prefab.Role.None")
 public class Book {
     @OneToMany
     @Size(max = 10)

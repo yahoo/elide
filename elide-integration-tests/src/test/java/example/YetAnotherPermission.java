@@ -12,7 +12,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import javax.persistence.Entity;
 
 @CreatePermission(expression = "allow all")
-@ReadPermission(expression = "deny all")
+@ReadPermission(expression = "Prefab.Role.None")
 @Include(rootLevel = true)
 @Entity
 public class YetAnotherPermission extends BaseId {

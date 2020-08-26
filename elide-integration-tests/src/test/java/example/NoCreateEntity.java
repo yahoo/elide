@@ -14,7 +14,7 @@ import javax.persistence.Table;
 /**
  * No Create test bean.
  */
-@CreatePermission(expression = "deny all")
+@CreatePermission(expression = "Prefab.Role.None")
 @Include(rootLevel = true, type = "nocreate") // optional here because class has this name
 // Hibernate
 @Entity
