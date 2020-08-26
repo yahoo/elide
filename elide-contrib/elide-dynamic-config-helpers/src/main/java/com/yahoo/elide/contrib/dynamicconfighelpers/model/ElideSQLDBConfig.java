@@ -10,8 +10,4 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.model;
  */
 public class ElideSQLDBConfig extends ElideDBConfig {
 
-    @Override
-    public String getName() {
-        return this.getClass().getName();
-    }
 }

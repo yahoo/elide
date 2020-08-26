@@ -116,9 +116,9 @@ public class DynamicConfigValidator {
         validateRoleInSecurityConfig(this.elideSecurityConfig);
         this.setDbVariables(readVariableConfig(Config.DBVARIABLE));
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
-        validateNameUniqueness(this.elideSQLDBConfig);
+        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         this.elideTableConfig.setTables(readTableConfig());
-        validateNameUniqueness(this.elideTableConfig);
+        validateNameUniqueness(this.elideTableConfig.getTables());
         validateSqlInTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
@@ -307,25 +307,19 @@ public class DynamicConfigValidator {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private void validateNameUniqueness(Named config) {
+    private void validateNameUniqueness(Set<? extends Named> configs) {
 
         Set<String> names = new HashSet<>();
 
-        if (config.getName().equals(ElideTableConfig.class.getName())) {
-            ((ElideTableConfig) config).getTables().forEach(table -> {
-                if (!names.add(table.getName().toLowerCase(Locale.ENGLISH))) {
-                    throw new IllegalStateException(
-                                    "Duplicate!! Table Configs have more than one table with same name.");
-                }
-            });
-        } else if (config.getName().equals(ElideSQLDBConfig.class.getName())) {
-            ((ElideSQLDBConfig) config).getDbconfigs().forEach(dbconfig -> {
-                if (!names.add(dbconfig.getName().toLowerCase(Locale.ENGLISH))) {
-                    throw new IllegalStateException(
-                                    "Duplicate!! DB Configs have more than one connection with same name.");
-                }
-            });
-        }
+        configs.forEach(obj -> {
+            if (obj.getName().equals(Table.class.getName())
+                            && !names.add(((Table) obj).getName().toLowerCase(Locale.ENGLISH))) {
+                throw new IllegalStateException("Duplicate!! Table Configs have more than one table with same name.");
+            } else if (obj.getName().equals(DBConfig.class.getName())
+                            && !names.add(((DBConfig) obj).getName().toLowerCase(Locale.ENGLISH))) {
+                throw new IllegalStateException("Duplicate!! DB Configs have more than one connection with same name.");
+            }
+        });
     }
 
     /**

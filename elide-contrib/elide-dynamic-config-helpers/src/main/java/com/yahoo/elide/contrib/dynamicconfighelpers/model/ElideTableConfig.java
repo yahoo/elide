@@ -29,14 +29,9 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class ElideTableConfig implements Named {
+public class ElideTableConfig {
 
     @JsonProperty("tables")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<Table> tables = new LinkedHashSet<Table>();
-
-    @Override
-    public String getName() {
-        return this.getClass().getName();
-    }
 }
