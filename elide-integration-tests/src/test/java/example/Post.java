@@ -18,8 +18,8 @@ import javax.persistence.Entity;
  */
 @CreatePermission(expression = "allow all")
 @ReadPermission(expression = "allow all")
-@UpdatePermission(expression = "allow all OR deny all")
-@DeletePermission(expression = "allow all OR deny all")
+@UpdatePermission(expression = "allow all OR Prefab.Role.None")
+@DeletePermission(expression = "allow all OR Prefab.Role.None")
 @Include(rootLevel = true, type = "post") // optional here because class has this name
 // Hibernate
 @Entity
@@ -27,7 +27,7 @@ public class Post extends BaseId {
     private String title;
     private int created;
 
-    @ReadPermission(expression = "deny all") public transient boolean init = false;
+    @ReadPermission(expression = "Prefab.Role.None") public transient boolean init = false;
 
     public void doInit() {
         init = true;

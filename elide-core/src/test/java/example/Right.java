@@ -24,7 +24,7 @@ import javax.persistence.Table;
 
 
 @Include(rootLevel = true, type = "right") // optional here because class has this name
-@UpdatePermission(expression = "deny all")
+@UpdatePermission(expression = "Prefab.Role.None")
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
@@ -71,7 +71,7 @@ public class Right {
         return id;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
@@ -84,7 +84,7 @@ public class Right {
         this.noUpdateOne2One = noUpdateOne2One;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class

@@ -17,7 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-@UpdatePermission(expression = "deny all")
+@UpdatePermission(expression = "Prefab.Role.None")
 @Include(rootLevel = true, type = "noupdate") // optional here because class has this name
 // Hibernate
 @Entity

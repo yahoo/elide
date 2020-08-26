@@ -30,8 +30,8 @@ import javax.validation.constraints.NotNull;
 
 @CreatePermission(expression = "parentInitCheck OR allow all")
 @ReadPermission(expression = "parentInitCheck OR allow all")
-@UpdatePermission(expression = "parentInitCheck OR allow all OR deny all")
-@DeletePermission(expression = "parentInitCheck OR allow all OR deny all")
+@UpdatePermission(expression = "parentInitCheck OR allow all OR Prefab.Role.None")
+@DeletePermission(expression = "parentInitCheck OR allow all OR Prefab.Role.None")
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
 @Entity
 @ToString
@@ -40,15 +40,15 @@ public class Parent extends BaseId {
     private Set<Parent> spouses;
     private String firstName;
     private String specialAttribute;
-    @ReadPermission(expression = "deny all") public transient boolean init = false;
+    @ReadPermission(expression = "Prefab.Role.None") public transient boolean init = false;
 
     @PrePersist
     public void doInit() {
         init = true;
     }
 
-    @ReadPermission(expression = "allow all OR deny all")
-    @UpdatePermission(expression = "allow all OR deny all")
+    @ReadPermission(expression = "allow all OR Prefab.Role.None")
+    @UpdatePermission(expression = "allow all OR Prefab.Role.None")
     // Hibernate
     @ManyToMany(
             targetEntity = Child.class,
@@ -89,7 +89,7 @@ public class Parent extends BaseId {
     }
 
     // Special attribute is to catch a corner case for patch extension
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     @UpdatePermission(expression = "specialValue")
     public String getSpecialAttribute() {
         return specialAttribute;

@@ -59,7 +59,7 @@ public class Author {
     private Collection<Book> books = new ArrayList<>();
 
     @Getter @Setter
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     private String homeAddress;
 
     @Override

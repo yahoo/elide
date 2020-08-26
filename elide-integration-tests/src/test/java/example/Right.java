@@ -31,7 +31,7 @@ public class Right extends BaseId {
     private Set<Left> noUpdate;
     private Set<Left> noDelete;
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             targetEntity = Left.class,
             fetch = FetchType.LAZY
@@ -44,7 +44,7 @@ public class Right extends BaseId {
         this.noUpdateOne2One = noUpdateOne2One;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
