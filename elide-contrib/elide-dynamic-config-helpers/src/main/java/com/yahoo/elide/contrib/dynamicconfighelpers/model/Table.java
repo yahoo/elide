@@ -48,7 +48,7 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Table implements Named {
+public class Table implements ConfigType {
 
     @JsonProperty("name")
     private String name;
@@ -143,7 +143,7 @@ public class Table implements Named {
     }
 
     @Override
-    public String getName() {
+    public String getConfigType() {
         return this.getClass().getName();
     }
 }

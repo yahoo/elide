@@ -5,6 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.model;
 
-public interface Named {
-    public String getName();
+public interface ConfigType {
+    public String getConfigType();
 }
