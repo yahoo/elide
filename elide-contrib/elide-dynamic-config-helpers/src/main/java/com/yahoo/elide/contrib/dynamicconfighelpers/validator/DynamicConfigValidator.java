@@ -9,7 +9,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.Config;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.ConfigType;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
@@ -18,6 +17,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Named;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.apache.commons.cli.CommandLine;
@@ -307,16 +307,14 @@ public class DynamicConfigValidator {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private void validateNameUniqueness(Set<? extends ConfigType> configs) {
+    private void validateNameUniqueness(Set<? extends Named> configs) {
 
         Set<String> names = new HashSet<>();
 
         configs.forEach(obj -> {
-            if (obj.getConfigType().equals(Table.class.getName())
-                            && !names.add(((Table) obj).getName().toLowerCase(Locale.ENGLISH))) {
+            if (obj instanceof Table && !names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
                 throw new IllegalStateException("Duplicate!! Table Configs have more than one table with same name.");
-            } else if (obj.getConfigType().equals(DBConfig.class.getName())
-                            && !names.add(((DBConfig) obj).getName().toLowerCase(Locale.ENGLISH))) {
+            } else if (obj instanceof DBConfig && !names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
                 throw new IllegalStateException("Duplicate!! DB Configs have more than one connection with same name.");
             }
         });

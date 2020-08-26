@@ -48,7 +48,7 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Table implements ConfigType {
+public class Table implements Named {
 
     @JsonProperty("name")
     private String name;
@@ -140,10 +140,5 @@ public class Table implements ConfigType {
                 return constant;
             }
         }
-    }
-
-    @Override
-    public String getConfigType() {
-        return this.getClass().getName();
     }
 }

@@ -34,7 +34,7 @@ import java.util.Map;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class DBConfig implements ConfigType {
+public class DBConfig implements Named {
 
     @JsonProperty("name")
     private String name;
@@ -54,9 +54,4 @@ public class DBConfig implements ConfigType {
     @JsonProperty("propertyMap")
     @JsonDeserialize(as = HashMap.class)
     private Map<String, Object> propertyMap = new HashMap<String, Object>();
-
-    @Override
-    public String getConfigType() {
-        return this.getClass().getName();
-    }
 }
