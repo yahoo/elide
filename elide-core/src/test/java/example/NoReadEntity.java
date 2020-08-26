@@ -15,7 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-@ReadPermission(expression = "deny all")
+@ReadPermission(expression = "Prefab.Role.None")
 @Include(rootLevel = true, type = "noread") // optional here because class has this name
 // Hibernate
 @Entity

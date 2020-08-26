@@ -63,7 +63,7 @@ public class JsonApiModelResolverTest {
         ObjectProperty relationships = getObjectProperty(KEY_BOOK, "relationships");
 
         String entityPermissions = entity.getDescription();
-        assertEquals("Create Permissions : (Principal is author)\nDelete Permissions : (Deny All)",
+        assertEquals("Create Permissions : (Principal is author)\nDelete Permissions : (Prefab.Role.None)",
                 entityPermissions);
 
         String titlePermissions = attributes.getProperties().get("title").getDescription();

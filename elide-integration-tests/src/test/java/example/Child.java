@@ -92,7 +92,7 @@ public class Child extends BaseId {
     }
 
     @OneToOne(targetEntity = Child.class, fetch = FetchType.LAZY)
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     public Child getNoReadAccess() {
         return noReadAccess;
     }

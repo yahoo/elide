@@ -56,7 +56,7 @@ public class PermissionExecutorTest {
     public void testFailOperationCheckAll() throws Exception {
         @Entity
         @Include
-        @UpdatePermission(expression = "sampleOperation AND deny all")
+        @UpdatePermission(expression = "sampleOperation AND Prefab.Role.None")
         class Model { }
 
         PersistentResource resource = newResource(new Model(), Model.class, false);
@@ -240,12 +240,12 @@ public class PermissionExecutorTest {
     public void testPassAnyFieldAwareFailOperationSuccessCommit() {
         @Entity
         @Include
-        @UpdatePermission(expression = "deny all AND passingOp")
+        @UpdatePermission(expression = "Prefab.Role.None AND passingOp")
         class Model {
             @Id
             public Long id;
 
-            @UpdatePermission(expression = "deny all OR passingOp")
+            @UpdatePermission(expression = "Prefab.Role.None OR passingOp")
             public String field = "some data";
         }
 
@@ -260,7 +260,7 @@ public class PermissionExecutorTest {
     public void testFailAllFieldAwareSuccessOperationFailCommit() {
         @Entity
         @Include
-        @UpdatePermission(expression = "deny all")
+        @UpdatePermission(expression = "Prefab.Role.None")
         class Model {
             @Id
             public Long id;
@@ -280,12 +280,12 @@ public class PermissionExecutorTest {
     public void testPassAnySpecificFieldAwareFailOperationSuccessCommit() {
         @Entity
         @Include
-        @UpdatePermission(expression = "deny all AND passingOp")
+        @UpdatePermission(expression = "Prefab.Role.None AND passingOp")
         class Model {
             @Id
             public Long id;
 
-            @UpdatePermission(expression = "deny all OR passingOp")
+            @UpdatePermission(expression = "Prefab.Role.None OR passingOp")
             public String field = "some data";
         }
 
@@ -489,8 +489,8 @@ public class PermissionExecutorTest {
         }
     }
 
-    @ReadPermission(expression = "deny all")
-    @UpdatePermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @Include
     @Entity
     public static final class SampleBean {
@@ -503,12 +503,12 @@ public class PermissionExecutorTest {
 
         public String defaultHidden = "I'm invisible. muwahaha...";
 
-        @ReadPermission(expression = "allow all AND deny all")
-        @UpdatePermission(expression = "allow all AND deny all")
+        @ReadPermission(expression = "allow all AND Prefab.Role.None")
+        @UpdatePermission(expression = "allow all AND Prefab.Role.None")
         public String cannotSeeMe = "hidden";
 
         @ReadPermission(expression = "sampleOperation")
-        @UpdatePermission(expression =  "sampleOperation OR deny all")
+        @UpdatePermission(expression =  "sampleOperation OR Prefab.Role.None")
         public String mayFailInCommit = "aw :(";
     }
 
@@ -526,8 +526,8 @@ public class PermissionExecutorTest {
         @UpdatePermission(expression = "allow all AND sampleOperation")
         public String openAll = "all";
 
-        @ReadPermission(expression = "deny all OR sampleOperation")
-        @UpdatePermission(expression = "deny all OR sampleOperation")
+        @ReadPermission(expression = "Prefab.Role.None OR sampleOperation")
+        @UpdatePermission(expression = "Prefab.Role.None OR sampleOperation")
         public String openAny = "all";
     }
 
