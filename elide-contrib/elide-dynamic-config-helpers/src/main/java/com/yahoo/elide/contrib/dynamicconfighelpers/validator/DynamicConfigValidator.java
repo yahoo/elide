@@ -312,10 +312,14 @@ public class DynamicConfigValidator {
         Set<String> names = new HashSet<>();
 
         configs.forEach(obj -> {
-            if (obj instanceof Table && !names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! Table Configs have more than one table with same name.");
-            } else if (obj instanceof DBConfig && !names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! DB Configs have more than one connection with same name.");
+            if (!names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
+                if (obj instanceof Table) {
+                    throw new IllegalStateException(
+                                    "Duplicate!! Table Configs have more than one table with same name.");
+                } else if (obj instanceof DBConfig) {
+                    throw new IllegalStateException(
+                                    "Duplicate!! DB Configs have more than one connection with same name.");
+                }
             }
         });
     }
