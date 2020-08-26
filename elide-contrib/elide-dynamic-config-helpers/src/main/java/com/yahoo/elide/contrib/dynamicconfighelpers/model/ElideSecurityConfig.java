@@ -30,7 +30,7 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class ElideSecurityConfig {
+public class ElideSecurityConfig implements Named {
 
     @JsonProperty("roles")
     @JsonDeserialize(as = LinkedHashSet.class)
@@ -39,4 +39,9 @@ public class ElideSecurityConfig {
     @JsonProperty("rules")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<Rule> rules = new LinkedHashSet<Rule>();
+
+    @Override
+    public String getName() {
+        return "ElideSecurityConfig";
+    }
 }

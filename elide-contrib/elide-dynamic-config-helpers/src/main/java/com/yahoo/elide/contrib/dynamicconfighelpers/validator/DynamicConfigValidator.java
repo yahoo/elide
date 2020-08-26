@@ -17,6 +17,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Named;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.apache.commons.cli.CommandLine;
@@ -115,9 +116,9 @@ public class DynamicConfigValidator {
         validateRoleInSecurityConfig(this.elideSecurityConfig);
         this.setDbVariables(readVariableConfig(Config.DBVARIABLE));
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
-        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
+        validateNameUniqueness(this.elideSQLDBConfig);
         this.elideTableConfig.setTables(readTableConfig());
-        validateNameUniqueness(this.elideTableConfig.getTables());
+        validateNameUniqueness(this.elideTableConfig);
         validateSqlInTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
@@ -306,17 +307,25 @@ public class DynamicConfigValidator {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private void validateNameUniqueness(Set<? extends Object> configs) {
+    private void validateNameUniqueness(Named config) {
 
         Set<String> names = new HashSet<>();
 
-        configs.forEach(obj -> {
-            if (obj instanceof Table && !names.add(((Table) obj).getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! Table Configs have more than one table with same name.");
-            } else if (obj instanceof DBConfig && !names.add(((DBConfig) obj).getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! DB Configs have more than one connection with same name.");
-            }
-        });
+        if (config.getName().equals(ElideTableConfig.class.getName())) {
+            ((ElideTableConfig) config).getTables().forEach(table -> {
+                if (!names.add(table.getName().toLowerCase(Locale.ENGLISH))) {
+                    throw new IllegalStateException(
+                                    "Duplicate!! Table Configs have more than one table with same name.");
+                }
+            });
+        } else if (config.getName().equals(ElideSQLDBConfig.class.getName())) {
+            ((ElideSQLDBConfig) config).getDbconfigs().forEach(dbconfig -> {
+                if (!names.add(dbconfig.getName().toLowerCase(Locale.ENGLISH))) {
+                    throw new IllegalStateException(
+                                    "Duplicate!! DB Configs have more than one connection with same name.");
+                }
+            });
+        }
     }
 
     /**

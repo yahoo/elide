@@ -29,9 +29,14 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class ElideDBConfig {
+public class ElideDBConfig implements Named {
 
     @JsonProperty("dbconfigs")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<DBConfig> dbconfigs = new LinkedHashSet<DBConfig>();
+
+    @Override
+    public String getName() {
+        return this.getClass().getName();
+    }
 }

@@ -5,13 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.model;
 
-/**
- * Elide SQL DB POJO.
- */
-public class ElideSQLDBConfig extends ElideDBConfig {
-
-    @Override
-    public String getName() {
-        return this.getClass().getName();
-    }
+public interface Named {
+    public String getName();
 }
