@@ -312,7 +312,6 @@ public class DynamicConfigValidator {
         Set<String> names = new HashSet<>();
 
         configs.forEach(obj -> {
-            System.out.println(obj.getConfigType());
             if (obj.getConfigType().equals(Table.class.getName())
                             && !names.add(((Table) obj).getName().toLowerCase(Locale.ENGLISH))) {
                 throw new IllegalStateException("Duplicate!! Table Configs have more than one table with same name.");
