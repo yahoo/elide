@@ -101,12 +101,6 @@
             <artifactId>elide-dynamic-config-helpers</artifactId>
             <version>5.0.0-pr17-SNAPSHOT</version>
             <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

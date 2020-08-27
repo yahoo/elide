@@ -276,6 +276,13 @@
             "pattern": "^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$",
             "default": ""
           },
+          "dbConnectionName": {
+            "title": "DB Connection Name",
+            "description": "The database connection name for this model.",
+            "type": "string",
+            "pattern": "^[A-Za-z][0-9A-Za-z_]*$",
+            "default": ""
+          },
           "hidden": {
             "title": "Hide/Show Table",
             "description": "Whether this table is exposed via API metadata",

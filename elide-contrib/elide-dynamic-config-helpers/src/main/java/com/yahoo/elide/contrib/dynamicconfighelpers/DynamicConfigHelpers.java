@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
@@ -43,11 +44,11 @@ public class DynamicConfigHelpers {
      * @return formatted file path.
      */
     public static String formatFilePath(String basePath) {
-        String path = basePath;
-        if (!path.endsWith(File.separator)) {
-            path += File.separator;
+        if (isNullOrEmpty(basePath) || basePath.endsWith(File.separator)) {
+            return basePath;
+        } else {
+            return basePath += File.separator;
         }
-        return path;
     }
 
     /**
@@ -63,7 +64,7 @@ public class DynamicConfigHelpers {
         Map<String, Object> variables = new HashMap<>();
         String jsonConfig = hjsonToJson(config);
         try {
-            if (schemaValidator.verifySchema(Config.VARIABLE, jsonConfig)) {
+            if (schemaValidator.verifySchema(Config.MODELVARIABLE, jsonConfig)) {
                 variables = getModelPojo(jsonConfig, Map.class);
             }
         } catch (ProcessingException e) {
@@ -94,6 +95,29 @@ public class DynamicConfigHelpers {
             throw new IOException(e);
         }
         return table;
+    }
+
+    /**
+     * Generates ElideDBConfig Pojo from input String.
+     * @param content : input string
+     * @param variables : variables to resolve.
+     * @return ElideDBConfig Pojo
+     * @throws IOException
+     */
+    public static ElideDBConfig stringToElideDBConfigPojo(String content, Map<String, Object> variables)
+            throws IOException {
+        DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
+        ElideDBConfig dbconfig = new ElideDBConfig();
+        String jsonConfig = hjsonToJson(resolveVariables(content, variables));
+        try {
+            if (schemaValidator.verifySchema(Config.SQLDBConfig, jsonConfig)) {
+                dbconfig = getModelPojo(jsonConfig, ElideDBConfig.class);
+            }
+        } catch (ProcessingException e) {
+            log.error("Error Validating DB config : " + e.getMessage());
+            throw new IOException(e);
+        }
+        return dbconfig;
     }
 
     /**
