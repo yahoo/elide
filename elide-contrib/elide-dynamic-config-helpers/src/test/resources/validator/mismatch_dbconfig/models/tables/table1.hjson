@@ -3,6 +3,7 @@
       name: PlayerStats
       table: player_stats
       schema: gamedb
+      dbConnectionName: MySQLConnection
       description:
       '''
       A long description
@@ -58,5 +59,19 @@
            ]
          }
       ]
-  }]
+  }
+  {
+      name: Country
+      table: country
+      dbConnectionName: OracleConnection
+      dimensions:
+      [
+        {
+          name: countryName
+          type: TEXT
+          definition: countryName
+        }
+      ]
+  }
+  ]
 }

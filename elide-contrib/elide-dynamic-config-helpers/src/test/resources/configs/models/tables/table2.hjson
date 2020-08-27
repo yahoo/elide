@@ -1,0 +1,48 @@
+{
+    tables: [{
+        name: Player
+        table: player
+        schema: playerdb
+        description:
+        '''
+        A long description
+        '''
+        cardinality : large
+        readAccess : A user is admin or is a player in the game
+        joins: [
+            {
+                name: playerCountry
+                to: country
+                type: toOne
+                definition: '${to}.id = ${from}.country_id'
+            }
+        ]
+        measures : [
+            {
+            name : highScore
+            type : "INTEGER"
+            definition: '<%measure_type%>(score)'
+            }
+        ]
+        dimensions : [
+            {
+                name : countryCode
+                type : TEXT
+                definition : '{{playerCountry.isoCode}}'
+            },
+            {
+                name : createdOn
+                type : TIME
+                definition : create_on
+                grains: [
+                {
+                    grain :  MONTH
+                    sql :  '''
+                    PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+                    '''
+                }
+                ]
+            }
+        ]
+    }]
+}

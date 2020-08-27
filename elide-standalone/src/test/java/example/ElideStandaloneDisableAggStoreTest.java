@@ -116,7 +116,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
 
             @Override
             public String getDynamicConfigPath() {
-                return "src/test/resources/models/";
+                return "src/test/resources/configs/";
             }
         });
         elide.start(false);
