@@ -20,7 +20,7 @@ elide:
     queryCleanupDays: 7
     defaultAsyncQueryDAO: true
   dynamic-config:
-    path: src/test/resources/models
+    path: src/test/resources/configs
     enabled: true
   aggregation-store:
     enabled: false

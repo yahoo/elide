@@ -1,0 +1,77 @@
+{
+  tables: [{
+      name: PlayerStats
+      table: player_stats
+      schema: gamedb
+      dbConnectionName: MySQLConnection
+      description:
+      '''
+      A long description
+      '''
+      cardinality : large
+      hidden : false
+      readAccess : A user is admin or is a player in the game
+      joins: [
+          {
+             name: playerCountry
+             to: country
+             type: toOne
+             definition: '${to}.id = ${from}.country_id'
+          },
+          {
+             name: playerTeam
+             to: team
+             type: toMany
+             definition: '${to}.id = ${from}.team_id'
+          }
+      ]
+
+      measures : [
+          {
+          name : highScore
+          type : INTEGER
+          definition: 'MAX(score)'
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           type : TEXT
+           definition : '{{playerCountry.isoCode}}'
+         },
+         {
+           name : createdOn
+           type : TIME
+           definition : create_on
+           grains: [
+            {
+             grain :  DAY
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             '''
+            },
+            {
+             grain :  MONTH
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+             '''
+            }
+           ]
+         }
+      ]
+  }
+  {
+      name: Country
+      table: country
+      dbConnectionName: MySQLConnection
+      dimensions:
+      [
+        {
+          name: countryName
+          type: TEXT
+          definition: countryName
+        }
+      ]
+  }
+  ]
+}
