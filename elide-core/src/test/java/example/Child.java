@@ -102,7 +102,7 @@ public class Child {
     @OneToOne(
             targetEntity = Child.class
     )
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     public Child getReadNoAccess() {
         return noReadAccess;
     }

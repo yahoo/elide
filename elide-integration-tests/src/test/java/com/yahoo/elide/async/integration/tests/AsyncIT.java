@@ -735,7 +735,7 @@ public class AsyncIT extends IntegrationTest {
 
         // Principal without Admin Role
         response = elide.get(baseUrl, "/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
-        assertEquals(HttpStatus.SC_FORBIDDEN, response.getResponseCode());
+        assertEquals(HttpStatus.SC_NOT_FOUND, response.getResponseCode());
     }
 
     /**

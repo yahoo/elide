@@ -15,10 +15,10 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
-@CreatePermission(expression = "deny all")
-@ReadPermission(expression = "deny all")
-@UpdatePermission(expression = "deny all")
-@DeletePermission(expression = "deny all")
+@CreatePermission(expression = "Prefab.Role.None")
+@ReadPermission(expression = "Prefab.Role.None")
+@UpdatePermission(expression = "Prefab.Role.None")
+@DeletePermission(expression = "Prefab.Role.None")
 @Include(rootLevel = true)
 @Entity
 public class FirstClassFields {

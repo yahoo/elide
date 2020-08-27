@@ -17,7 +17,7 @@ import javax.persistence.Table;
 /**
  * No Update test bean.
  */
-@UpdatePermission(expression = "deny all")
+@UpdatePermission(expression = "Prefab.Role.None")
 @Include(rootLevel = true, type = "noupdate") // optional here because class has this name
 // Hibernate
 @Entity
