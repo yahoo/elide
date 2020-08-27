@@ -33,6 +33,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
@@ -324,7 +325,8 @@ public abstract class SQLUnitTest {
         Consumer<EntityManager> txCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
         engine = new SQLQueryEngine(metaDataStore, emf, txCancel, sqlDialect);
 
-        playerStatsTable = engine.getTable("playerStats");
+        TableId tableId = new TableId("playerStats", "", "");
+        playerStatsTable = engine.getTable(tableId);
 
         ASIA.setName("Asia");
         ASIA.setId("1");
