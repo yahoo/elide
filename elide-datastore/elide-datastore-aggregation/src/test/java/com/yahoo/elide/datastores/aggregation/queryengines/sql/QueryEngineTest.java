@@ -475,7 +475,7 @@ public class QueryEngineTest extends SQLUnitTest {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.YEARMONTH))
                 .build();
 
         //Change for monthly column

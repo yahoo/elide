@@ -28,12 +28,12 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         statements = "CREATE TABLE PlayerStats (name varchar(255) not null,"
-                + "\t\t countryId varchar(255), createdOn timestamp, "
+                + "\t\t countryId varchar(255), createdOn timestamp, updatedOn timestamp,"
                 + "\t\t highScore bigint, primary key (name));"
                 + "CREATE TABLE PlayerCountry (id varchar(255) not null,"
                 + "\t\t isoCode varchar(255), primary key (id));"
-                + "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
-                + "\t\t('SerenaWilliams','1','2000-10-01');"
+                + "INSERT INTO PlayerStats (name,countryId,createdOn,updatedOn) VALUES\n"
+                + "\t\t('SerenaWilliams','1','2000-10-10','2001-10-10');"
                 + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
                 + "\t\t('2','IND');"
                 + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
@@ -58,22 +58,23 @@ public class DynamicConfigTest extends IntegrationTest {
                                         id("0"),
                                         attributes(
                                                 attr("countryCode", "USA"),
-                                                attr("createdOn", "2000-10-01"),
+                                                attr("createdOn", "2000-10-10"),
                                                 attr("highScore", null),
-                                                attr("name", "SerenaWilliams")
+                                                attr("name", "SerenaWilliams"),
+                                                attr("updatedOn", "2001-10")
                                         )
                                 )
                         ).toJSON())
                 )
                 .statusCode(HttpStatus.SC_OK).extract().response().asString();
-        String apiGetViewExpected = "{\"data\":[{\"type\":\"playerStats\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-01\",\"highScore\":null,\"name\":\"SerenaWilliams\"}}]}";
+        String apiGetViewExpected = "{\"data\":[{\"type\":\"playerStats\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-10\",\"highScore\":null,\"name\":\"SerenaWilliams\",\"updatedOn\":\"2001-10\"}}]}";
         assertEquals(apiGetViewExpected, apiGetViewRequest);
     }
 
     @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-            statements = "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
-                    + "\t\t('SaniaMirza','2','2000-10-01');")
+            statements = "INSERT INTO PlayerStats (name,countryId,createdOn,updatedOn) VALUES\n"
+                    + "\t\t('SaniaMirza','2','2000-10-10','2001-10-10');")
     @Test
     public void jsonApiGetMultiTest() {
         when()

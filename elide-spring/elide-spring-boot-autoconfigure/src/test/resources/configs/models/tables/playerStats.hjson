@@ -42,6 +42,18 @@
                 {
                     type :  SIMPLEDATE
                     sql :  '''
+                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+                    '''
+                }
+            },
+            {
+                name : updatedOn
+                type : TIME
+                definition : updatedOn
+                grain:
+                {
+                    type :  YEARMONTH
+                    sql :  '''
                     PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
                     '''
                 }

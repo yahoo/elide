@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-public class SimpleDate extends java.util.Date {
+import java.util.Date;
+
+/**
+ * Time Grain class for SIMPLEDATE("yyyy-MM-dd").
+ */
+public class SimpleDate extends Date {
 
     private static final long serialVersionUID = 6443998660242635314L;
 
@@ -13,7 +18,7 @@ public class SimpleDate extends java.util.Date {
         super();
     }
 
-    public SimpleDate(java.util.Date date) {
+    public SimpleDate(Date date) {
         super(date.getTime());
     }
 }

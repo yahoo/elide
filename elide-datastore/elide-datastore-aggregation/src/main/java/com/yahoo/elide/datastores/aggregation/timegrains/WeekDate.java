@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-public class WeekDate extends java.util.Date {
+import java.util.Date;
+
+/**
+ * Time Grain class for WEEKDATE("yyyy-MM-dd").
+ */
+public class WeekDate extends Date {
 
     private static final long serialVersionUID = -8590233329032795743L;
 
@@ -13,7 +18,7 @@ public class WeekDate extends java.util.Date {
         super();
     }
 
-    public WeekDate(java.util.Date date) {
+    public WeekDate(Date date) {
         super(date.getTime());
     }
 }

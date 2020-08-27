@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-public class Year extends java.util.Date {
+import java.util.Date;
+
+/**
+ * Time Grain class for YEAR("yyyy").
+ */
+public class Year extends Date {
 
     private static final long serialVersionUID = -4697241489345142589L;
 
@@ -13,7 +18,7 @@ public class Year extends java.util.Date {
         super();
     }
 
-    public Year(java.util.Date date) {
+    public Year(Date date) {
         super(date.getTime());
     }
 }

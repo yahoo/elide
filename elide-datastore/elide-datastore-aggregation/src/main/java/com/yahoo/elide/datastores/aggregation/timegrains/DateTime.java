@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-public class DateTime extends java.util.Date {
+import java.util.Date;
+
+/**
+ * Time Grain class for DATETIME("yyyy-MM-dd HH:mm:ss").
+ */
+public class DateTime extends Date {
 
     private static final long serialVersionUID = -4541422985328136461L;
 
@@ -13,7 +18,7 @@ public class DateTime extends java.util.Date {
         super();
     }
 
-    public DateTime(java.util.Date date) {
+    public DateTime(Date date) {
         super(date.getTime());
     }
 }

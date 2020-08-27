@@ -233,7 +233,7 @@
               ],
               "default": "TIME"
             },
-            "grains": {
+            "grain": {
               "$ref":"#/definitions/grain"
             }
           }

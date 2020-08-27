@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-public class MonthYear extends java.util.Date {
+import java.util.Date;
+
+/**
+ * Time Grain class for MONTHYEAR("MMM yyyy").
+ */
+public class MonthYear extends Date {
 
     private static final long serialVersionUID = -6996481791560356547L;
 
@@ -13,7 +18,7 @@ public class MonthYear extends java.util.Date {
         super();
     }
 
-    public MonthYear(java.util.Date date) {
+    public MonthYear(Date date) {
         super(date.getTime());
     }
 }
