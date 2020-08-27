@@ -21,8 +21,8 @@ import java.util.Date;
 @ElideTypeConverter(type = WeekDate.class, name = "WeekDate")
 public class WeekDateSerde implements Serde<Object, Date> {
 
-    SimpleDateFormat dateFormatter = new SimpleDateFormat(TimeGrain.WEEKDATE.getFormat());
-    SimpleDateFormat weekdateFormatter = new SimpleDateFormat("u");
+    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(TimeGrain.WEEKDATE.getFormat());
+    private static final SimpleDateFormat WEEKDATE_FORMATTER = new SimpleDateFormat("u");
 
     @Override
     public Date deserialize(Object val) {
@@ -30,15 +30,15 @@ public class WeekDateSerde implements Serde<Object, Date> {
 
         try {
             if (val instanceof String) {
-                date = new Date(dateFormatter.parse((String) val).getTime());
+                date = new Date(DATE_FORMATTER.parse((String) val).getTime());
             } else {
-                date = new WeekDate(dateFormatter.parse(dateFormatter.format(val)));
+                date = new WeekDate(DATE_FORMATTER.parse(DATE_FORMATTER.format(val)));
             }
         } catch (ParseException e) {
-            throw new IllegalArgumentException("Date strings must be formated as " + dateFormatter.toPattern());
+            throw new IllegalArgumentException("Date strings must be formated as " + DATE_FORMATTER.toPattern());
         }
 
-        if (!weekdateFormatter.format(date).equals("1")) {
+        if (!WEEKDATE_FORMATTER.format(date).equals("1")) {
             throw new IllegalArgumentException("Date string not a monday.");
         }
 
@@ -47,10 +47,10 @@ public class WeekDateSerde implements Serde<Object, Date> {
 
     @Override
     public String serialize(Date val) {
-        if (!weekdateFormatter.format(val).equals("1")) {
+        if (!WEEKDATE_FORMATTER.format(val).equals("1")) {
             throw new IllegalArgumentException("Date string not a monday.");
         } else {
-            return dateFormatter.format(val).toString();
+            return DATE_FORMATTER.format(val).toString();
         }
     }
 }

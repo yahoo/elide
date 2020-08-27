@@ -45,7 +45,7 @@ public class MonthYearSerdeTest {
 
         String dateInString = "Jan 2020";
         MonthYear expectedDate = new MonthYear(formatter.parse(dateInString));
-        Timestamp timestamp = new java.sql.Timestamp(formatter.parse(dateInString).getTime());
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         //timestamp.toString() = 2020-01-01 00:00:00.0
         MonthYearSerde dateSerde = new MonthYearSerde();
         Object actualDate = dateSerde.deserialize(timestamp);

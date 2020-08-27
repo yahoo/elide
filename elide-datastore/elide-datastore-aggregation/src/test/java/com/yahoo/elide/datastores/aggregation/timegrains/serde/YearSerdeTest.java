@@ -45,7 +45,7 @@ public class YearSerdeTest {
 
         String dateInString = "2020";
         Year expectedDate = new Year(formatter.parse(dateInString));
-        Timestamp timestamp = new java.sql.Timestamp(formatter.parse(dateInString).getTime());
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         YearSerde dateSerde = new YearSerde();
         Object actualDate = dateSerde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);

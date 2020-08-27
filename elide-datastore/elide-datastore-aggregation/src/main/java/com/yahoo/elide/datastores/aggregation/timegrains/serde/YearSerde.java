@@ -20,7 +20,7 @@ import java.util.Date;
 @ElideTypeConverter(type = Year.class, name = "Year")
 public class YearSerde implements Serde<Object, Date> {
 
-    SimpleDateFormat dateFormatter = new SimpleDateFormat(TimeGrain.YEAR.getFormat());
+    private static final SimpleDateFormat YEAR_FORMATTER = new SimpleDateFormat(TimeGrain.YEAR.getFormat());
 
     @Override
     public Date deserialize(Object val) {
@@ -28,12 +28,12 @@ public class YearSerde implements Serde<Object, Date> {
 
         try {
             if (val instanceof String) {
-                date = new Date(dateFormatter.parse((String) val).getTime());
+                date = new Date(YEAR_FORMATTER.parse((String) val).getTime());
             } else {
-                date = new Year(dateFormatter.parse(dateFormatter.format(val)));
+                date = new Year(YEAR_FORMATTER.parse(YEAR_FORMATTER.format(val)));
             }
         } catch (ParseException e) {
-            throw new IllegalArgumentException("Date strings must be formated as " + dateFormatter.toPattern());
+            throw new IllegalArgumentException("Date strings must be formated as " + YEAR_FORMATTER.toPattern());
         }
 
         return date;
@@ -41,6 +41,6 @@ public class YearSerde implements Serde<Object, Date> {
 
     @Override
     public String serialize(Date val) {
-        return dateFormatter.format(val).toString();
+        return YEAR_FORMATTER.format(val).toString();
     }
 }

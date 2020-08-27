@@ -56,7 +56,7 @@ public class WeekDateSerdeTest {
     public void testDeserializeTimestampNotMonday() throws ParseException {
 
         String dateInString = "2020-01-01";
-        Timestamp timestamp = new java.sql.Timestamp(formatter.parse(dateInString).getTime());
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         WeekDateSerde weekDateSerde = new WeekDateSerde();
         assertThrows(IllegalArgumentException.class, () -> {
             weekDateSerde.deserialize(timestamp);

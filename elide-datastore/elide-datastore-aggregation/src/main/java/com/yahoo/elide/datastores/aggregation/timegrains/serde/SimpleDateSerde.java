@@ -20,7 +20,7 @@ import java.util.Date;
 @ElideTypeConverter(type = SimpleDate.class, name = "SimpleDate")
 public class SimpleDateSerde implements Serde<Object, Date> {
 
-    SimpleDateFormat dateFormatter = new SimpleDateFormat(TimeGrain.SIMPLEDATE.getFormat());
+    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(TimeGrain.SIMPLEDATE.getFormat());
 
     @Override
     public Date deserialize(Object val) {
@@ -28,12 +28,12 @@ public class SimpleDateSerde implements Serde<Object, Date> {
 
         try {
             if (val instanceof String) {
-                date = new Date(dateFormatter.parse((String) val).getTime());
+                date = new Date(DATE_FORMATTER.parse((String) val).getTime());
             } else {
-                date = new SimpleDate(dateFormatter.parse(dateFormatter.format(val)));
+                date = new SimpleDate(DATE_FORMATTER.parse(DATE_FORMATTER.format(val)));
             }
         } catch (ParseException e) {
-            throw new IllegalArgumentException("Date strings must be formated as " + dateFormatter.toPattern());
+            throw new IllegalArgumentException("Date strings must be formated as " + DATE_FORMATTER.toPattern());
         }
 
         return date;
@@ -41,6 +41,6 @@ public class SimpleDateSerde implements Serde<Object, Date> {
 
     @Override
     public String serialize(Date val) {
-        return dateFormatter.format(val).toString();
+        return DATE_FORMATTER.format(val).toString();
     }
 }

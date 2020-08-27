@@ -68,7 +68,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
         this.referenceTable = referenceTable;
         this.arguments = arguments;
         this.alias = alias;
-        this.grain = column.getSupportedGrain();;
+        this.grain = column.getSupportedGrain();
         this.timeZone = timeZone;
     }
 

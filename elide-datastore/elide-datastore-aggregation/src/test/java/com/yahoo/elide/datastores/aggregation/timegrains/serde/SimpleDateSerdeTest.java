@@ -45,7 +45,7 @@ public class SimpleDateSerdeTest {
 
         String dateInString = "2020-01-01";
         SimpleDate expectedDate = new SimpleDate(formatter.parse(dateInString));
-        Timestamp timestamp = new java.sql.Timestamp(formatter.parse(dateInString).getTime());
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         SimpleDateSerde dateSerde = new SimpleDateSerde();
         Object actualDate = dateSerde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
