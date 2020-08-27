@@ -68,7 +68,7 @@ public class WeekDateSerdeTest {
 
         String dateInString = "2020-01-06";
         WeekDate expectedDate = new WeekDate(formatter.parse(dateInString));
-        Timestamp timestamp = new java.sql.Timestamp(formatter.parse(dateInString).getTime());
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         WeekDateSerde weekDateSerde = new WeekDateSerde();
         Object actualDate = weekDateSerde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
