@@ -41,19 +41,23 @@ import java.util.Set;
     "tags",
     "extend",
     "sql",
-    "table"
+    "table",
+    "dbConnectionName"
 })
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Table {
+public class Table implements Named {
 
     @JsonProperty("name")
     private String name;
 
     @JsonProperty("schema")
     private String schema = "";
+
+    @JsonProperty("dbConnectionName")
+    private String dbConnectionName = "";
 
     @JsonProperty("hidden")
     private Boolean hidden = false;

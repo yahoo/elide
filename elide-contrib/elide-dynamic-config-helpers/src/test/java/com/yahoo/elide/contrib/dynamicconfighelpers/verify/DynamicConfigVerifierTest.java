@@ -35,12 +35,12 @@ import java.security.SecureRandom;
 import java.security.Signature;
 import java.util.Base64;
 
-public class DynamicConfigVerifiesTest {
+public class DynamicConfigVerifierTest {
 
     private static KeyPair kp;
     private static String signature;
     private static String tarContent = null;
-    private static final String TAR_FILE_PATH = "src/test/resources/test.tar.gz";
+    private static final String TAR_FILE_PATH = "src/test/resources/configs.tar.gz";
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -111,10 +111,10 @@ public class DynamicConfigVerifiesTest {
     private static void createTarGZ() throws FileNotFoundException, IOException {
         TarArchiveOutputStream tarOutputStream = null;
         try {
-            String modelPath  = "src/test/resources/models_missing/";
+            String configPath  = "src/test/resources/configs/";
             tarOutputStream = new TarArchiveOutputStream(new GzipCompressorOutputStream(
                     new BufferedOutputStream(new FileOutputStream(new File(TAR_FILE_PATH)))));
-            addFileToTarGz(tarOutputStream, modelPath, "");
+            addFileToTarGz(tarOutputStream, configPath, "");
         } finally {
             tarOutputStream.finish();
             tarOutputStream.close();

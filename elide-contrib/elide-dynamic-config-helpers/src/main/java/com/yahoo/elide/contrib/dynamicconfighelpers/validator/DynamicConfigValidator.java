@@ -5,13 +5,19 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.yahoo.elide.contrib.dynamicconfighelpers.Config;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSQLDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Named;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.apache.commons.cli.CommandLine;
@@ -30,21 +36,20 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Data
 /**
- * Util class to validate and parse the model config files.
+ * Util class to validate and parse the config files.
  */
 public class DynamicConfigValidator {
 
@@ -56,14 +61,16 @@ public class DynamicConfigValidator {
     private static final String SEMI_COLON = ";";
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
     private static final String RESOURCES = "resources";
-    private static final int RESOURCE_LENGTH = 10; //"resources/".length()
+    private static final int RESOURCES_LENGTH = 9; //"resources".length()
     private static final String CLASSPATH_PATTERN = "classpath*:";
     private static final String FILEPATH_PATTERN = "file:";
     private static final String HJSON_EXTN = "**/*.hjson";
 
     private ElideTableConfig elideTableConfig = new ElideTableConfig();
-    private ElideSecurityConfig elideSecurityConfig = new ElideSecurityConfig();
-    private Map<String, Object> variables = new HashMap<>();;
+    private ElideSecurityConfig elideSecurityConfig;
+    private Map<String, Object> modelVariables;
+    private Map<String, Object> dbVariables;
+    private ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
     private String configDir;
     private Map<String, Resource> resourceMap = new HashMap<>();
 
@@ -71,11 +78,9 @@ public class DynamicConfigValidator {
         File config = new File(configDir);
 
         if (config.exists()) {
-            this.setConfigDir(FILEPATH_PATTERN + DynamicConfigHelpers.formatFilePath(config.getAbsolutePath())
-                + HJSON_EXTN);
+            this.setConfigDir(FILEPATH_PATTERN + DynamicConfigHelpers.formatFilePath(config.getAbsolutePath()));
         } else {
-            this.setConfigDir(CLASSPATH_PATTERN + DynamicConfigHelpers.formatFilePath(formatClassPath(configDir))
-                + HJSON_EXTN);
+            this.setConfigDir(CLASSPATH_PATTERN + DynamicConfigHelpers.formatFilePath(formatClassPath(configDir)));
         }
     }
 
@@ -106,9 +111,16 @@ public class DynamicConfigValidator {
      */
     public void readAndValidateConfigs() throws IOException {
         this.loadConfigMap();
-        this.readVariableConfig();
-        this.readSecurityConfig();
-        this.readTableConfig();
+        this.setModelVariables(readVariableConfig(Config.MODELVARIABLE));
+        this.setElideSecurityConfig(readSecurityConfig());
+        validateRoleInSecurityConfig(this.elideSecurityConfig);
+        this.setDbVariables(readVariableConfig(Config.DBVARIABLE));
+        this.elideSQLDBConfig.setDbconfigs(readDbConfig());
+        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
+        this.elideTableConfig.setTables(readTableConfig());
+        validateNameUniqueness(this.elideTableConfig.getTables());
+        validateSqlInTableConfig(this.elideTableConfig);
+        validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
 
     /**
@@ -118,59 +130,111 @@ public class DynamicConfigValidator {
     private void loadConfigMap() throws IOException {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
                 this.getClass().getClassLoader());
-        Resource[] modelResources = resolver.getResources(this.configDir);
-        for (Resource resource : modelResources) {
-            this.resourceMap.put(resource.getFilename(), resource);
+        if (resolver.getResources(this.configDir).length == 0) {
+            throw new IllegalStateException(this.configDir + " : config path does not exist");
+        }
+        int configDirURILength = resolver.getResources(this.configDir)[0].getURI().toString().length();
+
+        Resource[] hjsonResources = resolver.getResources(this.configDir + HJSON_EXTN);
+        for (Resource resource : hjsonResources) {
+            this.resourceMap.put(resource.getURI().toString().substring(configDirURILength), resource);
         }
     }
 
     /**
      * Read variable file config.
-     * @return boolean true if variable config file exists else false
-     * @throws IOException
+     * @param config Config Enum
+     * @return Map<String, Object> A map containing all the variables if variable config exists else empty map
      */
-    private void readVariableConfig() throws IOException {
-        String key = Config.VARIABLE.getConfigPath();
-        if (this.resourceMap.containsKey(key)) {
-            String content = IOUtils.toString(this.resourceMap.get(key).getInputStream(), StandardCharsets.UTF_8);
-            this.setVariables(DynamicConfigHelpers.stringToVariablesPojo(content));
-            this.resourceMap.remove(Config.VARIABLE.getConfigPath());
-        }
+    private Map<String, Object> readVariableConfig(Config config) {
+
+        return this.resourceMap
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getKey().startsWith(config.getConfigPath()))
+                        .map(entry -> {
+                            try {
+                                String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
+                                return DynamicConfigHelpers.stringToVariablesPojo(content);
+                            } catch (IOException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        })
+                        .findFirst()
+                        .orElse(new HashMap<>());
     }
 
     /**
-     * Read security config file and checks for any missing Handlebar variables.
-     * @return boolean true if security config file exists else false
-     * @throws IOException
+     * Read and validates security config file.
      */
-    private void readSecurityConfig() throws IOException {
-        String key = Config.SECURITY.getConfigPath();
-        if (this.resourceMap.containsKey(key)) {
-            String content = IOUtils.toString(this.resourceMap.get(key).getInputStream(), StandardCharsets.UTF_8);
-            validateConfigForMissingVariables(content, this.variables);
-            this.setElideSecurityConfig(DynamicConfigHelpers.stringToElideSecurityPojo(content, this.variables));
-            validateRoleInSecurityConfig(this.getElideSecurityConfig());
-            this.resourceMap.remove(Config.SECURITY.getConfigPath());
-        }
+    private ElideSecurityConfig readSecurityConfig() {
+
+        return this.resourceMap
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getKey().startsWith(Config.SECURITY.getConfigPath()))
+                        .map(entry -> {
+                            try {
+                                String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
+                                validateConfigForMissingVariables(content, this.modelVariables);
+                                return DynamicConfigHelpers.stringToElideSecurityPojo(content, this.modelVariables);
+                            } catch (IOException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        })
+                        .findAny()
+                        .orElse(new ElideSecurityConfig());
     }
 
     /**
-     * Read table config files and checks for any missing Handlebar variables.
-     * @throws IOException
+     * Read and validates db config files.
+     * @return Set<DBConfig> Set of SQL DB Configs
      */
-    private void readTableConfig() throws IOException {
-        Set<Table> tables = new HashSet<>();
-        if (this.resourceMap.isEmpty()) {
-            throw new IllegalStateException("No Table configs found at: " + this.configDir);
+    private Set<DBConfig> readDbConfig() {
+
+        return this.resourceMap
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getKey().startsWith(Config.SQLDBConfig.getConfigPath()))
+                        .map(entry -> {
+                            try {
+                                String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
+                                validateConfigForMissingVariables(content, this.dbVariables);
+                                return DynamicConfigHelpers.stringToElideDBConfigPojo(content, this.dbVariables);
+                            } catch (IOException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        })
+                        .flatMap(dbconfig -> dbconfig.getDbconfigs().stream())
+                        .collect(Collectors.toSet());
+    }
+
+    /**
+     * Read and validates table config files.
+     */
+    private Set<Table> readTableConfig() {
+
+        Set<Table> tables = this.resourceMap
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getKey().startsWith(Config.TABLE.getConfigPath()))
+                        .map(entry -> {
+                            try {
+                                String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
+                                validateConfigForMissingVariables(content, this.modelVariables);
+                                return DynamicConfigHelpers.stringToElideTablePojo(content, this.modelVariables);
+                            } catch (IOException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        })
+                        .flatMap(table -> table.getTables().stream())
+                        .collect(Collectors.toSet());
+
+        if (tables.isEmpty()) {
+            throw new IllegalStateException(
+                            "No Table configs found at: " + this.configDir + Config.TABLE.getConfigPath());
         }
-        for (Entry<String, Resource> entry : this.resourceMap.entrySet()) {
-            String content = IOUtils.toString(entry.getValue().getInputStream(), StandardCharsets.UTF_8);
-            validateConfigForMissingVariables(content, this.variables);
-            ElideTableConfig table = DynamicConfigHelpers.stringToElideTablePojo(content, this.variables);
-            tables.addAll(table.getTables());
-        }
-        this.elideTableConfig.setTables(tables);
-        validateSqlInTableConfig(this.elideTableConfig);
+        return tables;
     }
 
     /**
@@ -209,6 +273,49 @@ public class DynamicConfigValidator {
             }
         }
         return true;
+    }
+
+    /**
+     * Validates join clause does not refer to a Table which is not in the same DBConnection.
+     * If joined table is not part of dynamic configuration, then ignore
+     */
+    private static void validateJoinedTablesDBConnectionName(ElideTableConfig elideTableConfig) {
+
+        for (Table table : elideTableConfig.getTables()) {
+            if (!table.getJoins().isEmpty()) {
+
+                Set<String> joinedTables = table.getJoins()
+                        .stream()
+                        .map(join -> join.getTo().toLowerCase(Locale.ENGLISH))
+                        .collect(Collectors.toSet());
+
+                Set<String> connections = elideTableConfig.getTables()
+                        .stream()
+                        .filter(t -> joinedTables.contains(t.getName().toLowerCase(Locale.ENGLISH)))
+                        .map(t -> t.getDbConnectionName())
+                        .collect(Collectors.toSet());
+
+                if (connections.size() > 1 || (connections.size() == 1
+                                && !table.getDbConnectionName().equals(connections.iterator().next()))) {
+                    throw new IllegalStateException("DBConnection name mismatch between table: " + table.getName()
+                                    + " and tables in its Join Clause.");
+                }
+            }
+        }
+    }
+
+    /**
+     * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
+     */
+    private void validateNameUniqueness(Set<? extends Named> configs) {
+
+        Set<String> names = new HashSet<>();
+
+        configs.forEach(obj -> {
+            if (!names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
+                throw new IllegalStateException("Duplicate!! Either Table or DB configs found with the same name.");
+            }
+        });
     }
 
     /**
@@ -269,14 +376,20 @@ public class DynamicConfigValidator {
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "Print a help message and exit."));
         options.addOption(new Option("c", "configDir", true,
-                "Path for Model Configs Directory.\n"
-                        + "Expected Directory Structure:\n"
-                        + "./security.hjson(optional)\n"
-                        + "./variables.hjson(optional)\n"
-                        + "./tables/\n"
-                        + "./tables/table1.hjson\n"
-                        + "./tables/table2.hjson\n"
-                        + "./tables/tableN.hjson\n"));
+                "Path for Configs Directory.\n"
+                        + "Expected Directory Structure under Configs Directory:\n"
+                        + "./models/security.hjson(optional)\n"
+                        + "./models/variables.hjson(optional)\n"
+                        + "./models/tables/\n"
+                        + "./models/tables/table1.hjson\n"
+                        + "./models/tables/table2.hjson\n"
+                        + "./models/tables/tableN.hjson\n"
+                        + "./db/variables.hjson(optional)\n"
+                        + "./db/sql/(optional)\n"
+                        + "./db/sql/db1.hjson\n"
+                        + "./db/sql/db2.hjson\n"
+                        + "./db/sql/dbN.hjson\n"));
+
         return options;
     }
 
@@ -295,9 +408,11 @@ public class DynamicConfigValidator {
      * @param filePath
      * @return Path to model dir
      */
-    private String formatClassPath(String filePath) {
-        if (filePath.indexOf(RESOURCES) > -1) {
-            return filePath.substring(filePath.indexOf(RESOURCES) + RESOURCE_LENGTH);
+    public static String formatClassPath(String filePath) {
+        if (filePath.indexOf(RESOURCES + File.separator) > -1) {
+            return filePath.substring(filePath.indexOf(RESOURCES + File.separator) + RESOURCES_LENGTH + 1);
+        } else if (filePath.indexOf(RESOURCES) > -1) {
+            return filePath.substring(filePath.indexOf(RESOURCES) + RESOURCES_LENGTH);
         }
         return filePath;
     }

@@ -127,7 +127,7 @@ public class HandlebarsHydratorTest {
             + "@EqualsAndHashCode\n"
             + "@ToString\n"
             + "@Data\n"
-            + "@FromTable(name = \"gamedb.player_stats\")\n"
+            + "@FromTable(name = \"gamedb.player_stats\", dbConnectionName = \"\")\n"
             + "\n"
             + "@ReadPermission(expression = \"A user is admin or is a player in the game\")\n"
             + "@Meta(description = \"A long description\", category=\"Table Category\")\n"
@@ -241,15 +241,15 @@ public class HandlebarsHydratorTest {
     public void testConfigHydration() throws IOException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources/models";
+        String path = "src/test/resources";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
-        String hjsonPath = absolutePath + "/tables/table1.hjson";
+        String hjsonPath = absolutePath + "/models/tables/table1.hjson";
 
         DynamicConfigValidator testClass = new DynamicConfigValidator(path);
         testClass.readAndValidateConfigs();
 
-        Map<String, Object> map = testClass.getVariables();
+        Map<String, Object> map = testClass.getModelVariables();
 
         String content = new String (Files.readAllBytes(Paths.get(hjsonPath)));
 
@@ -260,7 +260,7 @@ public class HandlebarsHydratorTest {
     public void testTableHydration() throws IOException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources/models";
+        String path = "src/test/resources";
 
         DynamicConfigValidator testClass = new DynamicConfigValidator(path);
         testClass.readAndValidateConfigs();
@@ -274,7 +274,7 @@ public class HandlebarsHydratorTest {
     @Test
     public void testSecurityHydration() throws IOException {
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources/models";
+        String path = "src/test/resources";
 
         DynamicConfigValidator testClass = new DynamicConfigValidator(path);
         testClass.readAndValidateConfigs();

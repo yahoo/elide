@@ -1,0 +1,136 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema",
+    "$id": "https://json-schema.org/draft-06/schema#",
+    "type": "object",
+    "title": "Elide DB Config Root Schema",
+    "description": "Elide database connection config json/hjson schema",
+    "required": [
+        "dbconfigs"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "dbconfigs": {
+            "$id": "#/properties/dbconfigs",
+            "type": "array",
+            "title": "Elide DB Config Collection",
+            "description": "An array of Elide database connection configs.",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "$id": "#/properties/dbconfigs/items",
+                "type": "object",
+                "title": "Elide DB Config",
+                "description": "Elide database connection config",
+                "required": [
+                    "name",
+                    "url",
+                    "driver",
+                    "user",
+                    "dialect"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "DB Connection Name",
+                        "description": "Name of the database connection. This will be used for the persistent unit name.",
+                        "pattern": "^[A-Za-z][0-9A-Za-z_]*$",
+                        "examples": [
+                            "MySQLConnection"
+                        ]
+                    },
+                    "url": {
+                        "type": "string",
+                        "title": "JDBC URL",
+                        "description": "JDBC URL for the database connection i.e. javax.persistence.jdbc.URL",
+                        "pattern": "^jdbc:[0-9A-Za-z_]+:[0-9A-Za-z:/@?&=]+$",
+                        "examples": [
+                            "jdbc:mysql://localhost/elide?serverTimezone=UTC"
+                        ]
+                    },
+                    "driver": {
+                        "type": "string",
+                        "title": "JDBC Driver Name",
+                        "description": "JDBC Driver for the database connection i.e. javax.persistence.jdbc.driver",
+                        "pattern": "^([0-9A-Za-z_]+[.]?)+$",
+                        "examples": [
+                            "com.mysql.jdbc.Driver"
+                        ]
+                    },
+                    "user": {
+                        "type": "string",
+                        "title": "DB Username",
+                        "description": "Username for the database connection i.e. javax.persistence.jdbc.user",
+                        "pattern": "^[0-9A-Za-z_]+$",
+                        "examples": [
+                            "guest1"
+                        ]
+                    },
+                    "dialect": {
+                        "type": "string",
+                        "title": "Elide Dialect",
+                        "description": "The Elide Dialect to use for query generation.",
+                        "pattern": "^([0-9A-Za-z_]+[.]?)+$",
+                        "examples": [
+                            "org.hibernate.dialect.MySQL5Dialect"
+                        ]
+                    },
+                    "propertyMap": {
+                        "type": "object",
+                        "title": "Additional Properties Map",
+                        "description": "A map of additional Hibernate properties and persistence properties",
+                        "default": {},
+                        "patternProperties": {
+                            "^([A-Za-z0-9_]+[.]?)+$": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "boolean"
+                                    }
+                                ]
+                            }
+                        },
+                        "additionalProperties": false,
+                        "examples": [
+                            {
+                                "hibernate.show_sql": true,
+                                "hibernate.default_batch_fetch_size": 100,
+                                "hibernate.hbm2ddl.auto": "create"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "examples": [
+        {
+            "dbconfigs": [
+                {
+                    "name": "MyDB2Connection",
+                    "url": "jdbc:db2://localhost/elide?serverTimezone=UTC&",
+                    "driver": "a",
+                    "user": "elide",
+                    "dialect": "org.hibernate.dialect.DB2Dialect",
+                    "propertyMap": {
+                        "hibernate.show_sql": true,
+                        "hibernate.default_batch_fetch_size": 100.1,
+                        "hibernate.hbm2ddl.auto": "create"
+                    }
+                },
+                {
+                    "name": "MySQLConnection",
+                    "url": "jdbc:mysql://localhost/elide?serverTimezone=UTC",
+                    "driver": "com.mysql.jdbc.Driver",
+                    "user": "guest1",
+                    "dialect": "org.hibernate.dialect.MySQL5Dialect"
+                }
+            ]
+        }
+    ]
+}
