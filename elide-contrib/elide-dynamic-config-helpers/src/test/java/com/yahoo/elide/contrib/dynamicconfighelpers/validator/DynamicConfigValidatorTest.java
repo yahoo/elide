@@ -129,7 +129,7 @@ public class DynamicConfigValidatorTest {
     public void testDuplicateDBConfigName() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/duplicate_dbconfigname" }));
-        assertEquals(e.getMessage(), "Duplicate!! DB Configs have more than one connection with same name.");
+        assertEquals(e.getMessage(), "Duplicate!! Either Table or DB configs found with the same name.");
     }
 
     @Test
