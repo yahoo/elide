@@ -78,8 +78,8 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
     // Query Components
     //
     private void visit(Table table) {
-        visit(table.getId());
-        // `name` and `version` are included in id field
+        visit(table.getId().toString());
+        // `name`, `version` and `dbconnection` are included in id field
     }
 
     private void visit(MetricProjection metricProjection) {

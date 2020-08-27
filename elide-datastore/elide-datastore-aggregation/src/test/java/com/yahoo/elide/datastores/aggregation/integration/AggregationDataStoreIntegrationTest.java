@@ -22,6 +22,8 @@ import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TableIdSerde;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -758,16 +760,19 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
     @Test
     public void tableMetaDataTest() {
 
+        TableIdSerde serde = new TableIdSerde();
+        String countryId = serde.serialize(new TableId("country", "", ""));
+        String playerStatsId = serde.serialize(new TableId("playerStats", "", ""));
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/country")
+                .get("/table/" + countryId)
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("SMALL"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/playerStats")
+                .get("/table/" + playerStatsId)
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("LARGE"))
@@ -797,7 +802,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("TEXT"))
                 .body("data.attributes.columnType",  equalTo("REFERENCE"))
                 .body("data.attributes.expression",  equalTo("player.name"))
-                .body("data.relationships.table.data.id", equalTo("playerStats"));
+                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")));
 
     }
 
@@ -813,7 +818,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FIELD"))
                 .body("data.attributes.expression",  equalTo("recordedDate"))
-                .body("data.relationships.table.data.id", equalTo("playerStats"))
+                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
                 .body(
                         "data.relationships.supportedGrains.data.id",
                         hasItems("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
@@ -839,7 +844,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.expression",  equalTo("lowScore"))
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
-                .body("data.relationships.table.data.id", equalTo("playerStats"))
+                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))
                 .body("included.attributes.description", hasItem("very low score"))
@@ -854,7 +859,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("DECIMAL"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
-                .body("data.relationships.table.data.id", equalTo("videoGame"));
+                .body("data.relationships.table.data.id", equalTo(getTableId("videoGame", "", "mycon")));
 
     }
     private void create(String query, Map<String, Object> variables) throws IOException {
@@ -940,5 +945,13 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
         try (InputStream in = AggregationDataStoreIntegrationTest.class.getResourceAsStream("/graphql/responses/" + fileName)) {
             return new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
         }
+    }
+
+    private String getTableId(String name, String version, String dbConnectionName) {
+        return new TableId(name, version, dbConnectionName).toString();
+    }
+
+    private String getTableId(String name) {
+        return getTableId(name, "", "");
     }
 }

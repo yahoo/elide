@@ -15,16 +15,22 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.persistence.Embedded;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -36,8 +42,10 @@ import javax.persistence.OneToMany;
 @EqualsAndHashCode
 @ToString
 public class Table {
+
     @Id
-    private final String id;
+    @Embedded
+    private TableId id;
 
     private final String name;
 
@@ -82,11 +90,16 @@ public class Table {
         this.name = dictionary.getJsonAliasFor(cls);
         this.version = EntityDictionary.getModelVersion(cls);
 
-        if (this.version != null && ! this.version.isEmpty()) {
-            this.id = this.name + "." + this.version;
-        } else {
-            this.id = this.name;
+        String dbConnectionName = "";
+        Annotation annotation =
+                        EntityDictionary.getFirstAnnotation(cls, Arrays.asList(FromTable.class, FromSubquery.class));
+        if (annotation instanceof FromTable) {
+            dbConnectionName = ((FromTable) annotation).dbConnectionName();
+        } else if (annotation instanceof FromSubquery) {
+            dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
         }
+
+        this.id = new TableId(this.name, this.version, dbConnectionName);
 
         this.tableTags = new HashSet<>();
 
@@ -227,5 +240,13 @@ public class Table {
 
     public boolean isMetric(String fieldName) {
         return getMetric(fieldName) != null;
+    }
+
+    /**
+     * Getter for Db Connection Name
+     * @return String Db Connection Name
+     */
+    public String getDbConnectionName() {
+        return this.getId().getDbConnectionName();
     }
 }
