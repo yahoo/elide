@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -74,7 +75,7 @@ public abstract class QueryEngine {
     @Getter
     private final EntityDictionary metadataDictionary;
 
-    private final Map<String, Table> tables;
+    private final Map<TableId, Table> tables;
 
     /**
      * QueryEngine is constructed with a metadata store and is responsible for constructing all Tables and Entities
@@ -192,7 +193,22 @@ public abstract class QueryEngine {
      * @return The schema that represents the provided entity.
      */
     public Table getTable(String classAlias) {
-        return tables.get(classAlias);
+        return tables
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().getName().equalsIgnoreCase(classAlias))
+                    .map(entry -> entry.getValue())
+                    .findFirst()
+                    .orElse(null);
+    }
+
+    /**
+     * Returns the schema for a given entity class.
+     * @param tableId Composite Id for the table
+     * @return The schema that represents the provided entity.
+     */
+    public Table getTable(TableId tableId) {
+        return tables.get(tableId);
     }
 
     /**
