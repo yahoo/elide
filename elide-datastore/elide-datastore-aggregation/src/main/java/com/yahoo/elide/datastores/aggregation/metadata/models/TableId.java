@@ -13,6 +13,9 @@ import java.io.Serializable;
 
 import javax.persistence.Embeddable;
 
+/**
+ * Composite ID for Table entity
+ */
 @SuppressWarnings("serial")
 @Embeddable
 @Data

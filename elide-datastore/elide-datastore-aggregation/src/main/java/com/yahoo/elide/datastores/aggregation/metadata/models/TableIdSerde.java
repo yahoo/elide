@@ -12,6 +12,9 @@ import com.yahoo.elide.utils.coerce.converters.Serde;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Serializes Composite ID for Table to String and vice versa.
+ */
 @ElideTypeConverter(type = TableId.class, name = "TableId")
 public class TableIdSerde implements Serde<String, TableId> {
 
