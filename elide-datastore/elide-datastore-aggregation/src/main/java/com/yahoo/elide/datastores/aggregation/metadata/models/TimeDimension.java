@@ -13,11 +13,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
 import javax.persistence.ManyToMany;
 
 /**
@@ -30,7 +26,7 @@ import javax.persistence.ManyToMany;
 public class TimeDimension extends Dimension {
     @ManyToMany
     @ToString.Exclude
-    Set<TimeDimensionGrain> supportedGrains;
+    TimeDimensionGrain supportedGrain;
 
     TimeZone timezone;
 
@@ -43,8 +39,6 @@ public class TimeDimension extends Dimension {
                 Temporal.class,
                 fieldName);
 
-        this.supportedGrains = Arrays.stream(temporal.grains())
-                .map(grain -> new TimeDimensionGrain(getId(), grain))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        this.supportedGrain = new TimeDimensionGrain(getId(), temporal.grain());
     }
 }

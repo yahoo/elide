@@ -15,9 +15,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -33,7 +31,7 @@ import java.util.Set;
     "readAccess",
     "definition",
     "type",
-    "grains",
+    "grain",
     "tags"
 })
 @Data
@@ -64,8 +62,8 @@ public class Dimension {
     @JsonProperty("type")
     private Type type = Type.TEXT;
 
-    @JsonProperty("grains")
-    private List<Grains> grains = new ArrayList<Grains>();
+    @JsonProperty("grain")
+    private Grain grain = new Grain();
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)

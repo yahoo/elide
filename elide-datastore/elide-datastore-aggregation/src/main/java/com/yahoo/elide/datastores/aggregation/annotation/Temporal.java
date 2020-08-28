@@ -24,11 +24,11 @@ import java.util.TimeZone;
 public @interface Temporal {
 
     /**
-     * The set of time grains supported by this time dimension.
+     * The time grain supported by this time dimension.
      *
-     * @return one or more time gains.
+     * @return time grain.
      */
-    TimeGrainDefinition[] grains() default { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = "") };
+    TimeGrainDefinition grain() default @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = "");
 
     /**
      * The timezone in {@link String} of the column.

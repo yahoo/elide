@@ -63,7 +63,7 @@ public class QueryKeyExtractorTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .whereFilter(filterParser.parseFilterExpression("countryNickName=='Uncle Sam'",
                         PlayerStats.class, false))
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300",
@@ -74,7 +74,7 @@ public class QueryKeyExtractorTest {
         assertEquals("playerStats;" // table name.version-db connection
                         + "{playerStats.highScore;}" // columns
                         + "{playerStats.overallRating;overallRating;{}}" // group by
-                        + "{playerStats.recordedDate;recordedDate;{grain;grain;DAY;}}" // time dimensions
+                        + "{playerStats.recordedDate;recordedDate;{}}" // time dimensions
                         + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;countryNickName;}}IN_INSENSITIVE;9;Uncle Sam;}" // where
                         + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;long;highScore;}}GT;3;300;}" // having
                         + "{com.yahoo.elide.datastores.aggregation.example.PlayerStats;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;playerName;}}asc;}" // sort
@@ -120,14 +120,14 @@ public class QueryKeyExtractorTest {
                 QueryKeyExtractor.extractKey(Query.builder()
                         .table(playerStatsTable)
                         .metric(invoke(playerStatsTable.getMetric("highScore")))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.DAY))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.SIMPLEDATE))
                         .build()),
                 QueryKeyExtractor.extractKey(Query.builder()
                         .table(playerStatsTable)
                         .metric(invoke(playerStatsTable.getMetric("highScore")))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
-                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.DAY))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
+                        .timeDimension(toProjection(playerStatsTable.getTimeDimension("updatedDate"), TimeGrain.SIMPLEDATE))
                         .build()));
     }
 }

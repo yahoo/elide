@@ -20,43 +20,46 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Grains can have SQL expressions that can substitute column
+ * Grain can have SQL expressions that can substitute column
  * with the dimension definition expression.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-    "grain",
+    "type",
     "sql"
 })
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Grains {
+public class Grain {
 
 
-    @JsonProperty("grain")
-    private Grains.Grain grain;
+    @JsonProperty("type")
+    private Grain.GrainType type;
 
     @JsonProperty("sql")
     private String sql;
 
-    public enum Grain {
+    public enum GrainType {
 
-        DAY("DAY"),
-        WEEK("WEEK"),
-        MONTH("MONTH"),
-        YEAR("YEAR");
+        SIMPLEDATE("SIMPLEDATE"),
+        DATETIME("DATETIME"),
+        YEARMONTH("YEARMONTH"),
+        YEAR("YEAR"),
+        MONTHYEAR("MONTHYEAR"),
+        WEEKDATE("WEEKDATE");
+
         private final String value;
-        private final static Map<String, Grains.Grain> CONSTANTS = new HashMap<String, Grains.Grain>();
+        private final static Map<String, Grain.GrainType> CONSTANTS = new HashMap<String, Grain.GrainType>();
 
         static {
-            for (Grains.Grain c: values()) {
+            for (Grain.GrainType c: values()) {
                 CONSTANTS.put(c.value, c);
             }
         }
 
-        private Grain(String value) {
+        private GrainType(String value) {
             this.value = value;
         }
 
@@ -67,8 +70,8 @@ public class Grains {
         }
 
         @JsonCreator
-        public static Grains.Grain fromValue(String value) {
-            Grains.Grain constant = CONSTANTS.get(value);
+        public static Grain.GrainType fromValue(String value) {
+            Grain.GrainType constant = CONSTANTS.get(value);
             if (constant == null) {
                 throw new IllegalArgumentException(value);
             } else {

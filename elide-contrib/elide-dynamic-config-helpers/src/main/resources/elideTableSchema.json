@@ -8,15 +8,17 @@
       "description": "Grains can have SQL expressions that can substitute column with the dimension definition expression",
       "type": "object",
       "properties": {
-        "grain": {
+        "type": {
           "title": "Time granularity",
           "description": "Indicates grain time granularity",
           "type": "string",
           "enum": [
-            "DAY",
-            "WEEK",
-            "MONTH",
-            "YEAR"
+            "DATETIME",
+            "SIMPLEDATE",
+            "YEARMONTH",
+            "YEAR",
+            "MONTHYEAR",
+            "WEEKDATE"
           ]
         },
         "sql": {
@@ -26,7 +28,7 @@
         }
       },
       "required": [
-        "grain",
+        "type",
         "sql"
       ],
       "additionalProperties": false
@@ -231,14 +233,8 @@
               ],
               "default": "TIME"
             },
-            "grains": {
-              "title": "Time Dimension grains",
-              "description": "Time Dimension granularity and Sqls",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/grain"
-              },
-              "default": []
+            "grain": {
+              "$ref":"#/definitions/grain"
             }
           }
         }
@@ -247,7 +243,7 @@
         "name",
         "type",
         "definition",
-        "grains"
+        "grain"
       ]
     }
   },
