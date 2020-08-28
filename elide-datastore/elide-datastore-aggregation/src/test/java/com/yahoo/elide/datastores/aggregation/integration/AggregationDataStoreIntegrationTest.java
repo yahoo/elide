@@ -707,16 +707,8 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 selections(
-                                        field("recordedDate",
-                                                arguments(
-                                                        argument("grain", "\"MONTH\"")
-                                                )
-                                        ),
-                                        field("updatedDate",
-                                                arguments(
-                                                        argument("grain", "\"DAY\"")
-                                                )
-                                        )
+                                        field("recordedDate"),
+                                        field("updatedDate")
                                 )
                         )
                 )
@@ -727,16 +719,16 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                         field(
                                 "playerStats",
                                 selections(
-                                        field("recordedDate", "2019-07-01T00:00Z"),
+                                        field("recordedDate", "2019-07-13T00:00Z"),
+                                        field("updatedDate", "2020-01-12T00:00Z")
+                                ),
+                                selections(
+                                        field("recordedDate", "2019-07-12T00:00Z"),
                                         field("updatedDate", "2019-10-12T00:00Z")
                                 ),
                                 selections(
-                                        field("recordedDate", "2019-07-01T00:00Z"),
+                                        field("recordedDate", "2019-07-11T00:00Z"),
                                         field("updatedDate", "2020-07-12T00:00Z")
-                                ),
-                                selections(
-                                        field("recordedDate", "2019-07-01T00:00Z"),
-                                        field("updatedDate", "2020-01-12T00:00Z")
                                 )
                         )
                 )
@@ -811,7 +803,7 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/timeDimension/playerStats.recordedDate?include=supportedGrains")
+                .get("/timeDimension/playerStats.recordedDate?include=supportedGrain")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
@@ -819,17 +811,13 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.columnType",  equalTo("FIELD"))
                 .body("data.attributes.expression",  equalTo("recordedDate"))
                 .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
-                .body(
-                        "data.relationships.supportedGrains.data.id",
-                        hasItems("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
-                .body("included.id", hasItems("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
-                .body("included.attributes.grain", hasItems("DAY", "MONTH"))
-                .body(
-                        "included.attributes.expression",
-                        hasItems(
-                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
-                                "PARSEDATETIME(FORMATDATETIME({{    }}, 'yyyy-MM-01'), 'yyyy-MM-dd')"));
+                .body("data.relationships.supportedGrain.data.id", hasItem("playerStats.recordedDate.simpledate"))
+                .body("included.id", hasItem("playerStats.recordedDate.simpledate"))
+                .body("included.attributes.grain", hasItem("SIMPLEDATE"))
+                .body("included.attributes.expression",
+                        hasItem("PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"));
     }
+
     @Test
     public void metricMetaDataTest() {
 

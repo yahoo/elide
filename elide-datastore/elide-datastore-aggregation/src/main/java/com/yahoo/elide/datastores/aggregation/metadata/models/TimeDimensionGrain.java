@@ -20,13 +20,15 @@ import javax.persistence.Id;
 @Include(type = "timeDimensionGrain")
 @Value
 public class TimeDimensionGrain {
-    @Id String id;
-    TimeGrain grain;
-    String expression;
+    @Id private final String id;
+    private final TimeGrain grain;
+    private final String expression;
+    private final String format;
 
     public TimeDimensionGrain(String fieldName, TimeGrainDefinition definition) {
         this.id = fieldName + "." + definition.grain().name().toLowerCase(Locale.ENGLISH);
         this.grain = definition.grain();
         this.expression = definition.expression();
+        this.format = definition.grain().getFormat();
     }
 }
