@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Grain;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Type;
 import com.github.jknack.handlebars.Options;
 
@@ -21,6 +22,12 @@ public class HandlebarsHelper {
     private static final String EMPTY_STRING = "";
     private static final String STRING = "String";
     private static final String DATE = "Date";
+    private static final String SIMPLEDATE = "SimpleDate";
+    private static final String DATETIME = "DateTime";
+    private static final String MONTHYEAR = "MonthYear";
+    private static final String YEARMONTH = "YearMonth";
+    private static final String YEAR = "Year";
+    private static final String WEEKDATE = "WeekDate";
     private static final String BIGDECIMAL = "BigDecimal";
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
@@ -112,14 +119,37 @@ public class HandlebarsHelper {
                 return LONG;
             case TEXT:
                 return STRING;
-            case TIME:
-                return DATE;
             case DECIMAL:
                 return BIGDECIMAL;
             case MONEY:
                 return BIGDECIMAL;
             default:
                 return STRING;
+        }
+    }
+
+    /**
+     * Get java type name corresponding to the Grain type.
+     * @param grain Grain object
+     * @return The corresponding java type name
+     */
+    public String getGrainType(Grain grain) {
+
+        switch (grain.getType()) {
+            case DATETIME:
+                return DATETIME;
+            case SIMPLEDATE:
+                return SIMPLEDATE;
+            case YEARMONTH:
+                return YEARMONTH;
+            case YEAR:
+                return YEAR;
+            case MONTHYEAR:
+                return MONTHYEAR;
+            case WEEKDATE:
+                return WEEKDATE;
+            default:
+                return DATE;
         }
     }
 }
