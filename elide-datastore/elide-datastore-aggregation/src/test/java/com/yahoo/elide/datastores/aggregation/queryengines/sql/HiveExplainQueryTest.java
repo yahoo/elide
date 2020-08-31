@@ -278,8 +278,8 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = "
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
                         + "WHERE highScore > " + whereParams.get(0).getPlaceholder() + " "
-                        + "HAVING LOWER(com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code) "
-                        + "IN (LOWER(" + havingParams.get(0).getPlaceholder() + "))";
+                        + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code "
+                        + "IN (" + havingParams.get(0).getPlaceholder() + ")";
         String expectedQueryStr2 =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
@@ -294,8 +294,8 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                        + "HAVING LOWER(com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code) "
-                        + "IN (LOWER(" + havingParams.get(0).getPlaceholder() + ")) "
+                        + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code "
+                        + "IN (" + havingParams.get(0).getPlaceholder() + ") "
                         + "ORDER BY highScore DESC";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
