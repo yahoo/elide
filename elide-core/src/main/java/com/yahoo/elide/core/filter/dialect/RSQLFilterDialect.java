@@ -347,19 +347,16 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
                     .collect(Collectors.toList());
 
+
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
                 return equalityExpression(arguments.get(0), path, values, true);
-            }
-            if (op.equals(INI)) {
+            } else if (op.equals(INI)) {
                 return equalityExpression(arguments.get(0), path, values, false);
-            }
-            if (op.equals(RSQLOperators.NOT_EQUAL) || op.equals(RSQLOperators.NOT_IN)) {
+            } else if (op.equals(RSQLOperators.NOT_EQUAL) || op.equals(RSQLOperators.NOT_IN)) {
                 return new NotFilterExpression(equalityExpression(arguments.get(0), path, values, true));
-            }
-            if (op.equals(NOT_INI)) {
+            } else if (op.equals(NOT_INI)) {
                 return new NotFilterExpression(equalityExpression(arguments.get(0), path, values, false));
-            }
-            if (OPERATOR_MAP.containsKey(op)) {
+            } else if (OPERATOR_MAP.containsKey(op)) {
                 return new FilterPredicate(path, OPERATOR_MAP.get(op), values);
             }
 
