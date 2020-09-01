@@ -75,7 +75,7 @@ public class QueryKeyExtractorTest {
                         + "{playerStats.highScore;}" // columns
                         + "{playerStats.overallRating;overallRating;{}}" // group by
                         + "{playerStats.recordedDate;recordedDate;{}}" // time dimensions
-                        + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;countryNickName;}}IN_INSENSITIVE;9;Uncle Sam;}" // where
+                        + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;countryNickName;}}IN;9;Uncle Sam;}" // where
                         + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;long;highScore;}}GT;3;300;}" // having
                         + "{com.yahoo.elide.datastores.aggregation.example.PlayerStats;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;playerName;}}asc;}" // sort
                         + "{0;2;1;}", // pagination

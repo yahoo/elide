@@ -389,11 +389,11 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
             assertEquals("Book", pathElement.getType().getSimpleName());
             assertEquals(GENRE, filterPredicate.getField());
-            assertEquals("book.genre IN_INSENSITIVE [foo]", filterPredicate.toString());
+            assertEquals("book.genre IN [foo]", filterPredicate.toString());
 
             // custom processing
             return "Book".equals(pathElement.getType().getSimpleName())
-                    && filterPredicate.toString().matches("book.genre IN_INSENSITIVE \\[\\w+\\]")
+                    && filterPredicate.toString().matches("book.genre IN \\[\\w+\\]")
                     && reason.getLoggedMessage().matches(".*Message=ReadPermission Denied.*")
                             ? ExpressionResult.DEFERRED
                             : ExpressionResult.FAIL;
