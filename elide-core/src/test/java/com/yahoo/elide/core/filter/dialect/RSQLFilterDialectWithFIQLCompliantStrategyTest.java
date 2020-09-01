@@ -24,7 +24,7 @@ import javax.ws.rs.core.MultivaluedMap;
 /**
  * Tests RSQLFilterDialect
  */
-public class RSQLFilterDialectWithColumnCollationStrategyTest {
+public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
     private static RSQLFilterDialect dialect;
 
     @BeforeAll
@@ -33,7 +33,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
-        dialect = new RSQLFilterDialect(dictionary, new CaseSensitivityStrategy.UseColumnCollation());
+        dialect = new RSQLFilterDialect(dictionary, new CaseSensitivityStrategy.FIQLCompliant());
     }
 
     @Test
@@ -49,8 +49,8 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         assertEquals(1, expressionMap.size());
         assertEquals(
-                "((book.title INFIX [foo] AND NOT (book.title PREFIX [bar])) "
-                        + "AND (book.genre IN [sci-fi, action] OR book.publishDate GT [123]))",
+                "((book.title INFIX_CASE_INSENSITIVE [foo] AND NOT (book.title PREFIX_CASE_INSENSITIVE [bar])) "
+                        + "AND (book.genre IN_INSENSITIVE [sci-fi, action] OR book.publishDate GT [123]))",
                 expressionMap.get("book").toString()
         );
     }
@@ -66,7 +66,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
-        assertEquals("(book.title INFIX [foo] AND book.authors.name IN [Hemingway])", expression.toString());
+        assertEquals("(book.title INFIX_CASE_INSENSITIVE [foo] AND book.authors.name IN_INSENSITIVE [Hemingway])", expression.toString());
     }
 
     @Test
@@ -80,7 +80,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
-        assertEquals("book.title IN [Hemingway]", expression.toString());
+        assertEquals("book.title IN_INSENSITIVE [Hemingway]", expression.toString());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
-        assertEquals("NOT (book.title IN [Hemingway])", expression.toString());
+        assertEquals("NOT (book.title IN_INSENSITIVE [Hemingway])", expression.toString());
     }
 
     @Test
@@ -108,7 +108,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
-        assertEquals("book.title IN [Hemingway]", expression.toString());
+        assertEquals("book.title IN_INSENSITIVE [Hemingway]", expression.toString());
     }
 
     @Test
@@ -122,7 +122,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
-        assertEquals("NOT (book.title IN [Hemingway])", expression.toString());
+        assertEquals("NOT (book.title IN_INSENSITIVE [Hemingway])", expression.toString());
     }
 
     @Test
@@ -159,7 +159,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals(
-                "((book.title INFIX [Hemingway] OR book.title POSTFIX [Hemingway]) OR book.title PREFIX [Hemingway])",
+                "((book.title INFIX_CASE_INSENSITIVE [Hemingway] OR book.title POSTFIX_CASE_INSENSITIVE [Hemingway]) OR book.title PREFIX_CASE_INSENSITIVE [Hemingway])",
                 expression.toString()
         );
     }
@@ -175,7 +175,7 @@ public class RSQLFilterDialectWithColumnCollationStrategyTest {
 
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
-        assertEquals("(book.title IN [foo] AND (book.title IN [bar] AND book.title IN [baz]))", expression.toString());
+        assertEquals("(book.title IN_INSENSITIVE [foo] AND (book.title IN_INSENSITIVE [bar] AND book.title IN_INSENSITIVE [baz]))", expression.toString());
     }
 
     @Test

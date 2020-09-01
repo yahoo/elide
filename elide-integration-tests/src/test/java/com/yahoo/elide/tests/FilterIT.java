@@ -280,6 +280,10 @@ public class FilterIT extends IntegrationTest {
         literaryFictionBooks = getAsNode("/book?filter=genre=in='Literary Fiction'");
 
         assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size());
+
+        literaryFictionBooks = getAsNode("/book?filter=genre=ini='literary FICTION'");
+
+        assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size());
     }
 
     @Test
@@ -365,6 +369,10 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL global */
         literaryAndScienceFictionBooks = getAsNode("/book?filter=genre=in=('Literary Fiction','Science Fiction')");
+
+        assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size());
+
+        literaryAndScienceFictionBooks = getAsNode("/book?filter=genre=ini=('LITERARY FICTION','SCIENCE FICTION')");
 
         assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size());
     }
@@ -475,6 +483,10 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Global */
         titleContainsTheBooks = getAsNode("/book?filter=title==*the*");
+
+        assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size());
+
+        titleContainsTheBooks = getAsNode("/book?filter=title=ini=*THE*");
 
         assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size());
     }
@@ -757,6 +769,10 @@ public class FilterIT extends IntegrationTest {
         /* Test RSQL Typed */
         editorNameEndsWithd = getAsNode(String.format("/author/%s/books?filter[book]=editorName==*D", nullNedId));
 
+        assertEquals(0, editorNameEndsWithd.get("data").size());
+
+        editorNameEndsWithd = getAsNode(String.format("/author/%s/books?filter[book]=editorName=ini=*D", nullNedId));
+
         assertEquals(editorEdBooks, editorNameEndsWithd.get("data").size());
     }
 
@@ -781,7 +797,12 @@ public class FilterIT extends IntegrationTest {
         assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size());
 
         /* Test RSQL Typed */
+
         editorNameStartsWithE = getAsNode(String.format("/author/%s/books?filter[book]=editorName==e*", nullNedId));
+
+        assertEquals(0, editorNameStartsWithE.get("data").size());
+
+        editorNameStartsWithE = getAsNode(String.format("/author/%s/books?filter[book]=editorName=ini=e*", nullNedId));
 
         assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size());
     }
@@ -808,6 +829,10 @@ public class FilterIT extends IntegrationTest {
 
         /* Test RSQL Typed */
         editorNameContainsEd = getAsNode(String.format("/author/%s/books?filter[book]=editorName==*eD*", nullNedId));
+
+        assertEquals(0, editorNameContainsEd.get("data").size());
+
+        editorNameContainsEd = getAsNode(String.format("/author/%s/books?filter[book]=editorName=ini=*eD*", nullNedId));
 
         assertEquals(editorEditBooks, editorNameContainsEd.get("data").size());
     }
@@ -1155,7 +1180,7 @@ public class FilterIT extends IntegrationTest {
      */
     @Test
     void testIssue508() throws JsonProcessingException {
-        JsonNode result = getAsNode("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default Publisher')&page[totals]");
+        JsonNode result = getAsNode("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default publisher')&page[totals]");
 
         assertEquals(2, result.get("data").size());
 
@@ -1170,7 +1195,7 @@ public class FilterIT extends IntegrationTest {
         assertNotNull(pageNode);
         assertEquals(pageNode.get("totalRecords").asInt(), 1);
 
-        result = getAsNode("book?filter=(publisher.name=='Default Publisher')&page[totals]");
+        result = getAsNode("book?filter=(publisher.name=='Default publisher')&page[totals]");
         assertEquals(1, result.get("data").size());
 
         pageNode = result.get("meta").get("page");

@@ -13,7 +13,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TestRequestScope;
-import com.yahoo.elide.core.filter.InInsensitivePredicate;
+import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.sort.SortingImpl;
@@ -608,7 +608,7 @@ public class EntityProjectionMakerTest {
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
 
         FilterExpression expression =
-                new InInsensitivePredicate(new Path(Book.class, dictionary, "genre"), "Science Fiction");
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Science Fiction");
 
         EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
@@ -645,7 +645,7 @@ public class EntityProjectionMakerTest {
         String path = "/author/1/books/3/publisher";
 
         FilterExpression expression =
-                new InInsensitivePredicate(new Path(Publisher.class, dictionary, "name"), "Foo");
+                new InPredicate(new Path(Publisher.class, dictionary, "name"), "Foo");
 
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
 
@@ -694,7 +694,7 @@ public class EntityProjectionMakerTest {
                 .type(Book.class)
                 .relationship("publisher", EntityProjection.builder()
                         .type(Publisher.class)
-                        .filterExpression(new InInsensitivePredicate(new Path(Publisher.class, dictionary, "name"), "Foo"))
+                        .filterExpression(new InPredicate(new Path(Publisher.class, dictionary, "name"), "Foo"))
                         .sorting(sorting)
                         .pagination(PaginationImpl.getDefaultPagination(Publisher.class))
                         .build())
@@ -703,7 +703,7 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                         .attribute(Attribute.builder().name("awards").type(Collection.class).build())
-                        .filterExpression(new InInsensitivePredicate(new Path(Author.class, dictionary, "name"), "Foo"))
+                        .filterExpression(new InPredicate(new Path(Author.class, dictionary, "name"), "Foo"))
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
                                 .build())
@@ -728,7 +728,7 @@ public class EntityProjectionMakerTest {
         RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
 
         FilterExpression expression =
-                new InInsensitivePredicate(new Path(Book.class, dictionary, "genre"), "Science Fiction");
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Science Fiction");
 
         EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
 
