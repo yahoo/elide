@@ -12,6 +12,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.InInsensitivePredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.IsEmptyPredicate;
 import com.yahoo.elide.core.filter.IsNullPredicate;
@@ -59,6 +60,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private static final String SINGLE_PARAMETER_ONLY = "There can only be a single filter query parameter";
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
+    private static final ComparisonOperator INI = new ComparisonOperator("=ini=", true);
+    private static final ComparisonOperator NOT_INI = new ComparisonOperator("=outi=", true);
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
     private static final ComparisonOperator ISEMPTY_OP = new ComparisonOperator("=isempty=", false);
     private static final ComparisonOperator HASMEMBER_OP = new ComparisonOperator("=hasmember=", false);
@@ -81,7 +84,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     private final CaseSensitivityStrategy caseSensitivityStrategy;
 
     public RSQLFilterDialect(EntityDictionary dictionary) {
-        this(dictionary, new CaseSensitivityStrategy.FIQLCompliant());
+        this(dictionary, new CaseSensitivityStrategy.UseColumnCollation());
     }
 
     public RSQLFilterDialect(EntityDictionary dictionary, CaseSensitivityStrategy caseSensitivityStrategy) {
@@ -93,6 +96,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     //add rsql isnull op to the default ops
     private static Set<ComparisonOperator> getDefaultOperatorsWithIsnull() {
         Set<ComparisonOperator> operators = RSQLOperators.defaultOperators();
+        operators.add(INI);
+        operators.add(NOT_INI);
         operators.add(ISNULL_OP);
         operators.add(ISEMPTY_OP);
         operators.add(HASMEMBER_OP);
@@ -342,46 +347,61 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
                     .collect(Collectors.toList());
 
+
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
-                return equalityExpression(arguments.get(0), path, values);
-            }
-            if (op.equals(RSQLOperators.NOT_EQUAL) || op.equals(RSQLOperators.NOT_IN)) {
-                return new NotFilterExpression(equalityExpression(arguments.get(0), path, values));
-            }
-            if (OPERATOR_MAP.containsKey(op)) {
+                return equalityExpression(arguments.get(0), path, values, true);
+            } else if (op.equals(INI)) {
+                return equalityExpression(arguments.get(0), path, values, false);
+            } else if (op.equals(RSQLOperators.NOT_EQUAL) || op.equals(RSQLOperators.NOT_IN)) {
+                return new NotFilterExpression(equalityExpression(arguments.get(0), path, values, true));
+            } else if (op.equals(NOT_INI)) {
+                return new NotFilterExpression(equalityExpression(arguments.get(0), path, values, false));
+            } else if (OPERATOR_MAP.containsKey(op)) {
                 return new FilterPredicate(path, OPERATOR_MAP.get(op), values);
             }
 
             throw new RSQLParseException(String.format("Invalid Operator %s", op.getSymbol()));
         }
 
-        private FilterExpression equalityExpression(String argument, Path path, List<Object> values) {
+        private FilterExpression equalityExpression(String argument, Path path,
+                                                    List<Object> values, boolean caseSensitive) {
             boolean startsWith = argument.startsWith("*");
             boolean endsWith = argument.endsWith("*");
             if (startsWith && endsWith && argument.length() > 2) {
                 String value = argument.substring(1, argument.length() - 1);
-                return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.INFIX),
-                        Collections.singletonList(value));
+                Operator op = caseSensitive
+                        ? caseSensitivityStrategy.mapOperator(Operator.INFIX)
+                        : Operator.INFIX_CASE_INSENSITIVE;
+                return new FilterPredicate(path, op, Collections.singletonList(value));
             }
             if (startsWith && argument.length() > 1) {
                 String value = argument.substring(1, argument.length());
-                return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.POSTFIX),
-                        Collections.singletonList(value));
+                Operator op = caseSensitive
+                        ? caseSensitivityStrategy.mapOperator(Operator.POSTFIX)
+                        : Operator.POSTFIX_CASE_INSENSITIVE;
+                return new FilterPredicate(path, op, Collections.singletonList(value));
             }
             if (endsWith && argument.length() > 1) {
                 String value = argument.substring(0, argument.length() - 1);
-                return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.PREFIX),
-                        Collections.singletonList(value));
+                Operator op = caseSensitive
+                        ? caseSensitivityStrategy.mapOperator(Operator.PREFIX)
+                        : Operator.PREFIX_CASE_INSENSITIVE;
+                return new FilterPredicate(path, op, Collections.singletonList(value));
             }
 
             Boolean isStringLike = path.lastElement()
                     .map(e -> e.getFieldType().isAssignableFrom(String.class))
                     .orElse(false);
             if (isStringLike) {
-                return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.IN), values);
+                Operator op = caseSensitive
+                        ? caseSensitivityStrategy.mapOperator(Operator.IN)
+                        : Operator.IN_INSENSITIVE;
+                return new FilterPredicate(path, op, values);
             }
 
-            return new InPredicate(path, values);
+            return caseSensitive
+                    ? new InPredicate(path, values)
+                    : new InInsensitivePredicate(path, values);
         }
 
         /**
