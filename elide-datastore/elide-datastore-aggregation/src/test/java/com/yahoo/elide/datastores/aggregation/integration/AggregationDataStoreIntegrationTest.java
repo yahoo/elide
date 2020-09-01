@@ -22,12 +22,19 @@ import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.sql.DataSource;
 
 /**
  * Integration tests for {@link AggregationDataStore}.
@@ -36,13 +43,25 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @BeforeAll
-    public void beforeEach() {
+    public void beforeAll() {
         SQLUnitTest.init();
     }
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        return new AggregationDataStoreTestHarness(Persistence.createEntityManagerFactory("aggregationStore"));
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
+
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(emf.getProperties().get("javax.persistence.jdbc.driver").toString());
+        config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
+        DataSource defaultDataSource = new HikariDataSource(config);
+
+        Map<String, DataSource> dataSourceMap = new HashMap<>();
+        dataSourceMap.put("mycon", defaultDataSource);
+        Map<String, String> dialectMap = new HashMap<>();
+        dialectMap.put("mycon", "h2");
+
+        return new AggregationDataStoreTestHarness(emf, defaultDataSource, dataSourceMap, "H2", dialectMap);
     }
 
     @Test

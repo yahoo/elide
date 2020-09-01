@@ -35,14 +35,13 @@ import java.util.List;
 public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private final QueryEngine queryEngine;
     private final Cache cache;
-    private final QueryEngine.Transaction queryEngineTransaction;
+    private QueryEngine.Transaction queryEngineTransaction;
     private final QueryLogger queryLogger;
 
     public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache,
                                            QueryLogger queryLogger) {
         this.queryEngine = queryEngine;
         this.cache = cache;
-        this.queryEngineTransaction = queryEngine.beginTransaction();
         this.queryLogger = queryLogger;
     }
 
@@ -63,7 +62,9 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public void commit(RequestScope scope) {
-        queryEngineTransaction.close();
+        if (queryEngineTransaction != null) {
+            queryEngineTransaction.close();
+        }
     }
 
     @Override
@@ -80,6 +81,15 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), scope.getHeaders(),
                     scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
             Query query = buildQuery(entityProjection, scope);
+            String connectionName = query.getTable().getDbConnectionName();
+            List<String> queryText;
+            if (connectionName == null || connectionName.trim().isEmpty()) {
+                this.queryEngineTransaction = queryEngine.beginTransaction();
+                queryText = queryEngine.explain(query);
+            } else {
+                this.queryEngineTransaction = queryEngine.beginTransaction(connectionName);
+                queryText = queryEngine.explain(query, connectionName);
+            }
             if (cache != null && !query.isBypassingCache()) {
                 String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
                 if (tableVersion != null) {
@@ -88,7 +98,6 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 }
             }
             boolean isCached = result == null ? false : true;
-            List<String> queryText = queryEngine.explain(query);
             queryLogger.processQuery(scope.getRequestId(), query, queryText, isCached);
             if (result == null) {
                 result = queryEngine.executeQuery(query, queryEngineTransaction);
@@ -114,7 +123,9 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public void close() throws IOException {
-        queryEngineTransaction.close();
+        if (queryEngineTransaction != null) {
+            queryEngineTransaction.close();
+        }
     }
 
     @VisibleForTesting
@@ -141,6 +152,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     @Override
     public void cancel(RequestScope scope) {
         queryLogger.cancelQuery(scope.getRequestId());
-        queryEngineTransaction.cancel();
+        if (queryEngineTransaction != null) {
+            queryEngineTransaction.cancel();
+        }
     }
 }

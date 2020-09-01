@@ -167,6 +167,8 @@ public abstract class QueryEngine {
 
     public abstract Transaction beginTransaction();
 
+    public abstract Transaction beginTransaction(String dbConnectionName);
+
     /**
      * Executes the specified {@link Query} against a specific persistent storage, which understand the provided
      * {@link Query}. Results may be taken from a cache, if configured.
@@ -218,5 +220,14 @@ public abstract class QueryEngine {
      * @return List of SQL string(s) corresponding to the given query.
      */
     public abstract List<String> explain(Query query);
+
+    /**
+     * Returns the actual query string(s) that would be executed for the input {@link Query}.
+     *
+     * @param query The query customized for a particular persistent storage or storage client.
+     * @param connectionName Connection Name for this storage
+     * @return List of SQL string(s) corresponding to the given query.
+     */
+    public abstract List<String> explain(Query query, String connectionName);
 
 }

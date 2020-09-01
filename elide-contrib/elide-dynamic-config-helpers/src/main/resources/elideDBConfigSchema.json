@@ -70,9 +70,9 @@
                         "type": "string",
                         "title": "Elide Dialect",
                         "description": "The Elide Dialect to use for query generation.",
-                        "pattern": "^([0-9A-Za-z_]+[.]?)+$",
+                        "pattern": "^([h|H]2|[h|H][i|I][v|V][e|E]|[p|P][r|R][e|E][s|S][t|T][o|O])$",
                         "examples": [
-                            "org.hibernate.dialect.MySQL5Dialect"
+                            "HIVE"
                         ]
                     },
                     "propertyMap": {
@@ -116,7 +116,7 @@
                     "url": "jdbc:db2://localhost/elide?serverTimezone=UTC&",
                     "driver": "a",
                     "user": "elide",
-                    "dialect": "org.hibernate.dialect.DB2Dialect",
+                    "dialect": "Presto",
                     "propertyMap": {
                         "hibernate.show_sql": true,
                         "hibernate.default_batch_fetch_size": 100.1,
@@ -128,7 +128,7 @@
                     "url": "jdbc:mysql://localhost/elide?serverTimezone=UTC",
                     "driver": "com.mysql.jdbc.Driver",
                     "user": "guest1",
-                    "dialect": "org.hibernate.dialect.MySQL5Dialect"
+                    "dialect": "HIVE"
                 }
             ]
         }

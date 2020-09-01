@@ -6,14 +6,19 @@
 package com.yahoo.elide.contrib.dynamicconfighelpers.compile;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 import com.google.common.collect.Sets;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import org.mdkt.compiler.InMemoryJavaCompiler;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -25,9 +30,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.sql.DataSource;
+
 /**
  * Compiles dynamic model pojos generated from hjson files.
- *
  */
 @Slf4j
 public class ElideDynamicEntityCompiler {
@@ -41,6 +47,8 @@ public class ElideDynamicEntityCompiler {
 
     private Map<String, String> tableClasses = new HashMap<String, String>();
     private Map<String, String> securityClasses = new HashMap<String, String>();
+    @Getter private final Map<String, DataSource> dataSourceMap = new HashMap<String, DataSource>();
+    @Getter private final Map<String, String> dialectMap = new HashMap<String, String>();
 
     /**
      * Parse dynamic config path.
@@ -59,6 +67,7 @@ public class ElideDynamicEntityCompiler {
 
         ElideTableConfig tableConfig = dynamicConfigValidator.getElideTableConfig();
         ElideSecurityConfig securityConfig = dynamicConfigValidator.getElideSecurityConfig();
+        ElideDBConfig elideSQLDBConfig = dynamicConfigValidator.getElideSQLDBConfig();
 
         tableClasses = hydrator.hydrateTableTemplate(tableConfig);
         securityClasses = hydrator.hydrateSecurityTemplate(securityConfig);
@@ -75,6 +84,29 @@ public class ElideDynamicEntityCompiler {
                 new ElideDynamicInMemoryClassLoader(ClassLoader.getSystemClassLoader(),
                         Sets.newHashSet(classNames)));
         compile();
+
+        elideSQLDBConfig.getDbconfigs().forEach(config -> {
+            dataSourceMap.put(config.getName(), getDataSource(config));
+            dialectMap.put(config.getName(), config.getDialect());
+        });
+
+    }
+
+    /**
+     * Generates DataSource for provided configuration.
+     * @param dbConfig DB Configuration pojo
+     * @return DataSource.
+     */
+    private DataSource getDataSource(DBConfig dbConfig) {
+        HikariConfig config = new HikariConfig();
+
+        config.setJdbcUrl(dbConfig.getUrl());
+        config.setUsername(dbConfig.getUser());
+        config.setPassword(""); // TO DO
+        config.setDriverClassName(dbConfig.getDriver());
+        dbConfig.getPropertyMap().forEach((k, v) -> config.addDataSourceProperty(k, v));
+
+        return new HikariDataSource(config);
     }
 
     /**

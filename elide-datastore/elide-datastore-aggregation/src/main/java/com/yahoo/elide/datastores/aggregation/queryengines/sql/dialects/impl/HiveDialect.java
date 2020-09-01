@@ -25,4 +25,9 @@ public class HiveDialect extends AbstractSqlDialect {
     public String generateCountDistinctClause(String dimensions) {
         return String.format("COUNT(DISTINCT %s)", dimensions);
     }
+
+    @Override
+    public String appendOffsetLimit(String sql, int offset, int limit) {
+        return sql + " LIMIT " + offset + "," + limit;
+    }
 }

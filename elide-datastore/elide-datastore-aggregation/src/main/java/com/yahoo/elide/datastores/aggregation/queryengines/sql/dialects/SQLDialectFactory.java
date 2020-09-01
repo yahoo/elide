@@ -13,19 +13,36 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.Pre
  * A class with static methods to create an instance of all Dialects.
  */
 public class SQLDialectFactory {
+
+    private static final SQLDialect H2_DIALECT = new H2Dialect();
+    private static final SQLDialect HIVE_DIALECT = new HiveDialect();
+    private static final SQLDialect PRESTO_DIALECT = new PrestoDialect();
+
     public static SQLDialect getDefaultDialect() {
-        return new H2Dialect();
+        return H2_DIALECT;
     }
 
     public static SQLDialect getH2Dialect() {
-        return new H2Dialect();
+        return H2_DIALECT;
     }
 
     public static SQLDialect getHiveDialect() {
-        return new HiveDialect();
+        return HIVE_DIALECT;
     }
 
     public static SQLDialect getPrestoDialect() {
-        return new PrestoDialect();
+        return PRESTO_DIALECT;
+    }
+
+    public static SQLDialect getDialect(String type) {
+        if (type.equalsIgnoreCase(H2_DIALECT.getDialectType())) {
+            return H2_DIALECT;
+        } else if (type.equalsIgnoreCase(HIVE_DIALECT.getDialectType())) {
+            return HIVE_DIALECT;
+        } else if (type.equalsIgnoreCase(PRESTO_DIALECT.getDialectType())) {
+            return PRESTO_DIALECT;
+        } else {
+            throw new IllegalArgumentException("Unsupported SQL Dialect Type: " + type);
+        }
     }
 }

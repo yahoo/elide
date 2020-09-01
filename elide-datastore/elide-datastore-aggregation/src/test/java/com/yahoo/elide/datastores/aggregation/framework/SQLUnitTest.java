@@ -45,8 +45,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
-import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -57,7 +58,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -66,6 +66,7 @@ import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.sql.DataSource;
 
 public abstract class SQLUnitTest {
 
@@ -276,7 +277,7 @@ public abstract class SQLUnitTest {
                     .metric(invoke(playerStatsTable.getMetric("highScore")))
                     .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                     .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
-                    .pagination(new ImmutablePagination(0, 1, false, true))
+                    .pagination(new ImmutablePagination(10, 5, false, true))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .whereFilter(predicate)
                     // force a join to look up countryIsoCode
@@ -298,13 +299,18 @@ public abstract class SQLUnitTest {
 
     protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
 
-    public static void init(SQLDialect sqlDialect) {
+    public static void init(String sqlDialect) {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
         em.createNativeQuery("DROP ALL OBJECTS;").executeUpdate();
         em.createNativeQuery("RUNSCRIPT FROM 'classpath:create_tables.sql'").executeUpdate();
         em.getTransaction().commit();
+
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(emf.getProperties().get("javax.persistence.jdbc.driver").toString());
+        config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
+        DataSource dataSource = new HikariDataSource(config);
 
         metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
 
@@ -321,8 +327,8 @@ public abstract class SQLUnitTest {
         filterParser = new RSQLFilterDialect(dictionary);
 
         metaDataStore.populateEntityDictionary(dictionary);
-        Consumer<EntityManager> txCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
-        engine = new SQLQueryEngine(metaDataStore, emf, txCancel, sqlDialect);
+
+        engine = new SQLQueryEngine(metaDataStore, dataSource, sqlDialect);
 
         TableId tableId = new TableId("playerStats", "", "");
         playerStatsTable = engine.getTable(tableId);
@@ -345,7 +351,11 @@ public abstract class SQLUnitTest {
     }
 
     public static void init() {
-        init(new SQLDialectFactory().getDefaultDialect());
+        init(SQLDialectFactory.getDefaultDialect());
+    }
+
+    public static void init(SQLDialect sqlDialect) {
+        init(sqlDialect.getDialectType());
     }
 
     @BeforeEach

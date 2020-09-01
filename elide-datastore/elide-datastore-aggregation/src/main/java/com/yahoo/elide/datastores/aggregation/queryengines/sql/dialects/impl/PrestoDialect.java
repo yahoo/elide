@@ -20,4 +20,10 @@ public class PrestoDialect extends AbstractSqlDialect {
     public boolean useAliasForOrderByClause() {
         return true;
     }
+
+    @Override
+    public String appendOffsetLimit(String sql, int offset, int limit) {
+        // offset is supported in prestosql but not in prestodb
+        return sql + " LIMIT " + limit;
+    }
 }

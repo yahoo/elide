@@ -20,6 +20,8 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,6 +86,38 @@ public abstract class AbstractEntityHydrator {
 
             this.results.add(row);
         });
+    }
+
+    public AbstractEntityHydrator(ResultSet rs, Query query, EntityDictionary entityDictionary) {
+        this.stitchList = new StitchList(entityDictionary);
+        this.query = query;
+        this.entityDictionary = entityDictionary;
+
+        //Get all the projections from the client query.
+        List<String> projections = this.query.getMetrics().stream()
+                .map(MetricProjection::getAlias)
+                .collect(Collectors.toList());
+
+        projections.addAll(this.query.getDimensions().stream()
+                .map(ColumnProjection::getAlias)
+                .collect(Collectors.toList()));
+
+        try {
+            Preconditions.checkArgument(projections.size() == rs.getMetaData().getColumnCount());
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+
+                for (int idx = 0; idx < projections.size(); idx++) {
+                    Object value = rs.getObject(idx + 1);
+                    String fieldName = projections.get(idx);
+                    row.put(fieldName, value);
+                }
+
+                this.results.add(row);
+            }
+        } catch (SQLException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
