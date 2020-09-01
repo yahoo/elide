@@ -34,7 +34,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .when()
-            .get("/item?filter[item]=name==*-Luc*")
+            .get("/item?filter[item]=name==*-luc*")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.id", equalTo(Arrays.asList("6")));
@@ -65,7 +65,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .when()
-            .get("/item?filter[item]=name==*DrU*")
+            .get("/item?filter[item]=name=ini=*DrU*")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.id", containsInAnyOrder("1", "3", "1000"));
@@ -91,7 +91,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .when()
-            .get("/item?filter[item]=name==*DrU*")
+            .get("/item?filter[item]=name==*dru*")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.id", containsInAnyOrder("1", "3"));
