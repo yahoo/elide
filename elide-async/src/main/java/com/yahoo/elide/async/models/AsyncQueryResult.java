@@ -7,10 +7,10 @@ package com.yahoo.elide.async.models;
 
 import lombok.Data;
 
-import java.sql.Blob;
 import java.util.Date;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Lob;
 
 /**
  * Model for Async Query Result.
@@ -30,6 +30,7 @@ public class AsyncQueryResult {
 
     private Date completedOn = new Date();
 
-    private Blob attachment; // To allow expansion to XLSX?
+    @Lob
+    private String attachment; // To allow expansion to XLSX?
 
 }

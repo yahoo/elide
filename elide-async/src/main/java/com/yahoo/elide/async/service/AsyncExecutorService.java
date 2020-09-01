@@ -48,10 +48,11 @@ public class AsyncExecutorService {
     private AsyncQueryDAO asyncQueryDao;
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
+    private String downloadURI;
 
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, String downloadURI) {
         this.elide = elide;
         runners = new HashMap();
 
@@ -64,6 +65,7 @@ public class AsyncExecutorService {
         updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         this.asyncQueryDao = asyncQueryDao;
         this.resultStorageEngine = resultStorageEngine;
+        this.downloadURI = downloadURI;
     }
 
     /**
@@ -76,10 +78,10 @@ public class AsyncExecutorService {
      * @param resultStorageEngine ResultStorageEngine Object
      */
     public static void init(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, String downloadURI) {
         if (asyncExecutorService == null) {
             asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, maxRunTime, asyncQueryDao,
-                    resultStorageEngine);
+                    resultStorageEngine, downloadURI);
         } else {
             log.debug("asyncExecutorService is already initialized.");
         }
@@ -108,7 +110,7 @@ public class AsyncExecutorService {
             throw new InvalidOperationException("Invalid API Version");
         }
         AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao,
-                apiVersion, resultStorageEngine, requestURL);
+                apiVersion, resultStorageEngine, requestURL, downloadURI);
         Future<AsyncQueryResult> task = executor.submit(queryWorker);
 
         try {

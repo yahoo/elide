@@ -138,18 +138,20 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
+                    String downloadApiPath = null;
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                     if (resultStorageEngine == null && asyncProperties.enableDownload()) {
                         resultStorageEngine = new DefaultResultStorageEngine(
-                                asyncProperties.getDownloadApiPathSpec().replaceAll("/\\*", ""),
                                 elide.getElideSettings(), elide.getDataStore(), asyncQueryDao);
                     }
                     if (resultStorageEngine != null) {
+                        downloadApiPath = asyncProperties.getDownloadApiPathSpec().replaceAll("/\\*", "");
                         bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
                     }
 
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(),
-                            asyncProperties.getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine);
+                            asyncProperties.getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine,
+                            downloadApiPath);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook

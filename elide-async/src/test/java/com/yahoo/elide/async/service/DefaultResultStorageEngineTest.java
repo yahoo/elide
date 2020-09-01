@@ -6,7 +6,6 @@
 package com.yahoo.elide.async.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -25,8 +24,8 @@ import com.yahoo.elide.security.checks.Check;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import io.reactivex.Observable;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-import javax.sql.rowset.serial.SerialBlob;
 import javax.sql.rowset.serial.SerialException;
 
 public class DefaultResultStorageEngineTest {
@@ -65,52 +63,18 @@ public class DefaultResultStorageEngineTest {
         elide = new Elide(elideSettings);
 
         when(dataStore.beginTransaction()).thenReturn(tx);
-        defaultResultStorageEngine = new DefaultResultStorageEngine("/api/v1/download", elide.getElideSettings(),
+        defaultResultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(),
                 dataStore, asyncQueryDAO);
     }
 
     @Test
     public void testStoreResults() throws SerialException, SQLException {
         String responseBody = "responseBody";
-        byte[] testResponse = responseBody.getBytes();
         AsyncQueryResult result = new AsyncQueryResult();
 
         result = defaultResultStorageEngine.storeResults(result, responseBody, "ID");
 
-        assertEquals(new SerialBlob(testResponse), result.getAttachment());
-    }
-
-    @Test
-    public void testGenerateURLExceptionWithNullRequestURL() throws MalformedURLException {
-        String asyncQueryID = "asyncQueryID";
-        String requestURL = null;
-
-        assertThrows(IllegalStateException.class, () -> {
-            defaultResultStorageEngine.generateDownloadUrl(requestURL, asyncQueryID);
-        });
-    }
-
-    @Test
-    public void testGenerateURExceptionWithNullDownloadURI() throws MalformedURLException {
-        String asyncQueryID = "asyncQueryID";
-        String requestURL = "http://localhost:8080/";
-
-        defaultResultStorageEngine = new DefaultResultStorageEngine(null, elide.getElideSettings(),
-                dataStore, asyncQueryDAO);
-
-        assertThrows(IllegalStateException.class, () -> {
-            defaultResultStorageEngine.generateDownloadUrl(requestURL, asyncQueryID);
-        });
-    }
-
-    @Test
-    public void testGenerateURL() throws MalformedURLException {
-        String asyncQueryID = "asyncQueryID";
-        String requestURL = "http://localhost:8080/";
-        URL testURL = new URL(requestURL + "api/v1/download/" + asyncQueryID);
-        URL url = defaultResultStorageEngine.generateDownloadUrl(requestURL, asyncQueryID);
-
-        assertEquals(url, testURL);
+        assertEquals(responseBody, result.getAttachment());
     }
 
     @Test
@@ -120,15 +84,15 @@ public class DefaultResultStorageEngineTest {
         AsyncQuery query = new AsyncQuery();
         AsyncQueryResult result = new AsyncQueryResult();
         query.setId(id);
-        result.setAttachment(new SerialBlob(test.getBytes()));
+        result.setAttachment(test);
         query.setResult(result);
 
         Collection<AsyncQuery> asyncCollection = new ArrayList<AsyncQuery>();
         asyncCollection.add(query);
         when(asyncQueryDAO.loadAsyncQueryCollection(any())).thenReturn(asyncCollection);
 
-        byte[] blob = defaultResultStorageEngine.getResultsByID(id);
+        Observable<String> observableLob = defaultResultStorageEngine.getResultsByID(id);
 
-        assertEquals(new String(blob), test);
+        assertEquals(observableLob.toList().blockingGet().get(0), test);
     }
 }

@@ -8,7 +8,7 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.async.models.AsyncQueryResult;
 
-import java.net.URL;
+import io.reactivex.Observable;
 
 /**
  * Utility interface used for storing the results of AsyncQuery for downloads.
@@ -25,17 +25,9 @@ public interface ResultStorageEngine {
     public AsyncQueryResult storeResults(AsyncQueryResult asyncQueryResult, String result, String asyncQueryId);
 
     /**
-     * Generates the URL to download the result.
-     * @param requestURL is the requestURL of the AsyncQuery
-     * @param asyncQueryID is the query ID of the AsyncQuery
-     * @return it returns the URL from where we can access the result of the query
-     */
-    public URL generateDownloadUrl(String requestURL, String asyncQueryID);
-
-    /**
      * Searches for the async query results by ID and returns the record.
      * @param asyncQueryID is the query ID of the AsyncQuery
      * @return returns the result associated with the AsyncQueryID
      */
-    public byte[] getResultsByID(String asyncQueryID);
+    public Observable<String> getResultsByID(String asyncQueryID);
 }

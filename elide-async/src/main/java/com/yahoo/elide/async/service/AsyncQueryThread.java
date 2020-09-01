@@ -27,7 +27,9 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -45,7 +47,9 @@ import javax.ws.rs.core.MultivaluedMap;
 @Slf4j
 @Data
 public class AsyncQueryThread implements Callable<AsyncQueryResult> {
+    private static final String FORWARD_SLASH = "/";
 
+    private String downloadURI;
     private AsyncQuery queryObj;
     private AsyncQueryResult queryResultObj;
     private User user;
@@ -74,7 +78,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      */
     public AsyncQueryThread(AsyncQuery queryObj, User user, Elide elide, QueryRunner runner,
             AsyncQueryDAO asyncQueryDao, String apiVersion, ResultStorageEngine resultStorageEngine,
-            String requestURL) {
+            String requestURL, String downloadURI) {
         this.queryObj = queryObj;
         this.user = user;
         this.elide = elide;
@@ -83,6 +87,8 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         this.apiVersion = apiVersion;
         this.resultStorageEngine = resultStorageEngine;
         this.requestURL = requestURL;
+        this.downloadURI = downloadURI != null && !downloadURI.startsWith(FORWARD_SLASH)
+                ? FORWARD_SLASH + downloadURI : downloadURI;
     }
 
     /**
@@ -149,7 +155,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                 throw new IllegalStateException("Unable to store async results for download");
             }
             queryResultObj = resultStorageEngine.storeResults(queryResultObj, tempResult, queryObj.getId());
-            queryResultObj.setResponseBody(resultStorageEngine.generateDownloadUrl(requestURL,
+            queryResultObj.setResponseBody(generateDownloadUrl(requestURL,
                     queryObj.getId()).toString());
         }
 
@@ -253,5 +259,55 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         URIBuilder uri;
         uri = new URIBuilder(query);
         return uri.getPath();
+    }
+
+    /**
+     * Download URL generator.
+     * @param requestURL original request URL
+     * @param asyncQueryID async query ID
+     * @return download url
+     */
+    protected URL generateDownloadUrl(String requestURL, String asyncQueryID) {
+        log.debug("generateDownloadUrl");
+        String baseURL = requestURL != null ? getBasePath(requestURL) : null;
+        String tempURL = baseURL != null && downloadURI != null ? baseURL + downloadURI : null;
+
+        URL url;
+        String downloadURL;
+        if (tempURL == null) {
+            downloadURL = null;
+        } else {
+            downloadURL = tempURL.endsWith(FORWARD_SLASH) ? tempURL + asyncQueryID
+                    : tempURL + FORWARD_SLASH + asyncQueryID;
+        }
+
+        try {
+            url = new URL(downloadURL);
+        } catch (MalformedURLException e) {
+            log.error("Exception: {}", e);
+            //Results persisted, unable to generate URL
+            throw new IllegalStateException(e);
+        }
+        return url;
+    }
+
+    /**
+     * This method parses the URL and gets the scheme, host, port.
+     * @param URL URL from the Async request
+     * @return BasePath extracted from URI
+     */
+    protected String getBasePath(String URL) {
+        URIBuilder uri;
+        try {
+            uri = new URIBuilder(URL);
+        } catch (URISyntaxException e) {
+            log.debug("extracting base path from requestURL failure. {}", e.getMessage());
+            throw new IllegalStateException(e);
+        }
+        StringBuilder str = new StringBuilder(uri.getScheme() + "://" + uri.getHost());
+        if (uri.getPort() != -1) {
+            str.append(":" + uri.getPort());
+        }
+        return str.toString();
     }
 }

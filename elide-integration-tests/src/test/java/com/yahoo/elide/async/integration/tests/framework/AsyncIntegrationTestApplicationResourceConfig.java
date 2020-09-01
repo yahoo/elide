@@ -98,11 +98,11 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
-                ResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine("/download", elide.getElideSettings(),
+                ResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(),
                         elide.getDataStore(), asyncQueryDao);
                 bind(resultStorageEngine).to(ResultStorageEngine.class);
 
-                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
+                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine, "/download");
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                 BillingService billingService = new BillingService() {

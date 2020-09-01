@@ -31,6 +31,9 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+import java.util.concurrent.Executor;
 
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
@@ -40,6 +43,7 @@ import org.springframework.context.annotation.Configuration;
 @EntityScan(basePackageClasses = AsyncQuery.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @ConditionalOnExpression("${elide.async.enabled:false}")
+@EnableAsync
 public class ElideAsyncConfiguration {
 
     /**
@@ -54,8 +58,10 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary, ResultStorageEngine resultStorageEngine) {
+        String downloadURI = settings.getAsync().getDownload().getPath();
+
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                settings.getAsync().getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine);
+                settings.getAsync().getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine, downloadURI);
 
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
@@ -110,9 +116,18 @@ public class ElideAsyncConfiguration {
     @ConditionalOnProperty(prefix = "elide.async.download", name = "enabled", matchIfMissing = false)
     public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDAO) {
-        String downloadURI = settings.getAsync().getDownload().getPath();
-        DefaultResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine(downloadURI,
+        DefaultResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine(
                 elide.getElideSettings(), elide.getDataStore(), asyncQueryDAO);
         return resultStorageEngine;
+    }
+
+    /**
+     * Configure the asynchronous executor for download end point.
+     * @param asyncExecutorService Elide Async Executor Service
+     * @return Executor for Asynchronous end point
+     */
+    @Bean(name = "asyncEndPointExecutor")
+    public Executor asyncExecutor(AsyncExecutorService asyncExecutorService) {
+        return asyncExecutorService.getExecutor();
     }
 }

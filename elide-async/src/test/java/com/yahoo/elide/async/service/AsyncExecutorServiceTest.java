@@ -54,7 +54,7 @@ public class AsyncExecutorServiceTest {
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         resultStorageEngine = mock(DefaultResultStorageEngine.class);
         testUser = mock(User.class);
-        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
+        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine, "/api/v1/download");
         service = AsyncExecutorService.getInstance();
         asyncQueryUpdateThread = mock(AsyncQueryUpdateThread.class);
     }

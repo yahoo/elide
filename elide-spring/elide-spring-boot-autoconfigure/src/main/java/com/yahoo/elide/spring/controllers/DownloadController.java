@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.reactivex.Observable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -45,16 +47,17 @@ public class DownloadController {
             throws SQLException, IOException {
 
         ///************* Getresults from ResultStorageEngine
-        byte[] temp = resultStorageEngine.getResultsByID(asyncQueryId);
+        Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
         PrintWriter writer = response.getWriter();
-        String reconstructedStr = "";
-        if (temp == null) {
+        String reconstructedStr;
+        if (observableResults.isEmpty().blockingGet()) {
             response.setContentType(MediaType.APPLICATION_JSON);
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Result not found");
+            reconstructedStr = "";
         } else {
-            reconstructedStr = new String(temp);
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             response.setHeader("Content-Disposition", "attachment; filename=" + asyncQueryId);
+            reconstructedStr = observableResults.toList().blockingGet().get(0);
         }
         writer.write(reconstructedStr);
     }
