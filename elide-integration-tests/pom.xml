@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.0-pr18-SNAPSHOT</version>
+        <version>5.0.0-pr18</version>
     </parent>
 
     <licenses>
@@ -25,7 +25,7 @@
     </licenses>
 
     <properties>
-        <elide.version>5.0.0-pr18-SNAPSHOT</elide.version>
+        <elide.version>5.0.0-pr18</elide.version>
     </properties>
 
     <dependencies>
