@@ -6,8 +6,6 @@
 
 package com.yahoo.elide.async.service;
 
-import com.yahoo.elide.async.models.AsyncQueryResult;
-
 import io.reactivex.Observable;
 
 /**
@@ -17,12 +15,11 @@ public interface ResultStorageEngine {
 
     /**
      * Stores the result of the query.
-     * @param asyncQueryResult AsyncQueryResult for storing the results
-     * @param result is the result obtained by running the query
-     * @param asyncQueryId is the ID of the query
-     * @return AsyncQueryResult object
+     * @param asyncQueryId Id of the AsyncQuery
+     * @param result is the observable result obtained by running the query
+     * @return String to store as attachment. Can be null.
      */
-    public AsyncQueryResult storeResults(AsyncQueryResult asyncQueryResult, String result, String asyncQueryId);
+    public String storeResults(String asyncQueryId, Observable<String> result);
 
     /**
      * Searches for the async query results by ID and returns the record.

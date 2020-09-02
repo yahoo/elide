@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -58,7 +57,7 @@ public class AsyncQueryCleanerThread implements Runnable {
             Date cleanupDate = dateUtil.calculateFilterDate(Calendar.DATE, queryCleanupDays);
             PathElement createdOnPathElement = new PathElement(AsyncQuery.class, Long.class, "createdOn");
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
-            Collection<AsyncQuery> asyncQueryList = asyncQueryDao.deleteAsyncQueryAndResultCollection(fltDeleteExp);
+            asyncQueryDao.deleteAsyncQueryAndResultCollection(fltDeleteExp);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e);
         }

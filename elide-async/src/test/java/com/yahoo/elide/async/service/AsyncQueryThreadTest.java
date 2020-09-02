@@ -164,7 +164,7 @@ public class AsyncQueryThreadTest {
             queryObj.setResultType(ResultType.DOWNLOAD);
 
             when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
-            when(resultStorageEngine.storeResults(any(), any(), any())).thenThrow(IllegalStateException.class);
+            when(resultStorageEngine.storeResults(any(), any())).thenThrow(IllegalStateException.class);
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                     resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
             queryResultObj = queryThread.processQuery();

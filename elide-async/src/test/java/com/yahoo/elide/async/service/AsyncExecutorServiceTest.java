@@ -68,6 +68,7 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getUpdater());
         assertEquals(asyncQueryDao, service.getAsyncQueryDao());
         assertEquals(resultStorageEngine, service.getResultStorageEngine());
+        assertEquals("/api/v1/download", service.getDownloadURI());
     }
 
     //Test for executor hook execution

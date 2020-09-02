@@ -42,7 +42,6 @@ public class DefaultAsyncQueryDAOTest {
     private AsyncQuery asyncQuery;
     private AsyncQueryResult asyncQueryResult;
     private DataStoreTransaction tx;
-    private EntityDictionary dictionary;
     private FilterExpression filter;
 
     @BeforeEach

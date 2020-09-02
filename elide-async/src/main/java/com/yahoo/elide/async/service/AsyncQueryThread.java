@@ -23,6 +23,8 @@ import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 
+import io.reactivex.Observable;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -154,9 +156,9 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             if (resultStorageEngine == null) {
                 throw new IllegalStateException("Unable to store async results for download");
             }
-            queryResultObj = resultStorageEngine.storeResults(queryResultObj, tempResult, queryObj.getId());
-            queryResultObj.setResponseBody(generateDownloadUrl(requestURL,
-                    queryObj.getId()).toString());
+            queryResultObj.setAttachment(resultStorageEngine.storeResults(queryObj.getId(),
+                    Observable.just(tempResult)));
+            queryResultObj.setResponseBody(generateDownloadUrl(requestURL, queryObj.getId()).toString());
         }
 
         return queryResultObj;

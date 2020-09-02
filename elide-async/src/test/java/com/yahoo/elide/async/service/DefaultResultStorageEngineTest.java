@@ -36,17 +36,14 @@ import java.util.TimeZone;
 import javax.sql.rowset.serial.SerialException;
 
 public class DefaultResultStorageEngineTest {
-    private DataStoreTransaction tx;
     private DefaultResultStorageEngine defaultResultStorageEngine;
-    private Elide elide;
-    private DataStore dataStore;
     private AsyncQueryDAO asyncQueryDAO;
 
     @BeforeEach
     public void setupMocks() {
-        dataStore = mock(DataStore.class);
+        DataStore dataStore = mock(DataStore.class);
         asyncQueryDAO = mock(DefaultAsyncQueryDAO.class);
-        tx = mock(DataStoreTransaction.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -60,7 +57,7 @@ public class DefaultResultStorageEngineTest {
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
 
-        elide = new Elide(elideSettings);
+        Elide elide = new Elide(elideSettings);
 
         when(dataStore.beginTransaction()).thenReturn(tx);
         defaultResultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(),
@@ -70,11 +67,11 @@ public class DefaultResultStorageEngineTest {
     @Test
     public void testStoreResults() throws SerialException, SQLException {
         String responseBody = "responseBody";
-        AsyncQueryResult result = new AsyncQueryResult();
+        AsyncQuery queryObj = new AsyncQuery();
 
-        result = defaultResultStorageEngine.storeResults(result, responseBody, "ID");
+        String result = defaultResultStorageEngine.storeResults(queryObj.getId(), Observable.just(responseBody));
 
-        assertEquals(responseBody, result.getAttachment());
+        assertEquals(responseBody, result);
     }
 
     @Test

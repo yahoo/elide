@@ -34,6 +34,7 @@ import javax.inject.Singleton;
 @Slf4j
 @Getter
 public class DefaultResultStorageEngine implements ResultStorageEngine {
+    private static final String NEW_LINE_REGEX = "\\r?\\n";
 
     @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
@@ -55,12 +56,19 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public AsyncQueryResult storeResults(AsyncQueryResult asyncQueryResult, String result, String asyncQueryId) {
+    public String storeResults(String asyncQueryId, Observable<String> result) {
         log.debug("store AsyncResults for Download");
 
-        asyncQueryResult.setAttachment(result);
+        String finalResult = result.collect(() -> new StringBuilder(),
+                (resultBuilder, tempResult) -> {
+                    if (resultBuilder.length() > 0) {
+                        resultBuilder.append(System.getProperty("line.separator"));
+                    }
+                    resultBuilder.append(tempResult);
+                }
+            ).map(StringBuilder::toString).blockingGet();
 
-        return asyncQueryResult;
+        return finalResult;
     }
 
     @Override
@@ -68,7 +76,6 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
         log.debug("getAsyncResultsByID");
 
         Optional<AsyncQuery> asyncQuery = null;
-        String result = null;
         Observable<String> observableResult = Observable.empty();
 
         PathElement idPathElement = new PathElement(AsyncQuery.class, String.class, "id");
@@ -83,8 +90,7 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
             asyncQuery = asyncQueryCollection.stream().findAny();
             AsyncQueryResult queryResult = asyncQuery.get().getResult();
             if (queryResult != null && queryResult.getAttachment() != null) {
-                result = queryResult.getAttachment();
-                observableResult = Observable.just(result);
+                observableResult = Observable.fromArray(queryResult.getAttachment().split(NEW_LINE_REGEX));
             }
         }
 
