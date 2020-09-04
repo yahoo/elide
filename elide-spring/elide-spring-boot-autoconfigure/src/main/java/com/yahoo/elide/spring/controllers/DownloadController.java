@@ -24,6 +24,7 @@ import io.reactivex.Observable;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -43,36 +44,42 @@ public class DownloadController {
     }
 
     @GetMapping(path = "/{asyncQueryId}")
-    public ResponseEntity<StreamingResponseBody> download(@PathVariable String asyncQueryId,
+    public Callable<ResponseEntity<StreamingResponseBody>> download(@PathVariable String asyncQueryId,
             HttpServletResponse response) throws IOException {
 
-        Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
+        return new Callable<ResponseEntity<StreamingResponseBody>>() {
+            @Override
+            public ResponseEntity<StreamingResponseBody> call() {
 
-        StreamingResponseBody streamingOutput = outputStream -> {
-            observableResults.doOnComplete(() -> {
-                outputStream.flush();
-                outputStream.close();
-            });
+                Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
 
-            observableResults.doOnNext((resultString) -> {
-                outputStream.write(resultString.getBytes());
-            });
+                StreamingResponseBody streamingOutput = outputStream -> {
+                    observableResults.doOnComplete(() -> {
+                        outputStream.flush();
+                        outputStream.close();
+                    });
 
-            observableResults.doOnError((error) -> {
-                outputStream.flush();
-                outputStream.close();
-                throw new IllegalStateException(error);
-            });
+                    observableResults.doOnNext((resultString) -> {
+                        outputStream.write(resultString.getBytes());
+                    });
+
+                    observableResults.doOnError((error) -> {
+                        outputStream.flush();
+                        outputStream.close();
+                        throw new IllegalStateException(error);
+                    });
+                };
+
+                if (observableResults.isEmpty().blockingGet()) {
+                    return ResponseEntity.notFound().build();
+                } else {
+                    return ResponseEntity
+                            .ok()
+                            .header("Content-Disposition", "attachment; filename=" + asyncQueryId)
+                            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                            .body(streamingOutput);
+                }
+            }
         };
-
-        if (observableResults.isEmpty().blockingGet()) {
-            return ResponseEntity.notFound().build();
-        } else {
-            return ResponseEntity
-                    .ok()
-                    .header("Content-Disposition", "attachment; filename=" + asyncQueryId)
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(streamingOutput);
-        }
     }
 }

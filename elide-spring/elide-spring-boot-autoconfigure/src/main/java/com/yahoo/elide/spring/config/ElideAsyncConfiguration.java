@@ -128,7 +128,7 @@ public class ElideAsyncConfiguration implements AsyncConfigurer {
     public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDAO) {
         DefaultResultStorageEngine resultStorageEngine = new DefaultResultStorageEngine(
-                elide.getElideSettings(), elide.getDataStore(), asyncQueryDAO);
+                elide.getElideSettings(), asyncQueryDAO);
         return resultStorageEngine;
     }
 

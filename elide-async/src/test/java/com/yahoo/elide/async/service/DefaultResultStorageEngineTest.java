@@ -61,17 +61,18 @@ public class DefaultResultStorageEngineTest {
 
         when(dataStore.beginTransaction()).thenReturn(tx);
         defaultResultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(),
-                dataStore, asyncQueryDAO);
+                asyncQueryDAO);
     }
 
     @Test
     public void testStoreResults() throws SerialException, SQLException {
         String responseBody = "responseBody";
         AsyncQuery queryObj = new AsyncQuery();
+        queryObj.setResult(new AsyncQueryResult());
 
-        String result = defaultResultStorageEngine.storeResults(queryObj.getId(), Observable.just(responseBody));
+        AsyncQuery result = defaultResultStorageEngine.storeResults(queryObj, Observable.just(responseBody));
 
-        assertEquals(responseBody, result);
+        assertEquals(responseBody, result.getResult().getAttachment());
     }
 
     @Test

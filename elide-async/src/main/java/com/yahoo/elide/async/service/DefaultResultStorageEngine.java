@@ -9,7 +9,6 @@ package com.yahoo.elide.async.service;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -37,7 +36,6 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     private static final String NEW_LINE_REGEX = "\\r?\\n";
 
     @Setter private ElideSettings elideSettings;
-    @Setter private DataStore dataStore;
     @Setter private AsyncQueryDAO defaultAsyncQueryDAO;
 
     public DefaultResultStorageEngine() {
@@ -46,17 +44,15 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
     /**
      * Constructor.
      * @param elideSettings ElideSettings object
-     * @param dataStore DataStore Object
+     * @param defaultAsyncQueryDAO AsyncQueryDAO Object
      */
-    public DefaultResultStorageEngine(ElideSettings elideSettings, DataStore dataStore,
-            AsyncQueryDAO defaultAsyncQueryDAO) {
+    public DefaultResultStorageEngine(ElideSettings elideSettings, AsyncQueryDAO defaultAsyncQueryDAO) {
         this.elideSettings = elideSettings;
-        this.dataStore = dataStore;
         this.defaultAsyncQueryDAO = defaultAsyncQueryDAO;
     }
 
     @Override
-    public String storeResults(String asyncQueryId, Observable<String> result) {
+    public AsyncQuery storeResults(AsyncQuery asyncQuery, Observable<String> result) {
         log.debug("store AsyncResults for Download");
 
         String finalResult = result.collect(() -> new StringBuilder(),
@@ -68,7 +64,8 @@ public class DefaultResultStorageEngine implements ResultStorageEngine {
                 }
             ).map(StringBuilder::toString).blockingGet();
 
-        return finalResult;
+        asyncQuery.getResult().setAttachment(finalResult);
+        return asyncQuery;
     }
 
     @Override

@@ -20,7 +20,6 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -239,8 +238,7 @@ public class AsyncQueryThreadTest {
         URL url = new URL(BASE_URL_ENDPOINT + "/download/" + id);
 
         when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
-        resultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(), mock(DataStore.class),
-                asyncQueryDao);
+        resultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(), asyncQueryDao);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
         queryResultObj = queryThread.processQuery();
@@ -328,8 +326,7 @@ public class AsyncQueryThreadTest {
         queryObj.setResultType(ResultType.DOWNLOAD);
 
         when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
-        resultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(), mock(DataStore.class),
-                asyncQueryDao);
+        resultStorageEngine = new DefaultResultStorageEngine(elide.getElideSettings(), asyncQueryDao);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 null, BASE_URL_ENDPOINT, DOWNLOAD_BASE_PATH);
         assertThrows(IllegalStateException.class, () -> {

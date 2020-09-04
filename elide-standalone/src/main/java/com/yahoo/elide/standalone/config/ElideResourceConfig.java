@@ -142,7 +142,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                     if (resultStorageEngine == null && asyncProperties.enableDownload()) {
                         resultStorageEngine = new DefaultResultStorageEngine(
-                                elide.getElideSettings(), elide.getDataStore(), asyncQueryDao);
+                                elide.getElideSettings(), asyncQueryDao);
                     }
                     if (resultStorageEngine != null) {
                         downloadApiPath = asyncProperties.getDownloadApiPathSpec().replaceAll("/\\*", "");

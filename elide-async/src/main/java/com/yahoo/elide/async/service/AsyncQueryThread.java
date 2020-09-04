@@ -156,8 +156,9 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             if (resultStorageEngine == null) {
                 throw new IllegalStateException("Unable to store async results for download");
             }
-            queryResultObj.setAttachment(resultStorageEngine.storeResults(queryObj.getId(),
-                    Observable.just(tempResult)));
+            queryObj.setResult(queryResultObj);
+            queryObj = resultStorageEngine.storeResults(queryObj, Observable.just(tempResult));
+            queryResultObj = queryObj.getResult();
             queryResultObj.setResponseBody(generateDownloadUrl(requestURL, queryObj.getId()).toString());
         }
 
