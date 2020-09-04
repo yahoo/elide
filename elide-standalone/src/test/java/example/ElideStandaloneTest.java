@@ -366,7 +366,8 @@ public class ElideStandaloneTest {
                                                 attr("query", "/post"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("resultType", "DOWNLOAD")
+                                                attr("resultType", "DOWNLOAD"),
+                                                attr("resultFormatType", "CSV")
                                         )
                                 )
                         ).toJSON())

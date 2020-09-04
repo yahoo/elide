@@ -21,7 +21,7 @@ public class AsyncProperties {
     /**
      * Default max query run time.
      */
-    private int maxRunTimeSeconds = 3600;
+    private int maxRunTimeSeconds = 120;
 
     /**
      * Whether or not the cleanup is enabled.
@@ -36,7 +36,7 @@ public class AsyncProperties {
     /**
      * Polling interval to identify async queries that should be canceled.
      */
-    private int queryCancellationIntervalSeconds = 10;
+    private int queryCancellationIntervalSeconds = 300;
 
     /**
      * Whether or not to use the default implementation of AsyncQueryDAO.
@@ -52,6 +52,6 @@ public class AsyncProperties {
     /**
      * Settings for the Download controller.
      */
-    private ControllerProperties download;
+    private DownloadControllerProperties download;
 
 }

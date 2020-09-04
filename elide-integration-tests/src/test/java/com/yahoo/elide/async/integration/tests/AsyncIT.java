@@ -280,7 +280,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
                                                 attr("asyncAfterSeconds", "0"),
-                                                attr("resultType", "DOWNLOAD")
+                                                attr("resultType", "DOWNLOAD"),
+                                                attr("resultFormatType", "CSV")
                                         )
                                 )
                         ).toJSON())
@@ -402,7 +403,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
                                                 attr("asyncAfterSeconds", "7"),
-                                                attr("resultType", "DOWNLOAD")
+                                                attr("resultType", "DOWNLOAD"),
+                                                attr("resultFormatType", "CSV")
                                         )
                                 )
                         ).toJSON())
@@ -569,6 +571,7 @@ public class AsyncIT extends IntegrationTest {
         queryObj.setStatus("QUEUED");
         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
         queryObj.setResultType("DOWNLOAD");
+        queryObj.setResultFormatType("CSV");
         String graphQLRequest = document(
                 mutation(
                         selection(
@@ -723,6 +726,7 @@ public class AsyncIT extends IntegrationTest {
         queryObj.setStatus("QUEUED");
         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
         queryObj.setResultType("DOWNLOAD");
+        queryObj.setResultFormatType("CSV");
         String graphQLRequest = document(
                 mutation(
                         selection(

@@ -152,7 +152,9 @@ public class ElideResourceConfig extends ResourceConfig {
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(),
                             asyncProperties.getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine,
                             downloadApiPath);
-                    bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
+                    bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class)
+                            .named("asyncExecutorService");
+                    bind(asyncProperties.getMaxDownloadTimeSeconds()).to(Integer.class).named("maxDownloadTimeSeconds");
 
                     // Binding AsyncQuery LifeCycleHook
                     ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());

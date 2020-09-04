@@ -11,21 +11,21 @@ import com.yahoo.elide.async.service.ResultStorageEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import io.reactivex.Observable;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 
 @Slf4j
 @Configuration
@@ -43,22 +43,36 @@ public class DownloadController {
     }
 
     @GetMapping(path = "/{asyncQueryId}")
-    public void download(@PathVariable String asyncQueryId, HttpServletResponse response)
-            throws SQLException, IOException {
+    public ResponseEntity<StreamingResponseBody> download(@PathVariable String asyncQueryId,
+            HttpServletResponse response) throws IOException {
 
-        ///************* Getresults from ResultStorageEngine
         Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
-        PrintWriter writer = response.getWriter();
-        String reconstructedStr;
+
+        StreamingResponseBody streamingOutput = outputStream -> {
+            observableResults.doOnComplete(() -> {
+                outputStream.flush();
+                outputStream.close();
+            });
+
+            observableResults.doOnNext((resultString) -> {
+                outputStream.write(resultString.getBytes());
+            });
+
+            observableResults.doOnError((error) -> {
+                outputStream.flush();
+                outputStream.close();
+                throw new IllegalStateException(error);
+            });
+        };
+
         if (observableResults.isEmpty().blockingGet()) {
-            response.setContentType(MediaType.APPLICATION_JSON);
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Result not found");
-            reconstructedStr = "";
+            return ResponseEntity.notFound().build();
         } else {
-            response.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            response.setHeader("Content-Disposition", "attachment; filename=" + asyncQueryId);
-            reconstructedStr = observableResults.toList().blockingGet().get(0);
+            return ResponseEntity
+                    .ok()
+                    .header("Content-Disposition", "attachment; filename=" + asyncQueryId)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(streamingOutput);
         }
-        writer.write(reconstructedStr);
     }
 }

@@ -47,7 +47,7 @@ public interface ElideStandaloneAsyncSettings {
      * @return Default: 60
      */
     default Integer getMaxRunTimeSeconds() {
-        return 60;
+        return 120;
     }
 
     /**
@@ -65,7 +65,7 @@ public interface ElideStandaloneAsyncSettings {
      * @return Default: 10
      */
     default Integer getQueryCancelCheckIntervalSeconds() {
-        return 10;
+        return 300;
     }
 
     /**
@@ -104,5 +104,14 @@ public interface ElideStandaloneAsyncSettings {
      */
     default ResultStorageEngine getResultStorageEngine() {
         return null;
+    }
+
+    /**
+     * Maximum Download Run time before TIMEOUT.
+     *
+     * @return Default: 60
+     */
+    default Integer getMaxDownloadTimeSeconds() {
+        return 60;
     }
 }

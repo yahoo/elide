@@ -128,7 +128,8 @@ public class AsyncTest extends IntegrationTest {
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
                                                 attr("asyncAfterSeconds", "10"),
-                                                attr("resultType", "DOWNLOAD")
+                                                attr("resultType", "DOWNLOAD"),
+                                                attr("resultFormatType", "CSV")
                                         )
                                 )
                         ).toJSON())
@@ -185,6 +186,6 @@ public class AsyncTest extends IntegrationTest {
         when()
                 .get("/download/ba31ca4e-ed8f-4be0-a0f3-12088fa9264d")
                 .then()
-               .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK);
     }
 }

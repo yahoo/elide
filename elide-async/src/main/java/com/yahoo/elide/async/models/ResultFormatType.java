@@ -6,7 +6,17 @@
 
 package com.yahoo.elide.async.models;
 
+import lombok.Getter;
+
 public enum ResultFormatType {
-    JSON,
-    CSV
+    JSONAPI(false),
+    GRAPHQLAPI(false),
+    //TODO - Add JSON(true),
+    CSV(true);
+
+    @Getter private final boolean supportsDownload;
+
+    private ResultFormatType(boolean supportsDownload) {
+        this.supportsDownload = supportsDownload;
+    }
 }
