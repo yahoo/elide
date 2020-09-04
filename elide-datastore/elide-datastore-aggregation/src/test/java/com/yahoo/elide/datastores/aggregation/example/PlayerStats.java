@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -41,8 +42,7 @@ import javax.persistence.Id;
 @Meta(description = "Player Statistics", category = "Sports Category")
 public class PlayerStats {
 
-    public static final String DAY_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
-    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME({{    }}, 'yyyy-MM-01'), 'yyyy-MM-dd')";
+    public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
 
     /**
      * PK.
@@ -131,6 +131,15 @@ public class PlayerStats {
     }
 
     public void setHighScore(final long highScore) {
+        this.highScore = highScore;
+    }
+
+    @MetricFormula(value = "highScore")
+    @Meta(description = "highScore with no aggregation")
+    public long getHighScoreNoAgg() {
+        return highScore;
+    }
+    public void setHighScoreNoAgg(final long highScore) {
         this.highScore = highScore;
     }
 
@@ -255,10 +264,7 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grains = {
-            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DAY_FORMAT),
-            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
-    }, timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }
@@ -272,10 +278,7 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grains = {
-            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DAY_FORMAT),
-            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
-    }, timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
     public Date getUpdatedDate() {
         return updatedDate;
     }

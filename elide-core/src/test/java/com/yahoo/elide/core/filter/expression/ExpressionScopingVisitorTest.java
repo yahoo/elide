@@ -38,7 +38,7 @@ public class ExpressionScopingVisitorTest {
         ));
         FilterPredicate p1 = new InPredicate(p1Path, "foo", "bar");
 
-        FilterPredicate p2 = new InPredicate(new PathElement(Book.class, String.class, NAME), "blah");
+        FilterPredicate p2 = new InPredicate(new PathElement(Book.class, String.class, NAME), "blah%");
         FilterPredicate p3 = new InPredicate(new PathElement(Book.class, String.class, GENRE), SCIFI);
         //P4 is a duplicate of P3
         FilterPredicate p4 = new InPredicate(new PathElement(Book.class, String.class, GENRE), SCIFI);
@@ -62,5 +62,9 @@ public class ExpressionScopingVisitorTest {
             assertEquals(predicateOriginal, predicateCopy);
             assertTrue(predicateCopy != predicateOriginal);
         }
+
+        assertEquals("example_Author_name", predicates.get(0).getPath().getAlias());
+        assertTrue(predicates.get(0).getParameters().get(0).getPlaceholder().startsWith(":name_name_"));
+        assertEquals("blah\\%", predicates.get(0).getParameters().get(0).escapeMatching());
     }
 }

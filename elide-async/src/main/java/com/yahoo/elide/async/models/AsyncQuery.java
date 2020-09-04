@@ -22,6 +22,8 @@ import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 import javax.validation.constraints.Max;
@@ -55,16 +57,18 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     private Integer asyncAfterSeconds = 10;
 
     @Exclude
+    @Column(columnDefinition = "varchar(36)")
     private String requestId = UUID.randomUUID().toString();
 
     @UpdatePermission(expression = "(Principal is Admin OR Principal is Owner) AND value is Cancelled")
     @CreatePermission(expression = "value is Queued")
+    @Enumerated(EnumType.STRING)
     private QueryStatus status = QueryStatus.QUEUED;
 
     @Embedded
     private AsyncQueryResult result;
 
-    @Exclude
+    @CreatePermission(expression = "Prefab.Role.None")
     private String principalName;
 
     @Transient

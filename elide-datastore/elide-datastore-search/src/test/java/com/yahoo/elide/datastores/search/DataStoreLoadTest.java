@@ -186,7 +186,7 @@ public class DataStoreLoadTest {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         //Case sensitive query against case insensitive index must lowercase
-        FilterExpression filter = filterParser.parseFilterExpression("name=='*est\tTa*'", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name=ini='*est\tTa*'", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -203,7 +203,7 @@ public class DataStoreLoadTest {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         //Case insensitive query against case insensitive index
-        FilterExpression filter = filterParser.parseFilterExpression("name==*DrU*", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name=ini=*DrU*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -269,7 +269,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        Map<String, Sorting.SortOrder> sortRules = new HashMap<>();
         sortRules.put("name", Sorting.SortOrder.asc);
         sortRules.put("modifiedDate", Sorting.SortOrder.desc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
@@ -291,7 +291,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        Map<String, Sorting.SortOrder> sortRules = new HashMap<>();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
@@ -313,7 +313,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        Map<String, Sorting.SortOrder> sortRules = new HashMap<>();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
@@ -343,7 +343,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        Map<String, Sorting.SortOrder> sortRules = new HashMap<>();
         sortRules.put("name", Sorting.SortOrder.desc);
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);

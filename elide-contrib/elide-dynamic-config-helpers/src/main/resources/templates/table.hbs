@@ -38,8 +38,8 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @Data
-<%#if table%>@FromTable(name = "<%#if schema%><%schema%>.<%/if%><%table%>")
-<%else if sql%>@FromSubquery(sql = "<%sql%>")
+<%#if table%>@FromTable(name = "<%#if schema%><%schema%>.<%/if%><%table%>", dbConnectionName = "<%dbConnectionName%>")
+<%else if sql%>@FromSubquery(sql = "<%sql%>", dbConnectionName = "<%dbConnectionName%>")
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
 <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
@@ -52,18 +52,20 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%#each dimensions%>
 
 <%#ifTypeMatches type "TIME"%>
-    @Temporal(grains = {
-    <%#each grains%>
-            @TimeGrainDefinition(grain = TimeGrain.<%grain%>, expression = "<%sql%>")<%#if @last%><%else%>, <%/if%>
-    <%/each%>
-    }, timeZone = "UTC")
+<%#with grain%>
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.<%type%>, expression = "<%sql%>"), timeZone = "UTC")
+<%/with%>
 <%/ifTypeMatches%>
 
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
     <%#if hidden%>@Exclude<%/if%>
     @DimensionFormula("<%definition%>")
+<%#ifTypeMatches type "TIME"%>
+    private com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>;
+<%else%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
+<%/ifTypeMatches%>
 
 <%/each%>
 

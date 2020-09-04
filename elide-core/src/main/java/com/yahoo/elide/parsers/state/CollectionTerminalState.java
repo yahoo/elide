@@ -5,8 +5,10 @@
  */
 package com.yahoo.elide.parsers.state;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
@@ -31,11 +33,13 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import io.reactivex.Observable;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,9 +74,11 @@ public class CollectionTerminalState extends BaseState {
         RequestScope requestScope = state.getRequestScope();
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
-        Set<PersistentResource> collection = getResourceCollection(requestScope);
+        Set<PersistentResource> collection =
+                getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
+
         // Set data
-        jsonApiDocument.setData(getData(collection));
+        jsonApiDocument.setData(getData(collection, requestScope.getDictionary()));
 
         // Run include processor
         DocumentProcessor includedProcessor = new IncludedProcessor();
@@ -125,8 +131,8 @@ public class CollectionTerminalState extends BaseState {
         };
     }
 
-    private Set<PersistentResource> getResourceCollection(RequestScope requestScope) {
-        final Set<PersistentResource> collection;
+    private Observable<PersistentResource> getResourceCollection(RequestScope requestScope) {
+        final Observable<PersistentResource> collection;
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
 
@@ -143,9 +149,17 @@ public class CollectionTerminalState extends BaseState {
         return collection;
     }
 
-    private Data getData(Set<PersistentResource> collection) {
+    private Data getData(Set<PersistentResource> collection, EntityDictionary dictionary) {
         Preconditions.checkNotNull(collection);
         List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
+
+        if (parent.isPresent()) {
+            Class<?> parentClass = parent.get().getResourceClass();
+            String relationshipName = relationName.get();
+            RelationshipType type = dictionary.getRelationshipType(parentClass, relationshipName);
+
+            return new Data<>(resources, type);
+        }
         return new Data<>(resources);
     }
 

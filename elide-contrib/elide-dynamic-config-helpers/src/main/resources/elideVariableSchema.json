@@ -4,7 +4,7 @@
     "description": "Elide Variable config json/hjson schema",
     "type": "object",
     "patternProperties": {
-        "^([A-Za-z]*_?[A-Za-z]*)*$": {
+        "^([A-Za-z0-9_]+[.]?)+$": {
           "anyOf": [
             {"type": "string"},
             {"type": "array"},

@@ -1,0 +1,15 @@
+{
+  dbconfigs:
+  [
+    {
+      name: OracleConnection
+      url: jdbc:oracle:thin:@localhost:1521:testdb
+      driver: oracle.jdbc.driver.OracleDriver
+      user: guestoracle
+      dialect: org.hibernate.dialect.OracleDialect
+      "propertyMap": {
+        "hibernate.show_sql": true,
+      }
+    }
+  ]
+}

@@ -31,7 +31,7 @@ import javax.persistence.Entity;
  * Filtered permission check.
  */
 @CreatePermission(expression = "filterCheck")
-@ReadPermission(expression = "deny all OR filterCheck OR filterCheck3 OR negativeIntegerUser")
+@ReadPermission(expression = "Prefab.Role.None OR filterCheck OR filterCheck3 OR negativeIntegerUser")
 @UpdatePermission(expression = "filterCheck")
 @DeletePermission(expression = "filterCheck")
 @Include(rootLevel = true)
@@ -40,7 +40,7 @@ import javax.persistence.Entity;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @ToString
 public class Filtered extends BaseId {
-    @ReadPermission(expression = "deny all") public transient boolean init = false;
+    @ReadPermission(expression = "Prefab.Role.None") public transient boolean init = false;
 
     static private FilterPredicate getPredicateOfId(long id) {
         Path.PathElement path1 = new Path.PathElement(Filtered.class, long.class, "id");

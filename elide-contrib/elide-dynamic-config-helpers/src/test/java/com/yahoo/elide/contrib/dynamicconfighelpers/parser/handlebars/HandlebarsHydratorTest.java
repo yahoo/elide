@@ -66,20 +66,13 @@ public class HandlebarsHydratorTest {
             + "           name : createdOn\n"
             + "           type : TIME\n"
             + "           definition : create_on\n"
-            + "           grains: [\n"
+            + "           grain:\n"
             + "            {\n"
-            + "             grain :  DAY\n"
+            + "             type :  SIMPLEDATE\n"
             + "             sql :  '''\n"
             + "             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n"
             + "             '''\n"
-            + "            },\n"
-            + "            {\n"
-            + "             grain :  MONTH\n"
-            + "             sql :  '''\n"
-            + "             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')\n"
-            + "             '''\n"
             + "            }\n"
-            + "           ]\n"
             + "         }\n"
             + "      ]\n"
             + "  }]\n"
@@ -127,7 +120,7 @@ public class HandlebarsHydratorTest {
             + "@EqualsAndHashCode\n"
             + "@ToString\n"
             + "@Data\n"
-            + "@FromTable(name = \"gamedb.player_stats\")\n"
+            + "@FromTable(name = \"gamedb.player_stats\", dbConnectionName = \"\")\n"
             + "\n"
             + "@ReadPermission(expression = \"A user is admin or is a player in the game\")\n"
             + "@Meta(description = \"A long description\", category=\"Table Category\")\n"
@@ -145,25 +138,25 @@ public class HandlebarsHydratorTest {
             + "    @Meta(description = \"countryIsoCode\", category=\"country detail\")\n"
             + "    \n"
             + "    @DimensionFormula(\"{{playerCountry.isoCode}}\")\n"
+            + "\n"
             + "    private String countryIsoCode;\n"
             + "\n"
             + "\n"
             + "\n"
             + "\n"
-            + "    @Temporal(grains = {\n"
-            + "    \n"
-            + "            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = \"PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\"), \n"
-            + "    \n"
-            + "            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = \"PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')\")\n"
-            + "    \n"
-            + "    }, timeZone = \"UTC\")\n"
+            + "\n"
+            + "\n"
+            + "    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = \"PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\"), timeZone = \"UTC\")\n"
+            + "\n"
             + "\n"
             + "\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @Meta(description = \"createdOn\")\n"
             + "    \n"
             + "    @DimensionFormula(\"create_on\")\n"
-            + "    private Date createdOn;\n"
+            + "\n"
+            + "    private com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate createdOn;\n"
+            + "\n"
             + "\n"
             + "\n"
             + "\n"
@@ -241,15 +234,15 @@ public class HandlebarsHydratorTest {
     public void testConfigHydration() throws IOException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources/models";
+        String path = "src/test/resources";
         File file = new File(path);
         String absolutePath = file.getAbsolutePath();
-        String hjsonPath = absolutePath + "/tables/table1.hjson";
+        String hjsonPath = absolutePath + "/models/tables/table1.hjson";
 
         DynamicConfigValidator testClass = new DynamicConfigValidator(path);
         testClass.readAndValidateConfigs();
 
-        Map<String, Object> map = testClass.getVariables();
+        Map<String, Object> map = testClass.getModelVariables();
 
         String content = new String (Files.readAllBytes(Paths.get(hjsonPath)));
 
@@ -260,7 +253,7 @@ public class HandlebarsHydratorTest {
     public void testTableHydration() throws IOException {
 
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources/models";
+        String path = "src/test/resources";
 
         DynamicConfigValidator testClass = new DynamicConfigValidator(path);
         testClass.readAndValidateConfigs();
@@ -274,7 +267,7 @@ public class HandlebarsHydratorTest {
     @Test
     public void testSecurityHydration() throws IOException {
         HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources/models";
+        String path = "src/test/resources";
 
         DynamicConfigValidator testClass = new DynamicConfigValidator(path);
         testClass.readAndValidateConfigs();

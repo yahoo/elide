@@ -84,8 +84,8 @@ public class ElideStandaloneMetadataStoreMissingTest {
             }
 
             @Override
-            public Integer getAsyncMaxRunTimeMinutes() {
-                return 30;
+            public Integer getAsyncMaxRunTimeSeconds() {
+                return 1800;
             }
 
             @Override
@@ -110,7 +110,7 @@ public class ElideStandaloneMetadataStoreMissingTest {
 
             @Override
             public String getDynamicConfigPath() {
-                return "src/test/resources/models/";
+                return "src/test/resources/configs/";
             }
 
             @Override

@@ -48,6 +48,7 @@ import example.nontransferable.ContainerWithPackageShare;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.Untransferable;
 
+import io.reactivex.Observable;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 
@@ -55,6 +56,7 @@ import nocreate.NoCreateEntity;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -188,14 +190,14 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     @Include
     @CreatePermission(expression = "allow all")
     @ReadPermission(expression = "allow all")
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @DeletePermission(expression = "allow all")
     public static final class ChangeSpecModel {
         @Id
         public long id;
 
-        @ReadPermission(expression = "deny all")
-        @UpdatePermission(expression = "deny all")
+        @ReadPermission(expression = "Prefab.Role.None")
+        @UpdatePermission(expression = "Prefab.Role.None")
         public Function<ChangeSpec, Boolean> checkFunction;
 
         @UpdatePermission(expression = "changeSpecNonCollection")
@@ -257,7 +259,10 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
-        return resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
+        Observable<PersistentResource> resources =
+                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
+
+        return resources.toList(LinkedHashSet::new).blockingGet();
     }
 
     public com.yahoo.elide.request.Relationship getRelationship(Class<?> type, String name) {

@@ -19,7 +19,7 @@ public class TestCheckMappings {
     public static final HashMap<String, Class<? extends Check>> MAPPINGS =
             new HashMap<>(ImmutableMap.<String, Class<? extends Check>>builder()
                     .put("allow all", Role.ALL.class)
-                    .put("deny all", Role.NONE.class)
+                    .put("Prefab.Role.None", Role.NONE.class)
                     .put("adminRoleCheck", User.AdminRoleCheck.class)
                     .put("initCheck", Child.InitCheck.class)
                     .put("FailCheckOp", Child.FailCheckOp.class)

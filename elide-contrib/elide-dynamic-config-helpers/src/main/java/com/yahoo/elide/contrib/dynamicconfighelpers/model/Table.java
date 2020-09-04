@@ -39,21 +39,25 @@ import java.util.Set;
     "measures",
     "dimensions",
     "tags",
-    "extends",
+    "extend",
     "sql",
-    "table"
+    "table",
+    "dbConnectionName"
 })
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Table {
+public class Table implements Named {
 
     @JsonProperty("name")
     private String name;
 
     @JsonProperty("schema")
     private String schema = "";
+
+    @JsonProperty("dbConnectionName")
+    private String dbConnectionName = "";
 
     @JsonProperty("hidden")
     private Boolean hidden = false;
@@ -83,7 +87,7 @@ public class Table {
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<String>();
 
-    @JsonProperty("extends")
+    @JsonProperty("extend")
     private String extend = "";
 
     @JsonProperty("sql")

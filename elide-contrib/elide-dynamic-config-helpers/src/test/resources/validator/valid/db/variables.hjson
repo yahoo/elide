@@ -1,0 +1,4 @@
+{
+   mysql_dialect: org.hibernate.dialect.MySQL5Dialect
+   db2_dialect: org.hibernate.dialect.DB2Dialect
+}

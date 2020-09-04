@@ -16,6 +16,7 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
@@ -39,8 +40,8 @@ public class QueryEngineTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-
-        playerStatsViewTable = engine.getTable("playerStatsView");
+        TableId tableId = new TableId("playerStatsView", "", "");
+        playerStatsViewTable = engine.getTable(tableId);
     }
 
     /**
@@ -52,7 +53,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -139,7 +140,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
                         PlayerStats.class, false))
                 .build();
@@ -217,7 +218,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -253,7 +254,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .pagination(new ImmutablePagination(0, 1, false, true))
                 .build();
 
@@ -343,7 +344,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("lowScore")))
                 .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -474,17 +475,29 @@ public class QueryEngineTest extends SQLUnitTest {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.MONTH))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .build();
 
+        //Change for monthly column
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
         stats0.setHighScore(2412);
-        stats0.setRecordedDate(Timestamp.valueOf("2019-07-01 00:00:00"));
+        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
-        assertEquals(ImmutableList.of(stats0), results);
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setHighScore(1234);
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("2");
+        stats2.setHighScore(1000);
+        stats2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
+
+        assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
+
     }
 
     /**
@@ -500,7 +513,7 @@ public class QueryEngineTest extends SQLUnitTest {
         Query query = Query.builder()
                 .table(playerStatsTable)
                 .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.DAY))
+                .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
                 .whereFilter(predicate)
                 .build();
 
