@@ -112,8 +112,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(FilterExpression filterExpression) {
         log.debug("deleteAsyncQueryAndResultCollection");
         Collection<AsyncQuery> asyncQueryList = null;
-        asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(elideSettings, dataStore,
-                (tx, scope) -> {
+        asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(elideSettings, dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
                     .filterExpression(filterExpression)
@@ -136,8 +135,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     @Override
     public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult, String asyncQueryId) {
         log.debug("updateAsyncQueryResult");
-        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(elideSettings,
-                dataStore, (tx, scope) -> {
+        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(elideSettings, dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
                     .type(AsyncQuery.class)
                     .build();
@@ -160,8 +158,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         Collection<AsyncQuery> asyncQueryList = null;
         log.debug("loadAsyncQueryCollection");
         try {
-            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(elideSettings, dataStore,
-                    (tx, scope) -> {
+            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(elideSettings, dataStore, (tx, scope) -> {
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
                         .type(AsyncQuery.class)
                         .filterExpression(filterExpression)
