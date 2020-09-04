@@ -8,7 +8,6 @@ package com.yahoo.elide.async.hooks;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
@@ -43,8 +42,6 @@ public class ExecuteQueryHookTest {
         queryObj.setResultType(ResultType.DOWNLOAD);
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
-
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {
             queryHook.validateOptions(queryObj, resultStorageEngine);
@@ -61,8 +58,6 @@ public class ExecuteQueryHookTest {
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.DOWNLOAD);
 
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
-
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {
             queryHook.validateOptions(queryObj, resultStorageEngine);
@@ -78,8 +73,6 @@ public class ExecuteQueryHookTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultFormatType(ResultFormatType.CSV);
-
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {
@@ -98,8 +91,6 @@ public class ExecuteQueryHookTest {
         queryObj.setResultType(ResultType.DOWNLOAD);
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
-
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {
             queryHook.validateOptions(queryObj, null);
@@ -116,8 +107,6 @@ public class ExecuteQueryHookTest {
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.DOWNLOAD);
         queryObj.setResultFormatType(ResultFormatType.GRAPHQLAPI);
-
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {
@@ -136,8 +125,6 @@ public class ExecuteQueryHookTest {
         queryObj.setResultType(ResultType.DOWNLOAD);
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
-
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertDoesNotThrow(() -> queryHook.validateOptions(queryObj, resultStorageEngine));
     }
@@ -153,8 +140,6 @@ public class ExecuteQueryHookTest {
         queryObj.setResultType(ResultType.DOWNLOAD);
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
-
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertDoesNotThrow(() -> queryHook.validateOptions(queryObj, resultStorageEngine));
     }
@@ -169,8 +154,6 @@ public class ExecuteQueryHookTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setResultType(ResultType.EMBEDDED);
         queryObj.setResultFormatType(ResultFormatType.CSV);
-
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertDoesNotThrow(() -> queryHook.validateOptions(queryObj, resultStorageEngine));

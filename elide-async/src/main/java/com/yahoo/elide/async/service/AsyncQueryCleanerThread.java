@@ -39,7 +39,6 @@ public class AsyncQueryCleanerThread implements Runnable {
     private Elide elide;
     private int queryCleanupDays;
     private AsyncQueryDAO asyncQueryDao;
-    private ResultStorageEngine resultStorageEngine;
     private DateUtil dateUtil = new DateUtil();
 
     @Override

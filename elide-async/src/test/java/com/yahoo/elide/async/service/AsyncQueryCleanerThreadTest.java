@@ -37,7 +37,6 @@ public class AsyncQueryCleanerThreadTest {
     private AsyncQueryCleanerThread cleanerThread;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
-    private ResultStorageEngine resultStorageEngine;
     private DateUtil dateUtil;
     private Date testDate = new Date(1577883661000L);
 
@@ -53,9 +52,8 @@ public class AsyncQueryCleanerThreadTest {
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
-        resultStorageEngine = mock(DefaultResultStorageEngine.class);
         dateUtil = mock(DateUtil.class);
-        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao, resultStorageEngine, dateUtil);
+        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao, dateUtil);
     }
 
     @Test
@@ -64,7 +62,6 @@ public class AsyncQueryCleanerThreadTest {
         assertEquals(asyncQueryDao, cleanerThread.getAsyncQueryDao());
         assertEquals(7, cleanerThread.getMaxRunTimeMinutes());
         assertEquals(7, cleanerThread.getQueryCleanupDays());
-        assertEquals(resultStorageEngine, cleanerThread.getResultStorageEngine());
     }
 
     @Test

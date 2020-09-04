@@ -101,7 +101,7 @@ public class ElideAsyncConfiguration implements AsyncConfigurer {
             AsyncQueryDAO asyncQueryDao, @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncCleanerService.init(elide, settings.getAsync().getMaxRunTimeSeconds(),
                 settings.getAsync().getQueryCleanupDays(), settings.getAsync().getQueryCancellationIntervalSeconds(),
-                asyncQueryDao, resultStorageEngine);
+                asyncQueryDao);
         return AsyncCleanerService.getInstance();
     }
 

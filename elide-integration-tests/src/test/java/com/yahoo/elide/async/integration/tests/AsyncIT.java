@@ -26,9 +26,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -415,10 +413,12 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.id", equalTo("adc4a871-dff2-4054-804e-d80075cf831f"))
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("COMPLETE"))
-                .body("data.attributes.result.contentLength", notNullValue())
+                .body("data.attributes.result.contentLength", equalTo(218))
                 .body("data.attributes.result.recordCount", equalTo(3))
                 .body("data.attributes.result.responseBody", equalTo("http://localhost:50001"
                         + "/download/adc4a871-dff2-4054-804e-d80075cf831f"))
+                .body("data.attributes.result.attachment", startsWith("data_type, data_id, data_attributes_title"))
+                .body("data.attributes.result.attachment", containsString("\"book\", \"3\", \"For Whom the Bell Tolls\""))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
     }
@@ -767,14 +767,15 @@ public class AsyncIT extends IntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{\"query\":\"{ asyncQuery(ids: [\\\"adc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
                         + "{ edges { node { id queryType status result "
-                        + "{ responseBody httpStatus contentLength } } } } }\","
+                        + "{ responseBody httpStatus contentLength attachment} } } } }\","
                         + "\"variables\":null}")
                 .post("/graphQL")
                 .asString();
 
         expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                 + "\"result\":{\"responseBody\":\"http://localhost:50001/download/adc4a871-dff2-4054-804e-d80075cf829e\","
-                + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
+                + "\"httpStatus\":200,\"contentLength\":177,\"attachment\":\"data_book_edges_node_id, data_book_edges_node_title\\n\\\"1\\\", \\\"Ender's Game\\\"\\n\\\"2\\\", "
+                + "\\\"Song of Ice and Fire\\\"\\n\\\"3\\\", \\\"For Whom the Bell Tolls\\\"\\n\"}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
     }
