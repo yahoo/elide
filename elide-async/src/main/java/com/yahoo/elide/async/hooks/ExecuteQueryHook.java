@@ -65,7 +65,7 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
         }
 
         // ResultFormatType should support downloading.
-        if (resultType == ResultType.DOWNLOAD && !resultFormat.isSupportsDownload()) {
+        if (resultType == ResultType.DOWNLOAD && !resultFormat.supportsDownload()) {
             throw new InvalidValueException("resultFormatType is invalid", (Throwable) null);
         }
 

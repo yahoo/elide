@@ -6,17 +6,24 @@
 
 package com.yahoo.elide.async.models;
 
+import java.util.Set;
+import java.util.EnumSet;
+
 import lombok.Getter;
 
 public enum ResultFormatType {
-    JSONAPI(false),
-    GRAPHQLAPI(false),
-    //TODO - Add JSON(true),
-    CSV(true);
+    JSONAPI(EnumSet.of(ResultType.EMBEDDED)),
+    GRAPHQLAPI(EnumSet.of(ResultType.EMBEDDED)),
+    //TODO - Add JSON(ResultType.EMBEDDED, ResultType.DOWNLOAD),
+    CSV(EnumSet.of(ResultType.EMBEDDED, ResultType.DOWNLOAD));
 
-    @Getter private final boolean supportsDownload;
+    @Getter private final Set<ResultType> supportedResultType;
 
-    private ResultFormatType(boolean supportsDownload) {
-        this.supportsDownload = supportsDownload;
+    private ResultFormatType(Set<ResultType> supportedResultType) {
+        this.supportedResultType = supportedResultType;
+    }
+
+    public boolean supportsDownload() {
+		return this.supportedResultType.contains(ResultType.DOWNLOAD);
     }
 }
