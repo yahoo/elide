@@ -47,38 +47,34 @@ public class DownloadController {
     public Callable<ResponseEntity<StreamingResponseBody>> download(@PathVariable String asyncQueryId,
             HttpServletResponse response) throws IOException {
 
-        return new Callable<ResponseEntity<StreamingResponseBody>>() {
-            @Override
-            public ResponseEntity<StreamingResponseBody> call() {
+        return () -> {
+            Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
 
-                Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
+            StreamingResponseBody streamingOutput = outputStream -> {
+                observableResults.doOnComplete(() -> {
+                    outputStream.flush();
+                    outputStream.close();
+                });
 
-                StreamingResponseBody streamingOutput = outputStream -> {
-                    observableResults.doOnComplete(() -> {
-                        outputStream.flush();
-                        outputStream.close();
-                    });
+                observableResults.doOnNext((resultString) -> {
+                    outputStream.write(resultString.getBytes());
+                });
 
-                    observableResults.doOnNext((resultString) -> {
-                        outputStream.write(resultString.getBytes());
-                    });
+                observableResults.doOnError((error) -> {
+                    outputStream.flush();
+                    outputStream.close();
+                    throw new IllegalStateException(error);
+                });
+            };
 
-                    observableResults.doOnError((error) -> {
-                        outputStream.flush();
-                        outputStream.close();
-                        throw new IllegalStateException(error);
-                    });
-                };
-
-                if (observableResults.isEmpty().blockingGet()) {
-                    return ResponseEntity.notFound().build();
-                } else {
-                    return ResponseEntity
-                            .ok()
-                            .header("Content-Disposition", "attachment; filename=" + asyncQueryId)
-                            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                            .body(streamingOutput);
-                }
+            if (observableResults.isEmpty().blockingGet()) {
+                return ResponseEntity.notFound().build();
+            } else {
+                return ResponseEntity
+                        .ok()
+                        .header("Content-Disposition", "attachment; filename=" + asyncQueryId)
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(streamingOutput);
             }
         };
     }

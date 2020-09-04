@@ -76,9 +76,10 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
             try {
                 JsonNode node = objectMapper.readTree(executableQueryBytes);
                 JsonNode queryNode = node.path("query");
+                // TODO Move this check to a utility.
                 if (queryNode.asText().trim().startsWith(MUTATION)) {
                     throw new InvalidValueException("can not execute mutations asynchronously", (Throwable) null);
-                };
+                }
             } catch (IOException e) {
                 throw new InvalidValueException("query is invalid", e);
             }
