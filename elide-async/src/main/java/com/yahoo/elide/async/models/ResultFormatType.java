@@ -6,10 +6,11 @@
 
 package com.yahoo.elide.async.models;
 
-import java.util.Set;
-import java.util.EnumSet;
-
 import lombok.Getter;
+
+import java.util.EnumSet;
+import java.util.Set;
+
 
 public enum ResultFormatType {
     JSONAPI(EnumSet.of(ResultType.EMBEDDED)),
@@ -24,6 +25,6 @@ public enum ResultFormatType {
     }
 
     public boolean supportsDownload() {
-		return this.supportedResultType.contains(ResultType.DOWNLOAD);
+        return this.supportedResultType.contains(ResultType.DOWNLOAD);
     }
 }
