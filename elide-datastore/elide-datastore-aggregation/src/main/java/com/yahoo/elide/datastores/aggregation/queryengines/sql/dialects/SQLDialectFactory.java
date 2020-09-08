@@ -19,7 +19,7 @@ public class SQLDialectFactory {
     private static final SQLDialect PRESTO_DIALECT = new PrestoDialect();
 
     public static SQLDialect getDefaultDialect() {
-        return H2_DIALECT;
+        return getH2Dialect();
     }
 
     public static SQLDialect getH2Dialect() {

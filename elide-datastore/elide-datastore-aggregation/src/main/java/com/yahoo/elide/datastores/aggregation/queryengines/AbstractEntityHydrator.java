@@ -116,7 +116,7 @@ public abstract class AbstractEntityHydrator {
                 this.results.add(row);
             }
         } catch (SQLException e) {
-            throw new IllegalArgumentException(e);
+            throw new IllegalStateException(e);
         }
     }
 
