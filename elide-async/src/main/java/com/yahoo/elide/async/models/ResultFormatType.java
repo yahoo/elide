@@ -11,7 +11,10 @@ import lombok.Getter;
 import java.util.EnumSet;
 import java.util.Set;
 
-
+/**
+ * ENUM of supported result format types.
+ * ex. JSON, CSV etc.
+ */
 public enum ResultFormatType {
     JSONAPI(EnumSet.of(ResultType.EMBEDDED)),
     GRAPHQLAPI(EnumSet.of(ResultType.EMBEDDED)),
