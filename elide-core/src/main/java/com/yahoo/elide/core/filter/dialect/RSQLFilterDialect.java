@@ -186,15 +186,33 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
      * Parses a RSQL string into an Elide FilterExpression.
      * @param expressionText the RSQL string
      * @param entityType The type associated with the predicate
+     * @param allowNestedToManyAssociations Whether or not to reject nested filter paths.
      * @return An elide FilterExpression abstract syntax tree
      * @throws ParseException
      */
     public FilterExpression parseFilterExpression(String expressionText,
                                                   Class<?> entityType,
                                                   boolean allowNestedToManyAssociations) throws ParseException {
+        return parseFilterExpression(expressionText, entityType, true, allowNestedToManyAssociations);
+    }
+
+    /**
+     * Parses a RSQL string into an Elide FilterExpression.
+     * @param expressionText the RSQL string
+     * @param entityType The type associated with the predicate
+     * @param coerceValues Convert values into their underlying type.
+     * @param allowNestedToManyAssociations Whether or not to reject nested filter paths.
+     * @return An elide FilterExpression abstract syntax tree
+     * @throws ParseException
+     */
+    public FilterExpression parseFilterExpression(String expressionText,
+                                                  Class<?> entityType,
+                                                  boolean coerceValues,
+                                                  boolean allowNestedToManyAssociations) throws ParseException {
         try {
             Node ast = parser.parse(expressionText);
-            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(allowNestedToManyAssociations);
+            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(allowNestedToManyAssociations,
+                    coerceValues);
             return ast.accept(visitor, entityType);
         } catch (RSQLParserException e) {
             throw new ParseException(e.getMessage());
@@ -223,9 +241,15 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
      */
     public class RSQL2FilterExpressionVisitor implements RSQLVisitor<FilterExpression, Class> {
         private boolean allowNestedToManyAssociations = false;
+        private boolean coerceValues = true;
 
         public RSQL2FilterExpressionVisitor(boolean allowNestedToManyAssociations) {
+            this(allowNestedToManyAssociations, true);
+        }
+
+        public RSQL2FilterExpressionVisitor(boolean allowNestedToManyAssociations, boolean coerceValues) {
             this.allowNestedToManyAssociations = allowNestedToManyAssociations;
+            this.coerceValues = coerceValues;
         }
 
         private Path buildPath(Class rootEntityType, String selector) {
@@ -344,9 +368,10 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                                     ? argument.replace("*", "") //Support filtering on number types
                                     : argument
                     )
-                    .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
+                    .map((argument) -> coerceValues
+                            ? (Object) CoerceUtil.coerce(argument, relationshipType)
+                            : argument)
                     .collect(Collectors.toList());
-
 
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
                 return equalityExpression(arguments.get(0), path, values, true);
@@ -443,6 +468,5 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 throw new RSQLParseException(String.format("Invalid value for operator =isempty= '%s'", arg));
             }
         }
-
     }
 }
