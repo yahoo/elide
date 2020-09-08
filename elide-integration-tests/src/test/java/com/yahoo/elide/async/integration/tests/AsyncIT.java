@@ -88,6 +88,12 @@ public class AsyncIT extends IntegrationTest {
 
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String status;
+
+        @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
+        private String resultType;
+
+        @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
+        private String resultFormatType;
     }
 
     private static final Resource ENDERS_GAME = resource(
@@ -193,7 +199,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "0")
+                                                attr("asyncAfterSeconds", "0"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())
@@ -203,11 +210,8 @@ public class AsyncIT extends IntegrationTest {
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED)
                 .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf830e"))
                 .body("data.type", equalTo("asyncQuery"))
-                .body("data.attributes.status", equalTo("PROCESSING"))
-                .body("data.attributes.result.contentLength", nullValue())
-                .body("data.attributes.result.responseBody", nullValue())
-                .body("data.attributes.result.httpStatus", nullValue())
-                .body("data.attributes.result.resultType", nullValue());
+                .body("data.attributes.status", notNullValue())
+                .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
         int i = 0;
         while (i < 1000) {
@@ -230,12 +234,13 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
+                        .body("data.attributes.result.recordCount", nullValue())
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                                 + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                                 + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
                         .body("data.attributes.result.httpStatus", equalTo(200))
-                        .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
+                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
@@ -273,7 +278,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "7")
+                                                attr("asyncAfterSeconds", "7"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())
@@ -285,12 +291,13 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("COMPLETE"))
                 .body("data.attributes.result.contentLength", notNullValue())
+                .body("data.attributes.result.recordCount", nullValue())
                 .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                         + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                         + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
                         + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}"))
                 .body("data.attributes.result.httpStatus", equalTo(200))
-                .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
+                .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
     }
 
@@ -309,6 +316,7 @@ public class AsyncIT extends IntegrationTest {
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        queryObj.setResultType("EMBEDDED");
         String graphQLRequest = document(
                  mutation(
                          selection(
@@ -322,7 +330,7 @@ public class AsyncIT extends IntegrationTest {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status")
+                                                 field("resultType")
                                          )
                                  )
                          )
@@ -340,7 +348,7 @@ public class AsyncIT extends IntegrationTest {
 
         String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"EMBEDDED\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
         int i = 0;
@@ -351,7 +359,7 @@ public class AsyncIT extends IntegrationTest {
                     .accept(MediaType.APPLICATION_JSON)
                     .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
                             + "{ edges { node { id queryType status result "
-                            + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                            + "{ responseBody httpStatus contentLength } } } } }\","
                             + "\"variables\":null}")
                     .post("/graphQL")
                     .asString();
@@ -362,7 +370,7 @@ public class AsyncIT extends IntegrationTest {
                         + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
                         + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
                         + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
-                        + "\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":177}}}]}}}";
+                        + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
@@ -392,6 +400,7 @@ public class AsyncIT extends IntegrationTest {
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        queryObj.setResultType("EMBEDDED");
         String graphQLRequest = document(
                  mutation(
                          selection(
@@ -405,7 +414,8 @@ public class AsyncIT extends IntegrationTest {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status")
+                                                 field("status"),
+                                                 field("resultType")
                                          )
                                  )
                          )
@@ -423,7 +433,7 @@ public class AsyncIT extends IntegrationTest {
 
         String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"EMBEDDED\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
         String responseGraphQL = given()
@@ -431,7 +441,7 @@ public class AsyncIT extends IntegrationTest {
                  .accept(MediaType.APPLICATION_JSON)
                  .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
                          + "{ edges { node { id queryType status result "
-                         + "{ responseBody httpStatus resultType contentLength } } } } }\","
+                         + "{ responseBody httpStatus contentLength } } } } }\","
                          + "\"variables\":null}")
                  .post("/graphQL")
                  .asString();
@@ -440,7 +450,7 @@ public class AsyncIT extends IntegrationTest {
                  + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
                  + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
                  + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
-                 + "\"httpStatus\":200,\"resultType\":\"EMBEDDED\",\"contentLength\":177}}}]}}}";
+                 + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
     }
@@ -507,7 +517,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/group?sort=genre&fields%5Bgroup%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "10")
+                                                attr("asyncAfterSeconds", "10"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())
@@ -582,7 +593,7 @@ public class AsyncIT extends IntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263a\\\"]) "
                         + "{ edges { node { id createdOn updatedOn queryType status result "
-                        + "{ responseBody httpStatus resultType contentLength } } } } }\""
+                        + "{ responseBody httpStatus contentLength } } } } }\""
                         + ",\"variables\":null}")
                 .post("/graphQL")
                 .then()
@@ -611,7 +622,8 @@ public class AsyncIT extends IntegrationTest {
                                                 attr("query", "/noread"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
-                                                attr("asyncAfterSeconds", "10")
+                                                attr("asyncAfterSeconds", "10"),
+                                                attr("resultType", "EMBEDDED")
                                         )
                                 )
                         ).toJSON())
@@ -639,10 +651,11 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
+                        .body("data.attributes.result.recordCount", nullValue())
                         .body("data.attributes.result.contentLength", notNullValue())
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":[]}"))
                         .body("data.attributes.result.httpStatus", equalTo(200))
-                        .body("data.attributes.result.resultType", equalTo(ResultType.EMBEDDED.toString()));
+                        .body("data.attributes.resultType", equalTo(ResultType.EMBEDDED.toString()));
 
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {
@@ -659,7 +672,7 @@ public class AsyncIT extends IntegrationTest {
 
     /**
      * Tests Read Permissions on Async Model for Admin Role
-     * @throws InterruptedException
+     * @throws IOException IOException
      */
     @Test
     public void asyncModelAdminReadPermissions() throws IOException {
@@ -673,6 +686,7 @@ public class AsyncIT extends IntegrationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setPrincipalName("owner-user");
+        queryObj.setResultType(ResultType.EMBEDDED);
 
         dataStore.populateEntityDictionary(
                         new EntityDictionary(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS));
@@ -739,7 +753,7 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
-     * Reset sleep delay flag after each test
+     * Reset sleep delay flag after each test.
      */
     @AfterEach
     public void sleepDelayReset() {
