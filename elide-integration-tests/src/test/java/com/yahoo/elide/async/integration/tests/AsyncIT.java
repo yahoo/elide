@@ -444,14 +444,14 @@ public class AsyncIT extends IntegrationTest {
                  .contentType(MediaType.APPLICATION_JSON)
                  .accept(MediaType.APPLICATION_JSON)
                  .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
-                         + "{ edges { node { id queryType status result "
+                         + "{ edges { node { id queryType status resultType result "
                          + "{ responseBody httpStatus contentLength } } } } }\","
                          + "\"variables\":null}")
                  .post("/graphQL")
                  .asString();
 
         expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                 + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
+                 + "\"resultType\":\"EMBEDDED\",\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
                  + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
                  + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
                  + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
@@ -596,7 +596,7 @@ public class AsyncIT extends IntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263a\\\"]) "
-                        + "{ edges { node { id createdOn updatedOn queryType status result "
+                        + "{ edges { node { id createdOn updatedOn queryType status resultType result "
                         + "{ responseBody httpStatus contentLength } } } } }\""
                         + ",\"variables\":null}")
                 .post("/graphQL")
