@@ -17,6 +17,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -53,6 +54,8 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
+        queryObj.setResultType(ResultType.EMBEDDED);
+
         when(elide.get(anyString(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
         queryResultObj = queryThread.processQuery();
@@ -69,6 +72,8 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.EMBEDDED);
+
         when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
         queryResultObj = queryThread.processQuery();
