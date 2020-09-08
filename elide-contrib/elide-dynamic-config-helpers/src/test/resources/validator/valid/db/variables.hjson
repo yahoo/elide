@@ -1,4 +1,4 @@
 {
-   mysql_dialect: Hive
+   mysql_dialect: HIVE
    db2_dialect: PRESTO
 }

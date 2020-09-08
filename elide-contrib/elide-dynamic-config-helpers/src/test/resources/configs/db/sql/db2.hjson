@@ -6,7 +6,7 @@
       url: jdbc:oracle:thin:@localhost:1521:testdb
       driver: oracle.jdbc.driver.OracleDriver
       user: guestoracle
-      dialect: h2
+      dialect: H2
     }
   ]
 }

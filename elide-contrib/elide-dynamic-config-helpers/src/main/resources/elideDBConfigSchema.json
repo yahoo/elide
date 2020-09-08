@@ -70,7 +70,11 @@
                         "type": "string",
                         "title": "Elide Dialect",
                         "description": "The Elide Dialect to use for query generation.",
-                        "pattern": "^([h|H]2|[h|H][i|I][v|V][e|E]|[p|P][r|R][e|E][s|S][t|T][o|O])$",
+                        "enum": [
+                            "HIVE",
+                            "PRESTO",
+                            "H2"
+                        ],
                         "examples": [
                             "HIVE"
                         ]

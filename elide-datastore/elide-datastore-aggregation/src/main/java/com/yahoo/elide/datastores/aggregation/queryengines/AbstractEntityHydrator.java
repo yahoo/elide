@@ -171,11 +171,11 @@ public abstract class AbstractEntityHydrator {
                 .map((result) -> coerceObjectToEntity(result, counter))
                 .collect(Collectors.toList());
 
-        if (getStitchList().shouldStitch()) {
-            // relationship is requested, stitch relationship then
-            populateObjectLookupTable();
-            getStitchList().stitch();
-        }
+//        if (getStitchList().shouldStitch()) {
+//            // relationship is requested, stitch relationship then
+//            populateObjectLookupTable();
+//            getStitchList().stitch();
+//        }
 
         return queryResults;
     }
