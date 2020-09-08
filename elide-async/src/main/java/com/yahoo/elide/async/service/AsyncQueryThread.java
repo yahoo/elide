@@ -10,7 +10,6 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -101,7 +100,6 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         queryResultObj.setHttpStatus(response.getResponseCode());
         queryResultObj.setResponseBody(response.getBody());
         queryResultObj.setContentLength(response.getBody().length());
-        queryResultObj.setResultType(ResultType.EMBEDDED);
         queryResultObj.setCompletedOn(new Date());
 
         return queryResultObj;
