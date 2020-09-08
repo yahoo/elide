@@ -120,49 +120,6 @@ public abstract class AbstractEntityHydrator {
         }
     }
 
-    /**
-     * Loads a map of relationship object ID to relationship object instance.
-     * <p>
-     * Note the relationship cannot be toMany. This method will be invoked for every relationship field of the
-     * requested entity. Its implementation should return the result of the following query
-     * <p>
-     * <b>Given a relationship with type {@code relationshipType} in an entity, loads all relationship
-     * objects whose foreign keys are one of the specified list, {@code joinFieldIds}</b>.
-     * <p>
-     * For example, when the relationship is loaded from SQL and we have the following example identity:
-     * <pre>
-     * public class PlayerStats {
-     *     private String id;
-     *     private Country country;
-     *
-     *     &#64;OneToOne
-     *     &#64;JoinColumn(name = "country_id")
-     *     public Country getCountry() {
-     *         return country;
-     *     }
-     * }
-     * </pre>
-     * In this case {@code relationshipType = Country.class}. If {@code country} is
-     * requested in {@code PlayerStats} query and 3 stats, for example, are found in database whose country ID's are
-     * {@code joinFieldIds = [840, 344, 840]}, then this method should effectively run the following query (JPQL as
-     * example)
-     * <pre>
-     * {@code
-     *     SELECT e FROM country_table e WHERE country_id IN (840, 344);
-     * }
-     * </pre>
-     * and returns the map of [840: Country(id:840), 344: Country(id:344)]
-     *
-     * @param relationshipType  The type of relationship
-     * @param joinFieldIds  The specified list of join ID's against the relationship
-     *
-     * @return a list of hydrating values
-     */
-    protected abstract Map<Object, Object> getRelationshipValues(
-            Class<?> relationshipType,
-            List<Object> joinFieldIds
-    );
-
     public Iterable<Object> hydrate() {
         //Coerce the results into entity objects.
         MutableInt counter = new MutableInt(0);
@@ -170,12 +127,6 @@ public abstract class AbstractEntityHydrator {
         List<Object> queryResults = getResults().stream()
                 .map((result) -> coerceObjectToEntity(result, counter))
                 .collect(Collectors.toList());
-
-//        if (getStitchList().shouldStitch()) {
-//            // relationship is requested, stitch relationship then
-//            populateObjectLookupTable();
-//            getStitchList().stitch();
-//        }
 
         return queryResults;
     }
@@ -217,26 +168,5 @@ public abstract class AbstractEntityHydrator {
         );
 
         return entityInstance;
-    }
-
-    /**
-     * Foe each requested relationship, run a single query to load all relationship objects whose ID's are involved in
-     * the request.
-     */
-    private void populateObjectLookupTable() {
-        // mapping: relationship field name -> join ID's
-        Map<String, List<Object>> hydrationIdsByRelationship = getStitchList().getHydrationMapping();
-
-        // hydrate each relationship
-        for (Map.Entry<String, List<Object>> entry : hydrationIdsByRelationship.entrySet()) {
-            String joinField = entry.getKey();
-            List<Object> joinFieldIds = entry.getValue();
-            Table table = getQuery().getTable();
-            Class<?> relationshipType = getEntityDictionary().getParameterizedType(
-                    entityDictionary.getEntityClass(table.getName(), table.getVersion()),
-                    joinField);
-
-            getStitchList().populateLookup(relationshipType, getRelationshipValues(relationshipType, joinFieldIds));
-        }
     }
 }

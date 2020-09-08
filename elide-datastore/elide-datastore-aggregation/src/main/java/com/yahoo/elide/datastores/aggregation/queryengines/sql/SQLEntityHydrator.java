@@ -11,9 +11,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.AbstractEntityHydrator;
 
 import java.sql.ResultSet;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * {@link SQLEntityHydrator} hydrates the entity loaded by
@@ -35,11 +32,5 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
             EntityDictionary entityDictionary
     ) {
         super(results, query, entityDictionary);
-    }
-
-    @Override
-    protected Map<Object, Object> getRelationshipValues(Class<?> relationshipType, List<Object> joinFieldIds) {
-        // Not required
-        return Collections.emptyMap();
     }
 }
