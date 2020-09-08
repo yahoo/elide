@@ -9,5 +9,6 @@ package com.yahoo.elide.async.models;
  * ENUM of supported result types.
  */
 public enum ResultType {
-    EMBEDDED
+    EMBEDDED,
+    DOWNLOAD
 }

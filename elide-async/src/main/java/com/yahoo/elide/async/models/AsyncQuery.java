@@ -51,6 +51,8 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
 
     private QueryType queryType; //GRAPHQL, JSONAPI
 
+    private ResultFormatType resultFormatType = ResultFormatType.JSONAPI;
+
     @Transient
     @Max(10)
     @ComputedAttribute
@@ -64,6 +66,10 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @CreatePermission(expression = "value is Queued")
     @Enumerated(EnumType.STRING)
     private QueryStatus status = QueryStatus.QUEUED;
+
+    @Enumerated(EnumType.STRING)
+    // TODO : Remove default and make not null
+    private ResultType resultType = ResultType.EMBEDDED; //EMBEDDED, DOWNLOAD
 
     @Embedded
     private AsyncQueryResult result;
