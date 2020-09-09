@@ -23,24 +23,24 @@ import java.nio.file.Path;
  * Test cases for FileResultStorageEngine.
  */
 public class FileResultStorageEngineTest {
-    private static final String basePath = "src/test/resources/";
+    private static final String BASE_PATH = "src/test/resources/";
 
     @Test
     public void testRead() {
-        String finalResult = readResultsFile(basePath + "valid_results_file", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263f");
+        String finalResult = readResultsFile(BASE_PATH + "valid_results_file", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263f");
         assertEquals(finalResult, "test");
     }
 
     @Test
     public void testReadEmptyFile() {
-        String finalResult = readResultsFile(basePath + "empty_results_file", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263e");
+        String finalResult = readResultsFile(BASE_PATH + "empty_results_file", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263e");
         assertEquals(finalResult, "");
     }
 
     @Test
     public void testReadNonExistentFile() {
         assertThrows(IllegalStateException.class, () ->
-                readResultsFile(basePath , "bb31ca4e-ed8f-4be0-a0f3-12099fb9263d")
+                readResultsFile(BASE_PATH , "bb31ca4e-ed8f-4be0-a0f3-12099fb9263d")
         );
     }
 
