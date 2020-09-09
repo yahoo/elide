@@ -279,6 +279,13 @@
             "pattern": "^[A-Za-z][0-9A-Za-z_]*$",
             "default": ""
           },
+          "filterTemplate": {
+            "title": "Required RSQL Filter Template",
+            "description": "Client queries must include a filter conforming to this RSQL template.",
+            "type": "string",
+            "pattern": "^([A-Za-z][0-9A-Za-z_])+(==|!=|>=|>|<|<=|=[a-z]=)+(.*)",
+            "default": ""
+          },
           "hidden": {
             "title": "Hide/Show Table",
             "description": "Whether this table is exposed via API metadata",

@@ -11,6 +11,9 @@ import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getV
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.ParseException;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
@@ -58,6 +61,8 @@ public class Table {
 
     private final CardinalitySize cardinality;
 
+    private final FilterExpression requiredFilter;
+
     @OneToMany
     @ToString.Exclude
     private final Set<Column> columns;
@@ -82,6 +87,7 @@ public class Table {
     private final Map<String, Column> columnMap;
 
     public Table(Class<?> cls, EntityDictionary dictionary) {
+
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
@@ -124,9 +130,11 @@ public class Table {
         if (meta != null) {
             this.description = meta.description();
             this.category = meta.category();
+            this.requiredFilter = getRequiredFilter(meta, dictionary, cls);
         } else {
             this.description = null;
             this.category = null;
+            this.requiredFilter = null;
         }
 
         Cardinality cardinality = dictionary.getAnnotation(cls, Cardinality.class);
@@ -248,5 +256,19 @@ public class Table {
      */
     public String getDbConnectionName() {
         return this.getId().getDbConnectionName();
+    }
+
+    private FilterExpression getRequiredFilter(Meta meta, EntityDictionary dictionary, Class<?> cls) {
+        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+        String filterTemplate = meta.filterTemplate();
+
+        if (filterTemplate != null && !filterTemplate.isEmpty()) {
+            try {
+                return filterDialect.parseFilterExpression(filterTemplate, cls, false, true);
+            } catch (ParseException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return null;
     }
 }
