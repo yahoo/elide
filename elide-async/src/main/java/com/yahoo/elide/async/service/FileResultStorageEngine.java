@@ -84,7 +84,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                             @Override
                             public boolean hasNext() {
                                 try {
-                                	data = reader.readLine();
+                                    data = reader.readLine();
                                     return data != null;
                                 } catch (IOException e) {
                                     throw new IllegalStateException(e);
