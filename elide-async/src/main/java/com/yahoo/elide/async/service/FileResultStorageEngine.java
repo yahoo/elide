@@ -50,14 +50,14 @@ public class FileResultStorageEngine implements ResultStorageEngine {
 
         try (BufferedWriter writer = getWriter(asyncQuery.getId())) {
             result
-                .map(s -> s.concat(System.getProperty("line.separator")))
+                .map(record -> record.concat(System.getProperty("line.separator")))
                 .subscribe(
-                        s -> {
-                            writer.write(s);
+                        recordCharArray -> {
+                            writer.write(recordCharArray);
                             writer.flush();
                         },
-                        t -> {
-                            throw new IllegalStateException(t);
+                        throwable -> {
+                            throw new IllegalStateException(throwable);
                         },
                         () -> {
                             writer.flush();
@@ -79,13 +79,13 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                 reader -> {
                     return Observable.fromIterable(() -> {
                         return new Iterator<String>() {
-                            private String data = null;
+                            private String record = null;
 
                             @Override
                             public boolean hasNext() {
                                 try {
-                                    data = reader.readLine();
-                                    return data != null;
+                                    record = reader.readLine();
+                                    return record != null;
                                 } catch (IOException e) {
                                     throw new IllegalStateException(e);
                                 }
@@ -93,8 +93,8 @@ public class FileResultStorageEngine implements ResultStorageEngine {
 
                             @Override
                             public String next() {
-                                if (data != null) {
-                                    return data;
+                                if (record != null) {
+                                    return record;
                                 }
                                 throw new IllegalStateException("null line found.");
                             }

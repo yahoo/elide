@@ -23,72 +23,70 @@ import java.nio.file.Path;
  * Test cases for FileResultStorageEngine.
  */
 public class FileResultStorageEngineTest {
+    private static final String basePath = "src/test/resources/";
 
     @Test
     public void testRead() {
-        FileResultStorageEngine engine = new FileResultStorageEngine("src/test/resources");
-        String queryId = "bb31ca4e-ed8f-4be0-a0f3-12099fb9263f";
-        String finalResult = engine.getResultsByID(queryId).collect(() -> new StringBuilder(),
-                (resultBuilder, tempResult) -> {
-                    if (resultBuilder.length() > 0) {
-                        resultBuilder.append(System.getProperty("line.separator"));
-                    }
-                    resultBuilder.append(tempResult);
-                }
-                ).map(StringBuilder::toString).blockingGet();
-
+        String finalResult = readResultsFile(basePath + "valid_results_file", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263f");
         assertEquals(finalResult, "test");
     }
 
     @Test
     public void testReadEmptyFile() {
-        FileResultStorageEngine engine = new FileResultStorageEngine("src/test/resources");
-        String finalResult = engine.getResultsByID("bb31ca4e-ed8f-4be0-a0f3-12099fb9263e").collect(() -> new StringBuilder(),
-                (resultBuilder, tempResult) -> {
-                    if (resultBuilder.length() > 0) {
-                        resultBuilder.append(System.getProperty("line.separator"));
-                    }
-                    resultBuilder.append(tempResult);
-                }
-                ).map(StringBuilder::toString).blockingGet();
-
+        String finalResult = readResultsFile(basePath + "empty_results_file", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263e");
         assertEquals(finalResult, "");
     }
 
     @Test
     public void testReadNonExistentFile() {
-        FileResultStorageEngine engine = new FileResultStorageEngine("src/test/resources");
         assertThrows(IllegalStateException.class, () ->
-            engine.getResultsByID("bb31ca4e-ed8f-4be0-a0f3-12099fb9263d").collect(() -> new StringBuilder(),
-                (resultBuilder, tempResult) -> {
-                    if (resultBuilder.length() > 0) {
-                        resultBuilder.append(System.getProperty("line.separator"));
-                    }
-                    resultBuilder.append(tempResult);
-                }
-            ).map(StringBuilder::toString).blockingGet()
+                readResultsFile(basePath , "bb31ca4e-ed8f-4be0-a0f3-12099fb9263d")
         );
     }
 
     @Test
     public void testStoreResults(@TempDir Path tempDir) {
         String queryId = "bb31ca4e-ed8f-4be0-a0f3-12099fb9263c";
-        FileResultStorageEngine engine = new FileResultStorageEngine(tempDir.toString());
-        AsyncQuery query = new AsyncQuery();
-        query.setId(queryId);
-        engine.storeResults(query, Observable.fromArray(new String[]{"hi", "hello"}));
+        String validOutput = "hi\nhello";
+        String[] input = validOutput.split("\n");
+
+        storeResultsFile(tempDir.toString(), queryId, Observable.fromArray(input));
+
         File file = new File(tempDir.toString() + File.separator + queryId);
         assertTrue(file.exists());
+
+        // verify contents of stored files are readable and match original
+        String finalResult = readResultsFile(tempDir.toString(), queryId);
+        assertEquals(finalResult, validOutput);
     }
 
     // O/P Directory does not exist.
     @Test
     public void testStoreResultsFail(@TempDir File tempDir) {
-        String queryId = "bb31ca4e-ed8f-4be0-a0f3-12099fb9263b";
-        FileResultStorageEngine engine = new FileResultStorageEngine(tempDir.toString() + "invalid");
+        assertThrows(IllegalStateException.class, () ->
+                storeResultsFile(tempDir.toString() + "invalid", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263b",
+                        Observable.fromArray(new String[]{"hi", "hello"}))
+        );
+    }
+
+    private String readResultsFile(String path, String queryId) {
+        FileResultStorageEngine engine = new FileResultStorageEngine(path);
+
+        return engine.getResultsByID(queryId).collect(() -> new StringBuilder(),
+                (resultBuilder, tempResult) -> {
+                    if (resultBuilder.length() > 0) {
+                        resultBuilder.append(System.getProperty("line.separator"));
+                    }
+                    resultBuilder.append(tempResult);
+                }
+            ).map(StringBuilder::toString).blockingGet();
+    }
+
+    private void storeResultsFile(String path, String queryId, Observable<String> storable) {
+        FileResultStorageEngine engine = new FileResultStorageEngine(path);
         AsyncQuery query = new AsyncQuery();
         query.setId(queryId);
-        assertThrows(IllegalStateException.class, () ->
-            engine.storeResults(query, Observable.fromArray(new String[]{"hi", "hello"})));
+
+        engine.storeResults(query, storable);
     }
 }
