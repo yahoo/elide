@@ -16,4 +16,5 @@
   <suppress files="\.csv" checks=".*"/>
   <suppress files="\.json" checks="LineLength"/>
   <suppress files="\.hbs" checks="LineLength"/>
+  <suppress files="bb31ca4e-ed8f-4be0-a0f3-12099fb9263*" checks="NewlineAtEndOfFile"/>
 </suppressions>
