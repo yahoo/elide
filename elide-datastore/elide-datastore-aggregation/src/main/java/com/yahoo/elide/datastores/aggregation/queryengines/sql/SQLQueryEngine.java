@@ -172,35 +172,13 @@ public class SQLQueryEngine extends QueryEngine {
 
         @Override
         public void close() {
-            stmts.forEach(stmt -> {
-                try {
-                    if (stmt != null && !stmt.isClosed()) {
-                        stmt.close();
-                    }
-                } catch (SQLException e) {
-                    throw new IllegalStateException(e);
-                }
-            });
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException e) {
-                throw new IllegalStateException(e);
-            }
+            stmts.forEach(stmt -> cancelAndCloseSoftly(stmt));
+            closeSoftly(conn);
         }
 
         @Override
         public void cancel() {
-            stmts.forEach(stmt -> {
-                try {
-                    if (stmt != null && !stmt.isClosed()) {
-                        stmt.cancel();
-                    }
-                } catch (SQLException e) {
-                    throw new IllegalStateException(e);
-                }
-            });
+            stmts.forEach(stmt -> cancelSoftly(stmt));
         }
     }
 
@@ -473,5 +451,48 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return getTypeAlias(entityClass);
+    }
+
+    /**
+     * Cancels NamedParamPreparedStatement, hides and logs any SQLException.
+     * @param stmt NamedParamPreparedStatement to cancel.
+     */
+    private static void cancelSoftly(NamedParamPreparedStatement stmt) {
+        try {
+            if (stmt != null && !stmt.isClosed()) {
+                stmt.cancel();
+            }
+        } catch (SQLException e) {
+            log.error("Exception encountered during cancel statement.", e);
+        }
+    }
+
+    /**
+     * Cancels and Closes NamedParamPreparedStatement, hides and logs any SQLException.
+     * @param stmt NamedParamPreparedStatement to close.
+     */
+    private static void cancelAndCloseSoftly(NamedParamPreparedStatement stmt) {
+        cancelSoftly(stmt);
+        try {
+            if (stmt != null && !stmt.isClosed()) {
+                stmt.close();
+            }
+        } catch (SQLException e) {
+            log.error("Exception encountered during close statement.", e);
+        }
+    }
+
+    /**
+     * Closes Connection, hides and logs any SQLException.
+     * @param conn Connection to close.
+     */
+    private static void closeSoftly(Connection conn) {
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            log.error("Exception encountered during close connection.", e);
+        }
     }
 }

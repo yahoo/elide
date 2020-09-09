@@ -24,6 +24,6 @@ public class PrestoDialect extends AbstractSqlDialect {
     @Override
     public String appendOffsetLimit(String sql, int offset, int limit) {
         // offset is supported in prestosql but not in prestodb
-        return sql + " LIMIT " + limit;
+        return sql + LIMIT + limit;
     }
 }

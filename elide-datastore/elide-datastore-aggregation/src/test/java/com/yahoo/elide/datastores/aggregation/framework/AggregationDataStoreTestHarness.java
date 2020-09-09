@@ -37,8 +37,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private Map<String, String> dialectMap;
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource) {
-        this(entityManagerFactory, defaultDataSource, Collections.emptyMap(),
-                        SQLDialectFactory.getDefaultDialect().getDialectType(), Collections.emptyMap());
+        this(entityManagerFactory, defaultDataSource, SQLDialectFactory.getDefaultDialect().getDialectType());
     }
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource,

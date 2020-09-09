@@ -11,6 +11,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.Abstract
  * Hive SQLDialect.
  */
 public class HiveDialect extends AbstractSqlDialect {
+
+    private static final char COMMA = ',';
+
     @Override
     public String getDialectType() {
         return "Hive";
@@ -28,6 +31,6 @@ public class HiveDialect extends AbstractSqlDialect {
 
     @Override
     public String appendOffsetLimit(String sql, int offset, int limit) {
-        return sql + " LIMIT " + offset + "," + limit;
+        return sql + LIMIT + offset + COMMA + limit;
     }
 }
