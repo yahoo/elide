@@ -24,6 +24,8 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
 
 /**
  * Dynamic Configuration functional test.
+ * TODO - All of the tests in this file need to migrate over to AggregationDataStore so they are not duplicated
+ * here and in standalone tests.
  */
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -49,7 +51,7 @@ public class DynamicConfigTest extends IntegrationTest {
     @Test
     public void jsonApiGetTest() {
         String apiGetViewRequest = when()
-                .get("/json/playerStats")
+                .get("/json/playerStats?filter=createdOn>=1999-01-01;createdOn<2001-01-01")
                 .then()
                 .body(equalTo(
                         data(
@@ -78,11 +80,36 @@ public class DynamicConfigTest extends IntegrationTest {
     @Test
     public void jsonApiGetMultiTest() {
         when()
-                .get("/json/playerStats")
+                .get("/json/playerStats?filter=createdOn>=1999-01-01;createdOn<2002-01-01")
                 .then()
                 .body("data.id", hasItems("1"))
                 .body("data.attributes.name", hasItems("SaniaMirza", "SerenaWilliams"))
                 .body("data.attributes.countryCode", hasItems("USA", "IND"))
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+
+    @Test
+    public void missingClientFilterTest() {
+        String expectedError = "Querying playerStats requires a mandatory filter: "
+                + "(playerStats.createdOn GE [{{start}}] AND playerStats.createdOn LT [{{end}}])";
+
+        when()
+                .get("/json/playerStats")
+                .then()
+                .body("errors.detail", hasItems(expectedError))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void incompleteClientFilterTest() {
+        String expectedError = "Querying playerStats requires a mandatory filter: "
+                + "(playerStats.createdOn GE [{{start}}] AND playerStats.createdOn LT [{{end}}])";
+
+        when()
+                .get("/json/playerStats?createdOn>=1999-01-01")
+                .then()
+                .body("errors.detail", hasItems(expectedError))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 }

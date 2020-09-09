@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -92,6 +93,11 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
      * @return True if the client filter matches.  False otherwise.
      */
     public static boolean isValid(FilterExpression templateFilter, FilterExpression clientFilter) {
+        Preconditions.checkNotNull(templateFilter);
+
+        if (clientFilter == null) {
+            return false;
+        }
 
         //First we normalize the filters so any NOT clauses are pushed down immediately in front of a predicate.
         //This lets us treat logical AND and OR without regard for any preceding NOT clauses.
