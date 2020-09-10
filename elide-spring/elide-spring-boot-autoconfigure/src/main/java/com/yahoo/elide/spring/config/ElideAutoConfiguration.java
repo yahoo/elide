@@ -234,7 +234,7 @@ public class ElideAutoConfiguration {
     }
 
     /**
-     * Creates a querylogger to be used by {@link #buildDataStore} for aggregation
+     * Creates a querylogger to be used by {@link #buildDataStore} for aggregation.
      * @return The default Noop QueryLogger.
      */
     @Bean

@@ -41,6 +41,7 @@ public class AsyncExecutorServiceTest {
     private AsyncQueryDAO asyncQueryDao;
     private User testUser;
     private AsyncQueryUpdateThread asyncQueryUpdateThread;
+    private ResultStorageEngine resultStorageEngine;
 
     @BeforeAll
     public void setupMockElide() {
@@ -52,7 +53,8 @@ public class AsyncExecutorServiceTest {
                         .build());
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         testUser = mock(User.class);
-        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
+        resultStorageEngine = mock(FileResultStorageEngine.class);
+        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
         service = AsyncExecutorService.getInstance();
         asyncQueryUpdateThread = mock(AsyncQueryUpdateThread.class);
     }
@@ -65,6 +67,7 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
         assertEquals(asyncQueryDao, service.getAsyncQueryDao());
+        assertEquals(resultStorageEngine, service.getResultStorageEngine());
     }
 
     //Test for executor hook execution
