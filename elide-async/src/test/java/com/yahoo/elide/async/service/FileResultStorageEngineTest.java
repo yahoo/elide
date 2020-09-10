@@ -23,30 +23,30 @@ import java.nio.file.Path;
  * Test cases for FileResultStorageEngine.
  */
 public class FileResultStorageEngineTest {
-    private static final String BASE_PATH = "src/test/resources/";
+    private static final String BASE_PATH = "src/test/resources/downloads/";
 
     @Test
     public void testRead() {
-        String finalResult = readResultsFile(BASE_PATH + "valid_results_file", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263f");
+        String finalResult = readResultsFile(BASE_PATH, "non_empty_results");
         assertEquals(finalResult, "test");
     }
 
     @Test
     public void testReadEmptyFile() {
-        String finalResult = readResultsFile(BASE_PATH + "empty_results_file", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263e");
+        String finalResult = readResultsFile(BASE_PATH, "empty_results");
         assertEquals(finalResult, "");
     }
 
     @Test
     public void testReadNonExistentFile() {
         assertThrows(IllegalStateException.class, () ->
-                readResultsFile(BASE_PATH , "bb31ca4e-ed8f-4be0-a0f3-12099fb9263d")
+                readResultsFile(BASE_PATH , "nonexisting_results")
         );
     }
 
     @Test
     public void testStoreResults(@TempDir Path tempDir) {
-        String queryId = "bb31ca4e-ed8f-4be0-a0f3-12099fb9263c";
+        String queryId = "store_results_success";
         String validOutput = "hi\nhello";
         String[] input = validOutput.split("\n");
 
@@ -64,7 +64,7 @@ public class FileResultStorageEngineTest {
     @Test
     public void testStoreResultsFail(@TempDir File tempDir) {
         assertThrows(IllegalStateException.class, () ->
-                storeResultsFile(tempDir.toString() + "invalid", "bb31ca4e-ed8f-4be0-a0f3-12099fb9263b",
+                storeResultsFile(tempDir.toString() + "invalid", "store_results_fail",
                         Observable.fromArray(new String[]{"hi", "hello"}))
         );
     }
