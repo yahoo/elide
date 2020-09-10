@@ -25,6 +25,8 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> {
+    private static final String TEMPLATE_REGEX = "\\{\\{\\w+}\\}";
+
     private FilterExpression expressionToMatch;
 
     @Override
@@ -83,8 +85,13 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
             FilterPredicate predicateA = (FilterPredicate) a;
             FilterPredicate predicateB = (FilterPredicate) b;
 
+            boolean valueMatches = predicateA.getValues().equals(predicateB.getValues());
+            boolean usingTemplate = predicateA.getValues().stream()
+                    .anyMatch((value -> value.toString().matches(TEMPLATE_REGEX)));
+
             return predicateA.getPath().equals(predicateB.getPath())
-                    && predicateA.getOperator().equals(predicateB.getOperator());
+                    && predicateA.getOperator().equals(predicateB.getOperator())
+                    && (usingTemplate || valueMatches);
         }
     }
 
