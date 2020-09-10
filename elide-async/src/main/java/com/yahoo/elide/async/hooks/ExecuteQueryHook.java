@@ -33,7 +33,7 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, AsyncQuery query,
                         RequestScope requestScope, Optional<ChangeSpec> changes) {
-        validateOptions(query, asyncExecutorService.getResultStorageEngine());
+        validateOptions(query);
         if (query.getStatus() == QueryStatus.QUEUED && query.getResult() == null) {
             asyncExecutorService.executeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
         }
@@ -42,11 +42,11 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
     /**
      * Validate the options provided in AsyncQuery.
      * @param query AsyncQuery
-     * @param resultStorageEngine ResultStorageEngine Implementation.
      */
-    public void validateOptions(AsyncQuery query, ResultStorageEngine resultStorageEngine) {
+    public void validateOptions(AsyncQuery query) {
         ResultType resultType = query.getResultType();
         ResultFormatType resultFormat = query.getResultFormatType();
+        ResultStorageEngine resultStorageEngine = asyncExecutorService.getResultStorageEngine();
 
         //If Downloading, ResultStorageEngine should be initialized.
         if (resultType == null || (resultType == ResultType.DOWNLOAD && resultStorageEngine == null)) {

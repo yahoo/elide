@@ -8,6 +8,7 @@ package com.yahoo.elide.async.hooks;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
@@ -29,6 +30,7 @@ public class ExecuteQueryHookTest {
     public void setupMocks() {
         asyncExecutorService = mock(AsyncExecutorService.class);
         resultStorageEngine = mock(ResultStorageEngine.class);
+        when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
     }
 
     @Test
@@ -45,7 +47,7 @@ public class ExecuteQueryHookTest {
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         // TODO : change to throws InvalidValueException
         assertDoesNotThrow(() -> {
-            queryHook.validateOptions(queryObj, resultStorageEngine);
+            queryHook.validateOptions(queryObj);
         });
     }
 
@@ -61,7 +63,7 @@ public class ExecuteQueryHookTest {
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {
-            queryHook.validateOptions(queryObj, resultStorageEngine);
+            queryHook.validateOptions(queryObj);
         });
     }
 
@@ -77,7 +79,7 @@ public class ExecuteQueryHookTest {
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {
-            queryHook.validateOptions(queryObj, resultStorageEngine);
+            queryHook.validateOptions(queryObj);
         });
     }
 
@@ -93,8 +95,9 @@ public class ExecuteQueryHookTest {
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
+        when(asyncExecutorService.getResultStorageEngine()).thenReturn(null);
         assertThrows(InvalidValueException.class, () -> {
-            queryHook.validateOptions(queryObj, null);
+            queryHook.validateOptions(queryObj);
         });
     }
 
@@ -111,7 +114,7 @@ public class ExecuteQueryHookTest {
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {
-            queryHook.validateOptions(queryObj, resultStorageEngine);
+            queryHook.validateOptions(queryObj);
         });
     }
 
@@ -127,7 +130,7 @@ public class ExecuteQueryHookTest {
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
-        assertDoesNotThrow(() -> queryHook.validateOptions(queryObj, resultStorageEngine));
+        assertDoesNotThrow(() -> queryHook.validateOptions(queryObj));
     }
 
     @Test
@@ -142,7 +145,7 @@ public class ExecuteQueryHookTest {
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
-        assertDoesNotThrow(() -> queryHook.validateOptions(queryObj, resultStorageEngine));
+        assertDoesNotThrow(() -> queryHook.validateOptions(queryObj));
     }
 
     @Test
@@ -157,6 +160,6 @@ public class ExecuteQueryHookTest {
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
-        assertDoesNotThrow(() -> queryHook.validateOptions(queryObj, resultStorageEngine));
+        assertDoesNotThrow(() -> queryHook.validateOptions(queryObj));
     }
 }
