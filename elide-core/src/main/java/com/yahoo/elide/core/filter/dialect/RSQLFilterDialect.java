@@ -376,7 +376,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                                     throw e;
                                 }
                                 return argument;
-                            }})
+                            }
+                    })
                     .collect(Collectors.toList());
 
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
