@@ -24,6 +24,8 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.FileResultStorageEngine;
+import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.audit.InMemoryLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
@@ -93,10 +95,12 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
-                AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+                AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
-                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao);
+                ResultStorageEngine resultStorageEngine =
+                        new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
+                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                 BillingService billingService = new BillingService() {

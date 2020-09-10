@@ -23,8 +23,8 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
 import org.apache.http.HttpStatus;
@@ -87,33 +87,34 @@ public class ElideStandaloneTest {
             }
 
             @Override
-            public boolean enableAsync() {
-                return true;
-            }
+            public ElideStandaloneAsyncSettings getAsyncProperties() {
+                ElideStandaloneAsyncSettings asyncPropeties = new ElideStandaloneAsyncSettings() {
+                    @Override
+                    public boolean enabled() {
+                        return true;
+                    }
 
-            @Override
-            public boolean enableAsyncCleanup() {
-                return true;
-            }
+                    @Override
+                    public boolean enableCleanup() {
+                        return true;
+                    }
 
-            @Override
-            public Integer getAsyncThreadSize() {
-                return 3;
-            }
+                    @Override
+                    public Integer getThreadSize() {
+                        return 5;
+                    }
 
-            @Override
-            public Integer getAsyncMaxRunTimeSeconds() {
-                return 30;
-            }
+                    @Override
+                    public Integer getMaxRunTimeSeconds() {
+                        return 1800;
+                    }
 
-            @Override
-            public Integer getAsyncQueryCleanupDays() {
-                return 3;
-            }
-
-            @Override
-            public AsyncQueryDAO getAsyncQueryDAO() {
-                return null;
+                    @Override
+                    public Integer getQueryCleanupDays() {
+                        return 3;
+                    }
+                };
+                return asyncPropeties;
             }
 
             @Override
