@@ -16,7 +16,6 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.PermissionExecutor;
@@ -24,7 +23,6 @@ import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.security.executors.VerbosePermissionExecutor;
 import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
-import com.yahoo.elide.utils.coerce.converters.RSQLFilterExpressionSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import java.util.ArrayList;
@@ -83,8 +81,6 @@ public class ElideSettingsBuilder {
             subqueryFilterDialects.add(new DefaultFilterDialect(entityDictionary));
             subqueryFilterDialects.add(new RSQLFilterDialect(entityDictionary));
         }
-
-        serdes.putIfAbsent(FilterExpression.class, new RSQLFilterExpressionSerde(entityDictionary));
 
         return new ElideSettings(
                 auditLogger,

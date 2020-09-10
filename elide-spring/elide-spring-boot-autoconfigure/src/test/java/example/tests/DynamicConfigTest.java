@@ -92,7 +92,7 @@ public class DynamicConfigTest extends IntegrationTest {
     @Test
     public void missingClientFilterTest() {
         String expectedError = "Querying playerStats requires a mandatory filter: "
-                + "(playerStats.createdOn GE [{{start}}] AND playerStats.createdOn LT [{{end}}])";
+                + "createdOn&gt;={{start}};createdOn&lt;{{end}}";
 
         when()
                 .get("/json/playerStats")
@@ -104,7 +104,7 @@ public class DynamicConfigTest extends IntegrationTest {
     @Test
     public void incompleteClientFilterTest() {
         String expectedError = "Querying playerStats requires a mandatory filter: "
-                + "(playerStats.createdOn GE [{{start}}] AND playerStats.createdOn LT [{{end}}])";
+                + "createdOn&gt;={{start}};createdOn&lt;{{end}}";
 
         when()
                 .get("/json/playerStats?createdOn>=1999-01-01")

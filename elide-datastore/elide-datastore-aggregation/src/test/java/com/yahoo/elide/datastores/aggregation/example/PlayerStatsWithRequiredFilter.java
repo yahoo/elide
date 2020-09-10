@@ -26,22 +26,27 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
-import java.util.Date;
 
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Include(rootLevel = true)
+@Include(rootLevel = true, type = "playerStatsFiltered")
 @Cardinality(size = CardinalitySize.LARGE)
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
-@Meta(description = "Player Statistics", category = "Sports Category")
+@Meta(
+        description = "Player Statistics",
+        category = "Sports Category",
+        filterTemplate = PlayerStatsWithRequiredFilter.FILTER_TEMPLATE
+)
 public class PlayerStatsWithRequiredFilter {
-
+    public static final String FILTER_TEMPLATE = "recordedDate>={{start}};recordedDate<{{end}}";
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
 
     /**
