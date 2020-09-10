@@ -128,13 +128,11 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         Query query = translator.getQuery();
 
         FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());
-        if (filterTemplate != null) {
-            if (! MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter())) {
-                String message = String.format("Querying %s requires a mandatory filter: %s",
+        if (filterTemplate != null && ! MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter())) {
+            String message = String.format("Querying %s requires a mandatory filter: %s",
                         table.getName(), table.getRequiredFilter().toString());
 
-                throw new BadRequestException(message);
-            }
+            throw new BadRequestException(message);
         }
 
         return query;
