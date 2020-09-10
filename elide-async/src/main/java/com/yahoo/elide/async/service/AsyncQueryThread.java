@@ -65,9 +65,9 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
    /**
     * This is the main method which processes the Async Query request, executes the query and updates
     * values for AsyncQuery and AsyncQueryResult models accordingly.
-    * @return AsyncQueryResult
-    * @throws URISyntaxException
-    * @throws NoHttpResponseException
+    * @return AsyncQueryResult AsyncQueryResult
+    * @throws URISyntaxException URISyntaxException
+    * @throws NoHttpResponseException NoHttpResponseException
     */
     protected AsyncQueryResult processQuery() throws URISyntaxException, NoHttpResponseException {
         UUID requestId = UUID.fromString(queryObj.getRequestId());
