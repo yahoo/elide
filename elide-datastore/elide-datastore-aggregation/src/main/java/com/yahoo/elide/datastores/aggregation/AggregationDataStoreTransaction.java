@@ -10,6 +10,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
@@ -126,8 +127,9 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 scope.getDictionary());
         Query query = translator.getQuery();
 
-        if (table.getRequiredFilter() != null) {
-            if (! MatchesTemplateVisitor.isValid(table.getRequiredFilter(), query.getWhereFilter())) {
+        FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());
+        if (filterTemplate != null) {
+            if (! MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter())) {
                 String message = String.format("Querying %s requires a mandatory filter: %s",
                         table.getName(), table.getRequiredFilter().toString());
 

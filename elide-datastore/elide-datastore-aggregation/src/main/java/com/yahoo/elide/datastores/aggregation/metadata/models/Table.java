@@ -61,7 +61,7 @@ public class Table {
 
     private final CardinalitySize cardinality;
 
-    private final FilterExpression requiredFilter;
+    private final String requiredFilter;
 
     @OneToMany
     @ToString.Exclude
@@ -130,7 +130,7 @@ public class Table {
         if (meta != null) {
             this.description = meta.description();
             this.category = meta.category();
-            this.requiredFilter = getRequiredFilter(meta, dictionary, cls);
+            this.requiredFilter = meta.filterTemplate();
         } else {
             this.description = null;
             this.category = null;
@@ -258,13 +258,13 @@ public class Table {
         return this.getId().getDbConnectionName();
     }
 
-    private FilterExpression getRequiredFilter(Meta meta, EntityDictionary dictionary, Class<?> cls) {
+    public FilterExpression getRequiredFilter(EntityDictionary dictionary) {
+        Class<?> cls = dictionary.getEntityClass(name, version);
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
-        String filterTemplate = meta.filterTemplate();
 
-        if (filterTemplate != null && !filterTemplate.isEmpty()) {
+        if (requiredFilter != null && !requiredFilter.isEmpty()) {
             try {
-                return filterDialect.parseFilterExpression(filterTemplate, cls, false, true);
+                return filterDialect.parseFilterExpression(requiredFilter, cls, false, true);
             } catch (ParseException e) {
                 throw new IllegalStateException(e);
             }

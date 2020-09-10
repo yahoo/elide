@@ -8,6 +8,7 @@ package com.yahoo.elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
@@ -100,6 +101,7 @@ public class Elide {
     }
 
     protected void registerCustomSerde() {
+        Injector injector = elideSettings.getDictionary().getInjector();
         Set<Class<?>> classes = registerCustomSerdeScan();
 
         for (Class<?> clazz : classes) {
@@ -107,17 +109,9 @@ public class Elide {
                 log.warn("Skipping Serde registration (not a Serde!): {}", clazz);
                 continue;
             }
-            Serde serde;
-            try {
-                serde = (Serde) clazz
-                        .getDeclaredConstructor()
-                        .newInstance();
-            } catch (InstantiationException | IllegalAccessException
-                    | NoSuchMethodException | InvocationTargetException e) {
-                String errorMsg = String.format("Error while registering custom Serde: %s", e.getLocalizedMessage());
-                log.error(errorMsg);
-                throw new UnableToAddSerdeException(errorMsg, e);
-            }
+            Serde serde = (Serde) injector.instantiate(clazz);
+            injector.inject(serde);
+
             ElideTypeConverter converter = clazz.getAnnotation(ElideTypeConverter.class);
             Class baseType = converter.type();
             registerCustomSerde(baseType, serde, converter.name());
