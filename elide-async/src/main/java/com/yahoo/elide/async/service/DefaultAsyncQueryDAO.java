@@ -7,7 +7,7 @@ package com.yahoo.elide.async.service;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
@@ -39,15 +39,15 @@ import javax.ws.rs.core.MultivaluedMap;
 @Getter
 public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
-    @Setter private Elide elide;
+    @Setter private ElideSettings elideSettings;
     @Setter private DataStore dataStore;
 
     // Default constructor is needed for standalone implementation for override in getAsyncQueryDao
     public DefaultAsyncQueryDAO() {
     }
 
-    public DefaultAsyncQueryDAO(Elide elide, DataStore dataStore) {
-        this.elide = elide;
+    public DefaultAsyncQueryDAO(ElideSettings elideSettings, DataStore dataStore) {
+        this.elideSettings = elideSettings;
         this.dataStore = dataStore;
     }
 
@@ -86,23 +86,23 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         log.debug("updateAsyncQueryCollection");
 
         Collection<AsyncQuery> asyncQueryList = null;
-         asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
-                    (tx, scope) -> {
-             EntityProjection asyncQueryCollection = EntityProjection.builder()
-                     .type(AsyncQuery.class)
-                     .filterExpression(filterExpression)
-                     .build();
+        asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
+                (tx, scope) -> {
+            EntityProjection asyncQueryCollection = EntityProjection.builder()
+                    .type(AsyncQuery.class)
+                    .filterExpression(filterExpression)
+                    .build();
 
-             Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
-             Iterator<Object> itr = loaded.iterator();
+            Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);
+            Iterator<Object> itr = loaded.iterator();
 
-             while (itr.hasNext()) {
-                 AsyncQuery query = (AsyncQuery) itr.next();
-                 updateFunction.update(query);
-                 tx.save(query, scope);
-             }
-             return loaded;
-         });
+            while (itr.hasNext()) {
+                AsyncQuery query = (AsyncQuery) itr.next();
+                updateFunction.update(query);
+                tx.save(query, scope);
+            }
+            return loaded;
+        });
         return asyncQueryList;
     }
 
@@ -166,7 +166,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
             RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
-                    tx, null, queryParams, UUID.randomUUID(), elide.getElideSettings());
+                    tx, null, queryParams, UUID.randomUUID(), elideSettings);
             result = action.execute(tx, scope);
             tx.flush(scope);
             tx.commit(scope);

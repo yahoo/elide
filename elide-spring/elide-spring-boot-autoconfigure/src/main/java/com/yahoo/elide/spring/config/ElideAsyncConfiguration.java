@@ -19,8 +19,10 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.core.EntityDictionary;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -50,9 +52,10 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
-            AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary) {
+            AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary,
+            @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                settings.getAsync().getMaxRunTimeSeconds(), asyncQueryDao);
+                settings.getAsync().getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine);
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
         // Binding AsyncQuery LifeCycleHook
@@ -93,6 +96,20 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncQueryDAO", matchIfMissing = true)
     public AsyncQueryDAO buildAsyncQueryDAO(Elide elide) {
-        return new DefaultAsyncQueryDAO(elide, elide.getDataStore());
+        return new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
+    }
+
+    /**
+     * Configure the ResultStorageEngine used by async query requests.
+     * @param elide elideObject.
+     * @return an ResultStorageEngine object.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "elide.async.download", name = "enabled", matchIfMissing = false)
+    public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
+            AsyncQueryDAO asyncQueryDAO) {
+        // TODO: Initialize with FileResultStorageEngine
+        return null;
     }
 }
