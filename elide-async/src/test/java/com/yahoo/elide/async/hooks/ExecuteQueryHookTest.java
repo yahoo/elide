@@ -24,12 +24,11 @@ import org.junit.jupiter.api.Test;
 public class ExecuteQueryHookTest {
 
     private AsyncExecutorService asyncExecutorService;
-    private ResultStorageEngine resultStorageEngine;
 
     @BeforeEach
     public void setupMocks() {
         asyncExecutorService = mock(AsyncExecutorService.class);
-        resultStorageEngine = mock(ResultStorageEngine.class);
+        ResultStorageEngine resultStorageEngine = mock(ResultStorageEngine.class);
         when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
     }
 
