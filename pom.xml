@@ -89,7 +89,6 @@
         <version.mysql>8.0.21</version.mysql>
         <hibernate5.version>5.4.18.Final</hibernate5.version>
         <version.mysql>8.0.20</version.mysql>
-        <hibernate5.version>5.4.15.Final</hibernate5.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
