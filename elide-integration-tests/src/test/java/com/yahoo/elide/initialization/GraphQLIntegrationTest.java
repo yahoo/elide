@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.HttpStatus;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.TestInstance;
@@ -19,9 +20,13 @@ import org.junit.jupiter.api.TestInstance;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -30,6 +35,8 @@ import javax.ws.rs.core.MediaType;
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class GraphQLIntegrationTest extends IntegrationTest {
+    protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+
     protected void runQueryWithExpectedResult(
             String graphQLQuery,
             Map<String, Object> variables,
@@ -49,6 +56,23 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
 
     protected void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
         runQueryWithExpectedResult(graphQLQuery, null, expected);
+    }
+
+    protected void runQueryWithExpectedError(String graphQLQuery, String errorMessage) throws IOException {
+        runQueryWithExpectedError(graphQLQuery, null, errorMessage);
+    }
+
+    protected void runQueryWithExpectedError(
+            String graphQLQuery,
+            Map<String, Object> variables,
+            String errorMessage
+    ) throws IOException {
+        compareErrorMessage(runQuery(graphQLQuery, variables), errorMessage);
+    }
+
+    private void compareErrorMessage(ValidatableResponse response, String expected) throws IOException {
+        JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
+        assertEquals(expected, responseNode.get("errors").get(0).get("message").toString());
     }
 
     protected void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
@@ -92,5 +116,11 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
             graphqlNode.set("variables", mapper.valueToTree(variables));
         }
         return graphqlNode;
+    }
+
+    public String loadGraphQLResponse(String fileName) throws IOException {
+        try (InputStream in = this.getClass().getResourceAsStream("/graphql/responses/" + fileName)) {
+            return new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
+        }
     }
 }

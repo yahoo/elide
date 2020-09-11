@@ -12,6 +12,9 @@ import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
+
+import com.google.common.base.Preconditions;
+
 import lombok.AllArgsConstructor;
 
 /**
@@ -22,6 +25,8 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> {
+    private static final String TEMPLATE_REGEX = "\\{\\{\\w+}\\}";
+
     private FilterExpression expressionToMatch;
 
     @Override
@@ -80,8 +85,13 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
             FilterPredicate predicateA = (FilterPredicate) a;
             FilterPredicate predicateB = (FilterPredicate) b;
 
+            boolean valueMatches = predicateA.getValues().equals(predicateB.getValues());
+            boolean usingTemplate = predicateA.getValues().stream()
+                    .anyMatch((value -> value.toString().matches(TEMPLATE_REGEX)));
+
             return predicateA.getPath().equals(predicateB.getPath())
-                    && predicateA.getOperator().equals(predicateB.getOperator());
+                    && predicateA.getOperator().equals(predicateB.getOperator())
+                    && (usingTemplate || valueMatches);
         }
     }
 
@@ -92,6 +102,11 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
      * @return True if the client filter matches.  False otherwise.
      */
     public static boolean isValid(FilterExpression templateFilter, FilterExpression clientFilter) {
+        Preconditions.checkNotNull(templateFilter);
+
+        if (clientFilter == null) {
+            return false;
+        }
 
         //First we normalize the filters so any NOT clauses are pushed down immediately in front of a predicate.
         //This lets us treat logical AND and OR without regard for any preceding NOT clauses.
