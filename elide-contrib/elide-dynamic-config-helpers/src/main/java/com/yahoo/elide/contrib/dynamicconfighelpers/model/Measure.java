@@ -9,10 +9,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Measures represent metrics that can be aggregated at query time.
@@ -25,7 +29,8 @@ import lombok.NoArgsConstructor;
     "hidden",
     "readAccess",
     "definition",
-    "type"
+    "type",
+    "values"
 })
 @Data
 @EqualsAndHashCode()
@@ -53,6 +58,10 @@ public class Measure {
 
     @JsonProperty("type")
     private Type type = Type.INTEGER;
+
+    @JsonProperty("values")
+    @JsonDeserialize(as = LinkedHashSet.class)
+    private Set<String> values = new LinkedHashSet<String>();
 
     /**
      * Returns description of the measure.

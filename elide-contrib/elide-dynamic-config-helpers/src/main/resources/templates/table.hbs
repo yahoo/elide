@@ -12,10 +12,11 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -42,7 +43,7 @@ import javax.persistence.Id;
 <%else if sql%>@FromSubquery(sql = "<%sql%>", dbConnectionName = "<%dbConnectionName%>")
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-<%#if category%>@Meta(description = "<%description%>", category="<%category%>", filterTemplate="<%filterTemplate%>")<%else%>@Meta(description = "<%description%>", filterTemplate="<%filterTemplate%>")<%/if%>
+<%#if category%>@TableMeta(description = "<%description%>", category="<%category%>", filterTemplate="<%filterTemplate%>")<%else%>@TableMeta(description = "<%description%>", filterTemplate="<%filterTemplate%>")<%/if%>
 <%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 
@@ -58,7 +59,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/ifTypeMatches%>
 
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-    <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
+    <%#if category%>@ColumnMeta(description = "<%description%>", category="<%category%>", values={<%#collectionToString values%><%/collectionToString%>})<%else%>@ColumnMeta(description = "<%description%>", values={<%#collectionToString values%><%/collectionToString%>})<%/if%>
     <%#if hidden%>@Exclude<%/if%>
     @DimensionFormula("<%definition%>")
 <%#ifTypeMatches type "TIME"%>
@@ -85,7 +86,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 
     @MetricFormula("<%definition%>")
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-    <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
+    <%#if category%>@ColumnMeta(description = "<%description%>", category="<%category%>")<%else%>@ColumnMeta(description = "<%description%>")<%/if%>
     <%#if hidden%>@Exclude<%/if%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
 

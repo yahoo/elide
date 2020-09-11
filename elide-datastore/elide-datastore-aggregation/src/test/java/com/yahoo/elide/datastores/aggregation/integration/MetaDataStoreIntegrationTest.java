@@ -85,7 +85,17 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.columnType",  equalTo("REFERENCE"))
                 .body("data.attributes.expression",  equalTo("player.name"))
                 .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")));
+    }
 
+    @Test
+    public void dimensionValuesTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/dimension/playerStats.countryIsoCode")
+                .then()
+                .body("data.attributes.values", hasItems("US", "HK"))
+                .statusCode(HttpStatus.SC_OK);
     }
 
     @Test

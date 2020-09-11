@@ -12,9 +12,9 @@ import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.R
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -23,6 +23,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,6 +57,8 @@ public abstract class Column {
 
     private final String expression;
 
+    private final Set<String> values;
+
     @ToString.Exclude
     private final Set<String> columnTags;
 
@@ -67,13 +70,15 @@ public abstract class Column {
         this.name = fieldName;
         this.columnTags = new HashSet<>();
 
-        Meta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, Meta.class, fieldName);
+        ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, ColumnMeta.class, fieldName);
         if (meta != null) {
             this.description = meta.description();
             this.category = meta.category();
+            this.values = new HashSet<>(Arrays.asList(meta.values()));
         } else {
             this.description = null;
             this.category = null;
+            this.values = null;
         }
 
         valueType = getValueType(tableClass, fieldName, dictionary);

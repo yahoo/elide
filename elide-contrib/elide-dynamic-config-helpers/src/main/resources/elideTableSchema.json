@@ -187,6 +187,16 @@
             "type": "string"
           },
           "default": []
+        },
+        "values": {
+          "title": "Dimension values",
+          "description": "An array of valid string values for this dimension",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": []
         }
       }
     },
