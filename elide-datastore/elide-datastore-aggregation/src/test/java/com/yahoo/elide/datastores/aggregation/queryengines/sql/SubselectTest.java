@@ -15,6 +15,8 @@ import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.request.Sorting;
 
+import com.google.common.collect.ImmutableList;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -64,9 +66,7 @@ public class SubselectTest extends SQLUnitTest {
         stats2.setHighScore(1000);
         stats2.setSubCountryIsoCode("HKG");
 
-        assertEquals(2, results.size());
-        assertEquals(stats1, results.get(0));
-        assertEquals(stats2, results.get(1));
+        assertEquals(ImmutableList.of(stats1, stats2), results);
     }
 
     /**
