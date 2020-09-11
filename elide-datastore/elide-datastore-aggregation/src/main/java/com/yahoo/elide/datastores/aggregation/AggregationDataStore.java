@@ -11,8 +11,10 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.transactions.SQLAggregationDataStoreTransaction;
 import com.yahoo.elide.utils.ClassScanner;
 
 import lombok.Builder;
@@ -63,6 +65,9 @@ public class AggregationDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new AggregationDataStoreTransaction(queryEngine, cache, queryLogger);
+        if (queryEngine.getClass().equals(SQLQueryEngine.class)) {
+            return new SQLAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
+        }
+        throw new IllegalStateException("Unknown type of Query Engine");
     }
 }

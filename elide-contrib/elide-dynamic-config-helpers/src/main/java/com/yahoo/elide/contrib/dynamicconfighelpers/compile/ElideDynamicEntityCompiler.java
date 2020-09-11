@@ -47,8 +47,8 @@ public class ElideDynamicEntityCompiler {
 
     private Map<String, String> tableClasses = new HashMap<String, String>();
     private Map<String, String> securityClasses = new HashMap<String, String>();
-    @Getter private final Map<String, DataSource> dataSourceMap = new HashMap<String, DataSource>();
-    @Getter private final Map<String, String> dialectMap = new HashMap<String, String>();
+    @Getter
+    private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
     /**
      * Parse dynamic config path.
@@ -86,8 +86,8 @@ public class ElideDynamicEntityCompiler {
         compile();
 
         elideSQLDBConfig.getDbconfigs().forEach(config -> {
-            dataSourceMap.put(config.getName(), getDataSource(config));
-            dialectMap.put(config.getName(), config.getDialect());
+            connectionDetailsMap.put(config.getName(),
+                            new ConnectionDetails(getDataSource(config), config.getDialect()));
         });
 
     }

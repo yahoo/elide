@@ -14,6 +14,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.hasItems;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -55,13 +56,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         config.setDriverClassName(emf.getProperties().get("javax.persistence.jdbc.driver").toString());
         config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
         DataSource defaultDataSource = new HikariDataSource(config);
+        String defaultDialect = "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect";
 
-        Map<String, DataSource> dataSourceMap = new HashMap<>();
-        dataSourceMap.put("mycon", defaultDataSource);
-        Map<String, String> dialectMap = new HashMap<>();
-        dialectMap.put("mycon", "h2");
+        Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+        // Add an entry for "mycon" connection
+        connectionDetailsMap.put("mycon", new ConnectionDetails(defaultDataSource, defaultDialect));
 
-        return new AggregationDataStoreTestHarness(emf, defaultDataSource, dataSourceMap, "H2", dialectMap);
+        return new AggregationDataStoreTestHarness(emf, defaultDataSource, defaultDialect, connectionDetailsMap);
     }
 
     @Test

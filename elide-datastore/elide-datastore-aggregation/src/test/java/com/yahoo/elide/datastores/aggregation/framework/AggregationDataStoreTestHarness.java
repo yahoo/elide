@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.framework;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -32,17 +33,16 @@ import javax.sql.DataSource;
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private EntityManagerFactory entityManagerFactory;
     private DataSource defaultDataSource;
-    private Map<String, DataSource> dataSourceMap;
     private String defaultDialect;
-    private Map<String, String> dialectMap;
+    private Map<String, ConnectionDetails> connectionDetailsMap;
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource) {
-        this(entityManagerFactory, defaultDataSource, SQLDialectFactory.getDefaultDialect().getDialectType());
+        this(entityManagerFactory, defaultDataSource, SQLDialectFactory.getDefaultDialect().getClass().getName());
     }
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource,
                     String defaultDialect) {
-        this(entityManagerFactory, defaultDataSource, Collections.emptyMap(), defaultDialect, Collections.emptyMap());
+        this(entityManagerFactory, defaultDataSource, defaultDialect, Collections.emptyMap());
     }
 
     @Override
@@ -52,7 +52,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
         AggregationDataStore aggregationDataStore = AggregationDataStore.builder()
-                .queryEngine(new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect, dataSourceMap, dialectMap))
+                .queryEngine(new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect, connectionDetailsMap))
                 .queryLogger(new NoopQueryLogger())
                 .build();
 

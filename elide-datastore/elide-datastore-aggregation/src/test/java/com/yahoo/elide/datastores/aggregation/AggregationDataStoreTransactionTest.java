@@ -27,19 +27,22 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
+import com.yahoo.elide.datastores.aggregation.transactions.SQLAggregationDataStoreTransaction;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,7 +50,7 @@ import java.util.Collections;
 @ExtendWith(MockitoExtension.class)
 class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
-    @Mock private QueryEngine queryEngine;
+    @Mock private SQLQueryEngine queryEngine;
     @Mock private QueryEngine.Transaction qeTransaction;
     @Mock private RequestScope scope;
     @Mock private Cache cache;
@@ -58,7 +61,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     private static final Iterable<Object> DATA = Collections.singletonList("xyzzy");
 
     // inject our own query instead of using buildQuery impl
-    private class MyAggregationDataStoreTransaction extends AggregationDataStoreTransaction {
+    private class MyAggregationDataStoreTransaction extends SQLAggregationDataStoreTransaction {
 
         public MyAggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache, QueryLogger queryLogger) {
             super(queryEngine, cache, queryLogger);
@@ -77,9 +80,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
     @BeforeEach
     public void setUp(TestInfo info) {
-        if (!info.getTags().contains("SkipBeforeEach")) {
-            when(queryEngine.beginTransaction()).thenReturn(qeTransaction);
-        }
+        when(queryEngine.beginTransaction()).thenReturn(qeTransaction);
     }
 
     @Test
@@ -259,7 +260,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     }
 
     @Test
-    @Tag("SkipBeforeEach")
+    @MockitoSettings(strictness = Strictness.LENIENT)
     public void aggregationQueryLoggerCancelQueryTest() {
         Mockito.reset(queryLogger);
         AggregationDataStoreTransaction transaction =

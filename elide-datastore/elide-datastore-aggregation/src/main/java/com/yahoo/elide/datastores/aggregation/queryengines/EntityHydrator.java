@@ -29,19 +29,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * {@link AbstractEntityHydrator} hydrates the entity loaded by
+ * {@link EntityHydrator} hydrates the entity loaded by
  * {@link QueryEngine#executeQuery(Query, QueryEngine.Transaction)}.
- * <p>
- * {@link AbstractEntityHydrator} is not thread-safe and should be accessed by only 1 thread in this application,
- * because it uses {@link StitchList}. See {@link StitchList} for more details.
  */
-public abstract class AbstractEntityHydrator {
+public class EntityHydrator {
 
     @Getter(AccessLevel.PROTECTED)
     private final EntityDictionary entityDictionary;
-
-    @Getter(AccessLevel.PRIVATE)
-    private final StitchList stitchList;
 
     @Getter(AccessLevel.PROTECTED)
     private final List<Map<String, Object>> results = new ArrayList<>();
@@ -57,8 +51,7 @@ public abstract class AbstractEntityHydrator {
      *               objects
      * @param entityDictionary  An object that sets entity instance values and provides entity metadata info
      */
-    public AbstractEntityHydrator(List<Object> results, Query query, EntityDictionary entityDictionary) {
-        this.stitchList = new StitchList(entityDictionary);
+    public EntityHydrator(List<Object> results, Query query, EntityDictionary entityDictionary) {
         this.query = query;
         this.entityDictionary = entityDictionary;
 
@@ -88,8 +81,7 @@ public abstract class AbstractEntityHydrator {
         });
     }
 
-    public AbstractEntityHydrator(ResultSet rs, Query query, EntityDictionary entityDictionary) {
-        this.stitchList = new StitchList(entityDictionary);
+    public EntityHydrator(ResultSet rs, Query query, EntityDictionary entityDictionary) {
         this.query = query;
         this.entityDictionary = entityDictionary;
 
@@ -154,7 +146,7 @@ public abstract class AbstractEntityHydrator {
             Dimension dim = query.getTable().getDimension(fieldName);
 
             if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
-                getStitchList().todo(entityInstance, fieldName, value); // We don't hydrate relationships here.
+                // We don't hydrate relationships here.
             } else {
                 getEntityDictionary().setValue(entityInstance, fieldName, value);
             }

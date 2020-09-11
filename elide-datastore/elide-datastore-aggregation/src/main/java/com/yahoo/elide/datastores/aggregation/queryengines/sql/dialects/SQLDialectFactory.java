@@ -13,36 +13,29 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.Pre
  * A class with static methods to create an instance of all Dialects.
  */
 public class SQLDialectFactory {
-
-    private static final SQLDialect H2_DIALECT = new H2Dialect();
-    private static final SQLDialect HIVE_DIALECT = new HiveDialect();
-    private static final SQLDialect PRESTO_DIALECT = new PrestoDialect();
-
     public static SQLDialect getDefaultDialect() {
         return getH2Dialect();
     }
 
     public static SQLDialect getH2Dialect() {
-        return H2_DIALECT;
+        return new H2Dialect();
     }
 
     public static SQLDialect getHiveDialect() {
-        return HIVE_DIALECT;
+        return new HiveDialect();
     }
 
     public static SQLDialect getPrestoDialect() {
-        return PRESTO_DIALECT;
+        return new PrestoDialect();
     }
 
-    public static SQLDialect getDialect(String type) {
-        if (type.equalsIgnoreCase(H2_DIALECT.getDialectType())) {
-            return H2_DIALECT;
-        } else if (type.equalsIgnoreCase(HIVE_DIALECT.getDialectType())) {
-            return HIVE_DIALECT;
-        } else if (type.equalsIgnoreCase(PRESTO_DIALECT.getDialectType())) {
-            return PRESTO_DIALECT;
-        } else {
-            throw new IllegalArgumentException("Unsupported SQL Dialect Type: " + type);
+    public static SQLDialect getDialect(String name) {
+        try {
+            return (SQLDialect) Class.forName(name).getConstructor().newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Unsupported SQL Dialect: " + name, e);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to instantiate SQL Dialect: " + name, e);
         }
     }
 }

@@ -1,4 +1,4 @@
 {
-   mysql_dialect: HIVE
-   db2_dialect: PRESTO
+   mysql_dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect
+   db2_dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDialect
 }

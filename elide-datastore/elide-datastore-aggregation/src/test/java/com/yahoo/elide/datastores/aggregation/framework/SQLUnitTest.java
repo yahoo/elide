@@ -48,9 +48,15 @@ import com.yahoo.elide.utils.ClassScanner;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import org.apache.ibatis.jdbc.ScriptRunner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,14 +69,12 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import javax.inject.Provider;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 public abstract class SQLUnitTest {
 
-    protected static EntityManagerFactory emf;
     protected static Table playerStatsTable;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
@@ -300,17 +304,21 @@ public abstract class SQLUnitTest {
     protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
 
     public static void init(String sqlDialect) {
-        emf = Persistence.createEntityManagerFactory("aggregationStore");
-        EntityManager em = emf.createEntityManager();
-        em.getTransaction().begin();
-        em.createNativeQuery("DROP ALL OBJECTS;").executeUpdate();
-        em.createNativeQuery("RUNSCRIPT FROM 'classpath:create_tables.sql'").executeUpdate();
-        em.getTransaction().commit();
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
 
         HikariConfig config = new HikariConfig();
         config.setDriverClassName(emf.getProperties().get("javax.persistence.jdbc.driver").toString());
         config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
         DataSource dataSource = new HikariDataSource(config);
+
+        try (Connection conn = dataSource.getConnection();
+                        Reader reader = new InputStreamReader(
+                                        SQLUnitTest.class.getClassLoader().getResourceAsStream("prepare_tables.sql"))) {
+            ScriptRunner runner = new ScriptRunner(conn);
+            runner.runScript(reader);
+        } catch (SQLException | IOException e) {
+            throw new IllegalStateException(e);
+        }
 
         metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
 
@@ -333,21 +341,6 @@ public abstract class SQLUnitTest {
         TableId tableId = new TableId("playerStats", "", "");
         playerStatsTable = engine.getTable(tableId);
 
-        ASIA.setName("Asia");
-        ASIA.setId("1");
-
-        NA.setName("North America");
-        NA.setId("2");
-
-        HONG_KONG.setIsoCode("HKG");
-        HONG_KONG.setName("Hong Kong");
-        HONG_KONG.setId("344");
-        HONG_KONG.setContinent(ASIA);
-
-        USA.setIsoCode("USA");
-        USA.setName("United States");
-        USA.setId("840");
-        USA.setContinent(NA);
     }
 
     public static void init() {
@@ -355,7 +348,7 @@ public abstract class SQLUnitTest {
     }
 
     public static void init(SQLDialect sqlDialect) {
-        init(sqlDialect.getDialectType());
+        init(sqlDialect.getClass().getName());
     }
 
     @BeforeEach

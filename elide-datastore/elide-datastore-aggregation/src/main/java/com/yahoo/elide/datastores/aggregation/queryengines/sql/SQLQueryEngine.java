@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -25,6 +25,7 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -40,6 +41,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTem
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
@@ -78,22 +81,33 @@ public class SQLQueryEngine extends QueryEngine {
     /**
      * Constructor.
      * @param metaDataStore : MetaDataStore.
-     * @param defaultDataSource : default DataSource.
-     * @param defaultDialect : default Sql Dialect.
-     * @param dataSourceMap : Connection Name to DataSource mapping.
-     * @param dialectMap : Connection Name to Sql Dialect Name mapping.
+     * @param defaultDataSource : default DataSource Object.
+     * @param defaultDialect : default SQL Dialect Class Name.
+     * @param connectionDetailsMap : Connection Name to DataSource Object and SQL Dialect Class Name mapping.
      */
     public SQLQueryEngine(MetaDataStore metaDataStore, DataSource defaultDataSource, String defaultDialect,
-                    Map<String, DataSource> dataSourceMap, Map<String, String> dialectMap) {
+                    Map<String, ConnectionDetails> connectionDetailsMap) {
         this(metaDataStore, defaultDataSource, defaultDialect);
-        this.dataSourceMap.putAll(dataSourceMap);
-        dialectMap.forEach((k, v) -> this.dialectMap.put(k, SQLDialectFactory.getDialect(v)));
+        connectionDetailsMap.forEach((name, details) -> {
+            dataSourceMap.put(name, details.getDataSource());
+            dialectMap.put(name, SQLDialectFactory.getDialect(details.getDialect()));
+        });
     }
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, DataSource defaultDataSource, String defaultDialect,
-                    ElideDynamicEntityCompiler compiler) {
-        this(metaDataStore, defaultDataSource, defaultDialect, compiler.getDataSourceMap(), compiler.getDialectMap());
-    }
+    private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {
+        @Override
+        public Object apply(ResultSet rs) {
+            try {
+                if (rs.next()) {
+                    return rs.getObject(1);
+                } else {
+                    return null;
+                }
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    };
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
@@ -187,7 +201,9 @@ public class SQLQueryEngine extends QueryEngine {
         return new SqlTransaction(defaultDataSource, defaultDialect);
     }
 
-    @Override
+    /**
+     * Overloads superclass method to accept connection name for required storage.
+     */
     public Transaction beginTransaction(String dbConnectionName) {
         DataSource dataSource = Optional.ofNullable(dataSourceMap.get(dbConnectionName))
                         .orElseThrow(() -> new IllegalStateException(
@@ -236,7 +252,7 @@ public class SQLQueryEngine extends QueryEngine {
         }, "Running Query: " + queryString
         ).get();
 
-        resultBuilder.data(new SQLEntityHydrator(resultSet, query, getMetadataDictionary()).hydrate());
+        resultBuilder.data(new EntityHydrator(resultSet, query, getMetadataDictionary()).hydrate());
         return resultBuilder.build();
     }
 
@@ -249,19 +265,7 @@ public class SQLQueryEngine extends QueryEngine {
         supplyFilterQueryParameters(query, stmt);
 
         // Run the Pagination query and log the time spent.
-        return new TimedFunction<>(() -> {
-            try {
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    return rs.getLong(1);
-                } else {
-                    return null;
-                }
-            } catch (SQLException e) {
-                throw new IllegalStateException(e);
-            }
-        }, "Running Query: " + paginationSQL
-        ).get();
+        return CoerceUtil.coerce(runQuery(stmt, paginationSQL, SINGLE_RESULT_MAPPER), Long.class);
     }
 
     @Override
@@ -274,21 +278,23 @@ public class SQLQueryEngine extends QueryEngine {
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();
             NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(versionQueryString);
-            tableVersion = new TimedFunction<>(() -> {
-                try {
-                    ResultSet rs = stmt.executeQuery();
-                    if (rs.next()) {
-                        return rs.getString(1);
-                    } else {
-                        return null;
-                    }
-                } catch (SQLException e) {
-                    throw new IllegalStateException(e);
-                }
-            }, "Running Query: " + versionQueryString
-            ).get();
+            tableVersion = CoerceUtil.coerce(runQuery(stmt, versionQueryString, SINGLE_RESULT_MAPPER), String.class);
         }
         return tableVersion;
+    }
+
+    private <R> R runQuery(NamedParamPreparedStatement stmt, String queryString, Function<ResultSet, R> resultMapper) {
+
+        // Run the query and log the time spent.
+        return new TimedFunction<R>(() -> {
+            try {
+                ResultSet rs = stmt.executeQuery();
+                return resultMapper.apply(rs);
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+        }, "Running Query: " + queryString
+        ).get();
     }
 
     /**
@@ -319,7 +325,9 @@ public class SQLQueryEngine extends QueryEngine {
         return explain(query, defaultDialect);
     }
 
-    @Override
+    /**
+     * Overloads superclass method to accept connection name for required storage.
+     */
     public List<String> explain(Query query, String dbConnectionName) {
         SQLDialect dialect = dialectMap.get(dbConnectionName);
         return explain(query, dialect);

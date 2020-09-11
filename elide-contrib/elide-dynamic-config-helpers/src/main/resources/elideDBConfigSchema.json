@@ -70,13 +70,9 @@
                         "type": "string",
                         "title": "Elide Dialect",
                         "description": "The Elide Dialect to use for query generation.",
-                        "enum": [
-                            "HIVE",
-                            "PRESTO",
-                            "H2"
-                        ],
+                        "pattern": "^[A-Za-z][0-9A-Za-z_.]*$",
                         "examples": [
-                            "HIVE"
+                            "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect"
                         ]
                     },
                     "propertyMap": {
@@ -120,7 +116,7 @@
                     "url": "jdbc:db2://localhost/elide?serverTimezone=UTC&",
                     "driver": "a",
                     "user": "elide",
-                    "dialect": "Presto",
+                    "dialect": "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDialect",
                     "propertyMap": {
                         "hibernate.show_sql": true,
                         "hibernate.default_batch_fetch_size": 100.1,
@@ -132,7 +128,7 @@
                     "url": "jdbc:mysql://localhost/elide?serverTimezone=UTC",
                     "driver": "com.mysql.jdbc.Driver",
                     "user": "guest1",
-                    "dialect": "HIVE"
+                    "dialect": "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect"
                 }
             ]
         }
