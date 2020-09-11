@@ -22,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTest
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -41,7 +40,6 @@ import javax.sql.DataSource;
  * Integration tests for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest {
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @BeforeAll
     public void beforeAll() {

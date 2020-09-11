@@ -18,16 +18,29 @@ import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTest
 import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TableIdSerde;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.sql.DataSource;
 
 public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        return new AggregationDataStoreTestHarness(Persistence.createEntityManagerFactory("aggregationStore"));
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
+
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(emf.getProperties().get("javax.persistence.jdbc.driver").toString());
+        config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
+        DataSource defaultDataSource = new HikariDataSource(config);
+        String defaultDialect = "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect";
+
+        return new AggregationDataStoreTestHarness(emf, defaultDataSource, defaultDialect);
     }
 
     @Test
