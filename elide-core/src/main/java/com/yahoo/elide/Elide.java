@@ -20,7 +20,6 @@ import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.exceptions.UnableToAddSerdeException;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
@@ -56,7 +55,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -100,6 +98,7 @@ public class Elide {
     }
 
     protected void registerCustomSerde() {
+        Injector injector = elideSettings.getDictionary().getInjector();
         Set<Class<?>> classes = registerCustomSerdeScan();
 
         for (Class<?> clazz : classes) {
@@ -107,17 +106,9 @@ public class Elide {
                 log.warn("Skipping Serde registration (not a Serde!): {}", clazz);
                 continue;
             }
-            Serde serde;
-            try {
-                serde = (Serde) clazz
-                        .getDeclaredConstructor()
-                        .newInstance();
-            } catch (InstantiationException | IllegalAccessException
-                    | NoSuchMethodException | InvocationTargetException e) {
-                String errorMsg = String.format("Error while registering custom Serde: %s", e.getLocalizedMessage());
-                log.error(errorMsg);
-                throw new UnableToAddSerdeException(errorMsg, e);
-            }
+            Serde serde = (Serde) injector.instantiate(clazz);
+            injector.inject(serde);
+
             ElideTypeConverter converter = clazz.getAnnotation(ElideTypeConverter.class);
             Class baseType = converter.type();
             registerCustomSerde(baseType, serde, converter.name());

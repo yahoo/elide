@@ -21,4 +21,10 @@ public @interface Meta {
 
     String description() default "";
     String category() default "";
+
+    /**
+     * Whether or not querying this table or field requires a client provided filter.
+     * @return The required filter template.
+     */
+    String filterTemplate() default "";
 }

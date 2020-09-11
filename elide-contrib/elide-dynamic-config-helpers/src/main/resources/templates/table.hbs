@@ -42,7 +42,7 @@ import javax.persistence.Id;
 <%else if sql%>@FromSubquery(sql = "<%sql%>", dbConnectionName = "<%dbConnectionName%>")
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-<%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
+<%#if category%>@Meta(description = "<%description%>", category="<%category%>", filterTemplate="<%filterTemplate%>")<%else%>@Meta(description = "<%description%>", filterTemplate="<%filterTemplate%>")<%/if%>
 <%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 

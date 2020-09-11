@@ -368,9 +368,16 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                                     ? argument.replace("*", "") //Support filtering on number types
                                     : argument
                     )
-                    .map((argument) -> coerceValues
-                            ? (Object) CoerceUtil.coerce(argument, relationshipType)
-                            : argument)
+                    .map((argument) -> {
+                            try {
+                                return CoerceUtil.coerce(argument, relationshipType);
+                            } catch (InvalidValueException e) {
+                                if (coerceValues) {
+                                    throw e;
+                                }
+                                return argument;
+                            }
+                    })
                     .collect(Collectors.toList());
 
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
