@@ -12,44 +12,27 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TableIdSerde;
-import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.restassured.response.ValidatableResponse;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Map;
-import java.util.stream.Collectors;
 import javax.persistence.Persistence;
-import javax.ws.rs.core.MediaType;
 
 /**
  * Integration tests for {@link AggregationDataStore}.
  */
-public class AggregationDataStoreIntegrationTest extends IntegrationTest {
+public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @BeforeAll
@@ -747,199 +730,5 @@ public class AggregationDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.id", hasItems("0", "1", "2"))
                 .body("data.attributes.highScore", hasItems(1000, 1234, 2412))
                 .body("data.attributes.countryIsoCode", hasItems("USA", "HKG"));
-    }
-
-    @Test
-    public void tableMetaDataTest() {
-
-        TableIdSerde serde = new TableIdSerde();
-        String countryId = serde.serialize(new TableId("country", "", ""));
-        String playerStatsId = serde.serialize(new TableId("playerStats", "", ""));
-        given()
-                .accept("application/vnd.api+json")
-                .get("/table/" + countryId)
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.cardinality", equalTo("SMALL"))
-                .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
-        given()
-                .accept("application/vnd.api+json")
-                .get("/table/" + playerStatsId)
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.cardinality", equalTo("LARGE"))
-                .body("data.attributes.category", equalTo("Sports Category"))
-                .body(
-                        "data.relationships.dimensions.data.id",
-                        hasItems(
-                                "playerStats.id",
-                                "playerStats.playerName",
-                                "playerStats.player2Name",
-                                "playerStats.countryIsoCode",
-                                "playerStats.subCountryIsoCode",
-                                "playerStats.overallRating"))
-                .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"))
-                .body("data.relationships.timeDimensions.data.id", hasItems("playerStats.recordedDate"));
-    }
-
-    @Test
-    public void dimensionMetaDataTest() {
-
-        given()
-                .accept("application/vnd.api+json")
-                .get("/dimension/playerStats.playerName")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("playerName"))
-                .body("data.attributes.valueType",  equalTo("TEXT"))
-                .body("data.attributes.columnType",  equalTo("REFERENCE"))
-                .body("data.attributes.expression",  equalTo("player.name"))
-                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")));
-
-    }
-
-    @Test
-    public void timeDimensionMetaDataTest() {
-
-        given()
-                .accept("application/vnd.api+json")
-                .get("/timeDimension/playerStats.recordedDate?include=supportedGrain")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("recordedDate"))
-                .body("data.attributes.valueType",  equalTo("TIME"))
-                .body("data.attributes.columnType",  equalTo("FIELD"))
-                .body("data.attributes.expression",  equalTo("recordedDate"))
-                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
-                .body("data.relationships.supportedGrain.data.id", hasItem("playerStats.recordedDate.simpledate"))
-                .body("included.id", hasItem("playerStats.recordedDate.simpledate"))
-                .body("included.attributes.grain", hasItem("SIMPLEDATE"))
-                .body("included.attributes.expression",
-                        hasItem("PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"));
-    }
-
-    @Test
-    public void metricMetaDataTest() {
-
-        given()
-                .accept("application/vnd.api+json")
-                .get("/metric/playerStats.lowScore?include=metricFunction")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("lowScore"))
-                .body("data.attributes.valueType",  equalTo("INTEGER"))
-                .body("data.attributes.columnType",  equalTo("FIELD"))
-                .body("data.attributes.expression",  equalTo("lowScore"))
-                .body("data.attributes.category",  equalTo("Score Category"))
-                .body("data.attributes.description",  equalTo("very low score"))
-                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
-                .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
-                .body("included.id", hasItem("playerStats.lowScore[min]"))
-                .body("included.attributes.description", hasItem("very low score"))
-                .body("included.attributes.expression", hasItem("MIN(%s)"));
-
-        given()
-                .accept("application/vnd.api+json")
-                .get("/metric/videoGame.timeSpentPerSession")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("timeSpentPerSession"))
-                .body("data.attributes.valueType",  equalTo("DECIMAL"))
-                .body("data.attributes.columnType",  equalTo("FORMULA"))
-                .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
-                .body("data.relationships.table.data.id", equalTo(getTableId("videoGame", "", "mycon")));
-
-    }
-    private void create(String query, Map<String, Object> variables) throws IOException {
-        runQuery(toJsonQuery(query, variables));
-    }
-
-    private void runQueryWithExpectedResult(
-            String graphQLQuery,
-            Map<String, Object> variables,
-            String expected
-    ) throws IOException {
-        compareJsonObject(runQuery(graphQLQuery, variables), expected);
-    }
-
-    private void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
-        runQueryWithExpectedResult(graphQLQuery, null, expected);
-    }
-
-    private void runQueryWithExpectedError(
-            String graphQLQuery,
-            Map<String, Object> variables,
-            String errorMessage
-    ) throws IOException {
-        compareErrorMessage(runQuery(graphQLQuery, variables), errorMessage);
-    }
-
-    private void runQueryWithExpectedError(String graphQLQuery, String errorMessage) throws IOException {
-        runQueryWithExpectedError(graphQLQuery, null, errorMessage);
-    }
-
-    private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
-        JsonNode expectedNode = JSON_MAPPER.readTree(expected);
-        assertEquals(expectedNode, responseNode);
-    }
-
-    private void compareErrorMessage(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
-        assertEquals(expected, responseNode.get("errors").get(0).get("message").toString());
-    }
-
-    private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
-        return runQuery(toJsonQuery(query, variables));
-    }
-
-    private ValidatableResponse runQuery(String query) {
-        ValidatableResponse res = given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(query)
-                .post("/graphQL")
-                .then();
-
-        return res;
-    }
-
-    private String toJsonArray(JsonNode... nodes) throws IOException {
-        ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
-        for (JsonNode node : nodes) {
-            arrayNode.add(node);
-        }
-        return JSON_MAPPER.writeValueAsString(arrayNode);
-    }
-
-    private String toJsonQuery(String query, Map<String, Object> variables) throws IOException {
-        return JSON_MAPPER.writeValueAsString(toJsonNode(query, variables));
-    }
-
-    private JsonNode toJsonNode(String query) {
-        return toJsonNode(query, null);
-    }
-
-    private JsonNode toJsonNode(String query, Map<String, Object> variables) {
-        ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
-        graphqlNode.put("query", query);
-        if (variables != null) {
-            graphqlNode.set("variables", JSON_MAPPER.valueToTree(variables));
-        }
-        return graphqlNode;
-    }
-
-    public String loadGraphQLResponse(String fileName) throws IOException {
-        try (InputStream in = AggregationDataStoreIntegrationTest.class.getResourceAsStream("/graphql/responses/" + fileName)) {
-            return new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
-        }
-    }
-
-    private String getTableId(String name, String version, String dbConnectionName) {
-        return new TableId(name, version, dbConnectionName).toString();
-    }
-
-    private String getTableId(String name) {
-        return getTableId(name, "", "");
     }
 }

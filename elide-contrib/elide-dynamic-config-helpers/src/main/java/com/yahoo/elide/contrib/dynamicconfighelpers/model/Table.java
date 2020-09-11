@@ -42,7 +42,8 @@ import java.util.Set;
     "extend",
     "sql",
     "table",
-    "dbConnectionName"
+    "dbConnectionName",
+    "filterTemplate"
 })
 @Data
 @EqualsAndHashCode()
@@ -67,6 +68,9 @@ public class Table implements Named {
 
     @JsonProperty("category")
     private String category;
+
+    @JsonProperty("filterTemplate")
+    private String filterTemplate;
 
     @JsonProperty("cardinality")
     private Table.Cardinality cardinality = Table.Cardinality.fromValue("tiny");
