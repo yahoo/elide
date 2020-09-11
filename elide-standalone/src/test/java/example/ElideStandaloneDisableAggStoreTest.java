@@ -48,7 +48,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
                 options.put("hibernate.jdbc.use_scrollable_resultset", "true");
 
                 options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
-                options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE;");
+                options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;");
                 options.put("javax.persistence.jdbc.user", "sa");
                 options.put("javax.persistence.jdbc.password", "");
                 return options;

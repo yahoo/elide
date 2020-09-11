@@ -497,6 +497,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
 
         assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
+
     }
 
     /**
