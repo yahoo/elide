@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
@@ -160,11 +161,11 @@ public class SQLQueryEngine extends QueryEngine {
      */
     static class SqlTransaction implements QueryEngine.Transaction {
 
-        private final Connection conn;
+        private Connection conn;
+        private SQLDialect dialect;
         private final List<NamedParamPreparedStatement> stmts = new ArrayList<>();
-        private final SQLDialect dialect;
 
-        SqlTransaction(DataSource dataSource, SQLDialect dialect) {
+        public void initializeTransaction(DataSource dataSource, SQLDialect dialect) {
             this.dialect = dialect;
             try {
                 this.conn = dataSource.getConnection();
@@ -198,28 +199,26 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     public QueryEngine.Transaction beginTransaction() {
-        return new SqlTransaction(defaultDataSource, defaultDialect);
-    }
-
-    /**
-     * Overloads superclass method to accept connection name for required storage.
-     */
-    public Transaction beginTransaction(String dbConnectionName) {
-        DataSource dataSource = Optional.ofNullable(dataSourceMap.get(dbConnectionName))
-                        .orElseThrow(() -> new IllegalStateException(
-                                        "DataSource or DB Configuration undefined for DB Connection Name: "
-                                                        + dbConnectionName));
-        SQLDialect dialect = Optional.ofNullable(dialectMap.get(dbConnectionName))
-                        .orElseThrow(() -> new IllegalStateException(
-                                        "SQL Dialect Type undefined for DB Connection Name: "
-                                                        + dbConnectionName));
-        return new SqlTransaction(dataSource, dialect);
+        return new SqlTransaction();
     }
 
     @Override
     public QueryResult executeQuery(Query query, Transaction transaction) {
         SqlTransaction sqlTransaction = (SqlTransaction) transaction;
-        SQLDialect dialect = sqlTransaction.dialect;
+
+        String connectionName = query.getTable().getDbConnectionName();
+        DataSource dataSource;
+        SQLDialect dialect;
+        if (connectionName == null || connectionName.trim().isEmpty()) {
+            dataSource = defaultDataSource;
+            dialect = defaultDialect;
+        } else {
+            dataSource = Optional.ofNullable(dataSourceMap.get(connectionName))
+                            .orElseThrow(undefinedConnectionException(connectionName));
+            dialect = Optional.ofNullable(dialectMap.get(connectionName))
+                            .orElseThrow(undefinedConnectionException(connectionName));
+        }
+        sqlTransaction.initializeTransaction(dataSource, dialect);
 
         // Translate the query into SQL.
         SQLQuery sql = toSQL(query, dialect);
@@ -243,7 +242,7 @@ public class SQLQueryEngine extends QueryEngine {
         supplyFilterQueryParameters(query, stmt);
 
         // Run the primary query and log the time spent.
-        ResultSet resultSet = new TimedFunction<ResultSet>(() -> {
+        ResultSet resultSet = new TimedFunction<>(() -> {
             try {
                 return stmt.executeQuery();
             } catch (SQLException e) {
@@ -286,7 +285,7 @@ public class SQLQueryEngine extends QueryEngine {
     private <R> R runQuery(NamedParamPreparedStatement stmt, String queryString, Function<ResultSet, R> resultMapper) {
 
         // Run the query and log the time spent.
-        return new TimedFunction<R>(() -> {
+        return new TimedFunction<>(() -> {
             try {
                 ResultSet rs = stmt.executeQuery();
                 return resultMapper.apply(rs);
@@ -295,6 +294,10 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }, "Running Query: " + queryString
         ).get();
+    }
+
+    private Supplier<IllegalStateException> undefinedConnectionException(String str) {
+        return () -> new IllegalStateException("DataSource or Dialect undefined for DB Connection Name: " + str);
     }
 
     /**
@@ -322,14 +325,14 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     public List<String> explain(Query query) {
-        return explain(query, defaultDialect);
-    }
-
-    /**
-     * Overloads superclass method to accept connection name for required storage.
-     */
-    public List<String> explain(Query query, String dbConnectionName) {
-        SQLDialect dialect = dialectMap.get(dbConnectionName);
+        SQLDialect dialect;
+        String connectionName = query.getTable().getDbConnectionName();
+        if (connectionName == null || connectionName.trim().isEmpty()) {
+            dialect = defaultDialect;
+        } else {
+            dialect = Optional.ofNullable(dialectMap.get(connectionName))
+                            .orElseThrow(undefinedConnectionException(connectionName));
+        }
         return explain(query, dialect);
     }
 

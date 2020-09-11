@@ -6,16 +6,19 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
+import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.core.QueryResponse;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.MatchesTemplateVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -23,21 +26,23 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.ToString;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
  */
 @ToString
-public abstract class AggregationDataStoreTransaction implements DataStoreTransaction {
-    protected final QueryEngine queryEngine;
-    protected final Cache cache;
-    protected QueryEngine.Transaction queryEngineTransaction;
-    protected final QueryLogger queryLogger;
+public class AggregationDataStoreTransaction implements DataStoreTransaction {
+    private final QueryEngine queryEngine;
+    private final Cache cache;
+    private final QueryEngine.Transaction queryEngineTransaction;
+    private final QueryLogger queryLogger;
 
     public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache,
                                            QueryLogger queryLogger) {
         this.queryEngine = queryEngine;
         this.cache = cache;
+        this.queryEngineTransaction = queryEngine.beginTransaction();
         this.queryLogger = queryLogger;
     }
 
@@ -58,9 +63,7 @@ public abstract class AggregationDataStoreTransaction implements DataStoreTransa
 
     @Override
     public void commit(RequestScope scope) {
-        if (queryEngineTransaction != null) {
-            queryEngineTransaction.close();
-        }
+        queryEngineTransaction.close();
     }
 
     @Override
@@ -69,17 +72,53 @@ public abstract class AggregationDataStoreTransaction implements DataStoreTransa
     }
 
     @Override
-    public abstract Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope);
-
-    @Override
-    public void close() throws IOException {
-        if (queryEngineTransaction != null) {
-            queryEngineTransaction.close();
+    public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+        QueryResult result = null;
+        QueryResponse response = null;
+        String cacheKey = null;
+        try {
+            queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), scope.getHeaders(),
+                    scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
+            Query query = buildQuery(entityProjection, scope);
+            if (cache != null && !query.isBypassingCache()) {
+                String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
+                if (tableVersion != null) {
+                    cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);
+                    result = cache.get(cacheKey);
+                }
+            }
+            boolean isCached = result == null ? false : true;
+            List<String> queryText = queryEngine.explain(query);
+            queryLogger.processQuery(scope.getRequestId(), query, queryText, isCached);
+            if (result == null) {
+                result = queryEngine.executeQuery(query, queryEngineTransaction);
+                if (cacheKey != null) {
+                    cache.put(cacheKey, result);
+                }
+            }
+            if (entityProjection.getPagination() != null && entityProjection.getPagination().returnPageTotals()) {
+                entityProjection.getPagination().setPageTotals(result.getPageTotals());
+            }
+            response = new QueryResponse(HttpStatus.SC_OK, result.getData(), null);
+            return result.getData();
+        } catch (HttpStatusException e) {
+            response = new QueryResponse(e.getStatus(), null, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            response = new QueryResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, null, e.getMessage());
+            throw e;
+        } finally {
+            queryLogger.completeQuery(scope.getRequestId(), response);
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        queryEngineTransaction.close();
+    }
+
     @VisibleForTesting
-    protected Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
+    Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
         Table table = queryEngine.getTable(scope.getDictionary().getJsonAliasFor(entityProjection.getType()));
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
@@ -102,8 +141,6 @@ public abstract class AggregationDataStoreTransaction implements DataStoreTransa
     @Override
     public void cancel(RequestScope scope) {
         queryLogger.cancelQuery(scope.getRequestId());
-        if (queryEngineTransaction != null) {
-            queryEngineTransaction.cancel();
-        }
+        queryEngineTransaction.cancel();
     }
 }

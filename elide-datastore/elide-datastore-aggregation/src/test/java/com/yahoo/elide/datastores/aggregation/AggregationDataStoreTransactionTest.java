@@ -29,7 +29,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
-import com.yahoo.elide.datastores.aggregation.transactions.SQLAggregationDataStoreTransaction;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 
@@ -41,8 +40,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,7 +58,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     private static final Iterable<Object> DATA = Collections.singletonList("xyzzy");
 
     // inject our own query instead of using buildQuery impl
-    private class MyAggregationDataStoreTransaction extends SQLAggregationDataStoreTransaction {
+    private class MyAggregationDataStoreTransaction extends AggregationDataStoreTransaction {
 
         public MyAggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache, QueryLogger queryLogger) {
             super(queryEngine, cache, queryLogger);
@@ -260,7 +257,6 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     }
 
     @Test
-    @MockitoSettings(strictness = Strictness.LENIENT)
     public void aggregationQueryLoggerCancelQueryTest() {
         Mockito.reset(queryLogger);
         AggregationDataStoreTransaction transaction =
