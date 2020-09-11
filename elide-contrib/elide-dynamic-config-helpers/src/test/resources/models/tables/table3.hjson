@@ -8,6 +8,20 @@
       extend: Player
       description: Player Extend
       cardinality: large
+      measures : [
+            {
+            name : highScore
+            type : "INTEGER"
+            override : true
+            definition: '<%measure_type%>(score)'
+            },
+            {
+            name : AvgScore
+            type : "INTEGER"
+            override : false
+            definition: 'AVG(score)'
+            }
+        ]
     }
   ]
 }

@@ -1,5 +1,6 @@
 {
-    tables: [{
+    tables: [
+{
         name: PlayerStats
         table: player_stats
         schema: gamedb
@@ -8,7 +9,7 @@
         A long description
         '''
         cardinality : large
-        readAccess : A user is admin or is a player in the game
+        readAccess : Prefab.Role.All
         joins: [
             {
                 name: playerCountry
@@ -43,5 +44,32 @@
                 }
             }
         ]
-    }]
+    },
+    {
+        name: PlayerStatsExtends
+        extend: PlayerStats
+        description:
+        '''
+        extends Player stats
+        '''
+        cardinality : large
+        readAccess : Prefab.Role.All
+
+        measures : [
+            {
+                name : highScore
+                type : INTEGER
+                override : true
+                definition: 'MAX(score)'
+            },
+            {
+                name : AvgScore
+                type : INTEGER
+                override : false
+                definition: 'AVG(score)'
+            }
+
+        ]
+    }
+    ]
 }

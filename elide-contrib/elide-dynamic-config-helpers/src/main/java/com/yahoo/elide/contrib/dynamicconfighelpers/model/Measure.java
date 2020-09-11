@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
     "description",
     "category",
     "hidden",
+    "override",
     "readAccess",
     "definition",
     "type"
@@ -44,6 +45,9 @@ public class Measure {
 
     @JsonProperty("hidden")
     private Boolean hidden = false;
+
+    @JsonProperty("override")
+    private Boolean override = false;
 
     @JsonProperty("readAccess")
     private String readAccess = "Prefab.Role.All";

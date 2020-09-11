@@ -22,9 +22,11 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -60,6 +62,10 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
     <%#if hidden%>@Exclude<%/if%>
+    <%#if override%>
+    @Getter(onMethod_={@Override})
+    @Setter(onMethod_={@Override})
+    <%/if%>
     @DimensionFormula("<%definition%>")
 <%#ifTypeMatches type "TIME"%>
     private com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>;
@@ -87,6 +93,9 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
     <%#if hidden%>@Exclude<%/if%>
+    <%#if override%>
+    @Getter(onMethod = @__({@Override})) @Setter(onMethod = @__({@Override}))
+    <%/if%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
 
 <%/each%>

@@ -28,6 +28,7 @@ import java.util.Set;
     "description",
     "category",
     "hidden",
+    "override",
     "readAccess",
     "definition",
     "type",
@@ -49,9 +50,11 @@ public class Dimension {
     @JsonProperty("category")
     private String category;
 
-
     @JsonProperty("hidden")
     private Boolean hidden = false;
+
+    @JsonProperty("override")
+    private Boolean override = false;
 
     @JsonProperty("readAccess")
     private String readAccess = "Prefab.Role.All";

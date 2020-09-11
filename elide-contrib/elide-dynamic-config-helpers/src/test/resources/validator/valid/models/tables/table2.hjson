@@ -44,5 +44,33 @@
                 }
             }
         ]
-    }]
+    },
+    {
+        name: PlayerExtends
+        extend: Player
+        description:
+        '''
+        extends Player
+        '''
+        cardinality : large
+        readAccess : Prefab.Role.All
+
+        measures : [
+            {
+                name : highScore
+                type : INTEGER
+                override : true
+                definition: 'MAX(score)'
+            },
+            {
+                name : AvgScore
+                type : INTEGER
+                override : false
+                definition: 'AVG(score)'
+            }
+
+        ]
+    }
+
+    ]
 }

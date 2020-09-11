@@ -112,6 +112,12 @@
           "type": "boolean",
           "default": false
         },
+        "override": {
+          "title": "Measure override status",
+          "description": "Whether this measure is overridden",
+          "type": "boolean",
+          "default": false
+        },
         "readAccess": {
           "title": "Measure read access",
           "description": "Read permission for the metric.",
@@ -163,6 +169,12 @@
         "hidden": {
           "title": "Hide/Show dimension",
           "description": "Whether this dimension is exposed via API metadata",
+          "type": "boolean",
+          "default": false
+        },
+        "override": {
+          "title": "Dimension override status",
+          "description": "Whether this dimension is overridden",
           "type": "boolean",
           "default": false
         },

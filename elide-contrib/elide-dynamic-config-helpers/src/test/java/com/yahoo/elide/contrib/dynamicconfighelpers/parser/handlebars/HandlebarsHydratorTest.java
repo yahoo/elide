@@ -104,9 +104,11 @@ public class HandlebarsHydratorTest {
             + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;\n"
             + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;\n"
             + "\n"
-            + "import lombok.EqualsAndHashCode;\n"
-            + "import lombok.ToString;\n"
             + "import lombok.Data;\n"
+            + "import lombok.EqualsAndHashCode;\n"
+            + "import lombok.Getter;\n"
+            + "import lombok.Setter;\n"
+            + "import lombok.ToString;\n"
             + "\n"
             + "import java.math.BigDecimal;\n"
             + "import java.util.Date;\n"
@@ -137,6 +139,7 @@ public class HandlebarsHydratorTest {
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @Meta(description = \"countryIsoCode\", category=\"country detail\")\n"
             + "    \n"
+            + "    \n"
             + "    @DimensionFormula(\"{{playerCountry.isoCode}}\")\n"
             + "\n"
             + "    private String countryIsoCode;\n"
@@ -152,6 +155,7 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @Meta(description = \"createdOn\")\n"
+            + "    \n"
             + "    \n"
             + "    @DimensionFormula(\"create_on\")\n"
             + "\n"
@@ -182,6 +186,7 @@ public class HandlebarsHydratorTest {
             + "    @MetricFormula(\"MAX(score)\")\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @Meta(description = \"very awesome score\")\n"
+            + "    \n"
             + "    \n"
             + "    private Long highScore;\n"
             + "\n"
@@ -259,7 +264,6 @@ public class HandlebarsHydratorTest {
         testClass.readAndValidateConfigs();
 
         Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
-
         assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
         assertEquals(VALID_TABLE_JAVA, tableClasses.get(VALID_TABLE_JAVA_NAME));
     }
