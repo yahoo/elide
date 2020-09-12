@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import java.io.File;
-
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.ResultStorageEngine;
+
+import java.io.File;
 
 /**
  * interface for configuring the Async configuration of standalone application.

@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.spring.config;
 
-import java.io.File;
-
 import lombok.Data;
+
+import java.io.File;
 
 /**
  * Extra properties for setting up async download support.
