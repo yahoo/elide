@@ -52,7 +52,7 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
 
     private QueryType queryType; //GRAPHQL, JSONAPI
 
-    private ResultFormatType resultFormatType = ResultFormatType.JSONAPI;
+    private ResultFormatType resultFormatType = ResultFormatType.DEFAULT;
 
     @Transient
     @Max(10)

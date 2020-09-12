@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.standalone.config;
 
+import java.io.File;
+
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 
@@ -84,5 +86,23 @@ public interface ElideStandaloneAsyncSettings {
      */
     default ResultStorageEngine getResultStorageEngine() {
         return null;
+    }
+
+    /**
+     * Enable the support for Download API. If false, the download API feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableDownload() {
+        return false;
+    }
+
+    /**
+     * Default storage location for the results.
+     *
+     * @return Default: File.separator + "asyncDownloads"
+     */
+    default String getDownloadStorageLocation() {
+        return File.separator + "asyncDownloads";
     }
 }

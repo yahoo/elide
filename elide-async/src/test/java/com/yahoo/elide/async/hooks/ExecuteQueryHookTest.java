@@ -109,7 +109,7 @@ public class ExecuteQueryHookTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.DOWNLOAD);
-        queryObj.setResultFormatType(ResultFormatType.GRAPHQLAPI);
+        queryObj.setResultFormatType(ResultFormatType.DEFAULT);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
         assertThrows(InvalidValueException.class, () -> {

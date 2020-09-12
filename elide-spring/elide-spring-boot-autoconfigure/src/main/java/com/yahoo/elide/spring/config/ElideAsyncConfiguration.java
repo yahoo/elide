@@ -19,6 +19,7 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.FileResultStorageEngine;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.core.EntityDictionary;
 
@@ -109,7 +110,6 @@ public class ElideAsyncConfiguration {
     @ConditionalOnProperty(prefix = "elide.async.download", name = "enabled", matchIfMissing = false)
     public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
             AsyncQueryDAO asyncQueryDAO) {
-        // TODO: Initialize with FileResultStorageEngine
-        return null;
+        return new FileResultStorageEngine(settings.getAsync().getDownload().getStorageLocation());
     }
 }

@@ -96,7 +96,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                                 if (record != null) {
                                     return record;
                                 }
-                                throw new IllegalStateException("null line found.");
+                                throw new IllegalStateException("null record found.");
                             }
                         };
                     });

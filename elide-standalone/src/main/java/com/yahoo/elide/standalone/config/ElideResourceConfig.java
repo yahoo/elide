@@ -20,6 +20,7 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.FileResultStorageEngine;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
@@ -136,8 +137,10 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
                     bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
-                    // TODO: If null, initialize with FileResultStorageEngine
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
+                    if (resultStorageEngine == null && asyncProperties.enableDownload()) {
+                        resultStorageEngine = new FileResultStorageEngine(asyncProperties.getDownloadStorageLocation());
+                    }
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(),
                             asyncProperties.getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
