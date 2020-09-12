@@ -124,7 +124,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             return queryResultObj;
         }
 
-        recCount = calculateRecords(response, queryType);
+        recCount = calculateRecordCount(response, queryType);
         queryResultObj.setRecordCount(recCount);
 
         if (resultFormatType == ResultFormatType.CSV) {
@@ -151,7 +151,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @return The recordCount
      * @throws IOException Exception thrown by JsonPath
      */
-    protected Integer calculateRecords(ElideResponse response, QueryType queryType)
+    protected Integer calculateRecordCount(ElideResponse response, QueryType queryType)
             throws IOException {
         Integer count = null;
         if (response.getResponseCode() == 200) {
@@ -211,10 +211,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
                             @Override
                             public boolean hasNext() {
-                                record = null;
-                                if (recordIterator.hasNext()) {
-                                    record = Arrays.toString(recordIterator.next());
-                                }
+                                record = recordIterator.hasNext() ? Arrays.toString(recordIterator.next()) : null;
                                 return record != null;
                             }
 
