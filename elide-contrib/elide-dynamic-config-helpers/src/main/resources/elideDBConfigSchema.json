@@ -43,7 +43,7 @@
                         "type": "string",
                         "title": "JDBC URL",
                         "description": "JDBC URL for the database connection i.e. javax.persistence.jdbc.URL",
-                        "pattern": "^jdbc:[0-9A-Za-z_]+:[0-9A-Za-z:/@?&=]+$",
+                        "pattern": "^jdbc:[0-9A-Za-z_]+:.*$",
                         "examples": [
                             "jdbc:mysql://localhost/elide?serverTimezone=UTC"
                         ]
@@ -116,7 +116,7 @@
                     "url": "jdbc:db2://localhost/elide?serverTimezone=UTC&",
                     "driver": "a",
                     "user": "elide",
-                    "dialect": "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDialect",
+                    "dialect": "Presto",
                     "propertyMap": {
                         "hibernate.show_sql": true,
                         "hibernate.default_batch_fetch_size": 100.1,

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.compile;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
@@ -16,6 +17,7 @@ import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mdkt.compiler.InMemoryJavaCompiler;
 
 import lombok.Getter;
@@ -53,9 +55,10 @@ public class ElideDynamicEntityCompiler {
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
+     * @param dbPasswordExtractor : Password Extractor Implementation
      * @throws Exception Exception thrown
      */
-    public ElideDynamicEntityCompiler(String path) throws Exception {
+    public ElideDynamicEntityCompiler(String path, DBPasswordExtractor dbPasswordExtractor) throws Exception {
 
         if (DynamicConfigHelpers.isNullOrEmpty(path)) {
             throw new IllegalArgumentException("Config path is null");
@@ -87,22 +90,37 @@ public class ElideDynamicEntityCompiler {
 
         elideSQLDBConfig.getDbconfigs().forEach(config -> {
             connectionDetailsMap.put(config.getName(),
-                            new ConnectionDetails(getDataSource(config), config.getDialect()));
+                            new ConnectionDetails(getDataSource(config, dbPasswordExtractor), config.getDialect()));
         });
 
     }
 
     /**
+     * Parse dynamic config path and provides default implementation for DB Password Extractor.
+     * @param path : Dynamic config hjsons root location
+     * @throws Exception Exception thrown
+     */
+    public ElideDynamicEntityCompiler(String path) throws Exception {
+        this(path, new DBPasswordExtractor() {
+            @Override
+            public String getDBPassword(DBConfig config) {
+                return StringUtils.EMPTY;
+            }
+        });
+    }
+
+    /**
      * Generates DataSource for provided configuration.
      * @param dbConfig DB Configuration pojo
-     * @return DataSource.
+     * @param dbPasswordExtractor DB Password Extractor Implementation
+     * @return DataSource
      */
-    private DataSource getDataSource(DBConfig dbConfig) {
+    private DataSource getDataSource(DBConfig dbConfig, DBPasswordExtractor dbPasswordExtractor) {
         HikariConfig config = new HikariConfig();
 
         config.setJdbcUrl(dbConfig.getUrl());
         config.setUsername(dbConfig.getUser());
-        config.setPassword(""); // TO DO
+        config.setPassword(dbPasswordExtractor.getDBPassword(dbConfig));
         config.setDriverClassName(dbConfig.getDriver());
         dbConfig.getPropertyMap().forEach((k, v) -> config.addDataSourceProperty(k, v));
 

@@ -48,13 +48,9 @@ import com.yahoo.elide.utils.ClassScanner;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import org.apache.ibatis.jdbc.ScriptRunner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -311,12 +307,10 @@ public abstract class SQLUnitTest {
         config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
         DataSource dataSource = new HikariDataSource(config);
 
-        try (Connection conn = dataSource.getConnection();
-                        Reader reader = new InputStreamReader(
-                                        SQLUnitTest.class.getClassLoader().getResourceAsStream("prepare_tables.sql"))) {
-            ScriptRunner runner = new ScriptRunner(conn);
-            runner.runScript(reader);
-        } catch (SQLException | IOException e) {
+        try (Connection h2Conn = dataSource.getConnection()) {
+            h2Conn.createStatement().execute("RUNSCRIPT FROM 'classpath:prepare_tables.sql'");
+        } catch (SQLException e) {
+            ((HikariDataSource) dataSource).close();
             throw new IllegalStateException(e);
         }
 

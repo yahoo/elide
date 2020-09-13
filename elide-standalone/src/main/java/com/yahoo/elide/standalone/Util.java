@@ -6,9 +6,13 @@
 package com.yahoo.elide.standalone;
 
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
 import com.yahoo.elide.utils.ClassScanner;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
@@ -25,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.spi.PersistenceUnitInfo;
+import javax.sql.DataSource;
 
 /**
  * Util.
@@ -85,6 +90,31 @@ public class Util {
         return new EntityManagerFactoryBuilderImpl(
                 new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>(), classLoader)
                 .build();
+    }
+
+    /**
+     * Extracts {@link DataSource} and {@link SQLDialect} info from Database Connection Properties.
+     * @param options Database Connection Properties.
+     * @return {@link ConnectionDetails}.
+     */
+    public static ConnectionDetails getConnectionDetails(Properties options) {
+
+        // Configure default options for example service
+        if (options.isEmpty()) {
+            options.put("javax.persistence.jdbc.driver", "com.mysql.jdbc.Driver");
+            options.put("javax.persistence.jdbc.url", "jdbc:mysql://localhost/elide?serverTimezone=UTC");
+            options.put("javax.persistence.jdbc.user", "elide");
+            options.put("javax.persistence.jdbc.password", "elide123");
+            options.put("elide.dialect", "MYSQL");
+        }
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(options.getProperty("javax.persistence.jdbc.url"));
+        config.setUsername(options.getProperty("javax.persistence.jdbc.user"));
+        config.setPassword(options.getProperty("javax.persistence.jdbc.password"));
+        config.setDriverClassName(options.getProperty("javax.persistence.jdbc.driver"));
+
+        return new ConnectionDetails(new HikariDataSource(config), options.getProperty("elide.dialect"));
     }
 
     /**

@@ -13,7 +13,9 @@ import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
+import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
@@ -33,6 +35,7 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.security.checks.Check;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -54,6 +57,7 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 
 /**
  * Interface for configuring an ElideStandalone application.
@@ -340,21 +344,35 @@ public interface ElideStandaloneSettings {
 
     /**
      * Gets the dynamic compiler for elide.
-     *
+     * @param dbPasswordExtractor : Password Extractor Implementation
      * @return Optional ElideDynamicEntityCompiler
      */
-    default Optional<ElideDynamicEntityCompiler> getDynamicCompiler() {
+    default Optional<ElideDynamicEntityCompiler> getDynamicCompiler(DBPasswordExtractor dbPasswordExtractor) {
         ElideDynamicEntityCompiler dynamicEntityCompiler = null;
 
         if (enableAggregationDataStore() && enableDynamicModelConfig()) {
             try {
-                dynamicEntityCompiler = new ElideDynamicEntityCompiler(getDynamicConfigPath());
+                dynamicEntityCompiler = new ElideDynamicEntityCompiler(getDynamicConfigPath(), dbPasswordExtractor);
             } catch (Exception e) { // thrown by in memory compiler
                 throw new IllegalStateException(e);
             }
         }
 
         return Optional.ofNullable(dynamicEntityCompiler);
+    }
+
+    /**
+     * Gets the Password Extractor Implementation
+     *
+     * @return DBPasswordExtractor
+     */
+    default DBPasswordExtractor getDBPasswordExtractor() {
+        return new DBPasswordExtractor() {
+            @Override
+            public String getDBPassword(DBConfig config) {
+                return StringUtils.EMPTY;
+            }
+        };
     }
 
     /**
@@ -462,11 +480,18 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the QueryEngine for elide.
      * @param metaDataStore MetaDataStore object.
-     * @param entityManagerFactory EntityManagerFactory object.
+     * @param defaultDataSource DataSource object.
+     * @param defaultDialect SQL Dialect Type (or Class Name).
+     * @param optionalCompiler Optional dynamic compiler object.
      * @return QueryEngine object initialized.
      */
-    default QueryEngine getQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory entityManagerFactory) {
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, TXCANCEL);
+    default QueryEngine getQueryEngine(MetaDataStore metaDataStore, DataSource defaultDataSource, String defaultDialect,
+                    Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+        if (optionalCompiler.isPresent()) {
+            return new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect,
+                            optionalCompiler.get().getConnectionDetailsMap());
+        }
+        return new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,
