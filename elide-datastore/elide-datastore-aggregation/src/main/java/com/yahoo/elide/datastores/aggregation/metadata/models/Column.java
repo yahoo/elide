@@ -17,6 +17,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import lombok.EqualsAndHashCode;
@@ -57,7 +58,11 @@ public abstract class Column {
 
     private final String expression;
 
+    private final ValueSourceType valueSourceType;
+
     private final Set<String> values;
+
+    private final String tableSource;
 
     @ToString.Exclude
     private final Set<String> columnTags;
@@ -81,7 +86,10 @@ public abstract class Column {
             this.values = null;
         }
 
-        valueType = getValueType(tableClass, fieldName, dictionary);
+        this.tableSource = getTablesSource(meta, name, fieldName);
+        this.valueType = getValueType(tableClass, fieldName, dictionary);
+        this.valueSourceType = getValueSourceType();
+
         if (valueType == null) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
@@ -139,5 +147,22 @@ public abstract class Column {
                 return ValueType.getScalarType(fieldClass);
             }
         }
+    }
+
+    private static String getTablesSource(ColumnMeta meta, String tableName, String fieldName){
+        if (meta == null || meta.tableSource() == null || meta.tableSource().isEmpty()) {
+            return tableName + "." + fieldName;
+        }
+
+        return meta.tableSource();
+    }
+
+    private ValueSourceType getValueSourceType() {
+        if (values != null && !values.isEmpty()) {
+            return ValueSourceType.ENUM;
+        } else if (tableSource != null && !tableSource.isEmpty()) {
+            return ValueSourceType.TABLE;
+        }
+        return ValueSourceType.NONE;
     }
 }

@@ -21,5 +21,6 @@ public @interface ColumnMeta {
 
     String description() default "";
     String category() default "";
+    String tableSource() default "";
     String [] values() default {};
 }

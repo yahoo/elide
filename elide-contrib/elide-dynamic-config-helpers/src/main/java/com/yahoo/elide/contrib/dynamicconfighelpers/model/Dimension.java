@@ -33,7 +33,8 @@ import java.util.Set;
     "type",
     "grain",
     "tags",
-    "values"
+    "values",
+    "tableSource"
 })
 @Data
 @EqualsAndHashCode()
@@ -73,6 +74,9 @@ public class Dimension {
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> values = new LinkedHashSet<String>();
+
+    @JsonProperty("tableSource")
+    private String tableSource = "";
 
     /**
      * Returns description of the dimension.
