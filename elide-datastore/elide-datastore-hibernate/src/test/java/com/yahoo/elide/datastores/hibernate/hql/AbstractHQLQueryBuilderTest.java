@@ -108,9 +108,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     public void testFetchJoinClause() {
         String actual = extractToOneMergeJoins(Left.class, "right_alias");
 
-        String expected = " LEFT JOIN FETCH right_alias.noDeleteOne2One  "
-                + "LEFT JOIN FETCH right_alias.noUpdateOne2One  "
-                + "LEFT JOIN FETCH right_alias.one2one ";
+        String expected = " LEFT JOIN FETCH right_alias.noDeleteOne2One right_alias_noDeleteOne2One  "
+                + "LEFT JOIN FETCH right_alias.noUpdateOne2One right_alias_noUpdateOne2One  "
+                + "LEFT JOIN FETCH right_alias.one2one right_alias_one2one ";
         assertEquals(expected, actual);
     }
 
