@@ -156,6 +156,7 @@ public class PlayerStats {
 
     @FriendlyName
     @Cardinality(size = CardinalitySize.MEDIUM)
+    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"})
     public String getOverallRating() {
         return overallRating;
     }
@@ -174,6 +175,9 @@ public class PlayerStats {
     }
 
     @JoinTo(path = "country.nickName")
+    @ColumnMeta(
+            tableSource = "subcountry.nickName"
+    )
     public String getCountryNickName() {
         return countryNickName;
     }

@@ -86,14 +86,6 @@ public abstract class Column {
             this.values = null;
         }
 
-        this.tableSource = getTablesSource(meta, name, fieldName);
-        this.valueType = getValueType(tableClass, fieldName, dictionary);
-        this.valueSourceType = getValueSourceType();
-
-        if (valueType == null) {
-            throw new IllegalArgumentException("Unknown data type for " + this.id);
-        }
-
         if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricFormula.class)) {
             columnType = FORMULA;
             expression = dictionary
@@ -110,6 +102,14 @@ public abstract class Column {
         } else {
             columnType = FIELD;
             expression = dictionary.getAnnotatedColumnName(tableClass, fieldName);
+        }
+
+        this.tableSource = getTableSource(meta, this);
+        this.valueType = getValueType(tableClass, fieldName, dictionary);
+        this.valueSourceType = getValueSourceType();
+
+        if (valueType == null) {
+            throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
     }
 
@@ -149,12 +149,20 @@ public abstract class Column {
         }
     }
 
-    private static String getTablesSource(ColumnMeta meta, String tableName, String fieldName){
-        if (meta == null || meta.tableSource() == null || meta.tableSource().isEmpty()) {
-            return tableName + "." + fieldName;
+    private static String getTableSource(ColumnMeta meta, Column column) {
+        if (meta != null) {
+            if (meta.tableSource() != null && !meta.tableSource().isEmpty()) {
+                return meta.tableSource();
+            } else if (meta.values() != null && meta.values().length > 0) {
+                return null;
+            }
         }
 
-        return meta.tableSource();
+        if (column.getColumnType() == REFERENCE) {
+            return column.getExpression();
+        }
+
+        return null;
     }
 
     private ValueSourceType getValueSourceType() {

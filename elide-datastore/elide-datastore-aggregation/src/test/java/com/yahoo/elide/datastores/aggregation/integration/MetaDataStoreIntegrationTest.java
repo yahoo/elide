@@ -10,6 +10,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.nullValue;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -19,6 +20,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TableIdSerde;
 import com.yahoo.elide.initialization.IntegrationTest;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import javax.persistence.Persistence;
 
 public class MetaDataStoreIntegrationTest extends IntegrationTest {
@@ -83,18 +85,52 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.name", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
                 .body("data.attributes.columnType",  equalTo("REFERENCE"))
+                .body("data.attributes.valueSourceType",  equalTo("TABLE"))
                 .body("data.attributes.expression",  equalTo("player.name"))
+                .body("data.attributes.tableSource",  equalTo("player.name"))
                 .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")));
     }
 
     @Test
-    public void dimensionValuesTest() {
+    public void dimensionValuesOnReferenceTest() {
 
         given()
                 .accept("application/vnd.api+json")
                 .get("/dimension/playerStats.countryIsoCode")
                 .then()
                 .body("data.attributes.values", hasItems("US", "HK"))
+                .body("data.attributes.valueSourceType", equalTo("ENUM"))
+                .body("data.attributes.tableSource", nullValue())
+                .body("data.attributes.columnType", equalTo("REFERENCE"))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void dimensionValuesOnFieldTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/dimension/playerStats.overallRating")
+                .then()
+                .body("data.attributes.values", hasItems("GOOD", "OK", "TERRIBLE"))
+                .body("data.attributes.valueSourceType", equalTo("ENUM"))
+                .body("data.attributes.tableSource", nullValue())
+                .body("data.attributes.columnType", equalTo("FIELD"))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void dimensionTableSourceOverrideTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/dimension/playerStats.countryNickName")
+                .then()
+                .body("data.attributes.valueSourceType", equalTo("TABLE"))
+                .body("data.attributes.columnType", equalTo("REFERENCE"))
+                .body("data.attributes.tableSource",  equalTo("subcountry.nickName"))
+                .body("data.attributes.expression",  equalTo("country.nickName"))
+                .body("data.attributes.values", equalTo(Collections.emptyList()))
                 .statusCode(HttpStatus.SC_OK);
     }
 
