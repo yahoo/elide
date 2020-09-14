@@ -94,7 +94,8 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
     <%#if hidden%>@Exclude<%/if%>
     <%#if override%>
-    @Getter(onMethod = @__({@Override})) @Setter(onMethod = @__({@Override}))
+    @Getter(onMethod_={@Override})
+    @Setter(onMethod_={@Override})
     <%/if%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
 

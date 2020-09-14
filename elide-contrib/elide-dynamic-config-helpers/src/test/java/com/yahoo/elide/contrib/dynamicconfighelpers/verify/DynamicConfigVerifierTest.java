@@ -40,7 +40,7 @@ public class DynamicConfigVerifierTest {
     private static KeyPair kp;
     private static String signature;
     private static String tarContent = null;
-    private static final String TAR_FILE_PATH = "src/test/resources/configs.tar.gz";
+    private static final String TAR_FILE_PATH = "src/test/resources/models.tar.gz";
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -111,7 +111,7 @@ public class DynamicConfigVerifierTest {
     private static void createTarGZ() throws FileNotFoundException, IOException {
         TarArchiveOutputStream tarOutputStream = null;
         try {
-            String configPath  = "src/test/resources/configs/";
+            String configPath  = "src/test/resources/models/";
             tarOutputStream = new TarArchiveOutputStream(new GzipCompressorOutputStream(
                     new BufferedOutputStream(new FileOutputStream(new File(TAR_FILE_PATH)))));
             addFileToTarGz(tarOutputStream, configPath, "");
