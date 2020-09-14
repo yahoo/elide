@@ -41,6 +41,8 @@
            type : TEXT
            category : country detail
            definition : '{{playerCountry.isoCode}}'
+           values : ['US', 'HK']
+           tableSource : 'playerCountry.isoCode'
          }
          {
            name : createdOn
