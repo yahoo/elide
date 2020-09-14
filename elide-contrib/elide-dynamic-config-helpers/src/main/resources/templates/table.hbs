@@ -59,7 +59,12 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/ifTypeMatches%>
 
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-    <%#if category%>@ColumnMeta(description = "<%description%>", category="<%category%>", values={<%#collectionToString values%><%/collectionToString%>})<%else%>@ColumnMeta(description = "<%description%>", values={<%#collectionToString values%><%/collectionToString%>})<%/if%>
+    @ColumnMeta(
+        description = "<%description%>",
+        category="<%category%>",
+        values={<%#collectionToString values%><%/collectionToString%>},
+        tableSource="<%tableSource%>"
+    )
     <%#if hidden%>@Exclude<%/if%>
     @DimensionFormula("<%definition%>")
 <%#ifTypeMatches type "TIME"%>
@@ -86,7 +91,10 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 
     @MetricFormula("<%definition%>")
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-    <%#if category%>@ColumnMeta(description = "<%description%>", category="<%category%>")<%else%>@ColumnMeta(description = "<%description%>")<%/if%>
+    @ColumnMeta(
+        description = "<%description%>",
+        category="<%category%>"
+    )
     <%#if hidden%>@Exclude<%/if%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
 

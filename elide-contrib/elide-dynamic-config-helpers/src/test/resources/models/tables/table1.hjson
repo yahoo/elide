@@ -41,7 +41,8 @@
            type : TEXT
            category : country detail
            definition : '{{playerCountry.isoCode}}'
-         }
+           values : ['US', 'HK']
+         },
          {
            name : createdOn
            type : TIME
