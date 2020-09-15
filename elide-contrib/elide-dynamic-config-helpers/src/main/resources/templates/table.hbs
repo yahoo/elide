@@ -43,7 +43,12 @@ import javax.persistence.Id;
 <%else if sql%>@FromSubquery(sql = "<%sql%>", dbConnectionName = "<%dbConnectionName%>")
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-<%#if category%>@TableMeta(description = "<%description%>", category="<%category%>", filterTemplate="<%filterTemplate%>")<%else%>@TableMeta(description = "<%description%>", filterTemplate="<%filterTemplate%>")<%/if%>
+@TableMeta(
+    description = "<%description%>",
+    category="<%category%>",
+    tags={<%#collectionToString tags%><%/collectionToString%>},
+    filterTemplate="<%filterTemplate%>"
+)
 <%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 
@@ -63,6 +68,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
         description = "<%description%>",
         category="<%category%>",
         values={<%#collectionToString values%><%/collectionToString%>},
+        tags={<%#collectionToString tags%><%/collectionToString%>},
         tableSource="<%tableSource%>"
     )
     <%#if hidden%>@Exclude<%/if%>
@@ -93,7 +99,8 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
         description = "<%description%>",
-        category="<%category%>"
+        category="<%category%>",
+        tags={<%#collectionToString tags%><%/collectionToString%>}
     )
     <%#if hidden%>@Exclude<%/if%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;

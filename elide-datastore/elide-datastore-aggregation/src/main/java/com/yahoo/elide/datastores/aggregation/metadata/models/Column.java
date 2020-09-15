@@ -65,7 +65,7 @@ public abstract class Column {
     private final String tableSource;
 
     @ToString.Exclude
-    private final Set<String> columnTags;
+    private final Set<String> tags;
 
     protected Column(Table table, String fieldName, EntityDictionary dictionary) {
         this.table = table;
@@ -73,17 +73,18 @@ public abstract class Column {
 
         this.id = constructColumnName(tableClass, fieldName, dictionary);
         this.name = fieldName;
-        this.columnTags = new HashSet<>();
 
         ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, ColumnMeta.class, fieldName);
         if (meta != null) {
             this.description = meta.description();
             this.category = meta.category();
             this.values = new HashSet<>(Arrays.asList(meta.values()));
+            this.tags = new HashSet<>(Arrays.asList(meta.tags()));
         } else {
             this.description = null;
             this.category = null;
             this.values = null;
+            this.tags = new HashSet<>();
         }
 
         if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricFormula.class)) {

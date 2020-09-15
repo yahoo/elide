@@ -22,6 +22,8 @@ public @interface TableMeta {
     String description() default "";
     String category() default "";
 
+    String [] tags() default {};
+
     /**
      * Whether or not querying this table requires a client provided filter.
      * @return The required filter template.

@@ -61,6 +61,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("LARGE"))
                 .body("data.attributes.category", equalTo("Sports Category"))
+                .body("data.attributes.tags", hasItems("Statistics", "Game"))
                 .body(
                         "data.relationships.dimensions.data.id",
                         hasItems(
@@ -120,6 +121,17 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    public void dimensionTagsTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/dimension/playerStats.overallRating")
+                .then()
+                .body("data.attributes.tags", hasItems("PUBLIC"))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
     public void dimensionTableSourceOverrideTest() {
 
         given()
@@ -168,6 +180,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.expression",  equalTo("lowScore"))
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
+                .body("data.attributes.tags",  hasItems("PRIVATE"))
                 .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
                 .body("included.id", hasItem("playerStats.lowScore[min]"))

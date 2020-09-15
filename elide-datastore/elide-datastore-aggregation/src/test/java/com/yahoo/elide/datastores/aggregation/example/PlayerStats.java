@@ -40,7 +40,7 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
-@TableMeta(description = "Player Statistics", category = "Sports Category")
+@TableMeta(description = "Player Statistics", category = "Sports Category", tags = {"Game", "Statistics"})
 public class PlayerStats {
 
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
@@ -145,7 +145,7 @@ public class PlayerStats {
     }
 
     @MetricAggregation(function = SqlMin.class)
-    @ColumnMeta(description = "very low score", category = "Score Category")
+    @ColumnMeta(description = "very low score", category = "Score Category", tags = {"PRIVATE"})
     public long getLowScore() {
         return lowScore;
     }
@@ -156,7 +156,7 @@ public class PlayerStats {
 
     @FriendlyName
     @Cardinality(size = CardinalitySize.MEDIUM)
-    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"})
+    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"}, tags = {"PUBLIC"})
     public String getOverallRating() {
         return overallRating;
     }

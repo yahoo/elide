@@ -12,6 +12,7 @@
       hidden : false
       readAccess : A user is admin or is a player in the game
       filterTemplate : countryIsoCode=={{code}}
+      tags: ['GAME', 'PLAYER']
       joins: [
           {
              name: playerCountry
@@ -33,6 +34,7 @@
           type : INTEGER
           description : very awesome score
           definition: 'MAX(score)'
+          tags: ['PUBLIC']
           }
       ]
       dimensions : [
@@ -42,6 +44,7 @@
            category : country detail
            definition : '{{playerCountry.isoCode}}'
            values : ['US', 'HK']
+           tags: ['PRIVATE']
          },
          {
            name : createdOn
