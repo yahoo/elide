@@ -32,8 +32,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 import example.models.Post;
 import org.apache.http.HttpStatus;
@@ -44,13 +42,10 @@ import org.junit.jupiter.api.TestInstance;
 
 import io.restassured.response.Response;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.sql.Connection;
 import java.util.Base64;
 import java.util.Properties;
 
-import javax.sql.DataSource;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -62,15 +57,6 @@ public class ElideStandaloneTest {
 
     @BeforeAll
     public void init() throws Exception {
-
-        // Prepare data for Read Only Aggregation Data Store
-        HikariConfig config = new HikariConfig(File.separator + "SalesDBConnection.properties");
-        DataSource dataSource = new HikariDataSource(config);
-        try (Connection h2Conn = dataSource.getConnection()) {
-            h2Conn.createStatement().execute("RUNSCRIPT FROM 'classpath:prepare_SalesDB_tables.sql'");
-        } finally {
-            ((HikariDataSource) dataSource).close();
-        }
 
         elide = new ElideStandalone(new ElideStandaloneSettings() {
 
@@ -213,8 +199,11 @@ public class ElideStandaloneTest {
             .body("data.attributes.content", hasItems("This is my first post. woot."));
     }
 
+    /**
+     * This test demonstrates an example test using the aggregation store from dynamic configuration.
+     */
     @Test
-    private void testDynamicAggregationModel() {
+    public void testDynamicAggregationModel() {
         String getPath = "/api/v1/orderDetails?sort=customerRegion,orderMonth&"
                         + "fields[orderDetails]=orderTotal,customerRegion,orderMonth&filter=orderMonth>=2020-08";
         given()

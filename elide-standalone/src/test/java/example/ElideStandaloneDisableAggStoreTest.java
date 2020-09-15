@@ -156,4 +156,11 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
         .statusCode(HttpStatus.SC_CREATED)
         .extract().body().asString();
     }
+
+    /*
+     * Skipping this test as Aggregation Store is disabled.
+     */
+    @Override
+    public void testDynamicAggregationModel() {
+    }
 }

@@ -362,9 +362,9 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Gets the Password Extractor Implementation
+     * Creates the default Password Extractor Implementation.
      *
-     * @return DBPasswordExtractor
+     * @return An instance of DBPasswordExtractor.
      */
     default DBPasswordExtractor getDBPasswordExtractor() {
         return new DBPasswordExtractor() {

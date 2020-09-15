@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
@@ -207,17 +206,8 @@ public class SQLQueryEngine extends QueryEngine {
         SqlTransaction sqlTransaction = (SqlTransaction) transaction;
 
         String connectionName = query.getTable().getDbConnectionName();
-        DataSource dataSource;
-        SQLDialect dialect;
-        if (connectionName == null || connectionName.trim().isEmpty()) {
-            dataSource = defaultDataSource;
-            dialect = defaultDialect;
-        } else {
-            dataSource = Optional.ofNullable(dataSourceMap.get(connectionName))
-                            .orElseThrow(undefinedConnectionException(connectionName));
-            dialect = Optional.ofNullable(dialectMap.get(connectionName))
-                            .orElseThrow(undefinedConnectionException(connectionName));
-        }
+        DataSource dataSource = getDataSource(connectionName);
+        SQLDialect dialect = getSQLDialect(connectionName);
         sqlTransaction.initializeTransaction(dataSource, dialect);
 
         // Translate the query into SQL.
@@ -276,6 +266,8 @@ public class SQLQueryEngine extends QueryEngine {
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();
+            String connectionName = table.getDbConnectionName();
+            sqlTransaction.initializeTransaction(getDataSource(connectionName), getSQLDialect(connectionName));
             NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(versionQueryString);
             tableVersion = CoerceUtil.coerce(runQuery(stmt, versionQueryString, SINGLE_RESULT_MAPPER), String.class);
         }
@@ -294,10 +286,6 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }, "Running Query: " + queryString
         ).get();
-    }
-
-    private Supplier<IllegalStateException> undefinedConnectionException(String str) {
-        return () -> new IllegalStateException("DataSource or Dialect undefined for DB Connection Name: " + str);
     }
 
     /**
@@ -325,15 +313,8 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     public List<String> explain(Query query) {
-        SQLDialect dialect;
         String connectionName = query.getTable().getDbConnectionName();
-        if (connectionName == null || connectionName.trim().isEmpty()) {
-            dialect = defaultDialect;
-        } else {
-            dialect = Optional.ofNullable(dialectMap.get(connectionName))
-                            .orElseThrow(undefinedConnectionException(connectionName));
-        }
-        return explain(query, dialect);
+        return explain(query, getSQLDialect(connectionName));
     }
 
     /**
@@ -462,6 +443,34 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return getTypeAlias(entityClass);
+    }
+
+    /**
+     * Gets required DataSource.
+     * @param connectionName Connection Name.
+     * @return DataSource DataSource Object for this connection.
+     */
+    private DataSource getDataSource(String connectionName) {
+        if (connectionName == null || connectionName.trim().isEmpty()) {
+            return defaultDataSource;
+        } else {
+            return Optional.ofNullable(dataSourceMap.get(connectionName)).orElseThrow(() -> new IllegalStateException(
+                            "DataSource undefined for DB Connection Name: " + connectionName));
+        }
+    }
+
+    /**
+     * Gets required SQLDialect.
+     * @param connectionName Connection Name.
+     * @return SQLDialect SQLDialect Object for this connection.
+     */
+    private SQLDialect getSQLDialect(String connectionName) {
+        if (connectionName == null || connectionName.trim().isEmpty()) {
+            return defaultDialect;
+        } else {
+            return Optional.ofNullable(dialectMap.get(connectionName)).orElseThrow(() -> new IllegalStateException(
+                            "DataSource undefined for DB Connection Name: " + connectionName));
+        }
     }
 
     /**

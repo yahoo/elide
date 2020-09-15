@@ -41,3 +41,4 @@ spring:
     username: 'sa'
     password: ''
     driver-class-name: 'org.h2.Driver'
+  dialect: h2

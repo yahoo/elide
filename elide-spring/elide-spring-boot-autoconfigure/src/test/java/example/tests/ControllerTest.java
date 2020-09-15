@@ -52,7 +52,7 @@ import javax.ws.rs.core.MediaType;
                 + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
         statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
-@Import(IntegrationTestSetup.class)
+@Import({ IntegrationTestSetup.class, DBPasswordExtractorSetup.class })
 public class ControllerTest extends IntegrationTest {
     private String baseUrl;
 
@@ -406,7 +406,7 @@ public class ControllerTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "functionArgument", "metric",
                         "metricFunction", "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats"));
+                        "stats", "customerDetails", "orderDetails"));
     }
 
     @Test

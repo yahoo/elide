@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.core.HttpStatus;
 
 import org.junit.jupiter.api.Test;
-
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
@@ -39,6 +39,7 @@ import javax.ws.rs.core.MediaType;
                 + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
         statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
+@Import(DBPasswordExtractorSetup.class)
 public class AsyncTest extends IntegrationTest {
 
     @Test
