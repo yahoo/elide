@@ -29,8 +29,7 @@ import java.util.Set;
     "hidden",
     "readAccess",
     "definition",
-    "type",
-    "values"
+    "type"
 })
 @Data
 @EqualsAndHashCode()
@@ -58,10 +57,6 @@ public class Measure {
 
     @JsonProperty("type")
     private Type type = Type.INTEGER;
-
-    @JsonProperty("values")
-    @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> values = new LinkedHashSet<String>();
 
     /**
      * Returns description of the measure.
