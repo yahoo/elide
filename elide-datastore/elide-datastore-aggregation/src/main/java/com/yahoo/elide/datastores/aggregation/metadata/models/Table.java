@@ -16,7 +16,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
@@ -80,7 +80,7 @@ public class Table {
     private final Set<TimeDimension> timeDimensions;
 
     @ToString.Exclude
-    private final Set<String> tableTags;
+    private final Set<String> tags;
 
     @Exclude
     @ToString.Exclude
@@ -107,8 +107,6 @@ public class Table {
 
         this.id = new TableId(this.name, this.version, dbConnectionName);
 
-        this.tableTags = new HashSet<>();
-
         this.columns = constructColumns(cls, dictionary);
         this.columnMap = this.columns.stream().collect(Collectors.toMap(Column::getName, Function.identity()));
 
@@ -125,16 +123,18 @@ public class Table {
                 .map(TimeDimension.class::cast)
                 .collect(Collectors.toSet());
 
-        Meta meta = cls.getAnnotation(Meta.class);
+        TableMeta meta = cls.getAnnotation(TableMeta.class);
 
         if (meta != null) {
             this.description = meta.description();
             this.category = meta.category();
             this.requiredFilter = meta.filterTemplate();
+            this.tags = new HashSet<>(Arrays.asList(meta.tags()));
         } else {
             this.description = null;
             this.category = null;
             this.requiredFilter = null;
+            this.tags = new HashSet<>();
         }
 
         Cardinality cardinality = dictionary.getAnnotation(cls, Cardinality.class);

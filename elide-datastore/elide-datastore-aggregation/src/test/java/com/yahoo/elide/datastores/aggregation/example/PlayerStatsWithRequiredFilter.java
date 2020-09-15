@@ -8,13 +8,14 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -40,7 +41,7 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
-@Meta(
+@TableMeta(
         description = "Player Statistics",
         category = "Sports Category",
         filterTemplate = PlayerStatsWithRequiredFilter.FILTER_TEMPLATE
@@ -130,7 +131,7 @@ public class PlayerStatsWithRequiredFilter {
     }
 
     @MetricAggregation(function = SqlMax.class)
-    @Meta(description = "very awesome score", category = "Score Category")
+    @ColumnMeta(description = "very awesome score", category = "Score Category")
     public long getHighScore() {
         return highScore;
     }
@@ -140,7 +141,7 @@ public class PlayerStatsWithRequiredFilter {
     }
 
     @MetricFormula(value = "highScore")
-    @Meta(description = "highScore with no aggregation")
+    @ColumnMeta(description = "highScore with no aggregation")
     public long getHighScoreNoAgg() {
         return highScore;
     }
@@ -149,7 +150,7 @@ public class PlayerStatsWithRequiredFilter {
     }
 
     @MetricAggregation(function = SqlMin.class)
-    @Meta(description = "very low score", category = "Score Category")
+    @ColumnMeta(description = "very low score", category = "Score Category")
     public long getLowScore() {
         return lowScore;
     }
