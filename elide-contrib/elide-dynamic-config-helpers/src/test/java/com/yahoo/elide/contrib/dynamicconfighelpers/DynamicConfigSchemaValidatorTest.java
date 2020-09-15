@@ -25,13 +25,13 @@ public class DynamicConfigSchemaValidatorTest {
 
     @Test
     public void testValidSecuritySchemas() throws Exception {
-        String jsonConfig = loadHjsonFromClassPath("/schema_validation/security_valid.hjson");
+        String jsonConfig = loadHjsonFromClassPath("/validator/valid/models/security.hjson");
         assertTrue(testClass.verifySchema(Config.SECURITY, jsonConfig));
     }
 
     @Test
     public void testInvalidSecuritySchema() throws Exception {
-        String jsonConfig = loadHjsonFromClassPath("/schema_validation/security_invalid.hjson");
+        String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/security_invalid.hjson");
         Exception e = assertThrows(ProcessingException.class,
                 () -> testClass.verifySchema(Config.SECURITY, jsonConfig));
         assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
@@ -39,13 +39,13 @@ public class DynamicConfigSchemaValidatorTest {
 
     @Test
     public void testValidVariableSchema() throws Exception {
-        String jsonConfig = loadHjsonFromClassPath("/schema_validation/variables_valid.hjson");
+        String jsonConfig = loadHjsonFromClassPath("/validator/valid/models/variables.hjson");
         assertTrue(testClass.verifySchema(Config.MODELVARIABLE, jsonConfig));
     }
 
     @Test
     public void testInvalidVariableSchema() throws Exception {
-        String jsonConfig = loadHjsonFromClassPath("/schema_validation/variables_invalid.hjson");
+        String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/variables_invalid.hjson");
         Exception e = assertThrows(ProcessingException.class,
                 () -> testClass.verifySchema(Config.MODELVARIABLE, jsonConfig));
         assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
@@ -55,8 +55,9 @@ public class DynamicConfigSchemaValidatorTest {
     @DisplayName("Valid Table config")
     @ParameterizedTest
     @ValueSource(strings = {
-            "/schema_validation/table_valid.hjson",
-            "/schema_validation/table_valid_extends.hjson"})
+            "/validator/valid/models/tables/table1.hjson",
+            "/validator/valid/models/tables/table2.hjson",
+            "/validator/valid/models/tables/table3.hjson"})
     public void testValidTableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
         assertTrue(testClass.verifySchema(Config.TABLE, jsonConfig));
@@ -64,7 +65,7 @@ public class DynamicConfigSchemaValidatorTest {
 
     @Test
     public void testInvalidTableSchema() throws Exception {
-        String jsonConfig = loadHjsonFromClassPath("/schema_validation/table_invalid.hjson");
+        String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/table_invalid.hjson");
         Exception e = assertThrows(ProcessingException.class,
                 () -> testClass.verifySchema(Config.TABLE, jsonConfig));
         assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
@@ -74,8 +75,8 @@ public class DynamicConfigSchemaValidatorTest {
     @DisplayName("Valid DB config")
     @ParameterizedTest
     @ValueSource(strings = {
-            "/schema_validation/multiple_db_valid.hjson",
-            "/schema_validation/db_valid.hjson"})
+            "/validator/valid/db/sql/multiple_db.hjson",
+            "/validator/valid/db/sql/single_db.hjson"})
     public void testValidDbSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
         assertTrue(testClass.verifySchema(Config.SQLDBConfig, jsonConfig));
@@ -83,7 +84,7 @@ public class DynamicConfigSchemaValidatorTest {
 
     @Test
     public void testInvalidDbSchema() throws Exception {
-        String jsonConfig = loadHjsonFromClassPath("/schema_validation/db_invalid.hjson");
+        String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/db_invalid.hjson");
         Exception e = assertThrows(ProcessingException.class,
                 () -> testClass.verifySchema(Config.SQLDBConfig, jsonConfig));
         assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));

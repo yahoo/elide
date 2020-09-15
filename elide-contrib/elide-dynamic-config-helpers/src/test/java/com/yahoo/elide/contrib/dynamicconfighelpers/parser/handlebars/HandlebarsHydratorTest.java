@@ -9,7 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +20,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class HandlebarsHydratorTest {
+
+    private static final String CONFIG_PATH = "src/test/resources/validator/valid";
 
     private static final String VALID_TABLE_WITH_VARIABLES = "{\n"
             + "  tables: [{\n"
@@ -79,6 +85,89 @@ public class HandlebarsHydratorTest {
             + "}\n";
 
     private static final String VALID_TABLE_JAVA_NAME = "PlayerStats";
+
+    private static final String VALID_CHILD_TABLE_JAVA_NAME = "PlayerExtend";
+
+    private static final String VALID_CHILD_TABLE_JAVA = "/*\n"
+            + " * Copyright 2020, Yahoo Inc.\n"
+            + " * Licensed under the Apache License, Version 2.0\n"
+            + " * See LICENSE file in project root for terms.\n"
+            + " */\n"
+            + "package dynamicconfig.models;\n"
+            + "\n"
+            + "import com.yahoo.elide.annotation.DeletePermission;\n"
+            + "import com.yahoo.elide.annotation.Include;\n"
+            + "import com.yahoo.elide.annotation.Exclude;\n"
+            + "import com.yahoo.elide.annotation.ReadPermission;\n"
+            + "import com.yahoo.elide.annotation.UpdatePermission;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.Join;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.Meta;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.Temporal;\n"
+            + "import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;\n"
+            + "import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;\n"
+            + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;\n"
+            + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;\n"
+            + "\n"
+            + "import lombok.Data;\n"
+            + "import lombok.EqualsAndHashCode;\n"
+            + "import lombok.Getter;\n"
+            + "import lombok.Setter;\n"
+            + "import lombok.ToString;\n"
+            + "\n"
+            + "import java.math.BigDecimal;\n"
+            + "import java.util.Date;\n"
+            + "import javax.persistence.Column;\n"
+            + "import javax.persistence.Id;\n"
+            + "\n"
+            + "/**\n"
+            + " * A root level entity for testing AggregationDataStore.\n"
+            + " */\n"
+            + "@Cardinality(size = CardinalitySize.LARGE)\n"
+            + "@EqualsAndHashCode\n"
+            + "@ToString\n"
+            + "@Data\n"
+            + "@FromTable(name = \"playerdb.player\", dbConnectionName = \"\")\n"
+            + "\n"
+            + "@ReadPermission(expression = \"Prefab.Role.All\")\n"
+            + "@Meta(description = \"Player Extend\")\n"
+            + "@Include(rootLevel = true, type = \"playerExtend\")\n"
+            + "public class PlayerExtend extends Player{\n"
+            + "\n"
+            + "    @Id\n"
+            + "    private String id;\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "    @MetricFormula(\"MAX(score)\")\n"
+            + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
+            + "    @Meta(description = \"highScore\")\n"
+            + "\n"
+            + "\n"
+            + "    @Getter(onMethod_={@Override})\n"
+            + "    @Setter(onMethod_={@Override})\n"
+            + "\n"
+            + "    private Long highScore;\n"
+            + "\n"
+            + "\n"
+            + "\n"
+            + "    @MetricFormula(\"AVG(score)\")\n"
+            + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
+            + "    @Meta(description = \"AvgScore\")\n"
+            + "\n"
+            + "\n"
+            + "    private Long AvgScore;\n"
+            + "\n"
+            + "\n"
+            + "}";
 
     private static final String VALID_TABLE_JAVA = "/*\n"
             + " * Copyright 2020, Yahoo Inc.\n"
@@ -193,7 +282,6 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "}\n";
 
-
     private static final String VALID_SECURITY_ADMIN_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsAdmin";
     private static final String VALID_SECURITY_GUEST_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsGuest";
 
@@ -235,48 +323,46 @@ public class HandlebarsHydratorTest {
             + "    }\n"
             + "}\n";
 
+    private DynamicConfigValidator testClass;
+    private HandlebarsHydrator hydrator;
+
+    @BeforeAll
+    public void setup() throws IOException {
+        hydrator = new HandlebarsHydrator();
+        testClass = new DynamicConfigValidator(CONFIG_PATH);
+        testClass.readAndValidateConfigs();
+    }
+
     @Test
     public void testConfigHydration() throws IOException {
-
-        HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources";
-        File file = new File(path);
-        String absolutePath = file.getAbsolutePath();
-        String hjsonPath = absolutePath + "/models/tables/table1.hjson";
-
-        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
-        testClass.readAndValidateConfigs();
-
-        Map<String, Object> map = testClass.getModelVariables();
-
+        File file = new File(CONFIG_PATH);
+        String hjsonPath = file.getAbsolutePath() + "/models/tables/table1.hjson";
         String content = new String (Files.readAllBytes(Paths.get(hjsonPath)));
 
-        assertEquals(content, obj.hydrateConfigTemplate(VALID_TABLE_WITH_VARIABLES, map));
+        assertEquals(content, hydrator.hydrateConfigTemplate(
+                VALID_TABLE_WITH_VARIABLES, testClass.getModelVariables()));
     }
 
     @Test
     public void testTableHydration() throws IOException {
 
-        HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources";
+        Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
 
-        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
-        testClass.readAndValidateConfigs();
-
-        Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
         assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
         assertEquals(VALID_TABLE_JAVA, tableClasses.get(VALID_TABLE_JAVA_NAME));
     }
 
+//    @Test
+//    public void testChildTableHydration() throws IOException {
+//        Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
+//
+//        assertEquals(true, tableClasses.keySet().contains(VALID_CHILD_TABLE_JAVA_NAME));
+//        assertEquals(VALID_CHILD_TABLE_JAVA, tableClasses.get(VALID_CHILD_TABLE_JAVA_NAME));
+//    }
+
     @Test
     public void testSecurityHydration() throws IOException {
-        HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources";
-
-        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
-        testClass.readAndValidateConfigs();
-
-        Map<String, String> securityClasses = obj.hydrateSecurityTemplate(testClass.getElideSecurityConfig());
+        Map<String, String> securityClasses = hydrator.hydrateSecurityTemplate(testClass.getElideSecurityConfig());
 
         assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_ADMIN_JAVA_NAME));
         assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_GUEST_JAVA_NAME));

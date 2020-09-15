@@ -3,7 +3,6 @@
         name: Player
         table: player
         schema: playerdb
-        dbConnectionName: MySQLConnection
         description:
         '''
         A long description
@@ -21,8 +20,8 @@
         measures : [
             {
             name : highScore
-            type : "<%measure_type%>"
-            definition: 'MAX(score)'
+            type : "INTEGER"
+            definition: '<%measure_type%>(score)'
             }
         ]
         dimensions : [
@@ -44,33 +43,5 @@
                 }
             }
         ]
-    },
-    {
-        name: PlayerExtends
-        extend: Player
-        description:
-        '''
-        extends Player
-        '''
-        cardinality : large
-        readAccess : Prefab.Role.All
-
-        measures : [
-            {
-                name : highScore
-                type : INTEGER
-                override : true
-                definition: 'MAX(score)'
-            },
-            {
-                name : AvgScore
-                type : INTEGER
-                override : false
-                definition: 'AVG(score)'
-            }
-
-        ]
-    }
-
-    ]
+    }]
 }
