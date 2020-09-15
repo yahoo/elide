@@ -97,8 +97,8 @@ public class ElideDynamicEntityCompiler {
 
     /**
      * Parse dynamic config path and provides default implementation for DB Password Extractor.
-     * @param path : Dynamic config hjsons root location
-     * @throws Exception Exception thrown
+     * @param path : Dynamic config hjsons root location.
+     * @throws Exception Exception thrown.
      */
     public ElideDynamicEntityCompiler(String path) throws Exception {
         this(path, new DBPasswordExtractor() {
@@ -111,9 +111,9 @@ public class ElideDynamicEntityCompiler {
 
     /**
      * Generates DataSource for provided configuration.
-     * @param dbConfig DB Configuration pojo
-     * @param dbPasswordExtractor DB Password Extractor Implementation
-     * @return DataSource
+     * @param dbConfig DB Configuration pojo.
+     * @param dbPasswordExtractor DB Password Extractor Implementation.
+     * @return DataSource Object.
      */
     private DataSource getDataSource(DBConfig dbConfig, DBPasswordExtractor dbPasswordExtractor) {
         HikariConfig config = new HikariConfig();

@@ -51,6 +51,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -65,8 +66,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import javax.inject.Provider;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 public abstract class SQLUnitTest {
@@ -300,11 +299,8 @@ public abstract class SQLUnitTest {
     protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
 
     public static void init(String sqlDialect) {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
 
-        HikariConfig config = new HikariConfig();
-        config.setDriverClassName(emf.getProperties().get("javax.persistence.jdbc.driver").toString());
-        config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
+        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
         DataSource dataSource = new HikariDataSource(config);
 
         try (Connection h2Conn = dataSource.getConnection()) {

@@ -34,11 +34,13 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -56,13 +58,15 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
 
-        HikariConfig config = new HikariConfig();
-        config.setDriverClassName(emf.getProperties().get("javax.persistence.jdbc.driver").toString());
-        config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
+        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
         DataSource defaultDataSource = new HikariDataSource(config);
         String defaultDialect = "h2";
+
+        Properties prop = new Properties();
+        prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
+        prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
 
         Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
         // Add an entry for "mycon" connection which is not from hjson

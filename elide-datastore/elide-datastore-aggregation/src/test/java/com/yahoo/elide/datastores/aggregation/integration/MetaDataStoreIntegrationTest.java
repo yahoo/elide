@@ -23,7 +23,10 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.Collections;
+import java.util.Properties;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
@@ -32,13 +35,15 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore");
 
-        HikariConfig config = new HikariConfig();
-        config.setDriverClassName(emf.getProperties().get("javax.persistence.jdbc.driver").toString());
-        config.setJdbcUrl(emf.getProperties().get("javax.persistence.jdbc.url").toString());
+        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
         DataSource defaultDataSource = new HikariDataSource(config);
-        String defaultDialect = "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect";
+        String defaultDialect = "h2";
+
+        Properties prop = new Properties();
+        prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
+        prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
 
         return new AggregationDataStoreTestHarness(emf, defaultDataSource, defaultDialect);
     }
