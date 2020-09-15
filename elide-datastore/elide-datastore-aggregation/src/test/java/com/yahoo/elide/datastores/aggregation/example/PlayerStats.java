@@ -8,13 +8,14 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -39,7 +40,7 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
-@Meta(description = "Player Statistics", category = "Sports Category")
+@TableMeta(description = "Player Statistics", category = "Sports Category", tags = {"Game", "Statistics"})
 public class PlayerStats {
 
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
@@ -125,7 +126,7 @@ public class PlayerStats {
     }
 
     @MetricAggregation(function = SqlMax.class)
-    @Meta(description = "very awesome score", category = "Score Category")
+    @ColumnMeta(description = "very awesome score", category = "Score Category")
     public long getHighScore() {
         return highScore;
     }
@@ -135,7 +136,7 @@ public class PlayerStats {
     }
 
     @MetricFormula(value = "highScore")
-    @Meta(description = "highScore with no aggregation")
+    @ColumnMeta(description = "highScore with no aggregation")
     public long getHighScoreNoAgg() {
         return highScore;
     }
@@ -144,7 +145,7 @@ public class PlayerStats {
     }
 
     @MetricAggregation(function = SqlMin.class)
-    @Meta(description = "very low score", category = "Score Category")
+    @ColumnMeta(description = "very low score", category = "Score Category", tags = {"PRIVATE"})
     public long getLowScore() {
         return lowScore;
     }
@@ -155,6 +156,7 @@ public class PlayerStats {
 
     @FriendlyName
     @Cardinality(size = CardinalitySize.MEDIUM)
+    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"}, tags = {"PUBLIC"})
     public String getOverallRating() {
         return overallRating;
     }
@@ -173,6 +175,9 @@ public class PlayerStats {
     }
 
     @JoinTo(path = "country.nickName")
+    @ColumnMeta(
+            tableSource = "subcountry.nickName"
+    )
     public String getCountryNickName() {
         return countryNickName;
     }
@@ -191,6 +196,7 @@ public class PlayerStats {
     }
 
     @JoinTo(path = "country.isoCode")
+    @ColumnMeta(values = {"HK", "US"})
     public String getCountryIsoCode() {
         return countryIsoCode;
     }

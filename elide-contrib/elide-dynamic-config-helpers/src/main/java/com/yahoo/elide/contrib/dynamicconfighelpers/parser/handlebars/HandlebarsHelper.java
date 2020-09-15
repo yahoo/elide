@@ -11,6 +11,7 @@ import com.github.jknack.handlebars.Options;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -151,5 +152,16 @@ public class HandlebarsHelper {
             default:
                 return DATE;
         }
+    }
+
+    /**
+     * Flattens a collection to a comma separated string.
+     * @param collection [A, B, C]
+     * @return "\"A\",\"B\",\"C\""
+     */
+    public String collectionToString(Collection<String> collection) {
+        return collection.stream()
+                .map(item -> "\"" + item + "\"")
+                .collect(Collectors.joining(","));
     }
 }
