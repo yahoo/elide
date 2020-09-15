@@ -77,6 +77,7 @@ public class ElideAutoConfiguration {
     /**
      * Creates a entity compiler for compiling dynamic config classes.
      * @param settings Config Settings.
+     * @param dbPasswordExtractor : Password Extractor Implementation.
      * @return An instance of ElideDynamicEntityCompiler.
      * @throws Exception Exception thrown.
      */
