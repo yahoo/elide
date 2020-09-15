@@ -131,6 +131,16 @@
             ]}
           ],
           "default": "INTEGER"
+        },
+        "tags": {
+          "title": "Measure tags",
+          "description": "An array of string based tags for measures",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": []
         }
       },
       "required": [
@@ -188,6 +198,7 @@
           },
           "default": []
         }
+
       }
     },
     "dimension": {
@@ -199,13 +210,33 @@
         {
           "properties": {
             "type": {
-              "oneOf":[
-              {"$ref": "#/definitions/enumtype"},
-              {"enum": [
-                "RELATIONSHIP","ID"
-              ]}
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/enumtype"
+                },
+                {
+                  "enum": [
+                    "RELATIONSHIP",
+                    "ID"
+                  ]
+                }
               ],
               "default": "TEXT"
+            },
+            "values": {
+              "title": "Dimension values",
+              "description": "An array of valid string values for this dimension",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "tableSource": {
+              "title": "Table stores dimension values",
+              "description": "Table and column name where to find the values : tableName.columnName",
+              "type": "string"
             }
           }
         }
@@ -214,6 +245,22 @@
         "name",
         "type",
         "definition"
+      ],
+      "oneOf" : [
+        {
+          "required" : ["values"]
+        },
+        {
+          "required" : ["tableSource"]
+        },
+        {
+          "not" : {
+            "anyOf" : [
+              { "required" : ["values"] },
+              { "required" : ["tableSource"] }
+            ]
+          }
+        }
       ]
     },
     "timeDimension": {
