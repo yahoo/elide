@@ -116,7 +116,7 @@
                     "url": "jdbc:db2://localhost/elide?serverTimezone=UTC&",
                     "driver": "a",
                     "user": "elide",
-                    "dialect": "Presto",
+                    "dialect": "PrestoDB",
                     "propertyMap": {
                         "hibernate.show_sql": true,
                         "hibernate.default_batch_fetch_size": 100.1,

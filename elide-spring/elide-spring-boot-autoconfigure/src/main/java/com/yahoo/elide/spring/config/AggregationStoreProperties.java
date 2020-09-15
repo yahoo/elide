@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.spring.config;
 
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+
 import lombok.Data;
 
 /**
@@ -18,4 +21,8 @@ public class AggregationStoreProperties {
      */
     private boolean enabled = false;
 
+    /**
+     * {@link SQLDialect} for default DataSource Object.
+     */
+    private String defaultDialect = SQLDialectFactory.getDefaultDialect().getDialectType();
 }

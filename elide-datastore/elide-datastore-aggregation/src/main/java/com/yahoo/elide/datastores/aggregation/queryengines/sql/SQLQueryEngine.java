@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -66,31 +65,30 @@ import javax.sql.DataSource;
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
     private final SQLReferenceTable referenceTable;
-    private final DataSource defaultDataSource;
-    private final Map<String, DataSource> dataSourceMap = new HashMap<>();
-    private final SQLDialect defaultDialect;
-    private final Map<String, SQLDialect> dialectMap = new HashMap<>();
+    private final ConnectionDetails defaultConnectionDetails;
+    private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, DataSource defaultDataSource, String defaultDialect) {
+    public SQLQueryEngine(MetaDataStore metaDataStore,
+                    com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails) {
         super(metaDataStore);
         this.referenceTable = new SQLReferenceTable(metaDataStore);
-        this.defaultDataSource = defaultDataSource;
-        this.defaultDialect = SQLDialectFactory.getDialect(defaultDialect);
+        this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
+                        SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
     }
 
     /**
      * Constructor.
      * @param metaDataStore : MetaDataStore.
-     * @param defaultDataSource : default DataSource Object.
-     * @param defaultDialect : default SQL Dialect Class Name.
-     * @param connectionDetailsMap : Connection Name to DataSource Object and SQL Dialect Class Name mapping.
+     * @param defaultConnectionDetails : default DataSource Object and SQLDialect Object.
+     * @param detailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
      */
-    public SQLQueryEngine(MetaDataStore metaDataStore, DataSource defaultDataSource, String defaultDialect,
-                    Map<String, ConnectionDetails> connectionDetailsMap) {
-        this(metaDataStore, defaultDataSource, defaultDialect);
-        connectionDetailsMap.forEach((name, details) -> {
-            dataSourceMap.put(name, details.getDataSource());
-            dialectMap.put(name, SQLDialectFactory.getDialect(details.getDialect()));
+    public SQLQueryEngine(MetaDataStore metaDataStore,
+                    com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails,
+                    Map<String, com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails> detailsMap) {
+        this(metaDataStore, defaultConnectionDetails);
+        detailsMap.forEach((name, details) -> {
+            this.connectionDetailsMap.put(name, new ConnectionDetails(details.getDataSource(),
+                            SQLDialectFactory.getDialect(details.getDialect())));
         });
     }
 
@@ -206,8 +204,9 @@ public class SQLQueryEngine extends QueryEngine {
         SqlTransaction sqlTransaction = (SqlTransaction) transaction;
 
         String connectionName = query.getTable().getDbConnectionName();
-        DataSource dataSource = getDataSource(connectionName);
-        SQLDialect dialect = getSQLDialect(connectionName);
+        ConnectionDetails details = getConnectionDetails(connectionName);
+        DataSource dataSource = details.getDataSource();
+        SQLDialect dialect = details.getDialect();
         sqlTransaction.initializeTransaction(dataSource, dialect);
 
         // Translate the query into SQL.
@@ -266,8 +265,8 @@ public class SQLQueryEngine extends QueryEngine {
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();
-            String connectionName = table.getDbConnectionName();
-            sqlTransaction.initializeTransaction(getDataSource(connectionName), getSQLDialect(connectionName));
+            ConnectionDetails details = getConnectionDetails(table.getDbConnectionName());
+            sqlTransaction.initializeTransaction(details.getDataSource(), details.getDialect());
             NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(versionQueryString);
             tableVersion = CoerceUtil.coerce(runQuery(stmt, versionQueryString, SINGLE_RESULT_MAPPER), String.class);
         }
@@ -314,7 +313,7 @@ public class SQLQueryEngine extends QueryEngine {
     @Override
     public List<String> explain(Query query) {
         String connectionName = query.getTable().getDbConnectionName();
-        return explain(query, getSQLDialect(connectionName));
+        return explain(query, getConnectionDetails(connectionName).getDialect());
     }
 
     /**
@@ -446,30 +445,17 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     /**
-     * Gets required DataSource.
+     * Gets required ConnectionDetails.
      * @param connectionName Connection Name.
      * @return DataSource DataSource Object for this connection.
      */
-    private DataSource getDataSource(String connectionName) {
+    private ConnectionDetails getConnectionDetails(String connectionName) {
         if (connectionName == null || connectionName.trim().isEmpty()) {
-            return defaultDataSource;
+            return defaultConnectionDetails;
         } else {
-            return Optional.ofNullable(dataSourceMap.get(connectionName)).orElseThrow(() -> new IllegalStateException(
-                            "DataSource undefined for DB Connection Name: " + connectionName));
-        }
-    }
-
-    /**
-     * Gets required SQLDialect.
-     * @param connectionName Connection Name.
-     * @return SQLDialect SQLDialect Object for this connection.
-     */
-    private SQLDialect getSQLDialect(String connectionName) {
-        if (connectionName == null || connectionName.trim().isEmpty()) {
-            return defaultDialect;
-        } else {
-            return Optional.ofNullable(dialectMap.get(connectionName)).orElseThrow(() -> new IllegalStateException(
-                            "DataSource undefined for DB Connection Name: " + connectionName));
+            return Optional.ofNullable(connectionDetailsMap.get(connectionName))
+                            .orElseThrow(() -> new IllegalStateException(
+                                            "ConnectionDetails undefined for DB Connection Name: " + connectionName));
         }
     }
 

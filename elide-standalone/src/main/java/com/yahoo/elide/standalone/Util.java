@@ -97,7 +97,7 @@ public class Util {
      * @param options Database Connection Properties.
      * @return {@link ConnectionDetails}.
      */
-    public static ConnectionDetails getConnectionDetails(Properties options) {
+    public static DataSource getDataSource(Properties options) {
 
         // Configure default options for example service
         if (options.isEmpty()) {
@@ -105,7 +105,6 @@ public class Util {
             options.put("javax.persistence.jdbc.url", "jdbc:mysql://localhost/elide?serverTimezone=UTC");
             options.put("javax.persistence.jdbc.user", "elide");
             options.put("javax.persistence.jdbc.password", "elide123");
-            options.put("elide.dialect", "MYSQL");
         }
 
         HikariConfig config = new HikariConfig();
@@ -114,7 +113,7 @@ public class Util {
         config.setPassword(options.getProperty("javax.persistence.jdbc.password"));
         config.setDriverClassName(options.getProperty("javax.persistence.jdbc.driver"));
 
-        return new ConnectionDetails(new HikariDataSource(config), options.getProperty("elide.dialect"));
+        return new HikariDataSource(config);
     }
 
     /**

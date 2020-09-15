@@ -14,6 +14,7 @@ import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
@@ -30,6 +31,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
@@ -57,7 +59,6 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
 
 /**
  * Interface for configuring an ElideStandalone application.
@@ -376,6 +377,15 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Provides the default SQLDialect type.
+     *
+     * @return String dialect for default DataSource Object.
+     */
+    default String getDefaultDialect() {
+        return SQLDialectFactory.getDefaultDialect().getDialectType();
+    }
+
+    /**
      * Gets the DataStore for elide.
      * @param metaDataStore MetaDataStore object.
      * @param aggregationDataStore AggregationDataStore object.
@@ -480,18 +490,17 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the QueryEngine for elide.
      * @param metaDataStore MetaDataStore object.
-     * @param defaultDataSource DataSource object.
-     * @param defaultDialect SQL Dialect Type (or Class Name).
+     * @param defaultConnectionDetails default DataSource Object and SQLDialect Object.
      * @param optionalCompiler Optional dynamic compiler object.
      * @return QueryEngine object initialized.
      */
-    default QueryEngine getQueryEngine(MetaDataStore metaDataStore, DataSource defaultDataSource, String defaultDialect,
+    default QueryEngine getQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails,
                     Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         if (optionalCompiler.isPresent()) {
-            return new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect,
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails,
                             optionalCompiler.get().getConnectionDetailsMap());
         }
-        return new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect);
+        return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
     }
 
     static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,

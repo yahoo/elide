@@ -37,18 +37,18 @@ import javax.sql.DataSource;
 @AllArgsConstructor
 public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private EntityManagerFactory entityManagerFactory;
-    private DataSource defaultDataSource;
-    private String defaultDialect;
+    private ConnectionDetails defaultConnectionDetails;
     private Map<String, ConnectionDetails> connectionDetailsMap;
     private ElideDynamicEntityCompiler compiler;
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource) {
-        this(entityManagerFactory, defaultDataSource, SQLDialectFactory.getDefaultDialect().getClass().getName());
+        this(entityManagerFactory, new ConnectionDetails(defaultDataSource,
+                        SQLDialectFactory.getDefaultDialect().getClass().getName()));
     }
 
-    public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource,
-                    String defaultDialect) {
-        this(entityManagerFactory, defaultDataSource, defaultDialect, Collections.emptyMap(), null);
+    public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory,
+                    ConnectionDetails defaultConnectionDetails) {
+        this(entityManagerFactory, defaultConnectionDetails, Collections.emptyMap(), null);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         }
 
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
-                .queryEngine(new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect, connectionDetailsMap))
+                .queryEngine(new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap))
                 .queryLogger(new NoopQueryLogger())
                 .build();
 

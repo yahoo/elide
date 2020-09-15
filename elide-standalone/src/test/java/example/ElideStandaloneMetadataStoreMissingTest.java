@@ -7,10 +7,9 @@ package example;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
@@ -22,8 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -115,6 +112,11 @@ public class ElideStandaloneMetadataStoreMissingTest {
             }
 
             @Override
+            public String getDefaultDialect() {
+                return SQLDialectFactory.getDefaultDialect().getDialectType();
+            }
+
+            @Override
             public String getDynamicConfigPath() {
                 return "src/test/resources/configs/";
             }
@@ -122,22 +124,6 @@ public class ElideStandaloneMetadataStoreMissingTest {
             @Override
             public MetaDataStore getMetaDataStore(Optional<ElideDynamicEntityCompiler> optionalCompiler) {
                 return null;
-            }
-
-            @Override
-            public DBPasswordExtractor getDBPasswordExtractor() {
-                return new DBPasswordExtractor() {
-                    @Override
-                    public String getDBPassword(DBConfig config) {
-                        String encrypted = (String) config.getPropertyMap().get("encrypted.password");
-                        byte[] decrypted = Base64.getDecoder().decode(encrypted.getBytes());
-                        try {
-                            return new String(decrypted, "UTF-8");
-                        } catch (UnsupportedEncodingException e) {
-                            throw new IllegalStateException(e);
-                        }
-                    }
-                };
             }
         });
     }

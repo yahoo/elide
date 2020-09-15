@@ -8,12 +8,12 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
 
 /**
- * Presto SQLDialect.
+ * PrestoDB SQLDialect.
  */
-public class PrestoDialect extends AbstractSqlDialect {
+public class PrestoDBDialect extends AbstractSqlDialect {
     @Override
     public String getDialectType() {
-        return "Presto";
+        return "PrestoDB";
     }
 
     @Override

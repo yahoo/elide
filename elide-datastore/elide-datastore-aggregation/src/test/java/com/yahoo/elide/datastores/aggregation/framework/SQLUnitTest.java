@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.framework;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -326,7 +327,7 @@ public abstract class SQLUnitTest {
 
         metaDataStore.populateEntityDictionary(dictionary);
 
-        engine = new SQLQueryEngine(metaDataStore, dataSource, sqlDialect);
+        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect));
 
         TableId tableId = new TableId("playerStats", "", "");
         playerStatsTable = engine.getTable(tableId);

@@ -12,6 +12,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.nullValue;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
@@ -39,13 +40,14 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
         DataSource defaultDataSource = new HikariDataSource(config);
         String defaultDialect = "h2";
+        ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
 
         Properties prop = new Properties();
         prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
         prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
 
-        return new AggregationDataStoreTestHarness(emf, defaultDataSource, defaultDialect);
+        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails);
     }
 
     @Test

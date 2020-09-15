@@ -115,7 +115,7 @@ public class ElideDynamicEntityCompiler {
      * @param dbPasswordExtractor DB Password Extractor Implementation.
      * @return DataSource Object.
      */
-    private DataSource getDataSource(DBConfig dbConfig, DBPasswordExtractor dbPasswordExtractor) {
+    private static DataSource getDataSource(DBConfig dbConfig, DBPasswordExtractor dbPasswordExtractor) {
         HikariConfig config = new HikariConfig();
 
         config.setJdbcUrl(dbConfig.getUrl());

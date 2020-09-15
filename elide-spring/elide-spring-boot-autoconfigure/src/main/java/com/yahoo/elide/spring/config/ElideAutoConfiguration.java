@@ -11,6 +11,7 @@ import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
@@ -35,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -68,9 +68,6 @@ public class ElideAutoConfiguration {
 
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
-
-    @Value("${spring.dialect}")
-    private String defaultDialect;
 
     private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
@@ -187,15 +184,17 @@ public class ElideAutoConfiguration {
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
-            throws ClassNotFoundException {
+                    throws ClassNotFoundException {
 
+        ConnectionDetails defaultConnectionDetails =
+                        new ConnectionDetails(defaultDataSource, settings.getAggregationStore().getDefaultDialect());
         if (isDynamicConfigEnabled(settings)) {
             MetaDataStore metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
-            return new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect,
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails,
                             dynamicCompiler.getIfAvailable().getConnectionDetailsMap());
         } else {
             MetaDataStore metaDataStore = new MetaDataStore();
-            return new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect);
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
         }
     }
 

@@ -96,9 +96,9 @@ public class ElideResourceConfig extends ResourceConfig {
                 ElideStandaloneAsyncSettings asyncProperties = settings.getAsyncProperties();
                 EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(settings.getModelPackageName(),
                         asyncProperties.enabled(), optionalCompiler, settings.getDatabaseProperties());
-                ConnectionDetails connectionDetails = Util.getConnectionDetails(settings.getDatabaseProperties());
-                DataSource defaultDataSource = connectionDetails.getDataSource();
-                String defaultDialect = connectionDetails.getDialect();
+                DataSource defaultDataSource = Util.getDataSource(settings.getDatabaseProperties());
+                ConnectionDetails defaultConnectionDetails =
+                                new ConnectionDetails(defaultDataSource, settings.getDefaultDialect());
 
                 EntityDictionary dictionary = settings.getEntityDictionary(injector, optionalCompiler);
 
@@ -109,8 +109,8 @@ public class ElideResourceConfig extends ResourceConfig {
                     if (metaDataStore == null) {
                         throw new IllegalStateException("Aggregation Datastore is enabled but metaDataStore is null");
                     }
-                    QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, defaultDataSource, defaultDialect,
-                                    optionalCompiler);
+                    QueryEngine queryEngine =
+                                    settings.getQueryEngine(metaDataStore, defaultConnectionDetails, optionalCompiler);
                     AggregationDataStore aggregationDataStore =
                                     settings.getAggregationDataStore(queryEngine, optionalCompiler);
                     if (aggregationDataStore == null) {

@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.HttpStatus;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
@@ -43,7 +42,6 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
                 + "\t\t('1','USA');")
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
 statements = "DROP TABLE PlayerStats; DROP TABLE PlayerCountry;")
-@Import(DBPasswordExtractorSetup.class)
 public class DynamicConfigTest extends IntegrationTest {
     /**
      * This test demonstrates an example test using the JSON-API DSL.

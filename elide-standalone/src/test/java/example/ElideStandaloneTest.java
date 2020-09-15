@@ -16,18 +16,13 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
@@ -42,8 +37,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import io.restassured.response.Response;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
 import java.util.Properties;
 
 import javax.ws.rs.core.MediaType;
@@ -139,24 +132,13 @@ public class ElideStandaloneTest {
             }
 
             @Override
-            public String getDynamicConfigPath() {
-                return "src/test/resources/configs/";
+            public String getDefaultDialect() {
+                return SQLDialectFactory.getDefaultDialect().getDialectType();
             }
 
             @Override
-            public DBPasswordExtractor getDBPasswordExtractor() {
-                return new DBPasswordExtractor() {
-                    @Override
-                    public String getDBPassword(DBConfig config) {
-                        String encrypted = (String) config.getPropertyMap().get("encrypted.password");
-                        byte[] decrypted = Base64.getDecoder().decode(encrypted.getBytes());
-                        try {
-                            return new String(decrypted, "UTF-8");
-                        } catch (UnsupportedEncodingException e) {
-                            throw new IllegalStateException(e);
-                        }
-                    }
-                };
+            public String getDynamicConfigPath() {
+                return "src/test/resources/configs/";
             }
         });
         elide.start(false);
@@ -197,27 +179,6 @@ public class ElideStandaloneTest {
             .statusCode(200)
             .body("data.id", hasItems("0"))
             .body("data.attributes.content", hasItems("This is my first post. woot."));
-    }
-
-    /**
-     * This test demonstrates an example test using the aggregation store from dynamic configuration.
-     */
-    @Test
-    public void testDynamicAggregationModel() {
-        String getPath = "/api/v1/orderDetails?sort=customerRegion,orderMonth&"
-                        + "fields[orderDetails]=orderTotal,customerRegion,orderMonth&filter=orderMonth>=2020-08";
-        given()
-            .when()
-            .get(getPath)
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body("data", hasSize(3))
-            .body("data.id", hasItems("0", "1", "2"))
-            .body("data.attributes", hasItems(
-                            allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderMonth", "2020-08")),
-                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-08")),
-                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-09"))))
-            .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F));
     }
 
     @Test
@@ -304,7 +265,7 @@ public class ElideStandaloneTest {
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "functionArgument", "metric",
                         "metricFunction", "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "postView", "customerDetails", "orderDetails"));
+                        "timeDimensionGrain", "timeDimension", "postView"));
     }
 
     @Test

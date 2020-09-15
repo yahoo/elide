@@ -62,6 +62,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
         DataSource defaultDataSource = new HikariDataSource(config);
         String defaultDialect = "h2";
+        ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
 
         Properties prop = new Properties();
         prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
@@ -70,7 +71,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
         Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
         // Add an entry for "mycon" connection which is not from hjson
-        connectionDetailsMap.put("mycon", new ConnectionDetails(defaultDataSource, defaultDialect));
+        connectionDetailsMap.put("mycon", defaultConnectionDetails);
 
         ElideDynamicEntityCompiler compiler;
         try {
@@ -81,7 +82,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
             throw new IllegalStateException(e);
         }
 
-        return new AggregationDataStoreTestHarness(emf, defaultDataSource, defaultDialect, connectionDetailsMap, compiler);
+        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, compiler);
     }
 
     private DBPasswordExtractor getDBPasswordExtractor() {
