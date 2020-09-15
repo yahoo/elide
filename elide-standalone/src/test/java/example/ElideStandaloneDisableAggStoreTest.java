@@ -157,10 +157,8 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
         .extract().body().asString();
     }
 
-    /*
-     * Skipping this test as Aggregation Store is disabled.
-     */
     @Override
     public void testDynamicAggregationModel() {
+        // Skipping this test from super class as Aggregation Store is disabled.
     }
 }

@@ -6,12 +6,15 @@
 package com.yahoo.elide.datastores.aggregation.framework;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.core.NoopQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
@@ -22,7 +25,9 @@ import org.hibernate.Session;
 import lombok.AllArgsConstructor;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.persistence.EntityManager;
@@ -35,6 +40,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private DataSource defaultDataSource;
     private String defaultDialect;
     private Map<String, ConnectionDetails> connectionDetailsMap;
+    private ElideDynamicEntityCompiler compiler;
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource) {
         this(entityManagerFactory, defaultDataSource, SQLDialectFactory.getDefaultDialect().getClass().getName());
@@ -42,19 +48,35 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource,
                     String defaultDialect) {
-        this(entityManagerFactory, defaultDataSource, defaultDialect, Collections.emptyMap());
+        this(entityManagerFactory, defaultDataSource, defaultDialect, Collections.emptyMap(), null);
     }
 
     @Override
     public DataStore getDataStore() {
 
-        MetaDataStore metaDataStore = new MetaDataStore();
-        Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+        AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
 
-        AggregationDataStore aggregationDataStore = AggregationDataStore.builder()
+        MetaDataStore metaDataStore;
+        if (compiler != null) {
+            try {
+                metaDataStore = new MetaDataStore(compiler);
+                Set<Class<?>> annotatedClasses = new HashSet<>();
+                annotatedClasses.addAll(compiler.findAnnotatedClasses(FromTable.class));
+                annotatedClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
+                aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            metaDataStore = new MetaDataStore();
+        }
+
+        AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
                 .queryEngine(new SQLQueryEngine(metaDataStore, defaultDataSource, defaultDialect, connectionDetailsMap))
                 .queryLogger(new NoopQueryLogger())
                 .build();
+
+        Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
         DataStore jpaStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
