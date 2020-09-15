@@ -131,6 +131,16 @@
             ]}
           ],
           "default": "INTEGER"
+        },
+        "tags": {
+          "title": "Measure tags",
+          "description": "An array of string based tags for measures",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": []
         }
       },
       "required": [
