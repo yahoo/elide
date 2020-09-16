@@ -8,9 +8,6 @@ package com.yahoo.elide.contrib.dynamicconfighelpers;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
-
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import org.hjson.JsonValue;
@@ -18,6 +15,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 public class DynamicConfigSchemaValidatorTest {
 
@@ -66,8 +66,8 @@ public class DynamicConfigSchemaValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "/validator/invalid_schema/table_invalid.hjson",
-            "/tables/invalid/invalid_dimension_data_source.hjson",
-            "/tables/invalid/invalid_table_filter.hjson"})
+            "/validator/invalid_schema/invalid_dimension_data_source.hjson",
+            "/validator/invalid_schema/invalid_table_filter.hjson"})
     public void testInvalidTableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
         Exception e = assertThrows(ProcessingException.class,
