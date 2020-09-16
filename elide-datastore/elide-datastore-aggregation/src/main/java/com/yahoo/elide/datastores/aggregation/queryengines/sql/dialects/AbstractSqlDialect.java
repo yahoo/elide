@@ -25,7 +25,7 @@ public abstract class AbstractSqlDialect implements SQLDialect {
     }
 
     @Override
-    public String appendOffsetLimit(int offset, int limit) {
+    public String generateOffsetLimitClause(int offset, int limit) {
         return OFFSET + offset + SPACE + LIMIT + limit;
     }
 }

@@ -30,7 +30,7 @@ public class HiveDialect extends AbstractSqlDialect {
     }
 
     @Override
-    public String appendOffsetLimit(int offset, int limit) {
+    public String generateOffsetLimitClause(int offset, int limit) {
         return LIMIT + offset + COMMA + limit;
     }
 }

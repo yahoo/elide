@@ -35,5 +35,5 @@ public interface SQLDialect {
      * @param limit maximum number of record.
      * @return the offset and limit clause.
      */
-    String appendOffsetLimit(int offset, int limit);
+    String generateOffsetLimitClause(int offset, int limit);
 }

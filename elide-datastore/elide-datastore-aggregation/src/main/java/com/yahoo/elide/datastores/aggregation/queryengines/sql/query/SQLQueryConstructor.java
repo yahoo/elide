@@ -131,7 +131,7 @@ public class SQLQueryConstructor {
         }
 
         if (pagination != null) {
-            builder.offsetLimitClause(dialect.appendOffsetLimit(pagination.getOffset(), pagination.getLimit()));
+            builder.offsetLimitClause(dialect.generateOffsetLimitClause(pagination.getOffset(), pagination.getLimit()));
         }
 
         builder.joinClause(extractJoin(joinPaths));

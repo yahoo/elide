@@ -159,7 +159,7 @@ public class SQLQueryEngine extends QueryEngine {
         private Connection conn;
         private final List<NamedParamPreparedStatement> stmts = new ArrayList<>();
 
-        private void initializeTransaction(DataSource dataSource) {
+        private void initializeConnection(DataSource dataSource) {
             try {
                 this.conn = dataSource.getConnection();
             } catch (SQLException e) {
@@ -170,7 +170,7 @@ public class SQLQueryEngine extends QueryEngine {
         public NamedParamPreparedStatement initializeStatement(String namedParamQuery, DataSource dataSource) {
             NamedParamPreparedStatement stmt;
             if (conn == null) {
-                initializeTransaction(dataSource);
+                initializeConnection(dataSource);
             }
             try {
                 stmt = new NamedParamPreparedStatement(conn, namedParamQuery);
@@ -425,7 +425,7 @@ public class SQLQueryEngine extends QueryEngine {
     /**
      * Gets required ConnectionDetails.
      * @param connectionName Connection Name.
-     * @return DataSource DataSource Object for this connection.
+     * @return ConnectionDetails ConnectionDetails Object for this connection.
      */
     private ConnectionDetails getConnectionDetails(String connectionName) {
         if (connectionName == null || connectionName.trim().isEmpty()) {
