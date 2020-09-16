@@ -55,9 +55,8 @@ public class DynamicConfigSchemaValidatorTest {
     @DisplayName("Valid Table config")
     @ParameterizedTest
     @ValueSource(strings = {
-            "/validator/valid/models/tables/table1.hjson",
-            "/validator/valid/models/tables/table2.hjson",
-            "/validator/valid/models/tables/table3.hjson"})
+            "/validator/valid/models/tables/player_stats.hjson",
+            "/validator/valid/models/tables/player_stats_extends.hjson"})
     public void testValidTableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
         assertTrue(testClass.verifySchema(Config.TABLE, jsonConfig));

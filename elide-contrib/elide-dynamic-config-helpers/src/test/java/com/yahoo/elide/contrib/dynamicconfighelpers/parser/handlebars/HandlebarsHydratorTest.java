@@ -6,6 +6,7 @@
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 
@@ -88,86 +89,8 @@ public class HandlebarsHydratorTest {
 
     private static final String VALID_CHILD_TABLE_JAVA_NAME = "PlayerExtend";
 
-    private static final String VALID_CHILD_TABLE_JAVA = "/*\n"
-            + " * Copyright 2020, Yahoo Inc.\n"
-            + " * Licensed under the Apache License, Version 2.0\n"
-            + " * See LICENSE file in project root for terms.\n"
-            + " */\n"
-            + "package dynamicconfig.models;\n"
-            + "\n"
-            + "import com.yahoo.elide.annotation.DeletePermission;\n"
-            + "import com.yahoo.elide.annotation.Include;\n"
-            + "import com.yahoo.elide.annotation.Exclude;\n"
-            + "import com.yahoo.elide.annotation.ReadPermission;\n"
-            + "import com.yahoo.elide.annotation.UpdatePermission;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.Join;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.Meta;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.Temporal;\n"
-            + "import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;\n"
-            + "import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;\n"
-            + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;\n"
-            + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;\n"
-            + "\n"
-            + "import lombok.Data;\n"
-            + "import lombok.EqualsAndHashCode;\n"
-            + "import lombok.Getter;\n"
-            + "import lombok.Setter;\n"
-            + "import lombok.ToString;\n"
-            + "\n"
-            + "import java.math.BigDecimal;\n"
-            + "import java.util.Date;\n"
-            + "import javax.persistence.Column;\n"
-            + "import javax.persistence.Id;\n"
-            + "\n"
-            + "/**\n"
-            + " * A root level entity for testing AggregationDataStore.\n"
-            + " */\n"
-            + "@Cardinality(size = CardinalitySize.LARGE)\n"
-            + "@EqualsAndHashCode\n"
-            + "@ToString\n"
-            + "@Data\n"
-            + "@FromTable(name = \"playerdb.player\", dbConnectionName = \"\")\n"
-            + "\n"
-            + "@ReadPermission(expression = \"Prefab.Role.All\")\n"
-            + "@Meta(description = \"Player Extend\")\n"
-            + "@Include(rootLevel = true, type = \"playerExtend\")\n"
-            + "public class PlayerExtend extends Player{\n"
-            + "\n"
-            + "    @Id\n"
-            + "    private String id;\n"
-            + "\n"
-            + "\n"
-            + "\n"
-            + "\n"
-            + "\n"
-            + "\n"
-            + "\n"
-            + "\n"
-            + "    @MetricFormula(\"MAX(score)\")\n"
-            + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
-            + "    @Meta(description = \"highScore\")\n"
-            + "\n"
-            + "\n"
-            + "    @Getter(onMethod_={@Override})\n"
-            + "    @Setter(onMethod_={@Override})\n"
-            + "\n"
-            + "    private Long highScore;\n"
-            + "\n"
-            + "\n"
-            + "\n"
-            + "    @MetricFormula(\"AVG(score)\")\n"
-            + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
-            + "    @Meta(description = \"AvgScore\")\n"
-            + "\n"
-            + "\n"
-            + "    private Long AvgScore;\n"
-            + "\n"
-            + "\n"
-            + "}";
+    private static final String OVERRIDE_ANNOTATION = "@Getter(onMethod_={@Override})\n"
+            + "    @Setter(onMethod_={@Override})\n";
 
     private static final String VALID_TABLE_JAVA = "/*\n"
             + " * Copyright 2020, Yahoo Inc.\n"
@@ -336,7 +259,7 @@ public class HandlebarsHydratorTest {
     @Test
     public void testConfigHydration() throws IOException {
         File file = new File(CONFIG_PATH);
-        String hjsonPath = file.getAbsolutePath() + "/models/tables/table1.hjson";
+        String hjsonPath = file.getAbsolutePath() + "/models/tables/player_stats.hjson";
         String content = new String (Files.readAllBytes(Paths.get(hjsonPath)));
 
         assertEquals(content, hydrator.hydrateConfigTemplate(
@@ -348,17 +271,17 @@ public class HandlebarsHydratorTest {
 
         Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
 
-        assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
+        assertTrue(tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
         assertEquals(VALID_TABLE_JAVA, tableClasses.get(VALID_TABLE_JAVA_NAME));
     }
 
-//    @Test
-//    public void testChildTableHydration() throws IOException {
-//        Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
-//
-//        assertEquals(true, tableClasses.keySet().contains(VALID_CHILD_TABLE_JAVA_NAME));
-//        assertEquals(VALID_CHILD_TABLE_JAVA, tableClasses.get(VALID_CHILD_TABLE_JAVA_NAME));
-//    }
+    @Test
+    public void testOverrideAnnotationHydration() throws IOException {
+        Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
+
+        assertTrue(tableClasses.keySet().contains(VALID_CHILD_TABLE_JAVA_NAME));
+        assertTrue(tableClasses.get(VALID_CHILD_TABLE_JAVA_NAME).contains(OVERRIDE_ANNOTATION));
+    }
 
     @Test
     public void testSecurityHydration() throws IOException {

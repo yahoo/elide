@@ -13,13 +13,7 @@
             name : highScore
             type : "INTEGER"
             override : true
-            definition: '<%measure_type%>(score)'
-            },
-            {
-            name : AvgScore
-            type : "INTEGER"
-            override : false
-            definition: 'AVG(score)'
+            definition: 'Avg(score)'
             }
         ]
     }
