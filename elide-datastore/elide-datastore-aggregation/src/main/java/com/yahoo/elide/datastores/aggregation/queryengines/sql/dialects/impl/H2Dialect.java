@@ -17,7 +17,7 @@ public class H2Dialect extends AbstractSqlDialect {
     }
 
     @Override
-    public String appendOffsetLimit(String sql, int offset, int limit) {
-        return sql + LIMIT + limit + OFFSET + offset;
+    public String appendOffsetLimit(int offset, int limit) {
+        return LIMIT + limit + SPACE + OFFSET + offset;
     }
 }

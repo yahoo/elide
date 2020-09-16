@@ -30,6 +30,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.request.Argument;
+import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 
 import org.hibernate.annotations.Subselect;
@@ -67,13 +68,15 @@ public class SQLQueryConstructor {
      * @param sorting sorting clause
      * @param whereClause where clause
      * @param havingClause having clause
+     * @param pagination limit/offset clause
      * @return constructed SQLQuery object contains all information above
      */
     public SQLQuery resolveTemplate(Query clientQuery,
                                     SQLQueryTemplate template,
                                     Sorting sorting,
                                     FilterExpression whereClause,
-                                    FilterExpression havingClause) {
+                                    FilterExpression havingClause,
+                                    Pagination pagination) {
         Table table = template.getTable();
         Class<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = getClassAlias(tableCls);
@@ -125,6 +128,10 @@ public class SQLQueryConstructor {
             builder.orderByClause(extractOrderBy(sortClauses, template));
 
             joinPaths.addAll(extractJoinPaths(template.getTable(), sortClauses));
+        }
+
+        if (pagination != null) {
+            builder.offsetLimitClause(dialect.appendOffsetLimit(pagination.getOffset(), pagination.getLimit()));
         }
 
         builder.joinClause(extractJoin(joinPaths));

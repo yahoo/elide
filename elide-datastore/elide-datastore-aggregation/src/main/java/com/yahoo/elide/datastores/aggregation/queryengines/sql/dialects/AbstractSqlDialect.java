@@ -10,8 +10,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
  */
 public abstract class AbstractSqlDialect implements SQLDialect {
 
-    public static final String OFFSET = " OFFSET ";
-    public static final String LIMIT = " LIMIT ";
+    public static final String OFFSET = "OFFSET ";
+    public static final String LIMIT = "LIMIT ";
+    public static final char SPACE = ' ';
 
     @Override
     public boolean useAliasForOrderByClause() {
@@ -24,7 +25,7 @@ public abstract class AbstractSqlDialect implements SQLDialect {
     }
 
     @Override
-    public String appendOffsetLimit(String sql, int offset, int limit) {
-        return sql + OFFSET + offset + LIMIT + limit;
+    public String appendOffsetLimit(int offset, int limit) {
+        return OFFSET + offset + SPACE + LIMIT + limit;
     }
 }

@@ -9,7 +9,7 @@ import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -50,11 +50,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -217,11 +215,8 @@ public class SQLQueryEngine extends QueryEngine {
         NamedParamPreparedStatement stmt;
 
         Pagination pagination = query.getPagination();
-        if (pagination != null) {
-            queryString = appendOffsetLimit(queryString, dialect, pagination.getOffset(), pagination.getLimit());
-            if (pagination.returnPageTotals()) {
-                resultBuilder.pageTotals(getPageTotal(query, sql, sqlTransaction));
-            }
+        if (returnPageTotals(pagination)) {
+            resultBuilder.pageTotals(getPageTotal(query, sql, sqlTransaction));
         }
 
         log.debug("SQL Query: " + queryString);
@@ -296,14 +291,10 @@ public class SQLQueryEngine extends QueryEngine {
         SQLQuery sql = toSQL(query, dialect);
 
         Pagination pagination = query.getPagination();
-        if (pagination != null) {
-            if (pagination.returnPageTotals()) {
-                queries.add(toPageTotalSQL(sql, dialect).toString());
-            }
-            queries.add(appendOffsetLimit(sql.toString(), dialect, pagination.getOffset(), pagination.getLimit()));
-        } else {
-            queries.add(sql.toString());
+        if (returnPageTotals(pagination)) {
+            queries.add(toPageTotalSQL(sql, dialect).toString());
         }
+        queries.add(sql.toString());
         return queries;
     }
 
@@ -321,14 +312,11 @@ public class SQLQueryEngine extends QueryEngine {
      * @return the SQL query.
      */
     private SQLQuery toSQL(Query query, SQLDialect sqlDialect) {
-        Set<ColumnProjection> groupByDimensions = new LinkedHashSet<>(query.getGroupByDimensions());
-        Set<TimeDimensionProjection> timeDimensions = new LinkedHashSet<>(query.getTimeDimensions());
 
         SQLQueryTemplate queryTemplate = query.getMetrics().stream()
                 .map(metricProjection -> {
                     if (!(metricProjection.getColumn().getMetricFunction() instanceof SQLMetricFunction)) {
-                        throw new InvalidPredicateException(
-                                "Non-SQL metric function on " + metricProjection.getAlias());
+                        throw new BadRequestException("Non-SQL metric function on " + metricProjection.getAlias());
                     }
 
                     return ((SQLMetric) metricProjection.getColumn()).resolve(query, metricProjection, referenceTable);
@@ -341,7 +329,8 @@ public class SQLQueryEngine extends QueryEngine {
                 queryTemplate,
                 query.getSorting(),
                 query.getWhereFilter(),
-                query.getHavingFilter());
+                query.getHavingFilter(),
+                query.getPagination());
     }
 
 
@@ -407,18 +396,6 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     /**
-     * Appends offset and limit to input SQL clause.
-     * @param sql The original query string
-     * @param dialect the SQL dialect
-     * @param offset position of the first record.
-     * @param limit maximum number of record.
-     * @return A new query string with offset and limit.
-     */
-    private String appendOffsetLimit(String sql, SQLDialect dialect, int offset, int limit) {
-        return dialect.appendOffsetLimit(sql, offset, limit);
-    }
-
-    /**
      * Extract dimension projects in a query to sql dimensions.
      *
      * @param query requested query
@@ -439,6 +416,10 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return getTypeAlias(entityClass);
+    }
+
+    private static boolean returnPageTotals(Pagination pagination) {
+        return pagination != null && pagination.returnPageTotals();
     }
 
     /**
