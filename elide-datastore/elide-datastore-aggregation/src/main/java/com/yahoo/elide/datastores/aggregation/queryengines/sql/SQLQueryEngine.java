@@ -170,7 +170,7 @@ public class SQLQueryEngine extends QueryEngine {
         public NamedParamPreparedStatement initializeStatement(String namedParamQuery, DataSource dataSource) {
             NamedParamPreparedStatement stmt;
             try {
-                if (conn == null || conn.isValid(10)) {
+                if (conn == null || !conn.isValid(10)) {
                     initializeConnection(dataSource);
                 }
                 stmt = new NamedParamPreparedStatement(conn, namedParamQuery);
