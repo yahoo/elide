@@ -159,11 +159,9 @@ public class SQLQueryEngine extends QueryEngine {
     static class SqlTransaction implements QueryEngine.Transaction {
 
         private Connection conn;
-        private SQLDialect dialect;
         private final List<NamedParamPreparedStatement> stmts = new ArrayList<>();
 
-        public void initializeTransaction(DataSource dataSource, SQLDialect dialect) {
-            this.dialect = dialect;
+        private void initializeTransaction(DataSource dataSource) {
             try {
                 this.conn = dataSource.getConnection();
             } catch (SQLException e) {
@@ -171,8 +169,11 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }
 
-        public NamedParamPreparedStatement initializeStatement(String namedParamQuery) {
+        public NamedParamPreparedStatement initializeStatement(String namedParamQuery, DataSource dataSource) {
             NamedParamPreparedStatement stmt;
+            if (conn == null) {
+                initializeTransaction(dataSource);
+            }
             try {
                 stmt = new NamedParamPreparedStatement(conn, namedParamQuery);
                 stmts.add(stmt);
@@ -207,7 +208,6 @@ public class SQLQueryEngine extends QueryEngine {
         ConnectionDetails details = getConnectionDetails(connectionName);
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        sqlTransaction.initializeTransaction(dataSource, dialect);
 
         // Translate the query into SQL.
         SQLQuery sql = toSQL(query, dialect);
@@ -225,29 +225,26 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         log.debug("SQL Query: " + queryString);
-        stmt = sqlTransaction.initializeStatement(queryString);
+        stmt = sqlTransaction.initializeStatement(queryString, dataSource);
 
         // Supply the query parameters to the query
         supplyFilterQueryParameters(query, stmt);
 
         // Run the primary query and log the time spent.
-        ResultSet resultSet = new TimedFunction<>(() -> {
-            try {
-                return stmt.executeQuery();
-            } catch (SQLException e) {
-                throw new IllegalStateException(e);
-            }
-        }, "Running Query: " + queryString
-        ).get();
+        ResultSet resultSet = runQuery(stmt, queryString, Function.identity());
 
         resultBuilder.data(new EntityHydrator(resultSet, query, getMetadataDictionary()).hydrate());
         return resultBuilder.build();
     }
 
     private long getPageTotal(Query query, SQLQuery sql, SqlTransaction sqlTransaction) {
-        String paginationSQL = toPageTotalSQL(sql, sqlTransaction.dialect).toString();
+        String connectionName = query.getTable().getDbConnectionName();
+        ConnectionDetails details = getConnectionDetails(connectionName);
+        DataSource dataSource = details.getDataSource();
+        SQLDialect dialect = details.getDialect();
+        String paginationSQL = toPageTotalSQL(sql, dialect).toString();
 
-        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL);
+        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL, dataSource);
 
         // Supply the query parameters to the query
         supplyFilterQueryParameters(query, stmt);
@@ -258,16 +255,16 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     public String getTableVersion(Table table, Transaction transaction) {
-        SqlTransaction sqlTransaction = (SqlTransaction) transaction;
 
         String tableVersion = null;
         Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();
+            SqlTransaction sqlTransaction = (SqlTransaction) transaction;
             ConnectionDetails details = getConnectionDetails(table.getDbConnectionName());
-            sqlTransaction.initializeTransaction(details.getDataSource(), details.getDialect());
-            NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(versionQueryString);
+            DataSource dataSource = details.getDataSource();
+            NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(versionQueryString, dataSource);
             tableVersion = CoerceUtil.coerce(runQuery(stmt, versionQueryString, SINGLE_RESULT_MAPPER), String.class);
         }
         return tableVersion;
