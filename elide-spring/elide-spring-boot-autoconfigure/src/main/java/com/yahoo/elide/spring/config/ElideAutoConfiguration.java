@@ -184,7 +184,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
-                    throws ClassNotFoundException {
+            throws ClassNotFoundException {
 
         ConnectionDetails defaultConnectionDetails =
                         new ConnectionDetails(defaultDataSource, settings.getAggregationStore().getDefaultDialect());

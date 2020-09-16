@@ -16,7 +16,6 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
@@ -114,11 +113,6 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
             @Override
             public boolean enableAggregationDataStore() {
                 return false;
-            }
-
-            @Override
-            public String getDefaultDialect() {
-                return SQLDialectFactory.getDefaultDialect().getDialectType();
             }
 
             @Override

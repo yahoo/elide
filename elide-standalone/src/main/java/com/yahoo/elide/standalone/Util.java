@@ -6,9 +6,7 @@
 package com.yahoo.elide.standalone;
 
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
 import com.yahoo.elide.utils.ClassScanner;
 import com.zaxxer.hikari.HikariConfig;
@@ -93,9 +91,9 @@ public class Util {
     }
 
     /**
-     * Extracts {@link DataSource} and {@link SQLDialect} info from Database Connection Properties.
+     * Creates {@link DataSource} object from Database Connection Properties.
      * @param options Database Connection Properties.
-     * @return {@link ConnectionDetails}.
+     * @return DataSource Object.
      */
     public static DataSource getDataSource(Properties options) {
 

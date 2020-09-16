@@ -15,9 +15,9 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,7 +50,6 @@ public class ElideStandaloneTest {
 
     @BeforeAll
     public void init() throws Exception {
-
         elide = new ElideStandalone(new ElideStandaloneSettings() {
 
             @Override
@@ -67,7 +66,6 @@ public class ElideStandaloneTest {
                 options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;");
                 options.put("javax.persistence.jdbc.user", "sa");
                 options.put("javax.persistence.jdbc.password", "");
-                options.put("elide.dialect", SQLDialectFactory.getH2Dialect().getClass().getName());
                 return options;
             }
 

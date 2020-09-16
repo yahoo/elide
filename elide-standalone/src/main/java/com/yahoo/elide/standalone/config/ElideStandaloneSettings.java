@@ -31,7 +31,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
@@ -379,10 +379,10 @@ public interface ElideStandaloneSettings {
     /**
      * Provides the default SQLDialect type.
      *
-     * @return String dialect for default DataSource Object.
+     * @return {@link SQLDialect} type for default DataSource Object.
      */
     default String getDefaultDialect() {
-        return SQLDialectFactory.getDefaultDialect().getDialectType();
+        return "MYSQL";
     }
 
     /**

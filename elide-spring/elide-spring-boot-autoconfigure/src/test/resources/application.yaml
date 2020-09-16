@@ -24,6 +24,7 @@ elide:
     enabled: true
   aggregation-store:
     enabled: true
+    default-dialect: h2
 spring:
   jpa:
     show-sql: true
@@ -41,4 +42,3 @@ spring:
     username: 'sa'
     password: ''
     driver-class-name: 'org.h2.Driver'
-  dialect: h2
