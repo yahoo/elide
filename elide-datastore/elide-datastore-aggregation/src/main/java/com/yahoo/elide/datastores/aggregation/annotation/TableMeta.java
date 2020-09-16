@@ -15,10 +15,18 @@ import java.lang.annotation.Target;
  * Indicates that the specified entity field has a configured long name and field description for human to read on UI.
  */
 @Documented
-@Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Meta {
+public @interface TableMeta {
 
     String description() default "";
     String category() default "";
+
+    String [] tags() default {};
+
+    /**
+     * Whether or not querying this table requires a client provided filter.
+     * @return The required filter template.
+     */
+    String filterTemplate() default "";
 }

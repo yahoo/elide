@@ -12,10 +12,11 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -44,7 +45,12 @@ import javax.persistence.Id;
 <%else if sql%>@FromSubquery(sql = "<%sql%>", dbConnectionName = "<%dbConnectionName%>")
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-<%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
+@TableMeta(
+    description = "<%description%>",
+    category="<%category%>",
+    tags={<%#collectionToString tags%><%/collectionToString%>},
+    filterTemplate="<%filterTemplate%>"
+)
 <%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 
@@ -60,7 +66,13 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/ifTypeMatches%>
 
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-    <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
+    @ColumnMeta(
+        description = "<%description%>",
+        category="<%category%>",
+        values={<%#collectionToString values%><%/collectionToString%>},
+        tags={<%#collectionToString tags%><%/collectionToString%>},
+        tableSource="<%tableSource%>"
+    )
     <%#if hidden%>@Exclude<%/if%>
     <%#if override%>
     @Getter(onMethod_={@Override})
@@ -91,7 +103,11 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 
     @MetricFormula("<%definition%>")
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
-    <%#if category%>@Meta(description = "<%description%>", category="<%category%>")<%else%>@Meta(description = "<%description%>")<%/if%>
+    @ColumnMeta(
+        description = "<%description%>",
+        category="<%category%>",
+        tags={<%#collectionToString tags%><%/collectionToString%>}
+    )
     <%#if hidden%>@Exclude<%/if%>
     <%#if override%>
     @Getter(onMethod_={@Override})

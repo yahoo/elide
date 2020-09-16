@@ -11,9 +11,12 @@ import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getV
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.ParseException;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
@@ -58,6 +61,8 @@ public class Table {
 
     private final CardinalitySize cardinality;
 
+    private final String requiredFilter;
+
     @OneToMany
     @ToString.Exclude
     private final Set<Column> columns;
@@ -75,13 +80,14 @@ public class Table {
     private final Set<TimeDimension> timeDimensions;
 
     @ToString.Exclude
-    private final Set<String> tableTags;
+    private final Set<String> tags;
 
     @Exclude
     @ToString.Exclude
     private final Map<String, Column> columnMap;
 
     public Table(Class<?> cls, EntityDictionary dictionary) {
+
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
@@ -101,8 +107,6 @@ public class Table {
 
         this.id = new TableId(this.name, this.version, dbConnectionName);
 
-        this.tableTags = new HashSet<>();
-
         this.columns = constructColumns(cls, dictionary);
         this.columnMap = this.columns.stream().collect(Collectors.toMap(Column::getName, Function.identity()));
 
@@ -119,14 +123,18 @@ public class Table {
                 .map(TimeDimension.class::cast)
                 .collect(Collectors.toSet());
 
-        Meta meta = cls.getAnnotation(Meta.class);
+        TableMeta meta = cls.getAnnotation(TableMeta.class);
 
         if (meta != null) {
             this.description = meta.description();
             this.category = meta.category();
+            this.requiredFilter = meta.filterTemplate();
+            this.tags = new HashSet<>(Arrays.asList(meta.tags()));
         } else {
             this.description = null;
             this.category = null;
+            this.requiredFilter = null;
+            this.tags = new HashSet<>();
         }
 
         Cardinality cardinality = dictionary.getAnnotation(cls, Cardinality.class);
@@ -248,5 +256,19 @@ public class Table {
      */
     public String getDbConnectionName() {
         return this.getId().getDbConnectionName();
+    }
+
+    public FilterExpression getRequiredFilter(EntityDictionary dictionary) {
+        Class<?> cls = dictionary.getEntityClass(name, version);
+        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+
+        if (requiredFilter != null && !requiredFilter.isEmpty()) {
+            try {
+                return filterDialect.parseFilterExpression(requiredFilter, cls, false, true);
+            } catch (ParseException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return null;
     }
 }

@@ -137,6 +137,16 @@
             ]}
           ],
           "default": "INTEGER"
+        },
+        "tags": {
+          "title": "Measure tags",
+          "description": "An array of string based tags for measures",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "default": []
         }
       },
       "required": [
@@ -200,6 +210,7 @@
           },
           "default": []
         }
+
       }
     },
     "dimension": {
@@ -211,13 +222,33 @@
         {
           "properties": {
             "type": {
-              "oneOf":[
-              {"$ref": "#/definitions/enumtype"},
-              {"enum": [
-                "RELATIONSHIP","ID"
-              ]}
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/enumtype"
+                },
+                {
+                  "enum": [
+                    "RELATIONSHIP",
+                    "ID"
+                  ]
+                }
               ],
               "default": "TEXT"
+            },
+            "values": {
+              "title": "Dimension values",
+              "description": "An array of valid string values for this dimension",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "tableSource": {
+              "title": "Table stores dimension values",
+              "description": "Table and column name where to find the values : tableName.columnName",
+              "type": "string"
             }
           }
         }
@@ -226,6 +257,22 @@
         "name",
         "type",
         "definition"
+      ],
+      "oneOf" : [
+        {
+          "required" : ["values"]
+        },
+        {
+          "required" : ["tableSource"]
+        },
+        {
+          "not" : {
+            "anyOf" : [
+              { "required" : ["values"] },
+              { "required" : ["tableSource"] }
+            ]
+          }
+        }
       ]
     },
     "timeDimension": {
@@ -289,6 +336,13 @@
             "description": "The database connection name for this model.",
             "type": "string",
             "pattern": "^[A-Za-z][0-9A-Za-z_]*$",
+            "default": ""
+          },
+          "filterTemplate": {
+            "title": "Required RSQL Filter Template",
+            "description": "Client queries must include a filter conforming to this RSQL template.",
+            "type": "string",
+            "pattern": "^[A-Za-z][0-9A-Za-z_]*(==|!=|>=|>|<|<=|=[a-z]+=)(.*)",
             "default": ""
           },
           "hidden": {

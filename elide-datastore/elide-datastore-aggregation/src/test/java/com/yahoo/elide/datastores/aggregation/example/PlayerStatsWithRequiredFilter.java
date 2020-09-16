@@ -23,26 +23,31 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMin;
-
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
+
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Include(rootLevel = true)
+@Include(rootLevel = true, type = "playerStatsFiltered")
 @Cardinality(size = CardinalitySize.LARGE)
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
-@TableMeta(description = "Player Statistics", category = "Sports Category", tags = {"Game", "Statistics"})
-public class PlayerStats {
-
+@TableMeta(
+        description = "Player Statistics",
+        category = "Sports Category",
+        filterTemplate = PlayerStatsWithRequiredFilter.FILTER_TEMPLATE
+)
+public class PlayerStatsWithRequiredFilter {
+    public static final String FILTER_TEMPLATE = "recordedDate>={{start}};recordedDate<{{end}}";
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
 
     /**
@@ -145,7 +150,7 @@ public class PlayerStats {
     }
 
     @MetricAggregation(function = SqlMin.class)
-    @ColumnMeta(description = "very low score", category = "Score Category", tags = {"PRIVATE"})
+    @ColumnMeta(description = "very low score", category = "Score Category")
     public long getLowScore() {
         return lowScore;
     }
@@ -156,7 +161,6 @@ public class PlayerStats {
 
     @FriendlyName
     @Cardinality(size = CardinalitySize.MEDIUM)
-    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"}, tags = {"PUBLIC"})
     public String getOverallRating() {
         return overallRating;
     }
@@ -175,9 +179,6 @@ public class PlayerStats {
     }
 
     @JoinTo(path = "country.nickName")
-    @ColumnMeta(
-            tableSource = "subcountry.nickName"
-    )
     public String getCountryNickName() {
         return countryNickName;
     }
@@ -196,7 +197,6 @@ public class PlayerStats {
     }
 
     @JoinTo(path = "country.isoCode")
-    @ColumnMeta(values = {"HK", "US"})
     public String getCountryIsoCode() {
         return countryIsoCode;
     }

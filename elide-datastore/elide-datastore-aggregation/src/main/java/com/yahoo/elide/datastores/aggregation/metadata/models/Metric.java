@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 
@@ -40,9 +40,9 @@ public class Metric extends Column {
                 MetricAggregation.class,
                 fieldName);
 
-        Meta meta = dictionary.getAttributeOrRelationAnnotation(
+        ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(
                 tableClass,
-                Meta.class,
+                ColumnMeta.class,
                 fieldName);
 
         if (aggregation != null) {
@@ -80,7 +80,7 @@ public class Metric extends Column {
     private static MetricFunction resolveAggregation(Class<?> tableClass,
                                                      String fieldName,
                                                      MetricAggregation aggregation,
-                                                     Meta meta,
+                                                     ColumnMeta meta,
                                                      EntityDictionary dictionary) {
         String columnName = constructColumnName(tableClass, fieldName, dictionary);
         try {

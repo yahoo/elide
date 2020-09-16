@@ -8,6 +8,7 @@
         '''
         cardinality : large
         readAccess : Prefab.Role.All
+        filterTemplate : createdOn>={{start}};createdOn<{{end}}
         joins: [
             {
                 name: playerCountry

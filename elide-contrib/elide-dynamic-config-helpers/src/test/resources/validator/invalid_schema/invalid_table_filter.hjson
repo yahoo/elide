@@ -11,8 +11,7 @@
       cardinality : large
       hidden : false
       readAccess : A user is admin or is a player in the game
-      filterTemplate : countryIsoCode=={{code}}
-      tags: ['GAME', 'PLAYER']
+      filterTemplate : countryIsoCode={{code}  #Invalid Operator
       joins: [
           {
              name: playerCountry
@@ -34,7 +33,6 @@
           type : INTEGER
           description : very awesome score
           definition: 'MAX(score)'
-          tags: ['PUBLIC']
           }
       ]
       dimensions : [
@@ -44,8 +42,8 @@
            category : country detail
            definition : '{{playerCountry.isoCode}}'
            values : ['US', 'HK']
-           tags: ['PRIVATE']
-         },
+           tableSource : 'playerCountry.isoCode'
+         }
          {
            name : createdOn
            type : TIME

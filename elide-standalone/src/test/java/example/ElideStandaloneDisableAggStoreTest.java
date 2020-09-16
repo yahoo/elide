@@ -16,8 +16,8 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
-import com.yahoo.elide.async.service.AsyncQueryDAO;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
 import org.apache.http.HttpStatus;
@@ -48,7 +48,7 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
                 options.put("hibernate.jdbc.use_scrollable_resultset", "true");
 
                 options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
-                options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE;");
+                options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;");
                 options.put("javax.persistence.jdbc.user", "sa");
                 options.put("javax.persistence.jdbc.password", "");
                 return options;
@@ -75,33 +75,34 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
             }
 
             @Override
-            public boolean enableAsync() {
-                return true;
-            }
+            public ElideStandaloneAsyncSettings getAsyncProperties() {
+                ElideStandaloneAsyncSettings asyncPropeties = new ElideStandaloneAsyncSettings() {
+                    @Override
+                    public boolean enabled() {
+                        return true;
+                    }
 
-            @Override
-            public boolean enableAsyncCleanup() {
-                return true;
-            }
+                    @Override
+                    public boolean enableCleanup() {
+                        return true;
+                    }
 
-            @Override
-            public Integer getAsyncThreadSize() {
-                return 3;
-            }
+                    @Override
+                    public Integer getThreadSize() {
+                        return 5;
+                    }
 
-            @Override
-            public Integer getAsyncMaxRunTimeSeconds() {
-                return 1800;
-            }
+                    @Override
+                    public Integer getMaxRunTimeSeconds() {
+                        return 1800;
+                    }
 
-            @Override
-            public Integer getAsyncQueryCleanupDays() {
-                return 3;
-            }
-
-            @Override
-            public AsyncQueryDAO getAsyncQueryDAO() {
-                return null;
+                    @Override
+                    public Integer getQueryCleanupDays() {
+                        return 3;
+                    }
+                };
+                return asyncPropeties;
             }
 
             @Override

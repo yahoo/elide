@@ -35,51 +35,84 @@ public class MatchesTemplateVisitorTest {
         FilterExpression clientExpression = dialect.parseFilterExpression("highScore==123",
                 PlayerStats.class, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==${variable}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 PlayerStats.class, false, true);
 
         assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
     }
 
     @Test
-    public void conjunctionMatchTest() throws Exception {
+    public void predicateMatchWithoutTemplateTest() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("highScore==123",
+                PlayerStats.class, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==123",
+                PlayerStats.class, false, true);
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+    }
+
+    @Test
+    public void conjunctionContainsTest() throws Exception {
         FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100;highScore==123",
                 PlayerStats.class, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==${variable}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 PlayerStats.class, false, true);
 
         assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
     }
 
     @Test
-    public void conjunctionMismatchTest() throws Exception {
+    public void conjunctionMatchesTest() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100;highScore==123",
+                PlayerStats.class, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("lowScore>100;highScore=={{variable}}",
+                PlayerStats.class, false, true);
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+    }
+
+    @Test
+    public void conjunctionDoesNotContainTest() throws Exception {
         FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100;player.name==Bob*",
                 PlayerStats.class, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==${variable}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 PlayerStats.class, false, true);
 
         assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
     }
 
     @Test
-    public void disjunctionMatchTest() throws Exception {
+    public void disjunctionContainsTest() throws Exception {
         FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100,highScore==123",
                 PlayerStats.class, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==${variable}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 PlayerStats.class, false, true);
 
         assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
     }
 
     @Test
-    public void disjunctionMismatchTest() throws Exception {
+    public void disjunctionMatchesTest() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100,highScore==123",
+                PlayerStats.class, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("lowScore>100,highScore=={{variable}}",
+                PlayerStats.class, false, true);
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+    }
+
+    @Test
+    public void disjunctionDoesNotContainTest() throws Exception {
         FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100,player.name==Bob*",
                 PlayerStats.class, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==${variable}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 PlayerStats.class, false, true);
 
         assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
@@ -90,7 +123,18 @@ public class MatchesTemplateVisitorTest {
         FilterExpression clientExpression = dialect.parseFilterExpression("highScore!=123",
                 PlayerStats.class, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==${variable}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
+                PlayerStats.class, false, true);
+
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+    }
+
+    @Test
+    public void predicateMismatchWithoutTemplateTest() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("highScore==123",
+                PlayerStats.class, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==456",
                 PlayerStats.class, false, true);
 
         assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
@@ -102,7 +146,7 @@ public class MatchesTemplateVisitorTest {
         FilterExpression clientExpression = dialect.parseFilterExpression(complexExpression,
                 PlayerStats.class, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore==${variable}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 PlayerStats.class, false, true);
 
         assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
