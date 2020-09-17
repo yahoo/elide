@@ -70,7 +70,7 @@ public class QueryRunner {
     public QueryRunner(Elide elide, String apiVersion) {
         this.elide = elide;
         this.apiVersion = apiVersion;
-        QueryRunner.mapper = elide.getMapper().getObjectMapper();
+        initializeMapper(elide);
 
         NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(nonEntityDictionary);
@@ -85,6 +85,10 @@ public class QueryRunner {
         module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
         module.addSerializer(GraphQLError.class, errorSerializer);
         elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
+    }
+
+    private void initializeMapper(Elide elide) {
+        QueryRunner.mapper = elide.getMapper().getObjectMapper();
     }
 
     /**

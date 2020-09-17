@@ -59,10 +59,8 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
             throw new InvalidValueException("resultFormatType is invalid", (Throwable) null);
         }
 
-        if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            if (asyncExecutorService.getRunners().size() == 0) {
-                throw new InvalidValueException("GraphQL is disabled", (Throwable) null);
-            }
+        if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0) && asyncExecutorService.getRunners().size() == 0) {
+            throw new InvalidValueException("GraphQL is disabled", (Throwable) null);
         }
     }
 }
