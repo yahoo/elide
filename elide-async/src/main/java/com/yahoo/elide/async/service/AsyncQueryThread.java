@@ -210,7 +210,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @return result as Observable of String
      */
     protected Observable<String> processObservablePersistentResource(Observable<PersistentResource> resources) {
-        Observable<String> results = Observable.empty();
+        Observable<String> results = Observable.just("No Records Generated");
 
         if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
             results =  resources.map(resource -> convertToCSV(resource));
