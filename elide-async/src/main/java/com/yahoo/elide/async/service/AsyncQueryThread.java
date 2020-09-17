@@ -269,44 +269,6 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             throw new IllegalStateException(e);
         }
         return str.toString();
-
-        /*try {
-            json2csv = flatMe.json2Sheet().headerSeparator("_").getJsonAsSheet();
-        } catch (Exception e) {
-            log.debug("Exception while converting to CSV: {}", e.getMessage());
-            throw new IllegalStateException(e);
-        }
-
-        if (!generateHeader) {
-            json2csv.remove(0);
-        }
-
-        return Observable.using(
-                () -> json2csv,
-                records -> {
-                    return Observable.fromIterable(() -> {
-                        return new Iterator<String>() {
-                            private String record = null;
-                            private Iterator<Object[]> recordIterator = records.iterator();
-
-                            @Override
-                            public boolean hasNext() {
-                                record = recordIterator.hasNext() ? Arrays.toString(recordIterator.next()) : null;
-                                return record != null;
-                            }
-
-                            @Override
-                            public String next() {
-                                if (record != null) {
-                                    return record.substring(1, record.length() - 1);
-                                }
-                                throw new IllegalStateException("null record found.");
-                            }
-                        };
-                    });
-                },
-                List::clear
-        );*/
     }
 
     /**
