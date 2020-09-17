@@ -116,8 +116,9 @@ public class DynamicConfigValidator {
         validateRoleInSecurityConfig(this.elideSecurityConfig);
         this.setDbVariables(readVariableConfig(Config.DBVARIABLE));
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
-        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         this.elideTableConfig.setTables(readTableConfig());
+        validateRequiredConfigsProvided();
+        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         validateNameUniqueness(this.elideTableConfig.getTables());
         validateSqlInTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
@@ -214,7 +215,7 @@ public class DynamicConfigValidator {
      */
     private Set<Table> readTableConfig() {
 
-        Set<Table> tables = this.resourceMap
+        return this.resourceMap
                         .entrySet()
                         .stream()
                         .filter(entry -> entry.getKey().startsWith(Config.TABLE.getConfigPath()))
@@ -229,12 +230,15 @@ public class DynamicConfigValidator {
                         })
                         .flatMap(table -> table.getTables().stream())
                         .collect(Collectors.toSet());
+    }
 
-        if (tables.isEmpty()) {
-            throw new IllegalStateException(
-                            "No Table configs found at: " + this.configDir + Config.TABLE.getConfigPath());
+    /**
+     * Checks if neither Table nor DB config files provided.
+     */
+    private void validateRequiredConfigsProvided() {
+        if (this.elideTableConfig.getTables().isEmpty() && this.elideSQLDBConfig.getDbconfigs().isEmpty()) {
+            throw new IllegalStateException("Neither Table nor DB configs found under: " + this.configDir);
         }
-        return tables;
     }
 
     /**
