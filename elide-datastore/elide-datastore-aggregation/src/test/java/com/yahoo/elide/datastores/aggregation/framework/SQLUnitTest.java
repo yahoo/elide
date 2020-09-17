@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.framework;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -45,11 +46,15 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
-import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import java.io.File;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,19 +62,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import javax.inject.Provider;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import javax.sql.DataSource;
 
 public abstract class SQLUnitTest {
 
-    protected static EntityManagerFactory emf;
     protected static Table playerStatsTable;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
@@ -276,7 +277,7 @@ public abstract class SQLUnitTest {
                     .metric(invoke(playerStatsTable.getMetric("highScore")))
                     .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
                     .timeDimension(toProjection(playerStatsTable.getTimeDimension("recordedDate"), TimeGrain.SIMPLEDATE))
-                    .pagination(new ImmutablePagination(0, 1, false, true))
+                    .pagination(new ImmutablePagination(10, 5, false, true))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .whereFilter(predicate)
                     // force a join to look up countryIsoCode
@@ -298,13 +299,17 @@ public abstract class SQLUnitTest {
 
     protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
 
-    public static void init(SQLDialect sqlDialect) {
-        emf = Persistence.createEntityManagerFactory("aggregationStore");
-        EntityManager em = emf.createEntityManager();
-        em.getTransaction().begin();
-        em.createNativeQuery("DROP ALL OBJECTS;").executeUpdate();
-        em.createNativeQuery("RUNSCRIPT FROM 'classpath:create_tables.sql'").executeUpdate();
-        em.getTransaction().commit();
+    public static void init(String sqlDialect) {
+
+        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
+        DataSource dataSource = new HikariDataSource(config);
+
+        try (Connection h2Conn = dataSource.getConnection()) {
+            h2Conn.createStatement().execute("RUNSCRIPT FROM 'classpath:prepare_tables.sql'");
+        } catch (SQLException e) {
+            ((HikariDataSource) dataSource).close();
+            throw new IllegalStateException(e);
+        }
 
         metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
 
@@ -321,31 +326,20 @@ public abstract class SQLUnitTest {
         filterParser = new RSQLFilterDialect(dictionary);
 
         metaDataStore.populateEntityDictionary(dictionary);
-        Consumer<EntityManager> txCancel = (entityManager) -> { entityManager.unwrap(Session.class).cancelQuery(); };
-        engine = new SQLQueryEngine(metaDataStore, emf, txCancel, sqlDialect);
+
+        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect));
 
         TableId tableId = new TableId("playerStats", "", "");
         playerStatsTable = engine.getTable(tableId);
 
-        ASIA.setName("Asia");
-        ASIA.setId("1");
-
-        NA.setName("North America");
-        NA.setId("2");
-
-        HONG_KONG.setIsoCode("HKG");
-        HONG_KONG.setName("Hong Kong");
-        HONG_KONG.setId("344");
-        HONG_KONG.setContinent(ASIA);
-
-        USA.setIsoCode("USA");
-        USA.setName("United States");
-        USA.setId("840");
-        USA.setContinent(NA);
     }
 
     public static void init() {
-        init(new SQLDialectFactory().getDefaultDialect());
+        init(SQLDialectFactory.getDefaultDialect());
+    }
+
+    public static void init(SQLDialect sqlDialect) {
+        init(sqlDialect.getClass().getName());
     }
 
     @BeforeEach

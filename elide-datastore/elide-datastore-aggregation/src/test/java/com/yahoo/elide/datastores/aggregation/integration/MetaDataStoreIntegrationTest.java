@@ -12,22 +12,42 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.nullValue;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TableIdSerde;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.Collections;
+import java.util.Properties;
+
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.sql.DataSource;
 
 public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        return new AggregationDataStoreTestHarness(Persistence.createEntityManagerFactory("aggregationStore"));
+
+        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
+        DataSource defaultDataSource = new HikariDataSource(config);
+        String defaultDialect = "h2";
+        ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
+
+        Properties prop = new Properties();
+        prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
+        prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
+
+        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails);
     }
 
     @Test

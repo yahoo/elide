@@ -28,4 +28,12 @@ public interface SQLDialect {
      * @return the SQL clause as a string.
      */
     String generateCountDistinctClause(String dimensions);
+
+    /**
+     * Generates required offset and limit clause.
+     * @param offset position of the first record.
+     * @param limit maximum number of record.
+     * @return the offset and limit clause.
+     */
+    String generateOffsetLimitClause(int offset, int limit);
 }

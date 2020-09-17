@@ -43,7 +43,7 @@
                         "type": "string",
                         "title": "JDBC URL",
                         "description": "JDBC URL for the database connection i.e. javax.persistence.jdbc.URL",
-                        "pattern": "^jdbc:[0-9A-Za-z_]+:[0-9A-Za-z:/@?&=]+$",
+                        "pattern": "^jdbc:[0-9A-Za-z_]+:.*$",
                         "examples": [
                             "jdbc:mysql://localhost/elide?serverTimezone=UTC"
                         ]
@@ -70,9 +70,9 @@
                         "type": "string",
                         "title": "Elide Dialect",
                         "description": "The Elide Dialect to use for query generation.",
-                        "pattern": "^([0-9A-Za-z_]+[.]?)+$",
+                        "pattern": "^[A-Za-z][0-9A-Za-z_.]*$",
                         "examples": [
-                            "org.hibernate.dialect.MySQL5Dialect"
+                            "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect"
                         ]
                     },
                     "propertyMap": {
@@ -116,7 +116,7 @@
                     "url": "jdbc:db2://localhost/elide?serverTimezone=UTC&",
                     "driver": "a",
                     "user": "elide",
-                    "dialect": "org.hibernate.dialect.DB2Dialect",
+                    "dialect": "PrestoDB",
                     "propertyMap": {
                         "hibernate.show_sql": true,
                         "hibernate.default_batch_fetch_size": 100.1,
@@ -128,7 +128,7 @@
                     "url": "jdbc:mysql://localhost/elide?serverTimezone=UTC",
                     "driver": "com.mysql.jdbc.Driver",
                     "user": "guest1",
-                    "dialect": "org.hibernate.dialect.MySQL5Dialect"
+                    "dialect": "com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect"
                 }
             ]
         }
