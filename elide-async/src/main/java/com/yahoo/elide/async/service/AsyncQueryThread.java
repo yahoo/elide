@@ -118,10 +118,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                 // TODO: executeDownloadRequest for JSON API
                 throw new InvalidValueException("Download not supported for JSON API Query");
             } else if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
-                String graphQLDocument = queryObj.getQuery();
-                JsonNode node = QueryRunner.getTopLevelNode(graphQLDocument);
-                GraphQLQuery graphQLQuery = new GraphQLQuery(graphQLDocument, node);
-                extractAndValidateQuery(graphQLQuery);
+                GraphQLQuery graphQLQuery = createGraphQLQuery();
                 Observable<PersistentResource> observableResults = executeDownloadRequest(graphQLQuery, requestId);
                 convertPersistentResourceToDownloadString(observableResults);
             }
@@ -137,10 +134,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             if (queryType.equals(QueryType.JSONAPI_V1_0)) {
                 response = executeJsonApiRequest(queryObj, requestId);
             } else if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
-                String graphQLDocument = queryObj.getQuery();
-                JsonNode node = QueryRunner.getTopLevelNode(graphQLDocument);
-                GraphQLQuery graphQLQuery = new GraphQLQuery(graphQLDocument, node);
-                extractAndValidateQuery(graphQLQuery);
+                GraphQLQuery graphQLQuery = createGraphQLQuery();
                 response = executeGraphqlRequest(graphQLQuery, requestId);
             }
             nullResponseCheck(response);
@@ -247,7 +241,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      */
     protected Observable<String> convertJsonToCSV(String jsonStr, boolean generateHeader) {
         if (jsonStr == null) {
-            return null;
+            return Observable.empty();
         }
         JFlat flatMe = new JFlat(jsonStr);
         List<Object[]> json2csv;
@@ -364,6 +358,14 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         return response;
     }
 
+    private GraphQLQuery createGraphQLQuery() throws IOException {
+        String graphQLDocument = queryObj.getQuery();
+        JsonNode node = QueryRunner.getTopLevelNode(graphQLDocument);
+        GraphQLQuery graphQLQuery = new GraphQLQuery(graphQLDocument, node);
+        extractAndValidateQuery(graphQLQuery);
+        return graphQLQuery;
+    }
+
     private Observable<PersistentResource> executeDownloadRequest(GraphQLQuery graphQLQuery, UUID requestId)
             throws IOException {
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
@@ -375,11 +377,12 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                     new GraphQLRequestScope("", tx, user, apiVersion,
                             elide.getElideSettings(), projectionInfo, requestId);
 
-            // TODO - Confirm if this is valid and needed.
+            // TODO - Confirm if this is possible, valid and needed.
             if (projectionInfo.getProjections().size() > 1) {
                 throw new IllegalStateException("More than 1 projections in the query");
             }
 
+            // TODO - Check if the Entity is an Aggregation Annotated Model
             Optional<Entry<String, EntityProjection>> optionalEntry =
                     projectionInfo.getProjections().entrySet().stream().findFirst();
             if (optionalEntry.isPresent()) {
