@@ -217,9 +217,9 @@ public class AsyncQueryThreadTest {
 
     }
 
-    // Standard positive test case that converts json to csv format.
+    // Standard positive test case that converts Persistent Resource to csv format.
     @Test
-    public void testConvertJsonToCSV() throws Exception {
+    public void testConvertToCSV() throws Exception {
         String csvStr = "createdOn, updatedOn, id, query, queryType, resultFormatType, asyncAfterSeconds, requestId, status, resultType, result, principalName, queryUpdateWorker\n"
                 + "1.600375805E9, 1.600375805E9, \"edc4a871-dff2-4054-804e-d80075cf827e\", null, null, \"DEFAULT\", 10.0, \"edc4a871-dff2-4054-804e-d80075cf827f\", \"QUEUED\", \"EMBEDDED\", null, null, null\n";
 
@@ -244,9 +244,9 @@ public class AsyncQueryThreadTest {
         assertEquals(csvStr, result);
     }
 
-    // Null json to csv format.
+    // Null PersistentResource to csv format.
     @Test
-    public void testConvertJsonToCSVNull() throws Exception {
+    public void testConvertToCSVNull() throws Exception {
         AsyncQuery queryObj = new AsyncQuery();
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
