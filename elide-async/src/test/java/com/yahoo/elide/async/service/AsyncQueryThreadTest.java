@@ -355,7 +355,7 @@ public class AsyncQueryThreadTest {
 
     private void updateValidationResult(String result, String[] expected) {
         boolean status = false;
-        for (int i=0; i<expected.length; i++) {
+        for (int i = 0; i < expected.length; i++) {
             status = status || result.contains(expected[i]);
         }
         validationResult = status;
