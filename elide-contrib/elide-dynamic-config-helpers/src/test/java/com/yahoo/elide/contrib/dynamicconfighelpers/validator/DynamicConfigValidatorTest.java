@@ -71,17 +71,16 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testMissingTableDir() {
+    public void testMissingConfigs() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
-                .main(new String[] { "--configDir", "src/test/resources/validator/missing_table_dir" }));
-        assertTrue(e.getMessage().startsWith("No Table configs found at"));
+                .main(new String[] { "--configDir", "src/test/resources/validator/missing_configs" }));
+        assertTrue(e.getMessage().startsWith("Neither Table nor DB configs found under:"));
     }
 
     @Test
     public void testMissingTableConfig() {
-        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
-                .main(new String[] { "--configDir", "src/test/resources/validator/missing_table" }));
-        assertTrue(e.getMessage().startsWith("No Table configs found at"));
+        assertDoesNotThrow(() -> DynamicConfigValidator
+                        .main(new String[] { "--configDir", "src/test/resources/validator/missing_table_config" }));
     }
 
     @Test
