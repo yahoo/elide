@@ -8,6 +8,7 @@ package com.yahoo.elide.async.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -21,6 +22,9 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultFormatType;
 import com.yahoo.elide.async.models.ResultType;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -28,11 +32,11 @@ import com.jayway.jsonpath.InvalidJsonException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+
+import io.reactivex.Observable;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 
 public class AsyncQueryThreadTest {
 
@@ -42,6 +46,7 @@ public class AsyncQueryThreadTest {
     private AsyncQueryResult queryResultObj;
     private AsyncQueryDAO asyncQueryDao;
     private ResultStorageEngine resultStorageEngine;
+    private Boolean validationResult; //used for PersistentResource Test Status
 
     @BeforeEach
     public void setupMocks() {
@@ -51,6 +56,7 @@ public class AsyncQueryThreadTest {
         queryResultObj = mock(AsyncQueryResult.class);
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         resultStorageEngine = mock(ResultStorageEngine.class);
+        validationResult = true;
     }
 
     //Test with record count = 3
@@ -137,7 +143,7 @@ public class AsyncQueryThreadTest {
             queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
             queryObj.setResultType(ResultType.EMBEDDED);
 
-            when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
+            when(runner.run(any(), any(), eq(user), any())).thenReturn(response);
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                     resultStorageEngine);
             queryResultObj = queryThread.processQuery();
@@ -148,25 +154,16 @@ public class AsyncQueryThreadTest {
 
     //Test for when resultStorageEngine fails to store
     @Test
-    public void testProcessQueryGraphQlStoreException() throws Exception {
+    public void testProcessQueryStoreException() throws Exception {
         assertThrows(IllegalStateException.class, () -> {
             AsyncQuery queryObj = new AsyncQuery();
-            String responseBody = "{\"data\":{\"book\":{\"edges\":[{\"node\":{\"id\":\"1\",\"title\":\"Ender's Game\"}},"
-                    + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"
-                    + "{\"node\":{\"id\":\"3\",\"title\":\"For Whom the Bell Tolls\"}}]}}}";
-            ElideResponse response = new ElideResponse(200, responseBody);
-            String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
             String id = "edc4a871-dff2-4054-804e-d80075cf827d";
             queryObj.setId(id);
-            queryObj.setQuery(query);
-            queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-            queryObj.setResultType(ResultType.DOWNLOAD);
 
-            when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
             when(resultStorageEngine.storeResults(any(), any())).thenThrow(IllegalStateException.class);
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                     resultStorageEngine);
-            queryResultObj = queryThread.processQuery();
+            queryThread.storeResults(queryObj, Observable.empty());
         });
     }
 
@@ -186,7 +183,7 @@ public class AsyncQueryThreadTest {
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.EMBEDDED);
 
-        when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
+        when(runner.run(any(), any(), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
         queryResultObj = queryThread.processQuery();
@@ -210,7 +207,7 @@ public class AsyncQueryThreadTest {
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.EMBEDDED);
 
-        when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
+        when(runner.run(any(), any(), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
         queryResultObj = queryThread.processQuery();
@@ -218,32 +215,6 @@ public class AsyncQueryThreadTest {
         assertEquals(queryResultObj.getResponseBody(), responseBody);
         assertEquals(queryResultObj.getHttpStatus(), 200);
 
-    }
-
-    //Test with record count = 3 and Download
-    @Test
-    public void testProcessQueryGraphQlDownload(@TempDir Path tempDir) throws Exception {
-
-        AsyncQuery queryObj = new AsyncQuery();
-        String responseBody = "{\"data\":{\"book\":{\"edges\":[{\"node\":{\"id\":\"1\",\"title\":\"Ender's Game\"}},"
-                + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"
-                + "{\"node\":{\"id\":\"3\",\"title\":\"For Whom the Bell Tolls\"}}]}}}";
-        ElideResponse response = new ElideResponse(200, responseBody);
-        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
-        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
-        queryObj.setId(id);
-        queryObj.setQuery(query);
-        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        queryObj.setResultType(ResultType.DOWNLOAD);
-
-        when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
-        resultStorageEngine = new FileResultStorageEngine(tempDir.toString());
-        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                resultStorageEngine);
-        queryResultObj = queryThread.processQuery();
-        assertEquals(queryResultObj.getRecordCount(), 3);
-        assertEquals(queryResultObj.getResponseBody(), "URL to be generated");
-        assertEquals(queryResultObj.getHttpStatus(), 200);
     }
 
     // Standard positive test case that converts json to csv format.
@@ -257,7 +228,17 @@ public class AsyncQueryThreadTest {
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
 
-        assertEquals(csvStr, queryThread.mergeObservable(queryThread.convertJsonToCSV(jsonStr)));
+        Observable<String> result = queryThread.convertJsonToCSV(jsonStr, true);
+        String finalResult = result.collect(() -> new StringBuilder(),
+              (resultBuilder, tempResult) -> {
+                  if (resultBuilder.length() > 0) {
+                      resultBuilder.append(System.getProperty("line.separator"));
+                  }
+                  resultBuilder.append(tempResult);
+              }
+        ).map(StringBuilder::toString).blockingGet();
+
+        assertEquals(csvStr, finalResult);
     }
 
     // Null json to csv format.
@@ -270,7 +251,7 @@ public class AsyncQueryThreadTest {
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
 
-        assertNull(queryThread.convertJsonToCSV(jsonStr));
+        assertNull(queryThread.convertJsonToCSV(jsonStr, true));
     }
 
     //Invalid input for the json to csv conversion. This throws an exception.
@@ -285,7 +266,7 @@ public class AsyncQueryThreadTest {
             AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                     resultStorageEngine);
 
-            assertEquals(queryThread.convertJsonToCSV(jsonStr), csvStr);
+            assertEquals(queryThread.convertJsonToCSV(jsonStr, true), csvStr);
         });
     }
 
@@ -324,11 +305,83 @@ public class AsyncQueryThreadTest {
         queryObj.setResultType(ResultType.DOWNLOAD);
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
-        when(runner.run(any(), eq(query), eq(user), any())).thenReturn(response);
+        when(runner.run(any(), any(), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 null);
         assertThrows(IllegalStateException.class, () -> {
             queryResultObj = queryThread.processQuery();
         });
+    }
+
+    @Test
+    public void testDownloadPersistentResourceGraphQLJSON() throws Exception {
+        Observable<String> jsonResults = populateDownloadString(ResultFormatType.JSON);
+        String[] expected = new String[2];
+        expected[0] = "edc4a871-dff2-4054-804e-d80075cf827e";
+        expected[1] = "edc4a871-dff2-4054-804e-d80075cf827f";
+
+        verifyObservableString(jsonResults, expected);
+        assertTrue(validationResult);
+    }
+
+    @Test
+    public void testDownloadPersistentResourceGraphQLCSV() throws Exception {
+        Observable<String> csvResults = populateDownloadString(ResultFormatType.CSV);
+
+        String[] expected = new String[3];
+        expected[0] = "createdOn";
+        expected[1] = "edc4a871-dff2-4054-804e-d80075cf827e";
+        expected[2] = "edc4a871-dff2-4054-804e-d80075cf827f";
+
+        verifyObservableString(csvResults, expected);
+        assertTrue(validationResult);
+    }
+
+    private void verifyObservableString(Observable<String> results, String[] expected) {
+        results
+            .map(record -> record)
+            .subscribe(
+                record -> {
+                    updateValidationResult(record, expected);
+                },
+                throwable -> {
+                    throw new IllegalStateException(throwable);
+                },
+                () -> {
+                    //do nothing
+                }
+            );
+    }
+
+    private void updateValidationResult(String result, String[] expected) {
+        boolean status = false;
+        for (int i=0; i<expected.length; i++) {
+            status = status || result.contains(expected[i]);
+        }
+        validationResult = status;
+    }
+
+    private Observable<String> populateDownloadString(ResultFormatType format) {
+        AsyncQuery queryObj = new AsyncQuery();
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setResultFormatType(format);
+
+        AsyncQuery query1 = new AsyncQuery();
+        AsyncQuery query2 = new AsyncQuery();
+        query1.setId("edc4a871-dff2-4054-804e-d80075cf827e");
+        query2.setId("edc4a871-dff2-4054-804e-d80075cf827f");
+
+        RequestScope scope = mock(RequestScope.class);
+        EntityDictionary dictionary = mock(EntityDictionary.class);
+        when(scope.getDictionary()).thenReturn(dictionary);
+        when(dictionary.getJsonAliasFor(any())).thenReturn("AsyncQuery");
+
+        PersistentResource<AsyncQuery> asyncResource1 = new PersistentResource<>(query1, null, "1", scope);
+        PersistentResource<AsyncQuery> asyncResource2 = new PersistentResource<>(query2, null, "2", scope);
+
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1", null);
+        queryThread.convertPersistentResourceToDownloadString(Observable.just(asyncResource1, asyncResource2));
+        return queryThread.getDownloadString();
     }
 }

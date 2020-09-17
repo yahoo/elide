@@ -56,6 +56,7 @@ public class QueryRunner {
     private final Elide elide;
     private GraphQL api;
     private String apiVersion;
+    private static ObjectMapper mapper = new ObjectMapper();
 
     private static final String QUERY = "query";
     private static final String OPERATION_NAME = "operationName";
@@ -69,6 +70,7 @@ public class QueryRunner {
     public QueryRunner(Elide elide, String apiVersion) {
         this.elide = elide;
         this.apiVersion = apiVersion;
+        QueryRunner.mapper = elide.getMapper().getObjectMapper();
 
         NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(nonEntityDictionary);
@@ -93,41 +95,54 @@ public class QueryRunner {
      * @return The response.
      */
     public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user) {
-        return run(baseUrlEndPoint, graphQLDocument, user, UUID.randomUUID());
-    }
-
-    /**
-     * Execute a GraphQL query and return the response.
-     * @param graphQLDocument The graphQL document (wrapped in JSON payload).
-     * @param user The user who issued the query.
-     * @param requestId the Request ID.
-     * @return The response.
-     */
-    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId) {
-        ObjectMapper mapper = elide.getMapper().getObjectMapper();
-
-        JsonNode topLevel;
-
+        JsonNode node = null;
         try {
-            topLevel = mapper.readTree(graphQLDocument);
+            node = getTopLevelNode(graphQLDocument);
         } catch (IOException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             // NOTE: Can't get at isVerbose setting here for hardcoding to false. If necessary, we can refactor
             // so this can be set appropriately.
-            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), false);
+            return buildErrorResponse(elide,  new InvalidEntityBodyException(graphQLDocument), false);
         }
 
-        Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user, graphQLDocument, node, requestId);
+        return run(baseUrlEndPoint, graphQLDocument, node, user, UUID.randomUUID());
+    }
+
+    /**
+     * Extracts the top level JsonNode from GraphQL document.
+     * @return graphQLDocument The graphQL document submitted.
+     * @throws IOException IOException
+     */
+    public static JsonNode getTopLevelNode(String graphQLDocument) throws IOException {
+        return mapper.readTree(graphQLDocument);
+    }
+
+    /**
+     * Execute a GraphQL query and return the response.
+     * @param graphQLQuery The graphQL Query Object (Containing TopLevel Node and String query).
+     * @param user The user who issued the query.
+     * @param requestId the Request ID.
+     * @return The response.
+     */
+    public ElideResponse run(String baseUrlEndPoint, GraphQLQuery graphQLQuery, User user, UUID requestId) {
+        Function<GraphQLQuery, ElideResponse> executeRequest =
+                (query) -> executeGraphQLRequest(baseUrlEndPoint, user, query, requestId);
+
+        JsonNode topLevel = graphQLQuery.getNode();
 
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
             Iterable<JsonNode> nodeIterable = () -> nodeIterator;
+
+            Function<JsonNode, GraphQLQuery> createGraphQLQuery =
+                    (node) -> new GraphQLQuery(graphQLQuery.getGraphQLDocument(), node);
+
             // NOTE: Create a non-parallel stream
             // It's unclear whether or not the expectations of the caller would be that requests are intended
             // to run serially even outside of a single transaction. We should revisit this.
             Stream<JsonNode> nodeStream = StreamSupport.stream(nodeIterable.spliterator(), false);
             ArrayNode result = nodeStream
+                    .map(createGraphQLQuery)
                     .map(executeRequest)
                     .map(response -> {
                         try {
@@ -153,27 +168,85 @@ public class QueryRunner {
             }
         }
 
-        return executeRequest.apply(topLevel);
+        return executeRequest.apply(graphQLQuery);
     }
 
-    private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
-                                                String graphQLDocument, JsonNode jsonDocument, UUID requestId) {
+    /**
+     * Execute a GraphQL query and return the response.
+     * @param graphQLDocument The graphQL document (wrapped in JSON payload).
+     * @param user The user who issued the query.
+     * @param requestId the Request ID.
+     * @return The response.
+     */
+    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, JsonNode topLevel, User user,
+            UUID requestId) {
+        // Create GraphqlQuery Object here
+        GraphQLQuery graphQLQuery = new GraphQLQuery(graphQLDocument, topLevel);
+        return run(baseUrlEndPoint, graphQLQuery, user, requestId);
+    }
+
+    /**
+     * Check if a query string is mutation.
+     * @param query The graphQL Query to verify.
+     * @return is a mutation.
+     */
+    public static boolean isMutation(String query) {
+        return query != null ? query.trim().startsWith(MUTATION) : false;
+    }
+
+    /**
+     * Extracts the executable query from Json Node.
+     * @param jsonDocument The JsonNode object.
+     * @return query to execute.
+     */
+    public static String extractQuery(JsonNode jsonDocument) {
+        return jsonDocument.has(QUERY) ? jsonDocument.get(QUERY).asText() : null;
+    }
+
+    /**
+     * Extracts the variables for the query from Json Node.
+     * @param jsonDocument The JsonNode object.
+     * @return variables to pass.
+     */
+    public static Map<String, Object> extractVariables(JsonNode jsonDocument) {
+        // get variables from request for constructing entityProjections
+        Map<String, Object> variables = new HashMap<>();
+        if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
+            variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
+        }
+
+        return variables;
+    }
+
+    /**
+     * Extracts the operation name from Json Node.
+     * @param jsonDocument The JsonNode object.
+     * @return Operation Name.
+     */
+    public static String extractOperation(JsonNode jsonDocument) {
+        if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
+            return jsonDocument.get(OPERATION_NAME).asText();
+        }
+
+        return null;
+    }
+
+    private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, User principal,
+            GraphQLQuery graphQLQuery, UUID requestId) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
-            if (!jsonDocument.has(QUERY)) {
+
+            String query = graphQLQuery.getQuery();
+            if (query == null) {
                 return ElideResponse.builder()
                         .responseCode(HttpStatus.SC_BAD_REQUEST)
                         .body("A `query` key is required.")
                         .build();
             }
-            String query = jsonDocument.get(QUERY).asText();
 
             // get variables from request for constructing entityProjections
-            Map<String, Object> variables = new HashMap<>();
-            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
-                variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
-            }
+            Map<String, Object> variables = graphQLQuery.getVariables();
 
             //TODO - get API version.
             GraphQLProjectionInfo projectionInfo =
@@ -192,8 +265,8 @@ public class QueryRunner {
                     .context(requestScope)
                     .query(query);
 
-            if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
-                executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
+            if (graphQLQuery.getOperationName() != null) {
+                executionInput.operationName(graphQLQuery.getOperationName());
             }
 
             executionInput.variables(variables);
@@ -203,7 +276,7 @@ public class QueryRunner {
             tx.preCommit();
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            if (query.trim().startsWith(MUTATION)) {
+            if (isMutation(query)) {
                 if (!result.getErrors().isEmpty()) {
                     HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
                         {
@@ -234,7 +307,8 @@ public class QueryRunner {
                     .build();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
-            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), isVerbose);
+            return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLQuery.getGraphQLDocument()),
+                    isVerbose);
         } catch (IOException e) {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
             return buildErrorResponse(elide, new TransactionException(e), isVerbose);

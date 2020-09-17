@@ -8,6 +8,7 @@ package com.yahoo.elide.async.hooks;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultFormatType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -26,7 +27,7 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
 
     private AsyncExecutorService asyncExecutorService;
 
-    public ExecuteQueryHook (AsyncExecutorService asyncExecutorService) {
+    public ExecuteQueryHook(AsyncExecutorService asyncExecutorService) {
         this.asyncExecutorService = asyncExecutorService;
     }
 
@@ -58,7 +59,10 @@ public class ExecuteQueryHook implements LifeCycleHook<AsyncQuery> {
             throw new InvalidValueException("resultFormatType is invalid", (Throwable) null);
         }
 
-        // TODO: Graphql will not support mutations to run asynchronously.
-        // Add static method in queryRunner.
+        if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+            if (asyncExecutorService.getRunners().size() == 0) {
+                throw new InvalidValueException("GraphQL is disabled", (Throwable) null);
+            }
+        }
     }
 }

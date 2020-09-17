@@ -12,9 +12,18 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultFormatType;
 import com.yahoo.elide.async.models.ResultType;
+import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.graphql.GraphQLQuery;
+import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
+import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
+import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
@@ -31,9 +40,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -57,6 +69,8 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     private AsyncQueryDAO asyncQueryDao;
     private String apiVersion;
     private ResultStorageEngine resultStorageEngine;
+    private Observable<String> downloadString = Observable.empty();
+    private Integer downloadRecordCount = 0;
 
     @Override
     public AsyncQueryResult call() throws URISyntaxException, IOException {
@@ -87,10 +101,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         ElideResponse response = null;
         String responseBody = null;
         boolean isError = false;
-        Integer recCount = null;
-        Observable<String> observableResult = Observable.empty();
         QueryType queryType = queryObj.getQueryType();
-        ResultFormatType resultFormatType = queryObj.getResultFormatType();
         boolean isDownload = queryObj.getResultType() == ResultType.DOWNLOAD;
 
         if (isDownload && resultStorageEngine == null) {
@@ -99,48 +110,56 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
         log.debug("AsyncQuery Object from request: {}", queryObj);
 
-        // TODO: Use PersistentResource.loadObjects for Download
-        if (queryType.equals(QueryType.JSONAPI_V1_0)) {
-            response = executeJsonApiRequest(queryObj, requestId);
-        }
-        else if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
-            response = executeGraphqlRequest(queryObj, requestId);
-        }
-
-        nullResponseCheck(response);
-
-        responseBody = response.getBody();
-        isError = checkJsonStrErrorMessage(responseBody);
-
         // Create AsyncQueryResult entry for AsyncQuery
         queryResultObj = new AsyncQueryResult();
-        queryResultObj.setHttpStatus(response.getResponseCode());
-        queryResultObj.setResponseBody(responseBody);
-        queryResultObj.setContentLength(responseBody.length());
-        queryResultObj.setCompletedOn(new Date());
-
-        if (isError) {
-            queryResultObj.setResponseBody(responseBody);
-            return queryResultObj;
-        }
-
-        recCount = calculateRecordCount(response, queryType);
-        queryResultObj.setRecordCount(recCount);
-
-        if (resultFormatType == ResultFormatType.CSV) {
-            observableResult = convertJsonToCSV(responseBody);
-        }
 
         if (isDownload) {
-            queryObj.setResult(queryResultObj);
-            resultStorageEngine.storeResults(queryObj, observableResult);
-            // TODO: Generate URL and set in responsebody
+            if (queryType.equals(QueryType.JSONAPI_V1_0)) {
+                // TODO: executeDownloadRequest for JSON API
+                throw new InvalidValueException("Download not supported for JSON API Query");
+            } else if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
+                String graphQLDocument = queryObj.getQuery();
+                JsonNode node = QueryRunner.getTopLevelNode(graphQLDocument);
+                GraphQLQuery graphQLQuery = new GraphQLQuery(graphQLDocument, node);
+                extractAndValidateQuery(graphQLQuery);
+                Observable<PersistentResource> observableResults = executeDownloadRequest(graphQLQuery, requestId);
+                convertPersistentResourceToDownloadString(observableResults);
+            }
+
+            queryResultObj.setHttpStatus(200);
+            queryResultObj.setContentLength(null);
+
+            storeResults(queryObj, downloadString);
+
+            queryResultObj.setRecordCount(this.downloadRecordCount);
             queryResultObj.setResponseBody("URL to be generated");
-        } else if (resultFormatType == ResultFormatType.CSV) {
-            queryResultObj.setResponseBody(mergeObservable(observableResult));
         } else {
+            if (queryType.equals(QueryType.JSONAPI_V1_0)) {
+                response = executeJsonApiRequest(queryObj, requestId);
+            } else if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
+                String graphQLDocument = queryObj.getQuery();
+                JsonNode node = QueryRunner.getTopLevelNode(graphQLDocument);
+                GraphQLQuery graphQLQuery = new GraphQLQuery(graphQLDocument, node);
+                extractAndValidateQuery(graphQLQuery);
+                response = executeGraphqlRequest(graphQLQuery, requestId);
+            }
+            nullResponseCheck(response);
+            responseBody = response.getBody();
+            isError = checkJsonStrErrorMessage(responseBody);
+
+            queryResultObj.setHttpStatus(response.getResponseCode());
+            queryResultObj.setContentLength(responseBody.length());
             queryResultObj.setResponseBody(responseBody);
+
+            if (isError) {
+                return queryResultObj;
+            }
+
+            calculateRecordCount(response, queryType);
+            queryResultObj.setRecordCount(this.downloadRecordCount);
         }
+
+        queryResultObj.setCompletedOn(new Date());
 
         return queryResultObj;
     }
@@ -148,10 +167,10 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     /**
      * This method calculates the number of records from the response.
      * @param response is the ElideResponse
-     * @return The recordCount
+     * @param queryType is the query type (GraphQL or JSON).
      * @throws IOException Exception thrown by JsonPath
      */
-    protected Integer calculateRecordCount(ElideResponse response, QueryType queryType)
+    protected void calculateRecordCount(ElideResponse response, QueryType queryType)
             throws IOException {
         Integer count = null;
         if (response.getResponseCode() == 200) {
@@ -162,7 +181,17 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                 count = JsonPath.read(response.getBody(), "$.data.length()");
             }
         }
-        return count;
+        this.downloadRecordCount = count;
+    }
+
+    /**
+     * This method stores the results.
+     * @param asyncQuery is the async query object.
+     * @param result is the observable result to store.
+     * @return AsyncQuery object
+     */
+    protected AsyncQuery storeResults(AsyncQuery asyncQuery, Observable<String> result) {
+        return resultStorageEngine.storeResults(asyncQuery, result);
     }
 
     /**
@@ -182,12 +211,41 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     }
 
     /**
+     * Process Observable of Persistent Resource to generate the download-ready result string.
+     * @param resources Observable Persistent Resource.
+     */
+    protected void convertPersistentResourceToDownloadString(Observable<PersistentResource> resources) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        resources
+            .map(resource -> mapper.writeValueAsString(resource.getObject()))
+            .subscribe(
+                recordCharArray -> {
+                    Observable<String> newDownloadString = Observable.empty();
+                    if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
+                        boolean generateHeader = this.downloadRecordCount == 0;
+                        newDownloadString = convertJsonToCSV(recordCharArray, generateHeader);
+                    } else if (queryObj.getResultFormatType() == ResultFormatType.JSON) {
+                        newDownloadString = Observable.just(recordCharArray);
+                    }
+                    mergeObservable(newDownloadString);
+                },
+                throwable -> {
+                    throw new IllegalStateException(throwable);
+                },
+                () -> {
+                    // OnComplete do nothing
+                }
+            );
+    }
+
+    /**
      * This method converts the JSON response to a CSV response type.
      * @param jsonStr is the response.getBody() of the query
      * @return returns an Observable of string which is in CSV format
      * @throws IllegalStateException Exception thrown
      */
-    protected Observable<String> convertJsonToCSV(String jsonStr) {
+    protected Observable<String> convertJsonToCSV(String jsonStr, boolean generateHeader) {
         if (jsonStr == null) {
             return null;
         }
@@ -199,6 +257,10 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         } catch (Exception e) {
             log.debug("Exception while converting to CSV: {}", e.getMessage());
             throw new IllegalStateException(e);
+        }
+
+        if (!generateHeader) {
+            json2csv.remove(0);
         }
 
         return Observable.using(
@@ -230,19 +292,12 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     }
 
     /**
-     * Merge Observable of String to a single String.
+     * Merge Observable of String into downloadString and increment record count.
      * @param result observable to merge
-     * @return String object
      */
-    protected String mergeObservable(Observable<String> result) {
-        return result.collect(() -> new StringBuilder(),
-                (resultBuilder, tempResult) -> {
-                    if (resultBuilder.length() > 0) {
-                        resultBuilder.append(System.getProperty("line.separator"));
-                    }
-                    resultBuilder.append(tempResult);
-                }
-            ).map(StringBuilder::toString).blockingGet();
+    protected void mergeObservable(Observable<String> result) {
+        this.downloadString = this.downloadString.mergeWith(result);
+        this.downloadRecordCount++;
     }
 
     /**
@@ -286,12 +341,54 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         return response;
     }
 
-    private ElideResponse executeGraphqlRequest(AsyncQuery queryObj, UUID requestId) throws URISyntaxException {
+    private String extractAndValidateQuery(GraphQLQuery graphQLQuery) {
+        if (graphQLQuery.getNode().isArray()) {
+            throw new InvalidValueException(graphQLQuery.getGraphQLDocument() + " is an array.",
+                    (Throwable) null);
+        }
+
+        String executableQuery = graphQLQuery.getQuery();
+        if (executableQuery == null || graphQLQuery.isMutation()) {
+            throw new InvalidValueException(graphQLQuery.getGraphQLDocument() + " is missing `query` key or"
+                    + " is a mutation.", (Throwable) null);
+        }
+
+        return executableQuery;
+    }
+
+    private ElideResponse executeGraphqlRequest(GraphQLQuery graphQLQuery, UUID requestId) throws URISyntaxException {
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestId);
+        ElideResponse response = runner.run("", graphQLQuery, user, requestId);
         log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;
+    }
+
+    private Observable<PersistentResource> executeDownloadRequest(GraphQLQuery graphQLQuery, UUID requestId)
+            throws IOException {
+        try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+            GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(),
+                    graphQLQuery.getVariables(), apiVersion).make(graphQLQuery.getQuery());
+
+            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+            GraphQLRequestScope requestScope =
+                    new GraphQLRequestScope("", tx, user, apiVersion,
+                            elide.getElideSettings(), projectionInfo, requestId);
+
+            // TODO - Confirm if this is valid and needed.
+            if (projectionInfo.getProjections().size() > 1) {
+                throw new IllegalStateException("More than 1 projections in the query");
+            }
+
+            Optional<Entry<String, EntityProjection>> optionalEntry =
+                    projectionInfo.getProjections().entrySet().stream().findFirst();
+            if (optionalEntry.isPresent()) {
+                return PersistentResource.loadRecords(optionalEntry.get().getValue(), Collections.emptyList(),
+                        requestScope);
+            } else {
+                return Observable.empty();
+            }
+        }
     }
 
     private void nullResponseCheck(ElideResponse response) throws NoHttpResponseException {

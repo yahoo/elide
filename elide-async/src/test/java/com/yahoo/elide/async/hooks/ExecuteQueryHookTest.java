@@ -17,18 +17,24 @@ import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.graphql.QueryRunner;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 public class ExecuteQueryHookTest {
 
     private AsyncExecutorService asyncExecutorService;
+    private Map<String, QueryRunner> runners;
 
     @BeforeEach
     public void setupMocks() {
         asyncExecutorService = mock(AsyncExecutorService.class);
         ResultStorageEngine resultStorageEngine = mock(ResultStorageEngine.class);
+        runners = mock(Map.class);
+        when(runners.size()).thenReturn(1);
         when(asyncExecutorService.getResultStorageEngine()).thenReturn(resultStorageEngine);
     }
 
@@ -44,8 +50,8 @@ public class ExecuteQueryHookTest {
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
-        // TODO : change to throws InvalidValueException
-        assertDoesNotThrow(() -> {
+        // runners is empty
+        assertThrows(InvalidValueException.class, () -> {
             queryHook.validateOptions(queryObj);
         });
     }
@@ -129,6 +135,7 @@ public class ExecuteQueryHookTest {
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
+        when(asyncExecutorService.getRunners()).thenReturn(runners);
         assertDoesNotThrow(() -> queryHook.validateOptions(queryObj));
     }
 

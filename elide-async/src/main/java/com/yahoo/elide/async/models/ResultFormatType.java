@@ -17,8 +17,8 @@ import java.util.Set;
  */
 public enum ResultFormatType {
     DEFAULT(EnumSet.of(ResultType.EMBEDDED)), // Default JSONAPI, GRAPHQLAPI based on QueryType
-    //TODO - Add JSON(ResultType.EMBEDDED, ResultType.DOWNLOAD),
-    CSV(EnumSet.of(ResultType.EMBEDDED, ResultType.DOWNLOAD));
+    JSON(EnumSet.of(ResultType.DOWNLOAD)),
+    CSV(EnumSet.of(ResultType.DOWNLOAD));
 
     @Getter private final Set<ResultType> supportedResultType;
 
