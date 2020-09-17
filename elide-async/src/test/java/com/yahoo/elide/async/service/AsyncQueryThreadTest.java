@@ -36,6 +36,7 @@ import io.reactivex.Observable;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Date;
 
 public class AsyncQueryThreadTest {
 
@@ -219,54 +220,38 @@ public class AsyncQueryThreadTest {
     // Standard positive test case that converts json to csv format.
     @Test
     public void testConvertJsonToCSV() throws Exception {
-
-        String csvStr = "key\n\"value\"";
-        String jsonStr = "{\"key\":\"value\"}";
+        String csvStr = "createdOn, updatedOn, id, query, queryType, resultFormatType, asyncAfterSeconds, requestId, status, resultType, result, principalName, queryUpdateWorker\n"
+                + "1.600375805E9, 1.600375805E9, \"edc4a871-dff2-4054-804e-d80075cf827e\", null, null, \"DEFAULT\", 10.0, \"edc4a871-dff2-4054-804e-d80075cf827f\", \"QUEUED\", \"EMBEDDED\", null, null, null\n";
 
         AsyncQuery queryObj = new AsyncQuery();
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
 
-        Observable<String> result = queryThread.convertJsonToCSV(jsonStr, true);
-        String finalResult = result.collect(() -> new StringBuilder(),
-              (resultBuilder, tempResult) -> {
-                  if (resultBuilder.length() > 0) {
-                      resultBuilder.append(System.getProperty("line.separator"));
-                  }
-                  resultBuilder.append(tempResult);
-              }
-        ).map(StringBuilder::toString).blockingGet();
+        AsyncQuery query1 = new AsyncQuery();
+        query1.setId("edc4a871-dff2-4054-804e-d80075cf827e");
+        query1.setCreatedOn(new Date(1600375805));
+        query1.setUpdatedOn(new Date(1600375805));
+        query1.setRequestId("edc4a871-dff2-4054-804e-d80075cf827f");
 
-        assertEquals(csvStr, finalResult);
+        RequestScope scope = mock(RequestScope.class);
+        EntityDictionary dictionary = mock(EntityDictionary.class);
+        when(scope.getDictionary()).thenReturn(dictionary);
+        when(dictionary.getJsonAliasFor(any())).thenReturn("AsyncQuery");
+
+        PersistentResource<AsyncQuery> asyncResource1 = new PersistentResource<>(query1, null, "1", scope);
+
+        String result = queryThread.convertToCSV(asyncResource1);
+        assertEquals(csvStr, result);
     }
 
     // Null json to csv format.
     @Test
     public void testConvertJsonToCSVNull() throws Exception {
-
-        String jsonStr = null;
-
         AsyncQuery queryObj = new AsyncQuery();
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
 
-        assertEquals(Observable.empty(), queryThread.convertJsonToCSV(jsonStr, true));
-    }
-
-    //Invalid input for the json to csv conversion. This throws an exception.
-    @Test
-    public void testConvertJsonToCSV2() throws Exception {
-
-        String csvStr = "ResponseBody";
-        assertThrows(IllegalStateException.class, () -> {
-            String jsonStr = "ResponseBody";
-
-            AsyncQuery queryObj = new AsyncQuery();
-            AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                    resultStorageEngine);
-
-            assertEquals(queryThread.convertJsonToCSV(jsonStr, true), csvStr);
-        });
+        assertEquals(null, queryThread.convertToCSV(null));
     }
 
     @Test
@@ -380,7 +365,6 @@ public class AsyncQueryThreadTest {
         PersistentResource<AsyncQuery> asyncResource2 = new PersistentResource<>(query2, null, "2", scope);
 
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1", null);
-        queryThread.convertPersistentResourceToDownloadString(Observable.just(asyncResource1, asyncResource2));
-        return queryThread.getDownloadString();
+        return queryThread.processObservablePersistentResource(Observable.just(asyncResource1, asyncResource2));
     }
 }

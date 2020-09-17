@@ -42,7 +42,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -69,7 +68,6 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     private AsyncQueryDAO asyncQueryDao;
     private String apiVersion;
     private ResultStorageEngine resultStorageEngine;
-    private Observable<String> downloadString = Observable.empty();
     private Integer downloadRecordCount = 0;
 
     @Override
@@ -114,13 +112,14 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
         queryResultObj = new AsyncQueryResult();
 
         if (isDownload) {
+            Observable<String> downloadString = Observable.empty();
             if (queryType.equals(QueryType.JSONAPI_V1_0)) {
                 // TODO: executeDownloadRequest for JSON API
                 throw new InvalidValueException("Download not supported for JSON API Query");
             } else if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
                 GraphQLQuery graphQLQuery = createGraphQLQuery();
                 Observable<PersistentResource> observableResults = executeDownloadRequest(graphQLQuery, requestId);
-                convertPersistentResourceToDownloadString(observableResults);
+                downloadString = processObservablePersistentResource(observableResults);
             }
 
             queryResultObj.setHttpStatus(200);
@@ -205,48 +204,73 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     }
 
     /**
-     * Process Observable of Persistent Resource to generate the download-ready result string.
+     * Process Observable of Persistent Resource to generate the Observable of download-ready result string.
      * @param resources Observable Persistent Resource.
+     * @return result as Observable of String
      */
-    protected void convertPersistentResourceToDownloadString(Observable<PersistentResource> resources) {
-        ObjectMapper mapper = new ObjectMapper();
+    protected Observable<String> processObservablePersistentResource(Observable<PersistentResource> resources) {
+        Observable<String> results = Observable.empty();
 
-        resources
-            .map(resource -> mapper.writeValueAsString(resource.getObject()))
-            .subscribe(
-                recordCharArray -> {
-                    Observable<String> newDownloadString = Observable.empty();
-                    if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
-                        boolean generateHeader = this.downloadRecordCount == 0;
-                        newDownloadString = convertJsonToCSV(recordCharArray, generateHeader);
-                    } else if (queryObj.getResultFormatType() == ResultFormatType.JSON) {
-                        newDownloadString = Observable.just(recordCharArray);
-                    }
-                    mergeObservable(newDownloadString);
-                },
-                throwable -> {
-                    throw new IllegalStateException(throwable);
-                },
-                () -> {
-                    // OnComplete do nothing
-                }
-            );
+        if (queryObj.getResultFormatType() == ResultFormatType.CSV) {
+            results =  resources.map(resource -> convertToCSV(resource));
+        } else if (queryObj.getResultFormatType() == ResultFormatType.JSON) {
+            results = resources.map(resource -> resourceToJsonStr(resource));
+        }
+
+        return results;
+    }
+
+    private String resourceToJsonStr(PersistentResource resource) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(resource.getObject());
     }
 
     /**
      * This method converts the JSON response to a CSV response type.
-     * @param jsonStr is the response.getBody() of the query
-     * @return returns an Observable of string which is in CSV format
+     * @param resource is the Persistent Resource to convert
+     * @return returns string which is in CSV format
      * @throws IllegalStateException Exception thrown
      */
-    protected Observable<String> convertJsonToCSV(String jsonStr, boolean generateHeader) {
-        if (jsonStr == null) {
-            return Observable.empty();
+    protected String convertToCSV(PersistentResource resource) {
+
+        if (resource == null) {
+            return null;
         }
-        JFlat flatMe = new JFlat(jsonStr);
+
+        StringBuilder str = new StringBuilder();
+
         List<Object[]> json2csv;
 
         try {
+            String jsonStr = resourceToJsonStr(resource);
+
+            JFlat flatMe = new JFlat(jsonStr);
+
+            json2csv = flatMe.json2Sheet().headerSeparator("_").getJsonAsSheet();
+
+            int index = 0;
+
+            for (Object[] obj : json2csv) {
+                // Skip Header record from 2nd time onwards.
+                if (index++ == 0 && downloadRecordCount != 0) {
+                    continue;
+                }
+
+                String objString = Arrays.toString(obj);
+                if (objString != null) {
+                    objString = objString.substring(1, objString.length() - 1);
+                }
+                str.append(objString);
+                str.append(System.getProperty("line.separator"));
+                incrementRecordCount();
+            }
+        } catch (Exception e) {
+            log.debug("Exception while converting to CSV: {}", e.getMessage());
+            throw new IllegalStateException(e);
+        }
+        return str.toString();
+
+        /*try {
             json2csv = flatMe.json2Sheet().headerSeparator("_").getJsonAsSheet();
         } catch (Exception e) {
             log.debug("Exception while converting to CSV: {}", e.getMessage());
@@ -282,15 +306,13 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                     });
                 },
                 List::clear
-        );
+        );*/
     }
 
     /**
-     * Merge Observable of String into downloadString and increment record count.
-     * @param result observable to merge
+     * Increment downloadable record count.
      */
-    protected void mergeObservable(Observable<String> result) {
-        this.downloadString = this.downloadString.mergeWith(result);
+    protected void incrementRecordCount() {
         this.downloadRecordCount++;
     }
 
