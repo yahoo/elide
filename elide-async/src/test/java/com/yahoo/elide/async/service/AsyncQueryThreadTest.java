@@ -130,26 +130,26 @@ public class AsyncQueryThreadTest {
         });
     }
 
-    //Test with invalid input for responseBody. An exception will be thrown.
+    //Test with invalid json input for responseBody.
+    // Should execute fine with record count = 0
     @Test
     public void testProcessQueryGraphQl() throws Exception {
-        assertThrows(InvalidJsonException.class, () -> {
-            AsyncQuery queryObj = new AsyncQuery();
-            ElideResponse response = new ElideResponse(200, "ResponseBody");
-            String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
-            String id = "edc4a871-dff2-4054-804e-d80075cf827d";
-            queryObj.setId(id);
-            queryObj.setQuery(query);
-            queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-            queryObj.setResultType(ResultType.EMBEDDED);
+        AsyncQuery queryObj = new AsyncQuery();
+        ElideResponse response = new ElideResponse(200, "ResponseBody");
+        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.EMBEDDED);
 
-            when(runner.run(any(), any(), eq(user), any())).thenReturn(response);
-            AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
-                    resultStorageEngine);
-            queryResultObj = queryThread.processQuery();
-            assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
-            assertEquals(queryResultObj.getHttpStatus(), 200);
-        });
+        when(runner.run(any(), any(), eq(user), any())).thenReturn(response);
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
+                resultStorageEngine);
+        queryResultObj = queryThread.processQuery();
+        assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
+        assertEquals(queryResultObj.getHttpStatus(), 200);
+        assertEquals(queryResultObj.getRecordCount(), 0);
     }
 
     //Test for when resultStorageEngine fails to store

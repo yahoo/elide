@@ -69,6 +69,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     private String apiVersion;
     private ResultStorageEngine resultStorageEngine;
     private Integer downloadRecordCount = 0;
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public AsyncQueryResult call() throws URISyntaxException, IOException {
@@ -221,7 +222,6 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     }
 
     private String resourceToJsonStr(PersistentResource resource) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(resource.getObject());
     }
 
@@ -232,7 +232,6 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
      * @throws IllegalStateException Exception thrown
      */
     protected String convertToCSV(PersistentResource resource) {
-
         if (resource == null) {
             return null;
         }
