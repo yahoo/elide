@@ -47,6 +47,7 @@
         <commons-cli.version>1.4</commons-cli.version>
         <commons-compress.version>1.20</commons-compress.version>
         <spring-core.verions>5.2.8.RELEASE</spring-core.verions>
+        <hikari.version>3.4.5</hikari.version>
     </properties>
 
     <dependencies>
@@ -81,6 +82,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>${commons-compress.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikari.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.spring.config;
 
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+
 import lombok.Data;
 
 /**
@@ -18,4 +20,8 @@ public class AggregationStoreProperties {
      */
     private boolean enabled = false;
 
+    /**
+     * {@link SQLDialect} type for default DataSource Object.
+     */
+    private String defaultDialect = "Hive";
 }

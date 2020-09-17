@@ -5,15 +5,22 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.compile;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 import com.google.common.collect.Sets;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mdkt.compiler.InMemoryJavaCompiler;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -25,9 +32,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.sql.DataSource;
+
 /**
  * Compiles dynamic model pojos generated from hjson files.
- *
  */
 @Slf4j
 public class ElideDynamicEntityCompiler {
@@ -41,13 +49,16 @@ public class ElideDynamicEntityCompiler {
 
     private Map<String, String> tableClasses = new HashMap<String, String>();
     private Map<String, String> securityClasses = new HashMap<String, String>();
+    @Getter
+    private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
+     * @param dbPasswordExtractor : Password Extractor Implementation
      * @throws Exception Exception thrown
      */
-    public ElideDynamicEntityCompiler(String path) throws Exception {
+    public ElideDynamicEntityCompiler(String path, DBPasswordExtractor dbPasswordExtractor) throws Exception {
 
         if (DynamicConfigHelpers.isNullOrEmpty(path)) {
             throw new IllegalArgumentException("Config path is null");
@@ -59,6 +70,7 @@ public class ElideDynamicEntityCompiler {
 
         ElideTableConfig tableConfig = dynamicConfigValidator.getElideTableConfig();
         ElideSecurityConfig securityConfig = dynamicConfigValidator.getElideSecurityConfig();
+        ElideDBConfig elideSQLDBConfig = dynamicConfigValidator.getElideSQLDBConfig();
 
         tableClasses = hydrator.hydrateTableTemplate(tableConfig);
         securityClasses = hydrator.hydrateSecurityTemplate(securityConfig);
@@ -75,6 +87,44 @@ public class ElideDynamicEntityCompiler {
                 new ElideDynamicInMemoryClassLoader(ClassLoader.getSystemClassLoader(),
                         Sets.newHashSet(classNames)));
         compile();
+
+        elideSQLDBConfig.getDbconfigs().forEach(config -> {
+            connectionDetailsMap.put(config.getName(),
+                            new ConnectionDetails(getDataSource(config, dbPasswordExtractor), config.getDialect()));
+        });
+
+    }
+
+    /**
+     * Parse dynamic config path and provides default implementation for DB Password Extractor.
+     * @param path : Dynamic config hjsons root location.
+     * @throws Exception Exception thrown.
+     */
+    public ElideDynamicEntityCompiler(String path) throws Exception {
+        this(path, new DBPasswordExtractor() {
+            @Override
+            public String getDBPassword(DBConfig config) {
+                return StringUtils.EMPTY;
+            }
+        });
+    }
+
+    /**
+     * Generates DataSource for provided configuration.
+     * @param dbConfig DB Configuration pojo.
+     * @param dbPasswordExtractor DB Password Extractor Implementation.
+     * @return DataSource Object.
+     */
+    private static DataSource getDataSource(DBConfig dbConfig, DBPasswordExtractor dbPasswordExtractor) {
+        HikariConfig config = new HikariConfig();
+
+        config.setJdbcUrl(dbConfig.getUrl());
+        config.setUsername(dbConfig.getUser());
+        config.setPassword(dbPasswordExtractor.getDBPassword(dbConfig));
+        config.setDriverClassName(dbConfig.getDriver());
+        dbConfig.getPropertyMap().forEach((k, v) -> config.addDataSourceProperty(k, v));
+
+        return new HikariDataSource(config);
     }
 
     /**

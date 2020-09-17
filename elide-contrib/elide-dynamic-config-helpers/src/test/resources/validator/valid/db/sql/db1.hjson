@@ -17,9 +17,9 @@
     {
       name: MySQLConnection
       url: jdbc:mysql://localhost/testdb?serverTimezone=UTC
-      driver: <%mysql_dialect%>
+      driver: com.mysql.jdbc.Driver
       user: guestmysql
-      dialect: org.hibernate.dialect.MySQL5Dialect
+      dialect: <%mysql_dialect%>
     }
   ]
 }

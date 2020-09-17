@@ -12,8 +12,15 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -21,28 +28,76 @@ import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTest
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.sql.DataSource;
 
 /**
  * Integration tests for {@link AggregationDataStore}.
  */
 public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest {
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @BeforeAll
-    public void beforeEach() {
+    public void beforeAll() {
         SQLUnitTest.init();
     }
 
     @Override
     protected DataStoreTestHarness createHarness() {
-        return new AggregationDataStoreTestHarness(Persistence.createEntityManagerFactory("aggregationStore"));
+
+        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
+        DataSource defaultDataSource = new HikariDataSource(config);
+        String defaultDialect = "h2";
+        ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
+
+        Properties prop = new Properties();
+        prop.put("javax.persistence.jdbc.driver", config.getDriverClassName());
+        prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
+
+        Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+        // Add an entry for "mycon" connection which is not from hjson
+        connectionDetailsMap.put("mycon", defaultConnectionDetails);
+
+        ElideDynamicEntityCompiler compiler;
+        try {
+            compiler = new ElideDynamicEntityCompiler("src/test/resources/configs", getDBPasswordExtractor());
+            // Add connection details fetched from hjson
+            connectionDetailsMap.putAll(compiler.getConnectionDetailsMap());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+
+        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, compiler);
+    }
+
+    private DBPasswordExtractor getDBPasswordExtractor() {
+        return new DBPasswordExtractor() {
+            @Override
+            public String getDBPassword(DBConfig config) {
+                String encrypted = (String) config.getPropertyMap().get("encrypted.password");
+                byte[] decrypted = Base64.getDecoder().decode(encrypted.getBytes());
+                try {
+                    return new String(decrypted, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        };
     }
 
     @Test
@@ -730,5 +785,26 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 .body("data.id", hasItems("0", "1", "2"))
                 .body("data.attributes.highScore", hasItems(1000, 1234, 2412))
                 .body("data.attributes.countryIsoCode", hasItems("USA", "HKG"));
+    }
+
+    /**
+     * This test demonstrates an example test using the aggregation store from dynamic configuration.
+     */
+    @Test
+    public void testDynamicAggregationModel() {
+        String getPath = "/orderDetails?sort=customerRegion,orderMonth&"
+                        + "fields[orderDetails]=orderTotal,customerRegion,orderMonth&filter=orderMonth>=2020-08";
+        given()
+            .when()
+            .get(getPath)
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .body("data", hasSize(3))
+            .body("data.id", hasItems("0", "1", "2"))
+            .body("data.attributes", hasItems(
+                            allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderMonth", "2020-08")),
+                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-08")),
+                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-09"))))
+            .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F));
     }
 }
