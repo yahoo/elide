@@ -9,12 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
 
 import org.eclipse.jetty.util.MultiException;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -110,6 +112,11 @@ public class ElideStandaloneMetadataStoreMissingTest {
             }
 
             @Override
+            public String getDefaultDialect() {
+                return SQLDialectFactory.getDefaultDialect().getDialectType();
+            }
+
+            @Override
             public String getDynamicConfigPath() {
                 return "src/test/resources/configs/";
             }
@@ -119,6 +126,11 @@ public class ElideStandaloneMetadataStoreMissingTest {
                 return null;
             }
         });
+    }
+
+    @AfterAll
+    public void shutdown() throws Exception {
+        elide.stop();
     }
 
     @Test

@@ -15,4 +15,9 @@ public class H2Dialect extends AbstractSqlDialect {
     public String getDialectType() {
         return "H2";
     }
+
+    @Override
+    public String generateOffsetLimitClause(int offset, int limit) {
+        return LIMIT + limit + SPACE + OFFSET + offset;
+    }
 }

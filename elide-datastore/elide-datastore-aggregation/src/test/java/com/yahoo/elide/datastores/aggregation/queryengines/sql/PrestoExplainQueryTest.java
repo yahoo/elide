@@ -187,7 +187,7 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), "
-                        + "'yyyy-MM-dd')";
+                        + "'yyyy-MM-dd') LIMIT 1";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
@@ -295,7 +295,7 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
                         + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code "
                         + "IN (" + havingParams.get(0).getPlaceholder() + ") "
-                        + "ORDER BY highScore DESC";
+                        + "ORDER BY highScore DESC LIMIT 5";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);

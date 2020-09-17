@@ -11,6 +11,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.Abstract
  * Hive SQLDialect.
  */
 public class HiveDialect extends AbstractSqlDialect {
+
+    private static final char COMMA = ',';
+
     @Override
     public String getDialectType() {
         return "Hive";
@@ -24,5 +27,10 @@ public class HiveDialect extends AbstractSqlDialect {
     @Override
     public String generateCountDistinctClause(String dimensions) {
         return String.format("COUNT(DISTINCT %s)", dimensions);
+    }
+
+    @Override
+    public String generateOffsetLimitClause(int offset, int limit) {
+        return LIMIT + offset + COMMA + limit;
     }
 }

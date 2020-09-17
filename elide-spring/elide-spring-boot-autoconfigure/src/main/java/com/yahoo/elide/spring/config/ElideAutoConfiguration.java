@@ -10,7 +10,10 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.audit.Slf4jLogger;
+import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
@@ -29,6 +32,7 @@ import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +55,7 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 
 /**
  * Auto Configuration For Elide Services.  Override any of the beans (by defining your own) to change
@@ -64,26 +69,44 @@ public class ElideAutoConfiguration {
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
 
+    private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+
     /**
      * Creates a entity compiler for compiling dynamic config classes.
      * @param settings Config Settings.
+     * @param dbPasswordExtractor : Password Extractor Implementation.
      * @return An instance of ElideDynamicEntityCompiler.
      * @throws Exception Exception thrown.
      */
-
-    private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
-
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
+    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings,
+                    DBPasswordExtractor dbPasswordExtractor) throws Exception {
 
         ElideDynamicEntityCompiler compiler = null;
 
         if (isDynamicConfigEnabled(settings)) {
-            compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
+            compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath(), dbPasswordExtractor);
         }
         return compiler;
+    }
+
+    /**
+     * Creates the default Password Extractor Implementation.
+     * @return An instance of DBPasswordExtractor.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
+    public DBPasswordExtractor getDBPasswordExtractor() {
+
+        return new DBPasswordExtractor() {
+            @Override
+            public String getDBPassword(DBConfig config) {
+                return StringUtils.EMPTY;
+            }
+        };
     }
 
     /**
@@ -150,7 +173,7 @@ public class ElideAutoConfiguration {
 
     /**
      * Create a QueryEngine instance for aggregation data store to use.
-     * @param entityManagerFactory The JPA factory which creates entity managers.
+     * @param defaultDataSource DataSource for JPA.
      * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
      * @param settings Elide configuration settings.
      * @return An instance of a QueryEngine
@@ -159,18 +182,20 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public QueryEngine buildQueryEngine(EntityManagerFactory entityManagerFactory,
+    public QueryEngine buildQueryEngine(DataSource defaultDataSource,
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
 
-        MetaDataStore metaDataStore = null;
+        ConnectionDetails defaultConnectionDetails =
+                        new ConnectionDetails(defaultDataSource, settings.getAggregationStore().getDefaultDialect());
         if (isDynamicConfigEnabled(settings)) {
-            metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
+            MetaDataStore metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails,
+                            dynamicCompiler.getIfAvailable().getConnectionDetailsMap());
         } else {
-            metaDataStore = new MetaDataStore();
+            MetaDataStore metaDataStore = new MetaDataStore();
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
         }
-
-        return new SQLQueryEngine(metaDataStore, entityManagerFactory, txCancel);
     }
 
     /**
