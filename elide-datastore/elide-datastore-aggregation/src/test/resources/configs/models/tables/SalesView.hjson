@@ -1,0 +1,83 @@
+{
+  tables:
+  [
+    {
+      name: OrderDetails
+      table: OrderDetails
+      dbConnectionName: SalesDBConnection
+      cardinality: large
+      readAccess: allow all
+      joins:
+      [
+        {
+          name: customerDetails
+          to: CustomerDetails
+          type: toOne
+          definition: %join.id = %from.customerId
+        }
+      ]
+      measures:
+      [
+        {
+          name: orderTotal
+          type: DECIMAL
+          definition: SUM(orderTotal)
+          readAccess: allow all
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: orderId
+          type: TEXT
+          definition: orderId
+          readAccess: allow all
+        }
+        {
+          name: customerRegion
+          type: TEXT
+          definition: "{{customerDetails.region}}"
+          readAccess: allow all
+        }
+        {
+          name: orderDate
+          type: TIME
+          definition: createdOn
+          readAccess: allow all
+          grain:
+          {
+            type: SIMPLEDATE
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+          }
+        }
+        {
+          name: orderMonth
+          type: TIME
+          definition: createdOn
+          readAccess: allow all
+          grain:
+          {
+            type: YEARMONTH
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+          }
+        }
+      ]
+    }
+    {
+      name: CustomerDetails
+      table: CustomerDetails
+      dbConnectionName: SalesDBConnection
+      cardinality: small
+      readAccess: allow all
+      dimensions:
+      [
+        {
+          name: region
+          type: TEXT
+          definition: region
+          readAccess: allow all
+        }
+      ]
+    }
+  ]
+}

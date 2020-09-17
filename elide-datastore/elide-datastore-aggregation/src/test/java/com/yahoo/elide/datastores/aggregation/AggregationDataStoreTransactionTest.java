@@ -27,6 +27,7 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
@@ -45,7 +46,7 @@ import java.util.Collections;
 @ExtendWith(MockitoExtension.class)
 class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
-    @Mock private QueryEngine queryEngine;
+    @Mock private SQLQueryEngine queryEngine;
     @Mock private QueryEngine.Transaction qeTransaction;
     @Mock private RequestScope scope;
     @Mock private Cache cache;

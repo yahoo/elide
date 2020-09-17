@@ -9,7 +9,7 @@ import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -24,6 +24,7 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -41,44 +42,68 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
-import org.hibernate.jpa.QueryHints;
-
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
+import javax.sql.DataSource;
 
 /**
  * QueryEngine for SQL backed stores.
  */
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
-    private final EntityManagerFactory entityManagerFactory;
-    private final Consumer<EntityManager> transactionCancel;
     private final SQLReferenceTable referenceTable;
-    private final SQLDialect dialect;
+    private final ConnectionDetails defaultConnectionDetails;
+    private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory eMFactory, Consumer<EntityManager> txC) {
-        this(metaDataStore, eMFactory, txC, SQLDialectFactory.getDefaultDialect());
-    }
-
-    public SQLQueryEngine(MetaDataStore metaDataStore, EntityManagerFactory eMFactory, Consumer<EntityManager> txC,
-                          SQLDialect sqlDialect) {
+    public SQLQueryEngine(MetaDataStore metaDataStore,
+                    com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails) {
         super(metaDataStore);
-        this.entityManagerFactory = eMFactory;
         this.referenceTable = new SQLReferenceTable(metaDataStore);
-        this.transactionCancel = txC;
-        this.dialect = sqlDialect;
+        this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
+                        SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
     }
+
+    /**
+     * Constructor.
+     * @param metaDataStore : MetaDataStore.
+     * @param defaultConnectionDetails : default DataSource Object and SQLDialect Object.
+     * @param detailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
+     */
+    public SQLQueryEngine(MetaDataStore metaDataStore,
+                    com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails,
+                    Map<String, com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails> detailsMap) {
+        this(metaDataStore, defaultConnectionDetails);
+        detailsMap.forEach((name, details) -> {
+            this.connectionDetailsMap.put(name, new ConnectionDetails(details.getDataSource(),
+                            SQLDialectFactory.getDialect(details.getDialect())));
+        });
+    }
+
+    private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {
+        @Override
+        public Object apply(ResultSet rs) {
+            try {
+                if (rs.next()) {
+                    return rs.getObject(1);
+                } else {
+                    return null;
+                }
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    };
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
@@ -129,125 +154,154 @@ public class SQLQueryEngine extends QueryEngine {
     /**
      * State needed for SQLQueryEngine to execute queries.
      */
-    static class SqlTransaction implements QueryEngine.Transaction  {
+    static class SqlTransaction implements QueryEngine.Transaction {
 
-        private final EntityManager entityManager;
-        private final EntityTransaction transaction;
-        private final Consumer<EntityManager> transactionCancel;
+        private Connection conn;
+        private final List<NamedParamPreparedStatement> stmts = new ArrayList<>();
 
-        SqlTransaction(EntityManagerFactory emf, Consumer<EntityManager> transactionCancel) {
-
-            entityManager = emf.createEntityManager();
-            transaction = entityManager.getTransaction();
-            this.transactionCancel = transactionCancel;
-            if (!transaction.isActive()) {
-                transaction.begin();
+        private void initializeConnection(DataSource dataSource) {
+            try {
+                this.conn = dataSource.getConnection();
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
             }
+        }
+
+        public NamedParamPreparedStatement initializeStatement(String namedParamQuery, DataSource dataSource) {
+            NamedParamPreparedStatement stmt;
+            try {
+                if (conn == null || !conn.isValid(10)) {
+                    initializeConnection(dataSource);
+                }
+                stmt = new NamedParamPreparedStatement(conn, namedParamQuery);
+                stmts.add(stmt);
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+            return stmt;
         }
 
         @Override
         public void close() {
-            if (transaction != null && transaction.isActive()) {
-                transaction.commit();
-            }
-            if (entityManager != null) {
-                entityManager.close();
-            }
+            stmts.forEach(stmt -> cancelAndCloseSoftly(stmt));
+            closeSoftly(conn);
         }
 
         @Override
         public void cancel() {
-            transactionCancel.accept(entityManager);
+            stmts.forEach(stmt -> cancelSoftly(stmt));
         }
-
     }
 
     @Override
     public QueryEngine.Transaction beginTransaction() {
-        return new SqlTransaction(entityManagerFactory, transactionCancel);
+        return new SqlTransaction();
     }
 
     @Override
     public QueryResult executeQuery(Query query, Transaction transaction) {
-        EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
+        SqlTransaction sqlTransaction = (SqlTransaction) transaction;
+
+        String connectionName = query.getTable().getDbConnectionName();
+        ConnectionDetails details = getConnectionDetails(connectionName);
+        DataSource dataSource = details.getDataSource();
+        SQLDialect dialect = details.getDialect();
 
         // Translate the query into SQL.
         SQLQuery sql = toSQL(query, dialect);
         String queryString = sql.toString();
-        log.debug("SQL Query: " + queryString);
-        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(queryString);
 
         QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
+        NamedParamPreparedStatement stmt;
 
         Pagination pagination = query.getPagination();
-        if (pagination != null) {
-            jpaQuery.setFirstResult(pagination.getOffset());
-            jpaQuery.setMaxResults(pagination.getLimit());
-            if (pagination.returnPageTotals()) {
-                resultBuilder.pageTotals(getPageTotal(query, sql, entityManager));
-            }
+        if (returnPageTotals(pagination)) {
+            resultBuilder.pageTotals(getPageTotal(query, sql, sqlTransaction));
         }
 
+        log.debug("SQL Query: " + queryString);
+        stmt = sqlTransaction.initializeStatement(queryString, dataSource);
+
         // Supply the query parameters to the query
-        supplyFilterQueryParameters(query, jpaQuery);
+        supplyFilterQueryParameters(query, stmt);
 
         // Run the primary query and log the time spent.
-        List<Object> results = new TimedFunction<List<Object>>(
-                () -> jpaQuery.setHint(QueryHints.HINT_READONLY, true).getResultList(),
-                "Running Query: " + queryString).get();
+        ResultSet resultSet = runQuery(stmt, queryString, Function.identity());
 
-        resultBuilder.data(new SQLEntityHydrator(results, query, getMetadataDictionary(), entityManager).hydrate());
+        resultBuilder.data(new EntityHydrator(resultSet, query, getMetadataDictionary()).hydrate());
         return resultBuilder.build();
     }
 
-    private long getPageTotal(Query query, SQLQuery sql, EntityManager entityManager) {
+    private long getPageTotal(Query query, SQLQuery sql, SqlTransaction sqlTransaction) {
+        String connectionName = query.getTable().getDbConnectionName();
+        ConnectionDetails details = getConnectionDetails(connectionName);
+        DataSource dataSource = details.getDataSource();
+        SQLDialect dialect = details.getDialect();
         String paginationSQL = toPageTotalSQL(sql, dialect).toString();
 
-        javax.persistence.Query pageTotalQuery =
-                entityManager.createNativeQuery(paginationSQL)
-                        .setHint(QueryHints.HINT_READONLY, true);
+        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL, dataSource);
 
-        //Supply the query parameters to the query
-        supplyFilterQueryParameters(query, pageTotalQuery);
+        // Supply the query parameters to the query
+        supplyFilterQueryParameters(query, stmt);
 
-        //Run the Pagination query and log the time spent.
-        return new TimedFunction<>(
-                () -> CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class),
-                "Running Query: " + paginationSQL
-        ).get();
+        // Run the Pagination query and log the time spent.
+        return CoerceUtil.coerce(runQuery(stmt, paginationSQL, SINGLE_RESULT_MAPPER), Long.class);
     }
 
     @Override
     public String getTableVersion(Table table, Transaction transaction) {
-        EntityManager entityManager = ((SqlTransaction) transaction).entityManager;
 
         String tableVersion = null;
         Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();
-            javax.persistence.Query versionQuery =
-                    entityManager.createNativeQuery(versionQueryString)
-                            .setHint(QueryHints.HINT_READONLY, true);
-            tableVersion = new TimedFunction<>(
-                    () -> CoerceUtil.coerce(versionQuery.getSingleResult(), String.class),
-                    "Running Query: " + versionQueryString
-            ).get();
+            SqlTransaction sqlTransaction = (SqlTransaction) transaction;
+            ConnectionDetails details = getConnectionDetails(table.getDbConnectionName());
+            DataSource dataSource = details.getDataSource();
+            NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(versionQueryString, dataSource);
+            tableVersion = CoerceUtil.coerce(runQuery(stmt, versionQueryString, SINGLE_RESULT_MAPPER), String.class);
         }
         return tableVersion;
     }
 
-    @Override
-    public List<String> explain(Query query) {
+    private <R> R runQuery(NamedParamPreparedStatement stmt, String queryString, Function<ResultSet, R> resultMapper) {
+
+        // Run the query and log the time spent.
+        return new TimedFunction<>(() -> {
+            try {
+                ResultSet rs = stmt.executeQuery();
+                return resultMapper.apply(rs);
+            } catch (SQLException e) {
+                throw new IllegalStateException(e);
+            }
+        }, "Running Query: " + queryString
+        ).get();
+    }
+
+    /**
+     * Returns the actual query string(s) that would be executed for the input {@link Query}.
+     *
+     * @param query The query customized for a particular persistent storage or storage client.
+     * @param dialect SQL dialect to use for this storage.
+     * @return List of SQL string(s) corresponding to the given query.
+     */
+    public List<String> explain(Query query, SQLDialect dialect) {
         List<String> queries = new ArrayList<String>();
         SQLQuery sql = toSQL(query, dialect);
 
         Pagination pagination = query.getPagination();
-        if (pagination != null && pagination.returnPageTotals()) {
+        if (returnPageTotals(pagination)) {
             queries.add(toPageTotalSQL(sql, dialect).toString());
         }
         queries.add(sql.toString());
         return queries;
+    }
+
+    @Override
+    public List<String> explain(Query query) {
+        String connectionName = query.getTable().getDbConnectionName();
+        return explain(query, getConnectionDetails(connectionName).getDialect());
     }
 
     /**
@@ -258,14 +312,11 @@ public class SQLQueryEngine extends QueryEngine {
      * @return the SQL query.
      */
     private SQLQuery toSQL(Query query, SQLDialect sqlDialect) {
-        Set<ColumnProjection> groupByDimensions = new LinkedHashSet<>(query.getGroupByDimensions());
-        Set<TimeDimensionProjection> timeDimensions = new LinkedHashSet<>(query.getTimeDimensions());
 
         SQLQueryTemplate queryTemplate = query.getMetrics().stream()
                 .map(metricProjection -> {
                     if (!(metricProjection.getColumn().getMetricFunction() instanceof SQLMetricFunction)) {
-                        throw new InvalidPredicateException(
-                                "Non-SQL metric function on " + metricProjection.getAlias());
+                        throw new BadRequestException("Non-SQL metric function on " + metricProjection.getAlias());
                     }
 
                     return ((SQLMetric) metricProjection.getColumn()).resolve(query, metricProjection, referenceTable);
@@ -278,18 +329,18 @@ public class SQLQueryEngine extends QueryEngine {
                 queryTemplate,
                 query.getSorting(),
                 query.getWhereFilter(),
-                query.getHavingFilter());
+                query.getHavingFilter(),
+                query.getPagination());
     }
 
 
     /**
-     * Given a JPA query, replaces any parameters with their values from client query.
+     * Given a Prepared Statement, replaces any parameters with their values from client query.
      *
      * @param query The client query
-     * @param jpaQuery The JPA query
+     * @param stmt Customized Prepared Statement
      */
-    private void supplyFilterQueryParameters(Query query,
-                                             javax.persistence.Query jpaQuery) {
+    private void supplyFilterQueryParameters(Query query, NamedParamPreparedStatement stmt) {
 
         Collection<FilterPredicate> predicates = new ArrayList<>();
         if (query.getWhereFilter() != null) {
@@ -304,7 +355,11 @@ public class SQLQueryEngine extends QueryEngine {
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {
-                    jpaQuery.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
+                    try {
+                        stmt.setObject(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
+                    } catch (SQLException e) {
+                        throw new IllegalStateException(e);
+                    }
                 });
             }
         }
@@ -361,5 +416,67 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public static String getClassAlias(Class<?> entityClass) {
         return getTypeAlias(entityClass);
+    }
+
+    private static boolean returnPageTotals(Pagination pagination) {
+        return pagination != null && pagination.returnPageTotals();
+    }
+
+    /**
+     * Gets required ConnectionDetails.
+     * @param connectionName Connection Name.
+     * @return ConnectionDetails ConnectionDetails Object for this connection.
+     */
+    private ConnectionDetails getConnectionDetails(String connectionName) {
+        if (connectionName == null || connectionName.trim().isEmpty()) {
+            return defaultConnectionDetails;
+        } else {
+            return Optional.ofNullable(connectionDetailsMap.get(connectionName))
+                            .orElseThrow(() -> new IllegalStateException(
+                                            "ConnectionDetails undefined for DB Connection Name: " + connectionName));
+        }
+    }
+
+    /**
+     * Cancels NamedParamPreparedStatement, hides and logs any SQLException.
+     * @param stmt NamedParamPreparedStatement to cancel.
+     */
+    private static void cancelSoftly(NamedParamPreparedStatement stmt) {
+        try {
+            if (stmt != null && !stmt.isClosed()) {
+                stmt.cancel();
+            }
+        } catch (SQLException e) {
+            log.error("Exception encountered during cancel statement.", e);
+        }
+    }
+
+    /**
+     * Cancels and Closes NamedParamPreparedStatement, hides and logs any SQLException.
+     * @param stmt NamedParamPreparedStatement to close.
+     */
+    private static void cancelAndCloseSoftly(NamedParamPreparedStatement stmt) {
+        cancelSoftly(stmt);
+        try {
+            if (stmt != null && !stmt.isClosed()) {
+                stmt.close();
+            }
+        } catch (SQLException e) {
+            log.error("Exception encountered during close statement.", e);
+        }
+    }
+
+    /**
+     * Closes Connection, hides and logs any SQLException.
+     * @param conn Connection to close.
+     */
+    private static void closeSoftly(Connection conn) {
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            log.error("Exception encountered during close connection.", e);
+        }
     }
 }

@@ -40,6 +40,8 @@ public class SQLQuery {
     private String havingClause = "";
     @Builder.Default
     private String orderByClause = "";
+    @Builder.Default
+    private String offsetLimitClause = "";
 
     @Override
     public String toString() {
@@ -48,6 +50,7 @@ public class SQLQuery {
                 + SPACE + whereClause
                 + SPACE + groupByClause
                 + SPACE + havingClause
-                + SPACE + orderByClause;
+                + SPACE + orderByClause
+                + SPACE + offsetLimitClause;
     }
 }
