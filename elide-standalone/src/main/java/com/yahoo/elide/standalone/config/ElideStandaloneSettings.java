@@ -382,7 +382,7 @@ public interface ElideStandaloneSettings {
      * @return {@link SQLDialect} type for default DataSource Object.
      */
     default String getDefaultDialect() {
-        return "MYSQL";
+        return "Hive";
     }
 
     /**

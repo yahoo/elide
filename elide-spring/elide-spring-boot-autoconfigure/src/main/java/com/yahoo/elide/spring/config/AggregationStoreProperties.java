@@ -23,5 +23,5 @@ public class AggregationStoreProperties {
     /**
      * {@link SQLDialect} type for default DataSource Object.
      */
-    private String defaultDialect = "MYSQL";
+    private String defaultDialect = "Hive";
 }
