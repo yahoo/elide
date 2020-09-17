@@ -251,7 +251,7 @@ public class AsyncQueryThreadTest {
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
                 resultStorageEngine);
 
-        assertNull(queryThread.convertJsonToCSV(jsonStr, true));
+        assertEquals(Observable.empty(), queryThread.convertJsonToCSV(jsonStr, true));
     }
 
     //Invalid input for the json to csv conversion. This throws an exception.
