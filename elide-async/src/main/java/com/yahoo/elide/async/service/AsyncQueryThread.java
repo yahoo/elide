@@ -260,7 +260,7 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                     objString = objString.substring(1, objString.length() - 1);
                 }
                 str.append(objString);
-
+                // Only append new lines after header.
                 if (index == 1) {
                     str.append(System.getProperty("line.separator"));
                 }
