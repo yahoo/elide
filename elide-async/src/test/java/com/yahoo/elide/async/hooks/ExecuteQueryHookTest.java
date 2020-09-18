@@ -50,7 +50,7 @@ public class ExecuteQueryHookTest {
         queryObj.setResultFormatType(ResultFormatType.CSV);
 
         ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
-        // runners is empty
+        // runners is empty cos when(asyncExecutorService.getRunners()) is not defined.
         assertThrows(InvalidValueException.class, () -> {
             queryHook.validateOptions(queryObj);
         });
