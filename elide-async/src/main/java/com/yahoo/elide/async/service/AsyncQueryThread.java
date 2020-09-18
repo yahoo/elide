@@ -355,7 +355,9 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
 
     private Observable<PersistentResource> executeDownloadRequest(GraphQLQuery graphQLQuery, UUID requestId)
             throws IOException {
+        Observable<PersistentResource> results = Observable.empty();
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+            elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(),
                     graphQLQuery.getVariables(), apiVersion).make(graphQLQuery.getQuery());
 
@@ -373,12 +375,16 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
             Optional<Entry<String, EntityProjection>> optionalEntry =
                     projectionInfo.getProjections().entrySet().stream().findFirst();
             if (optionalEntry.isPresent()) {
-                return PersistentResource.loadRecords(optionalEntry.get().getValue(), Collections.emptyList(),
+                results = PersistentResource.loadRecords(optionalEntry.get().getValue(), Collections.emptyList(),
                         requestScope);
-            } else {
-                return Observable.empty();
             }
+            // Hibernate does not like if session has not been flushed/committed before close. Throws IOException.
+            tx.flush(requestScope);
+            tx.commit(requestScope);
+        } finally {
+            elide.getTransactionRegistry().removeRunningTransaction(requestId);
         }
+        return results;
     }
 
     private void nullResponseCheck(ElideResponse response) throws NoHttpResponseException {

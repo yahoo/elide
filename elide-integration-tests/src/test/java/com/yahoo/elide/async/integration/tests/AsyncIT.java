@@ -402,7 +402,7 @@ public class AsyncIT extends IntegrationTest {
 
         AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
-        queryObj.setId("adc4a871-dff2-4054-804e-d80075cf828e");
+        queryObj.setId("adc4a871-dff2-4154-804e-d80075cf828e");
         queryObj.setAsyncAfterSeconds(0);
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
@@ -438,7 +438,7 @@ public class AsyncIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK);
 
-        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf828e\","
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4154-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"DOWNLOAD\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
@@ -449,7 +449,7 @@ public class AsyncIT extends IntegrationTest {
             String responseGraphQL = given()
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
-                    .body("{\"query\":\"{ asyncQuery(ids: [\\\"adc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
+                    .body("{\"query\":\"{ asyncQuery(ids: [\\\"adc4a871-dff2-4154-804e-d80075cf828e\\\"]) "
                             + "{ edges { node { id queryType status result "
                             + "{ responseBody httpStatus contentLength } } } } }\","
                             + "\"variables\":null}")
@@ -458,7 +458,7 @@ public class AsyncIT extends IntegrationTest {
             // If Async Query is created and completed
             if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
 
-                expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4154-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
                         + "\"result\":{\"responseBody\":\"URL to be generated\",\"httpStatus\":200,\"contentLength\":null}}}]}}}";
 
                 assertEquals(expectedResponse, responseGraphQL);
