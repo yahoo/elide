@@ -260,7 +260,11 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
                     objString = objString.substring(1, objString.length() - 1);
                 }
                 str.append(objString);
-                str.append(System.getProperty("line.separator"));
+
+                if (index == 1) {
+                    str.append(System.getProperty("line.separator"));
+                }
+
                 incrementRecordCount();
             }
         } catch (Exception e) {

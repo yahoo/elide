@@ -58,6 +58,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -389,6 +390,91 @@ public class AsyncIT extends IntegrationTest {
             }
         }
     }
+
+    /**
+     * Test for a GraphQL query as a Async Request with asyncAfterSeconds value set to 0.
+     * Happy Path Test Scenario 1 when resultType is DOWNLOAD
+     * @throws InterruptedException
+     */
+    @Test
+    @Tag("skipInMemory") //Without an ORM, there is nothing to hydrate the excluded entity
+    public void graphQLHappyPath1Download() throws InterruptedException {
+
+        AsyncDelayStoreTransaction.sleep = true;
+        AsyncQuery queryObj = new AsyncQuery();
+        queryObj.setId("adc4a871-dff2-4054-804e-d80075cf828e");
+        queryObj.setAsyncAfterSeconds(0);
+        queryObj.setQueryType("GRAPHQL_V1_0");
+        queryObj.setStatus("QUEUED");
+        queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
+        queryObj.setResultType("DOWNLOAD");
+        queryObj.setResultFormatType("CSV");
+        String graphQLRequest = document(
+                mutation(
+                        selection(
+                                field(
+                                        "asyncQuery",
+                                        arguments(
+                                                argument("op", "UPSERT"),
+                                                argument("data", queryObj, UNQUOTED_VALUE)
+                                        ),
+                                        selections(
+                                                field("id"),
+                                                field("query"),
+                                                field("queryType"),
+                                                field("resultType")
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
+        ValidatableResponse response = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(graphQLJsonNode)
+                .post("/graphQL")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK);
+
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf828e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"DOWNLOAD\"}}]}}}";
+        assertEquals(expectedResponse, response.extract().body().asString());
+
+        int i = 0;
+        while (i < 1000) {
+            Thread.sleep(10);
+            String responseGraphQL = given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body("{\"query\":\"{ asyncQuery(ids: [\\\"adc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
+                            + "{ edges { node { id queryType status result "
+                            + "{ responseBody httpStatus contentLength } } } } }\","
+                            + "\"variables\":null}")
+                    .post("/graphQL")
+                    .asString();
+            // If Async Query is created and completed
+            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
+
+                expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"adc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                        + "\"result\":{\"responseBody\":\"URL to be generated\",\"httpStatus\":200,\"contentLength\":null}}}]}}}";
+
+                assertEquals(expectedResponse, responseGraphQL);
+                break;
+            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
+                fail("Async Query has failed." + responseGraphQL);
+                break;
+            }
+            i++;
+
+            if (i == 1000) {
+                fail("Async Query not completed.");
+            }
+        }
+    }
+
     /**
      * Test for a GraphQL query as a Async Request with asyncAfterSeconds value set to 7.
      * Happy Path Test Scenario 2

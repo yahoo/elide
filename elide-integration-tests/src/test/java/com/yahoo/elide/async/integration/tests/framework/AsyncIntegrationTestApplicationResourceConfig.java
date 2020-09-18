@@ -41,11 +41,13 @@ import example.models.triggers.services.BillingService;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -99,7 +101,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(asyncQueryDao).to(AsyncQueryDAO.class);
 
                 ResultStorageEngine resultStorageEngine =
-                        new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
+                        new FileResultStorageEngine(System.getProperty("java.io.tmpdir"));
                 AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
