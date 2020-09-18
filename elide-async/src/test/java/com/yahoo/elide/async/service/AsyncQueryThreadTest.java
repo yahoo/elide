@@ -221,7 +221,7 @@ public class AsyncQueryThreadTest {
     @Test
     public void testConvertToCSV() throws Exception {
         String csvStr = "createdOn, updatedOn, id, query, queryType, resultFormatType, asyncAfterSeconds, requestId, status, resultType, result, principalName, queryUpdateWorker\n"
-                + "1.600375805E9, 1.600375805E9, \"edc4a871-dff2-4054-804e-d80075cf827e\", null, null, \"DEFAULT\", 10.0, \"edc4a871-dff2-4054-804e-d80075cf827f\", \"QUEUED\", \"EMBEDDED\", null, null, null\n";
+                + "1.600375805E9, 1.600375805E9, \"edc4a871-dff2-4054-804e-d80075cf827e\", null, null, \"DEFAULT\", 10.0, \"edc4a871-dff2-4054-804e-d80075cf827f\", \"QUEUED\", \"EMBEDDED\", null, null, null";
 
         AsyncQuery queryObj = new AsyncQuery();
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1",
