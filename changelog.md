@@ -1,4 +1,30 @@
 # Change Log
+
+## 4.6.8
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/3d3c831696401e26a24d254fa1158675a23adca1) H2 MVCC setting is removed (#1483) 
+   * [view commit](https://github.com/yahoo/elide/commit/0245327d6f0c4bb4f04a0bba18fe9fc3f4b64287) bump H2 (#1489) 
+   * [view commit](https://github.com/yahoo/elide/commit/d66cde4834b0f59ce20e433c6a5a87029751d1fb) path matcher (#1482) 
+   * [view commit](https://github.com/yahoo/elide/commit/fbb619bd743c93a2238f8c5a068438ec8f9c79fc) escape quotes in quoted strings (#1481) 
+   * [view commit](https://github.com/yahoo/elide/commit/689be5026a6f0b7157e1606d9150242eac843117) Provide backward compatible methods for baseUrlEndPoint changes. (#1510) 
+   * [view commit](https://github.com/yahoo/elide/commit/95eebf4b19a292030803ede58841fc63ed22d093) Bump mockito-core from 3.4.4 to 3.5.0 (#1508) 
+   * [view commit](https://github.com/yahoo/elide/commit/868c3d50fdca44c29482d2319c7831a9efdda8ab) Bump postgresql from 42.2.14 to 42.2.16 (#1513) 
+   * [view commit](https://github.com/yahoo/elide/commit/0e77f59daa4fd45918acce4cabd5e887b2ed8aaa) Bump mockito-core from 3.5.0 to 3.5.5 (#1514) 
+   * [view commit](https://github.com/yahoo/elide/commit/43636e8c839fb88213dcd81cb64911a3a77f4735) Bump metrics.version from 4.1.11 to 4.1.12.1 (#1485) 
+   * [view commit](https://github.com/yahoo/elide/commit/a07be579df2b2f8418d63e81d8b3a77579be9e79) Bump version.jackson from 2.11.1 to 2.11.2 (#1476) 
+   * [view commit](https://github.com/yahoo/elide/commit/c275b0175dabd4e47ff2fb1e80b9683576c2121b) Bump version.jetty from 9.4.30.v20200611 to 9.4.31.v20200723 (#1475) 
+   * [view commit](https://github.com/yahoo/elide/commit/3ce7b5702e5d50db3ca64aa190918cb0c3088fa3) Bump mockito-core from 3.5.5 to 3.5.10 (#1522) 
+   * [view commit](https://github.com/yahoo/elide/commit/c66e195e7460fff576c1d17c76a253103a18f9ac) Bump classgraph from 4.8.87 to 4.8.90 (#1530) 
+   * [view commit](https://github.com/yahoo/elide/commit/dc92e7e3c4025a1145b8f9b9122feb84fe775728) Bump checkstyle from 8.35 to 8.36 (#1518) 
+   * [view commit](https://github.com/yahoo/elide/commit/c581212008369d045e189c7a27115cc695280b51) Fixes #1520 by using explicit left join when sorting over relationships (#1521) 
+   * [view commit](https://github.com/yahoo/elide/commit/f7277bd15c1488ca9fd625958e1879b3f71c4ba5) Bump resteasy.version from 3.13.0.Final to 3.13.1.Final (#1536) 
+   * [view commit](https://github.com/yahoo/elide/commit/5441813ab5686ae6624f72f15e49a9b5faf72421) Bump version.junit from 5.6.2 to 5.7.0 (#1535) 
+   * [view commit](https://github.com/yahoo/elide/commit/534a158add89f453b0bdd55c81cc1e1a1f21adf6) Bump checkstyle from 8.36 to 8.36.1 (#1534) 
+   * [view commit](https://github.com/yahoo/elide/commit/9f306905c95d96c4aeea6fcca8d5c75d09a64362) Bump spring-boot-dependencies from 2.3.2.RELEASE to 2.3.3.RELEASE (#1507) 
+   * [view commit](https://github.com/yahoo/elide/commit/c6036da5273c5d246105932f2b56ae82230f8adc) Bump mockito-core from 3.5.10 to 3.5.11 (#1543) 
+   * [view commit](https://github.com/yahoo/elide/commit/3e0a29b2d66ac641b24ee46efcf829f2e5638de7) Bump spring-boot-dependencies from 2.3.3.RELEASE to 2.3.4.RELEASE (#1542) 
+   * [view commit](https://github.com/yahoo/elide/commit/bed08454508138cb0383e3c43dbb81da7e4740b7) Bump jacoco-maven-plugin from 0.8.5 to 0.8.6 (#1540) 
+   
 ## 4.6.7
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/6ae9bd3623247f0da12c81798327abdb217c29ab) Added support for JSON-API links in entity response.  (#1445) 
