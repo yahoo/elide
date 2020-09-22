@@ -11,4 +11,8 @@
     <suppress until="2020-12-01Z">
         <cve>CVE-2020-11050</cve>
     </suppress>
+    <!-- Dropwizard Metrics (no fix exists) -->
+    <suppress until="2021-12-01Z">
+        <cve>CVE-2020-7712</cve>
+    </suppress>
 </suppressions>
