@@ -551,8 +551,5 @@ public class InMemoryStoreTransactionTest {
         assertTrue(tos.contains("Table class example.StringId contents"));
         assertTrue(tos.contains("Table class example.UpdateAndCreate contents"));
         assertTrue(tos.contains("Table class example.User contents"));
-        assertTrue(tos.contains("Table class example.packageshareable.ContainerWithPackageShare contents"));
-        assertTrue(tos.contains("Table class example.packageshareable.ShareableWithPackageShare contents"));
-        assertTrue(tos.contains("Table class example.packageshareable.UnshareableWithEntityUnshare contents"));
     }
 }
