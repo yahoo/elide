@@ -1,8 +1,0 @@
-
-{
-  "name!" : "book",
-  "table" : "book",
-  "schema$" : "testdb",
-  "description" : "valid schema for a book",
-  "cardinality" : "invalid"
-}
