@@ -36,7 +36,7 @@ import javax.validation.constraints.Pattern;
  * after asyncexecutorservice is initialized.
  */
 @Entity
-@Include(type = "asyncQuery", rootLevel = true)
+@Include(type = "asyncQuery")
 @ReadPermission(expression = "Principal is Owner OR Principal is Admin")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")

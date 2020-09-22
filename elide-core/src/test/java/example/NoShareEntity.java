@@ -12,7 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@Include(rootLevel = true, type = "noshare") // optional here because class has this name
+@Include(type = "noshare") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "noshare")

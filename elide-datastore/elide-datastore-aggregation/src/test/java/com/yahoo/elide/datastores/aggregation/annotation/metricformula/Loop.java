@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
-@Include(rootLevel = true)
+@Include
 @Cardinality(size = CardinalitySize.LARGE)
 @EqualsAndHashCode
 @ToString

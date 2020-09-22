@@ -21,7 +21,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "color_shape")
-@Include(rootLevel = true)
+@Include
 public class MapColorShape extends BaseId {
     private Map<Color, Shape> colorShapeMap = new LinkedHashMap<>();
 

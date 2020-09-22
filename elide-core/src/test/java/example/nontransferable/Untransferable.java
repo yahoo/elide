@@ -18,7 +18,7 @@ import javax.persistence.ManyToOne;
  * Entity level Unshareable bean.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 public class Untransferable {
     private long id;
     private ContainerWithPackageShare container;

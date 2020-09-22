@@ -25,7 +25,7 @@ import javax.persistence.Table;
  */
 @CreatePermission(expression = "allow all AND noCommit")
 @UpdatePermission(expression = "allow all AND noCommit")
-@Include(rootLevel = true, type = "nocommit")
+@Include(type = "nocommit")
 // Hibernate
 @Entity
 @Table(name = "nocommit")

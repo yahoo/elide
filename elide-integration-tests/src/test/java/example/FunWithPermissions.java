@@ -28,7 +28,7 @@ import javax.persistence.Table;
 @ReadPermission(expression = "allow all")
 @UpdatePermission(expression = "Prefab.Role.None OR allow all")
 @DeletePermission(expression = "Prefab.Role.None AND allow all")
-@Include(rootLevel = true, type = "fun") // optional here because class has this name
+@Include(type = "fun") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "fun")

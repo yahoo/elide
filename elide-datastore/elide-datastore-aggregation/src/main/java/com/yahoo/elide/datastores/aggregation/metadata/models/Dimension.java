@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 /**
  * Regular field in tables, can be grouped by.
  */
-@Include(type = "dimension")
+@Include(rootLevel = false, type = "dimension")
 @EqualsAndHashCode(callSuper = true)
 public class Dimension extends Column {
     public Dimension(Table table, String fieldName, EntityDictionary dictionary) {

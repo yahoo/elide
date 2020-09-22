@@ -28,7 +28,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "anotherFilterExpressionCheckObj")
 @ReadPermission(expression = "checkActsLikeFilter")
-@Include(rootLevel = true)
+@Include
 public class AnotherFilterExpressionCheckObj extends BaseId {
     private String anotherName;
     private long createDate = 0;

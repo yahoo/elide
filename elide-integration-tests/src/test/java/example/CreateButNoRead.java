@@ -22,7 +22,7 @@ import javax.persistence.OneToMany;
 /**
  * A model intended to be ONLY created and read, but never updated
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 @CreatePermission(expression = "allow all")
 public class CreateButNoRead extends BaseId {

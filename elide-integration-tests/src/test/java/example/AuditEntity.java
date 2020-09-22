@@ -22,7 +22,7 @@ import javax.persistence.OneToOne;
 @Audit(action = Audit.Action.CREATE,
         logStatement = "Created with value: {0}",
         logExpressions = {"${auditEntity.value}"})
-@Include(rootLevel = true)
+@Include
 @ReadPermission(expression = "allow all")
 @CreatePermission(expression = "allow all")
 @DeletePermission(expression = "allow all")

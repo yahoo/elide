@@ -12,7 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
-@Include
+@Include(rootLevel = false)
 public class LineItem {
     private long id;
 

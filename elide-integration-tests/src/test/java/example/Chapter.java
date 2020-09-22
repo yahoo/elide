@@ -19,7 +19,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-@Include(rootLevel = true, type = "chapter")
+@Include(type = "chapter")
 /**
  * This class tests using JPA Field based access.
  */

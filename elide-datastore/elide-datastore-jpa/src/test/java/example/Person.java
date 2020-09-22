@@ -18,7 +18,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
-@Include(rootLevel = true)
+@Include
 @Audited // Ensure envers does not cause any issues
 public class Person {
     @Setter

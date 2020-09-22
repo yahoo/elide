@@ -84,7 +84,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testNoPermissions() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -102,7 +102,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testClassOperationPermissions() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "In Memory Check")
         class Book {
             @Id
@@ -120,7 +120,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testClassUserPermissions() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "False User Check")
         class Book {
             @Id
@@ -138,7 +138,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testFieldFilterPermissions() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -157,7 +157,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testComplexTrueExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -177,7 +177,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testFalseUserOROperationExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -196,7 +196,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testTrueUserOROperationExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -215,7 +215,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testFalseUserAndOperationExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -234,7 +234,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testTrueUserAndOperationExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -253,7 +253,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testNotOperationExpression() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -272,7 +272,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testMultipleFieldsNoPagination() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Book {
             @Id
             private long id;
@@ -294,7 +294,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testMultipleFieldsPagination() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "In Memory Check")
         class Book {
             @Id
@@ -317,7 +317,7 @@ public class CanPaginateVisitorTest {
     @Test
     public void testSparseFields() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "In Memory Check")
         class Book {
             @Id

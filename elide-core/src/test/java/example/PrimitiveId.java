@@ -12,7 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 
-@Include(rootLevel = true, type = "primitiveTypeId")
+@Include(type = "primitiveTypeId")
 @Entity
 @Data
 public class PrimitiveId {

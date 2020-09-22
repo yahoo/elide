@@ -21,7 +21,7 @@ import javax.persistence.Table;
 /**
  * Right test bean.
  */
-@Include(rootLevel = true, type = "right") // optional here because class has this name
+@Include(type = "right") // optional here because class has this name
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right extends BaseId {

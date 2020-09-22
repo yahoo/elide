@@ -22,7 +22,7 @@ import javax.persistence.ManyToOne;
 
 @Data
 @Entity
-@Include(rootLevel = true)
+@Include
 @Cardinality(size = CardinalitySize.SMALL)
 public class LoopCountryB {
     @Setter

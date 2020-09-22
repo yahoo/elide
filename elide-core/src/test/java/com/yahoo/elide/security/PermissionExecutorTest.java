@@ -39,7 +39,7 @@ public class PermissionExecutorTest {
     @Test
     public void testSuccessfulOperationCheck() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "sampleOperation")
         class Model { }
 
@@ -55,7 +55,7 @@ public class PermissionExecutorTest {
     @Test
     public void testFailOperationCheckAll() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "sampleOperation AND Prefab.Role.None")
         class Model { }
 
@@ -69,7 +69,7 @@ public class PermissionExecutorTest {
     @Test
     public void testFailOperationCheckDeferred() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "sampleOperation")
         class Model { }
 
@@ -86,7 +86,7 @@ public class PermissionExecutorTest {
     @Test
     public void testSuccessfulCommitChecks() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "sampleOperation")
         class Model { }
 
@@ -239,7 +239,7 @@ public class PermissionExecutorTest {
     @Test
     public void testPassAnyFieldAwareFailOperationSuccessCommit() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "Prefab.Role.None AND passingOp")
         class Model {
             @Id
@@ -259,7 +259,7 @@ public class PermissionExecutorTest {
     @Test
     public void testFailAllFieldAwareSuccessOperationFailCommit() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "Prefab.Role.None")
         class Model {
             @Id
@@ -279,7 +279,7 @@ public class PermissionExecutorTest {
     @Test
     public void testPassAnySpecificFieldAwareFailOperationSuccessCommit() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "Prefab.Role.None AND passingOp")
         class Model {
             @Id
@@ -299,7 +299,7 @@ public class PermissionExecutorTest {
     @Test
     public void testFailAllSpecificFieldAwareSuccessOperationFailCommit() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "allow all")
         class Model {
             @Id
@@ -319,7 +319,7 @@ public class PermissionExecutorTest {
     @Test
     public void testBadInstance() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "privatePermission")
         class Model { }
 
@@ -355,7 +355,7 @@ public class PermissionExecutorTest {
     @Test
     public void testReadCheckExpressionForNewlyCreatedObject() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "FailOp")
         class Model { }
 
@@ -369,7 +369,7 @@ public class PermissionExecutorTest {
     @Test
     public void testDeleteCheckExpressionForNewlyCreatedObject() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @DeletePermission(expression = "FailOp")
         class Model { }
 
@@ -491,7 +491,7 @@ public class PermissionExecutorTest {
 
     @ReadPermission(expression = "Prefab.Role.None")
     @UpdatePermission(expression = "Prefab.Role.None")
-    @Include
+    @Include(rootLevel = false)
     @Entity
     public static final class SampleBean {
         @Id
@@ -514,7 +514,7 @@ public class PermissionExecutorTest {
 
     @ReadPermission(expression = "allow all")
     @UpdatePermission(expression = "allow all")
-    @Include
+    @Include(rootLevel = false)
     @Entity
     public static final class OpenBean {
         @Id
@@ -532,7 +532,7 @@ public class PermissionExecutorTest {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @UpdatePermission(expression = "sampleOperation")
     public static final class CheckedEntity {
         @Id
@@ -567,7 +567,7 @@ public class PermissionExecutorTest {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @ReadPermission(expression = "shouldCache")
     @UpdatePermission(expression = "shouldCache")
     public static class AnnotationOnlyRecord {
@@ -584,7 +584,7 @@ public class PermissionExecutorTest {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @ReadPermission(expression = "peUserCheck")
     @UpdatePermission(expression = "peUserCheck")
     public static class UserCheckCacheRecord {

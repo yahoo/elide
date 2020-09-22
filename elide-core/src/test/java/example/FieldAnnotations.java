@@ -15,7 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-@Include(rootLevel = true, type = "stringId")
+@Include(type = "stringId")
 @Entity
 public class FieldAnnotations {
 

@@ -11,7 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 
-@Include(rootLevel = true, type = "stringForId")
+@Include(type = "stringForId")
 @Entity
 public class StringId {
 
