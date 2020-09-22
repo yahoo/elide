@@ -79,7 +79,7 @@ public class DynamicConfigSchemaValidatorTest {
     @DisplayName("Valid DB config")
     @ParameterizedTest
     @ValueSource(strings = {
-            "/validator/valid/db/sql/multiple_db.hjson",
+            "/validator/valid/db/sql/multiple_db_no_variables.hjson",
             "/validator/valid/db/sql/single_db.hjson"})
     public void testValidDbSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
