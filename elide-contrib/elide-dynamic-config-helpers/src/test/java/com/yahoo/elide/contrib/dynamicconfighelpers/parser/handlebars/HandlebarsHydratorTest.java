@@ -6,10 +6,14 @@
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +21,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class HandlebarsHydratorTest {
+
+    private static final String CONFIG_PATH = "src/test/resources/validator/valid";
 
     private static final String VALID_TABLE_WITH_VARIABLES = "{\n"
             + "  tables: [{\n"
@@ -84,6 +91,11 @@ public class HandlebarsHydratorTest {
             + "}\n";
 
     private static final String VALID_TABLE_JAVA_NAME = "PlayerStats";
+
+    private static final String VALID_CHILD_TABLE_JAVA_NAME = "PlayerExtend";
+
+    private static final String OVERRIDE_ANNOTATION = "@Getter(onMethod_={@Override})\n"
+            + "    @Setter(onMethod_={@Override})\n";
 
     private static final String VALID_TABLE_JAVA = "/*\n"
             + " * Copyright 2020, Yahoo Inc.\n"
@@ -154,6 +166,7 @@ public class HandlebarsHydratorTest {
             + "        tableSource=\"\"\n"
             + "    )\n"
             + "    \n"
+//            + "    \n"
             + "    @DimensionFormula(\"{{playerCountry.isoCode}}\")\n"
             + "\n"
             + "    private String countryIsoCode;\n"
@@ -210,11 +223,11 @@ public class HandlebarsHydratorTest {
             + "        tags={\"PUBLIC\"}\n"
             + "    )\n"
             + "    \n"
+//            + "    \n"
             + "    private Long highScore;\n"
             + "\n"
             + "\n"
             + "}\n";
-
 
     private static final String VALID_SECURITY_ADMIN_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsAdmin";
     private static final String VALID_SECURITY_GUEST_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsGuest";
@@ -257,49 +270,38 @@ public class HandlebarsHydratorTest {
             + "    }\n"
             + "}\n";
 
+    private DynamicConfigValidator testClass;
+    private HandlebarsHydrator hydrator;
+
+    @BeforeAll
+    public void setup() throws IOException {
+        hydrator = new HandlebarsHydrator();
+        testClass = new DynamicConfigValidator(CONFIG_PATH);
+        testClass.readAndValidateConfigs();
+    }
+
     @Test
     public void testConfigHydration() throws IOException {
-
-        HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources";
-        File file = new File(path);
-        String absolutePath = file.getAbsolutePath();
-        String hjsonPath = absolutePath + "/models/tables/table1.hjson";
-
-        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
-        testClass.readAndValidateConfigs();
-
-        Map<String, Object> map = testClass.getModelVariables();
-
+        File file = new File(CONFIG_PATH);
+        String hjsonPath = file.getAbsolutePath() + "/models/tables/player_stats.hjson";
         String content = new String (Files.readAllBytes(Paths.get(hjsonPath)));
 
-        assertEquals(content, obj.hydrateConfigTemplate(VALID_TABLE_WITH_VARIABLES, map));
+        assertEquals(content, hydrator.hydrateConfigTemplate(
+                VALID_TABLE_WITH_VARIABLES, testClass.getModelVariables()));
     }
 
     @Test
     public void testTableHydration() throws IOException {
 
-        HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources";
+        Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
 
-        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
-        testClass.readAndValidateConfigs();
-
-        Map<String, String> tableClasses = obj.hydrateTableTemplate(testClass.getElideTableConfig());
-
-        assertEquals(true, tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
+        assertTrue(tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
         assertEquals(VALID_TABLE_JAVA, tableClasses.get(VALID_TABLE_JAVA_NAME));
     }
 
     @Test
     public void testSecurityHydration() throws IOException {
-        HandlebarsHydrator obj = new HandlebarsHydrator();
-        String path = "src/test/resources";
-
-        DynamicConfigValidator testClass = new DynamicConfigValidator(path);
-        testClass.readAndValidateConfigs();
-
-        Map<String, String> securityClasses = obj.hydrateSecurityTemplate(testClass.getElideSecurityConfig());
+        Map<String, String> securityClasses = hydrator.hydrateSecurityTemplate(testClass.getElideSecurityConfig());
 
         assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_ADMIN_JAVA_NAME));
         assertEquals(true, securityClasses.keySet().contains(VALID_SECURITY_GUEST_JAVA_NAME));

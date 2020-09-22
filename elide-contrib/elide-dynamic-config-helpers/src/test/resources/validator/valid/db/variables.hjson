@@ -1,4 +1,4 @@
 {
-   mysql_dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect
-   db2_dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDBDialect
+   mysql_dialect: org.hibernate.dialect.MySQL5Dialect
+   db2_dialect: org.hibernate.dialect.DB2Dialect
 }
