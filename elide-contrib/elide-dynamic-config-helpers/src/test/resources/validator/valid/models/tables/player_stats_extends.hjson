@@ -1,0 +1,18 @@
+{
+  tables:
+  [
+    {
+      name: PlayerExtend
+      extend: Player
+      description: Player Extend
+      cardinality: large
+      measures : [
+            {
+            name : highScore
+            type : "INTEGER"
+            definition: 'Avg(score)'
+            }
+        ]
+    }
+  ]
+}
