@@ -60,26 +60,26 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
 
             Boolean sortOverRelationship = entityProjection.getSorting() != null
                     && entityProjection.getSorting().getSortingPaths().keySet()
-                            .stream().anyMatch(path -> path.getPathElements().size() > 1);
+                    .stream().anyMatch(path -> path.getPathElements().size() > 1);
             if (requiresDistinct && sortOverRelationship) {
                 //SQL does not support distinct and order by on columns which are not selected
                 throw new InvalidValueException("Combination of pagination, sorting over relationship and"
-                    + " filtering over toMany relationships unsupported");
+                        + " filtering over toMany relationships unsupported");
             }
             query = session.createQuery(
                     SELECT
-                        + (requiresDistinct ? DISTINCT : "")
-                        + entityAlias
-                        + FROM
-                        + entityName
-                        + AS
-                        + entityAlias
-                        + SPACE
-                        + joinClause
-                        + SPACE
-                        + filterClause
-                        + SPACE
-                        + getSortClause(entityProjection.getSorting())
+                            + (requiresDistinct ? DISTINCT : "")
+                            + entityAlias
+                            + FROM
+                            + entityName
+                            + AS
+                            + entityAlias
+                            + SPACE
+                            + joinClause
+                            + SPACE
+                            + filterClause
+                            + SPACE
+                            + getSortClause(entityProjection.getSorting())
             );
 
             //Fill in the query parameters
@@ -94,7 +94,6 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + SPACE
                     + getJoinClauseFromSort(entityProjection.getSorting())
                     + extractToOneMergeJoins(entityClass, entityAlias)
-                    + explicitSortJoins(sorting, entityClass)
                     + SPACE
                     + getSortClause(entityProjection.getSorting()));
         }

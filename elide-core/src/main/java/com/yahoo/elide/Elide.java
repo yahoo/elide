@@ -149,18 +149,6 @@ public class Elide {
     /**
      * Handle GET.
      *
-     * @param path the path
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
-        return get(null, path, queryParams, opaqueUser);
-    }
-
-    /**
-     * Handle GET.
-     *
      * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the path
      * @param queryParams the query params
@@ -195,32 +183,6 @@ public class Elide {
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
-    }
-
-    /**
-     * Handle POST.
-     *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse post(String path, String jsonApiDocument, Object opaqueUser) {
-        return post(null, path, jsonApiDocument, null, opaqueUser);
-    }
-
-    /**
-     * Handle POST.
-     *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse post(String path, String jsonApiDocument,
-                              MultivaluedMap<String, String> queryParams, Object opaqueUser) {
-        return post(null, path, jsonApiDocument, queryParams, opaqueUser);
     }
 
     /**
@@ -267,21 +229,6 @@ public class Elide {
     /**
      * Handle PATCH.
      *
-     * @param contentType the content type
-     * @param accept the accept
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse patch(String contentType, String accept,
-                               String path, String jsonApiDocument, Object opaqueUser) {
-        return patch(null, contentType, accept, path, jsonApiDocument, null, opaqueUser);
-    }
-
-    /**
-     * Handle PATCH.
-     *
      * @param baseUrlEndPoint base URL with prefix endpoint
      * @param contentType the content type
      * @param accept the accept
@@ -296,23 +243,6 @@ public class Elide {
                                User opaqueUser, String apiVersion) {
         return patch(baseUrlEndPoint, contentType, accept, path, jsonApiDocument,
                      null, opaqueUser, apiVersion, UUID.randomUUID());
-    }
-
-    /**
-     * Handle PATCH.
-     *
-     * @param contentType the content type
-     * @param accept the accept
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse patch(String contentType, String accept,
-                               String path, String jsonApiDocument,
-                               MultivaluedMap<String, String> queryParams, Object opaqueUser) {
-        return patch(null, contentType, accept, path, jsonApiDocument, queryParams, opaqueUser);
     }
 
     /**
@@ -365,18 +295,6 @@ public class Elide {
     /**
      * Handle DELETE.
      *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse delete(String path, String jsonApiDocument, Object opaqueUser) {
-        return delete(null, path, jsonApiDocument, null, opaqueUser);
-    }
-
-    /**
-     * Handle DELETE.
-     *
      * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the path
      * @param jsonApiDocument the json api document
@@ -387,20 +305,6 @@ public class Elide {
     public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
                                 User opaqueUser, String apiVersion) {
         return delete(baseUrlEndPoint, path, jsonApiDocument, null, opaqueUser, apiVersion, UUID.randomUUID());
-    }
-
-    /**
-     * Handle DELETE.
-     *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse delete(String path, String jsonApiDocument,
-                                MultivaluedMap<String, String> queryParams, Object opaqueUser) {
-        return delete(null, path, jsonApiDocument, queryParams, opaqueUser);
     }
 
     /**
