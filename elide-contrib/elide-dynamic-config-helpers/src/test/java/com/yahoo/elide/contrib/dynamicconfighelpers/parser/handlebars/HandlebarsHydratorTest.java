@@ -92,11 +92,6 @@ public class HandlebarsHydratorTest {
 
     private static final String VALID_TABLE_JAVA_NAME = "PlayerStats";
 
-    private static final String VALID_CHILD_TABLE_JAVA_NAME = "PlayerExtend";
-
-    private static final String OVERRIDE_ANNOTATION = "@Getter(onMethod_={@Override})\n"
-            + "    @Setter(onMethod_={@Override})\n";
-
     private static final String VALID_TABLE_JAVA = "/*\n"
             + " * Copyright 2020, Yahoo Inc.\n"
             + " * Licensed under the Apache License, Version 2.0\n"
