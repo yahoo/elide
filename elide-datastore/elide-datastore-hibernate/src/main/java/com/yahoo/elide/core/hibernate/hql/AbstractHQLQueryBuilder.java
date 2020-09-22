@@ -44,7 +44,7 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final String FROM = " FROM ";
     protected static final String JOIN = " JOIN ";
     protected static final String LEFT = " LEFT";
-    protected static final String FETCH = "FETCH ";
+    protected static final String FETCH = " FETCH ";
     protected static final String SELECT = "SELECT ";
     protected static final String AS = " AS ";
     protected static final String DISTINCT = "DISTINCT ";
@@ -53,7 +53,6 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final boolean USE_ALIAS = true;
     protected static final boolean NO_ALIAS = false;
     protected Set<String> alreadyJoined = new HashSet<>();
-    protected Set<String> alreadyJoinedAliases = new HashSet<>();
 
     /**
      * Represents a relationship between two entities.
@@ -170,8 +169,9 @@ public abstract class AbstractHQLQueryBuilder {
      * @param skipFetches Don't fetch join
      * @return A HQL string representing the join
      */
-    private String joinClauseFromPath(Path path, boolean skipFetches) {
+    private String extractJoinClause(Path path, boolean skipFetches) {
         StringBuilder joinClause = new StringBuilder();
+
         String previousAlias = null;
 
         for (Path.PathElement pathElement : path.getPathElements()) {
@@ -203,14 +203,14 @@ public abstract class AbstractHQLQueryBuilder {
             //This is a to-One relationship belonging to the collection being retrieved.
             if (!skipFetches && entityProjection.getIncludedRelationsName().contains(fieldName) && type.isToOne()
                     && !type.isComputed() && previousAlias == null) {
-                fetch = FETCH;
+                fetch = "FETCH ";
+
             }
             String joinFragment = LEFT + JOIN + fetch + joinKey + SPACE + alias + SPACE;
 
             if (!alreadyJoined.contains(joinKey)) {
                 joinClause.append(joinFragment);
                 alreadyJoined.add(joinKey);
-                alreadyJoinedAliases.add(alias);
             }
 
             previousAlias = alias;
@@ -243,43 +243,18 @@ public abstract class AbstractHQLQueryBuilder {
                     continue;
                 }
                 String joinKey = alias + PERIOD + relationshipName;
-                String relationshipAlias = alias + UNDERSCORE + relationshipName;
 
                 if (alreadyJoined.contains(joinKey)) {
                     continue;
                 }
 
-                alreadyJoined.add(joinKey);
-                alreadyJoinedAliases.add(relationshipAlias);
-                joinString.append(LEFT);
-                joinString.append(JOIN);
-                joinString.append(FETCH);
+                joinString.append(" LEFT JOIN FETCH ");
                 joinString.append(joinKey);
                 joinString.append(SPACE);
                 alreadyJoined.add(joinKey);
             }
         }
         return joinString.toString();
-    }
-
-    /**
-     * Builds a explicit LEFT JOIN clauses instead of implicit sorting joins.
-     * @param sorting The sorting object passed from the client
-     * @param sortClass The class to sort.
-     * @return The JOIN clause that can be added to the FROM clause.
-     */
-    protected String explicitSortJoins(final Optional<Sorting> sorting, Class<?> sortClass) {
-        StringBuilder joinClause = new StringBuilder();
-        if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
-            final Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
-                sortClass, dictionary
-            );
-            for (Map.Entry<Path, Sorting.SortOrder> entry : validSortingRules.entrySet()) {
-                Path path = entry.getKey();
-                joinClause.append(joinClauseFromPath(path, true));
-            }
-        }
-        return joinClause.toString();
     }
 
     /**
