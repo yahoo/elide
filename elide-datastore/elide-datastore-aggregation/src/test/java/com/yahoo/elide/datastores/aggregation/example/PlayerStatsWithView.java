@@ -31,7 +31,7 @@ import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Include(rootLevel = true)
+@Include
 @Cardinality(size = CardinalitySize.LARGE)
 @EqualsAndHashCode
 @ToString

@@ -35,7 +35,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = "editor")
-@Include(rootLevel = true)
+@Include
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

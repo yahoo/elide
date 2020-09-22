@@ -25,7 +25,7 @@ import javax.persistence.Transient;
  * Used to test computed attributes.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 public class User {
     @JsonIgnore
     private long id;

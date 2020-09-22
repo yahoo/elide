@@ -19,7 +19,7 @@ import javax.persistence.ManyToOne;
  * Package level shareable bean.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 @NonTransferable(enabled = false)
 public class ShareableWithPackageShare {
     private long id;

@@ -27,7 +27,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
-@Include(rootLevel = true)
+@Include
 @Entity
 @CreatePermission(expression = Author.PERMISSION)
 @ReadPermission(expression = Author.PERMISSION)

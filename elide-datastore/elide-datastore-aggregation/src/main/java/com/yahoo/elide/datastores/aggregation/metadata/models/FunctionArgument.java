@@ -18,7 +18,7 @@ import javax.persistence.Id;
 /**
  * Arguments that can be provided into a metric function.
  */
-@Include(type = "functionArgument")
+@Include(rootLevel = false, type = "functionArgument")
 @Data
 @ToString
 @AllArgsConstructor

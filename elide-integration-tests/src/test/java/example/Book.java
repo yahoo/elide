@@ -34,7 +34,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = "book")
-@Include(rootLevel = true)
+@Include
 @Paginate
 @Audit(action = Audit.Action.CREATE,
         operation = 10,

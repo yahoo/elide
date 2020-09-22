@@ -18,7 +18,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 
 @Entity
-@Include(rootLevel = true)
+@Include
 @ReadPermission(expression = "allow all")
 @CreatePermission(expression = "allow all")
 @UpdatePermission(expression = "allow all")

@@ -12,7 +12,7 @@ import lombok.Setter;
 
 import javax.persistence.Entity;
 
-@Include
+@Include(rootLevel = false)
 @Entity
 public class Address {
     @Getter @Setter

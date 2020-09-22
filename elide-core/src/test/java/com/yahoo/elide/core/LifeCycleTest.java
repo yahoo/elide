@@ -68,7 +68,7 @@ import javax.ws.rs.core.MultivaluedMap;
  * Tests the invocation &amp; sequencing of DataStoreTransaction method invocations and life cycle events.
  * Model used to mock different lifecycle test scenarios.  This model uses fields instead of properties.
  */
-@Include(type = "testModel")
+@Include(rootLevel = false, type = "testModel")
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
@@ -247,7 +247,7 @@ class FieldTestModel {
 /**
  * Model used to mock different lifecycle test scenarios.  This model uses properties instead of fields.
  */
-@Include
+@Include(rootLevel = false)
 class PropertyTestModel {
     private String id;
 

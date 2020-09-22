@@ -25,7 +25,7 @@ import javax.persistence.Transient;
 /**
  * Hibernate-managed user.
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 @CreatePermission(expression = "allow all")
 @ReadPermission(expression = "allow all")

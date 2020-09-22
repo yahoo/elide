@@ -14,7 +14,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 
-@Include(rootLevel = true)
+@Include
 @ReadPermission(expression = "allow all")
 @CreatePermission(expression = "allow all")
 @UpdatePermission(expression = "allow all")

@@ -23,7 +23,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 
-@Include(rootLevel = true, type = "right") // optional here because class has this name
+@Include(type = "right") // optional here because class has this name
 @UpdatePermission(expression = "Prefab.Role.None")
 @Entity
 @Table(name = "xright")     // right is SQL keyword

@@ -18,7 +18,7 @@ import javax.persistence.Id;
  * A nested view for testing.
  */
 @Data
-@Include
+@Include(rootLevel = false)
 @FromTable(name = "countries")
 public class CountryViewNested {
     private String id;

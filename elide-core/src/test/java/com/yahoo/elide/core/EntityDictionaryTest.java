@@ -77,7 +77,7 @@ import javax.persistence.Transient;
 public class EntityDictionaryTest extends EntityDictionary {
 
     //Test class to validate inheritance logic
-    @Include(rootLevel = true, type = "friend")
+    @Include(type = "friend")
     private class Friend extends Child {
     }
 
@@ -174,7 +174,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testSerdeId() {
 
-        @Include
+        @Include(rootLevel = false)
         class EntityWithDateId {
             @Id
             private Date id;
@@ -205,7 +205,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testBindingTriggerPriorToBindingEntityClass1() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Foo2 {
             @Id
             private long id;
@@ -222,7 +222,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testBindingTriggerPriorToBindingEntityClass2() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Foo3 {
             @Id
             private long id;
@@ -239,7 +239,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testBindingTriggerPriorToBindingEntityClass3() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class Foo4 {
             @Id
             private long id;
@@ -256,7 +256,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testJPAFieldLevelAccess() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class FieldLevelTest {
             @Id
             private long id;
@@ -294,7 +294,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testJPAPropertyLevelAccess() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class PropertyLevelTest {
             private long id;
 
@@ -366,7 +366,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testIsGeneratedId() {
-        @Include
+        @Include(rootLevel = false)
         class GeneratedIdModel {
             @Id
             @GeneratedValue
@@ -374,7 +374,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         }
 
-        @Include
+        @Include(rootLevel = false)
         class NonGeneratedIdModel {
             @Id
             private long id;
@@ -446,7 +446,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 "getIdAnnotations returns an empty collection if there is no ID field for given class");
     }
 
-    @Include
+    @Include(rootLevel = false)
     class NoId {
 
     }
@@ -583,7 +583,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testEntityInheritanceBinding() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class SuperclassBinding {
             @Id
             private long id;
@@ -619,7 +619,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testEntityInheritanceBindingOverride() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class SuperclassBinding {
             @Id
             private long id;
@@ -629,7 +629,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class SubsubclassBinding extends SubclassBinding {
             @Id
             private long id;
@@ -663,7 +663,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testNonEntityInheritanceBinding() {
-        @Include
+        @Include(rootLevel = false)
         class SuperclassBinding {
             @Id
             private long id;
@@ -687,7 +687,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testNonEntityInheritanceBindingOverride() {
-        @Include
+        @Include(rootLevel = false)
         class SuperclassBinding {
             @Id
             private long id;
@@ -696,7 +696,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         class SubclassBinding extends SuperclassBinding {
         }
 
-        @Include
+        @Include(rootLevel = false)
         class SubsubclassBinding extends SubclassBinding {
             @Id
             private long id;
@@ -716,7 +716,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testNonEntityInheritanceBindingExclusion() {
-        @Include
+        @Include(rootLevel = false)
         class SuperclassBinding {
             @Id
             private long id;
@@ -749,7 +749,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         class Foo {
         }
 
-        @Include
+        @Include(rootLevel = false)
         class Bar extends Foo {
 
         }
@@ -765,7 +765,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetFirstAnnotationConflict() {
         @Exclude
-        @Include
+        @Include(rootLevel = false)
         class Foo {
         }
 
@@ -799,7 +799,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testFieldIsInjected() {
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
 
-        @Include
+        @Include(rootLevel = false)
         class FieldInject {
             @Inject
             private String field;
@@ -818,7 +818,7 @@ public class EntityDictionaryTest extends EntityDictionary {
             private String field;
         }
 
-        @Include
+        @Include(rootLevel = false)
         class SubClass extends BaseClass {
             private String anotherField;
         }
@@ -832,7 +832,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testMethodIsInjected() {
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
 
-        @Include
+        @Include(rootLevel = false)
         class MethodInject {
             @Inject
             private void setField(String field) {
@@ -855,7 +855,7 @@ public class EntityDictionaryTest extends EntityDictionary {
             }
         }
 
-        @Include
+        @Include(rootLevel = false)
         class SubClass extends BaseClass {
             private String anotherField;
         }
@@ -869,7 +869,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testConstructorIsInjected() {
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
 
-        @Include
+        @Include(rootLevel = false)
         class ConstructorInject {
             @Inject
             public ConstructorInject(String field) {
@@ -944,7 +944,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testCoerce() throws Exception {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class CoerceBean {
             public String string;
             public List<Boolean> list;

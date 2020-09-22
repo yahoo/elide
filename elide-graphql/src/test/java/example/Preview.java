@@ -13,7 +13,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-@Include(rootLevel = true) // optional here because class has this name
+@Include // optional here because class has this name
 @Entity
 public class Preview {
     @Id

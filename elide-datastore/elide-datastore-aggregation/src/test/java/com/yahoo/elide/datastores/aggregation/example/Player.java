@@ -20,7 +20,7 @@ import javax.persistence.Table;
  * A root level entity for testing AggregationDataStore.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 @Table(name = "players")
 @Cardinality(size = CardinalitySize.MEDIUM)
 @Data

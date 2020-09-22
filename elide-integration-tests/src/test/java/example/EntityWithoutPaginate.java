@@ -16,7 +16,7 @@ import javax.persistence.Entity;
  * Entity that does not have the Paginate annotation that modifies pagination behavior.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 public class EntityWithoutPaginate extends BaseId {
     @Getter
     @Setter

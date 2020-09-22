@@ -56,7 +56,7 @@ public class PermissionExpressionBuilderTest {
     @Test
     public void testAnyFieldExpressionText() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @ReadPermission(expression = "user has all access AND user has no access")
         class Model { }
         dictionary.bindEntity(Model.class);
@@ -89,7 +89,7 @@ public class PermissionExpressionBuilderTest {
     @Test
     public void testSpecificFieldExpressionText() {
         @Entity
-        @Include
+        @Include(rootLevel = false)
         @UpdatePermission(expression = "user has no access")
         class Model {
             @Id

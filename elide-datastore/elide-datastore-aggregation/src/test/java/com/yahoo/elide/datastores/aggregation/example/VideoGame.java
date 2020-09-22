@@ -21,7 +21,7 @@ import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Include(rootLevel = true)
+@Include
 @FromTable(name = "videoGames", dbConnectionName = "mycon")
 public class VideoGame {
     @Setter
