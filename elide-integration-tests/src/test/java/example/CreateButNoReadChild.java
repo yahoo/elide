@@ -15,7 +15,7 @@ import javax.persistence.ManyToOne;
 /**
  * A model intended to be ONLY created and read, but never updated
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 @CreatePermission(expression = "allow all")
 public class CreateButNoReadChild extends BaseId {

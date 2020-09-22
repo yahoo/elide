@@ -17,7 +17,7 @@ import lombok.ToString;
 
 import javax.persistence.Id;
 
-@Include(rootLevel = true)
+@Include
 @Cardinality(size = CardinalitySize.LARGE)
 @EqualsAndHashCode
 @ToString

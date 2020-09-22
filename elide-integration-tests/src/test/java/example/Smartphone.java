@@ -15,7 +15,7 @@ import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 @Entity
-@Include(rootLevel = true, type = "smartphone")
+@Include(type = "smartphone")
 public class Smartphone extends BaseId implements Device {
     @Getter @Setter private String type;
 

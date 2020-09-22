@@ -14,7 +14,7 @@ import javax.persistence.Entity;
 /**
  * Bean with only computed fields
  */
-@Include
+@Include(rootLevel = false)
 @Entity
 public class ComputedBean {
 

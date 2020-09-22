@@ -20,7 +20,7 @@ import javax.persistence.OneToOne;
  * An author's pen-name
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class Pseudonym {
     private long id;
     private Author author;

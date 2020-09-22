@@ -575,7 +575,7 @@ public class SwaggerBuilderTest {
     @Test
     public void testSortParameter() {
         @Entity
-        @Include(rootLevel = true)
+        @Include
         class NothingToSort {
             @Id
             long name;

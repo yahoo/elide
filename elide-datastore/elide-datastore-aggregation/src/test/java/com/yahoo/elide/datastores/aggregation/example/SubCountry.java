@@ -23,7 +23,7 @@ import javax.persistence.Id;
  */
 @Data
 @Entity
-@Include(rootLevel = true)
+@Include
 @Subselect(value = "select * from countries")
 @Cardinality(size = CardinalitySize.SMALL)
 public class SubCountry {

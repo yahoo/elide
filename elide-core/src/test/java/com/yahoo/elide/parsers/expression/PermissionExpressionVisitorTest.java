@@ -103,7 +103,7 @@ public class PermissionExpressionVisitorTest {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @ReadPermission(expression = "user has all access AND Allow")
     @UpdatePermission(expression = "Allow or Deny")
     @DeletePermission(expression = "Not Deny")
@@ -128,7 +128,7 @@ public class PermissionExpressionVisitorTest {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @CreatePermission(expression = "(Deny or Allow) and (not Deny)")
     @DeletePermission(expression = "user has all access or user has no access")
     @UpdatePermission(expression = "user has all access and (user has no access or user has all access)")

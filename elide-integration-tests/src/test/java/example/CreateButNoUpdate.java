@@ -15,7 +15,7 @@ import javax.persistence.Entity;
 /**
  * A model intended to be ONLY created and read, but never updated.
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 @CreatePermission(expression = "allow all")
 @ReadPermission(expression = "allow all")

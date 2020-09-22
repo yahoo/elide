@@ -21,7 +21,7 @@ import javax.persistence.OneToMany;
  * Publisher for book/author example.
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class Publisher extends BaseId {
     private String name;
     private Set<Book> books = new HashSet<>();

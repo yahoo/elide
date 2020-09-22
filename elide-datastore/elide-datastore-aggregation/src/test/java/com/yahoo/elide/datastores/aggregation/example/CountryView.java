@@ -19,7 +19,7 @@ import javax.persistence.Column;
  * A view version of table countries.
  */
 @Data
-@Include
+@Include(rootLevel = false)
 @FromTable(name = "countries")
 public class CountryView {
     @Column(name = "id")

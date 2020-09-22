@@ -50,14 +50,14 @@ public class RequestScopeTest {
         //       the datastore.
 
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class MyBaseClass {
             @Id
             public long id;
         }
 
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class MyInheritedClass extends MyBaseClass {
             public String myField;
         }

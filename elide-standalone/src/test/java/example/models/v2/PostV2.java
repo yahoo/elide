@@ -22,7 +22,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 @Entity
-@Include(rootLevel = true, type = "post")
+@Include(type = "post")
 @Data
 @Table(name = "Post")
 public class PostV2 {

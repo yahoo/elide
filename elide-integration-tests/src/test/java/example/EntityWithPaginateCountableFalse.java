@@ -14,7 +14,7 @@ import lombok.Setter;
 import javax.persistence.Entity;
 
 @Entity
-@Include(rootLevel = true)
+@Include
 @Paginate(countable = false)
 public class EntityWithPaginateCountableFalse extends BaseId {
     @Getter

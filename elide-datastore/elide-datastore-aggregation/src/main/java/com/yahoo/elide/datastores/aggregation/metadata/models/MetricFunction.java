@@ -20,7 +20,7 @@ import javax.persistence.OneToMany;
 /**
  * Functions used to compute metrics.
  */
-@Include(type = "metricFunction")
+@Include(rootLevel = false, type = "metricFunction")
 @Data
 @ToString
 @AllArgsConstructor

@@ -24,7 +24,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-@Include(rootLevel = true, type = "left") // optional here because class has this name
+@Include(type = "left") // optional here because class has this name
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
 @DeletePermission(expression = "negativeIntegerUser")

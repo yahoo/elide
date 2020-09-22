@@ -13,7 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @DeletePermission(expression = "Prefab.Role.None")
-@Include(rootLevel = true, type = "nodelete") // optional here because class has this name
+@Include(type = "nodelete") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "nodelete")

@@ -21,7 +21,7 @@ import javax.persistence.ManyToMany;
  * This type of dimension can be used to support more specific aggregation logic e.g. DAILY/MONTHLY aggregation
  */
 @EqualsAndHashCode(callSuper = true)
-@Include(type = "timeDimension")
+@Include(rootLevel = false, type = "timeDimension")
 @Value
 public class TimeDimension extends Dimension {
     @ManyToMany

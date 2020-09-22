@@ -33,7 +33,7 @@ import javax.persistence.Id;
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
  */
-@Include(type = "column")
+@Include(rootLevel = false, type = "column")
 @Getter
 @EqualsAndHashCode
 @ToString

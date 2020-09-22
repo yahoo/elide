@@ -22,7 +22,7 @@ import javax.persistence.ManyToOne;
 /**
  * Column which supports aggregation.
  */
-@Include(type = "metric")
+@Include(rootLevel = false, type = "metric")
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString

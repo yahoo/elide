@@ -19,7 +19,7 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 
 @Entity
-@Include(rootLevel = true, type = "property")
+@Include(type = "property")
 public class Property extends BaseId {
     @Setter private Device myStuff;
 

@@ -14,7 +14,7 @@ import javax.persistence.Transient;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-@Include(rootLevel = true)
+@Include
 @Entity
 public class ExceptionThrowingBean {
     private long id;

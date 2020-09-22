@@ -17,7 +17,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
-@Include(rootLevel = true)
+@Include
 @Data
 @Entity
 public class Building {

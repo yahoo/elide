@@ -13,7 +13,7 @@ import javax.persistence.Entity;
 
 @CreatePermission(expression = "allow all")
 @ReadPermission(expression = "Prefab.Role.None")
-@Include(rootLevel = true)
+@Include
 @Entity
 public class YetAnotherPermission extends BaseId {
     private String hiddenName;

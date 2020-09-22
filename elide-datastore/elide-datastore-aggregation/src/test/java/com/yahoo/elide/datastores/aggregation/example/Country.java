@@ -28,7 +28,7 @@ import javax.persistence.Table;
  */
 @Data
 @Entity
-@Include(rootLevel = true)
+@Include
 @Table(name = "countries")
 @Cardinality(size = CardinalitySize.SMALL)
 public class Country {

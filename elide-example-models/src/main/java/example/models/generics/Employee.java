@@ -13,7 +13,7 @@ import javax.persistence.Entity;
 /**
  * Helper class to test parameterized subclass/superclass hierarchies.
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 public class Employee extends Peon<Manager> {
 }

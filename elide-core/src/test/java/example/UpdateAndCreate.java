@@ -25,7 +25,7 @@ import javax.persistence.OneToOne;
  * Model for authors.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 @CreatePermission(expression = "Principal is user one OR Principal is user two")
 @UpdatePermission(expression = "Principal is user two")
 @Audit(action = Audit.Action.CREATE,
