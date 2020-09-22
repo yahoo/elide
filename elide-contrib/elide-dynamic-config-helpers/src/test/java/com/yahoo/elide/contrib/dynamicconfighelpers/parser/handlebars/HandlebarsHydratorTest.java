@@ -135,7 +135,7 @@ public class HandlebarsHydratorTest {
             + "    tags={\"GAME\",\"PLAYER\"},\n"
             + "    filterTemplate=\"countryIsoCode=={{code}}\"\n"
             + ")\n"
-            + "@Include(rootLevel = true, type = \"playerStats\")\n"
+            + "@Include(type = \"playerStats\")\n"
             + "public class PlayerStats {\n"
             + "\n"
             + "    @Id\n"

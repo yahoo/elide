@@ -21,7 +21,7 @@ import javax.persistence.OneToMany;
  * Container for ShareableWithPackageShare and Untransferable.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 @NonTransferable(enabled = false)
 public class ContainerWithPackageShare {
     private long id;

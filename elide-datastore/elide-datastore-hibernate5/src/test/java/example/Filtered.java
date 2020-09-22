@@ -34,7 +34,7 @@ import javax.persistence.Entity;
 @ReadPermission(expression = "Prefab.Role.None OR filterCheck OR filterCheck3 OR negativeIntegerUser")
 @UpdatePermission(expression = "filterCheck")
 @DeletePermission(expression = "filterCheck")
-@Include(rootLevel = true)
+@Include
 // Hibernate
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

@@ -41,7 +41,7 @@ public class JpaDataStoreTest {
     @Test
     public void verifyJPQLGeneratorRegistration() {
 
-        @Include
+        @Include(rootLevel = false)
         @Entity
         class Test {
             @Id
@@ -76,7 +76,7 @@ public class JpaDataStoreTest {
     @Test
     public void verifyManualEntityBinding() {
 
-        @Include
+        @Include(rootLevel = false)
         @Entity
         class Test {
             @Id

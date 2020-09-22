@@ -17,7 +17,7 @@ import javax.persistence.Id;
 /**
  * Set of dummy user actions stored in hbase for example.
  */
-@Include
+@Include(rootLevel = false)
 @Entity
 @CreatePermission(expression = "allow all")
 @ReadPermission(expression = "allow all")

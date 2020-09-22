@@ -21,7 +21,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 @Entity
-@Include(rootLevel = true)
+@Include
 public class Generate {
     @Setter
     private long id;

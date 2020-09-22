@@ -31,7 +31,7 @@ import javax.persistence.OneToMany;
  * Model for publisher.
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class Publisher {
 
     private long id;

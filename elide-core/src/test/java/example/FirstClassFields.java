@@ -19,7 +19,7 @@ import javax.persistence.OneToOne;
 @ReadPermission(expression = "Prefab.Role.None")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
-@Include(rootLevel = true)
+@Include
 @Entity
 public class FirstClassFields {
     @Id

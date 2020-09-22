@@ -23,7 +23,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "job")
-@Include(rootLevel = true, type = "job")
+@Include(type = "job")
 public class Job {
 
     @Id

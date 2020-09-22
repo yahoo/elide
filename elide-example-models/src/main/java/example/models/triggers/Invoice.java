@@ -21,7 +21,7 @@ import javax.persistence.Transient;
  * Invoice for a group of purchased items.
  */
 @Entity(name = "customerInvoice")
-@Include(rootLevel = true, type = "customerInvoice")
+@Include(type = "customerInvoice")
 @Data
 public class Invoice extends BaseId {
     @Transient

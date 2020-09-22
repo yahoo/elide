@@ -23,7 +23,7 @@ public @interface Include {
      * (Optional) Whether or not the entity can be accessed at the root URL path (i.e. /company)
      * @return the boolean
      */
-    boolean rootLevel() default false;
+    boolean rootLevel() default true;
 
     /**
      * The type of the JsonApi object. Defaults to the simple name of the entity class.

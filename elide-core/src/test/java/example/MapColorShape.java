@@ -21,7 +21,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "color_shape")
-@Include(rootLevel = true)
+@Include
 public class MapColorShape {
     private long id;
     private String name;

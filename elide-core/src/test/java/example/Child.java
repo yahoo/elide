@@ -30,7 +30,7 @@ import javax.persistence.OneToOne;
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
 @ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheck")
-@Include(rootLevel = true, type = "child")
+@Include(type = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",

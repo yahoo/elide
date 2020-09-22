@@ -15,7 +15,7 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 
 @Entity
-@Include(rootLevel = true)
+@Include
 public class Publisher {
 
     /* Tests an inner class */

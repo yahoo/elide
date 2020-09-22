@@ -13,7 +13,7 @@ import lombok.Setter;
 import javax.persistence.Entity;
 
 @Entity
-@Include(rootLevel = true, type = "tractor")
+@Include(type = "tractor")
 public class Tractor extends BaseId implements Device {
     @Getter @Setter private int horsepower;
 }

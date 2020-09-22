@@ -187,7 +187,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     /* ChangeSpec-specific test elements */
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @CreatePermission(expression = "allow all")
     @ReadPermission(expression = "allow all")
     @UpdatePermission(expression = "Prefab.Role.None")
@@ -220,7 +220,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @EqualsAndHashCode
     @AllArgsConstructor
     @CreatePermission(expression = "allow all")

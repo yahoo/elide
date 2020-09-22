@@ -34,7 +34,7 @@ import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Include(rootLevel = true)
+@Include
 @Cardinality(size = CardinalitySize.LARGE)
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")
 @EqualsAndHashCode

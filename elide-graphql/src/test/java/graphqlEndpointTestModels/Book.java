@@ -42,7 +42,7 @@ import javax.persistence.Transient;
  * <b>CAUTION: DO NOT DECORATE IT WITH {@link Builder}, which hides its no-args constructor. This will result in
  * runtime error at places such as {@code entityClass.newInstance();}</b>
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 @CreatePermission(expression = UserChecks.IS_USER_1)
 @ReadPermission(expression = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2 + " OR NOT "

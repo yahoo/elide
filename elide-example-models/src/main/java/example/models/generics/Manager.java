@@ -13,7 +13,7 @@ import javax.persistence.Entity;
 /**
  * Tests a parameterized superclass.
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 public class Manager extends Overlord<Employee> {
 }

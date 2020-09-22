@@ -20,7 +20,7 @@ import javax.persistence.Entity;
 @ReadPermission(expression = "allow all")
 @UpdatePermission(expression = "allow all OR Prefab.Role.None")
 @DeletePermission(expression = "allow all OR Prefab.Role.None")
-@Include(rootLevel = true, type = "post") // optional here because class has this name
+@Include(type = "post") // optional here because class has this name
 @Entity
 public class Post extends BaseId {
     private String title;

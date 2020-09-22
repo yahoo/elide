@@ -29,7 +29,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "author")
-@Include(rootLevel = true)
+@Include
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

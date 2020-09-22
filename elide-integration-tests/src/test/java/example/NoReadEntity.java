@@ -18,7 +18,7 @@ import javax.persistence.Table;
  * No Read test bean.
  */
 @ReadPermission(expression = "Prefab.Role.None")
-@Include(rootLevel = true, type = "noread") // optional here because class has this name
+@Include(type = "noread") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "noread")
