@@ -777,22 +777,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public void deleteResource() throws ForbiddenAccessException {
         checkPermission(DeletePermission.class, this);
-
         /*
          * Search for bidirectional relationships.  For each bidirectional relationship,
          * we need to remove ourselves from that relationship
          */
-        Map<String, Relationship> relations = getRelationships();
-        for (Map.Entry<String, Relationship> entry : relations.entrySet()) {
-            String relationName = entry.getKey();
+
+        Class<?> resourceClass = getResourceClass();
+        List<String> relationships = dictionary.getRelationships(resourceClass);
+        for (String relationName : relationships) {
 
             /* Skip updating inverse relationships for deletes which are cascaded */
-            if (dictionary.cascadeDeletes(getResourceClass(), relationName)) {
+            if (dictionary.cascadeDeletes(resourceClass, relationName)) {
                 continue;
             }
-            String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
+            String inverseRelationName = dictionary.getRelationInverse(resourceClass, relationName);
             if (!"".equals(inverseRelationName)) {
-                for (PersistentResource inverseResource : getRelationCheckedUnfiltered(relationName)
+                for (PersistentResource inverseResource : getRelationUncheckedUnfiltered(relationName)
                         .toList().blockingGet()) {
                     if (hasInverseRelation(relationName)) {
                         deleteInverseRelation(relationName, inverseResource.getObject());

@@ -589,9 +589,8 @@ public class LifeCycleTest {
 
         verify(mockModel, never()).classCallback(eq(UPDATE), any());
         verify(mockModel, never()).classCallback(eq(CREATE), any());
-        verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
+        verify(mockModel, never()).classCallback(eq(READ), any());
+
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRESECURITY));
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRECOMMIT));
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(POSTCOMMIT));
@@ -601,13 +600,10 @@ public class LifeCycleTest {
         verify(mockModel, never()).attributeCallback(eq(READ), any(), any());
         verify(mockModel, never()).attributeCallback(eq(DELETE), any(), any());
 
-        //TODO - Read should not be called for a delete.
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
         verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
+        verify(mockModel, never()).relationCallback(eq(READ), any(), any());
         verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
-        verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRESECURITY), any());
-        verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT), any());
-        verify(mockModel, times(1)).relationCallback(eq(READ), eq(POSTCOMMIT), any());
 
         verify(tx).preCommit();
         verify(tx).delete(eq(mockModel), isA(RequestScope.class));
@@ -1094,13 +1090,10 @@ public class LifeCycleTest {
 
         resource.deleteResource();
 
-        verify(mockModel, times(2)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRESECURITY));
 
-        //TODO - DELETE should not invoke READ.
-        verify(mockModel, times(1)).classCallback(eq(READ), eq(PRESECURITY));
-        verify(mockModel, times(1)).relationCallback(any(), any(), any());
-        verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRESECURITY), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
 
@@ -1114,13 +1107,9 @@ public class LifeCycleTest {
 
         scope.runQueuedPreCommitTriggers();
 
-        verify(mockModel, times(2)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(PRECOMMIT));
-
-        //TODO - DELETE should not invoke READ.
-        verify(mockModel, times(1)).classCallback(eq(READ), eq(PRECOMMIT));
-        verify(mockModel, times(1)).relationCallback(any(), any(), any());
-        verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
 
@@ -1128,13 +1117,9 @@ public class LifeCycleTest {
         scope.getPermissionExecutor().executeCommitChecks();
         scope.runQueuedPostCommitTriggers();
 
-        verify(mockModel, times(2)).classCallback(any(), any());
+        verify(mockModel, times(1)).classCallback(any(), any());
         verify(mockModel, times(1)).classCallback(eq(DELETE), eq(POSTCOMMIT));
-
-        //TODO - DELETE should not invoke READ.
-        verify(mockModel, times(1)).classCallback(eq(READ), eq(POSTCOMMIT));
-        verify(mockModel, times(1)).relationCallback(any(), any(), any());
-        verify(mockModel, times(1)).relationCallback(eq(READ), eq(POSTCOMMIT), any());
+        verify(mockModel, never()).relationCallback(any(), any(), any());
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
         verify(mockModel, never()).attributeCallback(any(), any(), any());
     }
