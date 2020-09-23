@@ -847,4 +847,41 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
+
+    @Test
+    public void testGraphQLDynamicAggregationModelDateTime() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderTime=='2020-09-08 16:30:11'\"")
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderMonth"),
+                                        field("orderTime")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("orderTotal", 181.47F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderMonth", "2020-09"),
+                                        field("orderTime", "2020-09-08 16:30:11")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
 }

@@ -61,6 +61,17 @@
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
           }
         }
+        {
+          name: orderTime
+          type: TIME
+          definition: createdOn
+          readAccess: allow all
+          grain:
+          {
+            type: DATETIME
+            sql: '{{}}'
+          }
+        }
       ]
     }
     {

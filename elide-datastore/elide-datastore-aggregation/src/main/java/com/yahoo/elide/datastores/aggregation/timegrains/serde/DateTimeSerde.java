@@ -10,7 +10,7 @@ import com.yahoo.elide.datastores.aggregation.timegrains.DateTime;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -18,30 +18,30 @@ import java.text.SimpleDateFormat;
  * Serde class for bidirectional conversion from Elide DateTime type to java.util.Date.
  */
 @ElideTypeConverter(type = DateTime.class, name = "DateTime")
-public class DateTimeSerde implements Serde<Object, Date> {
+public class DateTimeSerde implements Serde<Object, Timestamp> {
 
     private static final SimpleDateFormat DATETIME_FORMATTER = new SimpleDateFormat(TimeGrain.DATETIME.getFormat());
 
     @Override
-    public Date deserialize(Object val) {
+    public Timestamp deserialize(Object val) {
 
-        Date date = null;
+        Timestamp timestamp = null;
 
         try {
             if (val instanceof String) {
-                date = new Date(DATETIME_FORMATTER.parse((String) val).getTime());
+                timestamp = new Timestamp(DATETIME_FORMATTER.parse((String) val).getTime());
             } else {
-                date = new DateTime(DATETIME_FORMATTER.parse(DATETIME_FORMATTER.format(val)));
+                timestamp = new DateTime(DATETIME_FORMATTER.parse(DATETIME_FORMATTER.format(val)));
             }
         } catch (ParseException e) {
             throw new IllegalArgumentException("Date strings must be formated as " + DATETIME_FORMATTER.toPattern());
         }
 
-        return date;
+        return timestamp;
     }
 
     @Override
-    public String serialize(Date val) {
+    public String serialize(Timestamp val) {
         return DATETIME_FORMATTER.format(val).toString();
     }
 }

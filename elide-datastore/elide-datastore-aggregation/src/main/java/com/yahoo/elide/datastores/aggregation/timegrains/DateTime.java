@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
 /**
  * Time Grain class for DATETIME("yyyy-MM-dd HH:mm:ss").
  */
-public class DateTime extends Date {
+public class DateTime extends Timestamp {
 
     private static final long serialVersionUID = -4541422985328136461L;
 
