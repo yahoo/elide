@@ -807,4 +807,44 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                             allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-09"))))
             .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F));
     }
+
+    @Test
+    public void testGraphQLDynamicAggregationModel() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderMonth=='2020-08'\"")
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderMonth")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("orderTotal", 61.43F),
+                                        field("customerRegion", "NewYork"),
+                                        field("orderMonth", "2020-08")
+                                ),
+                                selections(
+                                        field("orderTotal", 113.07F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderMonth", "2020-08")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
 }

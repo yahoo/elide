@@ -10,9 +10,9 @@ import com.yahoo.elide.datastores.aggregation.timegrains.DateTime;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
+import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Serde class for bidirectional conversion from Elide DateTime type to java.util.Date.
