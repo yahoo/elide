@@ -15,8 +15,6 @@
     <url>https://github.com/yahoo/elide</url>
 
     <modules>
-        <module>elide-annotations</module>
-        <module>elide-example-models</module>
         <module>elide-core</module>
         <module>elide-graphql</module>
         <module>elide-datastore</module>
@@ -103,16 +101,6 @@
     <!-- Dependency settings -->
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.yahoo.elide</groupId>
-                <artifactId>elide-annotations</artifactId>
-                <version>5.0.0-pr20-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.yahoo.elide</groupId>
-                <artifactId>elide-example-models</artifactId>
-                <version>5.0.0-pr20-SNAPSHOT</version>
-            </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
