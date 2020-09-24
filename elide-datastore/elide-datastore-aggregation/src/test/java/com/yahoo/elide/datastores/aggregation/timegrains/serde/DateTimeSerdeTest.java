@@ -23,7 +23,7 @@ public class DateTimeSerdeTest {
     @Test
     public void testDateSerialize() throws ParseException {
 
-        String expected = "2020-01-01 01:00:00";
+        String expected = "2020-01-01 01:18:19";
         DateTime expectedDate = new DateTime(formatter.parse(expected));
         DateTimeSerde dateSerde = new DateTimeSerde();
         Object actual = dateSerde.serialize(expectedDate);
@@ -33,9 +33,9 @@ public class DateTimeSerdeTest {
     @Test
     public void testDateDeserializeString() throws ParseException {
 
-        String dateInString = "2020-01-01 01:00:00";
+        String dateInString = "2020-01-01 01:18:19";
         Date expectedDate = new Date(formatter.parse(dateInString).getTime());
-        String actual = "2020-01-01 01:00:00";
+        String actual = "2020-01-01 01:18:19";
         DateTimeSerde dateTimeSerde = new DateTimeSerde();
         Object actualDate = dateTimeSerde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
@@ -44,7 +44,7 @@ public class DateTimeSerdeTest {
     @Test
     public void testDeserializeTimestamp() throws ParseException {
 
-        String dateInString = "2020-01-01 01:00:00";
+        String dateInString = "2020-01-01 01:18:19";
         DateTime expectedDate = new DateTime(formatter.parse(dateInString));
         Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         DateTimeSerde dateTimeSerde = new DateTimeSerde();
@@ -55,7 +55,7 @@ public class DateTimeSerdeTest {
     @Test
     public void testDeserializeDateInvalidFormat() throws ParseException {
 
-        String dateInString = "00:00:00 2020-01-01";
+        String dateInString = "00:18:19 2020-01-01";
         DateTimeSerde dateTimeSerde = new DateTimeSerde();
         assertThrows(IllegalArgumentException.class, () -> {
             dateTimeSerde.deserialize(dateInString);
