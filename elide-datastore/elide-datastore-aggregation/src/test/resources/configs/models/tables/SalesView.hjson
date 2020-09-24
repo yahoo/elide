@@ -69,7 +69,8 @@
           grain:
           {
             type: DATETIME
-            sql: '{{}}'
+            // sql: '{{}}' OR
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
           }
         }
       ]
