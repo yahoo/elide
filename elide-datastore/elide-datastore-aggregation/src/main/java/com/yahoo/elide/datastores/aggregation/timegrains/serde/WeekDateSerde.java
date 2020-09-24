@@ -10,9 +10,9 @@ import com.yahoo.elide.datastores.aggregation.timegrains.WeekDate;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
+import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Serde class for bidirectional conversion from Elide WeekDate type to java.util.Date.

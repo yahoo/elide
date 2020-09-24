@@ -58,7 +58,19 @@
           grain:
           {
             type: YEARMONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+          }
+        }
+        {
+          name: orderTime
+          type: TIME
+          definition: createdOn
+          readAccess: allow all
+          grain:
+          {
+            type: DATETIME
+            // sql: '{{}}' OR
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
           }
         }
       ]
