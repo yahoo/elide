@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import com.yahoo.elide.core.filter.FilterPredicate;
+
 import lombok.Getter;
 
 import java.sql.Connection;
@@ -21,7 +23,13 @@ import java.util.regex.Pattern;
  */
 public class NamedParamPreparedStatement {
 
-    private static final Pattern PARAMETER_PATTERN = Pattern.compile("(?<!')(:[\\w]*)(?!')");
+    /**
+     * Parameter Pattern as defined in {@link FilterPredicate#getParameters()}
+     * examples:
+     * :overallRating_c82e10a5_0
+     * :lowScore_7c4e440_0
+     */
+    private static final Pattern PARAMETER_PATTERN = Pattern.compile("(?<!')(:[\\w]+_[0-9A-Fa-f]+_[\\d]+)(?!')");
 
     @Getter
     private PreparedStatement preparedStatement;

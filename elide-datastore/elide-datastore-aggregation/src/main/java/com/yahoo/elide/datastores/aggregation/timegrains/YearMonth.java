@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-import java.util.Date;
+import java.sql.Date;
 
 /**
  * Time Grain class for YEARMONTH("yyyy-MM").
@@ -14,11 +14,7 @@ public class YearMonth extends Date {
 
     private static final long serialVersionUID = -6996481791560356547L;
 
-    public YearMonth() {
-        super();
-    }
-
-    public YearMonth(Date date) {
+    public YearMonth(java.util.Date date) {
         super(date.getTime());
     }
 }
