@@ -55,12 +55,6 @@
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-annotations</artifactId>
-            <version>5.0.0-pr20-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
             <version>5.0.0-pr20-SNAPSHOT</version>
         </dependency>
