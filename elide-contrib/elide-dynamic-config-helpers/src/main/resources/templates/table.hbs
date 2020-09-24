@@ -60,7 +60,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
         return id;
     }
 
-    public void setId(String id){
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -87,19 +87,19 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     <%#if hidden%>@Exclude<%/if%>
     @DimensionFormula("<%definition%>")
 <%#ifTypeMatches type "TIME"%>
-    public com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(){
+    public com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
 
-    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>){
+    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>) {
         this.<%name%> = <%name%>;
     }
 <%else%>
-    public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(){
+    public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
 
-    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%#getJavaType type%><%/getJavaType%> <%name%>){
+    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%#getJavaType type%><%/getJavaType%> <%name%>) {
         this.<%name%> = <%name%>;
     }
 <%/ifTypeMatches%>
@@ -142,11 +142,11 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
         tags={<%#collectionToString tags%><%/collectionToString%>}
     )
     <%#if hidden%>@Exclude<%/if%>
-    public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(){
+    public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
 
-    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%#getJavaType type%><%/getJavaType%> <%name%>){
+    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%#getJavaType type%><%/getJavaType%> <%name%>) {
         this.<%name%> = <%name%>;
     }
 <%/each%>
