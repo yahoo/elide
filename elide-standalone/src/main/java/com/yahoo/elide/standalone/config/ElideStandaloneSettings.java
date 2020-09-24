@@ -197,10 +197,10 @@ public interface ElideStandaloneSettings {
 
     /**
      * Base path to Hjson dynamic model configurations.
-     * @return Default: /models/
+     * @return Default: /configs/
      */
     default String getDynamicConfigPath() {
-        return File.separator + "models" + File.separator;
+        return File.separator + "configs" + File.separator;
     }
 
     /**
