@@ -16,7 +16,6 @@
 
     <modules>
         <module>elide-annotations</module>
-        <module>elide-example-models</module>
         <module>elide-core</module>
         <module>elide-graphql</module>
         <module>elide-datastore</module>
@@ -106,11 +105,6 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>5.0.0-pr20-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.yahoo.elide</groupId>
-                <artifactId>elide-example-models</artifactId>
                 <version>5.0.0-pr20-SNAPSHOT</version>
             </dependency>
             <dependency>

@@ -53,11 +53,6 @@
             <artifactId>elide-annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-example-models</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
