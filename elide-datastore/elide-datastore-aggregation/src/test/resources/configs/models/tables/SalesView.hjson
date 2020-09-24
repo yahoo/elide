@@ -58,7 +58,7 @@
           grain:
           {
             type: YEARMONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
           }
         }
         {
