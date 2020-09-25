@@ -153,7 +153,7 @@ public class HandlebarsHydratorTest {
             + "        return id;\n"
             + "    }\n"
             + "\n"
-            + "    public void setId(String id){\n"
+            + "    public void setId(String id) {\n"
             + "        this.id = id;\n"
             + "    }\n"
             + "\n"
@@ -171,14 +171,14 @@ public class HandlebarsHydratorTest {
             + "        tags={\"PRIVATE\"},\n"
             + "        tableSource=\"\"\n"
             + "    )\n"
-            + "\n"
+            + "    \n"
             + "    @DimensionFormula(\"{{playerCountry.isoCode}}\")\n"
             + "\n"
-            + "    public String getCountryIsoCode(){\n"
+            + "    public String getCountryIsoCode() {\n"
             + "        return countryIsoCode;\n"
             + "    }\n"
             + "\n"
-            + "    public void setCountryIsoCode(String countryIsoCode){\n"
+            + "    public void setCountryIsoCode(String countryIsoCode) {\n"
             + "        this.countryIsoCode = countryIsoCode;\n"
             + "    }\n"
             + "\n"
@@ -200,14 +200,14 @@ public class HandlebarsHydratorTest {
             + "        tags={},\n"
             + "        tableSource=\"\"\n"
             + "    )\n"
-            + "\n"
+            + "    \n"
             + "    @DimensionFormula(\"create_on\")\n"
             + "\n"
-            + "    public com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate getCreatedOn(){\n"
+            + "    public com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate getCreatedOn() {\n"
             + "        return createdOn;\n"
             + "    }\n"
             + "\n"
-            + "    public void setCreatedOn(com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate createdOn){\n"
+            + "    public void setCreatedOn(com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate createdOn) {\n"
             + "        this.createdOn = createdOn;\n"
             + "    }\n"
             + "\n"
@@ -251,14 +251,15 @@ public class HandlebarsHydratorTest {
             + "        category=\"\",\n"
             + "        tags={\"PUBLIC\"}\n"
             + "    )\n"
-            + "\n"
-            + "    public Long getHighScore(){\n"
+            + "    \n"
+            + "    public Long getHighScore() {\n"
             + "        return highScore;\n"
             + "    }\n"
             + "\n"
-            + "    public void setHighScore(Long highScore){\n"
+            + "    public void setHighScore(Long highScore) {\n"
             + "        this.highScore = highScore;\n"
             + "    }\n"
+            + "\n"
             + "}\n";
 
     private static final String VALID_SECURITY_ADMIN_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsAdmin";
@@ -328,8 +329,7 @@ public class HandlebarsHydratorTest {
         Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertTrue(tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
-        assertEquals(VALID_TABLE_CLASS.replaceAll("\\s+", ""),
-                tableClasses.get(VALID_TABLE_JAVA_NAME).replaceAll("\\s+", ""));
+        assertEquals(VALID_TABLE_CLASS, tableClasses.get(VALID_TABLE_JAVA_NAME));
     }
 
     @Test
