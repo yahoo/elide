@@ -12,7 +12,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 
 /**

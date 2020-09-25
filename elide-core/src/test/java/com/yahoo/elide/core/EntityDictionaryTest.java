@@ -27,7 +27,7 @@ import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.functions.LifeCycleHook;
-import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;

@@ -22,7 +22,7 @@ import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.functions.LifeCycleHook;
-import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
