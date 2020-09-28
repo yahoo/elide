@@ -15,7 +15,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
-import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.checks.FilterExpressionCheck;
 
 import lombok.Getter;
 import lombok.Setter;
