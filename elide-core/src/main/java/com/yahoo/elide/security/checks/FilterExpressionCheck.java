@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.security;
+package com.yahoo.elide.security.checks;
 
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.core.EntityDictionary;
@@ -13,7 +13,8 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.parsers.expression.FilterExpressionCheckEvaluationVisitor;
 
-import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.RequestScope;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
