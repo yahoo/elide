@@ -27,10 +27,10 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
 
