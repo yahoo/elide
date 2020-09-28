@@ -15,7 +15,6 @@ import com.yahoo.elide.parsers.expression.FilterExpressionCheckEvaluationVisitor
 
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.OperationCheck;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;

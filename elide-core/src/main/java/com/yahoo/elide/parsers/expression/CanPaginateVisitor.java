@@ -12,8 +12,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
-import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 
 import org.antlr.v4.runtime.tree.ParseTree;

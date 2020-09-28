@@ -15,8 +15,8 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
 import java.util.Optional;
