@@ -69,8 +69,7 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     private QueryStatus status = QueryStatus.QUEUED;
 
     @Enumerated(EnumType.STRING)
-    @NotNull
-    private ResultType resultType; //EMBEDDED, DOWNLOAD
+    private ResultType resultType = ResultType.EMBEDDED; //EMBEDDED, DOWNLOAD
 
     @Embedded
     private AsyncQueryResult result;
