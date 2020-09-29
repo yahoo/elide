@@ -67,6 +67,22 @@ public class ExecuteQueryHookTest {
     }
 
     @Test
+    public void testWithResultTypeNull() {
+        AsyncQuery queryObj = new AsyncQuery();
+        String query = "{ \"query\":\"{ group { edges { node { name commonName } } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultFormatType(ResultFormatType.CSV);
+
+        ExecuteQueryHook queryHook = new ExecuteQueryHook(asyncExecutorService);
+        assertThrows(InvalidValueException.class, () -> {
+            queryHook.validateOptions(queryObj);
+        });
+    }
+
+    @Test
     public void testWithStorageEngineNull() {
         AsyncQuery queryObj = new AsyncQuery();
         String query = "{ \"query\":\"{ group { edges { node { name commonName } } } }\",\"variables\":null}";
