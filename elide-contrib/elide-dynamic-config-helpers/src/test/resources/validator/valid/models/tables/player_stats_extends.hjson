@@ -2,17 +2,52 @@
   tables:
   [
     {
-      name: PlayerExtend
-      extend: Player
-      description: Player Extend
+      name: PlayerStatsChild
+      extend: PlayerStats
+      description: PlayerStats Child
       cardinality: large
       measures : [
-            {
+          {
             name : highScore
-            type : "INTEGER"
+            type : INTEGER
+            description : very awesome score
+            definition: 'MAX(score)'
+            tags: ['PUBLIC']
+          },
+          {
+            name : AvgScore
+            type : INTEGER
+            description : Avg score
             definition: 'Avg(score)'
+            tags: ['PUBLIC']
+          }
+      ]
+      dimensions : [
+         {
+           name : createdOn
+           type : TIME
+           definition : create_on
+           grain:
+            {
+             type :  YEAR
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy')
+             '''
             }
-        ]
+         },
+         {
+           name : updatedMonth
+           type : TIME
+           definition : updated_month
+           grain:
+            {
+             type :  YEARMONTH
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyyMM')
+             '''
+            }
+         }
+      ]
     }
   ]
 }

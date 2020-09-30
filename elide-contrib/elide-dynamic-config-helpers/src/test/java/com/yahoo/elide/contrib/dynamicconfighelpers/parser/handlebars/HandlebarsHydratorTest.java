@@ -307,10 +307,14 @@ public class HandlebarsHydratorTest {
     private HandlebarsHydrator hydrator;
 
     @BeforeAll
-    public void setup() throws IOException {
+    public void setup() {
         hydrator = new HandlebarsHydrator();
         testClass = new DynamicConfigValidator(CONFIG_PATH);
-        testClass.readAndValidateConfigs();
+        try {
+            testClass.readAndValidateConfigs();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -330,6 +334,15 @@ public class HandlebarsHydratorTest {
 
         assertTrue(tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
         assertEquals(VALID_TABLE_CLASS, tableClasses.get(VALID_TABLE_JAVA_NAME));
+    }
+
+    @Test
+    public void testChildTableHydration() throws IOException {
+
+        Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
+
+        assertTrue(tableClasses.keySet().contains("PlayerStatsChild"));
+//        assertEquals(VALID_TABLE_CLASS, tableClasses.get("PlayerStatsChild"));
     }
 
     @Test
