@@ -180,8 +180,11 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
                 .fromClause(query.getTable().getName())
                 .projectionClause(" ").build();
+
+        QueryResult queryResult = QueryResult.builder().data(DATA).build();
+
         when(queryEngine.executeQuery(query, qeTransaction))
-                .thenReturn(QueryResult.builder().data(Collections.emptyList()).build());
+                .thenReturn(queryResult);
         when(queryEngine.explain(query)).thenReturn(Arrays.asList(myQuery.toString()));
         AggregationDataStoreTransaction transaction =
                 new MyAggregationDataStoreTransaction(queryEngine, cache, queryLogger);
@@ -189,7 +192,9 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         transaction.loadObjects(entityProjection, scope);
 
-        Mockito.verifyNoInteractions(cache);
+        String cacheKey = ";" + queryKey;
+        Mockito.verify(cache).get(cacheKey);
+        Mockito.verify(cache).put(cacheKey, queryResult);
         Mockito.verify(queryLogger, times(1)).acceptQuery(
                 Mockito.eq(scope.getRequestId()),
                 any(), any(), any(), any(), any());

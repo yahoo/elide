@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.spring.config;
 
-import static com.yahoo.elide.datastores.aggregation.cache.CaffeineCache.DEFAULT_MAXIMUM_ENTRIES;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Data;
@@ -57,9 +55,4 @@ public class ElideConfigProperties {
      * The maximum pagination size a client can request.
      */
     private int maxPageSize = 10000;
-
-    /**
-     * Limit on number of query cache entries. Non-positive values disable the query cache.
-     */
-    private int queryCacheMaximumEntries = DEFAULT_MAXIMUM_ENTRIES;
 }
