@@ -249,8 +249,10 @@ public class ElideAutoConfiguration {
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public Cache buildQueryCache(ElideConfigProperties settings) {
         CaffeineCache cache = null;
-        if (settings.getQueryCacheMaximumEntries() > 0) {
-            cache = new CaffeineCache(settings.getQueryCacheMaximumEntries());
+
+        int maxCacheItems = settings.getAggregationStore().getQueryCacheMaximumEntries();
+        if (maxCacheItems > 0) {
+            cache = new CaffeineCache(maxCacheItems, settings.getAggregationStore().getDefaultCacheExpirationMinutes());
             if (meterRegistry != null) {
                 CaffeineCacheMetrics.monitor(meterRegistry, cache.getImplementation(), "elideQueryCache");
             }

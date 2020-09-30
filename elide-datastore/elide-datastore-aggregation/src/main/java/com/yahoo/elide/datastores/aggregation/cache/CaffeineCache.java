@@ -10,6 +10,8 @@ import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * A basic local-only cache.
  */
@@ -18,8 +20,12 @@ public class CaffeineCache implements Cache {
 
     private final com.github.benmanes.caffeine.cache.Cache<Object, QueryResult> cache;
 
-    public CaffeineCache(int maximumSize) {
-        cache = Caffeine.newBuilder().maximumSize(maximumSize).recordStats().build();
+    public CaffeineCache(int maximumSize, long defaultExprirationMinutes) {
+        cache = Caffeine.newBuilder()
+                .maximumSize(maximumSize)
+                .expireAfterWrite(defaultExprirationMinutes, TimeUnit.MINUTES)
+                .recordStats()
+                .build();
     }
 
     @Override
