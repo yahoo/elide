@@ -31,6 +31,18 @@
             {
              type :  YEAR
              sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             '''
+            }
+         },
+         {
+           name : createdYear
+           type : TIME
+           definition : createdYear
+           grain:
+            {
+             type :  YEAR
+             sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy')
              '''
             }

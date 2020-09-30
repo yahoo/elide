@@ -242,8 +242,9 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "\n"
             + "\n"
+            + "    \n"
             + "    private Long highScore;\n"
-            + "\n"
+            + "    \n"
             + "    @MetricFormula(\"MAX(score)\")\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @ColumnMeta(\n"
@@ -251,6 +252,7 @@ public class HandlebarsHydratorTest {
             + "        category=\"\",\n"
             + "        tags={\"PUBLIC\"}\n"
             + "    )\n"
+            + "    \n"
             + "    \n"
             + "    public Long getHighScore() {\n"
             + "        return highScore;\n"
@@ -303,18 +305,16 @@ public class HandlebarsHydratorTest {
             + "    }\n"
             + "}\n";
 
+    private static final String VALID_CHILD_TABLE_CLASS = "";
+
     private DynamicConfigValidator testClass;
     private HandlebarsHydrator hydrator;
 
     @BeforeAll
-    public void setup() {
+    public void setup() throws IOException {
         hydrator = new HandlebarsHydrator();
         testClass = new DynamicConfigValidator(CONFIG_PATH);
-        try {
-            testClass.readAndValidateConfigs();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        testClass.readAndValidateConfigs();
     }
 
     @Test
@@ -342,7 +342,8 @@ public class HandlebarsHydratorTest {
         Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertTrue(tableClasses.keySet().contains("PlayerStatsChild"));
-//        assertEquals(VALID_TABLE_CLASS, tableClasses.get("PlayerStatsChild"));
+        System.out.println(tableClasses.get("PlayerStatsChild"));
+//        assertEquals(VALID_CHILD_TABLE_CLASS, tableClasses.get("PlayerStatsChild"));
     }
 
     @Test

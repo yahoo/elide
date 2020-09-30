@@ -129,7 +129,6 @@ public class DynamicConfigValidator {
         for (Table table : this.elideTableConfig.getTables()) {
             Set<Table> parentTables = getParents(table);
             if (parentTables.size() > 0) {
-//                table.setInheritanceHierarchy(parentTables);
                 flagMeasuresToOverride(table, parentTables);
                 flagDimensionsToOverride(table, parentTables);
             }
@@ -168,10 +167,11 @@ public class DynamicConfigValidator {
 
     private Set<Table> getParents(Table table) {
         Set<Table> parentTables = new HashSet<>();
-        while (table != null && !table.getExtend().equals("")) {
-            Table parent = getTableByName(table.getExtend());
+        Table current = table;
+        while (current != null && !current.getExtend().equals("")) {
+            Table parent = getTableByName(current.getExtend());
             parentTables.add(parent);
-            table = parent;
+            current = parent;
         }
         return parentTables;
     }
@@ -182,8 +182,7 @@ public class DynamicConfigValidator {
                 return table;
             }
             else {
-                log.warn("Table " + tableName + " is not defined in Dynamic Config.");
-                return null;
+                throw new IllegalStateException("Table " + tableName + " is not defined in Dynamic Config.");
             }
         }
         return null;
