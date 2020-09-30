@@ -27,6 +27,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 import javax.validation.constraints.Max;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 /**
@@ -68,6 +69,7 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     private QueryStatus status = QueryStatus.QUEUED;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private ResultType resultType = ResultType.EMBEDDED; //EMBEDDED, DOWNLOAD
 
     @Embedded

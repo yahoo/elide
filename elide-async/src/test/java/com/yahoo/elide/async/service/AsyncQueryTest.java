@@ -48,6 +48,15 @@ public class AsyncQueryTest {
     }
 
     @Test
+    public void testResultTypeNull() {
+        AsyncQuery queryObj = new AsyncQuery();
+        queryObj.setResultType(null);
+        Set<ConstraintViolation<AsyncQuery>> constraintViolations = validator.validate(queryObj);
+        assertEquals(1, constraintViolations.size());
+        assertEquals("must not be null", constraintViolations.iterator().next().getMessage());
+    }
+
+    @Test
     public void testUUIDGeneration() {
         AsyncQuery queryObj = new AsyncQuery();
         assertNotNull(queryObj.getId());
