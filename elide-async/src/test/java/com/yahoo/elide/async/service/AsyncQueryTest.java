@@ -42,6 +42,12 @@ public class AsyncQueryTest {
     }
 
     @Test
+    public void testResultTypeDefault() {
+        AsyncQuery queryObj = new AsyncQuery();
+        assertEquals(queryObj.getResultType(), ResultType.EMBEDDED);
+    }
+
+    @Test
     public void testUUIDGeneration() {
         AsyncQuery queryObj = new AsyncQuery();
         assertNotNull(queryObj.getId());
