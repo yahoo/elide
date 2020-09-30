@@ -67,7 +67,7 @@ public class ExecuteQueryHookTest {
     }
 
     @Test
-    public void testWithResultTypeEmpty() {
+    public void testWithResultTypeNotSet() {
         AsyncQuery queryObj = new AsyncQuery();
         String query = "{ \"query\":\"{ group { edges { node { name commonName } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
