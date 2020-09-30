@@ -335,12 +335,23 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Returns the default expiration in minutes of items in the AggregationDataStore query cache.
+     *
+     * @return Default: 10
+     */
+    default Long getDefaultCacheExpirationMinutes() {
+        return 10L;
+    }
+
+    /**
      * Get the query cache implementation. If null, query cache is disabled.
      *
      * @return Default: {@code new CaffeineCache(getQueryCacheSize())}
      */
     default Cache getQueryCache() {
-        return getQueryCacheMaximumEntries() > 0 ? new CaffeineCache(getQueryCacheMaximumEntries()) : null;
+        return getQueryCacheMaximumEntries() > 0
+                ? new CaffeineCache(getQueryCacheMaximumEntries(), getDefaultCacheExpirationMinutes())
+                : null;
     }
 
     /**
