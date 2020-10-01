@@ -78,6 +78,7 @@ public class DynamicConfigValidatorTest {
                         break;
                     }
                 }
+                break;
             }
         }
     }

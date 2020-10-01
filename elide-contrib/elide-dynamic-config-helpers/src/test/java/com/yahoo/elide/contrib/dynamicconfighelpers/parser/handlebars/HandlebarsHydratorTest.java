@@ -544,7 +544,6 @@ public class HandlebarsHydratorTest {
         Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertTrue(tableClasses.keySet().contains("PlayerStatsChild"));
-        System.out.println(tableClasses.get("PlayerStatsChild"));
         assertEquals(VALID_CHILD_TABLE_CLASS, tableClasses.get("PlayerStatsChild"));
     }
 
