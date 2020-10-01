@@ -7,13 +7,20 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
 import org.hjson.ParseException;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 
 public class DynamicConfigValidatorTest {
 
@@ -53,9 +60,32 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testValidConfigDir() {
-        assertDoesNotThrow(() -> DynamicConfigValidator
-                .main(new String[] { "--configDir", "src/test/resources/validator/valid" }));
+    public void testValidConfigDir() throws IOException {
+        DynamicConfigValidator validator = new DynamicConfigValidator("src/test/resources/validator/valid");
+        validator.readAndValidateConfigs();
+        for (Table t : validator.getElideTableConfig().getTables()) {
+            if (t.getName().equals("PlayerStatsChild")) {
+                // test override flag for measures
+                for (Measure m : t.getMeasures()) {
+                    if (m.getName().equals("highScore")) {
+                        assertTrue(m.isOverride());
+                    }
+                    else if (m.getName().equals("AvgScore")) {
+                        assertFalse(m.isOverride());
+                    }
+                }
+                // test override flag for dimensions
+                for (Dimension dim : t.getDimensions()) {
+                    if (dim.getName().equals("createdOn")) {
+                        assertTrue(dim.isOverride());
+                    }
+                    else if (dim.getName().equals("updatedMonth")) {
+                        assertFalse(dim.isOverride());
+                    }
+                }
+                break;
+            }
+        }
     }
 
     @Test

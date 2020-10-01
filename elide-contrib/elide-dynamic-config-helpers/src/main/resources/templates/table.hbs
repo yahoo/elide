@@ -65,12 +65,14 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     }
 
 <%#each dimensions%>
-<%#ifTypeMatches type "TIME"%>
-    private com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>;
+<%#if override%>
 <%else%>
-    private <%#getJavaType type%><%/getJavaType%> <%name%>;
+<%#ifTypeMatches type "TIME"%>
+    protected com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>;
+<%else%>
+    protected <%#getJavaType type%><%/getJavaType%> <%name%>;
 <%/ifTypeMatches%>
-
+<%/if%>
 <%#ifTypeMatches type "TIME"%>
 <%#with grain%>
     @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.<%type%>, expression = "<%sql%>"), timeZone = "UTC")
@@ -85,6 +87,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
         tableSource="<%tableSource%>"
     )
     <%#if hidden%>@Exclude<%/if%>
+    <%#if override%>@Override<%/if%>
     @DimensionFormula("<%definition%>")
 <%#ifTypeMatches type "TIME"%>
     public com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
@@ -132,8 +135,10 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/each%>
 
 <%#each measures%>
-    private <%#getJavaType type%><%/getJavaType%> <%name%>;
-
+    <%#if override%>
+    <%else%>
+    protected <%#getJavaType type%><%/getJavaType%> <%name%>;
+    <%/if%>
     @MetricFormula("<%definition%>")
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
@@ -142,6 +147,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
         tags={<%#collectionToString tags%><%/collectionToString%>}
     )
     <%#if hidden%>@Exclude<%/if%>
+    <%#if override%>@Override<%/if%>
     public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
