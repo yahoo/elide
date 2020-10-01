@@ -46,7 +46,7 @@
         <commons-io.version>2.6</commons-io.version>
         <commons-cli.version>1.4</commons-cli.version>
         <commons-compress.version>1.20</commons-compress.version>
-        <spring-core.verions>5.2.8.RELEASE</spring-core.verions>
+        <spring-core.verions>5.2.9.RELEASE</spring-core.verions>
         <hikari.version>3.4.5</hikari.version>
     </properties>
 

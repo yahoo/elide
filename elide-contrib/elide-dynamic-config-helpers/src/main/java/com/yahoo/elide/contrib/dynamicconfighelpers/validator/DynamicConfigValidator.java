@@ -117,11 +117,74 @@ public class DynamicConfigValidator {
         this.setDbVariables(readVariableConfig(Config.DBVARIABLE));
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
         this.elideTableConfig.setTables(readTableConfig());
+        populateInheritanceHierarchy();
         validateRequiredConfigsProvided();
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         validateNameUniqueness(this.elideTableConfig.getTables());
         validateSqlInTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
+    }
+
+    private void populateInheritanceHierarchy() {
+        for (Table table : this.elideTableConfig.getTables()) {
+            Set<Table> parentTables = getParents(table);
+            if (parentTables.size() > 0) {
+                flagMeasuresToOverride(table, parentTables);
+                flagDimensionsToOverride(table, parentTables);
+            }
+        }
+    }
+
+    private void flagMeasuresToOverride(Table table, Set<Table> parentTables) {
+        Set<String> parentClassMeasures = new HashSet<>();
+        parentTables.forEach(obj -> {
+            obj.getMeasures().forEach(measure -> {
+                parentClassMeasures.add(measure.getName());
+            });
+        });
+
+        table.getMeasures().forEach(measure -> {
+            if (parentClassMeasures.contains(measure.getName())) {
+                measure.setOverride(true);
+            }
+        });
+    }
+
+    private void flagDimensionsToOverride(Table table, Set<Table> parentTables) {
+        Set<String> parentClassDimensions = new HashSet<>();
+        parentTables.forEach(obj -> {
+            obj.getDimensions().forEach(dimension -> {
+                parentClassDimensions.add(dimension.getName());
+            });
+        });
+
+        table.getDimensions().forEach(dimension -> {
+            if (parentClassDimensions.contains(dimension.getName())) {
+                dimension.setOverride(true);
+            }
+        });
+    }
+
+    private Set<Table> getParents(Table table) {
+        Set<Table> parentTables = new HashSet<>();
+        Table current = table;
+
+        while (current != null && current.getExtend() != null && !current.getExtend().equals("")) {
+            Table parent = getTableByName(current.getExtend().trim());
+            parentTables.add(parent);
+            current = parent;
+        }
+        return parentTables;
+    }
+
+    private Table getTableByName(String tableName) {
+        Table tableByName = this.elideTableConfig.getTables().stream().filter(
+                table -> table.getName().equals(tableName)).findFirst().orElse(null);
+
+        if (tableByName != null) {
+            return tableByName;
+        }
+        throw new IllegalStateException("Table " + tableName + " is not defined in Dynamic Config.");
     }
 
     /**
