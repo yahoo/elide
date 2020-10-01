@@ -249,7 +249,7 @@ public class QueryRunner {
 
             String operationName = extractOperation(jsonDocument);
 
-            if (!(operationName == null)) {
+            if (operationName != null) {
                 executionInput.operationName(operationName);
             }
 
