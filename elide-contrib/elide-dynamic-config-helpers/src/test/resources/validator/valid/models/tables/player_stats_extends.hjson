@@ -29,7 +29,7 @@
            definition : create_on
            grain:
             {
-             type :  YEAR
+             type :  SIMPLEDATE
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
@@ -43,7 +43,7 @@
             {
              type :  YEAR
              sql :  '''
-             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy')
+             PARSEDATETIME(FORMATDATETIME(createdOn, 'yyyy-MM-dd'), 'yyyy')
              '''
             }
          },

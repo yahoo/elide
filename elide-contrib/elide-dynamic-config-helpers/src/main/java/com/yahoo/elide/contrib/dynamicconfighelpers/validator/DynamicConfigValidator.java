@@ -143,11 +143,11 @@ public class DynamicConfigValidator {
             });
         });
 
-        for (Measure measure : table.getMeasures()) {
+        table.getMeasures().forEach(measure -> {
             if (parentClassMeasures.contains(measure.getName())) {
                 measure.setOverride(true);
             }
-        }
+        });
     }
 
     private void flagDimensionsToOverride(Table table, Set<Table> parentTables) {
@@ -158,18 +158,19 @@ public class DynamicConfigValidator {
             });
         });
 
-        for (Dimension dimension : table.getDimensions()) {
+        table.getDimensions().forEach(dimension -> {
             if (parentClassDimensions.contains(dimension.getName())) {
                 dimension.setOverride(true);
             }
-        }
+        });
     }
 
     private Set<Table> getParents(Table table) {
         Set<Table> parentTables = new HashSet<>();
         Table current = table;
-        while (current != null && !current.getExtend().equals("")) {
-            Table parent = getTableByName(current.getExtend());
+
+        while (current != null && current.getExtend() != null && !current.getExtend().equals("")) {
+            Table parent = getTableByName(current.getExtend().trim());
             parentTables.add(parent);
             current = parent;
         }
@@ -177,15 +178,13 @@ public class DynamicConfigValidator {
     }
 
     private Table getTableByName(String tableName) {
-        for (Table table : this.elideTableConfig.getTables()) {
-            if (table.getName().equals(tableName)) {
-                return table;
-            }
-            else {
-                throw new IllegalStateException("Table " + tableName + " is not defined in Dynamic Config.");
-            }
+        Table tableByName = this.elideTableConfig.getTables().stream().filter(
+                table -> table.getName().equals(tableName)).findFirst().orElse(null);
+
+        if (tableByName != null) {
+            return tableByName;
         }
-        return null;
+        throw new IllegalStateException("Table " + tableName + " is not defined in Dynamic Config.");
     }
 
     /**
