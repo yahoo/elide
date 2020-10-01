@@ -116,14 +116,24 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         for (String reference : resolveFormulaReferences(column.getExpression())) {
             String resolvedReference;
 
+            //The reference is a join to another logical column.
             if (reference.contains(".")) {
                 resolvedReference = visitTableJoinToReference(tableClass, reference);
             } else {
                 Column referenceColumn = getColumn(tableClass, reference);
 
-                resolvedReference = referenceColumn == null
-                        ? visitPhysicalReference(reference)
-                        : visitColumn(referenceColumn);
+                //There is no logical column with this name, it must be a physical reference
+                if (referenceColumn == null) {
+                    resolvedReference = visitPhysicalReference(reference);
+
+                //If the reference matches the column name - it means the logical and physical
+                //columns have the same name.  Treat it like a physical column.
+                } else if (reference.equals(referenceColumn.getName())) {
+                    resolvedReference = visitPhysicalReference(reference);
+                //A reference to another logical column.
+                } else {
+                    resolvedReference = visitColumn(referenceColumn);
+                }
             }
 
             expr = expr.replace(toFormulaReference(reference), resolvedReference);
