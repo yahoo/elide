@@ -27,39 +27,39 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SqlReferenceVisitorTest {
 
-    MetaDataStore store;
+    private MetaDataStore store;
 
     @FromTable(name = "test_table")
     @Include
     public class TestModel {
         @Id
-        long id;
+        private long id;
 
         @Join("%from.dimension1 = %join.dimension1")
-        JoinModel joinModel;
+        private JoinModel joinModel;
 
         //Logical name matches physical name
         @DimensionFormula("{{dimension1}}")
-        String dimension1;
+        private String dimension1;
 
         //Logical name does not match physical name
         @DimensionFormula("{{someColumn}}")
-        String dimension2;
+        private String dimension2;
 
         //Test a join to another table with a matching column name.
         @DimensionFormula("{{joinModel.dimension3}}")
-        String dimension3;
+        private String dimension3;
     }
 
     @FromTable(name = "join_model")
     @Include
     public class JoinModel {
         @Id
-        long id;
+        private long id;
 
         //Logical name matches physical name
         @DimensionFormula("{{dimension3}}")
-        String dimension3;
+        private String dimension3;
     }
 
     @BeforeAll
