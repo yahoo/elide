@@ -128,7 +128,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
                 //If the reference matches the column name - it means the logical and physical
                 //columns have the same name.  Treat it like a physical column.
-                } else if (reference.equals(referenceColumn.getName())) {
+                } else if (reference.equals(column.getName())) {
                     resolvedReference = visitPhysicalReference(reference);
                 //A reference to another logical column.
                 } else {

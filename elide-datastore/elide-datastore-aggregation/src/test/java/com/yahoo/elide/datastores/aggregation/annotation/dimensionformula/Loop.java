@@ -14,6 +14,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
+import javax.persistence.Id;
+
 @Include
 @Cardinality(size = CardinalitySize.LARGE)
 @EqualsAndHashCode
@@ -23,12 +25,25 @@ public class Loop {
     @Setter
     private String id;
 
+    @Id
+    public String getId() {
+        return id;
+    }
+
     // degenerated dimension using sql expression
     @Setter
-    private int playerLevel;
+    private int playerLevel1;
 
-    @DimensionFormula("CASE WHEN {{playerLevel}} = 'Good' THEN 1 ELSE 2 END")
-    public int getPlayerLevel() {
-        return playerLevel;
+    @Setter
+    private int playerLevel2;
+
+    @DimensionFormula("CASE WHEN {{playerLevel2}} = 'Good' THEN 1 ELSE 2 END")
+    public int getPlayerLevel1() {
+        return playerLevel1;
+    }
+
+    @DimensionFormula("CASE WHEN {{playerLevel1}} = 'Good' THEN 1 ELSE 2 END")
+    public int getPlayerLevel2() {
+        return playerLevel2;
     }
 }
