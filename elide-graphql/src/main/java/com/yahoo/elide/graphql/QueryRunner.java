@@ -97,8 +97,19 @@ public class QueryRunner {
     }
 
     /**
+     * Check if a query string is mutation.
+     * @param query The graphQL Query to verify.
+     * @return is a mutation.
+     */
+    public static boolean isMutation(String query) {
+        return query != null ? query.trim().startsWith(MUTATION) : false;
+    }
+
+    /**
      * Extracts the top level JsonNode from GraphQL document.
-     * @return graphQLDocument The graphQL document submitted.
+     * @param mapper ObjectMapper instance.
+     * @param graphQLDocument The graphQL document (wrapped in JSON payload).
+     * @return The JsonNode after parsing graphQLDocument.
      * @throws IOException IOException
      */
     public static JsonNode getTopLevelNode(ObjectMapper mapper, String graphQLDocument) throws IOException {
@@ -176,6 +187,7 @@ public class QueryRunner {
 
     /**
      * Extracts the variables for the query from Json Node.
+     * @param mapper ObjectMapper instance.
      * @param jsonDocument The JsonNode object.
      * @return variables to pass.
      */
@@ -187,6 +199,19 @@ public class QueryRunner {
         }
 
         return variables;
+    }
+
+    /**
+     * Extracts the operation name from Json Node.
+     * @param jsonDocument The JsonNode object.
+     * @return variables to pass.
+     */
+    public static String extractOperation(JsonNode jsonDocument) {
+        if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
+            return jsonDocument.get(OPERATION_NAME).asText();
+        }
+
+        return null;
     }
 
     private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
@@ -222,8 +247,10 @@ public class QueryRunner {
                     .context(requestScope)
                     .query(query);
 
-            if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
-                executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
+            String operationName = extractOperation(jsonDocument);
+
+            if (!(operationName == null)) {
+                executionInput.operationName(operationName);
             }
 
             executionInput.variables(variables);
@@ -233,7 +260,7 @@ public class QueryRunner {
             tx.preCommit();
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            if (query.trim().startsWith(MUTATION)) {
+            if (isMutation(query)) {
                 if (!result.getErrors().isEmpty()) {
                     HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
                         {

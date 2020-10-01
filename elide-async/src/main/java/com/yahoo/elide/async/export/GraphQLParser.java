@@ -28,8 +28,7 @@ public class GraphQLParser implements TableExportParser {
 
     private Elide elide;
     private String apiVersion;
-    //private GraphQLEntityProjectionMaker projectionMaker;
-    
+
     public GraphQLParser(Elide elide, String apiVersion) {
         this.elide = elide;
         this.apiVersion = apiVersion;
@@ -41,27 +40,24 @@ public class GraphQLParser implements TableExportParser {
         try {
             String graphQLDocument = query.getQuery();
             ObjectMapper mapper = elide.getMapper().getObjectMapper();
-            
+
             JsonNode node = QueryRunner.getTopLevelNode(mapper, graphQLDocument);
             Map<String, Object> variables = QueryRunner.extractVariables(mapper, node);
             String queryString = QueryRunner.extractQuery(node);
-            //TODO extractOperation;
-            //TODO isMutation;
-            
+
             GraphQLProjectionInfo projectionInfo =
                     new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion)
                         .make(queryString);
-            
+
             Optional<Entry<String, EntityProjection>> optionalEntry =
                     projectionInfo.getProjections().entrySet().stream().findFirst();
-            
+
             projection = optionalEntry.isPresent() ? optionalEntry.get().getValue() : null;
 
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-        
+
         return projection;
     }
-
 }
