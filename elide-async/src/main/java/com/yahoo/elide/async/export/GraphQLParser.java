@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.export;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.export.validator.Validator;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * GraphQL specific implementation of TableExportParser.
@@ -28,10 +30,12 @@ public class GraphQLParser implements TableExportParser {
 
     private Elide elide;
     private String apiVersion;
+    private Set<Validator> validators;
 
     public GraphQLParser(Elide elide, String apiVersion) {
         this.elide = elide;
         this.apiVersion = apiVersion;
+        //TODO Initialize static list of validators for GraphqlParser
     }
 
     @Override
