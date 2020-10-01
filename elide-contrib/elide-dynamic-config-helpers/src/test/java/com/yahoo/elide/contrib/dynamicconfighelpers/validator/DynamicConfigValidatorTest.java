@@ -7,6 +7,7 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -68,14 +69,18 @@ public class DynamicConfigValidatorTest {
                 for (Measure m : t.getMeasures()) {
                     if (m.getName().equals("highScore")) {
                         assertTrue(m.isOverride());
-                        break;
+                    }
+                    if (m.getName().equals("AvgScore")) {
+                        assertFalse(m.isOverride());
                     }
                 }
                 // test override flag for dimensions
                 for (Dimension dim : t.getDimensions()) {
                     if (dim.getName().equals("createdOn")) {
                         assertTrue(dim.isOverride());
-                        break;
+                    }
+                    if (dim.getName().equals("updatedMonth")) {
+                        assertFalse(dim.isOverride());
                     }
                 }
                 break;
