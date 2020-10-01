@@ -70,7 +70,7 @@ public class DynamicConfigValidatorTest {
                     if (m.getName().equals("highScore")) {
                         assertTrue(m.isOverride());
                     }
-                    if (m.getName().equals("AvgScore")) {
+                    else if (m.getName().equals("AvgScore")) {
                         assertFalse(m.isOverride());
                     }
                 }
@@ -79,7 +79,7 @@ public class DynamicConfigValidatorTest {
                     if (dim.getName().equals("createdOn")) {
                         assertTrue(dim.isOverride());
                     }
-                    if (dim.getName().equals("updatedMonth")) {
+                    else if (dim.getName().equals("updatedMonth")) {
                         assertFalse(dim.isOverride());
                     }
                 }
