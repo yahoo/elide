@@ -135,7 +135,7 @@ public class PlayerStats {
         this.highScore = highScore;
     }
 
-    @MetricFormula(value = "highScore")
+    @MetricFormula(value = "{{highScore}}")
     @ColumnMeta(description = "highScore with no aggregation")
     public long getHighScoreNoAgg() {
         return highScore;
