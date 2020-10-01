@@ -1,0 +1,95 @@
+{
+  tables:
+  [
+    {
+      name: OrderDetails
+      table: OrderDetails
+      dbConnectionName: SalesDBConnection
+      cardinality: large
+      readAccess: Principal is guest user
+      joins:
+      [
+        {
+          name: customerDetails
+          to: CustomerDetails
+          type: toOne
+          definition: %join.id = %from.customerId
+        }
+      ]
+      measures:
+      [
+        {
+          name: orderTotal
+          type: DECIMAL
+          definition: 'SUM({{orderTotal}})'
+          readAccess: Principal is admin
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: orderId
+          type: TEXT
+          definition: '{{orderId}}'
+          readAccess: Principal is guest user
+        }
+        {
+          name: customerRegion
+          type: TEXT
+          definition: '{{customerDetails.region}}'
+          readAccess: Principal is operator
+        }
+        {
+          name: orderDate
+          type: TIME
+          definition: '{{createdOn}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: SIMPLEDATE
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+          }
+        }
+        {
+          name: orderMonth
+          type: TIME
+          definition: '{{createdOn}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: YEARMONTH
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+          }
+        }
+        {
+          name: orderTime
+          type: TIME
+          definition: '{{createdOn}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: DATETIME
+            // sql: '{{}}' OR
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
+          }
+        }
+      ]
+    }
+    {
+      name: CustomerDetails
+      table: CustomerDetails
+      dbConnectionName: SalesDBConnection
+      cardinality: small
+      readAccess: Principal is guest user
+      dimensions:
+      [
+        {
+          name: region
+          type: TEXT
+          definition: '{{region}}'
+          readAccess: Principal is guest user
+        }
+      ]
+    }
+  ]
+}

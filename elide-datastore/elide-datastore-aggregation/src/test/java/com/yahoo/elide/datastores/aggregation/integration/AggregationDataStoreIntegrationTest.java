@@ -73,19 +73,14 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
 
-        ElideDynamicEntityCompiler compiler;
-        try {
-            compiler = new ElideDynamicEntityCompiler("src/test/resources/configs", getDBPasswordExtractor());
-            // Add connection details fetched from hjson
-            connectionDetailsMap.putAll(compiler.getConnectionDetailsMap());
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        ElideDynamicEntityCompiler compiler = getCompiler("src/test/resources/configs");
+        // Add connection details fetched from hjson
+        connectionDetailsMap.putAll(compiler.getConnectionDetailsMap());
 
         return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, compiler);
     }
 
-    private DBPasswordExtractor getDBPasswordExtractor() {
+    private static DBPasswordExtractor getDBPasswordExtractor() {
         return new DBPasswordExtractor() {
             @Override
             public String getDBPassword(DBConfig config) {
@@ -98,6 +93,14 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 }
             }
         };
+    }
+
+    public static ElideDynamicEntityCompiler getCompiler(String path) {
+        try {
+            return new ElideDynamicEntityCompiler(path, getDBPasswordExtractor());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Test
