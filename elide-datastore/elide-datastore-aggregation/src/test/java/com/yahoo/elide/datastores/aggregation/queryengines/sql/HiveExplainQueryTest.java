@@ -44,10 +44,9 @@ public class HiveExplainQueryTest extends SQLUnitTest {
         Query query = TestQuery.WHERE_METRICS_ONLY.getQuery();
         List<FilterPredicate.FilterParameter> params = ((FilterPredicate) query.getWhereFilter()).getParameters();
         String expectedQueryStr =
-                "SELECT highScore AS highScoreNoAgg,"
-                        + "MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore "
+                "SELECT MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "WHERE highScore > "
+                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > "
                         + params.get(0).getPlaceholder();
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
@@ -277,7 +276,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country "
                         + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = "
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
-                        + "WHERE highScore > " + whereParams.get(0).getPlaceholder() + " "
+                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > " + whereParams.get(0).getPlaceholder() + " "
                         + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code "
                         + "IN (" + havingParams.get(0).getPlaceholder() + ")";
         String expectedQueryStr2 =
@@ -290,13 +289,13 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country "
                         + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = "
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
-                        + "WHERE highScore > " + whereParams.get(0).getPlaceholder() + " "
+                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > " + whereParams.get(0).getPlaceholder() + " "
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
                         + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code "
                         + "IN (" + havingParams.get(0).getPlaceholder() + ") "
-                        + "ORDER BY highScore DESC LIMIT 10,5";
+                        + "ORDER BY MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) DESC LIMIT 10,5";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
