@@ -97,6 +97,26 @@ public class QueryRunner {
     }
 
     /**
+     * Check if a query string is mutation.
+     * @param query The graphQL Query to verify.
+     * @return is a mutation.
+     */
+    public static boolean isMutation(String query) {
+        return query != null ? query.trim().startsWith(MUTATION) : false;
+    }
+
+    /**
+     * Extracts the top level JsonNode from GraphQL document.
+     * @param mapper ObjectMapper instance.
+     * @param graphQLDocument The graphQL document (wrapped in JSON payload).
+     * @return The JsonNode after parsing graphQLDocument.
+     * @throws IOException IOException
+     */
+    public static JsonNode getTopLevelNode(ObjectMapper mapper, String graphQLDocument) throws IOException {
+        return mapper.readTree(graphQLDocument);
+    }
+
+    /**
      * Execute a GraphQL query and return the response.
      * @param graphQLDocument The graphQL document (wrapped in JSON payload).
      * @param user The user who issued the query.
@@ -109,7 +129,7 @@ public class QueryRunner {
         JsonNode topLevel;
 
         try {
-            topLevel = mapper.readTree(graphQLDocument);
+            topLevel = getTopLevelNode(mapper, graphQLDocument);
         } catch (IOException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             // NOTE: Can't get at isVerbose setting here for hardcoding to false. If necessary, we can refactor
@@ -156,6 +176,44 @@ public class QueryRunner {
         return executeRequest.apply(topLevel);
     }
 
+    /**
+     * Extracts the executable query from Json Node.
+     * @param jsonDocument The JsonNode object.
+     * @return query to execute.
+     */
+    public static String extractQuery(JsonNode jsonDocument) {
+        return jsonDocument.has(QUERY) ? jsonDocument.get(QUERY).asText() : null;
+    }
+
+    /**
+     * Extracts the variables for the query from Json Node.
+     * @param mapper ObjectMapper instance.
+     * @param jsonDocument The JsonNode object.
+     * @return variables to pass.
+     */
+    public static Map<String, Object> extractVariables(ObjectMapper mapper, JsonNode jsonDocument) {
+        // get variables from request for constructing entityProjections
+        Map<String, Object> variables = new HashMap<>();
+        if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
+            variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
+        }
+
+        return variables;
+    }
+
+    /**
+     * Extracts the operation name from Json Node.
+     * @param jsonDocument The JsonNode object.
+     * @return variables to pass.
+     */
+    public static String extractOperation(JsonNode jsonDocument) {
+        if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
+            return jsonDocument.get(OPERATION_NAME).asText();
+        }
+
+        return null;
+    }
+
     private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument, UUID requestId) {
         boolean isVerbose = false;
@@ -167,13 +225,10 @@ public class QueryRunner {
                         .body("A `query` key is required.")
                         .build();
             }
-            String query = jsonDocument.get(QUERY).asText();
+            String query = extractQuery(jsonDocument);
 
             // get variables from request for constructing entityProjections
-            Map<String, Object> variables = new HashMap<>();
-            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
-                variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
-            }
+            Map<String, Object> variables = extractVariables(mapper, jsonDocument);
 
             //TODO - get API version.
             GraphQLProjectionInfo projectionInfo =
@@ -192,8 +247,10 @@ public class QueryRunner {
                     .context(requestScope)
                     .query(query);
 
-            if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
-                executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
+            String operationName = extractOperation(jsonDocument);
+
+            if (operationName != null) {
+                executionInput.operationName(operationName);
             }
 
             executionInput.variables(variables);
@@ -203,7 +260,7 @@ public class QueryRunner {
             tx.preCommit();
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            if (query.trim().startsWith(MUTATION)) {
+            if (isMutation(query)) {
                 if (!result.getErrors().isEmpty()) {
                     HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
                         {
