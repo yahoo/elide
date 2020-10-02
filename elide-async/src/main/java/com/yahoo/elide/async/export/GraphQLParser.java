@@ -53,6 +53,7 @@ public class GraphQLParser implements TableExportParser {
                     new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion)
                         .make(queryString);
 
+            //TODO Call Validators.
             Optional<Entry<String, EntityProjection>> optionalEntry =
                     projectionInfo.getProjections().entrySet().stream().findFirst();
 
