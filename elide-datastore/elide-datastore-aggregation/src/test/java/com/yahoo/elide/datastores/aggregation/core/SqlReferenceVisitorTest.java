@@ -52,7 +52,7 @@ public class SqlReferenceVisitorTest {
         private String dimension3;
     }
 
-    @FromTable(name = "join_model")
+    @FromTable(name = "join_table")
     @Include
     public class JoinModel {
         @Id
