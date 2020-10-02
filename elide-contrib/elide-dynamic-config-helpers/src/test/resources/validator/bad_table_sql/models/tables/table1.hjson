@@ -29,7 +29,7 @@
           {
           name : highScore
           type : INTEGER
-          definition: 'MAX(score)'
+          definition: 'MAX({{score}})'
           }
       ]
       dimensions : [
@@ -41,7 +41,7 @@
          {
            name : createdOn
            type : TIME
-           definition : create_on
+           definition : '{{create_on}}'
            grain:
             {
              type :  SIMPLEDATE
